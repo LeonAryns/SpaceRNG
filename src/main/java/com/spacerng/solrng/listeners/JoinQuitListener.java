@@ -25,8 +25,11 @@ public class JoinQuitListener implements Listener {
     public void onJoin(PlayerJoinEvent event) {
         PlayerData data = plugin.getPlayerDataManager().get(event.getPlayer().getUniqueId());
 
-        // Rebuilds the prestige/level + tag prefix even if no tag is
-        // equipped, since the level badge always shows.
+        // Level/Prestige is intentionally NOT part of this — it's
+        // tab-list-only via %solrng_level%, never the join broadcast.
+        event.setJoinMessage(ChatColor.YELLOW + event.getPlayer().getName() + " joined the game");
+
+        // Rebuilds the equipped-tag team prefix (empty if none equipped).
         plugin.getTagManager().refreshPrefix(event.getPlayer(), data);
 
         if (data.getEquippedTagItemKey() != null && data.getEquippedTagRarity() != null) {
@@ -45,8 +48,10 @@ public class JoinQuitListener implements Listener {
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
+        event.setQuitMessage(ChatColor.YELLOW + event.getPlayer().getName() + " left the game");
         plugin.getRollListener().cancelRoll(event.getPlayer().getUniqueId());
         plugin.getTagManager().hideHologram(event.getPlayer().getUniqueId());
+        plugin.getTagManager().forgetPrefix(event.getPlayer().getUniqueId());
         plugin.getPlayerDataManager().unload(event.getPlayer().getUniqueId());
     }
 

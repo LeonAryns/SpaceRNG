@@ -164,6 +164,6 @@ public final class SolRNGPlugin extends JavaPlugin {
             return;
         }
         new SolRNGExpansion(this).register();
-        getLogger().info("[SolRNG] Registered PlaceholderAPI expansion (%solrng_tag%).");
+        getLogger().info("[SolRNG] Registered PlaceholderAPI expansion (%solrng_tag%, %solrng_level%).");
     }
 }

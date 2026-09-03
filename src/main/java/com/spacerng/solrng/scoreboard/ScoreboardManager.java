@@ -62,6 +62,9 @@ public class ScoreboardManager {
                 ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + "⚡ SpaceRNG ⚡");
         objective.setDisplaySlot(DisplaySlot.SIDEBAR);
         player.setScoreboard(board);
+        // A fresh personal Scoreboard has none of the tag teams other
+        // players' boards already have — backfill them all now.
+        plugin.getTagManager().syncAllTeamsTo(player);
         update(player);
     }
 
