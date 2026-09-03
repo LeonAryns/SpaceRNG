@@ -71,6 +71,12 @@ public class PlayerDataManager {
         for (String node : yml.getStringList("unlocked-nodes")) {
             data.getUnlockedNodes().add(node);
         }
+        org.bukkit.configuration.ConfigurationSection nodeLevels = yml.getConfigurationSection("node-levels");
+        if (nodeLevels != null) {
+            for (String nodeId : nodeLevels.getKeys(false)) {
+                data.setNodeLevel(nodeId, nodeLevels.getInt(nodeId));
+            }
+        }
         for (String itemName : yml.getStringList("discovered-items")) {
             data.getDiscoveredItems().add(itemName);
         }
@@ -110,6 +116,9 @@ public class PlayerDataManager {
         yml.set("roll-animation-enabled", data.isRollAnimationEnabled());
         yml.set("farm-token-multiplier", data.getFarmTokenMultiplier());
         yml.set("unlocked-nodes", new java.util.ArrayList<>(data.getUnlockedNodes()));
+        for (Map.Entry<String, Integer> entry : data.getNodeLevels().entrySet()) {
+            yml.set("node-levels." + entry.getKey(), entry.getValue());
+        }
         yml.set("discovered-items", new java.util.ArrayList<>(data.getDiscoveredItems()));
 
         java.util.List<String> rarityNames = new java.util.ArrayList<>();

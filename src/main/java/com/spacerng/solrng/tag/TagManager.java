@@ -43,25 +43,27 @@ import java.util.UUID;
  * (or similar) to place in its own tab-list-only format.
  *
  * The equipped tag also floats two extra lines above the player's head —
- * mounted as chained TextDisplay passengers (zero temporal lag — the
- * client attaches passengers to their vehicle every render frame, not
- * tick-by-tick — unlike any teleport-polling approach, which always trails
- * by at least one tick). Height is controlled purely via each display's
- * own Transformation, independent of whatever native offset the mount
- * chain computes.
+ * two TextDisplay entities mounted DIRECTLY on the player as separate
+ * passengers (zero temporal lag — the client attaches passengers to their
+ * vehicle every render frame, not tick-by-tick — unlike any teleport-
+ * polling approach, which always trails by at least one tick). Each one's
+ * own Transformation offset controls its height; a 2-level chain (one
+ * display mounted on the other) was tried first but was visibly twitchy
+ * while moving, since the second-level passenger's position depends on
+ * the first's already-interpolated position, compounding a small extra
+ * lag — mounting both directly on the player avoids that entirely.
  */
 public class TagManager {
 
     private static final String TEAM_PREFIX = "solrng_";
-    // Local Y offset (in the entity's own render space) for each display,
-    // stacked on top of the mount chain. Generous values to confidently
-    // clear the vanilla nameplate and the item name text itself.
+    // Local Y offset (in the entity's own render space) for each display.
+    // Generous values to confidently clear the vanilla nameplate.
     private static final float TOP_OFFSET = 0.70f;
     private static final float BOTTOM_OFFSET = 0.50f;
 
     private final SolRNGPlugin plugin;
-    // index 0 = bottom display (rides the player), index 1 = top display
-    // (rides the bottom display, rendering highest).
+    // index 0 = item name (top), index 1 = odds (bottom) — both direct
+    // passengers of the player.
     private final Map<UUID, TextDisplay[]> holograms = new HashMap<>();
     // Cached equipped-tag prefix text per player, so a newly-joined
     // player's fresh Scoreboard can be backfilled with everyone else's
@@ -156,18 +158,26 @@ public class TagManager {
      * (Re)builds the floating item-name/odds display above the player's
      * head. Safe to call repeatedly (e.g. on join or respawn) — always
      * tears down any previous displays first. itemNameColored renders on
-     * the BOTTOM (closer to the player), oddsText renders on TOP.
+     * TOP, oddsText renders just below it.
+     *
+     * Both displays are mounted DIRECTLY on the player (not chained onto
+     * each other) — a 2-level mount chain (player -> A -> B) was visibly
+     * twitchy while moving, since B's rendered position depends on A's own
+     * already-interpolated position, compounding a tiny extra lag on top
+     * of A. Two direct passengers each interpolate straight off the
+     * player, so both stay equally smooth; the vertical split between them
+     * comes entirely from their own Transformation offsets.
      */
     public void showHologram(Player player, String itemNameColored, String oddsText) {
         hideHologram(player);
 
-        TextDisplay bottomDisplay = spawnLine(player, itemNameColored, BOTTOM_OFFSET);
-        TextDisplay topDisplay = spawnLine(player, oddsText, TOP_OFFSET);
+        TextDisplay nameDisplay = spawnLine(player, itemNameColored, TOP_OFFSET);
+        TextDisplay oddsDisplay = spawnLine(player, oddsText, BOTTOM_OFFSET);
 
-        player.addPassenger(bottomDisplay);
-        bottomDisplay.addPassenger(topDisplay);
+        player.addPassenger(nameDisplay);
+        player.addPassenger(oddsDisplay);
 
-        holograms.put(player.getUniqueId(), new TextDisplay[]{bottomDisplay, topDisplay});
+        holograms.put(player.getUniqueId(), new TextDisplay[]{nameDisplay, oddsDisplay});
     }
 
     public void hideHologram(Player player) {

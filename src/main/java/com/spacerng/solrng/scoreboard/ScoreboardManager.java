@@ -23,12 +23,10 @@ import java.util.List;
  * each refresh (rather than being removed/re-added), so nothing duplicates
  * or lingers on screen when a value changes.
  *
- * Most lines' content is set via customName (the left-aligned "name" part
- * of a scoreboard row), with the number hidden via NumberFormat.blank() —
- * the entry itself is just an invisible unique placeholder used only to key
- * which row is being written to. The three currency lines instead use the
- * genuinely right-aligned number slot (NumberFormat.fixed()) for their
- * symbol+balance, see {@link Line}.
+ * Each line's real content is set via customName (the left-aligned "name"
+ * part of a scoreboard row), with the number hidden via NumberFormat.blank()
+ * — the entry itself is just an invisible unique placeholder used only to
+ * key which row is being written to.
  */
 public class ScoreboardManager {
 
@@ -38,6 +36,15 @@ public class ScoreboardManager {
     // around 13) so leftover entries from a longer previous frame — e.g.
     // the "Rolling... Ns" lines once a roll finishes — always get cleared.
     private static final int MAX_LINES = 20;
+    private static final String[] ROMAN_NUMERALS = {
+            "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"
+    };
+    // "Credits" is the longest currency label — Money/Tokens pad out to
+    // match it so the ":" lands in roughly the same spot on every line.
+    // Not pixel-perfect (Minecraft's default font isn't monospace) but
+    // keeps the value right next to its label instead of far off to the
+    // sidebar's edge.
+    private static final int CURRENCY_LABEL_WIDTH = "Credits".length();
 
     private final SolRNGPlugin plugin;
     private Economy economy;
@@ -75,7 +82,7 @@ public class ScoreboardManager {
         Objective objective = board.getObjective(OBJECTIVE_ID);
         if (objective == null) return; // player's on a different scoreboard right now
 
-        List<Line> lines = buildLines(player);
+        List<String> lines = buildLines(player);
         int total = lines.size();
         for (int i = 0; i < total; i++) {
             setLine(objective, i, total - i, lines.get(i));
@@ -93,54 +100,48 @@ public class ScoreboardManager {
         }
     }
 
-    private List<Line> buildLines(Player player) {
+    private List<String> buildLines(Player player) {
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         int discovered = data.getDiscoveredItems().size();
         int totalItems = plugin.getRarityManager().getItems().size();
         double luckPercent = plugin.getPrestigeManager().effectiveLuck(data) * 100.0;
 
-        List<Line> lines = new ArrayList<>();
-        lines.add(Line.of("")); // breathing room under the header
-        lines.add(Line.of(ChatColor.GOLD + "" + ChatColor.BOLD + player.getName()));
-        lines.add(Line.of("")); // breathing room under the name
-        lines.add(Line.of(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Index: " + ChatColor.AQUA + discovered + ChatColor.GRAY + "/" + ChatColor.AQUA + totalItems));
-        lines.add(Line.of(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Luck: " + ChatColor.GREEN + "+" + String.format("%.2f", luckPercent) + "%"));
-        lines.add(Line.of(ChatColor.YELLOW + "| " + prestigeLine(data)));
-        lines.add(Line.of("")); // blank spacer
-        lines.add(Line.of(ChatColor.GOLD + "" + ChatColor.BOLD + "CURRENCY"));
-        lines.add(Line.of("")); // breathing room under the title
-        // Symbol + balance goes in the genuinely right-aligned score-number
-        // slot instead of the left-aligned name text — that's the only way
-        // to get pixel-perfect alignment across "Money"/"Tokens"/"Credits",
-        // since Minecraft's default font isn't monospace and those labels
-        // are all different widths.
-        lines.add(new Line(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Money:", ChatColor.GOLD + "$ " + ChatColor.GREEN + formatMoney(player)));
-        lines.add(new Line(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Tokens:", ChatColor.AQUA + "♦ " + ChatColor.AQUA + data.getTokens()));
-        lines.add(new Line(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Credits:", ChatColor.LIGHT_PURPLE + "✦ " + ChatColor.LIGHT_PURPLE + data.getPoints()));
+        List<String> lines = new ArrayList<>();
+        lines.add(""); // breathing room under the header
+        lines.add(ChatColor.GOLD + "" + ChatColor.BOLD + player.getName());
+        lines.add(""); // breathing room under the name
+        lines.add(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Index: " + ChatColor.AQUA + discovered + ChatColor.GRAY + "/" + ChatColor.AQUA + totalItems);
+        lines.add(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Luck: " + ChatColor.GREEN + "+" + String.format("%.2f", luckPercent) + "%");
+        lines.add(ChatColor.YELLOW + "| " + prestigeLine(data));
+        lines.add(""); // blank spacer
+        lines.add(ChatColor.GOLD + "" + ChatColor.BOLD + "CURRENCY");
+        lines.add(""); // breathing room under the title
+        lines.add(currencyLine(ChatColor.GOLD, "$", "Money", ChatColor.GREEN + formatMoney(player)));
+        lines.add(currencyLine(ChatColor.AQUA, "♦", "Tokens", ChatColor.AQUA + String.valueOf(data.getTokens())));
+        lines.add(currencyLine(ChatColor.LIGHT_PURPLE, "✦", "Credits", ChatColor.LIGHT_PURPLE + String.valueOf(data.getPoints())));
 
         String rollStatus = rollStatusLine(player);
         if (rollStatus != null) {
-            lines.add(Line.of("")); // blank spacer
-            lines.add(Line.of(rollStatus));
+            lines.add(""); // blank spacer
+            lines.add(rollStatus);
         }
-        lines.add(Line.of("")); // blank spacer
-        lines.add(Line.of(ChatColor.GRAY + "SpaceRNG.Minehut.gg"));
+        lines.add(""); // blank spacer
+        lines.add(ChatColor.GRAY + "SpaceRNG.Minehut.gg");
         return lines;
     }
 
-    private static final String[] ROMAN_NUMERALS = {
-            "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"
-    };
-
+    /** Just Prestige with a star icon — Level is no longer shown on the sidebar. */
     private String prestigeLine(PlayerData data) {
-        if (data.getPrestige() <= 0) {
-            return ChatColor.WHITE + "Level: " + ChatColor.GRAY + data.getLevel();
-        }
-        String numeral = data.getPrestige() <= ROMAN_NUMERALS.length
-                ? ROMAN_NUMERALS[data.getPrestige() - 1]
-                : String.valueOf(data.getPrestige());
-        return ChatColor.WHITE + "Prestige: " + ChatColor.AQUA + numeral
-                + ChatColor.GRAY + " - " + ChatColor.WHITE + data.getLevel();
+        String numeral = data.getPrestige() <= 0 ? "0"
+                : data.getPrestige() <= ROMAN_NUMERALS.length
+                        ? ROMAN_NUMERALS[data.getPrestige() - 1]
+                        : String.valueOf(data.getPrestige());
+        return ChatColor.GOLD + "★ " + ChatColor.WHITE + "Prestige: " + ChatColor.AQUA + numeral;
+    }
+
+    private String currencyLine(ChatColor symbolColor, String symbol, String label, String coloredValue) {
+        String padded = label + " ".repeat(CURRENCY_LABEL_WIDTH - label.length());
+        return ChatColor.YELLOW + "| " + symbolColor + symbol + " " + ChatColor.WHITE + padded + ": " + coloredValue;
     }
 
     /**
@@ -161,31 +162,16 @@ public class ScoreboardManager {
     }
 
     /**
-     * A scoreboard row has two independently-positioned parts: the name
-     * (left-aligned, like a normal player name) and the score number
-     * (always right-aligned, flush to the sidebar's right edge regardless
-     * of how long the left text is). Most lines just use the left side,
-     * with the right side hidden via NumberFormat.blank(). The three
-     * currency lines put their symbol+balance in the right slot instead,
-     * so they line up in a real column no matter how long "Money"/
-     * "Tokens"/"Credits" is.
-     */
-    private record Line(String left, String right) {
-        static Line of(String left) {
-            return new Line(left, null);
-        }
-    }
-
-    /**
      * index: which slot this line occupies (0 = top). order: the raw score
-     * value controlling vertical position (higher = higher up).
+     * value controlling vertical position (higher = higher up). content:
+     * the fully-colored line text.
      */
-    private void setLine(Objective objective, int index, int order, Line line) {
+    private void setLine(Objective objective, int index, int order, String content) {
         String entry = ChatColor.RESET.toString().repeat(index + 1); // unique, invisible placeholder
         Score score = objective.getScore(entry);
         score.setScore(order);
-        Component left = line.left().isEmpty() ? Component.empty() : LEGACY.deserialize(line.left());
-        score.customName(left);
-        score.numberFormat(line.right() == null ? NumberFormat.blank() : NumberFormat.fixed(LEGACY.deserialize(line.right())));
+        Component component = content.isEmpty() ? Component.empty() : LEGACY.deserialize(content);
+        score.customName(component);
+        score.numberFormat(NumberFormat.blank());
     }
 }

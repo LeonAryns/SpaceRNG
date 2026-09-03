@@ -185,10 +185,22 @@ public class GuiListener implements Listener {
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
 
         NamespacedKey rarityKey = plugin.getRollListener().getRarityKey();
+        com.spacerng.solrng.player.SkillNode node = plugin.getSkillTreeManager().get(nodeId);
         boolean success = plugin.getSkillTreeManager().purchase(player, data, nodeId, rarityKey);
         if (success) {
-            player.sendMessage(ChatColor.GREEN + "Unlocked: " + plugin.getSkillTreeManager().get(nodeId).getDisplay());
+            if (node != null && node.getMaxLevel() > 1) {
+                player.sendMessage(ChatColor.GREEN + node.getDisplay() + " is now level "
+                        + data.getNodeLevel(nodeId) + "/" + node.getMaxLevel() + "!");
+            } else {
+                player.sendMessage(ChatColor.GREEN + "Unlocked: " + (node != null ? node.getDisplay() : nodeId));
+            }
             player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_LEVELUP, 0.6f, 1.4f);
+
+            if (nodeId.equals("farming_unlock")) {
+                player.getInventory().addItem(plugin.getFarmingManager().createBoundHoe());
+                player.sendMessage(ChatColor.GREEN + "You received a Farmer's Hoe — bound to you!");
+            }
+
             player.openInventory(SkillTreeGui.build(plugin, player)); // refresh
         } else {
             player.sendMessage(ChatColor.RED + "You can't unlock that yet.");

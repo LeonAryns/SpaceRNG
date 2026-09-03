@@ -3,7 +3,9 @@ package com.spacerng.solrng.player;
 import com.spacerng.solrng.rarity.Rarity;
 
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -18,6 +20,10 @@ public class PlayerData {
     // add to this too later.
     private double rollSpeedMultiplier = 1.0;
     private final Set<String> unlockedNodes = new HashSet<>();
+    // Current level (0 = not started) of leveled skill tree nodes, e.g.
+    // "speed_skill" -> 4 out of a maxLevel of 10. One-time nodes never
+    // appear here — they live in unlockedNodes instead.
+    private final Map<String, Integer> nodeLevels = new HashMap<>();
     // Item display names (e.g. "Fallen Star") the player has ever rolled —
     // backs /index and its per-discovery luck bonus.
     private final Set<String> discoveredItems = new HashSet<>();
@@ -109,6 +115,18 @@ public class PlayerData {
 
     public boolean hasUnlocked(String nodeId) {
         return unlockedNodes.contains(nodeId);
+    }
+
+    public Map<String, Integer> getNodeLevels() {
+        return nodeLevels;
+    }
+
+    public int getNodeLevel(String nodeId) {
+        return nodeLevels.getOrDefault(nodeId, 0);
+    }
+
+    public void setNodeLevel(String nodeId, int level) {
+        nodeLevels.put(nodeId, level);
     }
 
     public Set<String> getDiscoveredItems() {

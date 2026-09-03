@@ -17,28 +17,47 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
- * 6x9 skill tree: "Auto Roll" is the only real node right now (root, at
- * the bottom-middle) — everything else was stripped out on request so it
- * can be redesigned from scratch. Three vertical "???" placeholder
- * branches (left, middle, right — not real nodes, just visual reserved
- * slots) climb from directly above the root up to row 1, leaving row 0
- * empty. Bottom-right corner shows the player's Money balance.
+ * 6x9 skill tree. Layout (row*9+col, root at the bottom-middle):
+ * <pre>
+ * row1:  ???(10)         farming_unlock(16)
+ * row2:  luck_skill(19)  potion/armor col   armor_unlock(25)
+ * row3:  speed_skill(28)                    potion_unlock(34)
+ * row4:  37  38  39  luck_gate(40)  41  42  43   <- connector row, full width
+ * row5:                 auto_roll_root(49)
+ * </pre>
+ * The row-4 connector fills columns 1-7 solid so the three branches visibly
+ * merge into one path above the root. Everything else in the branch region
+ * not claimed by a real node is a decorative "???" placeholder — reserved
+ * for whatever gets designed later. Bottom-right corner shows Money.
  */
 public class SkillTreeGui {
 
-    // row*9 + col
-    private static final Map<String, Integer> SLOT_BY_ID = Map.of("auto_roll_root", 49);
-    // Three vertical "???" branches (left, middle, right) climbing from the
-    // row above the root (row 4) up to row 1, leaving row 0 empty as the
-    // last slot before the top of the tree.
-    private static final int[] BRANCH_COLUMNS = {1, 4, 7};
-    private static final int BRANCH_ROW_START = 1;
-    private static final int BRANCH_ROW_END = 4;
+    private static final Map<String, Integer> SLOT_BY_ID = Map.of(
+            "auto_roll_root", 49,
+            "luck_gate", 40,
+            "farming_unlock", 16,
+            "armor_unlock", 25,
+            "potion_unlock", 34,
+            "luck_skill", 19,
+            "speed_skill", 28
+    );
+
+    // Every slot that's part of the tree's visual branch structure: three
+    // vertical columns (rows 1-3) plus the row-4 connector spanning the
+    // full width between them. Anything here not claimed by a real node
+    // above renders as a decorative "???" placeholder.
+    private static final int[] BRANCH_REGION_SLOTS = {
+            10, 13, 16,
+            19, 22, 25,
+            28, 31, 34,
+            37, 38, 39, 40, 41, 42, 43
+    };
 
     private static final int STATS_SLOT = 53;
 
@@ -53,7 +72,6 @@ public class SkillTreeGui {
 
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         SkillTreeManager tree = plugin.getSkillTreeManager();
-        NamespacedKey nodeIdKey = nodeIdKey(plugin);
         NamespacedKey rarityKey = plugin.getRollListener().getRarityKey();
 
         ItemStack filler = glassFiller();
@@ -61,54 +79,63 @@ public class SkillTreeGui {
             inv.setItem(slot, filler);
         }
 
-        for (int row = BRANCH_ROW_START; row <= BRANCH_ROW_END; row++) {
-            for (int col : BRANCH_COLUMNS) {
-                inv.setItem(row * 9 + col, placeholderNode());
+        Set<Integer> realNodeSlots = new HashSet<>(SLOT_BY_ID.values());
+        for (int slot : BRANCH_REGION_SLOTS) {
+            if (!realNodeSlots.contains(slot)) {
+                inv.setItem(slot, placeholderNode());
             }
         }
 
-        for (Map.Entry<String, SkillNode> entry : orderedNodes(tree).entrySet()) {
-            SkillNode node = entry.getValue();
-            Integer slot = SLOT_BY_ID.get(node.getId());
-            if (slot == null) continue; // unknown node id — no fixed spot for it
+        for (Map.Entry<String, Integer> entry : SLOT_BY_ID.entrySet()) {
+            SkillNode node = tree.get(entry.getKey());
+            if (node == null) continue; // config doesn't define this id — leave the filler glass
 
-            boolean unlocked = data.hasUnlocked(node.getId());
             boolean reqMet = node.getRequires() == null || data.hasUnlocked(node.getRequires());
-
-            ItemStack icon;
-            if (!reqMet) {
-                icon = placeholderNode();
-            } else {
-                List<String> lore = new ArrayList<>();
-
-                if (unlocked) {
-                    lore.add(ChatColor.GREEN + "Unlocked");
-                } else {
-                    lore.add(ChatColor.GRAY + "Price:");
-                    for (Map.Entry<Rarity, Long> cost : node.getCosts().entrySet()) {
-                        String color = plugin.getRarityManager().colorFor(cost.getKey());
-                        long held = countHeld(player, rarityKey, cost.getKey());
-                        lore.add(ChatColor.GRAY + " - " + color + cost.getValue() + " " + cost.getKey().displayName()
-                                + ChatColor.DARK_GRAY + " (" + held + ")");
-                    }
-                }
-                lore.add("");
-                lore.add(describeEffect(node));
-
-                icon = new ItemStack(unlocked ? Material.LIME_DYE : Material.RED_DYE);
-                ItemMeta meta = icon.getItemMeta();
-                meta.setDisplayName((unlocked ? ChatColor.GREEN : ChatColor.RED) + node.getDisplay());
-                meta.setLore(lore);
-                meta.getPersistentDataContainer().set(nodeIdKey, PersistentDataType.STRING, node.getId());
-                icon.setItemMeta(meta);
-            }
-
-            inv.setItem(slot, icon);
+            ItemStack icon = reqMet ? buildNodeIcon(plugin, player, data, node, rarityKey) : placeholderNode();
+            inv.setItem(entry.getValue(), icon);
         }
 
         inv.setItem(STATS_SLOT, buildMoneyPanel(player));
 
         return inv;
+    }
+
+    private static ItemStack buildNodeIcon(SolRNGPlugin plugin, Player player, PlayerData data, SkillNode node, NamespacedKey rarityKey) {
+        boolean leveled = node.getMaxLevel() > 1;
+        int level = leveled ? data.getNodeLevel(node.getId()) : 0;
+        boolean maxed = leveled && level >= node.getMaxLevel();
+        boolean started = leveled ? level > 0 : data.hasUnlocked(node.getId());
+        boolean complete = leveled ? maxed : started;
+        boolean canBuyMore = !complete;
+
+        List<String> lore = new ArrayList<>();
+        if (leveled) {
+            lore.add(ChatColor.GRAY + "Level: " + ChatColor.AQUA + level + ChatColor.GRAY + "/" + node.getMaxLevel());
+        }
+        if (canBuyMore) {
+            lore.add(ChatColor.GRAY + "Price:");
+            for (Map.Entry<Rarity, Long> cost : node.getCosts().entrySet()) {
+                String color = plugin.getRarityManager().colorFor(cost.getKey());
+                long held = countHeld(player, rarityKey, cost.getKey());
+                lore.add(ChatColor.GRAY + " - " + color + cost.getValue() + " " + cost.getKey().displayName()
+                        + ChatColor.DARK_GRAY + " (" + held + ")");
+            }
+        } else {
+            lore.add(ChatColor.GREEN + (leveled ? "Maxed!" : "Unlocked"));
+        }
+        lore.add("");
+        lore.add(describeEffect(node, level));
+
+        Material material = complete ? Material.LIME_DYE : (started ? Material.YELLOW_DYE : Material.RED_DYE);
+        ChatColor nameColor = complete ? ChatColor.GREEN : (started ? ChatColor.YELLOW : ChatColor.RED);
+
+        ItemStack icon = new ItemStack(material);
+        ItemMeta meta = icon.getItemMeta();
+        meta.setDisplayName(nameColor + node.getDisplay());
+        meta.setLore(lore);
+        meta.getPersistentDataContainer().set(nodeIdKey(plugin), PersistentDataType.STRING, node.getId());
+        icon.setItemMeta(meta);
+        return icon;
     }
 
     /**
@@ -160,17 +187,27 @@ public class SkillTreeGui {
         return total;
     }
 
-    private static Map<String, SkillNode> orderedNodes(SkillTreeManager tree) {
-        return new LinkedHashMap<>(tree.getNodes());
+    private static String describeEffect(SkillNode node, int level) {
+        boolean leveled = node.getMaxLevel() > 1;
+        return switch (node.getEffect()) {
+            case LUCK -> leveled
+                    ? ChatColor.DARK_AQUA + "+" + pct(node.getValue()) + "% Luck per level "
+                        + ChatColor.GRAY + "(+" + pct(node.getValue() * level) + "% so far)"
+                    : ChatColor.DARK_AQUA + "+" + pct(node.getValue()) + "% Luck";
+            case UNLOCK_AUTO_CONVERT -> ChatColor.DARK_AQUA + "Unlocks auto-convert toggles in /convert";
+            case UNLOCK_FARMING -> ChatColor.DARK_AQUA + "Unlocks farming crops for Tokens";
+            case UNLOCK_ARMOR -> ChatColor.DARK_AQUA + "Unlocks the /armor shop";
+            case UNLOCK_POTION -> ChatColor.DARK_AQUA + "Unlocks the Potion system (coming soon)";
+            case AUTO_ROLL -> ChatColor.DARK_AQUA + "Auto-rolls every " + (int) node.getValue() + "s";
+            case ROLL_SPEED -> leveled
+                    ? ChatColor.DARK_AQUA + "+" + pct(node.getValue()) + "% Roll Speed per level "
+                        + ChatColor.GRAY + "(+" + pct(node.getValue() * level) + "% so far)"
+                    : ChatColor.DARK_AQUA + "+" + node.getValue() + " roll speed";
+            case BONUS_ROLL_CHANCE -> ChatColor.DARK_AQUA + "+" + pct(node.getValue()) + "% chance for a free bonus roll";
+        };
     }
 
-    private static String describeEffect(SkillNode node) {
-        return switch (node.getEffect()) {
-            case LUCK -> ChatColor.DARK_AQUA + "+" + (int) Math.round(node.getValue() * 100) + "% Luck";
-            case UNLOCK_AUTO_CONVERT -> ChatColor.DARK_AQUA + "Unlocks auto-convert toggles in /convert";
-            case AUTO_ROLL -> ChatColor.DARK_AQUA + "Auto-rolls every " + (int) node.getValue() + "s";
-            case ROLL_SPEED -> ChatColor.DARK_AQUA + "+" + node.getValue() + " roll speed";
-            case BONUS_ROLL_CHANCE -> ChatColor.DARK_AQUA + "+" + (int) (node.getValue() * 100) + "% chance for a free bonus roll";
-        };
+    private static int pct(double fraction) {
+        return (int) Math.round(fraction * 100);
     }
 }

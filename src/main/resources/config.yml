@@ -20,15 +20,15 @@ farming:
   regrow-seconds: 3
   crops:
     WHEAT:
-      tokens: 1
+      tokens: 100
     CARROTS:
-      tokens: 1
+      tokens: 100
     POTATOES:
-      tokens: 1
+      tokens: 100
     BEETROOTS:
-      tokens: 2
+      tokens: 150
     NETHER_WART:
-      tokens: 2
+      tokens: 150
 
 # Levels are earned by rolling; prestiging resets your level for a
 # permanent Luck *multiplier* (applied on top of every other Luck source).
@@ -713,11 +713,6 @@ skilltree:
   # Credits — Credits are the real-money store currency, not something
   # free gameplay should be able to spend on progression.
   nodes:
-    # Root — the only real node for now. Everything else was stripped out
-    # per request (you're redesigning the tree yourself); the empty slots
-    # around this in the GUI are just visual placeholders, not real nodes.
-    # Reuse LUCK / ROLL_SPEED / BONUS_ROLL_CHANCE / UNLOCK_AUTO_CONVERT as
-    # the effect for whatever you add back.
     auto_roll_root:
       display: "Auto Roll"
       costs:
@@ -725,6 +720,57 @@ skilltree:
       requires: ""
       effect: AUTO_ROLL
       value: 10
+
+    # Directly above the root — gates the Farming/Armor/Potion chain on
+    # the right branch and the Speed/Luck leveled skills on the left.
+    luck_gate:
+      display: "Luck"
+      costs:
+        COMMON: 50
+      requires: "auto_roll_root"
+      effect: LUCK
+      value: 0.02
+
+    # Right branch, bottom to top: Farming -> Armor -> Potion.
+    farming_unlock:
+      display: "Farming Unlocked"
+      costs:
+        UNCOMMON: 20
+      requires: "luck_gate"
+      effect: UNLOCK_FARMING
+      value: 0
+    armor_unlock:
+      display: "Armor Unlocked"
+      costs:
+        UNCOMMON: 50
+      requires: "farming_unlock"
+      effect: UNLOCK_ARMOR
+      value: 0
+    potion_unlock:
+      display: "Potion Unlocked"
+      costs:
+        RARE: 15
+      requires: "armor_unlock"
+      effect: UNLOCK_POTION
+      value: 0
+
+    # Left branch — leveled nodes, same cost paid per level.
+    speed_skill:
+      display: "Speed"
+      costs:
+        COMMON: 15
+      requires: "luck_gate"
+      effect: ROLL_SPEED
+      value: 0.02
+      max-level: 10
+    luck_skill:
+      display: "Luck"
+      costs:
+        COMMON: 15
+      requires: "luck_gate"
+      effect: LUCK
+      value: 0.05
+      max-level: 10
 
 # Rolls of this rarity or higher get broadcast to the whole server.
 broadcast:

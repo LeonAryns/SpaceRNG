@@ -80,7 +80,10 @@ public class TagCommand implements CommandExecutor {
 
         RollableItem rollable = plugin.getRarityManager().findByDisplayName(rollName);
         if (rollable != null) {
-            plugin.getTagManager().showHologram(player, color + rollName,
+            // Natural material color, same as the item's own in-inventory
+            // name — not the rarity color, so the hologram visually
+            // matches the item itself.
+            plugin.getTagManager().showHologram(player, RollFormat.naturalColor(rollable.getMaterial()) + rollName,
                     ChatColor.GRAY + "Odds: " + ChatColor.WHITE + RollFormat.compactOdds(rollable.getOdds()));
         }
 

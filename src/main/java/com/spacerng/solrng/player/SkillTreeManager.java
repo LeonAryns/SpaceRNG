@@ -35,6 +35,7 @@ public class SkillTreeManager {
                 String requires = n.getString("requires", "");
                 SkillNode.Effect effect = SkillNode.Effect.valueOf(n.getString("effect", "LUCK").toUpperCase());
                 double value = n.getDouble("value", 0.0);
+                int maxLevel = n.getInt("max-level", 1);
 
                 Map<Rarity, Long> costs = new EnumMap<>(Rarity.class);
                 ConfigurationSection costsSection = n.getConfigurationSection("costs");
@@ -45,7 +46,7 @@ public class SkillTreeManager {
                     }
                 }
 
-                nodes.put(id, new SkillNode(id, display, costs, requires, effect, value));
+                nodes.put(id, new SkillNode(id, display, costs, requires, effect, value, maxLevel));
             } catch (Exception ex) {
                 logger.warning("[SolRNG] Skipped malformed skill node '" + id + "': " + ex.getMessage());
             }
@@ -78,13 +79,23 @@ public class SkillTreeManager {
 
     /**
      * Attempts to purchase a node, paying with rolled drops taken straight
-     * out of the player's inventory. Returns true on success.
+     * out of the player's inventory. For a leveled node (maxLevel > 1) this
+     * buys the NEXT level (same cost each time) instead of a one-time
+     * unlock. Returns true on success.
      */
     public boolean purchase(Player player, PlayerData data, String nodeId, NamespacedKey rarityKey) {
         SkillNode node = nodes.get(nodeId);
         if (node == null) return false;
-        if (data.hasUnlocked(nodeId)) return false;
-        if (node.getRequires() != null && !data.hasUnlocked(node.getRequires())) return false;
+
+        boolean firstPurchase = node.getMaxLevel() > 1
+                ? data.getNodeLevel(nodeId) == 0
+                : !data.hasUnlocked(nodeId);
+        if (node.getMaxLevel() > 1) {
+            if (data.getNodeLevel(nodeId) >= node.getMaxLevel()) return false;
+        } else if (data.hasUnlocked(nodeId)) {
+            return false;
+        }
+        if (firstPurchase && node.getRequires() != null && !data.hasUnlocked(node.getRequires())) return false;
         if (!canAfford(player, node, rarityKey)) return false;
 
         for (Map.Entry<Rarity, Long> cost : node.getCosts().entrySet()) {
@@ -92,11 +103,16 @@ public class SkillTreeManager {
             data.addConverted(cost.getKey(), cost.getValue());
         }
 
-        data.getUnlockedNodes().add(nodeId);
+        if (node.getMaxLevel() > 1) {
+            data.setNodeLevel(nodeId, data.getNodeLevel(nodeId) + 1);
+        } else {
+            data.getUnlockedNodes().add(nodeId);
+        }
+
         switch (node.getEffect()) {
             case LUCK -> data.addBonusLuck(node.getValue());
             case AUTO_ROLL -> data.setAutoRollIntervalSeconds((int) node.getValue());
-            case UNLOCK_AUTO_CONVERT -> { /* just gates the /convert auto-toggle UI, nothing to set here */ }
+            case UNLOCK_AUTO_CONVERT, UNLOCK_FARMING, UNLOCK_ARMOR, UNLOCK_POTION -> { /* gate flags only — checked via data.hasUnlocked() elsewhere */ }
             case ROLL_SPEED -> data.setRollSpeedMultiplier(data.getRollSpeedMultiplier() + node.getValue());
             case BONUS_ROLL_CHANCE -> data.addBonusRollChance(node.getValue());
         }
