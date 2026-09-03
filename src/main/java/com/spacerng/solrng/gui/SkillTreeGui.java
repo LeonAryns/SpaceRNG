@@ -24,18 +24,21 @@ import java.util.Map;
 /**
  * 6x9 skill tree: "Auto Roll" is the only real node right now (root, at
  * the bottom-middle) — everything else was stripped out on request so it
- * can be redesigned from scratch. The row directly above the root is
- * filled with decorative "???" placeholders (not real nodes, just visual
- * reserved slots) connecting left and right of center. Bottom-right
- * corner shows the player's Money balance.
+ * can be redesigned from scratch. Three vertical "???" placeholder
+ * branches (left, middle, right — not real nodes, just visual reserved
+ * slots) climb from directly above the root up to row 1, leaving row 0
+ * empty. Bottom-right corner shows the player's Money balance.
  */
 public class SkillTreeGui {
 
     // row*9 + col
     private static final Map<String, Integer> SLOT_BY_ID = Map.of("auto_roll_root", 49);
-    // Row directly above the root (row 4), spanning the full width.
-    private static final int PLACEHOLDER_ROW_START = 36;
-    private static final int PLACEHOLDER_ROW_END = 44;
+    // Three vertical "???" branches (left, middle, right) climbing from the
+    // row above the root (row 4) up to row 1, leaving row 0 empty as the
+    // last slot before the top of the tree.
+    private static final int[] BRANCH_COLUMNS = {1, 4, 7};
+    private static final int BRANCH_ROW_START = 1;
+    private static final int BRANCH_ROW_END = 4;
 
     private static final int STATS_SLOT = 53;
 
@@ -58,8 +61,10 @@ public class SkillTreeGui {
             inv.setItem(slot, filler);
         }
 
-        for (int slot = PLACEHOLDER_ROW_START; slot <= PLACEHOLDER_ROW_END; slot++) {
-            inv.setItem(slot, placeholderNode());
+        for (int row = BRANCH_ROW_START; row <= BRANCH_ROW_END; row++) {
+            for (int col : BRANCH_COLUMNS) {
+                inv.setItem(row * 9 + col, placeholderNode());
+            }
         }
 
         for (Map.Entry<String, SkillNode> entry : orderedNodes(tree).entrySet()) {
@@ -75,7 +80,6 @@ public class SkillTreeGui {
                 icon = placeholderNode();
             } else {
                 List<String> lore = new ArrayList<>();
-                boolean canAfford = tree.canAfford(player, node, rarityKey);
 
                 if (unlocked) {
                     lore.add(ChatColor.GREEN + "Unlocked");
@@ -87,7 +91,6 @@ public class SkillTreeGui {
                         lore.add(ChatColor.GRAY + " - " + color + cost.getValue() + " " + cost.getKey().displayName()
                                 + ChatColor.DARK_GRAY + " (" + held + ")");
                     }
-                    lore.add(canAfford ? ChatColor.GREEN + "Click to unlock!" : ChatColor.RED + "Not enough drops");
                 }
                 lore.add("");
                 lore.add(describeEffect(node));
@@ -142,7 +145,7 @@ public class SkillTreeGui {
     private static String formatMoney(Player player) {
         var registration = Bukkit.getServicesManager().getRegistration(Economy.class);
         if (registration == null) return "N/A";
-        return String.format("%.0f", registration.getProvider().getBalance(player));
+        return "$" + String.format("%.0f", registration.getProvider().getBalance(player));
     }
 
     private static long countHeld(Player player, NamespacedKey rarityKey, Rarity rarity) {

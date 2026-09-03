@@ -82,7 +82,6 @@ public class ArmorGui {
     private static ItemStack buildPieceIcon(SolRNGPlugin plugin, Player player, PlayerData data, ArmorManager armor,
                                              ArmorTier tier, Material pieceMaterial, NamespacedKey rarityKey, NamespacedKey tierIdKey) {
         boolean owned = data.hasPurchasedArmor(tier.getId());
-        boolean canAfford = armor.canAfford(player, tier, rarityKey);
 
         ItemStack icon = new ItemStack(pieceMaterial);
         ItemMeta meta = icon.getItemMeta();
@@ -102,7 +101,6 @@ public class ArmorGui {
                 lore.add(ChatColor.GRAY + " - " + color + cost.getValue() + " " + cost.getKey().displayName()
                         + ChatColor.DARK_GRAY + " (" + held + ")");
             }
-            lore.add(canAfford ? ChatColor.GREEN + "Click to buy!" : ChatColor.RED + "Not enough drops");
         }
         meta.setLore(lore);
         meta.getPersistentDataContainer().set(tierIdKey, PersistentDataType.STRING, tier.getId());
