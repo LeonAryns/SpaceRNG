@@ -59,7 +59,7 @@ public class ScoreboardManager {
     public void setup(Player player) {
         Scoreboard board = Bukkit.getScoreboardManager().getNewScoreboard();
         Objective objective = board.registerNewObjective(OBJECTIVE_ID, "dummy",
-                ChatColor.GOLD + "" + ChatColor.BOLD + "⚡ SpaceRNG ⚡");
+                ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + "⚡ SpaceRNG ⚡");
         objective.setDisplaySlot(DisplaySlot.SIDEBAR);
         player.setScoreboard(board);
         update(player);
@@ -95,9 +95,9 @@ public class ScoreboardManager {
         double luckPercent = plugin.getPrestigeManager().effectiveLuck(data) * 100.0;
 
         List<String> content = new ArrayList<>();
-        content.add(ChatColor.YELLOW + "| " + prestigeLine(data));
         content.add(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Index: " + ChatColor.AQUA + discovered + ChatColor.GRAY + "/" + ChatColor.AQUA + totalItems);
         content.add(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Luck: " + ChatColor.GREEN + "+" + String.format("%.2f", luckPercent) + "%");
+        content.add(ChatColor.YELLOW + "| " + prestigeLine(data));
         content.add(ChatColor.YELLOW + "| " + ChatColor.GOLD + "$ " + ChatColor.WHITE + "Money: " + ChatColor.GREEN + formatMoney(player));
         content.add(ChatColor.YELLOW + "| " + ChatColor.AQUA + "♦ " + ChatColor.WHITE + "Tokens: " + ChatColor.AQUA + data.getTokens());
         content.add(ChatColor.YELLOW + "| " + ChatColor.LIGHT_PURPLE + "✦ " + ChatColor.WHITE + "Credits: " + ChatColor.LIGHT_PURPLE + data.getPoints());
@@ -110,7 +110,7 @@ public class ScoreboardManager {
         lines.add(content.get(1));
         lines.add(content.get(2));
         lines.add(""); // blank spacer
-        lines.add(ChatColor.GOLD + "" + ChatColor.BOLD + "YOUR WALLET");
+        lines.add(ChatColor.GOLD + "" + ChatColor.BOLD + "CURRENCY");
         lines.add(""); // breathing room under the title
         lines.add(content.get(3));
         lines.add(content.get(4));

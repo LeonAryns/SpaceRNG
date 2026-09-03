@@ -8,6 +8,8 @@ import com.spacerng.solrng.gui.ConvertGui;
 import com.spacerng.solrng.gui.ConvertHolder;
 import com.spacerng.solrng.gui.IndexGui;
 import com.spacerng.solrng.gui.IndexHolder;
+import com.spacerng.solrng.gui.OptionsGui;
+import com.spacerng.solrng.gui.OptionsHolder;
 import com.spacerng.solrng.gui.PrestigeGui;
 import com.spacerng.solrng.gui.PrestigeHolder;
 import com.spacerng.solrng.gui.SkillTreeGui;
@@ -49,6 +51,25 @@ public class GuiListener implements Listener {
             handlePrestigeClick(event);
         } else if (topInventory.getHolder() instanceof ArmorHolder) {
             handleArmorClick(event);
+        } else if (topInventory.getHolder() instanceof OptionsHolder) {
+            handleOptionsClick(event);
+        }
+    }
+
+    private void handleOptionsClick(InventoryClickEvent event) {
+        event.setCancelled(true);
+        if (event.getClickedInventory() == null || !(event.getClickedInventory().getHolder() instanceof OptionsHolder)) return;
+
+        Player player = (Player) event.getWhoClicked();
+        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+        int rawSlot = event.getRawSlot();
+
+        if (rawSlot == OptionsHolder.SOUND_SLOT) {
+            data.setRollSoundEnabled(!data.isRollSoundEnabled());
+            player.openInventory(OptionsGui.build(plugin, player));
+        } else if (rawSlot == OptionsHolder.ANIMATION_SLOT) {
+            data.setRollAnimationEnabled(!data.isRollAnimationEnabled());
+            player.openInventory(OptionsGui.build(plugin, player));
         }
     }
 

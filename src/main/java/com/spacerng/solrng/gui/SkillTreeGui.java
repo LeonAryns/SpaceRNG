@@ -5,6 +5,7 @@ import com.spacerng.solrng.player.PlayerData;
 import com.spacerng.solrng.player.SkillNode;
 import com.spacerng.solrng.player.SkillTreeManager;
 import com.spacerng.solrng.rarity.Rarity;
+import net.milkbowl.vault.economy.Economy;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Bukkit;
@@ -21,36 +22,20 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 6x9 skill tree: "Auto Roll" is the root at the bottom-middle, branching
- * up into three 5-tier tracks (each filling its whole column up to the
- * top row) — Luck Multiplier, Rolling Speed, and Bonus Roll — with
- * Auto-Convert as a small side-branch off Luck Multiplier I. The
- * bottom-right corner shows a running Common/Uncommon total. Nodes are
- * paid for with rolled drops, not Credits — Credits are the real-money
- * store currency.
+ * 6x9 skill tree: "Auto Roll" is the only real node right now (root, at
+ * the bottom-middle) — everything else was stripped out on request so it
+ * can be redesigned from scratch. The row directly above the root is
+ * filled with decorative "???" placeholders (not real nodes, just visual
+ * reserved slots) connecting left and right of center. Bottom-right
+ * corner shows the player's Money balance.
  */
 public class SkillTreeGui {
 
-    // row*9 + col — each branch fills its whole column, root to top row.
-    private static final Map<String, Integer> SLOT_BY_ID = Map.ofEntries(
-            Map.entry("auto_roll_root", 49),
-            Map.entry("luck_mult_1", 37),
-            Map.entry("luck_mult_2", 28),
-            Map.entry("luck_mult_3", 19),
-            Map.entry("luck_mult_4", 10),
-            Map.entry("luck_mult_5", 1),
-            Map.entry("auto_convert", 29),
-            Map.entry("rolling_speed_1", 40),
-            Map.entry("rolling_speed_2", 31),
-            Map.entry("rolling_speed_3", 22),
-            Map.entry("rolling_speed_4", 13),
-            Map.entry("rolling_speed_5", 4),
-            Map.entry("bonus_roll_1", 43),
-            Map.entry("bonus_roll_2", 34),
-            Map.entry("bonus_roll_3", 25),
-            Map.entry("bonus_roll_4", 16),
-            Map.entry("bonus_roll_5", 7)
-    );
+    // row*9 + col
+    private static final Map<String, Integer> SLOT_BY_ID = Map.of("auto_roll_root", 49);
+    // Row directly above the root (row 4), spanning the full width.
+    private static final int PLACEHOLDER_ROW_START = 36;
+    private static final int PLACEHOLDER_ROW_END = 44;
 
     private static final int STATS_SLOT = 53;
 
@@ -73,6 +58,10 @@ public class SkillTreeGui {
             inv.setItem(slot, filler);
         }
 
+        for (int slot = PLACEHOLDER_ROW_START; slot <= PLACEHOLDER_ROW_END; slot++) {
+            inv.setItem(slot, placeholderNode());
+        }
+
         for (Map.Entry<String, SkillNode> entry : orderedNodes(tree).entrySet()) {
             SkillNode node = entry.getValue();
             Integer slot = SLOT_BY_ID.get(node.getId());
@@ -83,13 +72,7 @@ public class SkillTreeGui {
 
             ItemStack icon;
             if (!reqMet) {
-                // Mystery node — don't reveal what it does until the
-                // previous node in its branch is unlocked.
-                icon = new ItemStack(Material.GRAY_DYE);
-                ItemMeta meta = icon.getItemMeta();
-                meta.setDisplayName(ChatColor.DARK_GRAY + "???");
-                meta.setLore(List.of(ChatColor.GRAY + "Unlock the previous skill", ChatColor.GRAY + "to reveal this."));
-                icon.setItemMeta(meta);
+                icon = placeholderNode();
             } else {
                 List<String> lore = new ArrayList<>();
                 boolean canAfford = tree.canAfford(player, node, rarityKey);
@@ -97,10 +80,12 @@ public class SkillTreeGui {
                 if (unlocked) {
                     lore.add(ChatColor.GREEN + "Unlocked");
                 } else {
-                    lore.add(ChatColor.GRAY + "Cost:");
+                    lore.add(ChatColor.GRAY + "Price:");
                     for (Map.Entry<Rarity, Long> cost : node.getCosts().entrySet()) {
                         String color = plugin.getRarityManager().colorFor(cost.getKey());
-                        lore.add(ChatColor.GRAY + " - " + color + cost.getValue() + " " + cost.getKey().displayName());
+                        long held = countHeld(player, rarityKey, cost.getKey());
+                        lore.add(ChatColor.GRAY + " - " + color + cost.getValue() + " " + cost.getKey().displayName()
+                                + ChatColor.DARK_GRAY + " (" + held + ")");
                     }
                     lore.add(canAfford ? ChatColor.GREEN + "Click to unlock!" : ChatColor.RED + "Not enough drops");
                 }
@@ -118,9 +103,23 @@ public class SkillTreeGui {
             inv.setItem(slot, icon);
         }
 
-        inv.setItem(STATS_SLOT, buildConversionStats(plugin, player, data));
+        inv.setItem(STATS_SLOT, buildMoneyPanel(player));
 
         return inv;
+    }
+
+    /**
+     * Undefined, unclickable reserved slot — no PersistentData tag, so
+     * clicking it is a no-op in GuiListener. Same "???" look as a locked
+     * node so the whole row reads as "more coming later".
+     */
+    private static ItemStack placeholderNode() {
+        ItemStack icon = new ItemStack(Material.GRAY_DYE);
+        ItemMeta meta = icon.getItemMeta();
+        meta.setDisplayName(ChatColor.DARK_GRAY + "???");
+        meta.setLore(List.of(ChatColor.GRAY + "Reserved for a future skill."));
+        icon.setItemMeta(meta);
+        return icon;
     }
 
     private static ItemStack glassFiller() {
@@ -131,27 +130,19 @@ public class SkillTreeGui {
         return pane;
     }
 
-    /**
-     * Bottom-right summary: Common/Uncommon drops converted or spent on the
-     * skill tree, plus whatever's currently sitting in the player's
-     * inventory — one combined total per rarity.
-     */
-    private static ItemStack buildConversionStats(SolRNGPlugin plugin, Player player, PlayerData data) {
-        NamespacedKey rarityKey = plugin.getRollListener().getRarityKey();
-        long totalCommon = data.getConvertedCommon() + countHeld(player, rarityKey, Rarity.COMMON);
-        long totalUncommon = data.getConvertedUncommon() + countHeld(player, rarityKey, Rarity.UNCOMMON);
-
-        ItemStack stats = new ItemStack(Material.HOPPER);
+    private static ItemStack buildMoneyPanel(Player player) {
+        ItemStack stats = new ItemStack(Material.GOLD_INGOT);
         ItemMeta meta = stats.getItemMeta();
-        meta.setDisplayName(ChatColor.GOLD + "" + ChatColor.BOLD + "Drop Totals");
-        String commonColor = plugin.getRarityManager().colorFor(Rarity.COMMON);
-        String uncommonColor = plugin.getRarityManager().colorFor(Rarity.UNCOMMON);
-        meta.setLore(List.of(
-                commonColor + "Common: " + ChatColor.WHITE + totalCommon,
-                uncommonColor + "Uncommon: " + ChatColor.WHITE + totalUncommon
-        ));
+        meta.setDisplayName(ChatColor.GOLD + "" + ChatColor.BOLD + "Money");
+        meta.setLore(List.of(ChatColor.GREEN + formatMoney(player)));
         stats.setItemMeta(meta);
         return stats;
+    }
+
+    private static String formatMoney(Player player) {
+        var registration = Bukkit.getServicesManager().getRegistration(Economy.class);
+        if (registration == null) return "N/A";
+        return String.format("%.0f", registration.getProvider().getBalance(player));
     }
 
     private static long countHeld(Player player, NamespacedKey rarityKey, Rarity rarity) {

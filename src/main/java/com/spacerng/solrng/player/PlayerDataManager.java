@@ -64,6 +64,8 @@ public class PlayerDataManager {
         data.setTotalRolls(yml.getLong("total-rolls", 0L));
         data.setLevel(yml.getInt("level", 1));
         data.setPrestige(yml.getInt("prestige", 0));
+        data.setRollSoundEnabled(yml.getBoolean("roll-sound-enabled", true));
+        data.setRollAnimationEnabled(yml.getBoolean("roll-animation-enabled", true));
 
         for (String node : yml.getStringList("unlocked-nodes")) {
             data.getUnlockedNodes().add(node);
@@ -103,6 +105,8 @@ public class PlayerDataManager {
         yml.set("total-rolls", data.getTotalRolls());
         yml.set("level", data.getLevel());
         yml.set("prestige", data.getPrestige());
+        yml.set("roll-sound-enabled", data.isRollSoundEnabled());
+        yml.set("roll-animation-enabled", data.isRollAnimationEnabled());
         yml.set("unlocked-nodes", new java.util.ArrayList<>(data.getUnlockedNodes()));
         yml.set("discovered-items", new java.util.ArrayList<>(data.getDiscoveredItems()));
 

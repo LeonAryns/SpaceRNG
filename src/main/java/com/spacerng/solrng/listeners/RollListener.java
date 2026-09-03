@@ -141,14 +141,18 @@ public class RollListener implements Listener {
             }
 
             remainingTicks.put(player.getUniqueId(), totalTicks - elapsed[0]);
-            player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 0.6f + (float) elapsed[0] / totalTicks);
+            if (data.isRollSoundEnabled()) {
+                player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1.0f);
+            }
 
             // Case-opening-style teaser: every 5% of the roll, flash a
             // random candidate item + its odds in the center of the screen.
-            int step = (int) (elapsed[0] * 20 / totalTicks);
-            if (step != lastStep[0]) {
-                lastStep[0] = step;
-                sendRollPreview(player, data);
+            if (data.isRollAnimationEnabled()) {
+                int step = (int) (elapsed[0] * 20 / totalTicks);
+                if (step != lastStep[0]) {
+                    lastStep[0] = step;
+                    sendRollPreview(player, data);
+                }
             }
         }, 0L, 2L);
 

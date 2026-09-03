@@ -20,10 +20,10 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 /**
- * /armor — sets bought once with rolled drops (like the skill tree), each
- * granting a flat Luck bonus that only applies while all 4 pieces of that
- * same tier are actually worn at once (checked live from equipped armor,
- * not just "do you own it").
+ * /armor — sets bought once with rolled drops (like the skill tree). Each
+ * piece grants its tier's Luck bonus independently while worn (checked
+ * live from equipped armor, not just "do you own it") — no need to match
+ * a full set, and mixing tiers across slots is fine.
  */
 public class ArmorManager {
 
@@ -150,29 +150,27 @@ public class ArmorManager {
 
     /**
      * Recomputes every online player's armor Luck bonus from what they're
-     * actually wearing right now — only applies if all 4 slots are the
-     * same tier.
+     * actually wearing right now — each worn piece contributes its own
+     * tier's Luck bonus independently (no need to match a full set, and
+     * mixing tiers across slots is fine).
      */
     public void refreshWornBonuses() {
         for (Player player : Bukkit.getOnlinePlayers()) {
             PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
-            data.setArmorLuckBonus(wornTierLuckBonus(player));
+            data.setArmorLuckBonus(wornLuckBonus(player));
         }
     }
 
-    private double wornTierLuckBonus(Player player) {
+    private double wornLuckBonus(Player player) {
         PlayerInventory inv = player.getInventory();
-        String helmetTier = tierOf(inv.getHelmet());
-        String chestTier = tierOf(inv.getChestplate());
-        String legsTier = tierOf(inv.getLeggings());
-        String bootsTier = tierOf(inv.getBoots());
-
-        if (helmetTier == null || !helmetTier.equals(chestTier)
-                || !helmetTier.equals(legsTier) || !helmetTier.equals(bootsTier)) {
-            return 0.0;
+        double total = 0.0;
+        for (ItemStack piece : new ItemStack[]{inv.getHelmet(), inv.getChestplate(), inv.getLeggings(), inv.getBoots()}) {
+            ArmorTier tier = tiers.get(tierOf(piece));
+            if (tier != null) {
+                total += tier.getLuckBonus();
+            }
         }
-        ArmorTier tier = tiers.get(helmetTier);
-        return tier == null ? 0.0 : tier.getLuckBonus();
+        return total;
     }
 
     private String tierOf(ItemStack piece) {

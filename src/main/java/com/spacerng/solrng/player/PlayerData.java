@@ -43,6 +43,9 @@ public class PlayerData {
     // /armor tiers ever bought (e.g. "LEATHER") — one-time purchase, worn
     // status is checked separately for whether the Luck bonus applies.
     private final Set<String> purchasedArmorTiers = new HashSet<>();
+    // /options toggles.
+    private boolean rollSoundEnabled = true;
+    private boolean rollAnimationEnabled = true;
 
     public PlayerData(UUID uuid) {
         this.uuid = uuid;
@@ -240,5 +243,21 @@ public class PlayerData {
 
     public void markArmorPurchased(String tierId) {
         purchasedArmorTiers.add(tierId);
+    }
+
+    public boolean isRollSoundEnabled() {
+        return rollSoundEnabled;
+    }
+
+    public void setRollSoundEnabled(boolean rollSoundEnabled) {
+        this.rollSoundEnabled = rollSoundEnabled;
+    }
+
+    public boolean isRollAnimationEnabled() {
+        return rollAnimationEnabled;
+    }
+
+    public void setRollAnimationEnabled(boolean rollAnimationEnabled) {
+        this.rollAnimationEnabled = rollAnimationEnabled;
     }
 }

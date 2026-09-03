@@ -8,8 +8,10 @@ import com.spacerng.solrng.rarity.RollableItem;
 import org.bukkit.ChatColor;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 
 public class JoinQuitListener implements Listener {
 
@@ -46,6 +48,24 @@ public class JoinQuitListener implements Listener {
         plugin.getRollListener().cancelRoll(event.getPlayer().getUniqueId());
         plugin.getTagManager().hideHologram(event.getPlayer().getUniqueId());
         plugin.getPlayerDataManager().unload(event.getPlayer().getUniqueId());
+    }
+
+    // Mounted passengers (the floating tag) are cleared on death, so tear
+    // them down then and rebuild once the player respawns.
+    @EventHandler
+    public void onDeath(PlayerDeathEvent event) {
+        plugin.getTagManager().hideHologram(event.getEntity().getUniqueId());
+    }
+
+    @EventHandler
+    public void onRespawn(PlayerRespawnEvent event) {
+        PlayerData data = plugin.getPlayerDataManager().get(event.getPlayer().getUniqueId());
+        if (data.getEquippedTagItemKey() == null || data.getEquippedTagRarity() == null) return;
+
+        // Respawn teleport happens after this event fires, so wait a tick
+        // before re-mounting or the displays spawn at the death location.
+        plugin.getServer().getScheduler().runTaskLater(plugin,
+                () -> reattachHologram(event.getPlayer(), data), 1L);
     }
 
     private void reattachHologram(org.bukkit.entity.Player player, PlayerData data) {

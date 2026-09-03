@@ -6,13 +6,15 @@ import com.spacerng.solrng.rarity.Rarity;
 import org.bukkit.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
-import org.bukkit.Location;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
+import org.bukkit.util.Transformation;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -29,48 +31,37 @@ import java.util.UUID;
  * prefix.
  *
  * The equipped tag also floats two extra lines above the player's head —
- * item name, then odds — as two text displays whose position is explicitly
- * re-synced to the player every tick. This was previously done by mounting
- * them as passengers and letting Minecraft auto-position them, but the
- * native mount-offset it computes for an arbitrary entity (rather than a
- * real vehicle seat) turned out to be unpredictable. Direct positioning
- * removes that guesswork.
+ * item name, then odds — as two chained text displays MOUNTED on the
+ * player. This went through two other approaches first:
+ *  1. Marker armor stands, chained as passengers — zero native mount
+ *     height, so both lines rendered on top of each other.
+ *  2. Text displays repositioned every tick via teleport() — precise
+ *     height control, but any polling approach has at least one tick of
+ *     latency, which was visible as the hologram trailing behind the
+ *     player while moving.
+ * Mounting has zero temporal lag (the client attaches passengers to their
+ * vehicle every render frame, not tick-by-tick), so it's the right
+ * mechanism for *following* — the actual problem last time was guessing
+ * the wrong Transformation offset, not the mounting approach itself.
+ * Height is now controlled purely via each display's Transformation
+ * (independent of whatever native offset the mount computes).
  */
 public class TagManager {
 
     private static final String TEAM_PREFIX = "solrng_";
-    // Height above the player's feet, in blocks. The vanilla nameplate
-    // sits at roughly 2.3-2.4, so these clear it with a small margin.
-    private static final double ODDS_LINE_HEIGHT = 2.65;
-    private static final double NAME_LINE_HEIGHT = 2.95;
+    // Local Y offset (in the entity's own render space) for each display,
+    // stacked on top of the mount chain. Generous values to confidently
+    // clear the vanilla nameplate.
+    private static final float ODDS_OFFSET = 0.55f;
+    private static final float NAME_OFFSET = 0.35f;
 
     private final SolRNGPlugin plugin;
-    // index 0 = odds display, index 1 = item name display (rendered above it).
+    // index 0 = odds display (rides the player), index 1 = item name
+    // display (rides the odds display, rendering highest).
     private final Map<UUID, TextDisplay[]> holograms = new HashMap<>();
 
     public TagManager(SolRNGPlugin plugin) {
         this.plugin = plugin;
-    }
-
-    /** Keeps every active hologram glued to its player's current position. */
-    public void startSyncTask() {
-        plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
-            for (Map.Entry<UUID, TextDisplay[]> entry : holograms.entrySet()) {
-                Player player = Bukkit.getPlayer(entry.getKey());
-                if (player == null) continue;
-
-                TextDisplay[] displays = entry.getValue();
-                Location base = player.getLocation();
-                displays[0].teleport(withHeight(base, ODDS_LINE_HEIGHT));
-                displays[1].teleport(withHeight(base, NAME_LINE_HEIGHT));
-            }
-        }, 0L, 1L);
-    }
-
-    private Location withHeight(Location playerFeet, double height) {
-        Location loc = playerFeet.clone();
-        loc.setY(loc.getY() + height);
-        return loc;
     }
 
     /**
@@ -125,8 +116,11 @@ public class TagManager {
     public void showHologram(Player player, String itemNameColored, String oddsText) {
         hideHologram(player);
 
-        TextDisplay oddsDisplay = spawnLine(player, oddsText, ODDS_LINE_HEIGHT);
-        TextDisplay nameDisplay = spawnLine(player, itemNameColored, NAME_LINE_HEIGHT);
+        TextDisplay oddsDisplay = spawnLine(player, oddsText, ODDS_OFFSET);
+        TextDisplay nameDisplay = spawnLine(player, itemNameColored, NAME_OFFSET);
+
+        player.addPassenger(oddsDisplay);
+        oddsDisplay.addPassenger(nameDisplay);
 
         holograms.put(player.getUniqueId(), new TextDisplay[]{oddsDisplay, nameDisplay});
     }
@@ -149,21 +143,20 @@ public class TagManager {
         }
     }
 
-    private TextDisplay spawnLine(Player player, String text, double height) {
-        TextDisplay display = (TextDisplay) player.getWorld().spawnEntity(
-                withHeight(player.getLocation(), height), EntityType.TEXT_DISPLAY);
+    private TextDisplay spawnLine(Player player, String text, float yOffset) {
+        TextDisplay display = (TextDisplay) player.getWorld().spawnEntity(player.getLocation(), EntityType.TEXT_DISPLAY);
         display.setInvulnerable(true);
         display.setGravity(false);
         display.setPersistent(false);
         display.setBillboard(Display.Billboard.CENTER);
         display.setBackgroundColor(Color.fromARGB(0, 0, 0, 0));
         display.setShadowRadius(0f);
-        // A longer interpolation window looked smoother but visibly trailed
-        // behind the player while moving (each glide targets a position
-        // that's already stale by the time it arrives). Syncing every tick
-        // with the shortest possible interpolation keeps it glued to the
-        // player while still avoiding a hard snap between updates.
-        display.setTeleportDuration(1);
+        display.setTransformation(new Transformation(
+                new Vector3f(0f, yOffset, 0f),
+                new Quaternionf(),
+                new Vector3f(1f, 1f, 1f),
+                new Quaternionf()
+        ));
         display.text(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().deserialize(text));
         return display;
     }

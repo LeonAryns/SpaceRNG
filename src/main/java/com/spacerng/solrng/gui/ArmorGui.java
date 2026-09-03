@@ -20,20 +20,21 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * /armor shop: each tier shows its full 4-piece set (helmet/chest/legs/
- * boots) as individual icons, two tiers per row. Clicking any piece buys
- * the whole set — the Luck bonus only applies once all 4 pieces are
- * actually worn (see ArmorManager). Bottom-right corner shows a running
- * drop total across every rarity, since armor spans the full cost range.
+ * /armor shop: each tier is its own column, pieces stacked top to bottom
+ * (helmet, chestplate, leggings, boots) — all 6 tiers side by side, with
+ * light stained glass dividing left / middle / right. Clicking any piece
+ * buys the whole set. Each piece grants its own Luck bonus independently
+ * while worn (see ArmorManager) — no need for the full set.
  */
 public class ArmorGui {
 
-    // Two tiers per row: left tier at cols 0-3, right tier at cols 5-8.
+    // Column layout: 0=divider, 1-3=tiers, 4=divider, 5-7=tiers, 8=divider.
     private static final String[] TIER_ORDER = {
             "LEATHER", "CHAINMAIL", "IRON", "GOLD", "DIAMOND", "NETHERITE"
     };
-    private static final int[] LEFT_SLOTS = {9, 10, 11, 12};
-    private static final int[] RIGHT_SLOTS = {14, 15, 16, 17};
+    private static final int[] TIER_COLUMNS = {1, 2, 3, 5, 6, 7};
+    private static final int[] DIVIDER_COLUMNS = {0, 4, 8};
+    private static final int PIECE_ROWS = 4; // helmet, chestplate, leggings, boots
     private static final int STATS_SLOT = 44;
 
     public static NamespacedKey tierIdKey(SolRNGPlugin plugin) {
@@ -45,9 +46,16 @@ public class ArmorGui {
         Inventory inv = Bukkit.createInventory(holder, 45, ChatColor.GOLD + "" + ChatColor.BOLD + "Armor Shop");
         holder.setInventory(inv);
 
-        ItemStack filler = glassFiller();
+        ItemStack filler = glassFiller(Material.GRAY_STAINED_GLASS_PANE);
         for (int slot = 0; slot < 45; slot++) {
             inv.setItem(slot, filler);
+        }
+
+        ItemStack divider = glassFiller(Material.LIGHT_GRAY_STAINED_GLASS_PANE);
+        for (int col : DIVIDER_COLUMNS) {
+            for (int row = 0; row < PIECE_ROWS; row++) {
+                inv.setItem(row * 9 + col, divider);
+            }
         }
 
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
@@ -58,14 +66,11 @@ public class ArmorGui {
         for (int i = 0; i < TIER_ORDER.length; i++) {
             ArmorTier tier = armor.get(TIER_ORDER[i]);
             if (tier == null) continue;
-
-            int row = i / 2;
-            int[] slots = (i % 2 == 0) ? LEFT_SLOTS : RIGHT_SLOTS;
-            int rowOffset = row * 9;
+            int col = TIER_COLUMNS[i];
 
             Material[] pieces = {tier.helmet(), tier.chestplate(), tier.leggings(), tier.boots()};
-            for (int p = 0; p < pieces.length; p++) {
-                inv.setItem(rowOffset + slots[p], buildPieceIcon(plugin, player, data, armor, tier, pieces[p], rarityKey, tierIdKey));
+            for (int row = 0; row < pieces.length; row++) {
+                inv.setItem(row * 9 + col, buildPieceIcon(plugin, player, data, armor, tier, pieces[row], rarityKey, tierIdKey));
             }
         }
 
@@ -85,15 +90,17 @@ public class ArmorGui {
 
         List<String> lore = new ArrayList<>();
         lore.add(ChatColor.DARK_AQUA + "+" + Math.round(tier.getLuckBonus() * 100) + "% Luck "
-                + ChatColor.GRAY + "(while full set worn)");
+                + ChatColor.GRAY + "(per piece worn)");
         lore.add("");
         if (owned) {
             lore.add(ChatColor.GREEN + "Owned");
         } else {
-            lore.add(ChatColor.GRAY + "Cost:");
+            lore.add(ChatColor.GRAY + "Price:");
             for (Map.Entry<Rarity, Long> cost : tier.getCosts().entrySet()) {
                 String color = plugin.getRarityManager().colorFor(cost.getKey());
-                lore.add(ChatColor.GRAY + " - " + color + cost.getValue() + " " + cost.getKey().displayName());
+                long held = countHeld(player, rarityKey, cost.getKey());
+                lore.add(ChatColor.GRAY + " - " + color + cost.getValue() + " " + cost.getKey().displayName()
+                        + ChatColor.DARK_GRAY + " (" + held + ")");
             }
             lore.add(canAfford ? ChatColor.GREEN + "Click to buy!" : ChatColor.RED + "Not enough drops");
         }
@@ -103,8 +110,8 @@ public class ArmorGui {
         return icon;
     }
 
-    private static ItemStack glassFiller() {
-        ItemStack pane = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
+    private static ItemStack glassFiller(Material material) {
+        ItemStack pane = new ItemStack(material);
         ItemMeta meta = pane.getItemMeta();
         meta.setDisplayName(" ");
         pane.setItemMeta(meta);

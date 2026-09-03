@@ -3,6 +3,7 @@ package com.spacerng.solrng;
 import com.spacerng.solrng.commands.ArmorCommand;
 import com.spacerng.solrng.commands.ConvertCommand;
 import com.spacerng.solrng.commands.IndexCommand;
+import com.spacerng.solrng.commands.OptionsCommand;
 import com.spacerng.solrng.commands.PrestigeCommand;
 import com.spacerng.solrng.commands.RngAdminCommand;
 import com.spacerng.solrng.commands.RngCoreCommand;
@@ -63,12 +64,12 @@ public final class SolRNGPlugin extends JavaPlugin {
         getCommand("index").setExecutor(new IndexCommand(this));
         getCommand("prestige").setExecutor(new PrestigeCommand(this));
         getCommand("armor").setExecutor(new ArmorCommand(this));
+        getCommand("options").setExecutor(new OptionsCommand(this));
         getCommand("rngadmin").setExecutor(new RngAdminCommand(this));
 
         startAutoRollTask();
         startScoreboardRefreshTask();
         startArmorRefreshTask();
-        tagManager.startSyncTask();
         registerPlaceholderExpansion();
 
         getLogger().info("SolRNG enabled.");

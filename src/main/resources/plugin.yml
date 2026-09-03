@@ -29,6 +29,9 @@ commands:
   armor:
     description: Buy armor sets for a Luck bonus while worn
     usage: /armor
+  options:
+    description: Toggle rolling sound and animation
+    usage: /options
   rngadmin:
     description: Admin tools for SolRNG
     usage: /rngadmin <reload|tokens>
