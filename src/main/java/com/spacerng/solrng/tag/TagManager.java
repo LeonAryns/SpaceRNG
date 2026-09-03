@@ -1,6 +1,8 @@
 package com.spacerng.solrng.tag;
 
 import com.spacerng.solrng.SolRNGPlugin;
+import com.spacerng.solrng.player.PlayerData;
+import com.spacerng.solrng.rarity.Rarity;
 import org.bukkit.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
@@ -17,21 +19,22 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Equipping a tag creates/uses a dedicated scoreboard team per player and
- * sets its prefix. This makes the tag show above the player's head in the
- * world AND in the tab list (TAB, if installed, needs the
- * %solrng_tag% placeholder added to its own tablist format to actually
- * render it — see SolRNGExpansion). Chat formatting is handled separately
- * by ChatListener, which reads the same prefix.
+ * Manages the single scoreboard team prefix each player gets — combining
+ * their prestige/level badge and their equipped rarity tag into one string,
+ * since a player can only be on one team with one prefix at a time. This
+ * shows above the player's head in the world AND in the tab list (TAB, if
+ * installed, needs the %solrng_tag% placeholder added to its own tablist
+ * format to actually render it there — see SolRNGExpansion). Chat
+ * formatting is handled separately by ChatListener, which reads the same
+ * prefix.
  *
- * On top of that, the tag floats two extra lines above the player's head
- * — item name, then odds — as two text displays whose position is
- * explicitly re-synced to the player every couple of ticks. This was
- * previously done by mounting them as passengers and letting Minecraft
- * auto-position them, but the native mount-offset it computes for an
- * arbitrary entity (rather than a real vehicle seat) turned out to be
- * unpredictable — sometimes far too high, sometimes overlapping the
- * player's own nameplate. Direct positioning removes that guesswork.
+ * The equipped tag also floats two extra lines above the player's head —
+ * item name, then odds — as two text displays whose position is explicitly
+ * re-synced to the player every couple of ticks. This was previously done
+ * by mounting them as passengers and letting Minecraft auto-position them,
+ * but the native mount-offset it computes for an arbitrary entity (rather
+ * than a real vehicle seat) turned out to be unpredictable. Direct
+ * positioning removes that guesswork.
  */
 public class TagManager {
 
@@ -70,7 +73,12 @@ public class TagManager {
         return loc;
     }
 
-    public void applyTag(Player player, String tagText, String colorCode) {
+    /**
+     * Rebuilds the player's scoreboard team prefix from scratch, reading
+     * prestige/level and the equipped tag straight from PlayerData. Call
+     * this any time either piece changes.
+     */
+    public void refreshPrefix(Player player, PlayerData data) {
         Scoreboard board = Bukkit.getScoreboardManager().getMainScoreboard();
         String teamName = TEAM_PREFIX + shortUuid(player);
 
@@ -79,21 +87,27 @@ public class TagManager {
             team = board.registerNewTeam(teamName);
         }
 
-        String color = ChatColor.translateAlternateColorCodes('&', colorCode);
-        team.setPrefix(color + "[" + tagText + "] " + ChatColor.RESET);
+        StringBuilder prefix = new StringBuilder();
+        if (data.getPrestige() > 0) {
+            prefix.append(ChatColor.AQUA).append("[P").append(data.getPrestige()).append("] ");
+        }
+        prefix.append(ChatColor.GRAY).append("Lv").append(data.getLevel()).append(' ');
 
+        if (data.getEquippedTagItemKey() != null && data.getEquippedTagRarity() != null) {
+            String color = plugin.getRarityManager().colorFor(Rarity.valueOf(data.getEquippedTagRarity()));
+            prefix.append(color).append('[').append(data.getEquippedTagItemKey()).append("] ");
+        }
+        prefix.append(ChatColor.RESET);
+
+        team.setPrefix(prefix.toString());
         if (!team.hasEntry(player.getName())) {
             team.addEntry(player.getName());
         }
     }
 
-    public void clearTag(Player player) {
-        Scoreboard board = Bukkit.getScoreboardManager().getMainScoreboard();
-        String teamName = TEAM_PREFIX + shortUuid(player);
-        Team team = board.getTeam(teamName);
-        if (team != null) {
-            team.setPrefix("");
-        }
+    public void clearTag(Player player, PlayerData data) {
+        data.clearEquippedTag();
+        refreshPrefix(player, data);
         hideHologram(player);
     }
 

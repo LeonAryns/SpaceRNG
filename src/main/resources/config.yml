@@ -11,6 +11,14 @@ roll-item:
   # player's roll-speed multiplier.
   roll-duration-seconds: 5
 
+# Levels are earned by rolling; prestiging resets your level for a
+# permanent Luck *multiplier* (applied on top of every other Luck source).
+prestige:
+  rolls-per-level: 50
+  first-prestige-levels: 10
+  levels-increment-per-prestige: 5
+  luck-multiplier-per-prestige: 0.10
+
 # Rarity tiers, in ascending order. "luck-factor" controls how strongly
 # the Luck stat biases rolls toward this tier. 0 = luck has no effect.
 # Effective weight = base weight * (1 + luck * luck-factor)

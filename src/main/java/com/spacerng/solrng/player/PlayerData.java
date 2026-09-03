@@ -33,6 +33,13 @@ public class PlayerData {
     // currently sitting unconverted in the player's inventory.
     private long convertedCommon = 0L;
     private long convertedUncommon = 0L;
+    // Lifetime roll count — levels up off of this via /prestige.
+    private long totalRolls = 0L;
+    private int level = 1;
+    private int prestige = 0;
+    // Flat Luck bonus from currently-worn /armor — recomputed live each
+    // tick from equipped armor, not persisted.
+    private double armorLuckBonus = 0.0;
 
     public PlayerData(UUID uuid) {
         this.uuid = uuid;
@@ -172,5 +179,51 @@ public class PlayerData {
         } else if (rarity == Rarity.UNCOMMON) {
             convertedUncommon += amount;
         }
+    }
+
+    public long getTotalRolls() {
+        return totalRolls;
+    }
+
+    public void addRoll() {
+        totalRolls++;
+    }
+
+    public void setTotalRolls(long totalRolls) {
+        this.totalRolls = totalRolls;
+    }
+
+    public int getLevel() {
+        return level;
+    }
+
+    public void setLevel(int level) {
+        this.level = level;
+    }
+
+    public int getPrestige() {
+        return prestige;
+    }
+
+    public void setPrestige(int prestige) {
+        this.prestige = prestige;
+    }
+
+    public double getArmorLuckBonus() {
+        return armorLuckBonus;
+    }
+
+    public void setArmorLuckBonus(double armorLuckBonus) {
+        this.armorLuckBonus = armorLuckBonus;
+    }
+
+    /**
+     * Total Luck actually applied to rolls: base bonuses (skill tree,
+     * index discoveries) plus worn armor, then scaled by the prestige
+     * multiplier — prestige multiplies rather than adds, unlike every
+     * other Luck source.
+     */
+    public double getEffectiveLuck(double prestigeLuckMultiplierPerPrestige) {
+        return (bonusLuck + armorLuckBonus) * (1.0 + prestige * prestigeLuckMultiplierPerPrestige);
     }
 }

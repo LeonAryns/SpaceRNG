@@ -23,6 +23,9 @@ commands:
   index:
     description: View your collection log of every item you've rolled
     usage: /index
+  prestige:
+    description: View and spend your levels/prestige
+    usage: /prestige
   rngadmin:
     description: Admin tools for SolRNG
     usage: /rngadmin <reload|tokens>

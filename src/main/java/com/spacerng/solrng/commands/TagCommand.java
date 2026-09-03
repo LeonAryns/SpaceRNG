@@ -38,8 +38,7 @@ public class TagCommand implements CommandExecutor {
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
 
         if (args[0].equalsIgnoreCase("clear")) {
-            data.clearEquippedTag();
-            plugin.getTagManager().clearTag(player);
+            plugin.getTagManager().clearTag(player, data);
             player.sendMessage(ChatColor.YELLOW + "Tag cleared.");
             return true;
         }
@@ -77,7 +76,7 @@ public class TagCommand implements CommandExecutor {
     public static void equip(SolRNGPlugin plugin, Player player, PlayerData data, String rollName, String rarityName) {
         data.setEquippedTag(rollName, rarityName);
         String color = plugin.getRarityManager().colorFor(Rarity.valueOf(rarityName));
-        plugin.getTagManager().applyTag(player, rollName, color);
+        plugin.getTagManager().refreshPrefix(player, data);
 
         RollableItem rollable = plugin.getRarityManager().findByDisplayName(rollName);
         if (rollable != null) {

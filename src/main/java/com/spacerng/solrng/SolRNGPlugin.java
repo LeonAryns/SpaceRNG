@@ -2,6 +2,7 @@ package com.spacerng.solrng;
 
 import com.spacerng.solrng.commands.ConvertCommand;
 import com.spacerng.solrng.commands.IndexCommand;
+import com.spacerng.solrng.commands.PrestigeCommand;
 import com.spacerng.solrng.commands.RngAdminCommand;
 import com.spacerng.solrng.commands.RngCoreCommand;
 import com.spacerng.solrng.commands.SkillTreeCommand;
@@ -12,6 +13,7 @@ import com.spacerng.solrng.listeners.JoinQuitListener;
 import com.spacerng.solrng.listeners.RollListener;
 import com.spacerng.solrng.player.PlayerData;
 import com.spacerng.solrng.player.PlayerDataManager;
+import com.spacerng.solrng.player.PrestigeManager;
 import com.spacerng.solrng.player.SkillTreeManager;
 import com.spacerng.solrng.placeholder.SolRNGExpansion;
 import com.spacerng.solrng.rarity.RarityManager;
@@ -26,6 +28,7 @@ public final class SolRNGPlugin extends JavaPlugin {
     private RarityManager rarityManager;
     private SkillTreeManager skillTreeManager;
     private PlayerDataManager playerDataManager;
+    private PrestigeManager prestigeManager;
     private TagManager tagManager;
     private RollListener rollListener;
     private ScoreboardManager scoreboardManager;
@@ -37,6 +40,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         this.rarityManager = new RarityManager(getLogger());
         this.skillTreeManager = new SkillTreeManager(getLogger());
         this.playerDataManager = new PlayerDataManager(this);
+        this.prestigeManager = new PrestigeManager();
         this.tagManager = new TagManager(this);
         this.scoreboardManager = new ScoreboardManager(this);
 
@@ -53,6 +57,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         getCommand("convert").setExecutor(new ConvertCommand(this));
         getCommand("tag").setExecutor(new TagCommand(this));
         getCommand("index").setExecutor(new IndexCommand(this));
+        getCommand("prestige").setExecutor(new PrestigeCommand(this));
         getCommand("rngadmin").setExecutor(new RngAdminCommand(this));
 
         startAutoRollTask();
@@ -75,6 +80,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         reloadConfig();
         rarityManager.load(getConfig());
         skillTreeManager.load(getConfig());
+        prestigeManager.load(getConfig());
     }
 
     /**
@@ -91,7 +97,7 @@ public final class SolRNGPlugin extends JavaPlugin {
 
                 long nowSeconds = System.currentTimeMillis() / 1000L;
                 if (nowSeconds % interval == 0) {
-                    double luck = data.getBonusLuck();
+                    double luck = prestigeManager.effectiveLuck(data);
                     RollableItem result = rarityManager.roll(luck);
                     rollListener.grantRoll(player, data, result, true);
                 }
@@ -109,6 +115,10 @@ public final class SolRNGPlugin extends JavaPlugin {
 
     public PlayerDataManager getPlayerDataManager() {
         return playerDataManager;
+    }
+
+    public PrestigeManager getPrestigeManager() {
+        return prestigeManager;
     }
 
     public TagManager getTagManager() {

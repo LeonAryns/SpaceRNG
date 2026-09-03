@@ -92,9 +92,10 @@ public class ScoreboardManager {
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         int discovered = data.getDiscoveredItems().size();
         int totalItems = plugin.getRarityManager().getItems().size();
-        double luckPercent = data.getBonusLuck() * 100.0;
+        double luckPercent = plugin.getPrestigeManager().effectiveLuck(data) * 100.0;
 
         List<String> content = new ArrayList<>();
+        content.add(ChatColor.YELLOW + "| " + levelLine(data));
         content.add(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Index: " + ChatColor.AQUA + discovered + ChatColor.GRAY + "/" + ChatColor.AQUA + totalItems);
         content.add(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Luck: " + ChatColor.GREEN + "+" + String.format("%.2f", luckPercent) + "%");
         content.add(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Tag: " + tagLine(data));
@@ -108,12 +109,13 @@ public class ScoreboardManager {
         lines.add(content.get(0));
         lines.add(content.get(1));
         lines.add(content.get(2));
+        lines.add(content.get(3));
         lines.add(""); // blank spacer
         lines.add(ChatColor.GOLD + "" + ChatColor.BOLD + "YOUR WALLET");
         lines.add(""); // breathing room under the title
-        lines.add(content.get(3));
         lines.add(content.get(4));
         lines.add(content.get(5));
+        lines.add(content.get(6));
 
         String rollStatus = rollStatusLine(player);
         if (rollStatus != null) {
@@ -123,6 +125,11 @@ public class ScoreboardManager {
         lines.add(""); // blank spacer
         lines.add(ChatColor.GRAY + "SpaceRNG.Minehut.gg");
         return lines;
+    }
+
+    private String levelLine(PlayerData data) {
+        String prestigeBadge = data.getPrestige() > 0 ? ChatColor.AQUA + "[P" + data.getPrestige() + "] " : "";
+        return prestigeBadge + ChatColor.WHITE + "Level: " + ChatColor.GRAY + data.getLevel();
     }
 
     private String tagLine(PlayerData data) {

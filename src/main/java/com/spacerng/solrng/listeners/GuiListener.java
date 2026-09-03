@@ -6,9 +6,12 @@ import com.spacerng.solrng.gui.ConvertGui;
 import com.spacerng.solrng.gui.ConvertHolder;
 import com.spacerng.solrng.gui.IndexGui;
 import com.spacerng.solrng.gui.IndexHolder;
+import com.spacerng.solrng.gui.PrestigeGui;
+import com.spacerng.solrng.gui.PrestigeHolder;
 import com.spacerng.solrng.gui.SkillTreeGui;
 import com.spacerng.solrng.gui.SkillTreeHolder;
 import com.spacerng.solrng.player.PlayerData;
+import com.spacerng.solrng.player.PrestigeManager;
 import com.spacerng.solrng.rarity.Rarity;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -39,6 +42,39 @@ public class GuiListener implements Listener {
             handleConvertClick(event);
         } else if (topInventory.getHolder() instanceof IndexHolder) {
             handleIndexClick(event);
+        } else if (topInventory.getHolder() instanceof PrestigeHolder) {
+            handlePrestigeClick(event);
+        }
+    }
+
+    private void handlePrestigeClick(InventoryClickEvent event) {
+        event.setCancelled(true);
+        if (event.getClickedInventory() == null || !(event.getClickedInventory().getHolder() instanceof PrestigeHolder)) return;
+
+        Player player = (Player) event.getWhoClicked();
+        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+        PrestigeManager prestige = plugin.getPrestigeManager();
+        int rawSlot = event.getRawSlot();
+
+        if (rawSlot == PrestigeHolder.LEVEL_SLOT) {
+            if (prestige.levelUp(data)) {
+                plugin.getTagManager().refreshPrefix(player, data);
+                player.sendMessage(ChatColor.GREEN + "Level up! You're now level " + data.getLevel() + ".");
+                player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_LEVELUP, 0.6f, 1.2f);
+                player.openInventory(PrestigeGui.build(plugin, player));
+            } else {
+                player.sendMessage(ChatColor.RED + "Keep rolling to level up.");
+            }
+        } else if (rawSlot == PrestigeHolder.PRESTIGE_SLOT) {
+            if (prestige.prestige(data)) {
+                plugin.getTagManager().refreshPrefix(player, data);
+                player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "Prestiged! " + ChatColor.RESET
+                        + ChatColor.GRAY + "You're now [P" + data.getPrestige() + "] and back to level 1.");
+                player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_ENDER_DRAGON_GROWL, 0.5f, 1.5f);
+                player.openInventory(PrestigeGui.build(plugin, player));
+            } else {
+                player.sendMessage(ChatColor.RED + "Not enough levels to prestige yet.");
+            }
         }
     }
 

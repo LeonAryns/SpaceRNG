@@ -7,6 +7,7 @@ import com.spacerng.solrng.rarity.RollFormat;
 import com.spacerng.solrng.rarity.RollableItem;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.kyori.adventure.title.Title;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
@@ -24,7 +25,9 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitTask;
 
+import java.time.Duration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
@@ -128,6 +131,7 @@ public class RollListener implements Listener {
         long totalTicks = Math.max(1L, Math.round((baseSeconds / multiplier) * 20.0));
 
         long[] elapsed = {0L};
+        int[] lastDecile = {-1};
         remainingTicks.put(player.getUniqueId(), totalTicks);
 
         BukkitTask[] taskHolder = new BukkitTask[1];
@@ -145,16 +149,38 @@ public class RollListener implements Listener {
             remainingTicks.put(player.getUniqueId(), totalTicks - elapsed[0]);
             sendRollingActionBar(player, elapsed[0], totalTicks);
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 0.6f + (float) elapsed[0] / totalTicks);
+
+            // Case-opening-style teaser: every 10% of the roll, flash a
+            // random candidate item + its odds in the center of the screen.
+            int decile = (int) (elapsed[0] * 10 / totalTicks);
+            if (decile != lastDecile[0]) {
+                lastDecile[0] = decile;
+                sendRollPreview(player);
+            }
         }, 0L, 2L);
 
         rollingTasks.put(player.getUniqueId(), taskHolder[0]);
+    }
+
+    private void sendRollPreview(Player player) {
+        List<RollableItem> items = plugin.getRarityManager().getItems();
+        if (items.isEmpty()) return;
+        RollableItem preview = items.get(random.nextInt(items.size()));
+
+        Component name = LegacyComponentSerializer.legacySection()
+                .deserialize(RollFormat.naturalColor(preview.getMaterial()) + "" + ChatColor.BOLD + preview.getDisplayName());
+        Component odds = LegacyComponentSerializer.legacySection()
+                .deserialize(ChatColor.GRAY + "· " + RollFormat.chance(preview.getOdds()) + " ·");
+
+        Title title = Title.title(name, odds, Title.Times.times(Duration.ZERO, Duration.ofMillis(600), Duration.ZERO));
+        player.showTitle(title);
     }
 
     private void finishRoll(Player player, PlayerData data) {
         clearActionBar(player);
         player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.8f, 1.2f);
 
-        RollableItem result = plugin.getRarityManager().roll(data.getBonusLuck());
+        RollableItem result = plugin.getRarityManager().roll(plugin.getPrestigeManager().effectiveLuck(data));
         grantRoll(player, data, result, false);
 
         // Bonus Roll skill tree branch: a chance to immediately chain into
@@ -197,6 +223,7 @@ public class RollListener implements Listener {
      * item is built so chat messages can show a hoverable tooltip of it.
      */
     public void grantRoll(Player player, PlayerData data, RollableItem result, boolean silent) {
+        data.addRoll();
         Rarity rarity = result.getRarity();
         ItemStack previewItem = buildTaggedItem(result);
 

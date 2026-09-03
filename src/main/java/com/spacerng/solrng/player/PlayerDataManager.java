@@ -61,6 +61,9 @@ public class PlayerDataManager {
         data.addBonusRollChance(yml.getDouble("bonus-roll-chance", 0.0));
         data.addConverted(Rarity.COMMON, yml.getLong("converted-common", 0L));
         data.addConverted(Rarity.UNCOMMON, yml.getLong("converted-uncommon", 0L));
+        data.setTotalRolls(yml.getLong("total-rolls", 0L));
+        data.setLevel(yml.getInt("level", 1));
+        data.setPrestige(yml.getInt("prestige", 0));
 
         for (String node : yml.getStringList("unlocked-nodes")) {
             data.getUnlockedNodes().add(node);
@@ -94,6 +97,9 @@ public class PlayerDataManager {
         yml.set("bonus-roll-chance", data.getBonusRollChance());
         yml.set("converted-common", data.getConvertedCommon());
         yml.set("converted-uncommon", data.getConvertedUncommon());
+        yml.set("total-rolls", data.getTotalRolls());
+        yml.set("level", data.getLevel());
+        yml.set("prestige", data.getPrestige());
         yml.set("unlocked-nodes", new java.util.ArrayList<>(data.getUnlockedNodes()));
         yml.set("discovered-items", new java.util.ArrayList<>(data.getDiscoveredItems()));
 
