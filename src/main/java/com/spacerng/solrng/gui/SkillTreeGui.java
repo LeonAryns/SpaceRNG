@@ -71,37 +71,42 @@ public class SkillTreeGui {
             Integer slot = SLOT_BY_ID.get(node.getId());
             if (slot == null) continue; // unknown node id — no fixed spot for it
 
-            List<String> lore = new ArrayList<>();
             boolean unlocked = data.hasUnlocked(node.getId());
-            boolean canAfford = tree.canAfford(player, node, rarityKey);
             boolean reqMet = node.getRequires() == null || data.hasUnlocked(node.getRequires());
 
-            Material material;
-            if (unlocked) {
-                material = Material.LIME_DYE;
-                lore.add(ChatColor.GREEN + "Unlocked");
-            } else if (!reqMet) {
-                material = Material.GRAY_DYE;
-                lore.add(ChatColor.RED + "Requires: " + tree.get(node.getRequires()).getDisplay());
+            ItemStack icon;
+            if (!reqMet) {
+                // Mystery node — don't reveal what it does until the
+                // previous node in its branch is unlocked.
+                icon = new ItemStack(Material.GRAY_DYE);
+                ItemMeta meta = icon.getItemMeta();
+                meta.setDisplayName(ChatColor.DARK_GRAY + "???");
+                meta.setLore(List.of(ChatColor.GRAY + "Unlock the previous skill", ChatColor.GRAY + "to reveal this."));
+                icon.setItemMeta(meta);
             } else {
-                material = canAfford ? Material.YELLOW_DYE : Material.RED_DYE;
-                lore.add(ChatColor.GRAY + "Cost:");
-                for (Map.Entry<Rarity, Long> cost : node.getCosts().entrySet()) {
-                    String color = plugin.getRarityManager().colorFor(cost.getKey());
-                    lore.add(ChatColor.GRAY + " - " + color + cost.getValue() + " " + cost.getKey().displayName());
+                List<String> lore = new ArrayList<>();
+                boolean canAfford = tree.canAfford(player, node, rarityKey);
+
+                if (unlocked) {
+                    lore.add(ChatColor.GREEN + "Unlocked");
+                } else {
+                    lore.add(ChatColor.GRAY + "Cost:");
+                    for (Map.Entry<Rarity, Long> cost : node.getCosts().entrySet()) {
+                        String color = plugin.getRarityManager().colorFor(cost.getKey());
+                        lore.add(ChatColor.GRAY + " - " + color + cost.getValue() + " " + cost.getKey().displayName());
+                    }
+                    lore.add(canAfford ? ChatColor.GREEN + "Click to unlock!" : ChatColor.RED + "Not enough drops");
                 }
-                lore.add(canAfford ? ChatColor.GREEN + "Click to unlock!" : ChatColor.RED + "Not enough drops");
+                lore.add("");
+                lore.add(describeEffect(node));
+
+                icon = new ItemStack(unlocked ? Material.LIME_DYE : Material.RED_DYE);
+                ItemMeta meta = icon.getItemMeta();
+                meta.setDisplayName((unlocked ? ChatColor.GREEN : ChatColor.RED) + node.getDisplay());
+                meta.setLore(lore);
+                meta.getPersistentDataContainer().set(nodeIdKey, PersistentDataType.STRING, node.getId());
+                icon.setItemMeta(meta);
             }
-
-            lore.add("");
-            lore.add(describeEffect(node));
-
-            ItemStack icon = new ItemStack(material);
-            ItemMeta meta = icon.getItemMeta();
-            meta.setDisplayName((unlocked ? ChatColor.GREEN : ChatColor.AQUA) + node.getDisplay());
-            meta.setLore(lore);
-            meta.getPersistentDataContainer().set(nodeIdKey, PersistentDataType.STRING, node.getId());
-            icon.setItemMeta(meta);
 
             inv.setItem(slot, icon);
         }

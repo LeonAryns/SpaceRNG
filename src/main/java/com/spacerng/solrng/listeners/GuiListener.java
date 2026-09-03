@@ -113,8 +113,8 @@ public class GuiListener implements Listener {
         int rawSlot = event.getRawSlot();
         Inventory top = event.getView().getTopInventory();
 
-        // Allow free item movement into/out of the input row (slots 0-8).
-        boolean isInputSlot = rawSlot >= 0 && rawSlot <= 8;
+        // Allow free item movement into/out of the input rows (slots 0-26).
+        boolean isInputSlot = rawSlot >= 0 && rawSlot <= 26;
         boolean clickedTopInventory = rawSlot < top.getSize();
 
         if (!clickedTopInventory) {

@@ -131,7 +131,7 @@ public class IndexGui {
 
         List<String> lore = new ArrayList<>();
         if (discovered) {
-            meta.setDisplayName(color + item.getDisplayName());
+            meta.setDisplayName(RollFormat.naturalColor(item.getMaterial()) + item.getDisplayName());
             lore.addAll(RollFormat.lore(plugin, item));
             lore.add("");
             lore.add(ChatColor.GREEN + "✔ Discovered");

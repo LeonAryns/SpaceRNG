@@ -3,6 +3,8 @@ package com.spacerng.solrng.gui;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 
+import java.util.stream.IntStream;
+
 public class ConvertHolder implements InventoryHolder {
     private Inventory inventory;
 
@@ -15,8 +17,9 @@ public class ConvertHolder implements InventoryHolder {
         this.inventory = inventory;
     }
 
-    // Slots 0-8 (top row) are the "drop items here" input area.
-    public static final int[] INPUT_SLOTS = {0, 1, 2, 3, 4, 5, 6, 7, 8};
-    public static final int CONFIRM_SLOT = 22;
-    public static final int AUTO_TOGGLE_ROW_START = 27; // one button per rarity, if unlocked
+    // Rows 0-2 (27 slots) are the "drop items here" input area.
+    public static final int[] INPUT_SLOTS = IntStream.rangeClosed(0, 26).toArray();
+    public static final int CONFIRM_SLOT = 31; // row 3, centered
+    public static final int AUTO_TOGGLE_ROW_START = 37; // row 4 — one button per rarity
+    public static final int AUTO_TOGGLE_ROW_END = 42;
 }

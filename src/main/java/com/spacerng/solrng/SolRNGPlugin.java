@@ -13,6 +13,7 @@ import com.spacerng.solrng.listeners.RollListener;
 import com.spacerng.solrng.player.PlayerData;
 import com.spacerng.solrng.player.PlayerDataManager;
 import com.spacerng.solrng.player.SkillTreeManager;
+import com.spacerng.solrng.placeholder.SolRNGExpansion;
 import com.spacerng.solrng.rarity.RarityManager;
 import com.spacerng.solrng.rarity.RollableItem;
 import com.spacerng.solrng.scoreboard.ScoreboardManager;
@@ -36,7 +37,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         this.rarityManager = new RarityManager(getLogger());
         this.skillTreeManager = new SkillTreeManager(getLogger());
         this.playerDataManager = new PlayerDataManager(this);
-        this.tagManager = new TagManager();
+        this.tagManager = new TagManager(this);
         this.scoreboardManager = new ScoreboardManager(this);
 
         reloadAll();
@@ -56,6 +57,8 @@ public final class SolRNGPlugin extends JavaPlugin {
 
         startAutoRollTask();
         startScoreboardRefreshTask();
+        tagManager.startSyncTask();
+        registerPlaceholderExpansion();
 
         getLogger().info("SolRNG enabled.");
     }
@@ -127,5 +130,13 @@ public final class SolRNGPlugin extends JavaPlugin {
      */
     private void startScoreboardRefreshTask() {
         getServer().getScheduler().runTaskTimer(this, () -> scoreboardManager.updateAll(), 20L, 20L);
+    }
+
+    private void registerPlaceholderExpansion() {
+        if (getServer().getPluginManager().getPlugin("PlaceholderAPI") == null) {
+            return;
+        }
+        new SolRNGExpansion(this).register();
+        getLogger().info("[SolRNG] Registered PlaceholderAPI expansion (%solrng_tag%).");
     }
 }

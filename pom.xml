@@ -6,7 +6,7 @@
 
     <groupId>com.spacerng</groupId>
     <artifactId>sol-rng</artifactId>
-    <version>8</version>
+    <version>9</version>
     <packaging>jar</packaging>
 
     <properties>
@@ -24,6 +24,10 @@
             <id>jitpack.io</id>
             <url>https://jitpack.io</url>
         </repository>
+        <repository>
+            <id>placeholderapi</id>
+            <url>https://repo.helpch.at/releases</url>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -40,6 +44,15 @@
             <groupId>com.github.MilkBowl</groupId>
             <artifactId>VaultAPI</artifactId>
             <version>1.7.1</version>
+            <scope>provided</scope>
+        </dependency>
+        <!-- PlaceholderAPI: exposes %solrng_tag% so TAB (which overrides the
+             vanilla tab list) can be configured to show the equipped tag
+             there. Soft-dependency — the plugin works fine without it. -->
+        <dependency>
+            <groupId>me.clip</groupId>
+            <artifactId>placeholderapi</artifactId>
+            <version>2.11.6</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

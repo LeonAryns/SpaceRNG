@@ -1,17 +1,16 @@
 package com.spacerng.solrng.tag;
 
+import com.spacerng.solrng.SolRNGPlugin;
 import org.bukkit.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
+import org.bukkit.Location;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
-import org.bukkit.util.Transformation;
-import org.joml.Quaternionf;
-import org.joml.Vector3f;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -20,26 +19,56 @@ import java.util.UUID;
 /**
  * Equipping a tag creates/uses a dedicated scoreboard team per player and
  * sets its prefix. This makes the tag show above the player's head in the
- * world AND in the tab list. Chat formatting is handled separately by
- * ChatListener, which reads the same prefix.
+ * world AND in the tab list (TAB, if installed, needs the
+ * %solrng_tag% placeholder added to its own tablist format to actually
+ * render it — see SolRNGExpansion). Chat formatting is handled separately
+ * by ChatListener, which reads the same prefix.
  *
- * On top of that, the tag also floats two extra lines above the player's
- * head — item name, then odds — as a chain of invisible text displays
- * riding the player. Mounted passengers are moved by the server
- * automatically, so no per-tick position syncing is needed. Text displays
- * (rather than armor stands) let us set an exact vertical gap via their
- * Transformation instead of guessing at entity bounding-box height.
+ * On top of that, the tag floats two extra lines above the player's head
+ * — item name, then odds — as two text displays whose position is
+ * explicitly re-synced to the player every couple of ticks. This was
+ * previously done by mounting them as passengers and letting Minecraft
+ * auto-position them, but the native mount-offset it computes for an
+ * arbitrary entity (rather than a real vehicle seat) turned out to be
+ * unpredictable — sometimes far too high, sometimes overlapping the
+ * player's own nameplate. Direct positioning removes that guesswork.
  */
 public class TagManager {
 
     private static final String TEAM_PREFIX = "solrng_";
-    // Vertical gap between stacked lines, in blocks — small and exact,
-    // instead of relying on an armor stand's (unpredictable) height.
-    private static final float LINE_GAP = 0.27f;
+    // Height above the player's feet, in blocks. The vanilla nameplate
+    // sits at roughly 2.3-2.4, so these clear it with a small margin.
+    private static final double ODDS_LINE_HEIGHT = 2.65;
+    private static final double NAME_LINE_HEIGHT = 2.95;
 
-    // index 0 = odds display (rides the player directly), index 1 = item
-    // name display (rides the odds display, so it renders highest).
+    private final SolRNGPlugin plugin;
+    // index 0 = odds display, index 1 = item name display (rendered above it).
     private final Map<UUID, TextDisplay[]> holograms = new HashMap<>();
+
+    public TagManager(SolRNGPlugin plugin) {
+        this.plugin = plugin;
+    }
+
+    /** Keeps every active hologram glued to its player's current position. */
+    public void startSyncTask() {
+        plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
+            for (Map.Entry<UUID, TextDisplay[]> entry : holograms.entrySet()) {
+                Player player = Bukkit.getPlayer(entry.getKey());
+                if (player == null) continue;
+
+                TextDisplay[] displays = entry.getValue();
+                Location base = player.getLocation();
+                displays[0].teleport(withHeight(base, ODDS_LINE_HEIGHT));
+                displays[1].teleport(withHeight(base, NAME_LINE_HEIGHT));
+            }
+        }, 0L, 2L);
+    }
+
+    private Location withHeight(Location playerFeet, double height) {
+        Location loc = playerFeet.clone();
+        loc.setY(loc.getY() + height);
+        return loc;
+    }
 
     public void applyTag(Player player, String tagText, String colorCode) {
         Scoreboard board = Bukkit.getScoreboardManager().getMainScoreboard();
@@ -77,16 +106,13 @@ public class TagManager {
     /**
      * (Re)builds the floating item-name/odds display above the player's
      * head. Safe to call repeatedly (e.g. on join or respawn) — always
-     * tears down any previous stands first.
+     * tears down any previous displays first.
      */
     public void showHologram(Player player, String itemNameColored, String oddsText) {
         hideHologram(player);
 
-        TextDisplay oddsDisplay = spawnLine(player, oddsText);
-        TextDisplay nameDisplay = spawnLine(player, itemNameColored);
-
-        player.addPassenger(oddsDisplay);
-        oddsDisplay.addPassenger(nameDisplay);
+        TextDisplay oddsDisplay = spawnLine(player, oddsText, ODDS_LINE_HEIGHT);
+        TextDisplay nameDisplay = spawnLine(player, itemNameColored, NAME_LINE_HEIGHT);
 
         holograms.put(player.getUniqueId(), new TextDisplay[]{oddsDisplay, nameDisplay});
     }
@@ -109,8 +135,9 @@ public class TagManager {
         }
     }
 
-    private TextDisplay spawnLine(Player player, String text) {
-        TextDisplay display = (TextDisplay) player.getWorld().spawnEntity(player.getEyeLocation(), EntityType.TEXT_DISPLAY);
+    private TextDisplay spawnLine(Player player, String text, double height) {
+        TextDisplay display = (TextDisplay) player.getWorld().spawnEntity(
+                withHeight(player.getLocation(), height), EntityType.TEXT_DISPLAY);
         display.setInvulnerable(true);
         display.setGravity(false);
         display.setPersistent(false);
@@ -118,12 +145,6 @@ public class TagManager {
         display.setBackgroundColor(Color.fromARGB(0, 0, 0, 0));
         display.setShadowRadius(0f);
         display.text(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().deserialize(text));
-        display.setTransformation(new Transformation(
-                new Vector3f(0f, LINE_GAP, 0f),
-                new Quaternionf(),
-                new Vector3f(1f, 1f, 1f),
-                new Quaternionf()
-        ));
         return display;
     }
 
