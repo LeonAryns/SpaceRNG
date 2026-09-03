@@ -11,6 +11,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,6 +65,12 @@ public class IndexGui {
             lore.addAll(RollFormat.lore(plugin, item));
             lore.add("");
             lore.add(ChatColor.GREEN + "✔ Discovered");
+            lore.add(ChatColor.YELLOW + "Click to equip as your tag");
+
+            meta.getPersistentDataContainer().set(plugin.getRollListener().getRarityKey(),
+                    PersistentDataType.STRING, item.getRarity().name());
+            meta.getPersistentDataContainer().set(plugin.getRollListener().getRollNameKey(),
+                    PersistentDataType.STRING, item.getDisplayName());
         } else {
             meta.setDisplayName(ChatColor.DARK_GRAY + "???");
             lore.add(ChatColor.GRAY + "Rarity: " + color + item.getRarity().displayName());

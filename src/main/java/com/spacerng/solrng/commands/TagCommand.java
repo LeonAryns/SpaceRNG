@@ -3,6 +3,8 @@ package com.spacerng.solrng.commands;
 import com.spacerng.solrng.SolRNGPlugin;
 import com.spacerng.solrng.player.PlayerData;
 import com.spacerng.solrng.rarity.Rarity;
+import com.spacerng.solrng.rarity.RollFormat;
+import com.spacerng.solrng.rarity.RollableItem;
 import org.bukkit.ChatColor;
 import org.bukkit.NamespacedKey;
 import org.bukkit.command.Command;
@@ -60,14 +62,29 @@ public class TagCommand implements CommandExecutor {
                 return true;
             }
 
-            data.setEquippedTag(rollName, rarityName);
-            String color = plugin.getRarityManager().colorFor(Rarity.valueOf(rarityName));
-            plugin.getTagManager().applyTag(player, rollName, color);
-            player.sendMessage(ChatColor.GREEN + "Equipped tag: " + color + "[" + rollName + "]");
+            equip(plugin, player, data, rollName, rarityName);
             return true;
         }
 
         player.sendMessage(ChatColor.RED + "Usage: /tag <equip|clear>");
         return true;
+    }
+
+    /**
+     * Equips a tag by item name + rarity, shared by /tag equip (reads a
+     * held item) and the /index GUI (reads a clicked collection-log entry).
+     */
+    public static void equip(SolRNGPlugin plugin, Player player, PlayerData data, String rollName, String rarityName) {
+        data.setEquippedTag(rollName, rarityName);
+        String color = plugin.getRarityManager().colorFor(Rarity.valueOf(rarityName));
+        plugin.getTagManager().applyTag(player, rollName, color);
+
+        RollableItem rollable = plugin.getRarityManager().findByDisplayName(rollName);
+        if (rollable != null) {
+            plugin.getTagManager().showHologram(player, color + rollName,
+                    ChatColor.GRAY + "Odds: " + ChatColor.WHITE + RollFormat.compactOdds(rollable.getOdds()));
+        }
+
+        player.sendMessage(ChatColor.GREEN + "Equipped tag: " + color + "[" + rollName + "]");
     }
 }

@@ -81,6 +81,20 @@ public class RarityManager {
     }
 
     /**
+     * Looks up a rollable item by its display name — used to recover the
+     * odds of a player's currently-equipped tag, which is only stored as
+     * a name + rarity string in PlayerData.
+     */
+    public RollableItem findByDisplayName(String displayName) {
+        for (RollableItem item : items) {
+            if (item.getDisplayName().equals(displayName)) {
+                return item;
+            }
+        }
+        return null;
+    }
+
+    /**
      * Weighted random roll. luck is the player's total luck stat
      * (0.0 = no bonus). Each item's effective weight is scaled up
      * based on its rarity's luck-factor, so higher luck disproportionately

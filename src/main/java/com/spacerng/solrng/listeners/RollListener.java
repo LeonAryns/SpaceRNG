@@ -130,10 +130,12 @@ public class RollListener implements Listener {
         long[] elapsed = {0L};
         remainingTicks.put(player.getUniqueId(), totalTicks);
 
-        BukkitTask task = plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
+        BukkitTask[] taskHolder = new BukkitTask[1];
+        taskHolder[0] = plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
             elapsed[0] += 2L;
 
             if (elapsed[0] >= totalTicks) {
+                taskHolder[0].cancel();
                 rollingTasks.remove(player.getUniqueId());
                 remainingTicks.remove(player.getUniqueId());
                 finishRoll(player, data);
@@ -145,7 +147,7 @@ public class RollListener implements Listener {
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 0.6f + (float) elapsed[0] / totalTicks);
         }, 0L, 2L);
 
-        rollingTasks.put(player.getUniqueId(), task);
+        rollingTasks.put(player.getUniqueId(), taskHolder[0]);
     }
 
     private void finishRoll(Player player, PlayerData data) {
@@ -239,8 +241,9 @@ public class RollListener implements Listener {
 
         if (!silent) {
             int total = plugin.getRarityManager().getItems().size();
+            String color = plugin.getRarityManager().colorFor(result.getRarity());
             player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "NEW! " + ChatColor.RESET
-                    + ChatColor.WHITE + result.getDisplayName() + ChatColor.GRAY + " added to your index "
+                    + color + result.getDisplayName() + ChatColor.GRAY + " added to your index "
                     + ChatColor.GRAY + "(" + data.getDiscoveredItems().size() + "/" + total + ")");
             player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.8f, 1.3f);
         }

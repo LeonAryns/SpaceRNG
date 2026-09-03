@@ -34,6 +34,10 @@ public class ScoreboardManager {
 
     private static final String OBJECTIVE_ID = "solrng_side";
     private static final LegacyComponentSerializer LEGACY = LegacyComponentSerializer.legacySection();
+    // Generous upper bound on possible line count (currently maxes out
+    // around 11) so leftover entries from a longer previous frame — e.g.
+    // the "Rolling... Ns" lines once a roll finishes — always get cleared.
+    private static final int MAX_LINES = 20;
 
     private final SolRNGPlugin plugin;
     private Economy economy;
@@ -73,6 +77,11 @@ public class ScoreboardManager {
         for (int i = 0; i < total; i++) {
             setLine(objective, i, total - i, lines.get(i));
         }
+        // Line count varies (rolling adds 2 lines) — clear anything left
+        // over from a longer previous frame so old lines don't linger.
+        for (int i = total; i < MAX_LINES; i++) {
+            board.resetScores(ChatColor.RESET.toString().repeat(i + 1));
+        }
     }
 
     public void updateAll() {
@@ -87,19 +96,55 @@ public class ScoreboardManager {
         int totalItems = plugin.getRarityManager().getItems().size();
         double luckPercent = data.getBonusLuck() * 100.0;
 
+        List<String> content = new ArrayList<>();
+        content.add(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Index: " + ChatColor.AQUA + discovered + ChatColor.GRAY + "/" + ChatColor.AQUA + totalItems);
+        content.add(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Luck: " + ChatColor.GREEN + "+" + String.format("%.2f", luckPercent) + "%");
+        content.add(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Tag: " + tagLine(data));
+        content.add(ChatColor.YELLOW + "| " + ChatColor.GOLD + "$ " + ChatColor.WHITE + "Money: " + ChatColor.GREEN + formatMoney(player));
+        content.add(ChatColor.YELLOW + "| " + ChatColor.AQUA + "♦ " + ChatColor.WHITE + "Tokens: " + ChatColor.AQUA + data.getTokens());
+        content.add(ChatColor.YELLOW + "| " + ChatColor.LIGHT_PURPLE + "✦ " + ChatColor.WHITE + "Credits: " + ChatColor.LIGHT_PURPLE + data.getPoints());
+        padToLongest(content);
+
         List<String> lines = new ArrayList<>();
         lines.add(ChatColor.GOLD + "" + ChatColor.BOLD + player.getName());
-        lines.add(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Index: " + ChatColor.AQUA + discovered + ChatColor.GRAY + "/" + ChatColor.AQUA + totalItems);
-        lines.add(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Luck: " + ChatColor.GREEN + "+" + String.format("%.2f", luckPercent) + "%");
-        lines.add(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Tag: " + tagLine(data));
+        lines.add(content.get(0));
+        lines.add(content.get(1));
+        lines.add(content.get(2));
         lines.add(""); // blank spacer
         lines.add(ChatColor.GOLD + "" + ChatColor.BOLD + "YOUR WALLET");
-        lines.add(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Money: " + ChatColor.GREEN + formatMoney(player));
-        lines.add(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Tokens: " + ChatColor.AQUA + data.getTokens());
-        lines.add(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Credits: " + ChatColor.LIGHT_PURPLE + data.getPoints());
+        lines.add(content.get(3));
+        lines.add(content.get(4));
+        lines.add(content.get(5));
+
+        String rollStatus = rollStatusLine(player);
+        if (rollStatus != null) {
+            lines.add(""); // blank spacer
+            lines.add(rollStatus);
+        }
         lines.add(""); // blank spacer
-        lines.add(rollStatusLine(player));
+        lines.add(ChatColor.GRAY + "SpaceRNG.Minehut.gg");
         return lines;
+    }
+
+    /**
+     * Right-pads every line (with plain spaces, ignoring color codes) to
+     * the width of the longest one. Vanilla scoreboard entries are always
+     * right-anchored to the sidebar, so equal-width lines are what make
+     * shorter stats look left-aligned instead of trailing off to the right.
+     * This is an approximation — Minecraft's font isn't monospace, so it
+     * won't be pixel-perfect without a resource pack.
+     */
+    private void padToLongest(List<String> content) {
+        int maxLength = 0;
+        for (String line : content) {
+            maxLength = Math.max(maxLength, ChatColor.stripColor(line).length());
+        }
+        for (int i = 0; i < content.size(); i++) {
+            int len = ChatColor.stripColor(content.get(i)).length();
+            if (len < maxLength) {
+                content.set(i, content.get(i) + " ".repeat(maxLength - len));
+            }
+        }
     }
 
     private String tagLine(PlayerData data) {
@@ -111,12 +156,16 @@ public class ScoreboardManager {
         return color + "[" + data.getEquippedTagItemKey() + "]";
     }
 
+    /**
+     * Null when the player isn't mid-roll — the idle "Ready to roll!"
+     * line was removed, so this line is skipped entirely while idle.
+     */
     private String rollStatusLine(Player player) {
         int secondsLeft = plugin.getRollListener().getRemainingSeconds(player.getUniqueId());
         if (secondsLeft > 0) {
             return ChatColor.YELLOW + "Rolling... " + ChatColor.WHITE + secondsLeft + "s";
         }
-        return ChatColor.GREEN + "" + ChatColor.BOLD + "Ready to roll!";
+        return null;
     }
 
     private String formatMoney(Player player) {

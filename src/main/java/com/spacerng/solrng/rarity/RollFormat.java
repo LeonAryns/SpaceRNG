@@ -17,12 +17,13 @@ public final class RollFormat {
     }
 
     /**
-     * "Rolled Stone (Common)" — fully colored in the rarity's color. Used
-     * for the item itself (its in-inventory display name).
+     * "Stone" fully colored in the rarity's color. Used for the item itself
+     * (its in-inventory display name) — the "you rolled X" phrasing only
+     * appears in chat, not baked into the item name.
      */
     public static String displayName(SolRNGPlugin plugin, RollableItem item) {
         String color = plugin.getRarityManager().colorFor(item.getRarity());
-        return color + "Rolled " + item.getDisplayName() + " (" + item.getRarity().displayName() + ")";
+        return color + item.getDisplayName();
     }
 
     /**

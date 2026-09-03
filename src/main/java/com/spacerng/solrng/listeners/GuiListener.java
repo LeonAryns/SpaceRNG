@@ -1,6 +1,7 @@
 package com.spacerng.solrng.listeners;
 
 import com.spacerng.solrng.SolRNGPlugin;
+import com.spacerng.solrng.commands.TagCommand;
 import com.spacerng.solrng.gui.ConvertGui;
 import com.spacerng.solrng.gui.ConvertHolder;
 import com.spacerng.solrng.gui.IndexHolder;
@@ -36,8 +37,27 @@ public class GuiListener implements Listener {
         } else if (topInventory.getHolder() instanceof ConvertHolder) {
             handleConvertClick(event);
         } else if (topInventory.getHolder() instanceof IndexHolder) {
-            event.setCancelled(true); // view-only collection log, nothing to click
+            handleIndexClick(event);
         }
+    }
+
+    private void handleIndexClick(InventoryClickEvent event) {
+        event.setCancelled(true); // collection log — clicking equips a tag, never moves items
+        if (event.getClickedInventory() == null || !(event.getClickedInventory().getHolder() instanceof IndexHolder)) return;
+
+        ItemStack clicked = event.getCurrentItem();
+        if (clicked == null || clicked.getItemMeta() == null) return;
+
+        ItemMeta meta = clicked.getItemMeta();
+        NamespacedKey rarityKey = plugin.getRollListener().getRarityKey();
+        NamespacedKey nameKey = plugin.getRollListener().getRollNameKey();
+        String rarityName = meta.getPersistentDataContainer().get(rarityKey, PersistentDataType.STRING);
+        String rollName = meta.getPersistentDataContainer().get(nameKey, PersistentDataType.STRING);
+        if (rarityName == null || rollName == null) return; // undiscovered entry or the info book
+
+        Player player = (Player) event.getWhoClicked();
+        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+        TagCommand.equip(plugin, player, data, rollName, rarityName);
     }
 
     private void handleSkillTreeClick(InventoryClickEvent event) {
