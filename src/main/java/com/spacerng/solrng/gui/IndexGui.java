@@ -2,6 +2,7 @@ package com.spacerng.solrng.gui;
 
 import com.spacerng.solrng.SolRNGPlugin;
 import com.spacerng.solrng.player.PlayerData;
+import com.spacerng.solrng.rarity.Rarity;
 import com.spacerng.solrng.rarity.RollFormat;
 import com.spacerng.solrng.rarity.RollableItem;
 import org.bukkit.Bukkit;
@@ -17,39 +18,108 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Read-only collection log: every rollable item, greyed out until the
- * player has actually rolled it at least once.
+ * Collection log: every rollable item, greyed out until the player has
+ * actually rolled it at least once. Top row is a tab bar — a button per
+ * rarity (left to right, click to filter, click again to clear it) plus
+ * an Index Progress readout and page controls on the right. The 45 slots
+ * below page through whatever's currently selected.
  */
 public class IndexGui {
 
-    public static Inventory build(SolRNGPlugin plugin, Player player) {
+    private static final int PAGE_SIZE = 45; // rows 1-5
+    private static final int PREV_SLOT = 6;
+    private static final int PROGRESS_SLOT = 7;
+    private static final int NEXT_SLOT = 8;
+
+    public static Inventory build(SolRNGPlugin plugin, Player player, Rarity filter, int page) {
         IndexHolder holder = new IndexHolder();
+        holder.setFilter(filter);
+
+        List<RollableItem> allItems = plugin.getRarityManager().getItems();
+        List<RollableItem> shown = filter == null ? allItems
+                : allItems.stream().filter(i -> i.getRarity() == filter).toList();
+
+        int totalPages = Math.max(1, (int) Math.ceil(shown.size() / (double) PAGE_SIZE));
+        page = Math.max(0, Math.min(page, totalPages - 1));
+        holder.setPage(page);
+
         Inventory inv = Bukkit.createInventory(holder, 54, ChatColor.DARK_AQUA + "" + ChatColor.BOLD + "Your Index");
         holder.setInventory(inv);
 
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
-        List<RollableItem> items = plugin.getRarityManager().getItems();
-        int discovered = data.getDiscoveredItems().size();
-        double luckPerItem = plugin.getConfig().getDouble("index.luck-per-item", 0.01);
 
-        ItemStack info = new ItemStack(Material.KNOWLEDGE_BOOK);
-        ItemMeta infoMeta = info.getItemMeta();
-        infoMeta.setDisplayName(ChatColor.AQUA + "" + ChatColor.BOLD + "Index Progress: " + discovered + "/" + items.size());
-        infoMeta.setLore(List.of(
-                ChatColor.GRAY + "Every new item adds " + ChatColor.GREEN + "+" + luckPerItem + " Luck" + ChatColor.GRAY + ".",
-                ChatColor.GRAY + "Luck from your index so far: " + ChatColor.GREEN + "+" + String.format("%.2f", discovered * luckPerItem)
-        ));
-        info.setItemMeta(infoMeta);
-        inv.setItem(4, info);
+        for (Rarity rarity : Rarity.values()) {
+            inv.setItem(rarity.ordinal(), buildTab(plugin, rarity, filter == rarity));
+        }
 
+        inv.setItem(PROGRESS_SLOT, buildProgressInfo(plugin, data, filter, shown.size()));
+        if (page > 0) {
+            inv.setItem(PREV_SLOT, buildPageButton(false, page, totalPages));
+        }
+        if (page < totalPages - 1) {
+            inv.setItem(NEXT_SLOT, buildPageButton(true, page, totalPages));
+        }
+
+        int from = page * PAGE_SIZE;
+        int to = Math.min(shown.size(), from + PAGE_SIZE);
         int slot = 9;
-        for (RollableItem item : items) {
-            if (slot >= 54) break; // safety net if the item list ever outgrows the GUI
+        for (RollableItem item : shown.subList(from, to)) {
             inv.setItem(slot, buildEntry(plugin, data, item));
             slot++;
         }
 
         return inv;
+    }
+
+    private static ItemStack buildTab(SolRNGPlugin plugin, Rarity rarity, boolean selected) {
+        Material material = switch (rarity) {
+            case COMMON -> Material.WHITE_DYE;
+            case UNCOMMON -> Material.LIME_DYE;
+            case RARE -> Material.LIGHT_BLUE_DYE;
+            case EPIC -> Material.PURPLE_DYE;
+            case LEGENDARY -> Material.ORANGE_DYE;
+            case MYTHICAL -> Material.RED_DYE;
+        };
+        String color = plugin.getRarityManager().colorFor(rarity);
+
+        ItemStack tab = new ItemStack(material);
+        ItemMeta meta = tab.getItemMeta();
+        meta.setDisplayName((selected ? ChatColor.BOLD.toString() : "") + color + rarity.displayName());
+        meta.setLore(List.of(selected
+                ? ChatColor.YELLOW + "Selected — click to clear"
+                : ChatColor.GRAY + "Click to filter"));
+        tab.setItemMeta(meta);
+        return tab;
+    }
+
+    private static ItemStack buildProgressInfo(SolRNGPlugin plugin, PlayerData data, Rarity filter, int shownCount) {
+        int discovered = data.getDiscoveredItems().size();
+        int total = plugin.getRarityManager().getItems().size();
+        double luckPerItem = plugin.getConfig().getDouble("index.luck-per-item", 0.01);
+
+        ItemStack info = new ItemStack(Material.KNOWLEDGE_BOOK);
+        ItemMeta meta = info.getItemMeta();
+        meta.setDisplayName(ChatColor.AQUA + "" + ChatColor.BOLD + "Index Progress: " + discovered + "/" + total);
+        List<String> lore = new ArrayList<>();
+        lore.add(ChatColor.GRAY + "Every new item adds " + ChatColor.GREEN + "+" + luckPerItem + " Luck" + ChatColor.GRAY + ".");
+        lore.add(ChatColor.GRAY + "Luck from your index so far: " + ChatColor.GREEN + "+" + String.format("%.2f", discovered * luckPerItem));
+        if (filter != null) {
+            lore.add("");
+            lore.add(ChatColor.GRAY + "Showing: " + plugin.getRarityManager().colorFor(filter) + filter.displayName()
+                    + ChatColor.GRAY + " (" + shownCount + ")");
+        }
+        meta.setLore(lore);
+        info.setItemMeta(meta);
+        return info;
+    }
+
+    private static ItemStack buildPageButton(boolean next, int page, int totalPages) {
+        ItemStack button = new ItemStack(next ? Material.ARROW : Material.SPECTRAL_ARROW);
+        ItemMeta meta = button.getItemMeta();
+        meta.setDisplayName(ChatColor.YELLOW + (next ? "Next Page ▶" : "◀ Previous Page"));
+        meta.setLore(List.of(ChatColor.GRAY + "Page " + (page + 1) + "/" + totalPages));
+        button.setItemMeta(meta);
+        return button;
     }
 
     private static ItemStack buildEntry(SolRNGPlugin plugin, PlayerData data, RollableItem item) {

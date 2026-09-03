@@ -22,7 +22,7 @@ public class IndexCommand implements CommandExecutor {
             sender.sendMessage(ChatColor.RED + "Only players can use this command.");
             return true;
         }
-        player.openInventory(IndexGui.build(plugin, player));
+        player.openInventory(IndexGui.build(plugin, player, null, 0));
         return true;
     }
 }

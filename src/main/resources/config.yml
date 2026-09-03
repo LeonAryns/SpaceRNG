@@ -642,55 +642,73 @@ conversion:
 # unlocked first (blank = no requirement). "effect" tells the plugin
 # what the node does; "value" is its magnitude.
 skilltree:
+  # Nodes are paid for with rolled drops (Common, Uncommon, ...), not
+  # Credits — Credits are the real-money store currency, not something
+  # free gameplay should be able to spend on progression.
   nodes:
     # Root — everything else branches up from here.
     auto_roll_root:
       display: "Auto Roll"
-      cost: 300
+      costs:
+        COMMON: 20
       requires: ""
       effect: AUTO_ROLL
       value: 10
     # Branch 1: Luck Multiplier
     luck_mult_1:
       display: "Luck Multiplier I"
-      cost: 500
+      costs:
+        COMMON: 30
+        UNCOMMON: 10
       requires: "auto_roll_root"
       effect: LUCK
       value: 0.05
     luck_mult_2:
       display: "Luck Multiplier II"
-      cost: 1500
+      costs:
+        UNCOMMON: 25
+        RARE: 8
       requires: "luck_mult_1"
       effect: LUCK
       value: 0.10
     luck_mult_3:
       display: "Luck Multiplier III"
-      cost: 4000
+      costs:
+        RARE: 15
+        EPIC: 3
       requires: "luck_mult_2"
       effect: LUCK
       value: 0.20
     auto_convert:
       display: "Auto-Convert"
-      cost: 800
+      costs:
+        COMMON: 40
+        UNCOMMON: 15
       requires: "luck_mult_1"
       effect: UNLOCK_AUTO_CONVERT
       value: 0
     # Branch 2: Rolling Speed
     rolling_speed_1:
       display: "Rolling Speed I"
-      cost: 500
+      costs:
+        COMMON: 30
+        UNCOMMON: 10
       requires: "auto_roll_root"
       effect: ROLL_SPEED
       value: 0.25
     rolling_speed_2:
       display: "Rolling Speed II"
-      cost: 1500
+      costs:
+        UNCOMMON: 25
+        RARE: 8
       requires: "rolling_speed_1"
       effect: ROLL_SPEED
       value: 0.25
     rolling_speed_3:
       display: "Rolling Speed III"
-      cost: 4000
+      costs:
+        RARE: 15
+        EPIC: 3
       requires: "rolling_speed_2"
       effect: ROLL_SPEED
       value: 0.50
@@ -698,19 +716,25 @@ skilltree:
     # extra roll right after any roll finishes.
     bonus_roll_1:
       display: "Bonus Roll I"
-      cost: 500
+      costs:
+        COMMON: 30
+        UNCOMMON: 10
       requires: "auto_roll_root"
       effect: BONUS_ROLL_CHANCE
       value: 0.05
     bonus_roll_2:
       display: "Bonus Roll II"
-      cost: 1500
+      costs:
+        UNCOMMON: 25
+        RARE: 8
       requires: "bonus_roll_1"
       effect: BONUS_ROLL_CHANCE
       value: 0.05
     bonus_roll_3:
       display: "Bonus Roll III"
-      cost: 4000
+      costs:
+        RARE: 15
+        EPIC: 3
       requires: "bonus_roll_2"
       effect: BONUS_ROLL_CHANCE
       value: 0.10

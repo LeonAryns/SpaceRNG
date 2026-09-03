@@ -1,5 +1,9 @@
 package com.spacerng.solrng.player;
 
+import com.spacerng.solrng.rarity.Rarity;
+
+import java.util.Map;
+
 public class SkillNode {
 
     public enum Effect {
@@ -12,15 +16,17 @@ public class SkillNode {
 
     private final String id;
     private final String display;
-    private final long cost;
+    // Paid in rolled drops (Common, Uncommon, ...), not Credits — Credits
+    // are reserved for the real-money store, not free skill progression.
+    private final Map<Rarity, Long> costs;
     private final String requires; // id of required node, or null
     private final Effect effect;
     private final double value;
 
-    public SkillNode(String id, String display, long cost, String requires, Effect effect, double value) {
+    public SkillNode(String id, String display, Map<Rarity, Long> costs, String requires, Effect effect, double value) {
         this.id = id;
         this.display = display;
-        this.cost = cost;
+        this.costs = costs;
         this.requires = (requires == null || requires.isBlank()) ? null : requires;
         this.effect = effect;
         this.value = value;
@@ -34,8 +40,8 @@ public class SkillNode {
         return display;
     }
 
-    public long getCost() {
-        return cost;
+    public Map<Rarity, Long> getCosts() {
+        return costs;
     }
 
     public String getRequires() {

@@ -4,6 +4,7 @@ import com.spacerng.solrng.SolRNGPlugin;
 import com.spacerng.solrng.commands.TagCommand;
 import com.spacerng.solrng.gui.ConvertGui;
 import com.spacerng.solrng.gui.ConvertHolder;
+import com.spacerng.solrng.gui.IndexGui;
 import com.spacerng.solrng.gui.IndexHolder;
 import com.spacerng.solrng.gui.SkillTreeGui;
 import com.spacerng.solrng.gui.SkillTreeHolder;
@@ -42,8 +43,16 @@ public class GuiListener implements Listener {
     }
 
     private void handleIndexClick(InventoryClickEvent event) {
-        event.setCancelled(true); // collection log — clicking equips a tag, never moves items
-        if (event.getClickedInventory() == null || !(event.getClickedInventory().getHolder() instanceof IndexHolder)) return;
+        event.setCancelled(true); // collection log — clicking equips a tag or navigates, never moves items
+        if (event.getClickedInventory() == null || !(event.getClickedInventory().getHolder() instanceof IndexHolder holder)) return;
+
+        Player player = (Player) event.getWhoClicked();
+        int rawSlot = event.getRawSlot();
+
+        if (rawSlot < 9) {
+            handleIndexTopBar(holder, player, rawSlot);
+            return;
+        }
 
         ItemStack clicked = event.getCurrentItem();
         if (clicked == null || clicked.getItemMeta() == null) return;
@@ -53,11 +62,24 @@ public class GuiListener implements Listener {
         NamespacedKey nameKey = plugin.getRollListener().getRollNameKey();
         String rarityName = meta.getPersistentDataContainer().get(rarityKey, PersistentDataType.STRING);
         String rollName = meta.getPersistentDataContainer().get(nameKey, PersistentDataType.STRING);
-        if (rarityName == null || rollName == null) return; // undiscovered entry or the info book
+        if (rarityName == null || rollName == null) return; // undiscovered entry
 
-        Player player = (Player) event.getWhoClicked();
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         TagCommand.equip(plugin, player, data, rollName, rarityName);
+    }
+
+    private void handleIndexTopBar(IndexHolder holder, Player player, int rawSlot) {
+        Rarity[] rarities = Rarity.values();
+        if (rawSlot < rarities.length) {
+            Rarity clicked = rarities[rawSlot];
+            Rarity newFilter = holder.getFilter() == clicked ? null : clicked;
+            player.openInventory(IndexGui.build(plugin, player, newFilter, 0));
+        } else if (rawSlot == 6) {
+            player.openInventory(IndexGui.build(plugin, player, holder.getFilter(), holder.getPage() - 1));
+        } else if (rawSlot == 8) {
+            player.openInventory(IndexGui.build(plugin, player, holder.getFilter(), holder.getPage() + 1));
+        }
+        // slot 7 is the Index Progress readout — no-op
     }
 
     private void handleSkillTreeClick(InventoryClickEvent event) {
@@ -75,7 +97,8 @@ public class GuiListener implements Listener {
         Player player = (Player) event.getWhoClicked();
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
 
-        boolean success = plugin.getSkillTreeManager().purchase(data, nodeId);
+        NamespacedKey rarityKey = plugin.getRollListener().getRarityKey();
+        boolean success = plugin.getSkillTreeManager().purchase(player, data, nodeId, rarityKey);
         if (success) {
             player.sendMessage(ChatColor.GREEN + "Unlocked: " + plugin.getSkillTreeManager().get(nodeId).getDisplay());
             player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_LEVELUP, 0.6f, 1.4f);

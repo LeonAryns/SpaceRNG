@@ -24,7 +24,9 @@ import java.util.Map;
  * 6x9 skill tree: "Auto Roll" is the root at the bottom-middle, branching
  * up into three tracks — Luck Multiplier, Rolling Speed, and Bonus Roll
  * (with Auto-Convert as a small side-branch off Luck Multiplier I). The
- * bottom-right corner shows a running Common/Uncommon conversion summary.
+ * bottom-right corner shows a running Common/Uncommon total. Nodes are
+ * paid for with rolled drops, not Credits — Credits are the real-money
+ * store currency.
  */
 public class SkillTreeGui {
 
@@ -43,6 +45,8 @@ public class SkillTreeGui {
             Map.entry("bonus_roll_3", 25)
     );
 
+    private static final int STATS_SLOT = 53;
+
     public static NamespacedKey nodeIdKey(SolRNGPlugin plugin) {
         return new NamespacedKey(plugin, "solrng_node_id");
     }
@@ -55,6 +59,12 @@ public class SkillTreeGui {
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         SkillTreeManager tree = plugin.getSkillTreeManager();
         NamespacedKey nodeIdKey = nodeIdKey(plugin);
+        NamespacedKey rarityKey = plugin.getRollListener().getRarityKey();
+
+        ItemStack filler = glassFiller();
+        for (int slot = 0; slot < 54; slot++) {
+            inv.setItem(slot, filler);
+        }
 
         for (Map.Entry<String, SkillNode> entry : orderedNodes(tree).entrySet()) {
             SkillNode node = entry.getValue();
@@ -63,7 +73,7 @@ public class SkillTreeGui {
 
             List<String> lore = new ArrayList<>();
             boolean unlocked = data.hasUnlocked(node.getId());
-            boolean canAfford = data.getPoints() >= node.getCost();
+            boolean canAfford = tree.canAfford(player, node, rarityKey);
             boolean reqMet = node.getRequires() == null || data.hasUnlocked(node.getRequires());
 
             Material material;
@@ -75,8 +85,12 @@ public class SkillTreeGui {
                 lore.add(ChatColor.RED + "Requires: " + tree.get(node.getRequires()).getDisplay());
             } else {
                 material = canAfford ? Material.YELLOW_DYE : Material.RED_DYE;
-                lore.add(ChatColor.GRAY + "Cost: " + node.getCost() + " Credits");
-                lore.add(canAfford ? ChatColor.GREEN + "Click to unlock!" : ChatColor.RED + "Not enough Credits");
+                lore.add(ChatColor.GRAY + "Cost:");
+                for (Map.Entry<Rarity, Long> cost : node.getCosts().entrySet()) {
+                    String color = plugin.getRarityManager().colorFor(cost.getKey());
+                    lore.add(ChatColor.GRAY + " - " + color + cost.getValue() + " " + cost.getKey().displayName());
+                }
+                lore.add(canAfford ? ChatColor.GREEN + "Click to unlock!" : ChatColor.RED + "Not enough drops");
             }
 
             lore.add("");
@@ -92,40 +106,37 @@ public class SkillTreeGui {
             inv.setItem(slot, icon);
         }
 
-        ItemStack info = new ItemStack(Material.NETHER_STAR);
-        ItemMeta infoMeta = info.getItemMeta();
-        infoMeta.setDisplayName(ChatColor.YELLOW + "Your Credits: " + data.getPoints());
-        infoMeta.setLore(List.of(ChatColor.GRAY + "Luck: +" + String.format("%.2f", data.getBonusLuck())));
-        info.setItemMeta(infoMeta);
-        inv.setItem(4, info);
-
-        inv.setItem(53, buildConversionStats(plugin, player, data));
+        inv.setItem(STATS_SLOT, buildConversionStats(plugin, player, data));
 
         return inv;
     }
 
+    private static ItemStack glassFiller() {
+        ItemStack pane = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
+        ItemMeta meta = pane.getItemMeta();
+        meta.setDisplayName(" ");
+        pane.setItemMeta(meta);
+        return pane;
+    }
+
     /**
-     * Bottom-right summary: lifetime Common/Uncommon items converted, plus
-     * whatever's currently sitting unconverted in the player's inventory.
+     * Bottom-right summary: Common/Uncommon drops converted or spent on the
+     * skill tree, plus whatever's currently sitting in the player's
+     * inventory — one combined total per rarity.
      */
     private static ItemStack buildConversionStats(SolRNGPlugin plugin, Player player, PlayerData data) {
         NamespacedKey rarityKey = plugin.getRollListener().getRarityKey();
-        long heldCommon = countHeld(player, rarityKey, Rarity.COMMON);
-        long heldUncommon = countHeld(player, rarityKey, Rarity.UNCOMMON);
+        long totalCommon = data.getConvertedCommon() + countHeld(player, rarityKey, Rarity.COMMON);
+        long totalUncommon = data.getConvertedUncommon() + countHeld(player, rarityKey, Rarity.UNCOMMON);
 
         ItemStack stats = new ItemStack(Material.HOPPER);
         ItemMeta meta = stats.getItemMeta();
-        meta.setDisplayName(ChatColor.GOLD + "" + ChatColor.BOLD + "Conversion Stats");
+        meta.setDisplayName(ChatColor.GOLD + "" + ChatColor.BOLD + "Drop Totals");
         String commonColor = plugin.getRarityManager().colorFor(Rarity.COMMON);
         String uncommonColor = plugin.getRarityManager().colorFor(Rarity.UNCOMMON);
         meta.setLore(List.of(
-                commonColor + "Common: " + ChatColor.WHITE + data.getConvertedCommon() + ChatColor.GRAY + " converted"
-                        + ChatColor.WHITE + " + " + heldCommon + ChatColor.GRAY + " held",
-                uncommonColor + "Uncommon: " + ChatColor.WHITE + data.getConvertedUncommon() + ChatColor.GRAY + " converted"
-                        + ChatColor.WHITE + " + " + heldUncommon + ChatColor.GRAY + " held",
-                "",
-                ChatColor.GRAY + "Total Common: " + ChatColor.WHITE + (data.getConvertedCommon() + heldCommon),
-                ChatColor.GRAY + "Total Uncommon: " + ChatColor.WHITE + (data.getConvertedUncommon() + heldUncommon)
+                commonColor + "Common: " + ChatColor.WHITE + totalCommon,
+                uncommonColor + "Uncommon: " + ChatColor.WHITE + totalUncommon
         ));
         stats.setItemMeta(meta);
         return stats;

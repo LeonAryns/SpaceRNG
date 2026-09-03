@@ -33,7 +33,7 @@ public class ScoreboardManager {
     private static final String OBJECTIVE_ID = "solrng_side";
     private static final LegacyComponentSerializer LEGACY = LegacyComponentSerializer.legacySection();
     // Generous upper bound on possible line count (currently maxes out
-    // around 11) so leftover entries from a longer previous frame — e.g.
+    // around 13) so leftover entries from a longer previous frame — e.g.
     // the "Rolling... Ns" lines once a roll finishes — always get cleared.
     private static final int MAX_LINES = 20;
 
@@ -104,11 +104,13 @@ public class ScoreboardManager {
 
         List<String> lines = new ArrayList<>();
         lines.add(ChatColor.GOLD + "" + ChatColor.BOLD + player.getName());
+        lines.add(""); // breathing room under the name
         lines.add(content.get(0));
         lines.add(content.get(1));
         lines.add(content.get(2));
         lines.add(""); // blank spacer
         lines.add(ChatColor.GOLD + "" + ChatColor.BOLD + "YOUR WALLET");
+        lines.add(""); // breathing room under the title
         lines.add(content.get(3));
         lines.add(content.get(4));
         lines.add(content.get(5));

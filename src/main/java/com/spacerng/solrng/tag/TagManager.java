@@ -2,11 +2,16 @@ package com.spacerng.solrng.tag;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.ArmorStand;
+import org.bukkit.Color;
+import org.bukkit.entity.Display;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.TextDisplay;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
+import org.bukkit.util.Transformation;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -19,17 +24,22 @@ import java.util.UUID;
  * ChatListener, which reads the same prefix.
  *
  * On top of that, the tag also floats two extra lines above the player's
- * head — item name, then odds — as a chain of invisible marker armor
- * stands riding the player. Mounted passengers are moved by the server
- * automatically, so no per-tick position syncing is needed.
+ * head — item name, then odds — as a chain of invisible text displays
+ * riding the player. Mounted passengers are moved by the server
+ * automatically, so no per-tick position syncing is needed. Text displays
+ * (rather than armor stands) let us set an exact vertical gap via their
+ * Transformation instead of guessing at entity bounding-box height.
  */
 public class TagManager {
 
     private static final String TEAM_PREFIX = "solrng_";
+    // Vertical gap between stacked lines, in blocks — small and exact,
+    // instead of relying on an armor stand's (unpredictable) height.
+    private static final float LINE_GAP = 0.27f;
 
-    // index 0 = odds stand (rides the player directly), index 1 = item
-    // name stand (rides the odds stand, so it renders highest).
-    private final Map<UUID, ArmorStand[]> holograms = new HashMap<>();
+    // index 0 = odds display (rides the player directly), index 1 = item
+    // name display (rides the odds display, so it renders highest).
+    private final Map<UUID, TextDisplay[]> holograms = new HashMap<>();
 
     public void applyTag(Player player, String tagText, String colorCode) {
         Scoreboard board = Bukkit.getScoreboardManager().getMainScoreboard();
@@ -72,13 +82,13 @@ public class TagManager {
     public void showHologram(Player player, String itemNameColored, String oddsText) {
         hideHologram(player);
 
-        ArmorStand oddsStand = spawnLine(player, oddsText);
-        ArmorStand nameStand = spawnLine(player, itemNameColored);
+        TextDisplay oddsDisplay = spawnLine(player, oddsText);
+        TextDisplay nameDisplay = spawnLine(player, itemNameColored);
 
-        player.addPassenger(oddsStand);
-        oddsStand.addPassenger(nameStand);
+        player.addPassenger(oddsDisplay);
+        oddsDisplay.addPassenger(nameDisplay);
 
-        holograms.put(player.getUniqueId(), new ArmorStand[]{oddsStand, nameStand});
+        holograms.put(player.getUniqueId(), new TextDisplay[]{oddsDisplay, nameDisplay});
     }
 
     public void hideHologram(Player player) {
@@ -90,30 +100,31 @@ public class TagManager {
     }
 
     private void removeHologram(UUID uuid) {
-        ArmorStand[] stands = holograms.remove(uuid);
-        if (stands == null) return;
-        for (ArmorStand stand : stands) {
-            if (stand != null && !stand.isDead()) {
-                stand.remove();
+        TextDisplay[] displays = holograms.remove(uuid);
+        if (displays == null) return;
+        for (TextDisplay display : displays) {
+            if (display != null && !display.isDead()) {
+                display.remove();
             }
         }
     }
 
-    private ArmorStand spawnLine(Player player, String text) {
-        ArmorStand stand = (ArmorStand) player.getWorld().spawnEntity(player.getEyeLocation(), EntityType.ARMOR_STAND);
-        // NOT marker — marker armor stands report zero bounding-box height,
-        // which is what the client uses to space out stacked passengers.
-        // With marker=true both lines rendered on top of each other.
-        stand.setSmall(true);
-        stand.setInvisible(true);
-        stand.setInvulnerable(true);
-        stand.setGravity(false);
-        stand.setPersistent(false);
-        stand.setBasePlate(false);
-        stand.setArms(false);
-        stand.setCustomNameVisible(true);
-        stand.customName(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().deserialize(text));
-        return stand;
+    private TextDisplay spawnLine(Player player, String text) {
+        TextDisplay display = (TextDisplay) player.getWorld().spawnEntity(player.getEyeLocation(), EntityType.TEXT_DISPLAY);
+        display.setInvulnerable(true);
+        display.setGravity(false);
+        display.setPersistent(false);
+        display.setBillboard(Display.Billboard.CENTER);
+        display.setBackgroundColor(Color.fromARGB(0, 0, 0, 0));
+        display.setShadowRadius(0f);
+        display.text(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().deserialize(text));
+        display.setTransformation(new Transformation(
+                new Vector3f(0f, LINE_GAP, 0f),
+                new Quaternionf(),
+                new Vector3f(1f, 1f, 1f),
+                new Quaternionf()
+        ));
+        return display;
     }
 
     private String shortUuid(Player player) {
