@@ -23,12 +23,10 @@ import java.util.List;
  * each refresh (rather than being removed/re-added), so nothing duplicates
  * or lingers on screen when a value changes.
  *
- * Each line's real content lives in that Score's NumberFormat (the part of
- * the row Minecraft normally reserves for a plain number) rather than the
- * entry name — the entry itself is just an invisible unique placeholder.
- * That's what lets a single line combine a label and a colored value
- * together instead of being stuck with vanilla's separate name/number
- * columns.
+ * Each line's real content is set via customName (the left-aligned "name"
+ * part of a scoreboard row), with the number hidden via NumberFormat.blank()
+ * — the entry itself is just an invisible unique placeholder used only to
+ * key which row is being written to.
  */
 public class ScoreboardManager {
 
@@ -103,7 +101,6 @@ public class ScoreboardManager {
         content.add(ChatColor.YELLOW + "| " + ChatColor.GOLD + "$ " + ChatColor.WHITE + "Money: " + ChatColor.GREEN + formatMoney(player));
         content.add(ChatColor.YELLOW + "| " + ChatColor.AQUA + "♦ " + ChatColor.WHITE + "Tokens: " + ChatColor.AQUA + data.getTokens());
         content.add(ChatColor.YELLOW + "| " + ChatColor.LIGHT_PURPLE + "✦ " + ChatColor.WHITE + "Credits: " + ChatColor.LIGHT_PURPLE + data.getPoints());
-        padToLongest(content);
 
         List<String> lines = new ArrayList<>();
         lines.add(ChatColor.GOLD + "" + ChatColor.BOLD + player.getName());
@@ -124,27 +121,6 @@ public class ScoreboardManager {
         lines.add(""); // blank spacer
         lines.add(ChatColor.GRAY + "SpaceRNG.Minehut.gg");
         return lines;
-    }
-
-    /**
-     * Right-pads every line (with plain spaces, ignoring color codes) to
-     * the width of the longest one. Vanilla scoreboard entries are always
-     * right-anchored to the sidebar, so equal-width lines are what make
-     * shorter stats look left-aligned instead of trailing off to the right.
-     * This is an approximation — Minecraft's font isn't monospace, so it
-     * won't be pixel-perfect without a resource pack.
-     */
-    private void padToLongest(List<String> content) {
-        int maxLength = 0;
-        for (String line : content) {
-            maxLength = Math.max(maxLength, ChatColor.stripColor(line).length());
-        }
-        for (int i = 0; i < content.size(); i++) {
-            int len = ChatColor.stripColor(content.get(i)).length();
-            if (len < maxLength) {
-                content.set(i, content.get(i) + " ".repeat(maxLength - len));
-            }
-        }
     }
 
     private String tagLine(PlayerData data) {
@@ -176,14 +152,22 @@ public class ScoreboardManager {
     /**
      * index: which slot this line occupies (0 = top). order: the raw score
      * value controlling vertical position (higher = higher up). content:
-     * the fully-colored line text, shown via NumberFormat rather than the
-     * entry name so label + value can share one line.
+     * the fully-colored line text.
+     *
+     * A scoreboard row has two independently-positioned parts: the name
+     * (left-aligned, like a normal player name) and the score number
+     * (always right-aligned). Content goes in customName — the left slot —
+     * with the number hidden via NumberFormat.blank(), which is what
+     * actually left-aligns every line. (numberFormat.fixed(), used here
+     * previously, renders in the right-aligned number slot — that's why
+     * padding did nothing.)
      */
     private void setLine(Objective objective, int index, int order, String content) {
         String entry = ChatColor.RESET.toString().repeat(index + 1); // unique, invisible placeholder
         Score score = objective.getScore(entry);
         score.setScore(order);
         Component component = content.isEmpty() ? Component.empty() : LEGACY.deserialize(content);
-        score.numberFormat(NumberFormat.fixed(component));
+        score.customName(component);
+        score.numberFormat(NumberFormat.blank());
     }
 }
