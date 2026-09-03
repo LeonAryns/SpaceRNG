@@ -136,7 +136,7 @@ public class ScoreboardManager {
                 : data.getPrestige() <= ROMAN_NUMERALS.length
                         ? ROMAN_NUMERALS[data.getPrestige() - 1]
                         : String.valueOf(data.getPrestige());
-        return ChatColor.GOLD + "★ " + ChatColor.WHITE + "Prestige: " + ChatColor.AQUA + numeral;
+        return ChatColor.WHITE + "Prestige: " + ChatColor.GOLD + "★ " + ChatColor.AQUA + numeral;
     }
 
     private String currencyLine(ChatColor symbolColor, String symbol, String label, String coloredValue) {

@@ -24,6 +24,7 @@ import com.spacerng.solrng.placeholder.SolRNGExpansion;
 import com.spacerng.solrng.rarity.RarityManager;
 import com.spacerng.solrng.rarity.RollableItem;
 import com.spacerng.solrng.scoreboard.ScoreboardManager;
+import com.spacerng.solrng.spawn.SpawnManager;
 import com.spacerng.solrng.tag.TagManager;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -39,6 +40,7 @@ public final class SolRNGPlugin extends JavaPlugin {
     private RollListener rollListener;
     private ScoreboardManager scoreboardManager;
     private FarmingManager farmingManager;
+    private SpawnManager spawnManager;
 
     @Override
     public void onEnable() {
@@ -52,6 +54,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         this.tagManager = new TagManager(this);
         this.scoreboardManager = new ScoreboardManager(this);
         this.farmingManager = new FarmingManager(this);
+        this.spawnManager = new SpawnManager(this);
 
         reloadAll();
 
@@ -153,6 +156,10 @@ public final class SolRNGPlugin extends JavaPlugin {
 
     public FarmingManager getFarmingManager() {
         return farmingManager;
+    }
+
+    public SpawnManager getSpawnManager() {
+        return spawnManager;
     }
 
     /**

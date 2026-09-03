@@ -60,6 +60,10 @@ public class TagManager {
     // Generous values to confidently clear the vanilla nameplate.
     private static final float TOP_OFFSET = 0.70f;
     private static final float BOTTOM_OFFSET = 0.50f;
+    // TextDisplay entities support a real render scale (unlike chat/scoreboard
+    // text, which has no font-size control at all) — this is what actually
+    // makes the tag bigger above a player's head.
+    private static final float TEXT_SCALE = 1.4f;
 
     private final SolRNGPlugin plugin;
     // index 0 = item name (top), index 1 = odds (bottom) — both direct
@@ -209,7 +213,7 @@ public class TagManager {
         display.setTransformation(new Transformation(
                 new Vector3f(0f, yOffset, 0f),
                 new Quaternionf(),
-                new Vector3f(1f, 1f, 1f),
+                new Vector3f(TEXT_SCALE, TEXT_SCALE, TEXT_SCALE),
                 new Quaternionf()
         ));
         display.text(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().deserialize(text));

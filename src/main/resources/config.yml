@@ -705,6 +705,12 @@ conversion:
     LEGENDARY: 1000
     MYTHICAL: 10000
 
+# Every roll also pays out real Money (Vault), on top of the item itself —
+# money = item's odds x this multiplier, so a 1-in-30 item pays 300 Money
+# at the default 10x. Requires Vault + an economy plugin to be installed.
+economy:
+  money-per-odds-multiplier: 10.0
+
 # Skill tree nodes. "requires" is the id of the node that must be
 # unlocked first (blank = no requirement). "effect" tells the plugin
 # what the node does; "value" is its magnitude.

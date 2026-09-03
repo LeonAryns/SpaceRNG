@@ -10,6 +10,7 @@ import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.title.Title;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
+import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -20,6 +21,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.block.Action;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
@@ -40,6 +42,12 @@ public class RollListener implements Listener {
     // ticks remaining in the current roll, kept up to date so the scoreboard
     // can show a live countdown without duplicating the timing logic.
     private final Map<UUID, Long> remainingTicks = new HashMap<>();
+    // Guards against a single physical right-click firing PlayerInteractEvent
+    // twice — Bukkit/Paper fires a second RIGHT_CLICK_AIR event right after
+    // RIGHT_CLICK_BLOCK for the same hand when the clicked block doesn't
+    // consume the interaction (most blocks). EquipmentSlot filtering alone
+    // doesn't catch this since both events are for the main hand.
+    private final Map<UUID, Long> lastInteractMillis = new HashMap<>();
     private final Random random = new Random();
 
     public RollListener(SolRNGPlugin plugin) {
@@ -78,6 +86,7 @@ public class RollListener implements Listener {
     public void cancelRoll(UUID uuid) {
         BukkitTask task = rollingTasks.remove(uuid);
         remainingTicks.remove(uuid);
+        lastInteractMillis.remove(uuid);
         if (task != null) {
             task.cancel();
         }
@@ -86,6 +95,7 @@ public class RollListener implements Listener {
     @EventHandler
     public void onInteract(PlayerInteractEvent event) {
         if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+        if (event.getHand() != EquipmentSlot.HAND) return; // ignore the duplicate off-hand firing
 
         ItemStack hand = event.getItem();
         if (hand == null) return;
@@ -104,6 +114,16 @@ public class RollListener implements Listener {
         event.setCancelled(true);
 
         Player player = event.getPlayer();
+
+        // Same physical click can still fire twice for the main hand alone
+        // (RIGHT_CLICK_BLOCK immediately followed by RIGHT_CLICK_AIR) — if
+        // we just handled a click from this player within the last tick,
+        // this is that duplicate, not a real second click.
+        long now = System.currentTimeMillis();
+        Long last = lastInteractMillis.get(player.getUniqueId());
+        if (last != null && now - last < 100L) return;
+        lastInteractMillis.put(player.getUniqueId(), now);
+
         if (isRolling(player.getUniqueId())) {
             return; // already mid-roll, ignore extra clicks
         }
@@ -213,6 +233,8 @@ public class RollListener implements Listener {
         Rarity rarity = result.getRarity();
         ItemStack previewItem = buildTaggedItem(result);
 
+        double moneyEarned = depositRollMoney(player, result);
+
         if (data.isAutoConverting(rarity)) {
             long points = plugin.getConfig().getLong("conversion.points-per-rarity." + rarity.name(), 1L);
             data.addPoints(points);
@@ -234,12 +256,30 @@ public class RollListener implements Listener {
         }
 
         if (!silent) {
+            String moneyText = moneyEarned > 0
+                    ? ChatColor.GREEN + "  +$" + String.format("%.0f", moneyEarned)
+                    : "";
             sendActionBar(player, RollFormat.naturalColor(result.getMaterial()) + "" + ChatColor.BOLD + result.getDisplayName()
-                    + ChatColor.GRAY + "  " + RollFormat.compactOdds(result.getOdds()));
+                    + ChatColor.GRAY + "  " + RollFormat.compactOdds(result.getOdds()) + moneyText);
         }
 
         maybeRegisterDiscovery(player, data, result, silent);
         maybeBroadcast(player, result, previewItem);
+    }
+
+    /**
+     * Every roll also pays real Money (Vault) on top of the item itself —
+     * money = odds x configured multiplier, so rarer items pay out more.
+     * Returns 0 if Vault/an economy plugin isn't installed.
+     */
+    private double depositRollMoney(Player player, RollableItem result) {
+        var registration = Bukkit.getServicesManager().getRegistration(Economy.class);
+        if (registration == null) return 0.0;
+
+        double multiplier = plugin.getConfig().getDouble("economy.money-per-odds-multiplier", 10.0);
+        double money = result.getOdds() * multiplier;
+        registration.getProvider().depositPlayer(player, money);
+        return money;
     }
 
     /**

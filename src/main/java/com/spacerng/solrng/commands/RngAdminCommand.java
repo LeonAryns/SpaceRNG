@@ -23,13 +23,23 @@ public class RngAdminCommand implements CommandExecutor {
             return true;
         }
         if (args.length == 0) {
-            sender.sendMessage(ChatColor.RED + "Usage: /rngadmin <reload|tokens>");
+            sender.sendMessage(ChatColor.RED + "Usage: /rngadmin <reload|tokens|setspawn>");
             return true;
         }
 
         if (args[0].equalsIgnoreCase("reload")) {
             plugin.reloadAll();
             sender.sendMessage(ChatColor.GREEN + "SolRNG config reloaded.");
+            return true;
+        }
+
+        if (args[0].equalsIgnoreCase("setspawn")) {
+            if (!(sender instanceof Player player)) {
+                sender.sendMessage(ChatColor.RED + "Only players can set spawn.");
+                return true;
+            }
+            plugin.getSpawnManager().setSpawn(player.getLocation());
+            sender.sendMessage(ChatColor.GREEN + "Spawn set to your current location. Every player will now teleport here on join.");
             return true;
         }
 
@@ -57,7 +67,7 @@ public class RngAdminCommand implements CommandExecutor {
             return true;
         }
 
-        sender.sendMessage(ChatColor.RED + "Usage: /rngadmin <reload|tokens>");
+        sender.sendMessage(ChatColor.RED + "Usage: /rngadmin <reload|tokens|setspawn>");
         return true;
     }
 }

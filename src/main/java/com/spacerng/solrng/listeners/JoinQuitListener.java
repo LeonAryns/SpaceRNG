@@ -23,6 +23,14 @@ public class JoinQuitListener implements Listener {
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
+        // Vanilla /setworldspawn only actually relocates brand new players
+        // and no-bed death respawns — everyone else just resumes wherever
+        // they last logged off. Force every join to the configured spawn
+        // (see /rngadmin setspawn) instead, if one's been set.
+        if (plugin.getSpawnManager().hasSpawn()) {
+            event.getPlayer().teleport(plugin.getSpawnManager().getSpawn());
+        }
+
         PlayerData data = plugin.getPlayerDataManager().get(event.getPlayer().getUniqueId());
 
         // Level/Prestige is intentionally NOT part of this — it's
@@ -64,6 +72,10 @@ public class JoinQuitListener implements Listener {
 
     @EventHandler
     public void onRespawn(PlayerRespawnEvent event) {
+        if (plugin.getSpawnManager().hasSpawn()) {
+            event.setRespawnLocation(plugin.getSpawnManager().getSpawn());
+        }
+
         PlayerData data = plugin.getPlayerDataManager().get(event.getPlayer().getUniqueId());
         if (data.getEquippedTagItemKey() == null || data.getEquippedTagRarity() == null) return;
 
