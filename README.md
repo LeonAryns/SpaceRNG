@@ -28,13 +28,13 @@ cd sol-rng
 mvn clean package
 ```
 
-This produces `target/sol-rng.jar`. That's the file you upload.
+This produces `target/Sol RNG V<version>.jar` (version bumps each release, e.g. `Sol RNG V4.jar`). That's the file you upload.
 
 ## Installing on Minehut
 
 1. Open your server dashboard → **File Manager**
 2. Navigate to the `plugins` folder
-3. Upload `sol-rng.jar`
+3. Upload the `Sol RNG V<version>.jar` file
 4. Restart the server from the panel
 5. Config generates at `plugins/SolRNG/config.yml` — edit it there and run `/rngadmin reload`
    to apply changes without restarting

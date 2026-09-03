@@ -27,5 +27,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: sol-rng-jar
-          path: target/sol-rng.jar
+          path: target/Sol RNG V*.jar
           if-no-files-found: error
