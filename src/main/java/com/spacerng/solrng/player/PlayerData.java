@@ -14,8 +14,8 @@ public class PlayerData {
     private long points = 0L; // shown on the scoreboard as "Credits"
     private long tokens = 0L; // second scoreboard currency, reserved for future systems
     // Multiplies roll speed: 1.0 = base roll-duration-seconds, 2.0 = twice as fast.
-    // Nothing grants bonuses to this yet — it's here so future skill tree /
-    // armor upgrades have somewhere to write to.
+    // Granted by the Rolling Speed skill tree branch; armor upgrades could
+    // add to this too later.
     private double rollSpeedMultiplier = 1.0;
     private final Set<String> unlockedNodes = new HashSet<>();
     // Item display names (e.g. "Fallen Star") the player has ever rolled —
@@ -25,6 +25,14 @@ public class PlayerData {
     private int autoRollIntervalSeconds = 0; // 0 = disabled
     private String equippedTagItemKey = null; // e.g. "Fallen Star"
     private String equippedTagRarity = null;  // stored so we can re-color it on load
+    // Chance (0.0-1.0) of an extra free roll right after any roll finishes —
+    // granted by the Bonus Roll skill tree branch.
+    private double bonusRollChance = 0.0;
+    // Lifetime count of Common/Uncommon items converted via /convert or
+    // auto-convert — shown on the skill tree screen alongside what's
+    // currently sitting unconverted in the player's inventory.
+    private long convertedCommon = 0L;
+    private long convertedUncommon = 0L;
 
     public PlayerData(UUID uuid) {
         this.uuid = uuid;
@@ -136,5 +144,33 @@ public class PlayerData {
     public void clearEquippedTag() {
         this.equippedTagItemKey = null;
         this.equippedTagRarity = null;
+    }
+
+    public double getBonusRollChance() {
+        return bonusRollChance;
+    }
+
+    public void addBonusRollChance(double amount) {
+        this.bonusRollChance = Math.min(1.0, this.bonusRollChance + amount);
+    }
+
+    public long getConvertedCommon() {
+        return convertedCommon;
+    }
+
+    public long getConvertedUncommon() {
+        return convertedUncommon;
+    }
+
+    /**
+     * Tracks a conversion for the skill tree's Common/Uncommon summary —
+     * no-op for any other rarity.
+     */
+    public void addConverted(Rarity rarity, long amount) {
+        if (rarity == Rarity.COMMON) {
+            convertedCommon += amount;
+        } else if (rarity == Rarity.UNCOMMON) {
+            convertedUncommon += amount;
+        }
     }
 }

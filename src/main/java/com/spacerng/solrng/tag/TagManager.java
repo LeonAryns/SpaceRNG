@@ -101,11 +101,16 @@ public class TagManager {
 
     private ArmorStand spawnLine(Player player, String text) {
         ArmorStand stand = (ArmorStand) player.getWorld().spawnEntity(player.getEyeLocation(), EntityType.ARMOR_STAND);
-        stand.setMarker(true);
+        // NOT marker — marker armor stands report zero bounding-box height,
+        // which is what the client uses to space out stacked passengers.
+        // With marker=true both lines rendered on top of each other.
+        stand.setSmall(true);
         stand.setInvisible(true);
         stand.setInvulnerable(true);
         stand.setGravity(false);
         stand.setPersistent(false);
+        stand.setBasePlate(false);
+        stand.setArms(false);
         stand.setCustomNameVisible(true);
         stand.customName(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().deserialize(text));
         return stand;

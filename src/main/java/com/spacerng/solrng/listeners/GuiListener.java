@@ -136,6 +136,7 @@ public class GuiListener implements Listener {
                 long pointsEach = plugin.getConfig().getLong("conversion.points-per-rarity." + rarity.name(), 1L);
                 totalPoints += pointsEach * stack.getAmount();
                 itemsConverted += stack.getAmount();
+                data.addConverted(rarity, stack.getAmount());
                 top.setItem(slot, null);
             } catch (IllegalArgumentException ignored) {
             }

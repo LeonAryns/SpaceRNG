@@ -39,14 +39,10 @@ public final class RollFormat {
     }
 
     /**
-     * "1 in 500 (0.20%)" style odds string, used in item lore.
+     * "1 in 500" style odds string, used in item lore.
      */
     public static String chance(long odds) {
-        double percent = 100.0 / odds;
-        String percentStr = percent >= 0.01
-                ? String.format("%.2f%%", percent)
-                : String.format("%.4f%%", percent);
-        return "1 in " + odds + " (" + percentStr + ")";
+        return "1 in " + odds;
     }
 
     /**

@@ -68,6 +68,8 @@ public class SkillTreeManager {
             case LUCK -> data.addBonusLuck(node.getValue());
             case AUTO_ROLL -> data.setAutoRollIntervalSeconds((int) node.getValue());
             case UNLOCK_AUTO_CONVERT -> { /* just gates the /convert auto-toggle UI, nothing to set here */ }
+            case ROLL_SPEED -> data.setRollSpeedMultiplier(data.getRollSpeedMultiplier() + node.getValue());
+            case BONUS_ROLL_CHANCE -> data.addBonusRollChance(node.getValue());
         }
         return true;
     }

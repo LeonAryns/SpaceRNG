@@ -117,7 +117,7 @@ public class RollListener implements Listener {
     /**
      * Kicks off the roll animation: no cooldown, but the result isn't
      * decided/granted until the timer finishes. A player's roll-speed
-     * multiplier (currently always 1.0 — reserved for future skill tree /
+     * multiplier (from the Rolling Speed skill tree branch, or future
      * armor upgrades) shortens the wait.
      */
     private void startRoll(Player player) {
@@ -156,6 +156,14 @@ public class RollListener implements Listener {
 
         RollableItem result = plugin.getRarityManager().roll(data.getBonusLuck());
         grantRoll(player, data, result, false);
+
+        // Bonus Roll skill tree branch: a chance to immediately chain into
+        // another free roll, no click required.
+        if (data.getBonusRollChance() > 0.0 && random.nextDouble() < data.getBonusRollChance()) {
+            player.sendMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "Bonus Roll! " + ChatColor.RESET
+                    + ChatColor.GRAY + "Rolling again...");
+            startRoll(player);
+        }
     }
 
     private void sendRollingActionBar(Player player, long elapsedTicks, long totalTicks) {
@@ -195,6 +203,7 @@ public class RollListener implements Listener {
         if (data.isAutoConverting(rarity)) {
             long points = plugin.getConfig().getLong("conversion.points-per-rarity." + rarity.name(), 1L);
             data.addPoints(points);
+            data.addConverted(rarity, 1L);
             if (!silent) {
                 sendHoverable(player, previewItem, RollFormat.personalRollLine(plugin, result)
                         + ChatColor.YELLOW + " → +" + points + " Credits (auto-converted)");
@@ -240,11 +249,9 @@ public class RollListener implements Listener {
         data.addBonusLuck(bonus);
 
         if (!silent) {
-            int total = plugin.getRarityManager().getItems().size();
             String color = plugin.getRarityManager().colorFor(result.getRarity());
             player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "NEW! " + ChatColor.RESET
-                    + color + result.getDisplayName() + ChatColor.GRAY + " added to your index "
-                    + ChatColor.GRAY + "(" + data.getDiscoveredItems().size() + "/" + total + ")");
+                    + color + result.getDisplayName() + ChatColor.GRAY + " added to your index");
             player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.8f, 1.3f);
         }
     }

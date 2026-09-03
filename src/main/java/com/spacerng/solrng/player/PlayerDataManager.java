@@ -58,6 +58,9 @@ public class PlayerDataManager {
         data.addTokens(yml.getLong("tokens", 0L));
         data.setRollSpeedMultiplier(yml.getDouble("roll-speed-multiplier", 1.0));
         data.setAutoRollIntervalSeconds(yml.getInt("auto-roll-interval", 0));
+        data.addBonusRollChance(yml.getDouble("bonus-roll-chance", 0.0));
+        data.addConverted(Rarity.COMMON, yml.getLong("converted-common", 0L));
+        data.addConverted(Rarity.UNCOMMON, yml.getLong("converted-uncommon", 0L));
 
         for (String node : yml.getStringList("unlocked-nodes")) {
             data.getUnlockedNodes().add(node);
@@ -88,6 +91,9 @@ public class PlayerDataManager {
         yml.set("tokens", data.getTokens());
         yml.set("roll-speed-multiplier", data.getRollSpeedMultiplier());
         yml.set("auto-roll-interval", data.getAutoRollIntervalSeconds());
+        yml.set("bonus-roll-chance", data.getBonusRollChance());
+        yml.set("converted-common", data.getConvertedCommon());
+        yml.set("converted-uncommon", data.getConvertedUncommon());
         yml.set("unlocked-nodes", new java.util.ArrayList<>(data.getUnlockedNodes()));
         yml.set("discovered-items", new java.util.ArrayList<>(data.getDiscoveredItems()));
 

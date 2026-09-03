@@ -6,10 +6,9 @@ roll-item:
   material: NETHER_STAR
   name: "&d&lRoll"
   # No cooldown anymore — every roll takes this many seconds to resolve,
-  # with an animation/progress bar while it's rolling. Skill tree /
-  # armor upgrades will be able to speed this up later by raising a
-  # player's roll-speed multiplier (already wired up, just nothing
-  # grants it yet).
+  # with an animation/progress bar while it's rolling. The Rolling Speed
+  # skill tree branch (and future armor upgrades) shorten this via a
+  # player's roll-speed multiplier.
   roll-duration-seconds: 5
 
 # Rarity tiers, in ascending order. "luck-factor" controls how strongly
@@ -644,42 +643,77 @@ conversion:
 # what the node does; "value" is its magnitude.
 skilltree:
   nodes:
-    luck_1:
-      display: "Luck I"
-      cost: 50
+    # Root — everything else branches up from here.
+    auto_roll_root:
+      display: "Auto Roll"
+      cost: 300
       requires: ""
+      effect: AUTO_ROLL
+      value: 10
+    # Branch 1: Luck Multiplier
+    luck_mult_1:
+      display: "Luck Multiplier I"
+      cost: 500
+      requires: "auto_roll_root"
       effect: LUCK
       value: 0.05
-    luck_2:
-      display: "Luck II"
-      cost: 200
-      requires: "luck_1"
+    luck_mult_2:
+      display: "Luck Multiplier II"
+      cost: 1500
+      requires: "luck_mult_1"
       effect: LUCK
       value: 0.10
-    luck_3:
-      display: "Luck III"
-      cost: 750
-      requires: "luck_2"
+    luck_mult_3:
+      display: "Luck Multiplier III"
+      cost: 4000
+      requires: "luck_mult_2"
       effect: LUCK
       value: 0.20
     auto_convert:
       display: "Auto-Convert"
-      cost: 300
-      requires: "luck_1"
+      cost: 800
+      requires: "luck_mult_1"
       effect: UNLOCK_AUTO_CONVERT
       value: 0
-    auto_roll_1:
-      display: "Autoroll I"
+    # Branch 2: Rolling Speed
+    rolling_speed_1:
+      display: "Rolling Speed I"
+      cost: 500
+      requires: "auto_roll_root"
+      effect: ROLL_SPEED
+      value: 0.25
+    rolling_speed_2:
+      display: "Rolling Speed II"
       cost: 1500
-      requires: "auto_convert"
-      effect: AUTO_ROLL
-      value: 8
-    auto_roll_2:
-      display: "Autoroll II"
-      cost: 5000
-      requires: "auto_roll_1"
-      effect: AUTO_ROLL
-      value: 4
+      requires: "rolling_speed_1"
+      effect: ROLL_SPEED
+      value: 0.25
+    rolling_speed_3:
+      display: "Rolling Speed III"
+      cost: 4000
+      requires: "rolling_speed_2"
+      effect: ROLL_SPEED
+      value: 0.50
+    # Branch 3: Bonus Roll — a chance to immediately chain into a free
+    # extra roll right after any roll finishes.
+    bonus_roll_1:
+      display: "Bonus Roll I"
+      cost: 500
+      requires: "auto_roll_root"
+      effect: BONUS_ROLL_CHANCE
+      value: 0.05
+    bonus_roll_2:
+      display: "Bonus Roll II"
+      cost: 1500
+      requires: "bonus_roll_1"
+      effect: BONUS_ROLL_CHANCE
+      value: 0.05
+    bonus_roll_3:
+      display: "Bonus Roll III"
+      cost: 4000
+      requires: "bonus_roll_2"
+      effect: BONUS_ROLL_CHANCE
+      value: 0.10
 
 # Rolls of this rarity or higher get broadcast to the whole server.
 broadcast:

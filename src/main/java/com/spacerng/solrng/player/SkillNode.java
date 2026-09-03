@@ -5,7 +5,9 @@ public class SkillNode {
     public enum Effect {
         LUCK,
         UNLOCK_AUTO_CONVERT,
-        AUTO_ROLL
+        AUTO_ROLL,
+        ROLL_SPEED,
+        BONUS_ROLL_CHANCE
     }
 
     private final String id;
