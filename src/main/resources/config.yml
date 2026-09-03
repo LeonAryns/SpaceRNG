@@ -19,6 +19,40 @@ prestige:
   levels-increment-per-prestige: 5
   luck-multiplier-per-prestige: 0.10
 
+# /armor — sets bought with rolled drops, each granting a flat Luck bonus
+# while the FULL set (all 4 pieces) is actually worn.
+armor:
+  tiers:
+    LEATHER:
+      display: "Leather Set"
+      costs:
+        COMMON: 20
+      luck-bonus: 0.05
+    IRON:
+      display: "Iron Set"
+      costs:
+        UNCOMMON: 15
+        RARE: 5
+      luck-bonus: 0.10
+    GOLD:
+      display: "Gold Set"
+      costs:
+        RARE: 10
+        EPIC: 3
+      luck-bonus: 0.15
+    DIAMOND:
+      display: "Diamond Set"
+      costs:
+        EPIC: 8
+        LEGENDARY: 2
+      luck-bonus: 0.25
+    NETHERITE:
+      display: "Netherite Set"
+      costs:
+        LEGENDARY: 3
+        MYTHICAL: 1
+      luck-bonus: 0.40
+
 # Rarity tiers, in ascending order. "luck-factor" controls how strongly
 # the Luck stat biases rolls toward this tier. 0 = luck has no effect.
 # Effective weight = base weight * (1 + luck * luck-factor)
@@ -251,369 +285,369 @@ items:
   - material: COAL
     name: "Coal"
     rarity: UNCOMMON
-    odds: 20
+    odds: 1000
   - material: REDSTONE
     name: "Redstone"
     rarity: UNCOMMON
-    odds: 35
+    odds: 1033
   - material: LAPIS_LAZULI
     name: "Lapis Lazuli"
     rarity: UNCOMMON
-    odds: 50
+    odds: 1068
   - material: COPPER_INGOT
     name: "Copper"
     rarity: UNCOMMON
-    odds: 65
+    odds: 1104
   - material: IRON_INGOT
     name: "Iron"
     rarity: UNCOMMON
-    odds: 80
+    odds: 1140
   - material: RAW_IRON
     name: "Raw Iron"
     rarity: UNCOMMON
-    odds: 21
+    odds: 1178
   - material: RAW_COPPER
     name: "Raw Copper"
     rarity: UNCOMMON
-    odds: 22
+    odds: 1218
   - material: RAW_GOLD
     name: "Raw Gold"
     rarity: UNCOMMON
-    odds: 23
+    odds: 1258
   - material: IRON_NUGGET
     name: "Iron Nugget"
     rarity: UNCOMMON
-    odds: 24
+    odds: 1301
   - material: GOLD_NUGGET
     name: "Gold Nugget"
     rarity: UNCOMMON
-    odds: 26
+    odds: 1344
   - material: HONEYCOMB
     name: "Honeycomb"
     rarity: UNCOMMON
-    odds: 27
+    odds: 1389
   - material: HONEY_BOTTLE
     name: "Honey Bottle"
     rarity: UNCOMMON
-    odds: 29
+    odds: 1435
   - material: SLIME_BALL
     name: "Slime Ball"
     rarity: UNCOMMON
-    odds: 30
+    odds: 1483
   - material: MAGMA_CREAM
     name: "Magma Cream"
     rarity: UNCOMMON
-    odds: 32
+    odds: 1533
   - material: GUNPOWDER
     name: "Gunpowder"
     rarity: UNCOMMON
-    odds: 33
+    odds: 1584
   - material: SPIDER_EYE
     name: "Spider Eye"
     rarity: UNCOMMON
-    odds: 36
+    odds: 1637
   - material: FERMENTED_SPIDER_EYE
     name: "Fermented Spider Eye"
     rarity: UNCOMMON
-    odds: 37
+    odds: 1691
   - material: BLAZE_POWDER
     name: "Blaze Powder"
     rarity: UNCOMMON
-    odds: 39
+    odds: 1748
   - material: GLOW_INK_SAC
     name: "Glow Ink Sac"
     rarity: UNCOMMON
-    odds: 41
+    odds: 1806
   - material: PHANTOM_MEMBRANE
     name: "Phantom Membrane"
     rarity: UNCOMMON
-    odds: 43
+    odds: 1867
   - material: RABBIT_FOOT
     name: "Rabbit Foot"
     rarity: UNCOMMON
-    odds: 45
+    odds: 1929
   - material: RABBIT_HIDE
     name: "Rabbit Hide"
     rarity: UNCOMMON
-    odds: 48
+    odds: 1993
   - material: TURTLE_SCUTE
     name: "Turtle Scute"
     rarity: UNCOMMON
-    odds: 51
+    odds: 2060
   - material: TROPICAL_FISH
     name: "Tropical Fish"
     rarity: UNCOMMON
-    odds: 53
+    odds: 2129
   - material: PRISMARINE_SHARD
     name: "Prismarine Shard"
     rarity: UNCOMMON
-    odds: 55
+    odds: 2200
   - material: PUFFERFISH
     name: "Pufferfish"
     rarity: UNCOMMON
-    odds: 58
+    odds: 2273
   - material: OBSIDIAN
     name: "Obsidian"
     rarity: UNCOMMON
-    odds: 61
+    odds: 2349
   - material: CRYING_OBSIDIAN
     name: "Crying Obsidian"
     rarity: UNCOMMON
-    odds: 66
+    odds: 2427
   - material: GLOWSTONE
     name: "Glowstone"
     rarity: UNCOMMON
-    odds: 68
+    odds: 2508
   - material: SEA_LANTERN
     name: "Sea Lantern"
     rarity: UNCOMMON
-    odds: 72
+    odds: 2592
   - material: REDSTONE_BLOCK
     name: "Redstone Block"
     rarity: UNCOMMON
-    odds: 75
+    odds: 2679
   - material: COAL_BLOCK
     name: "Coal Block"
     rarity: UNCOMMON
-    odds: 79
+    odds: 2768
   - material: IRON_BLOCK
     name: "Iron Block"
     rarity: UNCOMMON
-    odds: 83
+    odds: 2861
   - material: COPPER_BLOCK
     name: "Copper Block"
     rarity: UNCOMMON
-    odds: 88
+    odds: 2956
   - material: LAPIS_BLOCK
     name: "Lapis Block"
     rarity: UNCOMMON
-    odds: 92
+    odds: 3055
   - material: ARROW
     name: "Arrow"
     rarity: UNCOMMON
-    odds: 97
+    odds: 3157
   - material: BOOK
     name: "Book"
     rarity: UNCOMMON
-    odds: 102
+    odds: 3262
   - material: LEATHER_HELMET
     name: "Leather Helmet"
     rarity: UNCOMMON
-    odds: 108
+    odds: 3371
   - material: FISHING_ROD
     name: "Fishing Rod"
     rarity: UNCOMMON
-    odds: 113
+    odds: 3484
   - material: SHEARS
     name: "Shears"
     rarity: UNCOMMON
-    odds: 119
+    odds: 3600
   - material: COMPASS
     name: "Compass"
     rarity: UNCOMMON
-    odds: 126
+    odds: 3720
   - material: CLOCK
     name: "Clock"
     rarity: UNCOMMON
-    odds: 132
+    odds: 3845
   - material: SPYGLASS
     name: "Spyglass"
     rarity: UNCOMMON
-    odds: 139
+    odds: 3973
   - material: BUCKET
     name: "Bucket"
     rarity: UNCOMMON
-    odds: 146
+    odds: 4106
   - material: SADDLE
     name: "Saddle"
     rarity: UNCOMMON
-    odds: 154
+    odds: 4243
   - material: LEAD
     name: "Lead"
     rarity: UNCOMMON
-    odds: 162
+    odds: 4384
   - material: NAME_TAG
     name: "Name Tag"
     rarity: UNCOMMON
-    odds: 171
+    odds: 4531
   - material: TRIPWIRE_HOOK
     name: "Tripwire Hook"
     rarity: UNCOMMON
-    odds: 180
+    odds: 4682
   - material: REPEATER
     name: "Repeater"
     rarity: UNCOMMON
-    odds: 189
+    odds: 4838
   - material: COMPARATOR
     name: "Comparator"
     rarity: UNCOMMON
-    odds: 199
+    odds: 5000
 
   # --- Rare ---
   - material: GOLD_INGOT
     name: "Gold"
     rarity: RARE
-    odds: 200
+    odds: 5000
   - material: QUARTZ
     name: "Quartz"
     rarity: RARE
-    odds: 350
+    odds: 5297
   - material: AMETHYST_SHARD
     name: "Amethyst Shard"
     rarity: RARE
-    odds: 500
+    odds: 5612
   - material: EMERALD
     name: "Emerald"
     rarity: RARE
-    odds: 650
+    odds: 5946
   - material: PRISMARINE_CRYSTALS
     name: "Prismarine Crystals"
     rarity: RARE
-    odds: 800
+    odds: 6300
   - material: GOLD_BLOCK
     name: "Gold Block"
     rarity: RARE
-    odds: 201
+    odds: 6674
   - material: DIAMOND_ORE
     name: "Diamond Ore"
     rarity: RARE
-    odds: 227
+    odds: 7071
   - material: EMERALD_ORE
     name: "Emerald Ore"
     rarity: RARE
-    odds: 256
+    odds: 7492
   - material: ENDER_PEARL
     name: "Ender Pearl"
     rarity: RARE
-    odds: 289
+    odds: 7937
   - material: BLAZE_ROD
     name: "Blaze Rod"
     rarity: RARE
-    odds: 326
+    odds: 8409
   - material: GHAST_TEAR
     name: "Ghast Tear"
     rarity: RARE
-    odds: 368
+    odds: 8909
   - material: SHULKER_SHELL
     name: "Shulker Shell"
     rarity: RARE
-    odds: 415
+    odds: 9439
   - material: DIAMOND_HORSE_ARMOR
     name: "Diamond Horse Armor"
     rarity: RARE
-    odds: 469
+    odds: 10000
   - material: ECHO_SHARD
     name: "Echo Shard"
     rarity: RARE
-    odds: 529
+    odds: 10595
   - material: MUSIC_DISC_13
     name: "Music Disc 13"
     rarity: RARE
-    odds: 597
+    odds: 11225
   - material: TRIDENT
     name: "Trident"
     rarity: RARE
-    odds: 673
+    odds: 11892
   - material: CROSSBOW
     name: "Crossbow"
     rarity: RARE
-    odds: 760
+    odds: 12599
   - material: SPECTRAL_ARROW
     name: "Spectral Arrow"
     rarity: RARE
-    odds: 858
+    odds: 13348
   - material: ENCHANTED_BOOK
     name: "Enchanted Book"
     rarity: RARE
-    odds: 968
+    odds: 14142
   - material: EXPERIENCE_BOTTLE
     name: "Experience Bottle"
     rarity: RARE
-    odds: 1092
+    odds: 14983
   - material: AMETHYST_BLOCK
     name: "Amethyst Block"
     rarity: RARE
-    odds: 1233
+    odds: 15874
   - material: BUDDING_AMETHYST
     name: "Budding Amethyst"
     rarity: RARE
-    odds: 1391
+    odds: 16818
   - material: RECOVERY_COMPASS
     name: "Recovery Compass"
     rarity: RARE
-    odds: 1570
+    odds: 17818
   - material: BRUSH
     name: "Brush"
     rarity: RARE
-    odds: 1771
+    odds: 18877
   - material: ARMOR_STAND
     name: "Armor Stand"
     rarity: RARE
-    odds: 1999
+    odds: 20000
 
   # --- Epic ---
   - material: DIAMOND
     name: "Diamond"
     rarity: EPIC
-    odds: 2000
+    odds: 20000
   - material: ANCIENT_DEBRIS
     name: "Ancient Debris"
     rarity: EPIC
-    odds: 3500
+    odds: 22143
   - material: ENDER_EYE
     name: "Eye of Ender"
     rarity: EPIC
-    odds: 5000
+    odds: 24517
   - material: GOLDEN_APPLE
     name: "Enchanted Apple"
     rarity: EPIC
-    odds: 6500
+    odds: 27144
   - material: NAUTILUS_SHELL
     name: "Nautilus Shell"
     rarity: EPIC
-    odds: 8000
+    odds: 30053
   - material: NETHERITE_SCRAP
     name: "Netherite Scrap"
     rarity: EPIC
-    odds: 2001
+    odds: 33274
   - material: DRAGON_BREATH
     name: "Dragon Breath"
     rarity: EPIC
-    odds: 2829
+    odds: 36840
   - material: SHULKER_BOX
     name: "Shulker Box"
     rarity: EPIC
-    odds: 4001
+    odds: 40789
   - material: CONDUIT
     name: "Conduit"
     rarity: EPIC
-    odds: 5658
+    odds: 45160
   - material: END_CRYSTAL
     name: "End Crystal"
     rarity: EPIC
-    odds: 8001
+    odds: 50000
 
   # --- Legendary ---
   - material: NETHERITE_INGOT
     name: "Netherite"
     rarity: LEGENDARY
-    odds: 50000
+    odds: 100000
   - material: NETHERITE_BLOCK
     name: "Netherite Block"
     rarity: LEGENDARY
-    odds: 100000
+    odds: 125743
   - material: BEACON
     name: "Beacon"
     rarity: LEGENDARY
-    odds: 150000
+    odds: 158114
   - material: TOTEM_OF_UNDYING
     name: "Totem of Undying"
     rarity: LEGENDARY
-    odds: 200000
+    odds: 198818
   - material: HEART_OF_THE_SEA
     name: "Heart of the Sea"
     rarity: LEGENDARY
-    odds: 300000
+    odds: 250000
 
   # --- Mythical ---
   - material: NETHER_STAR
@@ -623,11 +657,11 @@ items:
   - material: DRAGON_EGG
     name: "Dragon Egg"
     rarity: MYTHICAL
-    odds: 5000000
+    odds: 2236068
   - material: ELYTRA
     name: "Celestial Wings"
     rarity: MYTHICAL
-    odds: 10000000
+    odds: 5000000
 
 # /index — every unique item a player has ever rolled gets logged here.
 # The first time they roll a brand new item, they get a small permanent

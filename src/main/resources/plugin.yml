@@ -26,6 +26,9 @@ commands:
   prestige:
     description: View and spend your levels/prestige
     usage: /prestige
+  armor:
+    description: Buy armor sets for a Luck bonus while worn
+    usage: /armor
   rngadmin:
     description: Admin tools for SolRNG
     usage: /rngadmin <reload|tokens>

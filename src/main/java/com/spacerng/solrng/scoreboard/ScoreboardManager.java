@@ -95,10 +95,9 @@ public class ScoreboardManager {
         double luckPercent = plugin.getPrestigeManager().effectiveLuck(data) * 100.0;
 
         List<String> content = new ArrayList<>();
-        content.add(ChatColor.YELLOW + "| " + levelLine(data));
+        content.add(ChatColor.YELLOW + "| " + prestigeLine(data));
         content.add(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Index: " + ChatColor.AQUA + discovered + ChatColor.GRAY + "/" + ChatColor.AQUA + totalItems);
         content.add(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Luck: " + ChatColor.GREEN + "+" + String.format("%.2f", luckPercent) + "%");
-        content.add(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Tag: " + tagLine(data));
         content.add(ChatColor.YELLOW + "| " + ChatColor.GOLD + "$ " + ChatColor.WHITE + "Money: " + ChatColor.GREEN + formatMoney(player));
         content.add(ChatColor.YELLOW + "| " + ChatColor.AQUA + "♦ " + ChatColor.WHITE + "Tokens: " + ChatColor.AQUA + data.getTokens());
         content.add(ChatColor.YELLOW + "| " + ChatColor.LIGHT_PURPLE + "✦ " + ChatColor.WHITE + "Credits: " + ChatColor.LIGHT_PURPLE + data.getPoints());
@@ -109,13 +108,12 @@ public class ScoreboardManager {
         lines.add(content.get(0));
         lines.add(content.get(1));
         lines.add(content.get(2));
-        lines.add(content.get(3));
         lines.add(""); // blank spacer
         lines.add(ChatColor.GOLD + "" + ChatColor.BOLD + "YOUR WALLET");
         lines.add(""); // breathing room under the title
+        lines.add(content.get(3));
         lines.add(content.get(4));
         lines.add(content.get(5));
-        lines.add(content.get(6));
 
         String rollStatus = rollStatusLine(player);
         if (rollStatus != null) {
@@ -127,18 +125,19 @@ public class ScoreboardManager {
         return lines;
     }
 
-    private String levelLine(PlayerData data) {
-        String prestigeBadge = data.getPrestige() > 0 ? ChatColor.AQUA + "[P" + data.getPrestige() + "] " : "";
-        return prestigeBadge + ChatColor.WHITE + "Level: " + ChatColor.GRAY + data.getLevel();
-    }
+    private static final String[] ROMAN_NUMERALS = {
+            "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"
+    };
 
-    private String tagLine(PlayerData data) {
-        if (data.getEquippedTagItemKey() == null) {
-            return ChatColor.GRAY + "None";
+    private String prestigeLine(PlayerData data) {
+        if (data.getPrestige() <= 0) {
+            return ChatColor.WHITE + "Level: " + ChatColor.GRAY + data.getLevel();
         }
-        String color = plugin.getRarityManager().colorFor(
-                com.spacerng.solrng.rarity.Rarity.valueOf(data.getEquippedTagRarity()));
-        return color + "[" + data.getEquippedTagItemKey() + "]";
+        String numeral = data.getPrestige() <= ROMAN_NUMERALS.length
+                ? ROMAN_NUMERALS[data.getPrestige() - 1]
+                : String.valueOf(data.getPrestige());
+        return ChatColor.WHITE + "Prestige: " + ChatColor.AQUA + numeral
+                + ChatColor.GRAY + " - " + ChatColor.WHITE + data.getLevel();
     }
 
     /**

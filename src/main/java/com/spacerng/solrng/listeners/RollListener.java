@@ -43,11 +43,6 @@ public class RollListener implements Listener {
     private final Map<UUID, Long> remainingTicks = new HashMap<>();
     private final Random random = new Random();
 
-    private static final ChatColor[] CYCLE_COLORS = {
-            ChatColor.WHITE, ChatColor.GREEN, ChatColor.BLUE,
-            ChatColor.DARK_PURPLE, ChatColor.GOLD, ChatColor.RED
-    };
-
     public RollListener(SolRNGPlugin plugin) {
         this.plugin = plugin;
         this.rarityKey = new NamespacedKey(plugin, "solrng_rarity");
@@ -131,7 +126,7 @@ public class RollListener implements Listener {
         long totalTicks = Math.max(1L, Math.round((baseSeconds / multiplier) * 20.0));
 
         long[] elapsed = {0L};
-        int[] lastDecile = {-1};
+        int[] lastStep = {-1};
         remainingTicks.put(player.getUniqueId(), totalTicks);
 
         BukkitTask[] taskHolder = new BukkitTask[1];
@@ -147,14 +142,13 @@ public class RollListener implements Listener {
             }
 
             remainingTicks.put(player.getUniqueId(), totalTicks - elapsed[0]);
-            sendRollingActionBar(player, elapsed[0], totalTicks);
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 0.6f + (float) elapsed[0] / totalTicks);
 
-            // Case-opening-style teaser: every 10% of the roll, flash a
+            // Case-opening-style teaser: every 5% of the roll, flash a
             // random candidate item + its odds in the center of the screen.
-            int decile = (int) (elapsed[0] * 10 / totalTicks);
-            if (decile != lastDecile[0]) {
-                lastDecile[0] = decile;
+            int step = (int) (elapsed[0] * 20 / totalTicks);
+            if (step != lastStep[0]) {
+                lastStep[0] = step;
                 sendRollPreview(player);
             }
         }, 0L, 2L);
@@ -190,22 +184,6 @@ public class RollListener implements Listener {
                     + ChatColor.GRAY + "Rolling again...");
             startRoll(player);
         }
-    }
-
-    private void sendRollingActionBar(Player player, long elapsedTicks, long totalTicks) {
-        int barLength = 20;
-        int filled = (int) Math.min(barLength, (elapsedTicks * barLength) / totalTicks);
-
-        StringBuilder bar = new StringBuilder();
-        bar.append(ChatColor.GRAY).append("Rolling ");
-        ChatColor cycle = CYCLE_COLORS[random.nextInt(CYCLE_COLORS.length)];
-        bar.append(cycle).append("[");
-        for (int i = 0; i < barLength; i++) {
-            bar.append(i < filled ? cycle + "|" : ChatColor.DARK_GRAY + "|");
-        }
-        bar.append(cycle).append("]");
-
-        sendActionBar(player, bar.toString());
     }
 
     private void sendActionBar(Player player, String text) {

@@ -158,6 +158,10 @@ public class TagManager {
         display.setBillboard(Display.Billboard.CENTER);
         display.setBackgroundColor(Color.fromARGB(0, 0, 0, 0));
         display.setShadowRadius(0f);
+        // Makes the client smoothly interpolate between teleports instead
+        // of snapping — without this the sync task's every-2-tick
+        // repositioning looked jerky/laggy rather than glued to the player.
+        display.setTeleportDuration(3);
         display.text(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().deserialize(text));
         return display;
     }

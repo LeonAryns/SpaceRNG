@@ -2,6 +2,8 @@ package com.spacerng.solrng.listeners;
 
 import com.spacerng.solrng.SolRNGPlugin;
 import com.spacerng.solrng.commands.TagCommand;
+import com.spacerng.solrng.gui.ArmorGui;
+import com.spacerng.solrng.gui.ArmorHolder;
 import com.spacerng.solrng.gui.ConvertGui;
 import com.spacerng.solrng.gui.ConvertHolder;
 import com.spacerng.solrng.gui.IndexGui;
@@ -10,6 +12,7 @@ import com.spacerng.solrng.gui.PrestigeGui;
 import com.spacerng.solrng.gui.PrestigeHolder;
 import com.spacerng.solrng.gui.SkillTreeGui;
 import com.spacerng.solrng.gui.SkillTreeHolder;
+import com.spacerng.solrng.player.ArmorManager;
 import com.spacerng.solrng.player.PlayerData;
 import com.spacerng.solrng.player.PrestigeManager;
 import com.spacerng.solrng.rarity.Rarity;
@@ -44,6 +47,33 @@ public class GuiListener implements Listener {
             handleIndexClick(event);
         } else if (topInventory.getHolder() instanceof PrestigeHolder) {
             handlePrestigeClick(event);
+        } else if (topInventory.getHolder() instanceof ArmorHolder) {
+            handleArmorClick(event);
+        }
+    }
+
+    private void handleArmorClick(InventoryClickEvent event) {
+        event.setCancelled(true);
+        if (event.getClickedInventory() == null || !(event.getClickedInventory().getHolder() instanceof ArmorHolder)) return;
+
+        ItemStack clicked = event.getCurrentItem();
+        if (clicked == null || clicked.getItemMeta() == null) return;
+
+        NamespacedKey tierIdKey = ArmorGui.tierIdKey(plugin);
+        String tierId = clicked.getItemMeta().getPersistentDataContainer().get(tierIdKey, PersistentDataType.STRING);
+        if (tierId == null) return;
+
+        Player player = (Player) event.getWhoClicked();
+        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+        ArmorManager armor = plugin.getArmorManager();
+        NamespacedKey rarityKey = plugin.getRollListener().getRarityKey();
+
+        if (armor.purchase(player, data, tierId, rarityKey)) {
+            player.sendMessage(ChatColor.GREEN + "Bought: " + armor.get(tierId).getDisplay());
+            player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_LEVELUP, 0.6f, 1.4f);
+            player.openInventory(ArmorGui.build(plugin, player)); // refresh
+        } else {
+            player.sendMessage(ChatColor.RED + "You can't buy that yet.");
         }
     }
 

@@ -77,6 +77,9 @@ public class PlayerDataManager {
             } catch (IllegalArgumentException ignored) {
             }
         }
+        for (String tierId : yml.getStringList("purchased-armor-tiers")) {
+            data.getPurchasedArmorTiers().add(tierId);
+        }
 
         String tagItem = yml.getString("tag-item", null);
         String tagRarity = yml.getString("tag-rarity", null);
@@ -108,6 +111,7 @@ public class PlayerDataManager {
             rarityNames.add(r.name());
         }
         yml.set("auto-convert-rarities", rarityNames);
+        yml.set("purchased-armor-tiers", new java.util.ArrayList<>(data.getPurchasedArmorTiers()));
 
         if (data.getEquippedTagItemKey() != null) {
             yml.set("tag-item", data.getEquippedTagItemKey());

@@ -40,6 +40,9 @@ public class PlayerData {
     // Flat Luck bonus from currently-worn /armor — recomputed live each
     // tick from equipped armor, not persisted.
     private double armorLuckBonus = 0.0;
+    // /armor tiers ever bought (e.g. "LEATHER") — one-time purchase, worn
+    // status is checked separately for whether the Luck bonus applies.
+    private final Set<String> purchasedArmorTiers = new HashSet<>();
 
     public PlayerData(UUID uuid) {
         this.uuid = uuid;
@@ -225,5 +228,17 @@ public class PlayerData {
      */
     public double getEffectiveLuck(double prestigeLuckMultiplierPerPrestige) {
         return (bonusLuck + armorLuckBonus) * (1.0 + prestige * prestigeLuckMultiplierPerPrestige);
+    }
+
+    public Set<String> getPurchasedArmorTiers() {
+        return purchasedArmorTiers;
+    }
+
+    public boolean hasPurchasedArmor(String tierId) {
+        return purchasedArmorTiers.contains(tierId);
+    }
+
+    public void markArmorPurchased(String tierId) {
+        purchasedArmorTiers.add(tierId);
     }
 }

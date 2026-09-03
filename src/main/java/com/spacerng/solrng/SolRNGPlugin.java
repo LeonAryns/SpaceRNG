@@ -1,5 +1,6 @@
 package com.spacerng.solrng;
 
+import com.spacerng.solrng.commands.ArmorCommand;
 import com.spacerng.solrng.commands.ConvertCommand;
 import com.spacerng.solrng.commands.IndexCommand;
 import com.spacerng.solrng.commands.PrestigeCommand;
@@ -11,6 +12,7 @@ import com.spacerng.solrng.listeners.ChatListener;
 import com.spacerng.solrng.listeners.GuiListener;
 import com.spacerng.solrng.listeners.JoinQuitListener;
 import com.spacerng.solrng.listeners.RollListener;
+import com.spacerng.solrng.player.ArmorManager;
 import com.spacerng.solrng.player.PlayerData;
 import com.spacerng.solrng.player.PlayerDataManager;
 import com.spacerng.solrng.player.PrestigeManager;
@@ -29,6 +31,7 @@ public final class SolRNGPlugin extends JavaPlugin {
     private SkillTreeManager skillTreeManager;
     private PlayerDataManager playerDataManager;
     private PrestigeManager prestigeManager;
+    private ArmorManager armorManager;
     private TagManager tagManager;
     private RollListener rollListener;
     private ScoreboardManager scoreboardManager;
@@ -41,6 +44,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         this.skillTreeManager = new SkillTreeManager(getLogger());
         this.playerDataManager = new PlayerDataManager(this);
         this.prestigeManager = new PrestigeManager();
+        this.armorManager = new ArmorManager(this);
         this.tagManager = new TagManager(this);
         this.scoreboardManager = new ScoreboardManager(this);
 
@@ -58,10 +62,12 @@ public final class SolRNGPlugin extends JavaPlugin {
         getCommand("tag").setExecutor(new TagCommand(this));
         getCommand("index").setExecutor(new IndexCommand(this));
         getCommand("prestige").setExecutor(new PrestigeCommand(this));
+        getCommand("armor").setExecutor(new ArmorCommand(this));
         getCommand("rngadmin").setExecutor(new RngAdminCommand(this));
 
         startAutoRollTask();
         startScoreboardRefreshTask();
+        startArmorRefreshTask();
         tagManager.startSyncTask();
         registerPlaceholderExpansion();
 
@@ -81,6 +87,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         rarityManager.load(getConfig());
         skillTreeManager.load(getConfig());
         prestigeManager.load(getConfig());
+        armorManager.load(getConfig());
     }
 
     /**
@@ -121,6 +128,10 @@ public final class SolRNGPlugin extends JavaPlugin {
         return prestigeManager;
     }
 
+    public ArmorManager getArmorManager() {
+        return armorManager;
+    }
+
     public TagManager getTagManager() {
         return tagManager;
     }
@@ -140,6 +151,11 @@ public final class SolRNGPlugin extends JavaPlugin {
      */
     private void startScoreboardRefreshTask() {
         getServer().getScheduler().runTaskTimer(this, () -> scoreboardManager.updateAll(), 20L, 20L);
+    }
+
+    /** Recomputes armor Luck bonuses from what's actually worn, every second. */
+    private void startArmorRefreshTask() {
+        getServer().getScheduler().runTaskTimer(this, () -> armorManager.refreshWornBonuses(), 20L, 20L);
     }
 
     private void registerPlaceholderExpansion() {
