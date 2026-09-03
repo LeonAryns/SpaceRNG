@@ -103,6 +103,7 @@ public class ScoreboardManager {
         content.add(ChatColor.YELLOW + "| " + ChatColor.LIGHT_PURPLE + "✦ " + ChatColor.WHITE + "Credits: " + ChatColor.LIGHT_PURPLE + data.getPoints());
 
         List<String> lines = new ArrayList<>();
+        lines.add(""); // breathing room under the header
         lines.add(ChatColor.GOLD + "" + ChatColor.BOLD + player.getName());
         lines.add(""); // breathing room under the name
         lines.add(content.get(0));

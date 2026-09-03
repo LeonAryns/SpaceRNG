@@ -27,7 +27,6 @@ import org.bukkit.scheduler.BukkitTask;
 
 import java.time.Duration;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
@@ -149,17 +148,22 @@ public class RollListener implements Listener {
             int step = (int) (elapsed[0] * 20 / totalTicks);
             if (step != lastStep[0]) {
                 lastStep[0] = step;
-                sendRollPreview(player);
+                sendRollPreview(player, data);
             }
         }, 0L, 2L);
 
         rollingTasks.put(player.getUniqueId(), taskHolder[0]);
     }
 
-    private void sendRollPreview(Player player) {
-        List<RollableItem> items = plugin.getRarityManager().getItems();
-        if (items.isEmpty()) return;
-        RollableItem preview = items.get(random.nextInt(items.size()));
+    /**
+     * Flashes a candidate item drawn from the same luck-weighted odds as
+     * the real roll — pulling a uniform-random item here made the teaser
+     * flash absurd combinations (a 1-in-10M item right before landing on
+     * something 1-in-17), which didn't feel believable.
+     */
+    private void sendRollPreview(Player player, PlayerData data) {
+        if (plugin.getRarityManager().getItems().isEmpty()) return;
+        RollableItem preview = plugin.getRarityManager().roll(plugin.getPrestigeManager().effectiveLuck(data));
 
         Component name = LegacyComponentSerializer.legacySection()
                 .deserialize(RollFormat.naturalColor(preview.getMaterial()) + "" + ChatColor.BOLD + preview.getDisplayName());
@@ -223,6 +227,11 @@ public class RollListener implements Listener {
             if (!silent) {
                 sendHoverable(player, previewItem, RollFormat.personalRollLine(plugin, result));
             }
+        }
+
+        if (!silent) {
+            sendActionBar(player, RollFormat.naturalColor(result.getMaterial()) + "" + ChatColor.BOLD + result.getDisplayName()
+                    + ChatColor.GRAY + "  " + RollFormat.compactOdds(result.getOdds()));
         }
 
         maybeRegisterDiscovery(player, data, result, silent);

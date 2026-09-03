@@ -28,30 +28,36 @@ armor:
       costs:
         COMMON: 20
       luck-bonus: 0.05
+    CHAINMAIL:
+      display: "Chainmail Set"
+      costs:
+        COMMON: 40
+        UNCOMMON: 10
+      luck-bonus: 0.10
     IRON:
       display: "Iron Set"
       costs:
         UNCOMMON: 15
         RARE: 5
-      luck-bonus: 0.10
+      luck-bonus: 0.20
     GOLD:
       display: "Gold Set"
       costs:
         RARE: 10
         EPIC: 3
-      luck-bonus: 0.15
+      luck-bonus: 0.35
     DIAMOND:
       display: "Diamond Set"
       costs:
         EPIC: 8
         LEGENDARY: 2
-      luck-bonus: 0.25
+      luck-bonus: 0.60
     NETHERITE:
       display: "Netherite Set"
       costs:
         LEGENDARY: 3
         MYTHICAL: 1
-      luck-bonus: 0.40
+      luck-bonus: 1.00
 
 # Rarity tiers, in ascending order. "luck-factor" controls how strongly
 # the Luck stat biases rolls toward this tier. 0 = luck has no effect.
@@ -721,6 +727,22 @@ skilltree:
       requires: "luck_mult_2"
       effect: LUCK
       value: 0.20
+    luck_mult_4:
+      display: "Luck Multiplier IV"
+      costs:
+        EPIC: 10
+        LEGENDARY: 3
+      requires: "luck_mult_3"
+      effect: LUCK
+      value: 0.25
+    luck_mult_5:
+      display: "Luck Multiplier V"
+      costs:
+        LEGENDARY: 5
+        MYTHICAL: 1
+      requires: "luck_mult_4"
+      effect: LUCK
+      value: 0.40
     auto_convert:
       display: "Auto-Convert"
       costs:
@@ -754,6 +776,22 @@ skilltree:
       requires: "rolling_speed_2"
       effect: ROLL_SPEED
       value: 0.50
+    rolling_speed_4:
+      display: "Rolling Speed IV"
+      costs:
+        EPIC: 10
+        LEGENDARY: 3
+      requires: "rolling_speed_3"
+      effect: ROLL_SPEED
+      value: 0.75
+    rolling_speed_5:
+      display: "Rolling Speed V"
+      costs:
+        LEGENDARY: 5
+        MYTHICAL: 1
+      requires: "rolling_speed_4"
+      effect: ROLL_SPEED
+      value: 1.00
     # Branch 3: Bonus Roll — a chance to immediately chain into a free
     # extra roll right after any roll finishes.
     bonus_roll_1:
@@ -780,6 +818,22 @@ skilltree:
       requires: "bonus_roll_2"
       effect: BONUS_ROLL_CHANCE
       value: 0.10
+    bonus_roll_4:
+      display: "Bonus Roll IV"
+      costs:
+        EPIC: 10
+        LEGENDARY: 3
+      requires: "bonus_roll_3"
+      effect: BONUS_ROLL_CHANCE
+      value: 0.10
+    bonus_roll_5:
+      display: "Bonus Roll V"
+      costs:
+        LEGENDARY: 5
+        MYTHICAL: 1
+      requires: "bonus_roll_4"
+      effect: BONUS_ROLL_CHANCE
+      value: 0.15
 
 # Rolls of this rarity or higher get broadcast to the whole server.
 broadcast:

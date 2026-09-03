@@ -30,11 +30,11 @@ import java.util.UUID;
  *
  * The equipped tag also floats two extra lines above the player's head —
  * item name, then odds — as two text displays whose position is explicitly
- * re-synced to the player every couple of ticks. This was previously done
- * by mounting them as passengers and letting Minecraft auto-position them,
- * but the native mount-offset it computes for an arbitrary entity (rather
- * than a real vehicle seat) turned out to be unpredictable. Direct
- * positioning removes that guesswork.
+ * re-synced to the player every tick. This was previously done by mounting
+ * them as passengers and letting Minecraft auto-position them, but the
+ * native mount-offset it computes for an arbitrary entity (rather than a
+ * real vehicle seat) turned out to be unpredictable. Direct positioning
+ * removes that guesswork.
  */
 public class TagManager {
 
@@ -64,7 +64,7 @@ public class TagManager {
                 displays[0].teleport(withHeight(base, ODDS_LINE_HEIGHT));
                 displays[1].teleport(withHeight(base, NAME_LINE_HEIGHT));
             }
-        }, 0L, 2L);
+        }, 0L, 1L);
     }
 
     private Location withHeight(Location playerFeet, double height) {
@@ -158,10 +158,12 @@ public class TagManager {
         display.setBillboard(Display.Billboard.CENTER);
         display.setBackgroundColor(Color.fromARGB(0, 0, 0, 0));
         display.setShadowRadius(0f);
-        // Makes the client smoothly interpolate between teleports instead
-        // of snapping — without this the sync task's every-2-tick
-        // repositioning looked jerky/laggy rather than glued to the player.
-        display.setTeleportDuration(3);
+        // A longer interpolation window looked smoother but visibly trailed
+        // behind the player while moving (each glide targets a position
+        // that's already stale by the time it arrives). Syncing every tick
+        // with the shortest possible interpolation keeps it glued to the
+        // player while still avoiding a hard snap between updates.
+        display.setTeleportDuration(1);
         display.text(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().deserialize(text));
         return display;
     }

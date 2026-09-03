@@ -22,27 +22,34 @@ import java.util.Map;
 
 /**
  * 6x9 skill tree: "Auto Roll" is the root at the bottom-middle, branching
- * up into three tracks — Luck Multiplier, Rolling Speed, and Bonus Roll
- * (with Auto-Convert as a small side-branch off Luck Multiplier I). The
+ * up into three 5-tier tracks (each filling its whole column up to the
+ * top row) — Luck Multiplier, Rolling Speed, and Bonus Roll — with
+ * Auto-Convert as a small side-branch off Luck Multiplier I. The
  * bottom-right corner shows a running Common/Uncommon total. Nodes are
  * paid for with rolled drops, not Credits — Credits are the real-money
  * store currency.
  */
 public class SkillTreeGui {
 
-    // row*9 + col
+    // row*9 + col — each branch fills its whole column, root to top row.
     private static final Map<String, Integer> SLOT_BY_ID = Map.ofEntries(
             Map.entry("auto_roll_root", 49),
             Map.entry("luck_mult_1", 37),
             Map.entry("luck_mult_2", 28),
             Map.entry("luck_mult_3", 19),
+            Map.entry("luck_mult_4", 10),
+            Map.entry("luck_mult_5", 1),
             Map.entry("auto_convert", 29),
             Map.entry("rolling_speed_1", 40),
             Map.entry("rolling_speed_2", 31),
             Map.entry("rolling_speed_3", 22),
+            Map.entry("rolling_speed_4", 13),
+            Map.entry("rolling_speed_5", 4),
             Map.entry("bonus_roll_1", 43),
             Map.entry("bonus_roll_2", 34),
-            Map.entry("bonus_roll_3", 25)
+            Map.entry("bonus_roll_3", 25),
+            Map.entry("bonus_roll_4", 16),
+            Map.entry("bonus_roll_5", 7)
     );
 
     private static final int STATS_SLOT = 53;
@@ -165,7 +172,7 @@ public class SkillTreeGui {
 
     private static String describeEffect(SkillNode node) {
         return switch (node.getEffect()) {
-            case LUCK -> ChatColor.DARK_AQUA + "+" + node.getValue() + " Luck";
+            case LUCK -> ChatColor.DARK_AQUA + "+" + (int) Math.round(node.getValue() * 100) + "% Luck";
             case UNLOCK_AUTO_CONVERT -> ChatColor.DARK_AQUA + "Unlocks auto-convert toggles in /convert";
             case AUTO_ROLL -> ChatColor.DARK_AQUA + "Auto-rolls every " + (int) node.getValue() + "s";
             case ROLL_SPEED -> ChatColor.DARK_AQUA + "+" + node.getValue() + " roll speed";
