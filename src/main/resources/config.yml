@@ -11,6 +11,25 @@ roll-item:
   # player's roll-speed multiplier.
   roll-duration-seconds: 5
 
+# Farm crops (a shared field everyone harvests together) — breaking a
+# fully-grown crop listed here pays Tokens on top of its normal drop,
+# scaled per-player by their own farmTokenMultiplier, then replants
+# straight back to fully-grown after regrow-seconds instead of waiting
+# on random tick growth.
+farming:
+  regrow-seconds: 3
+  crops:
+    WHEAT:
+      tokens: 1
+    CARROTS:
+      tokens: 1
+    POTATOES:
+      tokens: 1
+    BEETROOTS:
+      tokens: 2
+    NETHER_WART:
+      tokens: 2
+
 # Levels are earned by rolling; prestiging resets your level for a
 # permanent Luck *multiplier* (applied on top of every other Luck source).
 prestige:

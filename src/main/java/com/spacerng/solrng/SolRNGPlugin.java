@@ -9,6 +9,8 @@ import com.spacerng.solrng.commands.RngAdminCommand;
 import com.spacerng.solrng.commands.RngCoreCommand;
 import com.spacerng.solrng.commands.SkillTreeCommand;
 import com.spacerng.solrng.commands.TagCommand;
+import com.spacerng.solrng.farming.FarmingListener;
+import com.spacerng.solrng.farming.FarmingManager;
 import com.spacerng.solrng.listeners.ChatListener;
 import com.spacerng.solrng.listeners.GuiListener;
 import com.spacerng.solrng.listeners.JoinQuitListener;
@@ -36,6 +38,7 @@ public final class SolRNGPlugin extends JavaPlugin {
     private TagManager tagManager;
     private RollListener rollListener;
     private ScoreboardManager scoreboardManager;
+    private FarmingManager farmingManager;
 
     @Override
     public void onEnable() {
@@ -48,6 +51,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         this.armorManager = new ArmorManager(this);
         this.tagManager = new TagManager(this);
         this.scoreboardManager = new ScoreboardManager(this);
+        this.farmingManager = new FarmingManager(this);
 
         reloadAll();
 
@@ -56,6 +60,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new JoinQuitListener(this), this);
         getServer().getPluginManager().registerEvents(new ChatListener(this), this);
         getServer().getPluginManager().registerEvents(new GuiListener(this), this);
+        getServer().getPluginManager().registerEvents(new FarmingListener(this), this);
 
         getCommand("rngcore").setExecutor(new RngCoreCommand(this));
         getCommand("skilltree").setExecutor(new SkillTreeCommand(this));
@@ -89,6 +94,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         skillTreeManager.load(getConfig());
         prestigeManager.load(getConfig());
         armorManager.load(getConfig());
+        farmingManager.load(getConfig());
     }
 
     /**
@@ -143,6 +149,10 @@ public final class SolRNGPlugin extends JavaPlugin {
 
     public ScoreboardManager getScoreboardManager() {
         return scoreboardManager;
+    }
+
+    public FarmingManager getFarmingManager() {
+        return farmingManager;
     }
 
     /**

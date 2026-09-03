@@ -46,6 +46,10 @@ public class PlayerData {
     // /options toggles.
     private boolean rollSoundEnabled = true;
     private boolean rollAnimationEnabled = true;
+    // Multiplies Tokens earned from harvesting farm crops. 1.0 = base
+    // reward. Nothing raises this yet — reserved for future farming
+    // upgrades (hoe enchants, prestige tie-in, etc.).
+    private double farmTokenMultiplier = 1.0;
 
     public PlayerData(UUID uuid) {
         this.uuid = uuid;
@@ -259,5 +263,13 @@ public class PlayerData {
 
     public void setRollAnimationEnabled(boolean rollAnimationEnabled) {
         this.rollAnimationEnabled = rollAnimationEnabled;
+    }
+
+    public double getFarmTokenMultiplier() {
+        return farmTokenMultiplier;
+    }
+
+    public void setFarmTokenMultiplier(double farmTokenMultiplier) {
+        this.farmTokenMultiplier = Math.max(0.1, farmTokenMultiplier);
     }
 }

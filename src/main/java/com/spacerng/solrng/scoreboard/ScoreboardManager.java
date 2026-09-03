@@ -23,10 +23,12 @@ import java.util.List;
  * each refresh (rather than being removed/re-added), so nothing duplicates
  * or lingers on screen when a value changes.
  *
- * Each line's real content is set via customName (the left-aligned "name"
- * part of a scoreboard row), with the number hidden via NumberFormat.blank()
- * — the entry itself is just an invisible unique placeholder used only to
- * key which row is being written to.
+ * Most lines' content is set via customName (the left-aligned "name" part
+ * of a scoreboard row), with the number hidden via NumberFormat.blank() —
+ * the entry itself is just an invisible unique placeholder used only to key
+ * which row is being written to. The three currency lines instead use the
+ * genuinely right-aligned number slot (NumberFormat.fixed()) for their
+ * symbol+balance, see {@link Line}.
  */
 public class ScoreboardManager {
 
@@ -73,7 +75,7 @@ public class ScoreboardManager {
         Objective objective = board.getObjective(OBJECTIVE_ID);
         if (objective == null) return; // player's on a different scoreboard right now
 
-        List<String> lines = buildLines(player);
+        List<Line> lines = buildLines(player);
         int total = lines.size();
         for (int i = 0; i < total; i++) {
             setLine(objective, i, total - i, lines.get(i));
@@ -91,41 +93,38 @@ public class ScoreboardManager {
         }
     }
 
-    private List<String> buildLines(Player player) {
+    private List<Line> buildLines(Player player) {
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         int discovered = data.getDiscoveredItems().size();
         int totalItems = plugin.getRarityManager().getItems().size();
         double luckPercent = plugin.getPrestigeManager().effectiveLuck(data) * 100.0;
 
-        List<String> content = new ArrayList<>();
-        content.add(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Index: " + ChatColor.AQUA + discovered + ChatColor.GRAY + "/" + ChatColor.AQUA + totalItems);
-        content.add(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Luck: " + ChatColor.GREEN + "+" + String.format("%.2f", luckPercent) + "%");
-        content.add(ChatColor.YELLOW + "| " + prestigeLine(data));
-        content.add(ChatColor.YELLOW + "| " + ChatColor.GOLD + "$ " + ChatColor.WHITE + "Money: " + ChatColor.GREEN + formatMoney(player));
-        content.add(ChatColor.YELLOW + "| " + ChatColor.AQUA + "♦ " + ChatColor.WHITE + "Tokens: " + ChatColor.AQUA + data.getTokens());
-        content.add(ChatColor.YELLOW + "| " + ChatColor.LIGHT_PURPLE + "✦ " + ChatColor.WHITE + "Credits: " + ChatColor.LIGHT_PURPLE + data.getPoints());
-
-        List<String> lines = new ArrayList<>();
-        lines.add(""); // breathing room under the header
-        lines.add(ChatColor.GOLD + "" + ChatColor.BOLD + player.getName());
-        lines.add(""); // breathing room under the name
-        lines.add(content.get(0));
-        lines.add(content.get(1));
-        lines.add(content.get(2));
-        lines.add(""); // blank spacer
-        lines.add(ChatColor.GOLD + "" + ChatColor.BOLD + "CURRENCY");
-        lines.add(""); // breathing room under the title
-        lines.add(content.get(3));
-        lines.add(content.get(4));
-        lines.add(content.get(5));
+        List<Line> lines = new ArrayList<>();
+        lines.add(Line.of("")); // breathing room under the header
+        lines.add(Line.of(ChatColor.GOLD + "" + ChatColor.BOLD + player.getName()));
+        lines.add(Line.of("")); // breathing room under the name
+        lines.add(Line.of(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Index: " + ChatColor.AQUA + discovered + ChatColor.GRAY + "/" + ChatColor.AQUA + totalItems));
+        lines.add(Line.of(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Luck: " + ChatColor.GREEN + "+" + String.format("%.2f", luckPercent) + "%"));
+        lines.add(Line.of(ChatColor.YELLOW + "| " + prestigeLine(data)));
+        lines.add(Line.of("")); // blank spacer
+        lines.add(Line.of(ChatColor.GOLD + "" + ChatColor.BOLD + "CURRENCY"));
+        lines.add(Line.of("")); // breathing room under the title
+        // Symbol + balance goes in the genuinely right-aligned score-number
+        // slot instead of the left-aligned name text — that's the only way
+        // to get pixel-perfect alignment across "Money"/"Tokens"/"Credits",
+        // since Minecraft's default font isn't monospace and those labels
+        // are all different widths.
+        lines.add(new Line(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Money:", ChatColor.GOLD + "$ " + ChatColor.GREEN + formatMoney(player)));
+        lines.add(new Line(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Tokens:", ChatColor.AQUA + "♦ " + ChatColor.AQUA + data.getTokens()));
+        lines.add(new Line(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Credits:", ChatColor.LIGHT_PURPLE + "✦ " + ChatColor.LIGHT_PURPLE + data.getPoints()));
 
         String rollStatus = rollStatusLine(player);
         if (rollStatus != null) {
-            lines.add(""); // blank spacer
-            lines.add(rollStatus);
+            lines.add(Line.of("")); // blank spacer
+            lines.add(Line.of(rollStatus));
         }
-        lines.add(""); // blank spacer
-        lines.add(ChatColor.GRAY + "SpaceRNG.Minehut.gg");
+        lines.add(Line.of("")); // blank spacer
+        lines.add(Line.of(ChatColor.GRAY + "SpaceRNG.Minehut.gg"));
         return lines;
     }
 
@@ -162,24 +161,31 @@ public class ScoreboardManager {
     }
 
     /**
-     * index: which slot this line occupies (0 = top). order: the raw score
-     * value controlling vertical position (higher = higher up). content:
-     * the fully-colored line text.
-     *
      * A scoreboard row has two independently-positioned parts: the name
      * (left-aligned, like a normal player name) and the score number
-     * (always right-aligned). Content goes in customName — the left slot —
-     * with the number hidden via NumberFormat.blank(), which is what
-     * actually left-aligns every line. (numberFormat.fixed(), used here
-     * previously, renders in the right-aligned number slot — that's why
-     * padding did nothing.)
+     * (always right-aligned, flush to the sidebar's right edge regardless
+     * of how long the left text is). Most lines just use the left side,
+     * with the right side hidden via NumberFormat.blank(). The three
+     * currency lines put their symbol+balance in the right slot instead,
+     * so they line up in a real column no matter how long "Money"/
+     * "Tokens"/"Credits" is.
      */
-    private void setLine(Objective objective, int index, int order, String content) {
+    private record Line(String left, String right) {
+        static Line of(String left) {
+            return new Line(left, null);
+        }
+    }
+
+    /**
+     * index: which slot this line occupies (0 = top). order: the raw score
+     * value controlling vertical position (higher = higher up).
+     */
+    private void setLine(Objective objective, int index, int order, Line line) {
         String entry = ChatColor.RESET.toString().repeat(index + 1); // unique, invisible placeholder
         Score score = objective.getScore(entry);
         score.setScore(order);
-        Component component = content.isEmpty() ? Component.empty() : LEGACY.deserialize(content);
-        score.customName(component);
-        score.numberFormat(NumberFormat.blank());
+        Component left = line.left().isEmpty() ? Component.empty() : LEGACY.deserialize(line.left());
+        score.customName(left);
+        score.numberFormat(line.right() == null ? NumberFormat.blank() : NumberFormat.fixed(LEGACY.deserialize(line.right())));
     }
 }
