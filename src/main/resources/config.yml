@@ -1,0 +1,119 @@
+# ============================================
+# SolRNG configuration
+# ============================================
+
+roll-item:
+  material: NETHER_STAR
+  name: "&d&lRNG Core"
+  cooldown-seconds: 5
+
+# Rarity tiers, in ascending order. "luck-factor" controls how strongly
+# the Luck stat biases rolls toward this tier. 0 = luck has no effect.
+# Effective weight = base weight * (1 + luck * luck-factor)
+rarities:
+  COMMON:
+    color: "&f"
+    luck-factor: 0.0
+  UNCOMMON:
+    color: "&a"
+    luck-factor: 0.15
+  RARE:
+    color: "&9"
+    luck-factor: 0.35
+  EPIC:
+    color: "&5"
+    luck-factor: 0.6
+  LEGENDARY:
+    color: "&6"
+    luck-factor: 1.0
+  MYTHICAL:
+    color: "&c"
+    luck-factor: 1.6
+
+# Every rollable item. "odds" = 1-in-X chance at 0 luck.
+# Add as many items per rarity as you want.
+items:
+  - material: OAK_LOG
+    name: "Wood"
+    rarity: COMMON
+    odds: 10
+  - material: COBBLESTONE
+    name: "Stone"
+    rarity: COMMON
+    odds: 5
+  - material: IRON_INGOT
+    name: "Iron"
+    rarity: UNCOMMON
+    odds: 50
+  - material: GOLD_INGOT
+    name: "Gold"
+    rarity: RARE
+    odds: 500
+  - material: DIAMOND
+    name: "Diamond"
+    rarity: EPIC
+    odds: 5000
+  - material: NETHERITE_INGOT
+    name: "Netherite"
+    rarity: LEGENDARY
+    odds: 100000
+  - material: NETHER_STAR
+    name: "Fallen Star"
+    rarity: MYTHICAL
+    odds: 1000000
+
+# How many points a single item of each rarity is worth when converted.
+conversion:
+  points-per-rarity:
+    COMMON: 1
+    UNCOMMON: 5
+    RARE: 25
+    EPIC: 150
+    LEGENDARY: 1000
+    MYTHICAL: 10000
+
+# Skill tree nodes. "requires" is the id of the node that must be
+# unlocked first (blank = no requirement). "effect" tells the plugin
+# what the node does; "value" is its magnitude.
+skilltree:
+  nodes:
+    luck_1:
+      display: "Luck I"
+      cost: 50
+      requires: ""
+      effect: LUCK
+      value: 0.05
+    luck_2:
+      display: "Luck II"
+      cost: 200
+      requires: "luck_1"
+      effect: LUCK
+      value: 0.10
+    luck_3:
+      display: "Luck III"
+      cost: 750
+      requires: "luck_2"
+      effect: LUCK
+      value: 0.20
+    auto_convert:
+      display: "Auto-Convert"
+      cost: 300
+      requires: "luck_1"
+      effect: UNLOCK_AUTO_CONVERT
+      value: 0
+    auto_roll_1:
+      display: "Autoroll I"
+      cost: 1500
+      requires: "auto_convert"
+      effect: AUTO_ROLL
+      value: 8
+    auto_roll_2:
+      display: "Autoroll II"
+      cost: 5000
+      requires: "auto_roll_1"
+      effect: AUTO_ROLL
+      value: 4
+
+# Rolls of this rarity or higher get broadcast to the whole server.
+broadcast:
+  min-rarity-to-broadcast: EPIC

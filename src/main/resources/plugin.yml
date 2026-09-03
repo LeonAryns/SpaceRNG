@@ -1,0 +1,29 @@
+name: SolRNG
+version: '1.0.0'
+main: com.spacerng.solrng.SolRNGPlugin
+api-version: '1.21'
+author: LaLaLeon
+description: Rarity-roll RNG progression plugin for SpaceRNG
+
+commands:
+  rngcore:
+    description: Give yourself or another player a Roll Token
+    usage: /rngcore give <player> [amount]
+    permission: solrng.admin
+  skilltree:
+    description: Open your skill tree
+    usage: /skilltree
+  convert:
+    description: Open the item-to-points conversion menu
+    usage: /convert
+  tag:
+    description: Manage your equipped rarity tag
+    usage: /tag <equip|clear>
+  rngadmin:
+    description: Admin tools for SolRNG
+    usage: /rngadmin <reload>
+    permission: solrng.admin
+
+permissions:
+  solrng.admin:
+    default: op
