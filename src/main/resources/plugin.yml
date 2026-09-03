@@ -4,10 +4,11 @@ main: com.spacerng.solrng.SolRNGPlugin
 api-version: '1.21'
 author: LaLaLeon
 description: Rarity-roll RNG progression plugin for SpaceRNG
+softdepend: [Vault]
 
 commands:
   rngcore:
-    description: Give yourself or another player a Roll Token
+    description: Give yourself or another player a Roll item
     usage: /rngcore give <player> [amount]
     permission: solrng.admin
   skilltree:
@@ -19,9 +20,12 @@ commands:
   tag:
     description: Manage your equipped rarity tag
     usage: /tag <equip|clear>
+  index:
+    description: View your collection log of every item you've rolled
+    usage: /index
   rngadmin:
     description: Admin tools for SolRNG
-    usage: /rngadmin <reload>
+    usage: /rngadmin <reload|tokens>
     permission: solrng.admin
 
 permissions:

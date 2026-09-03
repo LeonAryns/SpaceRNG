@@ -3,6 +3,7 @@ package com.spacerng.solrng.listeners;
 import com.spacerng.solrng.SolRNGPlugin;
 import com.spacerng.solrng.gui.ConvertGui;
 import com.spacerng.solrng.gui.ConvertHolder;
+import com.spacerng.solrng.gui.IndexHolder;
 import com.spacerng.solrng.gui.SkillTreeGui;
 import com.spacerng.solrng.gui.SkillTreeHolder;
 import com.spacerng.solrng.player.PlayerData;
@@ -34,6 +35,8 @@ public class GuiListener implements Listener {
             handleSkillTreeClick(event);
         } else if (topInventory.getHolder() instanceof ConvertHolder) {
             handleConvertClick(event);
+        } else if (topInventory.getHolder() instanceof IndexHolder) {
+            event.setCancelled(true); // view-only collection log, nothing to click
         }
     }
 
@@ -124,7 +127,8 @@ public class GuiListener implements Listener {
         }
 
         data.addPoints(totalPoints);
-        player.sendMessage(ChatColor.GREEN + "Converted " + itemsConverted + " item(s) → " + ChatColor.YELLOW + totalPoints + " points");
+        plugin.getScoreboardManager().update(player);
+        player.sendMessage(ChatColor.GREEN + "Converted " + itemsConverted + " item(s) → " + ChatColor.YELLOW + totalPoints + " Credits");
     }
 
     private void handleAutoToggleClick(Player player, int rawSlot) {

@@ -1,6 +1,7 @@
 package com.spacerng.solrng;
 
 import com.spacerng.solrng.commands.ConvertCommand;
+import com.spacerng.solrng.commands.IndexCommand;
 import com.spacerng.solrng.commands.RngAdminCommand;
 import com.spacerng.solrng.commands.RngCoreCommand;
 import com.spacerng.solrng.commands.SkillTreeCommand;
@@ -14,6 +15,7 @@ import com.spacerng.solrng.player.PlayerDataManager;
 import com.spacerng.solrng.player.SkillTreeManager;
 import com.spacerng.solrng.rarity.RarityManager;
 import com.spacerng.solrng.rarity.RollableItem;
+import com.spacerng.solrng.scoreboard.ScoreboardManager;
 import com.spacerng.solrng.tag.TagManager;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -25,6 +27,7 @@ public final class SolRNGPlugin extends JavaPlugin {
     private PlayerDataManager playerDataManager;
     private TagManager tagManager;
     private RollListener rollListener;
+    private ScoreboardManager scoreboardManager;
 
     @Override
     public void onEnable() {
@@ -34,6 +37,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         this.skillTreeManager = new SkillTreeManager(getLogger());
         this.playerDataManager = new PlayerDataManager(this);
         this.tagManager = new TagManager();
+        this.scoreboardManager = new ScoreboardManager(this);
 
         reloadAll();
 
@@ -47,9 +51,11 @@ public final class SolRNGPlugin extends JavaPlugin {
         getCommand("skilltree").setExecutor(new SkillTreeCommand(this));
         getCommand("convert").setExecutor(new ConvertCommand(this));
         getCommand("tag").setExecutor(new TagCommand(this));
+        getCommand("index").setExecutor(new IndexCommand(this));
         getCommand("rngadmin").setExecutor(new RngAdminCommand(this));
 
         startAutoRollTask();
+        startScoreboardRefreshTask();
 
         getLogger().info("SolRNG enabled.");
     }
@@ -69,8 +75,9 @@ public final class SolRNGPlugin extends JavaPlugin {
     }
 
     /**
-     * Runs every second; players with an autoroll skill tree node use their
-     * roll cooldown automatically instead of needing to right-click.
+     * Runs every second; players with an autoroll skill tree node get an
+     * automatic roll on their configured interval instead of needing to
+     * right-click.
      */
     private void startAutoRollTask() {
         getServer().getScheduler().runTaskTimer(this, () -> {
@@ -107,5 +114,18 @@ public final class SolRNGPlugin extends JavaPlugin {
 
     public RollListener getRollListener() {
         return rollListener;
+    }
+
+    public ScoreboardManager getScoreboardManager() {
+        return scoreboardManager;
+    }
+
+    /**
+     * Keeps every online player's Money / Tokens / Credits sidebar up to
+     * date — covers changes from converting items, admin commands, or
+     * another plugin (Vault economy) moving their Money balance.
+     */
+    private void startScoreboardRefreshTask() {
+        getServer().getScheduler().runTaskTimer(this, () -> scoreboardManager.updateAll(), 20L, 20L);
     }
 }

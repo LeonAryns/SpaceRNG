@@ -1,14 +1,13 @@
 package com.spacerng.solrng.commands;
 
 import com.spacerng.solrng.SolRNGPlugin;
+import com.spacerng.solrng.item.RollItemFactory;
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 
 public class RngCoreCommand implements CommandExecutor {
 
@@ -43,18 +42,9 @@ public class RngCoreCommand implements CommandExecutor {
             }
         }
 
-        String materialName = plugin.getConfig().getString("roll-item.material", "NETHER_STAR");
-        Material material = Material.matchMaterial(materialName);
-        if (material == null) material = Material.NETHER_STAR;
-
-        ItemStack item = new ItemStack(material, amount);
-        ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(ChatColor.translateAlternateColorCodes('&',
-                plugin.getConfig().getString("roll-item.name", "&d&lRNG Core")));
-        item.setItemMeta(meta);
-
+        ItemStack item = RollItemFactory.create(plugin, amount);
         target.getInventory().addItem(item);
-        sender.sendMessage(ChatColor.GREEN + "Gave " + amount + " RNG Core(s) to " + target.getName());
+        sender.sendMessage(ChatColor.GREEN + "Gave " + amount + " Roll(s) to " + target.getName());
         return true;
     }
 }

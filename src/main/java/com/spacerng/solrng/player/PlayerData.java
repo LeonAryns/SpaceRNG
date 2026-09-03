@@ -11,8 +11,16 @@ public class PlayerData {
 
     private final UUID uuid;
     private double bonusLuck = 0.0;
-    private long points = 0L;
+    private long points = 0L; // shown on the scoreboard as "Credits"
+    private long tokens = 0L; // second scoreboard currency, reserved for future systems
+    // Multiplies roll speed: 1.0 = base roll-duration-seconds, 2.0 = twice as fast.
+    // Nothing grants bonuses to this yet — it's here so future skill tree /
+    // armor upgrades have somewhere to write to.
+    private double rollSpeedMultiplier = 1.0;
     private final Set<String> unlockedNodes = new HashSet<>();
+    // Item display names (e.g. "Fallen Star") the player has ever rolled —
+    // backs /index and its per-discovery luck bonus.
+    private final Set<String> discoveredItems = new HashSet<>();
     private final Set<Rarity> autoConvertRarities = EnumSet.noneOf(Rarity.class);
     private int autoRollIntervalSeconds = 0; // 0 = disabled
     private String equippedTagItemKey = null; // e.g. "Fallen Star"
@@ -48,12 +56,46 @@ public class PlayerData {
         return true;
     }
 
+    public long getTokens() {
+        return tokens;
+    }
+
+    public void addTokens(long amount) {
+        this.tokens += amount;
+    }
+
+    public boolean spendTokens(long amount) {
+        if (tokens < amount) return false;
+        tokens -= amount;
+        return true;
+    }
+
+    public double getRollSpeedMultiplier() {
+        return rollSpeedMultiplier;
+    }
+
+    public void setRollSpeedMultiplier(double rollSpeedMultiplier) {
+        this.rollSpeedMultiplier = Math.max(0.1, rollSpeedMultiplier);
+    }
+
     public Set<String> getUnlockedNodes() {
         return unlockedNodes;
     }
 
     public boolean hasUnlocked(String nodeId) {
         return unlockedNodes.contains(nodeId);
+    }
+
+    public Set<String> getDiscoveredItems() {
+        return discoveredItems;
+    }
+
+    public boolean hasDiscovered(String itemDisplayName) {
+        return discoveredItems.contains(itemDisplayName);
+    }
+
+    public void markDiscovered(String itemDisplayName) {
+        discoveredItems.add(itemDisplayName);
     }
 
     public Set<Rarity> getAutoConvertRarities() {

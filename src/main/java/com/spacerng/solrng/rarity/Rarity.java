@@ -10,5 +10,13 @@ public enum Rarity {
     RARE,
     EPIC,
     LEGENDARY,
-    MYTHICAL
+    MYTHICAL;
+
+    /**
+     * Proper-case name for display, e.g. "Common" instead of "COMMON".
+     */
+    public String displayName() {
+        String n = name();
+        return n.charAt(0) + n.substring(1).toLowerCase();
+    }
 }

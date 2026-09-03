@@ -3,10 +3,17 @@ package com.spacerng.solrng.listeners;
 import com.spacerng.solrng.SolRNGPlugin;
 import com.spacerng.solrng.player.PlayerData;
 import com.spacerng.solrng.rarity.Rarity;
+import com.spacerng.solrng.rarity.RollFormat;
 import com.spacerng.solrng.rarity.RollableItem;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.Sound;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -15,9 +22,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 import java.util.UUID;
 
 public class RollListener implements Listener {
@@ -25,7 +34,16 @@ public class RollListener implements Listener {
     private final SolRNGPlugin plugin;
     private final NamespacedKey rarityKey;
     private final NamespacedKey rollNameKey;
-    private final Map<UUID, Long> cooldowns = new HashMap<>();
+    private final Map<UUID, BukkitTask> rollingTasks = new HashMap<>();
+    // ticks remaining in the current roll, kept up to date so the scoreboard
+    // can show a live countdown without duplicating the timing logic.
+    private final Map<UUID, Long> remainingTicks = new HashMap<>();
+    private final Random random = new Random();
+
+    private static final ChatColor[] CYCLE_COLORS = {
+            ChatColor.WHITE, ChatColor.GREEN, ChatColor.BLUE,
+            ChatColor.DARK_PURPLE, ChatColor.GOLD, ChatColor.RED
+    };
 
     public RollListener(SolRNGPlugin plugin) {
         this.plugin = plugin;
@@ -41,6 +59,33 @@ public class RollListener implements Listener {
         return rollNameKey;
     }
 
+    public boolean isRolling(UUID uuid) {
+        return rollingTasks.containsKey(uuid);
+    }
+
+    /**
+     * Seconds left in a player's in-progress roll, or 0 if they aren't
+     * currently rolling. Used by the scoreboard's live status line.
+     */
+    public int getRemainingSeconds(UUID uuid) {
+        Long ticks = remainingTicks.get(uuid);
+        if (ticks == null || ticks <= 0) return 0;
+        return (int) Math.ceil(ticks / 20.0);
+    }
+
+    /**
+     * Cancels a player's in-progress roll task without granting anything —
+     * used when they log out mid-roll so the task doesn't keep running
+     * against an offline player.
+     */
+    public void cancelRoll(UUID uuid) {
+        BukkitTask task = rollingTasks.remove(uuid);
+        remainingTicks.remove(uuid);
+        if (task != null) {
+            task.cancel();
+        }
+    }
+
     @EventHandler
     public void onInteract(PlayerInteractEvent event) {
         if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
@@ -54,7 +99,7 @@ public class RollListener implements Listener {
 
         ItemMeta meta = hand.getItemMeta();
         String expectedName = ChatColor.translateAlternateColorCodes('&',
-                plugin.getConfig().getString("roll-item.name", "&d&lRNG Core"));
+                plugin.getConfig().getString("roll-item.name", "&d&lRoll"));
         if (meta == null || meta.getDisplayName() == null || !meta.getDisplayName().equals(expectedName)) {
             return; // not our special item, just a normal nether star etc.
         }
@@ -62,73 +107,157 @@ public class RollListener implements Listener {
         event.setCancelled(true);
 
         Player player = event.getPlayer();
-        if (isOnCooldown(player)) return;
+        if (isRolling(player.getUniqueId())) {
+            return; // already mid-roll, ignore extra clicks
+        }
 
-        int cooldownSeconds = plugin.getConfig().getInt("roll-item.cooldown-seconds", 5);
-        cooldowns.put(player.getUniqueId(), System.currentTimeMillis() + (cooldownSeconds * 1000L));
+        startRoll(player);
+    }
 
+    /**
+     * Kicks off the roll animation: no cooldown, but the result isn't
+     * decided/granted until the timer finishes. A player's roll-speed
+     * multiplier (currently always 1.0 — reserved for future skill tree /
+     * armor upgrades) shortens the wait.
+     */
+    private void startRoll(Player player) {
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+
+        double baseSeconds = plugin.getConfig().getDouble("roll-item.roll-duration-seconds", 5.0);
+        double multiplier = Math.max(0.1, data.getRollSpeedMultiplier());
+        long totalTicks = Math.max(1L, Math.round((baseSeconds / multiplier) * 20.0));
+
+        long[] elapsed = {0L};
+        remainingTicks.put(player.getUniqueId(), totalTicks);
+
+        BukkitTask task = plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
+            elapsed[0] += 2L;
+
+            if (elapsed[0] >= totalTicks) {
+                rollingTasks.remove(player.getUniqueId());
+                remainingTicks.remove(player.getUniqueId());
+                finishRoll(player, data);
+                return;
+            }
+
+            remainingTicks.put(player.getUniqueId(), totalTicks - elapsed[0]);
+            sendRollingActionBar(player, elapsed[0], totalTicks);
+            player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 0.6f + (float) elapsed[0] / totalTicks);
+        }, 0L, 2L);
+
+        rollingTasks.put(player.getUniqueId(), task);
+    }
+
+    private void finishRoll(Player player, PlayerData data) {
+        clearActionBar(player);
+        player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.8f, 1.2f);
+
         RollableItem result = plugin.getRarityManager().roll(data.getBonusLuck());
         grantRoll(player, data, result, false);
     }
 
-    private boolean isOnCooldown(Player player) {
-        Long expiry = cooldowns.get(player.getUniqueId());
-        if (expiry == null) return false;
-        if (System.currentTimeMillis() >= expiry) {
-            cooldowns.remove(player.getUniqueId());
-            return false;
+    private void sendRollingActionBar(Player player, long elapsedTicks, long totalTicks) {
+        int barLength = 20;
+        int filled = (int) Math.min(barLength, (elapsedTicks * barLength) / totalTicks);
+
+        StringBuilder bar = new StringBuilder();
+        bar.append(ChatColor.GRAY).append("Rolling ");
+        ChatColor cycle = CYCLE_COLORS[random.nextInt(CYCLE_COLORS.length)];
+        bar.append(cycle).append("[");
+        for (int i = 0; i < barLength; i++) {
+            bar.append(i < filled ? cycle + "|" : ChatColor.DARK_GRAY + "|");
         }
-        long remaining = (expiry - System.currentTimeMillis()) / 1000L + 1;
-        player.sendMessage(ChatColor.GRAY + "Roll on cooldown: " + remaining + "s");
-        return true;
+        bar.append(cycle).append("]");
+
+        sendActionBar(player, bar.toString());
+    }
+
+    private void sendActionBar(Player player, String text) {
+        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(text));
+    }
+
+    private void clearActionBar(Player player) {
+        sendActionBar(player, "");
     }
 
     /**
      * Gives the player their rolled item (or converts it straight to points
      * if they've toggled auto-convert for that rarity), then broadcasts it
-     * if it meets the configured rarity threshold.
+     * if it meets the configured rarity threshold. Either way, a preview
+     * item is built so chat messages can show a hoverable tooltip of it.
      */
     public void grantRoll(Player player, PlayerData data, RollableItem result, boolean silent) {
         Rarity rarity = result.getRarity();
-        String color = plugin.getRarityManager().colorFor(rarity);
+        ItemStack previewItem = buildTaggedItem(result);
 
         if (data.isAutoConverting(rarity)) {
             long points = plugin.getConfig().getLong("conversion.points-per-rarity." + rarity.name(), 1L);
             data.addPoints(points);
             if (!silent) {
-                player.sendMessage(color + "Rolled " + result.getDisplayName() + ChatColor.GRAY
-                        + " (1 in " + result.getOdds() + ") " + ChatColor.YELLOW + "→ +" + points + " points (auto-converted)");
+                sendHoverable(player, previewItem, RollFormat.personalRollLine(plugin, result)
+                        + ChatColor.YELLOW + " → +" + points + " Credits (auto-converted)");
             }
         } else {
-            ItemStack item = buildTaggedItem(result);
-            Map<Integer, ItemStack> overflow = player.getInventory().addItem(item);
+            Map<Integer, ItemStack> overflow = player.getInventory().addItem(previewItem.clone());
             if (!overflow.isEmpty()) {
                 overflow.values().forEach(leftover ->
                         player.getWorld().dropItemNaturally(player.getLocation(), leftover));
                 player.sendMessage(ChatColor.RED + "Your inventory is full — the item dropped at your feet!");
             }
             if (!silent) {
-                player.sendMessage(color + "Rolled " + result.getDisplayName() + ChatColor.GRAY
-                        + " (1 in " + result.getOdds() + ")");
+                sendHoverable(player, previewItem, RollFormat.personalRollLine(plugin, result));
             }
         }
 
-        maybeBroadcast(player, result);
+        maybeRegisterDiscovery(player, data, result, silent);
+        maybeBroadcast(player, result, previewItem);
+    }
+
+    /**
+     * Sends a chat line where hovering over it shows the real item tooltip
+     * (name, lore — Rarity/Chance) via Minecraft's built-in hover-item
+     * component. No resource pack needed; this is the same mechanism as
+     * shift-clicking an item into chat.
+     */
+    private void sendHoverable(Player player, ItemStack item, String legacyText) {
+        Component message = LegacyComponentSerializer.legacySection().deserialize(legacyText)
+                .hoverEvent(item.asHoverEvent());
+        player.sendMessage(message);
+    }
+
+    /**
+     * The first time a player rolls a given item, it's added to their
+     * /index and grants a small permanent luck bonus — collecting every
+     * item is itself a form of progression.
+     */
+    private void maybeRegisterDiscovery(Player player, PlayerData data, RollableItem result, boolean silent) {
+        if (data.hasDiscovered(result.getDisplayName())) return;
+
+        data.markDiscovered(result.getDisplayName());
+        double bonus = plugin.getConfig().getDouble("index.luck-per-item", 0.01);
+        data.addBonusLuck(bonus);
+
+        if (!silent) {
+            int total = plugin.getRarityManager().getItems().size();
+            player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "NEW! " + ChatColor.RESET
+                    + ChatColor.WHITE + result.getDisplayName() + ChatColor.GRAY + " added to your index "
+                    + ChatColor.GRAY + "(" + data.getDiscoveredItems().size() + "/" + total + ")");
+            player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.8f, 1.3f);
+        }
     }
 
     private ItemStack buildTaggedItem(RollableItem result) {
         ItemStack item = new ItemStack(result.getMaterial());
         ItemMeta meta = item.getItemMeta();
-        String color = plugin.getRarityManager().colorFor(result.getRarity());
-        meta.setDisplayName(color + result.getDisplayName());
+        meta.setDisplayName(RollFormat.displayName(plugin, result));
+        meta.setLore(RollFormat.lore(plugin, result));
         meta.getPersistentDataContainer().set(rarityKey, PersistentDataType.STRING, result.getRarity().name());
         meta.getPersistentDataContainer().set(rollNameKey, PersistentDataType.STRING, result.getDisplayName());
         item.setItemMeta(meta);
         return item;
     }
 
-    private void maybeBroadcast(Player player, RollableItem result) {
+    private void maybeBroadcast(Player player, RollableItem result, ItemStack previewItem) {
         String minRarityName = plugin.getConfig().getString("broadcast.min-rarity-to-broadcast", "EPIC");
         Rarity minRarity;
         try {
@@ -139,9 +268,9 @@ public class RollListener implements Listener {
 
         if (result.getRarity().ordinal() < minRarity.ordinal()) return;
 
-        String color = plugin.getRarityManager().colorFor(result.getRarity());
-        plugin.getServer().broadcastMessage(color + "" + ChatColor.BOLD + "✦ "
-                + player.getName() + " rolled " + result.getDisplayName()
-                + " (1 in " + result.getOdds() + ")! ✦");
+        Component banner = LegacyComponentSerializer.legacySection()
+                .deserialize(RollFormat.broadcastBanner(plugin, player.getName(), result))
+                .hoverEvent(previewItem.asHoverEvent());
+        Bukkit.broadcast(banner);
     }
 }

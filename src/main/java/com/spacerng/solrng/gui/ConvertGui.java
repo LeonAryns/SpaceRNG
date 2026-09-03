@@ -17,7 +17,7 @@ public class ConvertGui {
 
     public static Inventory build(SolRNGPlugin plugin, Player player) {
         ConvertHolder holder = new ConvertHolder();
-        Inventory inv = Bukkit.createInventory(holder, 36, ChatColor.DARK_GREEN + "Convert Items → Points");
+        Inventory inv = Bukkit.createInventory(holder, 36, ChatColor.DARK_GREEN + "Convert Items → Credits");
         holder.setInventory(inv);
 
         // Glass border so players know slots 9-21 (minus confirm) aren't functional input.
@@ -34,7 +34,7 @@ public class ConvertGui {
         ItemMeta confirmMeta = confirm.getItemMeta();
         confirmMeta.setDisplayName(ChatColor.GREEN + "" + ChatColor.BOLD + "Convert!");
         confirmMeta.setLore(List.of(ChatColor.GRAY + "Converts every item placed",
-                ChatColor.GRAY + "in the top row into points."));
+                ChatColor.GRAY + "in the top row into Credits."));
         confirm.setItemMeta(confirmMeta);
         inv.setItem(ConvertHolder.CONFIRM_SLOT, confirm);
 

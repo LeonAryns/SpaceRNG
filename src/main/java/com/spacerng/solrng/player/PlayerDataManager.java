@@ -55,10 +55,15 @@ public class PlayerDataManager {
         YamlConfiguration yml = YamlConfiguration.loadConfiguration(file);
         data.addBonusLuck(yml.getDouble("luck", 0.0));
         data.addPoints(yml.getLong("points", 0L));
+        data.addTokens(yml.getLong("tokens", 0L));
+        data.setRollSpeedMultiplier(yml.getDouble("roll-speed-multiplier", 1.0));
         data.setAutoRollIntervalSeconds(yml.getInt("auto-roll-interval", 0));
 
         for (String node : yml.getStringList("unlocked-nodes")) {
             data.getUnlockedNodes().add(node);
+        }
+        for (String itemName : yml.getStringList("discovered-items")) {
+            data.getDiscoveredItems().add(itemName);
         }
         for (String rarityName : yml.getStringList("auto-convert-rarities")) {
             try {
@@ -80,8 +85,11 @@ public class PlayerDataManager {
         YamlConfiguration yml = new YamlConfiguration();
         yml.set("luck", data.getBonusLuck());
         yml.set("points", data.getPoints());
+        yml.set("tokens", data.getTokens());
+        yml.set("roll-speed-multiplier", data.getRollSpeedMultiplier());
         yml.set("auto-roll-interval", data.getAutoRollIntervalSeconds());
         yml.set("unlocked-nodes", new java.util.ArrayList<>(data.getUnlockedNodes()));
+        yml.set("discovered-items", new java.util.ArrayList<>(data.getDiscoveredItems()));
 
         java.util.List<String> rarityNames = new java.util.ArrayList<>();
         for (Rarity r : data.getAutoConvertRarities()) {

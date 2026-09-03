@@ -53,8 +53,8 @@ public class SkillTreeGui {
                 lore.add(ChatColor.RED + "Requires: " + tree.get(node.getRequires()).getDisplay());
             } else {
                 material = canAfford ? Material.YELLOW_DYE : Material.RED_DYE;
-                lore.add(ChatColor.GRAY + "Cost: " + node.getCost() + " points");
-                lore.add(canAfford ? ChatColor.GREEN + "Click to unlock!" : ChatColor.RED + "Not enough points");
+                lore.add(ChatColor.GRAY + "Cost: " + node.getCost() + " Credits");
+                lore.add(canAfford ? ChatColor.GREEN + "Click to unlock!" : ChatColor.RED + "Not enough Credits");
             }
 
             lore.add("");
@@ -73,7 +73,7 @@ public class SkillTreeGui {
 
         ItemStack info = new ItemStack(Material.NETHER_STAR);
         ItemMeta infoMeta = info.getItemMeta();
-        infoMeta.setDisplayName(ChatColor.YELLOW + "Your Points: " + data.getPoints());
+        infoMeta.setDisplayName(ChatColor.YELLOW + "Your Credits: " + data.getPoints());
         infoMeta.setLore(List.of(ChatColor.GRAY + "Luck: +" + String.format("%.2f", data.getBonusLuck())));
         info.setItemMeta(infoMeta);
         inv.setItem(4, info);

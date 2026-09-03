@@ -4,8 +4,13 @@
 
 roll-item:
   material: NETHER_STAR
-  name: "&d&lRNG Core"
-  cooldown-seconds: 5
+  name: "&d&lRoll"
+  # No cooldown anymore — every roll takes this many seconds to resolve,
+  # with an animation/progress bar while it's rolling. Skill tree /
+  # armor upgrades will be able to speed this up later by raising a
+  # player's roll-speed multiplier (already wired up, just nothing
+  # grants it yet).
+  roll-duration-seconds: 5
 
 # Rarity tiers, in ascending order. "luck-factor" controls how strongly
 # the Luck stat biases rolls toward this tier. 0 = luck has no effect.
@@ -33,36 +38,138 @@ rarities:
 # Every rollable item. "odds" = 1-in-X chance at 0 luck.
 # Add as many items per rarity as you want.
 items:
-  - material: OAK_LOG
-    name: "Wood"
+  # --- Common ---
+  - material: DIRT
+    name: "Dirt"
     rarity: COMMON
-    odds: 10
+    odds: 2
   - material: COBBLESTONE
     name: "Stone"
     rarity: COMMON
-    odds: 5
+    odds: 4
+  - material: OAK_LOG
+    name: "Wood"
+    rarity: COMMON
+    odds: 6
+  - material: GRAVEL
+    name: "Gravel"
+    rarity: COMMON
+    odds: 8
+  - material: SAND
+    name: "Sand"
+    rarity: COMMON
+    odds: 12
+
+  # --- Uncommon ---
+  - material: COAL
+    name: "Coal"
+    rarity: UNCOMMON
+    odds: 20
+  - material: REDSTONE
+    name: "Redstone"
+    rarity: UNCOMMON
+    odds: 35
+  - material: LAPIS_LAZULI
+    name: "Lapis Lazuli"
+    rarity: UNCOMMON
+    odds: 50
+  - material: COPPER_INGOT
+    name: "Copper"
+    rarity: UNCOMMON
+    odds: 65
   - material: IRON_INGOT
     name: "Iron"
     rarity: UNCOMMON
-    odds: 50
+    odds: 80
+
+  # --- Rare ---
   - material: GOLD_INGOT
     name: "Gold"
     rarity: RARE
+    odds: 200
+  - material: QUARTZ
+    name: "Quartz"
+    rarity: RARE
+    odds: 350
+  - material: AMETHYST_SHARD
+    name: "Amethyst Shard"
+    rarity: RARE
     odds: 500
+  - material: EMERALD
+    name: "Emerald"
+    rarity: RARE
+    odds: 650
+  - material: PRISMARINE_CRYSTALS
+    name: "Prismarine Crystals"
+    rarity: RARE
+    odds: 800
+
+  # --- Epic ---
   - material: DIAMOND
     name: "Diamond"
     rarity: EPIC
+    odds: 2000
+  - material: ANCIENT_DEBRIS
+    name: "Ancient Debris"
+    rarity: EPIC
+    odds: 3500
+  - material: ENDER_EYE
+    name: "Eye of Ender"
+    rarity: EPIC
     odds: 5000
+  - material: GOLDEN_APPLE
+    name: "Enchanted Apple"
+    rarity: EPIC
+    odds: 6500
+  - material: NAUTILUS_SHELL
+    name: "Nautilus Shell"
+    rarity: EPIC
+    odds: 8000
+
+  # --- Legendary ---
   - material: NETHERITE_INGOT
     name: "Netherite"
     rarity: LEGENDARY
+    odds: 50000
+  - material: NETHERITE_BLOCK
+    name: "Netherite Block"
+    rarity: LEGENDARY
     odds: 100000
+  - material: BEACON
+    name: "Beacon"
+    rarity: LEGENDARY
+    odds: 150000
+  - material: TOTEM_OF_UNDYING
+    name: "Totem of Undying"
+    rarity: LEGENDARY
+    odds: 200000
+  - material: HEART_OF_THE_SEA
+    name: "Heart of the Sea"
+    rarity: LEGENDARY
+    odds: 300000
+
+  # --- Mythical ---
   - material: NETHER_STAR
     name: "Fallen Star"
     rarity: MYTHICAL
     odds: 1000000
+  - material: DRAGON_EGG
+    name: "Dragon Egg"
+    rarity: MYTHICAL
+    odds: 5000000
+  - material: ELYTRA
+    name: "Celestial Wings"
+    rarity: MYTHICAL
+    odds: 10000000
 
-# How many points a single item of each rarity is worth when converted.
+# /index — every unique item a player has ever rolled gets logged here.
+# The first time they roll a brand new item, they get a small permanent
+# Luck bonus on top of whatever the skill tree gives them.
+index:
+  luck-per-item: 0.01
+
+# How many points ("Credits") a single item of each rarity is worth
+# when converted via /convert.
 conversion:
   points-per-rarity:
     COMMON: 1
