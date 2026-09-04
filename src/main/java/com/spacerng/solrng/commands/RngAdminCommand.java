@@ -17,7 +17,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitTask;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -298,8 +297,9 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
     // ----------------------------------------------------------------- aura
 
     /**
-     * Replays the whole build-up over three seconds and then the burst, so
-     * the effect can be judged without waiting for a real Epic+ to land.
+     * Replays the rarity's real build-up at its real length (Epic 3s,
+     * Legendary 5s, Mythical 10s) and then the burst, so the effect can be
+     * judged without waiting for one to land.
      */
     private boolean doAura(CommandSender sender, String[] args) {
         if (args.length < 2) {
@@ -316,27 +316,15 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         Player target = resolve(sender, args.length >= 3 ? args[2] : null);
         if (target == null) return true;
 
-        final long totalTicks = 60L; // 3s, in the range of a real roll
-        final int[] frame = {0};
-        final long[] elapsed = {0L};
-        final BukkitTask[] taskHolder = new BukkitTask[1];
+        RollAura aura = RollAura.start(plugin, target, rarity);
+        if (aura == null) return true;
 
-        taskHolder[0] = plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
-            if (!target.isOnline()) {
-                taskHolder[0].cancel();
-                return;
-            }
-            elapsed[0] += 2L;
-            if (elapsed[0] >= totalTicks) {
-                taskHolder[0].cancel();
-                RollAura.reveal(target, rarity);
-                return;
-            }
-            RollAura.tick(target, rarity, (double) elapsed[0] / totalTicks, frame[0]++);
-        }, 0L, 2L);
+        // Reveal exactly when the build-up finishes, same as a real roll.
+        long duration = RollAura.durationTicks(rarity);
+        plugin.getServer().getScheduler().runTaskLater(plugin, aura::reveal, duration);
 
-        sender.sendMessage(ChatColor.GREEN + "Playing the " + rarity.displayName()
-                + " reveal aura on " + target.getName() + ".");
+        sender.sendMessage(ChatColor.GREEN + "Playing the " + rarity.displayName() + " reveal aura on "
+                + target.getName() + ChatColor.GRAY + " (" + String.format("%.0f", duration / 20.0) + "s).");
         return true;
     }
 
@@ -364,7 +352,8 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         // Goes through the real grant path, so discovery, Money, the chat
         // line and the broadcast all fire exactly as they would in play.
         plugin.getRollListener().grantRoll(target, data, item, false);
-        RollAura.reveal(target, rarity);
+        RollAura burst = RollAura.start(plugin, target, rarity);
+        if (burst != null) burst.reveal();
         plugin.getScoreboardManager().update(target);
         return true;
     }

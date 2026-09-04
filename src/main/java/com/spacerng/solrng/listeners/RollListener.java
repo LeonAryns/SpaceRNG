@@ -49,6 +49,9 @@ public class RollListener implements Listener {
     // consume the interaction (most blocks). EquipmentSlot filtering alone
     // doesn't catch this since both events are for the main hand.
     private final Map<UUID, Long> lastInteractMillis = new HashMap<>();
+    // The Epic+ build-up currently running for a player, so it can be
+    // revealed when the roll lands and torn down if the roll is abandoned.
+    private final Map<UUID, RollAura> activeAuras = new HashMap<>();
     private final Random random = new Random();
 
     public RollListener(SolRNGPlugin plugin) {
@@ -88,6 +91,10 @@ public class RollListener implements Listener {
         BukkitTask task = rollingTasks.remove(uuid);
         remainingTicks.remove(uuid);
         lastInteractMillis.remove(uuid);
+        RollAura aura = activeAuras.remove(uuid);
+        if (aura != null) {
+            aura.cancel();
+        }
         if (task != null) {
             task.cancel();
         }
@@ -172,8 +179,6 @@ public class RollListener implements Listener {
     public void startRoll(Player player) {
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
 
-        long totalTicks = effectiveRollTicks(data);
-
         // The result is decided up front rather than when the timer ends,
         // so the animation can land on it: the teaser flashes candidates,
         // then the final frames ARE the drop you're about to be handed.
@@ -181,9 +186,25 @@ public class RollListener implements Listener {
         // item and gave you a different one.
         RollableItem result = plugin.getRarityManager().roll(plugin.getPrestigeManager().effectiveLuck(data));
 
+        // An Epic+ roll is stretched to at least the length of its own
+        // build-up, so the effect always gets to play out in full — a
+        // 10-second Mythical reveal on a 2-second roll would just be a
+        // flash. It also means a longer-than-usual roll is itself the
+        // first hint that something good is coming.
+        // Assigned once: the timer lambda below captures it, so it has to
+        // stay effectively final.
+        long baseTicks = effectiveRollTicks(data);
+        final long totalTicks = RollAura.isBigDrop(result.getRarity())
+                ? Math.max(baseTicks, RollAura.durationTicks(result.getRarity()))
+                : baseTicks;
+
+        RollAura aura = RollAura.start(plugin, player, result.getRarity());
+        if (aura != null) {
+            activeAuras.put(player.getUniqueId(), aura);
+        }
+
         long[] elapsed = {0L};
         int[] lastStep = {-1};
-        int[] frame = {0};
         remainingTicks.put(player.getUniqueId(), totalTicks);
 
         BukkitTask[] taskHolder = new BukkitTask[1];
@@ -199,14 +220,12 @@ public class RollListener implements Listener {
             }
 
             remainingTicks.put(player.getUniqueId(), totalTicks - elapsed[0]);
-            if (data.isRollSoundEnabled()) {
+            // The per-tick click is a constant clatter that buries the
+            // aura's score, so a big roll goes quiet and lets the build-up
+            // carry the audio instead.
+            if (data.isRollSoundEnabled() && aura == null) {
                 player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1.0f);
             }
-
-            // Epic+ rolls light the player up for the whole server to see.
-            // Deliberately not gated on the roller's own animation toggle:
-            // this one exists for everyone ELSE watching.
-            RollAura.tick(player, result.getRarity(), (double) elapsed[0] / totalTicks, frame[0]++);
 
             // Case-opening-style teaser: every 5% of the roll, flash a
             // candidate item + its odds in the center of the screen.
@@ -264,7 +283,10 @@ public class RollListener implements Listener {
         clearActionBar(player);
         player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.8f, 1.2f);
 
-        RollAura.reveal(player, result.getRarity());
+        RollAura aura = activeAuras.remove(player.getUniqueId());
+        if (aura != null) {
+            aura.reveal();
+        }
 
         // Hold the landed item on screen so the reel ends on exactly what
         // the player is handed.
