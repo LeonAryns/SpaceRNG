@@ -103,6 +103,9 @@ public class GuiListener implements Listener {
         } else if (rawSlot == OptionsHolder.ANIMATION_SLOT) {
             data.setRollAnimationEnabled(!data.isRollAnimationEnabled());
             player.openInventory(OptionsGui.build(plugin, player));
+        } else if (rawSlot == OptionsHolder.AURA_SLOT) {
+            data.setRevealAuraEnabled(!data.isRevealAuraEnabled());
+            player.openInventory(OptionsGui.build(plugin, player));
         }
     }
 

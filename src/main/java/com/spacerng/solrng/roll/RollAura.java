@@ -1,13 +1,12 @@
 package com.spacerng.solrng.roll;
 
+import com.spacerng.solrng.SolRNGPlugin;
 import com.spacerng.solrng.rarity.Rarity;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
-import org.bukkit.World;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.ArrayList;
@@ -20,23 +19,29 @@ import java.util.List;
  * timer — the roll ticks every 2 ticks, which is too coarse for the
  * strands to read as continuous trails instead of dotted arcs.
  *
- * Three phases, sized and timed by rarity:
- *   GATHER  a wide ring of strands collapses inward toward the player
- *   CHARGE  a tight, fast vortex climbs the player, ground rings pulse out
- *   FLARE   the whole thing blows back outward just before the reveal
+ * Four phases, sized and timed by rarity:
+ *   GATHER   a wide ring of strands collapses inward toward the player
+ *   CHARGE   a tight, fast vortex climbs the player, ground rings pulse
+ *   IMPLODE  everything rushes into a single point overhead and goes quiet
+ *   FINALE   detonation, then shockwaves and embers over the next seconds
  *
- * Everything scales with rarity — Mythical is both wider and four times
- * longer than Epic, so the tier is readable from across the map before
- * anyone knows what the drop is. Sound is a timed score of cues rather
- * than one burst at the end, and the loud cues use volume above 1.0,
- * which in Minecraft extends the audible RADIUS (16 blocks per 1.0)
- * rather than making the sample clip.
+ * The hush before the detonation is the point: a climax with nothing in
+ * front of it doesn't read as a climax. Rolling is locked out for the
+ * whole finale so an auto-roller doesn't start the next roll on top of
+ * their own payoff.
+ *
+ * Particles and sounds are sent per-viewer rather than through the World,
+ * so anyone who switched the aura off in /options is skipped.
  */
 public final class RollAura {
 
     /** One scheduled sound in a rarity's score, fired when progress passes `at`. */
     private record Cue(double at, Sound sound, float volume, float pitch) {
     }
+
+    // Everything from this progress point on is the implosion — the strands
+    // stop orbiting and collapse into the point the drop bursts out of.
+    private static final double IMPLODE_FROM = 0.88;
 
     // ---------------------------------------------------------- per-rarity
 
@@ -45,6 +50,16 @@ public final class RollAura {
             case MYTHICAL -> 200L; // 10s
             case LEGENDARY -> 100L; // 5s
             default -> 60L;         // 3s, Epic
+        };
+    }
+
+    /** How long the payoff runs after the reveal, and how long rolling is locked. */
+    public static long finaleTicks(Rarity rarity) {
+        if (!isBigDrop(rarity)) return 0L;
+        return switch (rarity) {
+            case MYTHICAL -> 60L;  // 3s
+            case LEGENDARY -> 40L; // 2s
+            default -> 24L;        // 1.2s, Epic
         };
     }
 
@@ -81,9 +96,9 @@ public final class RollAura {
     }
 
     /**
-     * The audio score. Epic is a short chime; Legendary adds a horn and a
-     * launch; Mythical is a full ten-second build — dragon, wither, curse,
-     * thunder — spaced so nothing lands on top of anything else.
+     * The audio score for the build-up. Nothing is scheduled past
+     * IMPLODE_FROM on purpose — the silence there is what makes the
+     * detonation land.
      */
     private static List<Cue> scoreFor(Rarity rarity) {
         List<Cue> cues = new ArrayList<>();
@@ -95,15 +110,13 @@ public final class RollAura {
                 cues.add(new Cue(0.45, Sound.ENTITY_ENDER_DRAGON_GROWL, 4.0f, 0.8f));
                 cues.add(new Cue(0.60, Sound.ENTITY_ELDER_GUARDIAN_CURSE, 2.5f, 1.2f));
                 cues.add(new Cue(0.72, Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 4.0f, 0.7f));
-                cues.add(new Cue(0.84, Sound.ENTITY_WARDEN_SONIC_BOOM, 3.0f, 1.0f));
-                cues.add(new Cue(0.93, Sound.BLOCK_BEACON_POWER_SELECT, 3.0f, 0.6f));
+                cues.add(new Cue(0.82, Sound.ENTITY_WARDEN_SONIC_BOOM, 3.0f, 1.0f));
             }
             case LEGENDARY -> {
                 cues.add(new Cue(0.00, Sound.BLOCK_BEACON_ACTIVATE, 2.5f, 0.8f));
                 cues.add(new Cue(0.25, Sound.BLOCK_AMETHYST_BLOCK_CHIME, 2.5f, 0.8f));
                 cues.add(new Cue(0.50, Sound.ENTITY_ILLUSIONER_CAST_SPELL, 2.5f, 0.9f));
                 cues.add(new Cue(0.75, Sound.ENTITY_FIREWORK_ROCKET_LAUNCH, 2.5f, 0.8f));
-                cues.add(new Cue(0.92, Sound.BLOCK_CONDUIT_ACTIVATE, 2.5f, 1.4f));
             }
             default -> {
                 cues.add(new Cue(0.00, Sound.BLOCK_BEACON_ACTIVATE, 1.5f, 1.4f));
@@ -115,6 +128,7 @@ public final class RollAura {
 
     // ---------------------------------------------------------------- state
 
+    private final SolRNGPlugin plugin;
     private final Player player;
     private final Rarity rarity;
     private final long durationTicks;
@@ -124,13 +138,16 @@ public final class RollAura {
     private final Particle.DustOptions dustBright;
     private final Particle accent;
     private final List<Cue> score;
+    private final double viewRange;
 
+    private final List<Player> audience = new ArrayList<>();
     private int nextCue = 0;
     private long elapsed = 0L;
     private BukkitTask task;
     private boolean finished = false;
 
-    private RollAura(Player player, Rarity rarity) {
+    private RollAura(SolRNGPlugin plugin, Player player, Rarity rarity) {
+        this.plugin = plugin;
         this.player = player;
         this.rarity = rarity;
         this.durationTicks = durationFor(rarity);
@@ -138,9 +155,12 @@ public final class RollAura {
         this.strands = strandsFor(rarity);
         Color color = colorFor(rarity);
         this.dust = new Particle.DustOptions(color, 1.3f);
-        this.dustBright = new Particle.DustOptions(color, 2.2f);
+        this.dustBright = new Particle.DustOptions(color, 2.4f);
         this.accent = accentFor(rarity);
         this.score = scoreFor(rarity);
+        // Matches the loudest cue's reach (16 blocks per 1.0 volume), so
+        // anyone who can hear it can also see it.
+        this.viewRange = rarity == Rarity.MYTHICAL ? 64.0 : rarity == Rarity.LEGENDARY ? 48.0 : 32.0;
     }
 
     // ------------------------------------------------------------- lifecycle
@@ -162,18 +182,58 @@ public final class RollAura {
      * Starts the build-up on its own task. Returns null for anything below
      * Epic, so callers can just null-check instead of branching on rarity.
      */
-    public static RollAura start(Plugin plugin, Player player, Rarity rarity) {
+    public static RollAura start(SolRNGPlugin plugin, Player player, Rarity rarity) {
         if (!isBigDrop(rarity)) return null;
 
-        RollAura aura = new RollAura(player, rarity);
+        RollAura aura = new RollAura(plugin, player, rarity);
         aura.task = plugin.getServer().getScheduler().runTaskTimer(plugin, aura::tick, 0L, 1L);
         return aura;
     }
 
-    /** Stops the build-up without a burst — used when a roll is abandoned. */
+    /** Stops the build-up without a payoff — used when a roll is abandoned. */
     public void cancel() {
         finished = true;
         if (task != null) task.cancel();
+    }
+
+    // ------------------------------------------------------------- delivery
+
+    /**
+     * Everyone in range who hasn't switched the aura off. Recomputed once
+     * per frame — a Mythical frame makes dozens of particle calls, and
+     * rescanning the world for each one would be wasteful.
+     *
+     * The roller is included on the same terms as anybody else: if they
+     * turned it off, they don't get it either.
+     */
+    private void refreshAudience() {
+        audience.clear();
+        double rangeSq = viewRange * viewRange;
+        Location origin = player.getLocation();
+        for (Player nearby : player.getWorld().getPlayers()) {
+            if (nearby.getLocation().distanceSquared(origin) > rangeSq) continue;
+            if (!plugin.getPlayerDataManager().get(nearby.getUniqueId()).isRevealAuraEnabled()) continue;
+            audience.add(nearby);
+        }
+    }
+
+    private void dustAt(Location at, int count, double spread, Particle.DustOptions options) {
+        for (Player viewer : audience) {
+            viewer.spawnParticle(Particle.DUST, at, count, spread, spread, spread, 0.0, options);
+        }
+    }
+
+    private void puff(Particle particle, Location at, int count, double sx, double sy, double sz, double extra) {
+        for (Player viewer : audience) {
+            viewer.spawnParticle(particle, at, count, sx, sy, sz, extra);
+        }
+    }
+
+    private void sound(Sound sound, float volume, float pitch) {
+        Location at = player.getLocation();
+        for (Player viewer : audience) {
+            viewer.playSound(at, sound, volume, pitch);
+        }
     }
 
     // ---------------------------------------------------------------- frames
@@ -186,63 +246,52 @@ public final class RollAura {
         }
 
         elapsed++;
+        refreshAudience();
         double progress = Math.min(1.0, (double) elapsed / durationTicks);
 
         playDueCues(progress);
-        drawFrame(progress);
 
-        // A rising note ladder underneath the score, so there's always
-        // something climbing even between cues.
-        int noteEvery = rarity == Rarity.MYTHICAL ? 10 : 6;
-        if (elapsed % noteEvery == 0) {
-            float pitch = (float) Math.min(2.0, 0.5 + progress * 1.5);
-            player.getWorld().playSound(player.getLocation(),
-                    rarity == Rarity.EPIC ? Sound.BLOCK_NOTE_BLOCK_PLING : Sound.BLOCK_NOTE_BLOCK_BELL,
-                    1.2f, pitch);
+        if (progress < IMPLODE_FROM) {
+            drawBuildUp(progress);
+            // A rising note ladder under the score, so something is always
+            // climbing even between cues.
+            int noteEvery = rarity == Rarity.MYTHICAL ? 10 : 6;
+            if (elapsed % noteEvery == 0) {
+                sound(rarity == Rarity.EPIC ? Sound.BLOCK_NOTE_BLOCK_PLING : Sound.BLOCK_NOTE_BLOCK_BELL,
+                        1.2f, (float) Math.min(2.0, 0.5 + progress * 1.5));
+            }
+        } else {
+            drawImplosion((progress - IMPLODE_FROM) / (1.0 - IMPLODE_FROM));
         }
-
-        // The task keeps running past 1.0 until reveal() lands, holding the
-        // flare — a roll can outlast the aura if the player's Speed is low.
     }
 
     private void playDueCues(double progress) {
-        World world = player.getWorld();
-        Location at = player.getLocation();
         while (nextCue < score.size() && progress >= score.get(nextCue).at()) {
             Cue cue = score.get(nextCue++);
-            world.playSound(at, cue.sound(), cue.volume(), cue.pitch());
+            sound(cue.sound(), cue.volume(), cue.pitch());
         }
     }
 
     /**
-     * Phase-driven geometry. `progress` shapes the radius; `elapsed` drives
-     * the spin, so the strands keep moving even while the radius holds.
+     * GATHER then CHARGE. `progress` shapes the radius; `elapsed` drives the
+     * spin, so the strands keep moving even while the radius holds.
      */
-    private void drawFrame(double progress) {
-        World world = player.getWorld();
+    private void drawBuildUp(double progress) {
         Location base = player.getLocation();
 
         double radius;
         double spinSpeed;
         double climb;
         if (progress < 0.55) {
-            // GATHER: sweeps in from the full radius to a tight core.
             double p = progress / 0.55;
             radius = maxRadius - (maxRadius - 0.8) * ease(p);
             spinSpeed = 0.10 + 0.10 * p;
             climb = 0.06;
-        } else if (progress < 0.90) {
-            // CHARGE: tight and fast, pulsing.
-            double p = (progress - 0.55) / 0.35;
+        } else {
+            double p = (progress - 0.55) / (IMPLODE_FROM - 0.55);
             radius = 0.8 + 0.35 * Math.sin(elapsed * 0.45);
             spinSpeed = 0.22 + 0.25 * p;
             climb = 0.10 + 0.08 * p;
-        } else {
-            // FLARE: blows back out past the starting radius.
-            double p = (progress - 0.90) / 0.10;
-            radius = 0.8 + (maxRadius * 1.25 - 0.8) * ease(p);
-            spinSpeed = 0.50;
-            climb = 0.16;
         }
 
         double spin = elapsed * spinSpeed;
@@ -251,96 +300,175 @@ public final class RollAura {
             double height = ((elapsed * climb) + (i * (2.4 / strands))) % 2.4;
             Location point = base.clone().add(Math.cos(angle) * radius, height, Math.sin(angle) * radius);
 
-            world.spawnParticle(Particle.DUST, point, 2, 0.04, 0.04, 0.04, 0.0, dust);
-            // Accents thicken as the roll closes in on the reveal.
+            dustAt(point, 2, 0.04, dust);
             if (elapsed % Math.max(1, (int) (6 - progress * 5)) == 0) {
-                world.spawnParticle(accent, point, 1, 0.02, 0.02, 0.02, 0.0);
+                puff(accent, point, 1, 0.02, 0.02, 0.02, 0.0);
             }
         }
 
-        // Legendary and up also get a ground ring marking the full radius,
-        // so the footprint is obvious from a distance even when the strands
-        // have wound inward.
+        // Legendary and up mark their full radius on the ground, so the
+        // footprint reads from a distance once the strands wind inward.
         if (rarity.ordinal() >= Rarity.LEGENDARY.ordinal() && elapsed % 2 == 0) {
-            drawRing(world, base, maxRadius, (int) (maxRadius * 6), dust, 0.05);
+            ring(base, maxRadius, (int) (maxRadius * 6), dust, 0.05);
         }
 
-        // Mythical adds an expanding shockwave that resets every 40 ticks,
-        // plus a column of light straight up the player.
+        // Mythical adds a shockwave that resets every 40 ticks and a column
+        // of light straight up.
         if (rarity == Rarity.MYTHICAL) {
             double wave = (elapsed % 40) / 40.0;
-            drawRing(world, base, 1.0 + wave * (maxRadius + 2.0), 40, dustBright, 0.02);
+            ring(base, 1.0 + wave * (maxRadius + 2.0), 40, dustBright, 0.02);
 
             if (elapsed % 2 == 0) {
                 for (double y = 0.0; y < 3.0 + progress * 4.0; y += 0.5) {
-                    world.spawnParticle(Particle.DUST, base.clone().add(0, y, 0), 1, 0.08, 0.0, 0.08, 0.0, dust);
+                    dustAt(base.clone().add(0, y, 0), 1, 0.08, dust);
                 }
             }
         }
     }
 
-    private void drawRing(World world, Location center, double radius, int points, Particle.DustOptions options,
-                          double y) {
-        for (int i = 0; i < points; i++) {
-            double angle = (Math.PI * 2 / points) * i;
-            Location point = center.clone().add(Math.cos(angle) * radius, y, Math.sin(angle) * radius);
-            world.spawnParticle(Particle.DUST, point, 1, 0.0, 0.0, 0.0, 0.0, options);
+    /**
+     * IMPLODE. Everything the build-up threw outward is dragged into one
+     * point above the player's head, and the score goes silent — this is
+     * the inhale before the detonation.
+     */
+    private void drawImplosion(double p) {
+        Location base = player.getLocation();
+        Location core = base.clone().add(0, 1.6, 0);
+
+        double radius = maxRadius * 1.3 * (1.0 - ease(p));
+        int arms = strands * 3;
+        for (int i = 0; i < arms; i++) {
+            double angle = (elapsed * 0.6) + (i * (Math.PI * 2 / arms));
+            double y = 1.6 + (1.0 - p) * 1.4 * Math.sin(i * 1.7);
+            dustAt(base.clone().add(Math.cos(angle) * radius, y, Math.sin(angle) * radius), 1, 0.0, dust);
+        }
+
+        // The core tightens and brightens as everything falls into it.
+        dustAt(core, 6, 0.12 * (1.0 - p), dustBright);
+        if (rarity == Rarity.MYTHICAL) {
+            puff(Particle.ELECTRIC_SPARK, core, 4, 0.15, 0.15, 0.15, 0.02);
         }
     }
 
-    /** Smoothstep, so the radius eases rather than moving linearly. */
+    private void ring(Location center, double radius, int points, Particle.DustOptions options, double y) {
+        for (int i = 0; i < points; i++) {
+            double angle = (Math.PI * 2 / points) * i;
+            dustAt(center.clone().add(Math.cos(angle) * radius, y, Math.sin(angle) * radius), 1, 0.0, options);
+        }
+    }
+
+    /** Smoothstep, so radii ease rather than moving linearly. */
     private static double ease(double t) {
         double clamped = Math.max(0.0, Math.min(1.0, t));
         return clamped * clamped * (3 - 2 * clamped);
     }
 
-    // ---------------------------------------------------------------- reveal
+    // ---------------------------------------------------------------- finale
 
-    /** The burst. Ends the build-up and fires the payoff for this rarity. */
+    /**
+     * The payoff. Detonates immediately, then keeps running for
+     * {@link #finaleTicks} — expanding shockwaves and falling embers — so
+     * the end has a shape instead of being one frame that vanishes.
+     */
     public void reveal() {
         if (finished) return;
         cancel();
+        if (!player.isOnline()) return;
 
-        World world = player.getWorld();
-        Location base = player.getLocation().add(0, 1.0, 0);
+        detonate();
 
-        world.spawnParticle(Particle.DUST, base, 160, maxRadius * 0.35, 1.0, maxRadius * 0.35, 0.0, dustBright);
-        world.spawnParticle(accent, base, 70, maxRadius * 0.25, 0.8, maxRadius * 0.25, 0.3);
+        long length = finaleTicks(rarity);
+        final long[] frame = {0L};
+        final BukkitTask[] holder = new BukkitTask[1];
+        holder[0] = plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
+            frame[0]++;
+            if (frame[0] > length || !player.isOnline()) {
+                holder[0].cancel();
+                return;
+            }
+            aftermath(frame[0], length);
+        }, 1L, 1L);
+    }
+
+    private void detonate() {
+        refreshAudience();
+        Location base = player.getLocation();
+        Location core = base.clone().add(0, 1.6, 0);
+
+        dustAt(core, 220, maxRadius * 0.3, dustBright);
+        puff(accent, core, 90, maxRadius * 0.22, 0.9, maxRadius * 0.22, 0.35);
 
         switch (rarity) {
             case MYTHICAL -> {
                 // Real (harmless) lightning sells the thunder far better
-                // than the sound alone — strikeLightningEffect is visual
-                // only, so nothing burns and nobody takes damage.
-                for (int i = 0; i < 4; i++) {
-                    double angle = (Math.PI / 2) * i;
-                    world.strikeLightningEffect(player.getLocation()
-                            .clone().add(Math.cos(angle) * 3.0, 0, Math.sin(angle) * 3.0));
+                // than sound alone. strikeLightningEffect is visual only —
+                // nothing burns and nobody takes damage. It's the one part
+                // of the effect the engine can't send per-player, so it
+                // shows even for players who muted the aura.
+                for (int i = 0; i < 6; i++) {
+                    double angle = (Math.PI * 2 / 6) * i;
+                    player.getWorld().strikeLightningEffect(
+                            base.clone().add(Math.cos(angle) * 4.0, 0, Math.sin(angle) * 4.0));
                 }
-                world.spawnParticle(Particle.SONIC_BOOM, base, 1, 0.0, 0.0, 0.0, 0.0);
-                world.spawnParticle(Particle.EXPLOSION_EMITTER, base, 2, 1.0, 0.5, 1.0, 0.0);
-                world.spawnParticle(Particle.DRAGON_BREATH, base, 200, 2.0, 1.2, 2.0, 0.35);
+                puff(Particle.SONIC_BOOM, core, 1, 0.0, 0.0, 0.0, 0.0);
+                puff(Particle.EXPLOSION_EMITTER, core, 3, 1.2, 0.6, 1.2, 0.0);
+                puff(Particle.DRAGON_BREATH, core, 260, 2.2, 1.4, 2.2, 0.4);
+                puff(Particle.FLASH, core, 2, 0.0, 0.0, 0.0, 0.0);
 
-                world.playSound(base, Sound.ENTITY_LIGHTNING_BOLT_IMPACT, 4.0f, 0.8f);
-                world.playSound(base, Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 4.0f, 1.0f);
-                world.playSound(base, Sound.ENTITY_ENDER_DRAGON_GROWL, 4.0f, 1.3f);
-                world.playSound(base, Sound.ENTITY_WITHER_DEATH, 3.0f, 1.4f);
+                sound(Sound.ENTITY_LIGHTNING_BOLT_IMPACT, 4.0f, 0.7f);
+                sound(Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 4.0f, 0.9f);
+                sound(Sound.ENTITY_ENDER_DRAGON_GROWL, 4.0f, 1.3f);
+                sound(Sound.ENTITY_WITHER_DEATH, 3.5f, 1.3f);
+                sound(Sound.BLOCK_END_PORTAL_SPAWN, 3.0f, 1.4f);
             }
             case LEGENDARY -> {
-                world.spawnParticle(Particle.TOTEM_OF_UNDYING, base, 120, 1.2, 0.9, 1.2, 0.4);
-                world.spawnParticle(Particle.FIREWORK, base, 80, 1.0, 0.8, 1.0, 0.3);
-                drawRing(world, player.getLocation(), maxRadius * 1.3, 60, dustBright, 0.1);
+                puff(Particle.TOTEM_OF_UNDYING, core, 140, 1.3, 1.0, 1.3, 0.45);
+                puff(Particle.FIREWORK, core, 90, 1.1, 0.9, 1.1, 0.35);
+                puff(Particle.FLASH, core, 1, 0.0, 0.0, 0.0, 0.0);
+                ring(base, maxRadius * 1.3, 60, dustBright, 0.1);
 
-                world.playSound(base, Sound.ENTITY_FIREWORK_ROCKET_LARGE_BLAST, 3.0f, 1.0f);
-                world.playSound(base, Sound.UI_TOAST_CHALLENGE_COMPLETE, 2.0f, 1.0f);
-                world.playSound(base, Sound.ITEM_TOTEM_USE, 2.0f, 1.2f);
+                sound(Sound.ENTITY_FIREWORK_ROCKET_LARGE_BLAST, 3.0f, 1.0f);
+                sound(Sound.UI_TOAST_CHALLENGE_COMPLETE, 2.5f, 1.0f);
+                sound(Sound.ITEM_TOTEM_USE, 2.5f, 1.2f);
             }
             default -> {
-                world.spawnParticle(Particle.WITCH, base, 90, 0.8, 0.8, 0.8, 0.1);
-                world.spawnParticle(Particle.END_ROD, base, 40, 0.5, 0.6, 0.5, 0.2);
+                puff(Particle.WITCH, core, 100, 0.9, 0.9, 0.9, 0.15);
+                puff(Particle.END_ROD, core, 50, 0.6, 0.7, 0.6, 0.25);
 
-                world.playSound(base, Sound.BLOCK_BEACON_POWER_SELECT, 2.0f, 1.6f);
-                world.playSound(base, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.5f, 1.8f);
+                sound(Sound.BLOCK_BEACON_POWER_SELECT, 2.0f, 1.6f);
+                sound(Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.5f, 1.8f);
+            }
+        }
+    }
+
+    /**
+     * What's left after the bang: rings rolling outward along the ground
+     * and embers drifting down through where the drop appeared.
+     */
+    private void aftermath(long frame, long length) {
+        refreshAudience();
+        Location base = player.getLocation();
+        double p = (double) frame / length;
+
+        // Three staggered shockwaves so the ground keeps moving.
+        for (int wave = 0; wave < 3; wave++) {
+            double offset = wave * 0.22;
+            double wp = p - offset;
+            if (wp <= 0.0 || wp > 1.0) continue;
+            ring(base, wp * (maxRadius * 2.2), (int) (18 + wp * 40), wave == 0 ? dustBright : dust, 0.03);
+        }
+
+        // Embers raining back down through the burst.
+        if (frame % 2 == 0) {
+            puff(accent, base.clone().add(0, 2.6, 0), 6, maxRadius * 0.35, 0.5, maxRadius * 0.35, 0.02);
+        }
+
+        if (rarity == Rarity.MYTHICAL) {
+            // A long tail of settling sparks, and one late aftershock.
+            puff(Particle.ELECTRIC_SPARK, base.clone().add(0, 1.2, 0), 5, 1.6, 0.9, 1.6, 0.05);
+            if (frame == length / 2) {
+                sound(Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 3.0f, 0.6f);
+                puff(Particle.EXPLOSION_EMITTER, base.clone().add(0, 1.0, 0), 1, 0.5, 0.3, 0.5, 0.0);
             }
         }
     }

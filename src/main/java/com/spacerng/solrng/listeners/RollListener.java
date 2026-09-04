@@ -52,6 +52,11 @@ public class RollListener implements Listener {
     // The Epic+ build-up currently running for a player, so it can be
     // revealed when the roll lands and torn down if the roll is abandoned.
     private final Map<UUID, RollAura> activeAuras = new HashMap<>();
+    // While an Epic+ finale is playing out, no new roll may start. Without
+    // this an auto-roller immediately begins the next roll on top of their
+    // own payoff, and the build-up for the next one fights the shockwaves
+    // of the last. Stored as a wall-clock deadline in millis.
+    private final Map<UUID, Long> revealLockUntil = new HashMap<>();
     private final Random random = new Random();
 
     public RollListener(SolRNGPlugin plugin) {
@@ -70,6 +75,25 @@ public class RollListener implements Listener {
 
     public boolean isRolling(UUID uuid) {
         return rollingTasks.containsKey(uuid);
+    }
+
+    /** True while a big drop's finale is still playing. */
+    public boolean isRevealLocked(UUID uuid) {
+        Long until = revealLockUntil.get(uuid);
+        if (until == null) return false;
+        if (System.currentTimeMillis() >= until) {
+            revealLockUntil.remove(uuid);
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Mid-roll or mid-reveal — either way, don't start another roll. This
+     * is what both the manual click and the auto-roll loop check.
+     */
+    public boolean isBusy(UUID uuid) {
+        return isRolling(uuid) || isRevealLocked(uuid);
     }
 
     /**
@@ -95,6 +119,7 @@ public class RollListener implements Listener {
         if (aura != null) {
             aura.cancel();
         }
+        revealLockUntil.remove(uuid);
         if (task != null) {
             task.cancel();
         }
@@ -132,8 +157,8 @@ public class RollListener implements Listener {
             return;
         }
 
-        if (isRolling(player.getUniqueId())) {
-            return; // already mid-roll, ignore extra clicks
+        if (isBusy(player.getUniqueId())) {
+            return; // mid-roll, or the last big drop is still revealing
         }
 
         startRoll(player);
@@ -284,8 +309,13 @@ public class RollListener implements Listener {
         player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.8f, 1.2f);
 
         RollAura aura = activeAuras.remove(player.getUniqueId());
+        // Single assignment: the bonus-roll lambda below captures this, so
+        // it has to stay effectively final.
+        final long finaleTicks = aura == null ? 0L : RollAura.finaleTicks(result.getRarity());
         if (aura != null) {
             aura.reveal();
+            // Hold off every other roll until the payoff has finished.
+            revealLockUntil.put(player.getUniqueId(), System.currentTimeMillis() + finaleTicks * 50L);
         }
 
         // Hold the landed item on screen so the reel ends on exactly what
@@ -300,7 +330,12 @@ public class RollListener implements Listener {
         if (data.getBonusRollChance() > 0.0 && random.nextDouble() < data.getBonusRollChance()) {
             player.sendMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "Bonus Roll! " + ChatColor.RESET
                     + ChatColor.GRAY + "Rolling again...");
-            startRoll(player);
+            // Waits out the finale rather than being swallowed by the lock.
+            plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+                if (player.isOnline() && !isRolling(player.getUniqueId())) {
+                    startRoll(player);
+                }
+            }, finaleTicks + 1L);
         }
     }
 

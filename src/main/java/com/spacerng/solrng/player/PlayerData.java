@@ -65,6 +65,10 @@ public class PlayerData {
     // /options toggles.
     private boolean rollSoundEnabled = true;
     private boolean rollAnimationEnabled = true;
+    // Whether this player SEES and HEARS Epic+ reveal auras — their own
+    // and other people's. The effect is sent per-viewer, so switching it
+    // off only quiets it for them.
+    private boolean revealAuraEnabled = true;
     // Multiplies Tokens earned from harvesting farm crops. 1.0 = base
     // reward. Nothing raises this yet — reserved for future farming
     // upgrades (hoe enchants, prestige tie-in, etc.).
@@ -360,6 +364,14 @@ public class PlayerData {
 
     public void setRollAnimationEnabled(boolean rollAnimationEnabled) {
         this.rollAnimationEnabled = rollAnimationEnabled;
+    }
+
+    public boolean isRevealAuraEnabled() {
+        return revealAuraEnabled;
+    }
+
+    public void setRevealAuraEnabled(boolean revealAuraEnabled) {
+        this.revealAuraEnabled = revealAuraEnabled;
     }
 
     public double getFarmTokenMultiplier() {

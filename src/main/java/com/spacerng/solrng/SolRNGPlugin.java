@@ -122,7 +122,9 @@ public final class SolRNGPlugin extends JavaPlugin {
                 PlayerData data = playerDataManager.get(player.getUniqueId());
                 if (!data.isAutoRollEnabled()) continue;
                 if (!starforgeManager.isHolding(player)) continue; // refresh task turns the flag off
-                if (rollListener.isRolling(player.getUniqueId())) continue;
+                // isBusy, not isRolling: a big drop's reveal holds the
+                // next auto-roll until the finale has played out.
+                if (rollListener.isBusy(player.getUniqueId())) continue;
 
                 rollListener.startRoll(player);
             }

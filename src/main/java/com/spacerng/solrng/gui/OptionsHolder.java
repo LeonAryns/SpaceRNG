@@ -15,6 +15,8 @@ public class OptionsHolder implements InventoryHolder {
         this.inventory = inventory;
     }
 
+    // Three toggles, evenly spread across the middle row.
     public static final int SOUND_SLOT = 11;
-    public static final int ANIMATION_SLOT = 15;
+    public static final int ANIMATION_SLOT = 13;
+    public static final int AURA_SLOT = 15;
 }
