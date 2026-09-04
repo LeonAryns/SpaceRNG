@@ -57,10 +57,20 @@ public final class RollAura {
     public static long finaleTicks(Rarity rarity) {
         if (!isBigDrop(rarity)) return 0L;
         return switch (rarity) {
-            case MYTHICAL -> 60L;  // 3s
+            case MYTHICAL -> 100L; // 5s
             case LEGENDARY -> 40L; // 2s
             default -> 24L;        // 1.2s, Epic
         };
+    }
+
+    /**
+     * How long to hold the item name back for. The burst is the payoff;
+     * dropping a full-screen title over it the same tick hides the thing
+     * the player waited ten seconds for.
+     */
+    public static long titleDelayTicks(Rarity rarity) {
+        if (!isBigDrop(rarity)) return 0L;
+        return rarity == Rarity.MYTHICAL ? 18L : 6L;
     }
 
     private static double maxRadiusFor(Rarity rarity) {
@@ -366,16 +376,23 @@ public final class RollAura {
     // ---------------------------------------------------------------- finale
 
     /**
-     * The payoff. Detonates immediately, then keeps running for
-     * {@link #finaleTicks} — expanding shockwaves and falling embers — so
-     * the end has a shape instead of being one frame that vanishes.
+     * The payoff. Runs as a scripted timeline rather than one burst.
+     *
+     * The first version drew everything at the player's own head, which is
+     * exactly where a first-person camera can't see it — you end up
+     * standing inside a two-block cloud while a full-screen title covers
+     * it. The build-up read well for the opposite reason: it was seven
+     * blocks out in front of you. So the finale now travels OUTWARD and
+     * UPWARD, through and past the viewer.
+     *
+     * Every beat is wrapped so one bad call can't silently kill the rest
+     * of the sequence — a thrown particle used to take the remaining
+     * sounds and visuals down with it, with nothing in the log to say so.
      */
     public void reveal() {
         if (finished) return;
         cancel();
         if (!player.isOnline()) return;
-
-        detonate();
 
         long length = finaleTicks(rarity);
         final long[] frame = {0L};
@@ -386,58 +403,175 @@ public final class RollAura {
                 holder[0].cancel();
                 return;
             }
-            aftermath(frame[0], length);
-        }, 1L, 1L);
+            safely("finale frame " + frame[0], () -> {
+                refreshAudience();
+                if (rarity == Rarity.MYTHICAL) {
+                    mythicalBeat(frame[0], length);
+                } else {
+                    if (frame[0] == 1) detonate();
+                    aftermath(frame[0], length);
+                }
+            });
+        }, 0L, 1L);
     }
 
+    private void safely(String what, Runnable action) {
+        try {
+            action.run();
+        } catch (RuntimeException ex) {
+            plugin.getLogger().warning("[SolRNG] Reveal aura (" + rarity + ") failed at " + what
+                    + ": " + ex);
+        }
+    }
+
+    // ------------------------------------------------------- mythical script
+
+    /**
+     * Five seconds, built so it's readable from inside the effect and from
+     * across the map:
+     *
+     *   f1       the crack — flash, explosion, eight bolts at 6 blocks
+     *   f1-45    a shell expanding from 1 to 18 blocks, sweeping past you
+     *   f1-100   a pillar of light 30 blocks into the sky
+     *   f6/16/28 three widening lightning rings, thunder dropping in pitch
+     *   f1-100   four ground shockwaves rolling out to 24 blocks
+     *   f20-100  embers raining down from above through the whole area
+     *   f50      the aftershock
+     *   f78      the settle
+     */
+    private void mythicalBeat(long frame, long length) {
+        Location base = player.getLocation();
+        Location core = base.clone().add(0, 1.6, 0);
+
+        if (frame == 1) {
+            puff(Particle.FLASH, core, 3, 0.0, 0.0, 0.0, 0.0);
+            puff(Particle.EXPLOSION_EMITTER, core, 4, 1.6, 0.8, 1.6, 0.0);
+            puff(Particle.SONIC_BOOM, core, 1, 0.0, 0.0, 0.0, 0.0);
+            puff(Particle.DRAGON_BREATH, core, 300, 2.6, 1.6, 2.6, 0.45);
+            dustAt(core, 260, 2.4, dustBright);
+            lightningRing(6.0, 8);
+
+            sound(Sound.ENTITY_LIGHTNING_BOLT_IMPACT, 4.0f, 0.6f);
+            sound(Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 4.0f, 0.8f);
+            sound(Sound.ENTITY_WITHER_DEATH, 4.0f, 1.2f);
+            sound(Sound.BLOCK_END_PORTAL_SPAWN, 3.5f, 1.2f);
+        }
+
+        // The shell: a real sphere growing out through the viewer. This is
+        // the part that makes the burst visible from inside it.
+        if (frame <= 45) {
+            double p = frame / 45.0;
+            double radius = 1.0 + ease(p) * 17.0;
+            // Thins out as it grows so the far edge doesn't turn into a wall.
+            int rings = p < 0.5 ? 7 : 5;
+            int points = p < 0.5 ? 18 : 12;
+            sphere(core, radius, rings, points, p < 0.35 ? dustBright : dust);
+        }
+
+        // The pillar: straight up, so it's the landmark everyone turns to.
+        double pillarLife = 1.0 - ((double) frame / length);
+        double pillarWidth = 0.4 + 1.6 * Math.sin(Math.min(1.0, frame / 25.0) * Math.PI * 0.5) * pillarLife;
+        for (double y = 0.0; y < 30.0; y += 1.0) {
+            double sway = Math.sin((y * 0.4) + (frame * 0.25)) * pillarWidth;
+            dustAt(base.clone().add(sway, y, Math.cos((y * 0.4) + (frame * 0.25)) * pillarWidth),
+                    1, 0.05, y < 6 ? dustBright : dust);
+        }
+        if (frame % 3 == 0) {
+            puff(Particle.ELECTRIC_SPARK, base.clone().add(0, 4.0 + (frame % 20), 0), 4, 0.6, 0.6, 0.6, 0.04);
+        }
+
+        // Widening lightning rings, each with a lower, longer roll of thunder.
+        if (frame == 6) {
+            lightningRing(9.0, 5);
+            sound(Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 4.0f, 0.7f);
+        } else if (frame == 16) {
+            lightningRing(13.0, 6);
+            sound(Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 4.0f, 0.6f);
+        } else if (frame == 28) {
+            lightningRing(17.0, 7);
+            sound(Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 4.0f, 0.5f);
+        }
+
+        // Four ground shockwaves, staggered, travelling well past the aura.
+        // Drawn every other frame and at a moderate point density — at full
+        // rate the four rings alone were most of the packets in the scene.
+        if (frame % 2 == 0) {
+            for (int wave = 0; wave < 4; wave++) {
+                double wp = ((double) frame / length) - (wave * 0.16);
+                if (wp <= 0.0 || wp > 1.0) continue;
+                double radius = ease(wp) * 24.0;
+                ring(base, radius, (int) (14 + radius * 1.6), wave == 0 ? dustBright : dust, 0.05);
+            }
+        }
+
+        // Embers falling back through the whole area, not just overhead.
+        if (frame >= 20 && frame % 2 == 0) {
+            puff(Particle.DRAGON_BREATH, base.clone().add(0, 18.0, 0), 12, 11.0, 3.0, 11.0, 0.01);
+            puff(Particle.ELECTRIC_SPARK, base.clone().add(0, 12.0, 0), 8, 8.0, 4.0, 8.0, 0.03);
+        }
+
+        if (frame == 50) {
+            puff(Particle.EXPLOSION_EMITTER, core, 2, 1.0, 0.6, 1.0, 0.0);
+            puff(Particle.FLASH, core, 1, 0.0, 0.0, 0.0, 0.0);
+            lightningRing(11.0, 4);
+            sound(Sound.ENTITY_ENDER_DRAGON_GROWL, 4.0f, 1.0f);
+            sound(Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 3.5f, 0.5f);
+        }
+
+        if (frame == 78) {
+            sound(Sound.BLOCK_BEACON_DEACTIVATE, 3.0f, 0.6f);
+            sound(Sound.BLOCK_AMETHYST_BLOCK_CHIME, 3.0f, 0.7f);
+        }
+    }
+
+    /** A ring of harmless, visual-only bolts around the player. */
+    private void lightningRing(double radius, int bolts) {
+        Location base = player.getLocation();
+        for (int i = 0; i < bolts; i++) {
+            double angle = (Math.PI * 2 / bolts) * i + (radius * 0.7);
+            player.getWorld().strikeLightningEffect(
+                    base.clone().add(Math.cos(angle) * radius, 0, Math.sin(angle) * radius));
+        }
+    }
+
+    /** A hollow sphere drawn as latitude rings — the expanding shell. */
+    private void sphere(Location centre, double radius, int rings, int pointsPerRing,
+                        Particle.DustOptions options) {
+        for (int i = 1; i < rings; i++) {
+            double phi = Math.PI * i / rings;
+            double y = Math.cos(phi) * radius;
+            double r = Math.sin(phi) * radius;
+            for (int j = 0; j < pointsPerRing; j++) {
+                double theta = (Math.PI * 2 / pointsPerRing) * j;
+                dustAt(centre.clone().add(Math.cos(theta) * r, y, Math.sin(theta) * r), 1, 0.0, options);
+            }
+        }
+    }
+
+    // -------------------------------------------------- epic / legendary
+
     private void detonate() {
-        refreshAudience();
         Location base = player.getLocation();
         Location core = base.clone().add(0, 1.6, 0);
 
         dustAt(core, 220, maxRadius * 0.3, dustBright);
         puff(accent, core, 90, maxRadius * 0.22, 0.9, maxRadius * 0.22, 0.35);
 
-        switch (rarity) {
-            case MYTHICAL -> {
-                // Real (harmless) lightning sells the thunder far better
-                // than sound alone. strikeLightningEffect is visual only —
-                // nothing burns and nobody takes damage. It's the one part
-                // of the effect the engine can't send per-player, so it
-                // shows even for players who muted the aura.
-                for (int i = 0; i < 6; i++) {
-                    double angle = (Math.PI * 2 / 6) * i;
-                    player.getWorld().strikeLightningEffect(
-                            base.clone().add(Math.cos(angle) * 4.0, 0, Math.sin(angle) * 4.0));
-                }
-                puff(Particle.SONIC_BOOM, core, 1, 0.0, 0.0, 0.0, 0.0);
-                puff(Particle.EXPLOSION_EMITTER, core, 3, 1.2, 0.6, 1.2, 0.0);
-                puff(Particle.DRAGON_BREATH, core, 260, 2.2, 1.4, 2.2, 0.4);
-                puff(Particle.FLASH, core, 2, 0.0, 0.0, 0.0, 0.0);
+        if (rarity == Rarity.LEGENDARY) {
+            puff(Particle.TOTEM_OF_UNDYING, core, 140, 1.3, 1.0, 1.3, 0.45);
+            puff(Particle.FIREWORK, core, 90, 1.1, 0.9, 1.1, 0.35);
+            puff(Particle.FLASH, core, 1, 0.0, 0.0, 0.0, 0.0);
+            ring(base, maxRadius * 1.3, 60, dustBright, 0.1);
 
-                sound(Sound.ENTITY_LIGHTNING_BOLT_IMPACT, 4.0f, 0.7f);
-                sound(Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 4.0f, 0.9f);
-                sound(Sound.ENTITY_ENDER_DRAGON_GROWL, 4.0f, 1.3f);
-                sound(Sound.ENTITY_WITHER_DEATH, 3.5f, 1.3f);
-                sound(Sound.BLOCK_END_PORTAL_SPAWN, 3.0f, 1.4f);
-            }
-            case LEGENDARY -> {
-                puff(Particle.TOTEM_OF_UNDYING, core, 140, 1.3, 1.0, 1.3, 0.45);
-                puff(Particle.FIREWORK, core, 90, 1.1, 0.9, 1.1, 0.35);
-                puff(Particle.FLASH, core, 1, 0.0, 0.0, 0.0, 0.0);
-                ring(base, maxRadius * 1.3, 60, dustBright, 0.1);
+            sound(Sound.ENTITY_FIREWORK_ROCKET_LARGE_BLAST, 3.0f, 1.0f);
+            sound(Sound.UI_TOAST_CHALLENGE_COMPLETE, 2.5f, 1.0f);
+            sound(Sound.ITEM_TOTEM_USE, 2.5f, 1.2f);
+        } else {
+            puff(Particle.WITCH, core, 100, 0.9, 0.9, 0.9, 0.15);
+            puff(Particle.END_ROD, core, 50, 0.6, 0.7, 0.6, 0.25);
 
-                sound(Sound.ENTITY_FIREWORK_ROCKET_LARGE_BLAST, 3.0f, 1.0f);
-                sound(Sound.UI_TOAST_CHALLENGE_COMPLETE, 2.5f, 1.0f);
-                sound(Sound.ITEM_TOTEM_USE, 2.5f, 1.2f);
-            }
-            default -> {
-                puff(Particle.WITCH, core, 100, 0.9, 0.9, 0.9, 0.15);
-                puff(Particle.END_ROD, core, 50, 0.6, 0.7, 0.6, 0.25);
-
-                sound(Sound.BLOCK_BEACON_POWER_SELECT, 2.0f, 1.6f);
-                sound(Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.5f, 1.8f);
-            }
+            sound(Sound.BLOCK_BEACON_POWER_SELECT, 2.0f, 1.6f);
+            sound(Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.5f, 1.8f);
         }
     }
 
@@ -446,30 +580,17 @@ public final class RollAura {
      * and embers drifting down through where the drop appeared.
      */
     private void aftermath(long frame, long length) {
-        refreshAudience();
         Location base = player.getLocation();
         double p = (double) frame / length;
 
-        // Three staggered shockwaves so the ground keeps moving.
         for (int wave = 0; wave < 3; wave++) {
-            double offset = wave * 0.22;
-            double wp = p - offset;
+            double wp = p - (wave * 0.22);
             if (wp <= 0.0 || wp > 1.0) continue;
             ring(base, wp * (maxRadius * 2.2), (int) (18 + wp * 40), wave == 0 ? dustBright : dust, 0.03);
         }
 
-        // Embers raining back down through the burst.
         if (frame % 2 == 0) {
             puff(accent, base.clone().add(0, 2.6, 0), 6, maxRadius * 0.35, 0.5, maxRadius * 0.35, 0.02);
-        }
-
-        if (rarity == Rarity.MYTHICAL) {
-            // A long tail of settling sparks, and one late aftershock.
-            puff(Particle.ELECTRIC_SPARK, base.clone().add(0, 1.2, 0), 5, 1.6, 0.9, 1.6, 0.05);
-            if (frame == length / 2) {
-                sound(Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 3.0f, 0.6f);
-                puff(Particle.EXPLOSION_EMITTER, base.clone().add(0, 1.0, 0), 1, 0.5, 0.3, 0.5, 0.0);
-            }
         }
     }
 }

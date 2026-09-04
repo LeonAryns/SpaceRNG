@@ -306,7 +306,11 @@ public class RollListener implements Listener {
 
     private void finishRoll(Player player, PlayerData data, RollableItem result) {
         clearActionBar(player);
-        player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.8f, 1.2f);
+        // The level-up chime would land on the same tick as a big drop's
+        // detonation and just clutter it — the aura brings its own.
+        if (!RollAura.isBigDrop(result.getRarity())) {
+            player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.8f, 1.2f);
+        }
 
         RollAura aura = activeAuras.remove(player.getUniqueId());
         // Single assignment: the bonus-roll lambda below captures this, so
@@ -319,9 +323,18 @@ public class RollListener implements Listener {
         }
 
         // Hold the landed item on screen so the reel ends on exactly what
-        // the player is handed.
+        // the player is handed. For a big drop the title waits a moment:
+        // dropping it over the detonation on the same tick hides the burst
+        // the player just sat through ten seconds of build-up for.
         if (data.isRollAnimationEnabled()) {
-            showRollTitle(player, result);
+            long titleDelay = RollAura.titleDelayTicks(result.getRarity());
+            if (titleDelay <= 0) {
+                showRollTitle(player, result);
+            } else {
+                plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+                    if (player.isOnline()) showRollTitle(player, result);
+                }, titleDelay);
+            }
         }
         grantRoll(player, data, result, false);
 
