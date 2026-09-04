@@ -6,8 +6,9 @@ import org.bukkit.Material;
 import java.util.Map;
 
 /**
- * One /armor tier — a full set (helmet/chest/legs/boots), a drop cost, and
- * the Luck and Speed bonuses each worn piece grants.
+ * One /armor tier. The cost is the price of a SINGLE piece — pieces are
+ * bought one at a time — and the Luck/Speed bonuses are what each worn
+ * piece grants on its own.
  */
 public class ArmorTier {
 
@@ -49,6 +50,16 @@ public class ArmorTier {
     // other tier's id matches its Material prefix exactly.
     private String materialPrefix() {
         return id.equals("GOLD") ? "GOLDEN" : id;
+    }
+
+    /** The Material for one piece of this tier, e.g. GOLDEN_BOOTS. */
+    public Material materialFor(ArmorPiece piece) {
+        return Material.valueOf(materialPrefix() + "_" + piece.name());
+    }
+
+    /** e.g. "Leather Boots" — the name the physical item carries. */
+    public String pieceDisplay(ArmorPiece piece) {
+        return display + " " + piece.displayName();
     }
 
     public Material helmet() {

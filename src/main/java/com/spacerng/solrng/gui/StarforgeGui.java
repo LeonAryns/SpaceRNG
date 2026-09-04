@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * /starforge — the upgrade shop, 6x9. The eight tiers run in ladder order
+ * /starforge — the upgrade shop, 5x9. The eight tiers run in ladder order
  * across two centred rows: five on row 2, the last three centred on row 3.
  * Owned tiers show as green dye, everything still to forge stays a Nether
  * Star.
@@ -30,7 +30,7 @@ public class StarforgeGui {
     // Row 2 holds five (columns 3-7), row 3 the remaining three centred
     // (columns 4-6). Slot = (row-1)*9 + (column-1), both 1-indexed.
     private static final int[] TIER_SLOTS = {11, 12, 13, 14, 15, 21, 22, 23};
-    private static final int BALANCE_SLOT = 49;
+    private static final int BALANCE_SLOT = 40; // bottom row, centred
 
     public static NamespacedKey tierIdKey(SolRNGPlugin plugin) {
         return new NamespacedKey(plugin, "solrng_starforge_tier_id");
@@ -38,12 +38,12 @@ public class StarforgeGui {
 
     public static Inventory build(SolRNGPlugin plugin, Player player) {
         StarforgeHolder holder = new StarforgeHolder();
-        Inventory inv = Bukkit.createInventory(holder, 54,
+        Inventory inv = Bukkit.createInventory(holder, 45,
                 ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "Starforge");
         holder.setInventory(inv);
 
         ItemStack filler = filler();
-        for (int slot = 0; slot < 54; slot++) {
+        for (int slot = 0; slot < 45; slot++) {
             inv.setItem(slot, filler);
         }
 
@@ -90,9 +90,8 @@ public class StarforgeGui {
                 long held = starforge.countHeld(player, cost.getKey());
                 boolean enough = held >= cost.getValue();
                 lore.add(ChatColor.DARK_GRAY + "- " + (enough ? ChatColor.WHITE : ChatColor.RED)
-                        + cost.getValue() + "x "
-                        + plugin.getRarityManager().style(cost.getKey(),
-                                cost.getKey().displayName().toUpperCase() + " ITEM")
+                        + ChatColor.BOLD + cost.getValue() + "x "
+                        + plugin.getRarityManager().styleBold(cost.getKey(), cost.getKey().displayName())
                         + ChatColor.DARK_GRAY + " (" + held + ")");
             }
             lore.add("");

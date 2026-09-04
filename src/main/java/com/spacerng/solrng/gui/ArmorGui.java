@@ -2,6 +2,7 @@ package com.spacerng.solrng.gui;
 
 import com.spacerng.solrng.SolRNGPlugin;
 import com.spacerng.solrng.player.ArmorManager;
+import com.spacerng.solrng.player.ArmorPiece;
 import com.spacerng.solrng.player.ArmorTier;
 import com.spacerng.solrng.player.DropWallet;
 import com.spacerng.solrng.player.PlayerData;
@@ -42,6 +43,11 @@ public class ArmorGui {
         return new NamespacedKey(plugin, "solrng_armor_tier_id");
     }
 
+    /** Which slot's piece this icon sells — pieces are bought one at a time. */
+    public static NamespacedKey pieceKey(SolRNGPlugin plugin) {
+        return new NamespacedKey(plugin, "solrng_armor_piece");
+    }
+
     public static Inventory build(SolRNGPlugin plugin, Player player) {
         ArmorHolder holder = new ArmorHolder();
         Inventory inv = Bukkit.createInventory(holder, 45, ChatColor.GOLD + "" + ChatColor.BOLD + "Armor Shop");
@@ -69,9 +75,10 @@ public class ArmorGui {
             if (tier == null) continue;
             int col = TIER_COLUMNS[i];
 
-            Material[] pieces = {tier.helmet(), tier.chestplate(), tier.leggings(), tier.boots()};
+            ArmorPiece[] pieces = ArmorPiece.values(); // helmet, chest, legs, boots
             for (int row = 0; row < pieces.length; row++) {
-                inv.setItem(row * 9 + col, buildPieceIcon(plugin, player, data, armor, tier, pieces[row], rarityKey, tierIdKey));
+                inv.setItem(row * 9 + col,
+                        buildPieceIcon(plugin, player, data, armor, tier, pieces[row], rarityKey, tierIdKey, pieceKey(plugin)));
             }
         }
 
@@ -81,32 +88,36 @@ public class ArmorGui {
     }
 
     private static ItemStack buildPieceIcon(SolRNGPlugin plugin, Player player, PlayerData data, ArmorManager armor,
-                                             ArmorTier tier, Material pieceMaterial, NamespacedKey rarityKey, NamespacedKey tierIdKey) {
-        boolean owned = data.hasPurchasedArmor(tier.getId());
+                                             ArmorTier tier, ArmorPiece piece, NamespacedKey rarityKey,
+                                             NamespacedKey tierIdKey, NamespacedKey pieceKey) {
+        boolean owned = data.hasPurchasedArmor(tier.getId(), piece);
 
-        ItemStack icon = new ItemStack(pieceMaterial);
+        ItemStack icon = new ItemStack(tier.materialFor(piece));
         ItemMeta meta = icon.getItemMeta();
-        meta.setDisplayName((owned ? ChatColor.GREEN : ChatColor.AQUA) + tier.getDisplay());
+        meta.setDisplayName((owned ? ChatColor.GREEN : ChatColor.AQUA) + tier.pieceDisplay(piece));
 
-        List<String> lore = new ArrayList<>();
-        lore.add(ChatColor.DARK_AQUA + "+" + Math.round(tier.getLuckBonus() * 100) + "% Luck "
-                + ChatColor.GRAY + "(per piece worn)");
-        lore.add(ChatColor.DARK_AQUA + "+" + Math.round(tier.getSpeedBonus() * 100) + " Speed "
-                + ChatColor.GRAY + "(per piece worn)");
+        // Exactly the stat block the real item carries, so what you see in
+        // the shop is what you get.
+        List<String> lore = new ArrayList<>(armor.statLines(tier));
         lore.add("");
         if (owned) {
-            lore.add(ChatColor.GREEN + "Owned");
+            lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "OWNED");
         } else {
             lore.add(ChatColor.GRAY + "Price:");
             for (Map.Entry<Rarity, Long> cost : tier.getCosts().entrySet()) {
                 long held = DropWallet.total(plugin, player, data, cost.getKey());
-                String costText = cost.getValue() + " " + cost.getKey().displayName();
-                lore.add(ChatColor.GRAY + " - " + plugin.getRarityManager().style(cost.getKey(), costText)
+                boolean enough = held >= cost.getValue();
+                lore.add(ChatColor.DARK_GRAY + " - " + (enough ? ChatColor.WHITE : ChatColor.RED)
+                        + ChatColor.BOLD + cost.getValue() + "x "
+                        + plugin.getRarityManager().styleBold(cost.getKey(), cost.getKey().displayName())
                         + ChatColor.DARK_GRAY + " (" + held + ")");
             }
+            lore.add("");
+            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO BUY THIS PIECE");
         }
         meta.setLore(lore);
         meta.getPersistentDataContainer().set(tierIdKey, PersistentDataType.STRING, tier.getId());
+        meta.getPersistentDataContainer().set(pieceKey, PersistentDataType.STRING, piece.name());
         icon.setItemMeta(meta);
         return icon;
     }

@@ -31,11 +31,20 @@ public class RarityStyle {
 
     /** Applies this style's color(s) and formatting to the given text. */
     public String apply(String text) {
+        return apply(text, false);
+    }
+
+    /**
+     * Same, but bold can be forced on regardless of the style's own flag —
+     * used for price lines, where the rarity name should stand out without
+     * every rarity label everywhere else turning bold.
+     */
+    public String apply(String text, boolean forceBold) {
         StringBuilder out = new StringBuilder();
 
         if (colorStopsRgb.size() <= 1) {
             int[] rgb = colorStopsRgb.isEmpty() ? new int[]{255, 255, 255} : colorStopsRgb.get(0);
-            out.append(colorCode(rgb)).append(flagCodes()).append(text);
+            out.append(colorCode(rgb)).append(flagCodes(forceBold)).append(text);
             return out.toString();
         }
 
@@ -55,14 +64,14 @@ public class RarityStyle {
             int r = (int) Math.round(c1[0] + (c2[0] - c1[0]) * localT);
             int g = (int) Math.round(c1[1] + (c2[1] - c1[1]) * localT);
             int b = (int) Math.round(c1[2] + (c2[2] - c1[2]) * localT);
-            out.append(colorCode(new int[]{r, g, b})).append(flagCodes()).append(c);
+            out.append(colorCode(new int[]{r, g, b})).append(flagCodes(forceBold)).append(c);
         }
         return out.toString();
     }
 
-    private String flagCodes() {
+    private String flagCodes(boolean forceBold) {
         StringBuilder flags = new StringBuilder();
-        if (bold) flags.append(ChatColor.BOLD);
+        if (bold || forceBold) flags.append(ChatColor.BOLD);
         if (underline) flags.append(ChatColor.UNDERLINE);
         if (strikethrough) flags.append(ChatColor.STRIKETHROUGH);
         return flags.toString();

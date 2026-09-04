@@ -144,7 +144,7 @@ public class IndexGui {
     private static ItemStack buildEntry(SolRNGPlugin plugin, PlayerData data, RollableItem item) {
         boolean discovered = data.hasDiscovered(item.getDisplayName());
 
-        ItemStack icon = new ItemStack(discovered ? item.getMaterial() : Material.GRAY_DYE);
+        ItemStack icon = new ItemStack(discovered ? item.getMaterial() : Material.GRAY_STAINED_GLASS_PANE);
         ItemMeta meta = icon.getItemMeta();
 
         List<String> lore = new ArrayList<>();

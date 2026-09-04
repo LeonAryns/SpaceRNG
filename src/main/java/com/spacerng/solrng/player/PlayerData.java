@@ -58,8 +58,9 @@ public class PlayerData {
     // Flat Speed bonus from currently-worn /armor — same live recompute
     // as armorLuckBonus, not persisted.
     private double armorSpeedBonus = 0.0;
-    // /armor tiers ever bought (e.g. "LEATHER") — one-time purchase, worn
-    // status is checked separately for whether the Luck bonus applies.
+    // /armor pieces ever bought, keyed "TIER:PIECE" (e.g.
+    // "LEATHER:BOOTS") — pieces are sold individually. Worn status is
+    // checked separately for whether the Luck bonus applies.
     private final Set<String> purchasedArmorTiers = new HashSet<>();
     // /options toggles.
     private boolean rollSoundEnabled = true;
@@ -337,12 +338,12 @@ public class PlayerData {
         return purchasedArmorTiers;
     }
 
-    public boolean hasPurchasedArmor(String tierId) {
-        return purchasedArmorTiers.contains(tierId);
+    public boolean hasPurchasedArmor(String tierId, ArmorPiece piece) {
+        return purchasedArmorTiers.contains(ArmorPiece.key(tierId, piece));
     }
 
-    public void markArmorPurchased(String tierId) {
-        purchasedArmorTiers.add(tierId);
+    public void markArmorPurchased(String tierId, ArmorPiece piece) {
+        purchasedArmorTiers.add(ArmorPiece.key(tierId, piece));
     }
 
     public boolean isRollSoundEnabled() {

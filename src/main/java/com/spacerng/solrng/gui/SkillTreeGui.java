@@ -43,6 +43,7 @@ public class SkillTreeGui {
             "luck_skill", 40,       // (5,5)
             "speed_skill", 39,      // (4,5)
             "auto_convert", 41,     // (6,5)
+            "index_luck", 42,       // (7,5)
             "shiny_unlock", 43,     // (8,5)
             "farming_unlock", 31,   // (5,4)
             "armor_unlock", 22,     // (5,3)
@@ -60,6 +61,7 @@ public class SkillTreeGui {
             "luck_skill", Material.RABBIT_FOOT,
             "speed_skill", Material.SUGAR,
             "auto_convert", Material.HOPPER,
+            "index_luck", Material.KNOWLEDGE_BOOK,
             "shiny_unlock", Material.AMETHYST_SHARD,
             "farming_unlock", Material.WHEAT,
             "armor_unlock", Material.IRON_CHESTPLATE,
@@ -204,6 +206,7 @@ public class SkillTreeGui {
             case UNLOCK_ARMOR -> ChatColor.DARK_AQUA + "Unlocks the /armor shop";
             case UNLOCK_POTION -> ChatColor.DARK_AQUA + "Unlocks the Potion system (coming soon)";
             case UNLOCK_SHINY -> ChatColor.DARK_AQUA + "Unlocks Shiny drops (coming soon)";
+            case UNLOCK_INDEX_LUCK -> ChatColor.DARK_AQUA + "Turns on your equipped tag's index Luck multiplier";
             case AUTO_ROLL -> ChatColor.DARK_AQUA + "Rolls automatically at your own roll speed";
             case ROLL_SPEED -> leveled
                     ? ChatColor.YELLOW + "+" + pct(node.getValue()) + " Speed per level "

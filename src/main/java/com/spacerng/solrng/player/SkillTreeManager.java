@@ -118,7 +118,8 @@ public class SkillTreeManager {
         switch (node.getEffect()) {
             case LUCK -> data.addBonusLuck(node.getValue());
             case AUTO_ROLL -> data.setAutoRollEnabled(true);
-            case UNLOCK_AUTO_CONVERT, UNLOCK_FARMING, UNLOCK_ARMOR, UNLOCK_POTION, UNLOCK_SHINY -> { /* gate flags only — checked via data.hasUnlocked() elsewhere */ }
+            case UNLOCK_AUTO_CONVERT, UNLOCK_FARMING, UNLOCK_ARMOR, UNLOCK_POTION, UNLOCK_SHINY,
+                 UNLOCK_INDEX_LUCK -> { /* gate flags only — checked via data.hasUnlocked() elsewhere */ }
             case ROLL_SPEED -> data.setRollSpeedMultiplier(data.getRollSpeedMultiplier() + node.getValue());
             case BONUS_ROLL_CHANCE -> data.addBonusRollChance(node.getValue());
         }

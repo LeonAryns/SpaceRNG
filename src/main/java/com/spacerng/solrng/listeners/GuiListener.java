@@ -15,6 +15,7 @@ import com.spacerng.solrng.gui.PrestigeHolder;
 import com.spacerng.solrng.gui.SkillTreeGui;
 import com.spacerng.solrng.gui.SkillTreeHolder;
 import com.spacerng.solrng.player.ArmorManager;
+import com.spacerng.solrng.player.ArmorPiece;
 import com.spacerng.solrng.player.PlayerData;
 import com.spacerng.solrng.player.PrestigeManager;
 import com.spacerng.solrng.rarity.Rarity;
@@ -25,6 +26,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -112,15 +115,24 @@ public class GuiListener implements Listener {
 
         NamespacedKey tierIdKey = ArmorGui.tierIdKey(plugin);
         String tierId = clicked.getItemMeta().getPersistentDataContainer().get(tierIdKey, PersistentDataType.STRING);
-        if (tierId == null) return;
+        String pieceName = clicked.getItemMeta().getPersistentDataContainer()
+                .get(ArmorGui.pieceKey(plugin), PersistentDataType.STRING);
+        if (tierId == null || pieceName == null) return;
+
+        ArmorPiece piece;
+        try {
+            piece = ArmorPiece.valueOf(pieceName);
+        } catch (IllegalArgumentException ex) {
+            return;
+        }
 
         Player player = (Player) event.getWhoClicked();
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         ArmorManager armor = plugin.getArmorManager();
         NamespacedKey rarityKey = plugin.getRollListener().getRarityKey();
 
-        if (armor.purchase(player, data, tierId, rarityKey)) {
-            player.sendMessage(ChatColor.GREEN + "Bought: " + armor.get(tierId).getDisplay());
+        if (armor.purchase(player, data, tierId, piece, rarityKey)) {
+            player.sendMessage(ChatColor.GREEN + "Bought: " + armor.get(tierId).pieceDisplay(piece));
             player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_LEVELUP, 0.6f, 1.4f);
             player.openInventory(ArmorGui.build(plugin, player)); // refresh
         } else {
@@ -236,24 +248,76 @@ public class GuiListener implements Listener {
         }
     }
 
+    /**
+     * Only rolled drops may enter the input rows. Anything else — the
+     * Starforge, the Farmer's Hoe, armor, a stack of dirt — is bounced at
+     * the door rather than being silently accepted and then having to be
+     * handled by the converter.
+     *
+     * Every route an item can take into a container has to be covered
+     * separately: placing from the cursor, shift-clicking from the player's
+     * inventory, the 1-9 hotbar swap, the offhand (F) swap, and dragging.
+     * Blocking only the obvious click leaves the other four wide open.
+     */
+    private boolean isDrop(ItemStack stack) {
+        if (stack == null || stack.getType() == Material.AIR || stack.getItemMeta() == null) return false;
+        if (plugin.getStarforgeManager().isStarforge(stack)) return false;
+
+        var pdc = stack.getItemMeta().getPersistentDataContainer();
+        // Both keys: only an item this plugin rolled carries a roll name
+        // AND a rarity, which is what makes it convertible.
+        return pdc.has(plugin.getRollListener().getRollNameKey(), PersistentDataType.STRING)
+                && pdc.has(plugin.getRollListener().getRarityKey(), PersistentDataType.STRING);
+    }
+
+    private void rejectNonDrop(InventoryClickEvent event) {
+        event.setCancelled(true);
+        event.getWhoClicked().sendMessage(ChatColor.RED + "Only rolled drops can go in there.");
+    }
+
     private void handleConvertClick(InventoryClickEvent event) {
         Player player = (Player) event.getWhoClicked();
         int rawSlot = event.getRawSlot();
         Inventory top = event.getView().getTopInventory();
 
-        // Allow free item movement into/out of the input rows (slots 0-26).
-        boolean isInputSlot = rawSlot >= 0 && rawSlot <= 26;
-        boolean clickedTopInventory = rawSlot < top.getSize();
+        boolean clickedTopInventory = rawSlot >= 0 && rawSlot < top.getSize();
+        boolean isInputSlot = clickedTopInventory && rawSlot <= 26;
 
         if (!clickedTopInventory) {
-            return; // clicking in the player's own inventory below is always allowed
+            // The player's own inventory. Shift-clicking is the one action
+            // down here that pushes an item into the GUI.
+            if (event.isShiftClick() && !isDrop(event.getCurrentItem())) {
+                rejectNonDrop(event);
+            }
+            return;
         }
 
         if (isInputSlot) {
-            return; // let them place/remove items freely
+            switch (event.getClick()) {
+                case NUMBER_KEY -> {
+                    ItemStack hotbar = player.getInventory().getItem(event.getHotbarButton());
+                    // Empty hotbar slot = taking an item OUT, which is fine.
+                    if (hotbar != null && hotbar.getType() != Material.AIR && !isDrop(hotbar)) {
+                        rejectNonDrop(event);
+                    }
+                }
+                case SWAP_OFFHAND -> {
+                    ItemStack offhand = player.getInventory().getItemInOffHand();
+                    if (offhand.getType() != Material.AIR && !isDrop(offhand)) {
+                        rejectNonDrop(event);
+                    }
+                }
+                default -> {
+                    ItemStack cursor = event.getCursor();
+                    if (cursor != null && cursor.getType() != Material.AIR && !isDrop(cursor)) {
+                        rejectNonDrop(event);
+                    }
+                }
+            }
+            return; // otherwise let them place/remove drops freely
         }
 
-        // Any other top-inventory click (glass, confirm, toggles) is a button, not item storage.
+        // Any other top-inventory slot (glass, confirm, toggles) is a button, not storage.
         event.setCancelled(true);
 
         if (rawSlot == ConvertHolder.CONFIRM_SLOT) {
@@ -261,8 +325,52 @@ public class GuiListener implements Listener {
             return;
         }
 
-        if (rawSlot >= ConvertHolder.AUTO_TOGGLE_ROW_START) {
+        if (rawSlot >= ConvertHolder.AUTO_TOGGLE_ROW_START && rawSlot <= ConvertHolder.AUTO_TOGGLE_ROW_END) {
             handleAutoToggleClick(player, rawSlot);
+        }
+    }
+
+    /** Dragging spreads a stack across slots — same door, same lock. */
+    @EventHandler
+    public void onDrag(InventoryDragEvent event) {
+        Inventory top = event.getView().getTopInventory();
+        if (!(top.getHolder() instanceof ConvertHolder)) return;
+
+        boolean touchesTop = false;
+        boolean touchesNonInput = false;
+        for (int slot : event.getRawSlots()) {
+            if (slot < top.getSize()) {
+                touchesTop = true;
+                if (slot > 26) touchesNonInput = true;
+            }
+        }
+        if (!touchesTop) return;
+
+        if (touchesNonInput || !isDrop(event.getOldCursor())) {
+            event.setCancelled(true);
+            event.getWhoClicked().sendMessage(ChatColor.RED + "Only rolled drops can go in there.");
+        }
+    }
+
+    /**
+     * The input rows are a virtual inventory — anything still sitting in
+     * them when the menu closes is destroyed with it. Hand it all back
+     * instead; losing a Starforge to a stray Escape isn't acceptable.
+     */
+    @EventHandler
+    public void onClose(InventoryCloseEvent event) {
+        Inventory top = event.getInventory();
+        if (!(top.getHolder() instanceof ConvertHolder)) return;
+        if (!(event.getPlayer() instanceof Player player)) return;
+
+        for (int slot : ConvertHolder.INPUT_SLOTS) {
+            ItemStack stack = top.getItem(slot);
+            if (stack == null || stack.getType() == Material.AIR) continue;
+
+            top.setItem(slot, null);
+            for (ItemStack leftover : player.getInventory().addItem(stack).values()) {
+                player.getWorld().dropItemNaturally(player.getLocation(), leftover);
+            }
         }
     }
 
@@ -281,12 +389,11 @@ public class GuiListener implements Listener {
 
         for (int slot : ConvertHolder.INPUT_SLOTS) {
             ItemStack stack = top.getItem(slot);
-            if (stack == null || stack.getType() == Material.AIR) continue;
+            if (!isDrop(stack)) continue; // left alone, and handed back on close
             ItemMeta meta = stack.getItemMeta();
-            if (meta == null) continue;
 
             String rarityName = meta.getPersistentDataContainer().get(rarityKey, PersistentDataType.STRING);
-            if (rarityName == null) continue; // not a SolRNG-rolled item, skip it (leave it in the slot)
+            if (rarityName == null) continue;
 
             try {
                 Rarity rarity = Rarity.valueOf(rarityName);

@@ -98,8 +98,16 @@ public class PlayerDataManager {
             } catch (IllegalArgumentException ignored) {
             }
         }
-        for (String tierId : yml.getStringList("purchased-armor-tiers")) {
-            data.getPurchasedArmorTiers().add(tierId);
+        for (String entry : yml.getStringList("purchased-armor-tiers")) {
+            if (entry.contains(":")) {
+                data.getPurchasedArmorTiers().add(entry);
+                continue;
+            }
+            // Pre-V30 saves stored a bare tier id meaning "bought the whole
+            // set" — anyone who owned a set keeps all four pieces.
+            for (ArmorPiece piece : ArmorPiece.values()) {
+                data.getPurchasedArmorTiers().add(ArmorPiece.key(entry, piece));
+            }
         }
 
         String tagItem = yml.getString("tag-item", null);

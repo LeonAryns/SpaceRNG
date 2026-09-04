@@ -143,6 +143,10 @@ public class RarityManager {
      * you a rarer drop to equip, and equipping it is what cashes it in.
      */
     public double tagMultiplierFor(com.spacerng.solrng.player.PlayerData data) {
+        // Gated behind the Index Luck skill — until that's bought the
+        // equipped tag is cosmetic and the multiplier reads a flat 1.00x.
+        if (!data.hasUnlocked("index_luck")) return 1.0;
+
         String equipped = data.getEquippedTagItemKey();
         if (equipped == null) return 1.0;
         RollableItem item = byName.get(equipped);
@@ -217,6 +221,12 @@ public class RarityManager {
     public String style(Rarity rarity, String text) {
         RarityStyle style = styles.get(rarity);
         return style == null ? text : style.apply(text);
+    }
+
+    /** Same, forced bold — used by the shop price lines. */
+    public String styleBold(Rarity rarity, String text) {
+        RarityStyle style = styles.get(rarity);
+        return style == null ? text : style.apply(text, true);
     }
 
     /**

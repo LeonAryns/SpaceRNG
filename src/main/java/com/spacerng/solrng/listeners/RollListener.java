@@ -3,6 +3,7 @@ package com.spacerng.solrng.listeners;
 import com.spacerng.solrng.SolRNGPlugin;
 import com.spacerng.solrng.player.PlayerData;
 import com.spacerng.solrng.rarity.Rarity;
+import com.spacerng.solrng.roll.RollAura;
 import com.spacerng.solrng.rarity.RollFormat;
 import com.spacerng.solrng.rarity.RollableItem;
 import net.kyori.adventure.text.Component;
@@ -182,6 +183,7 @@ public class RollListener implements Listener {
 
         long[] elapsed = {0L};
         int[] lastStep = {-1};
+        int[] frame = {0};
         remainingTicks.put(player.getUniqueId(), totalTicks);
 
         BukkitTask[] taskHolder = new BukkitTask[1];
@@ -200,6 +202,11 @@ public class RollListener implements Listener {
             if (data.isRollSoundEnabled()) {
                 player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1.0f);
             }
+
+            // Epic+ rolls light the player up for the whole server to see.
+            // Deliberately not gated on the roller's own animation toggle:
+            // this one exists for everyone ELSE watching.
+            RollAura.tick(player, result.getRarity(), (double) elapsed[0] / totalTicks, frame[0]++);
 
             // Case-opening-style teaser: every 5% of the roll, flash a
             // candidate item + its odds in the center of the screen.
@@ -256,6 +263,8 @@ public class RollListener implements Listener {
     private void finishRoll(Player player, PlayerData data, RollableItem result) {
         clearActionBar(player);
         player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.8f, 1.2f);
+
+        RollAura.reveal(player, result.getRarity());
 
         // Hold the landed item on screen so the reel ends on exactly what
         // the player is handed.

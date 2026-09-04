@@ -11,7 +11,8 @@ public class SkillNode {
         UNLOCK_FARMING,
         UNLOCK_ARMOR,
         UNLOCK_POTION,
-        UNLOCK_SHINY
+        UNLOCK_SHINY,
+        UNLOCK_INDEX_LUCK
     }
 
     private final String id;

@@ -14,16 +14,18 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 
+import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
 /**
- * /armor — sets bought once with rolled drops (like the skill tree). Each
- * piece grants its tier's Luck bonus independently while worn (checked
- * live from equipped armor, not just "do you own it") — no need to match
- * a full set, and mixing tiers across slots is fine.
+ * /armor — pieces bought ONE AT A TIME with rolled drops. Each piece
+ * grants its tier's Luck and Speed independently while worn (checked live
+ * from equipped armor, not just "do you own it"), so a lone pair of boots
+ * still pays out and mixing tiers across slots is fine.
  */
 public class ArmorManager {
 
@@ -77,6 +79,7 @@ public class ArmorManager {
         return tiers.get(id);
     }
 
+    /** The cost shown/charged is per piece, not per set. */
     public boolean canAfford(Player player, ArmorTier tier, NamespacedKey rarityKey) {
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         for (Map.Entry<Rarity, Long> cost : tier.getCosts().entrySet()) {
@@ -86,36 +89,51 @@ public class ArmorManager {
     }
 
     /**
-     * Buys a tier: consumes the drop cost from inventory and hands over
-     * the actual 4-piece armor set. Returns true on success.
+     * Buys ONE piece: consumes that piece's drop cost and hands the item
+     * over. Returns true on success.
      */
-    public boolean purchase(Player player, PlayerData data, String tierId, NamespacedKey rarityKey) {
+    public boolean purchase(Player player, PlayerData data, String tierId, ArmorPiece piece, NamespacedKey rarityKey) {
         ArmorTier tier = tiers.get(tierId);
         if (tier == null) return false;
-        if (data.hasPurchasedArmor(tierId)) return false;
+        if (data.hasPurchasedArmor(tierId, piece)) return false;
         if (!canAfford(player, tier, rarityKey)) return false;
 
         for (Map.Entry<Rarity, Long> cost : tier.getCosts().entrySet()) {
             DropWallet.spend(plugin, player, data, cost.getKey(), cost.getValue());
         }
 
-        data.markArmorPurchased(tierId);
-        givePiece(player, tier.helmet(), tier);
-        givePiece(player, tier.chestplate(), tier);
-        givePiece(player, tier.leggings(), tier);
-        givePiece(player, tier.boots(), tier);
+        data.markArmorPurchased(tierId, piece);
+        givePiece(player, tier, piece);
         return true;
     }
 
-    private void givePiece(Player player, Material material, ArmorTier tier) {
-        ItemStack piece = new ItemStack(material);
-        ItemMeta meta = piece.getItemMeta();
-        meta.setDisplayName(ChatColor.AQUA + tier.getDisplay());
+    /**
+     * Builds and hands over one piece. The Luck/Speed it grants is written
+     * into the item's own lore — the bonus is invisible otherwise, since
+     * it's applied by this plugin rather than by vanilla attributes.
+     */
+    private void givePiece(Player player, ArmorTier tier, ArmorPiece piece) {
+        ItemStack item = new ItemStack(tier.materialFor(piece));
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(ChatColor.AQUA + tier.pieceDisplay(piece));
+        meta.setLore(statLines(tier));
         meta.getPersistentDataContainer().set(tierKey, PersistentDataType.STRING, tier.getId());
-        piece.setItemMeta(meta);
+        item.setItemMeta(meta);
 
-        Map<Integer, ItemStack> overflow = player.getInventory().addItem(piece);
+        Map<Integer, ItemStack> overflow = player.getInventory().addItem(item);
         overflow.values().forEach(leftover -> player.getWorld().dropItemNaturally(player.getLocation(), leftover));
+    }
+
+    /** The "When Worn" block — shared by the shop icon and the real item. */
+    public List<String> statLines(ArmorTier tier) {
+        List<String> lore = new ArrayList<>();
+        lore.add("");
+        lore.add(ChatColor.GRAY + "When Worn:");
+        lore.add(ChatColor.AQUA + "◆ " + ChatColor.GRAY + "Luck: " + ChatColor.GREEN
+                + "+" + Math.round(tier.getLuckBonus() * 100) + "%");
+        lore.add(ChatColor.AQUA + "◆ " + ChatColor.GRAY + "Speed: " + ChatColor.YELLOW
+                + "+" + Math.round(tier.getSpeedBonus() * 100));
+        return lore;
     }
 
     /**
