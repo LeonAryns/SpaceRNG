@@ -132,6 +132,50 @@ farming:
     NETHER_WART:
       tokens: 150
 
+  # ---- The shared farm ----
+  # Plots are real blocks placed with /rngadmin farmblock. Every player is
+  # shown their OWN crop at every plot, so one field serves everybody at
+  # once and nobody sees anyone else's harvests.
+  #
+  # "requires-node" is a skill tree node id. Blank = available from the
+  # start. Set one and the crop stays locked until that node is bought, so
+  # new crops can hang off new skill nodes later without a code change.
+  # Until those nodes exist, /rngadmin crops can grant them for testing.
+  #
+  # Shards only ever pay once shards-node is unlocked (or granted).
+  shards-node: "farming_shards"
+  crop-types:
+    WHEAT:
+      display: "Wheat"
+      material: WHEAT
+      tokens: 100
+      shards: 0
+      requires-node: ""
+    CARROTS:
+      display: "Carrots"
+      material: CARROTS
+      tokens: 250
+      shards: 1
+      requires-node: "farming_carrots"
+    POTATOES:
+      display: "Potatoes"
+      material: POTATOES
+      tokens: 600
+      shards: 2
+      requires-node: "farming_potatoes"
+    BEETROOTS:
+      display: "Beetroot"
+      material: BEETROOTS
+      tokens: 1500
+      shards: 5
+      requires-node: "farming_beetroot"
+    NETHER_WART:
+      display: "Nether Wart"
+      material: NETHER_WART
+      tokens: 4000
+      shards: 12
+      requires-node: "farming_netherwart"
+
 # Levels are earned by rolling; prestiging resets your level for a
 # permanent Luck *multiplier* (applied on top of every other Luck source).
 prestige:
@@ -958,6 +1002,87 @@ skilltree:
       requires: "armor_unlock"
       effect: UNLOCK_POTION
       value: 0
+
+# Long-run goals, shown in /milestones. Each track is one ladder of
+# thresholds against a single number; tiers MUST be listed in ascending
+# order. Rewards are optional per tier (tokens / shards / money) - the
+# amounts below are a first pass, tune them freely.
+#
+# Progress is read from live state rather than counted separately, so it
+# can't drift: prestige and index size already live on the player, and
+# playtime comes straight from the vanilla statistic.
+milestones:
+  tracks:
+    prestige:
+      display: "Prestige"
+      icon: NETHER_STAR
+      unit: "prestiges"
+      description: "Reset your level for permanent Luck."
+      tiers:
+        - { at: 1, tokens: 1000 }
+        - { at: 2, tokens: 2500 }
+        - { at: 3, tokens: 5000 }
+        - { at: 5, tokens: 10000, shards: 1 }
+        - { at: 10, tokens: 25000, shards: 3 }
+        - { at: 15, tokens: 50000, shards: 5 }
+        - { at: 20, tokens: 100000, shards: 10 }
+        - { at: 25, tokens: 200000, shards: 15 }
+        - { at: 35, tokens: 400000, shards: 25 }
+        - { at: 50, tokens: 750000, shards: 40 }
+        - { at: 75, tokens: 1500000, shards: 75 }
+        - { at: 100, tokens: 3000000, shards: 150 }
+    rarity:
+      display: "Collection"
+      icon: END_CRYSTAL
+      unit: "drops found"
+      description: "Unique drops discovered in your /index."
+      tiers:
+        - { at: 5, tokens: 500 }
+        - { at: 10, tokens: 1000 }
+        - { at: 20, tokens: 2500 }
+        - { at: 30, tokens: 5000 }
+        - { at: 45, tokens: 10000 }
+        - { at: 60, tokens: 20000, shards: 2 }
+        - { at: 80, tokens: 40000, shards: 5 }
+        - { at: 100, tokens: 80000, shards: 10 }
+        - { at: 115, tokens: 150000, shards: 20 }
+        - { at: 130, tokens: 300000, shards: 35 }
+        - { at: 140, tokens: 600000, shards: 60 }
+        - { at: 143, tokens: 1500000, shards: 120 }
+    farming:
+      display: "Farming"
+      icon: WHEAT
+      unit: "crops"
+      description: "Crops harvested on the shared farm."
+      tiers:
+        - { at: 100, tokens: 500 }
+        - { at: 500, tokens: 1500 }
+        - { at: 1000, tokens: 3000 }
+        - { at: 2500, tokens: 7500 }
+        - { at: 5000, tokens: 15000 }
+        - { at: 10000, tokens: 30000, shards: 2 }
+        - { at: 25000, tokens: 75000, shards: 5 }
+        - { at: 50000, tokens: 150000, shards: 10 }
+        - { at: 100000, tokens: 300000, shards: 20 }
+        - { at: 250000, tokens: 750000, shards: 40 }
+        - { at: 500000, tokens: 1500000, shards: 75 }
+        - { at: 1000000, tokens: 3000000, shards: 150 }
+    playtime:
+      display: "Playtime"
+      icon: CLOCK
+      unit: "hours"
+      description: "Hours spent on SpaceRNG."
+      tiers:
+        - { at: 1, tokens: 500 }
+        - { at: 3, tokens: 1500 }
+        - { at: 6, tokens: 3000 }
+        - { at: 12, tokens: 6000 }
+        - { at: 24, tokens: 15000, shards: 1 }
+        - { at: 48, tokens: 30000, shards: 3 }
+        - { at: 96, tokens: 60000, shards: 6 }
+        - { at: 168, tokens: 120000, shards: 12 }
+        - { at: 336, tokens: 250000, shards: 25 }
+        - { at: 720, tokens: 600000, shards: 60 }
 
 # Rolls of this rarity or higher get broadcast to the whole server.
 broadcast:

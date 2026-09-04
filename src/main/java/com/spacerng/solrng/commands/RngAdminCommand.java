@@ -35,7 +35,8 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
 
     private static final List<String> SUBCOMMANDS = List.of(
             "reload", "setspawn", "starforge", "reset", "give", "drops",
-            "bank", "aura", "roll", "unlock", "odds", "help");
+            "bank", "aura", "roll", "unlock", "odds", "farmblock", "crops",
+            "milestones", "help");
     private static final List<String> CURRENCIES = List.of("money", "tokens", "shards", "credits");
 
     private final SolRNGPlugin plugin;
@@ -68,6 +69,9 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             case "roll" -> doRoll(sender, args);
             case "unlock" -> doUnlock(sender, args);
             case "odds" -> doOdds(sender, args);
+            case "farmblock" -> doFarmBlock(sender, args);
+            case "crops" -> doCrops(sender, args);
+            case "milestones" -> doMilestones(sender, args);
             default -> {
                 sendHelp(sender);
                 yield true;
@@ -90,6 +94,9 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         line(sender, "roll", "<rarity> [player]", "Force a real roll result of that rarity");
         line(sender, "unlock", "<node|all> [player]", "Grant a skill tree node");
         line(sender, "odds", "[rarity]", "Label vs. true odds, and each tier's real share");
+        line(sender, "farmblock", "[amount]", "Farm Plot blocks - place to build the shared farm");
+        line(sender, "crops", "<unlock|lock> <crop|shards|all> [player]", "Grant or revoke crops");
+        line(sender, "milestones", "<check|reset> [player]", "Force a check, or wipe claimed tiers");
     }
 
     private void line(CommandSender sender, String sub, String args, String description) {
@@ -479,6 +486,101 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         return true;
     }
 
+    // ----------------------------------------------------------- the farm
+
+    /**
+     * Hands over Farm Plot blocks. Place one to add a tile to the shared
+     * field; sneak-break one to remove it again.
+     */
+    private boolean doFarmBlock(CommandSender sender, String[] args) {
+        Player target = resolve(sender, args.length >= 3 ? args[2] : null);
+        if (target == null) return true;
+
+        int amount = 16;
+        if (args.length >= 2) {
+            Long parsed = parseAmount(sender, args[1]);
+            if (parsed == null) return true;
+            amount = (int) Math.min(64L, parsed);
+        }
+
+        target.getInventory().addItem(plugin.getFarmPlotManager().createPlotItem(amount));
+        sender.sendMessage(ChatColor.GREEN + "Gave " + amount + " Farm Plot block(s). "
+                + ChatColor.GRAY + "Place to add, sneak-break to remove. "
+                + plugin.getFarmPlotManager().plotCount() + " placed so far.");
+        return true;
+    }
+
+    /** /rngadmin crops &lt;unlock|lock&gt; &lt;crop|shards|all&gt; [player] */
+    private boolean doCrops(CommandSender sender, String[] args) {
+        if (args.length < 3) {
+            sender.sendMessage(ChatColor.RED + "Usage: /rngadmin crops <unlock|lock> <crop|shards|all> [player]");
+            return true;
+        }
+        boolean unlock = args[1].equalsIgnoreCase("unlock");
+        if (!unlock && !args[1].equalsIgnoreCase("lock")) {
+            sender.sendMessage(ChatColor.RED + "Use unlock or lock.");
+            return true;
+        }
+
+        Player target = resolve(sender, args.length >= 4 ? args[3] : null);
+        if (target == null) return true;
+
+        PlayerData data = plugin.getPlayerDataManager().get(target.getUniqueId());
+        var farm = plugin.getFarmPlotManager();
+        String what = args[2].toLowerCase(Locale.ROOT);
+
+        if (what.equals("shards")) {
+            data.setCropShardsUnlocked(unlock);
+        } else if (what.equals("all")) {
+            data.setCropShardsUnlocked(unlock);
+            for (String cropId : farm.getCrops().keySet()) {
+                if (unlock) data.getUnlockedCrops().add(cropId);
+                else data.getUnlockedCrops().remove(cropId);
+            }
+        } else {
+            var crop = farm.getCrop(what);
+            if (crop == null) {
+                sender.sendMessage(ChatColor.RED + "No crop with that id.");
+                return true;
+            }
+            if (unlock) data.getUnlockedCrops().add(crop.getId());
+            else data.getUnlockedCrops().remove(crop.getId());
+        }
+
+        farm.render(target);
+        sender.sendMessage(ChatColor.GREEN + (unlock ? "Unlocked " : "Locked ") + what + " for " + target.getName() + ".");
+        return true;
+    }
+
+    /** /rngadmin milestones &lt;check|reset&gt; [player] */
+    private boolean doMilestones(CommandSender sender, String[] args) {
+        if (args.length < 2) {
+            sender.sendMessage(ChatColor.RED + "Usage: /rngadmin milestones <check|reset> [player]");
+            return true;
+        }
+        Player target = resolve(sender, args.length >= 3 ? args[2] : null);
+        if (target == null) return true;
+
+        PlayerData data = plugin.getPlayerDataManager().get(target.getUniqueId());
+        if (args[1].equalsIgnoreCase("reset")) {
+            // Clears the claim ledger only — progress itself is derived, so
+            // every already-earned tier re-announces on the next check.
+            data.getClaimedMilestones().clear();
+            sender.sendMessage(ChatColor.GREEN + "Cleared claimed milestones for " + target.getName() + ".");
+            return true;
+        }
+
+        plugin.getMilestoneManager().check(target);
+        for (var track : plugin.getMilestoneManager().getTracks().values()) {
+            long progress = plugin.getMilestoneManager().progress(target, data, track.getId());
+            sender.sendMessage(ChatColor.GRAY + track.getDisplay() + ": " + ChatColor.WHITE
+                    + String.format("%,d", progress) + ChatColor.GRAY + " " + track.getUnit()
+                    + ChatColor.DARK_GRAY + " (" + track.completedCount(progress) + "/"
+                    + track.getTiers().size() + " tiers)");
+        }
+        return true;
+    }
+
     // ---------------------------------------------------------------- utils
 
     private RollableItem randomItemOf(Rarity rarity) {
@@ -544,6 +646,9 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
                 case "unlock" -> partial(args[1], withAll(nodeIds()));
                 case "starforge" -> partial(args[1], tierIds());
                 case "reset" -> partial(args[1], playerNames());
+                case "crops" -> partial(args[1], List.of("unlock", "lock"));
+                case "milestones" -> partial(args[1], List.of("check", "reset"));
+                case "farmblock" -> partial(args[1], List.of("1", "16", "64"));
                 default -> List.of();
             };
         }
@@ -551,11 +656,14 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             return switch (sub) {
                 case "reset" -> partial(args[2], List.of("confirm"));
                 case "give", "drops", "bank" -> partial(args[2], List.of("1", "10", "100", "1000"));
-                case "aura", "roll", "unlock", "starforge" -> partial(args[2], playerNames());
+                case "aura", "roll", "unlock", "starforge", "milestones", "farmblock" ->
+                        partial(args[2], playerNames());
+                case "crops" -> partial(args[2], cropOptions());
                 default -> List.of();
             };
         }
-        if (args.length == 4 && (sub.equals("give") || sub.equals("drops") || sub.equals("bank"))) {
+        if (args.length == 4 && (sub.equals("give") || sub.equals("drops") || sub.equals("bank")
+                || sub.equals("crops"))) {
             return partial(args[3], playerNames());
         }
         return List.of();
@@ -588,6 +696,16 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
 
     private List<String> tierIds() {
         return new ArrayList<>(plugin.getStarforgeManager().getTiers().keySet());
+    }
+
+    private List<String> cropOptions() {
+        List<String> out = new ArrayList<>();
+        for (String id : plugin.getFarmPlotManager().getCrops().keySet()) {
+            out.add(id.toLowerCase(Locale.ROOT));
+        }
+        out.add("shards");
+        out.add("all");
+        return out;
     }
 
     private List<String> playerNames() {

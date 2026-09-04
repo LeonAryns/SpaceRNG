@@ -5,9 +5,13 @@ import com.spacerng.solrng.commands.TagCommand;
 import com.spacerng.solrng.gui.ArmorGui;
 import com.spacerng.solrng.gui.ArmorHolder;
 import com.spacerng.solrng.gui.ConvertGui;
+import com.spacerng.solrng.gui.CropsGui;
+import com.spacerng.solrng.gui.CropsHolder;
 import com.spacerng.solrng.gui.ConvertHolder;
 import com.spacerng.solrng.gui.IndexGui;
 import com.spacerng.solrng.gui.IndexHolder;
+import com.spacerng.solrng.gui.MilestoneGui;
+import com.spacerng.solrng.gui.MilestoneHolder;
 import com.spacerng.solrng.gui.OptionsGui;
 import com.spacerng.solrng.gui.OptionsHolder;
 import com.spacerng.solrng.gui.PrestigeGui;
@@ -58,6 +62,10 @@ public class GuiListener implements Listener {
             handleOptionsClick(event);
         } else if (topInventory.getHolder() instanceof com.spacerng.solrng.gui.StarforgeHolder) {
             handleStarforgeClick(event);
+        } else if (topInventory.getHolder() instanceof MilestoneHolder) {
+            handleMilestoneClick(event);
+        } else if (topInventory.getHolder() instanceof CropsHolder) {
+            handleCropsClick(event);
         }
     }
 
@@ -107,6 +115,71 @@ public class GuiListener implements Listener {
             data.setRevealAuraEnabled(!data.isRevealAuraEnabled());
             player.openInventory(OptionsGui.build(plugin, player));
         }
+    }
+
+    /** The milestone screens are read-only: pick a track, page, or go back. */
+    private void handleMilestoneClick(InventoryClickEvent event) {
+        event.setCancelled(true);
+        if (event.getClickedInventory() == null
+                || !(event.getClickedInventory().getHolder() instanceof MilestoneHolder holder)) return;
+
+        Player player = (Player) event.getWhoClicked();
+        int rawSlot = event.getRawSlot();
+
+        if (holder.getTrackId() != null) {
+            if (rawSlot == MilestoneGui.backSlot()) {
+                player.openInventory(MilestoneGui.buildRoot(plugin, player));
+                return;
+            }
+            if (rawSlot == MilestoneGui.prevSlot()) {
+                player.openInventory(MilestoneGui.buildTrack(plugin, player, holder.getTrackId(), holder.getPage() - 1));
+                return;
+            }
+            if (rawSlot == MilestoneGui.nextSlot()) {
+                player.openInventory(MilestoneGui.buildTrack(plugin, player, holder.getTrackId(), holder.getPage() + 1));
+                return;
+            }
+        }
+
+        ItemStack clicked = event.getCurrentItem();
+        if (clicked == null || clicked.getItemMeta() == null) return;
+        String trackId = clicked.getItemMeta().getPersistentDataContainer()
+                .get(MilestoneGui.trackKey(plugin), PersistentDataType.STRING);
+        if (trackId != null) {
+            player.openInventory(MilestoneGui.buildTrack(plugin, player, trackId, 0));
+        }
+    }
+
+    /** Picking a crop repaints the shared farm for this player only. */
+    private void handleCropsClick(InventoryClickEvent event) {
+        event.setCancelled(true);
+        if (event.getClickedInventory() == null
+                || !(event.getClickedInventory().getHolder() instanceof CropsHolder)) return;
+
+        ItemStack clicked = event.getCurrentItem();
+        if (clicked == null || clicked.getItemMeta() == null) return;
+
+        String cropId = clicked.getItemMeta().getPersistentDataContainer()
+                .get(CropsGui.cropKey(plugin), PersistentDataType.STRING);
+        if (cropId == null) return;
+
+        Player player = (Player) event.getWhoClicked();
+        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+        var farm = plugin.getFarmPlotManager();
+        var crop = farm.getCrop(cropId);
+        if (crop == null) return;
+
+        if (!farm.isUnlocked(data, crop)) {
+            player.sendMessage(ChatColor.RED + "You haven't unlocked " + crop.getDisplay() + " yet.");
+            return;
+        }
+
+        data.setSelectedCrop(crop.getId());
+        farm.render(player);
+        player.sendMessage(ChatColor.GREEN + "Your farm is now growing " + ChatColor.YELLOW + crop.getDisplay()
+                + ChatColor.GREEN + ".");
+        player.playSound(player.getLocation(), org.bukkit.Sound.ITEM_CROP_PLANT, 0.8f, 1.2f);
+        player.openInventory(CropsGui.build(plugin, player));
     }
 
     private void handleArmorClick(InventoryClickEvent event) {

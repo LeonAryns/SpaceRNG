@@ -41,6 +41,10 @@ public class FarmingListener implements Listener {
         Material material = block.getType();
         FarmingManager farming = plugin.getFarmingManager();
         if (!farming.isCrop(material)) return;
+        // Shared-farm plots are wheat too, but they're handled entirely by
+        // FarmPlotListener — paying out here as well would double-reward
+        // and replant a block that's meant to never change.
+        if (plugin.getFarmPlotManager().isPlot(block.getLocation())) return;
 
         Player player = event.getPlayer();
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
@@ -53,6 +57,7 @@ public class FarmingListener implements Listener {
         BlockData blockData = block.getBlockData();
         if (!(blockData instanceof Ageable ageable) || ageable.getAge() < ageable.getMaximumAge()) return;
 
+        data.addCropsHarvested(1L);
         long reward = Math.round(farming.tokensFor(material) * data.getFarmTokenMultiplier());
         if (reward > 0) {
             data.addTokens(reward);

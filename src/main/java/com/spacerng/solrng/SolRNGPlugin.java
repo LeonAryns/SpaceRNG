@@ -5,6 +5,8 @@ import com.spacerng.solrng.commands.ConvertCommand;
 import com.spacerng.solrng.commands.IndexCommand;
 import com.spacerng.solrng.commands.OptionsCommand;
 import com.spacerng.solrng.commands.PrestigeCommand;
+import com.spacerng.solrng.commands.CropsCommand;
+import com.spacerng.solrng.commands.MilestonesCommand;
 import com.spacerng.solrng.commands.RngAdminCommand;
 import com.spacerng.solrng.commands.RngCoreCommand;
 import com.spacerng.solrng.commands.SkillTreeCommand;
@@ -43,6 +45,8 @@ public final class SolRNGPlugin extends JavaPlugin {
     private FarmingManager farmingManager;
     private SpawnManager spawnManager;
     private StarforgeManager starforgeManager;
+    private com.spacerng.solrng.farming.FarmPlotManager farmPlotManager;
+    private com.spacerng.solrng.milestone.MilestoneManager milestoneManager;
 
     @Override
     public void onEnable() {
@@ -58,6 +62,8 @@ public final class SolRNGPlugin extends JavaPlugin {
         this.farmingManager = new FarmingManager(this);
         this.spawnManager = new SpawnManager(this);
         this.starforgeManager = new StarforgeManager(this);
+        this.farmPlotManager = new com.spacerng.solrng.farming.FarmPlotManager(this);
+        this.milestoneManager = new com.spacerng.solrng.milestone.MilestoneManager(this);
 
         reloadAll();
 
@@ -67,6 +73,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new ChatListener(this), this);
         getServer().getPluginManager().registerEvents(new GuiListener(this), this);
         getServer().getPluginManager().registerEvents(new FarmingListener(this), this);
+        getServer().getPluginManager().registerEvents(new com.spacerng.solrng.farming.FarmPlotListener(this), this);
 
         getCommand("rngcore").setExecutor(new RngCoreCommand(this));
         getCommand("skilltree").setExecutor(new SkillTreeCommand(this));
@@ -78,6 +85,8 @@ public final class SolRNGPlugin extends JavaPlugin {
         getCommand("options").setExecutor(new OptionsCommand(this));
         getCommand("starforge").setExecutor(new StarforgeCommand(this));
         RngAdminCommand adminCommand = new RngAdminCommand(this);
+        getCommand("milestones").setExecutor(new MilestonesCommand(this));
+        getCommand("crops").setExecutor(new CropsCommand(this));
         getCommand("rngadmin").setExecutor(adminCommand);
         getCommand("rngadmin").setTabCompleter(adminCommand);
 
@@ -105,6 +114,8 @@ public final class SolRNGPlugin extends JavaPlugin {
         armorManager.load(getConfig());
         farmingManager.load(getConfig());
         starforgeManager.load(getConfig());
+        farmPlotManager.load(getConfig());
+        milestoneManager.load(getConfig());
     }
 
     /**
@@ -171,6 +182,14 @@ public final class SolRNGPlugin extends JavaPlugin {
         return spawnManager;
     }
 
+    public com.spacerng.solrng.farming.FarmPlotManager getFarmPlotManager() {
+        return farmPlotManager;
+    }
+
+    public com.spacerng.solrng.milestone.MilestoneManager getMilestoneManager() {
+        return milestoneManager;
+    }
+
     public StarforgeManager getStarforgeManager() {
         return starforgeManager;
     }
@@ -195,6 +214,15 @@ public final class SolRNGPlugin extends JavaPlugin {
             armorManager.refreshWornBonuses();
             starforgeManager.refreshHeldBonuses();
         }, 5L, 5L);
+
+        // Repaints the shared farm so plots appear as players walk into
+        // range, and picks up anyone who logged in near one.
+        getServer().getScheduler().runTaskTimer(this, () -> farmPlotManager.renderAll(), 40L, 40L);
+
+        // One sweep covers every milestone track for everyone. A tier
+        // landing a second late is invisible, and this can't miss a value
+        // change the way per-event hooks can.
+        getServer().getScheduler().runTaskTimer(this, () -> milestoneManager.checkAll(), 100L, 100L);
     }
 
     private void registerPlaceholderExpansion() {

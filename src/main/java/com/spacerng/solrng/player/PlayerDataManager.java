@@ -86,6 +86,11 @@ public class PlayerDataManager {
         data.setRevealAuraEnabled(yml.getBoolean("reveal-aura-enabled", true));
         data.setFarmTokenMultiplier(yml.getDouble("farm-token-multiplier", 1.0));
         data.setStarforgeTier(yml.getString("starforge-tier", "BASIC"));
+        data.setCropsHarvested(yml.getLong("crops-harvested", 0L));
+        data.setSelectedCrop(yml.getString("selected-crop", "WHEAT"));
+        data.setCropShardsUnlocked(yml.getBoolean("crop-shards-unlocked", false));
+        data.getUnlockedCrops().addAll(yml.getStringList("unlocked-crops"));
+        data.getClaimedMilestones().addAll(yml.getStringList("claimed-milestones"));
 
         org.bukkit.configuration.ConfigurationSection bank = yml.getConfigurationSection("drop-bank");
         if (bank != null) {
@@ -155,6 +160,11 @@ public class PlayerDataManager {
         yml.set("reveal-aura-enabled", data.isRevealAuraEnabled());
         yml.set("farm-token-multiplier", data.getFarmTokenMultiplier());
         yml.set("starforge-tier", data.getStarforgeTier());
+        yml.set("crops-harvested", data.getCropsHarvested());
+        yml.set("selected-crop", data.getSelectedCrop());
+        yml.set("crop-shards-unlocked", data.isCropShardsUnlocked());
+        yml.set("unlocked-crops", new java.util.ArrayList<>(data.getUnlockedCrops()));
+        yml.set("claimed-milestones", new java.util.ArrayList<>(data.getClaimedMilestones()));
         for (Map.Entry<Rarity, Long> entry : data.getDropBank().entrySet()) {
             yml.set("drop-bank." + entry.getKey().name(), entry.getValue());
         }

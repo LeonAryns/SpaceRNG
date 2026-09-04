@@ -73,6 +73,18 @@ public class PlayerData {
     // reward. Nothing raises this yet — reserved for future farming
     // upgrades (hoe enchants, prestige tie-in, etc.).
     private double farmTokenMultiplier = 1.0;
+    // Milestone tiers already awarded, keyed "track:index" — the ledger
+    // that stops a tier paying out twice.
+    private final Set<String> claimedMilestones = new HashSet<>();
+    // Lifetime farm crops harvested. The only milestone track that needed
+    // its own counter; the rest are derived from existing state.
+    private long cropsHarvested = 0L;
+    // The crop this player sees on the shared farm, and which ones they're
+    // allowed to pick. Everyone starts on wheat.
+    private String selectedCrop = "WHEAT";
+    private final Set<String> unlockedCrops = new HashSet<>();
+    // Whether farm crops pay Shards as well as Tokens.
+    private boolean cropShardsUnlocked = false;
     // Which Starforge the player owns — their BASE Luck comes from this.
     private String starforgeTier = "BASIC";
     // Base Luck from the Starforge, but only while it's actually in a
@@ -348,6 +360,54 @@ public class PlayerData {
 
     public void markArmorPurchased(String tierId, ArmorPiece piece) {
         purchasedArmorTiers.add(ArmorPiece.key(tierId, piece));
+    }
+
+    public Set<String> getClaimedMilestones() {
+        return claimedMilestones;
+    }
+
+    public boolean hasClaimedMilestone(String key) {
+        return claimedMilestones.contains(key);
+    }
+
+    public void markMilestoneClaimed(String key) {
+        claimedMilestones.add(key);
+    }
+
+    public long getCropsHarvested() {
+        return cropsHarvested;
+    }
+
+    public void addCropsHarvested(long amount) {
+        this.cropsHarvested += amount;
+    }
+
+    public void setCropsHarvested(long cropsHarvested) {
+        this.cropsHarvested = cropsHarvested;
+    }
+
+    public String getSelectedCrop() {
+        return selectedCrop;
+    }
+
+    public void setSelectedCrop(String selectedCrop) {
+        this.selectedCrop = selectedCrop;
+    }
+
+    public Set<String> getUnlockedCrops() {
+        return unlockedCrops;
+    }
+
+    public boolean hasUnlockedCrop(String cropId) {
+        return unlockedCrops.contains(cropId);
+    }
+
+    public boolean isCropShardsUnlocked() {
+        return cropShardsUnlocked;
+    }
+
+    public void setCropShardsUnlocked(boolean cropShardsUnlocked) {
+        this.cropShardsUnlocked = cropShardsUnlocked;
     }
 
     public boolean isRollSoundEnabled() {

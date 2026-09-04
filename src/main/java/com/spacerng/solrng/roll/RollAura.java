@@ -522,6 +522,28 @@ public final class RollAura {
             sound(Sound.BLOCK_BEACON_DEACTIVATE, 3.0f, 0.6f);
             sound(Sound.BLOCK_AMETHYST_BLOCK_CHIME, 3.0f, 0.7f);
         }
+
+        // The finish: a rising three-note ding so the sequence RESOLVES
+        // instead of just trailing off into silence.
+        finishDing(frame, 84, 89, 94, 3.0f);
+    }
+
+    /**
+     * An ascending major triad landing on a bright chime — the sound of
+     * something being completed. Fired on three separate frames so it
+     * reads as a phrase rather than a chord.
+     */
+    private void finishDing(long frame, long first, long second, long third, float volume) {
+        if (frame == first) {
+            sound(Sound.BLOCK_NOTE_BLOCK_BELL, volume, 1.00f);
+        } else if (frame == second) {
+            sound(Sound.BLOCK_NOTE_BLOCK_BELL, volume, 1.26f);
+        } else if (frame == third) {
+            sound(Sound.BLOCK_NOTE_BLOCK_BELL, volume, 1.50f);
+            sound(Sound.BLOCK_NOTE_BLOCK_CHIME, volume, 1.50f);
+            sound(Sound.UI_TOAST_CHALLENGE_COMPLETE, volume, 1.0f);
+            sound(Sound.ENTITY_PLAYER_LEVELUP, volume * 0.7f, 1.2f);
+        }
     }
 
     /** A ring of harmless, visual-only bolts around the player. */
@@ -591,6 +613,10 @@ public final class RollAura {
 
         if (frame % 2 == 0) {
             puff(accent, base.clone().add(0, 2.6, 0), 6, maxRadius * 0.35, 0.5, maxRadius * 0.35, 0.02);
+        }
+
+        if (rarity == Rarity.LEGENDARY) {
+            finishDing(frame, 26, 31, 36, 2.5f);
         }
     }
 }

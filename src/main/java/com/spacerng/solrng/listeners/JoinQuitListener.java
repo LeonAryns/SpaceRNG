@@ -60,6 +60,7 @@ public class JoinQuitListener implements Listener {
         plugin.getRollListener().cancelRoll(event.getPlayer().getUniqueId());
         plugin.getTagManager().hideHologram(event.getPlayer().getUniqueId());
         plugin.getTagManager().forgetPrefix(event.getPlayer().getUniqueId());
+        plugin.getFarmPlotManager().forget(event.getPlayer().getUniqueId());
         plugin.getPlayerDataManager().unload(event.getPlayer().getUniqueId());
     }
 
