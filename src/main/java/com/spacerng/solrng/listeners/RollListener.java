@@ -384,7 +384,8 @@ public class RollListener implements Listener {
         }
     }
 
-    private ItemStack buildTaggedItem(RollableItem result) {
+    /** The physical, PDC-tagged drop item. Public so /rngadmin can hand them out. */
+    public ItemStack buildTaggedItem(RollableItem result) {
         ItemStack item = new ItemStack(result.getMaterial());
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(RollFormat.displayName(plugin, result));

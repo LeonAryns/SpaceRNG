@@ -77,7 +77,9 @@ public final class SolRNGPlugin extends JavaPlugin {
         getCommand("armor").setExecutor(new ArmorCommand(this));
         getCommand("options").setExecutor(new OptionsCommand(this));
         getCommand("starforge").setExecutor(new StarforgeCommand(this));
-        getCommand("rngadmin").setExecutor(new RngAdminCommand(this));
+        RngAdminCommand adminCommand = new RngAdminCommand(this);
+        getCommand("rngadmin").setExecutor(adminCommand);
+        getCommand("rngadmin").setTabCompleter(adminCommand);
 
         startAutoRollTask();
         startScoreboardRefreshTask();

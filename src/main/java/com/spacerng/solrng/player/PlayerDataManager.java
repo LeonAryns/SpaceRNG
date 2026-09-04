@@ -28,6 +28,22 @@ public class PlayerDataManager {
         return cache.computeIfAbsent(uuid, this::load);
     }
 
+    /**
+     * Wipes a player back to a brand-new account: the cached object is
+     * replaced and the save file deleted, so nothing can flush the old
+     * state back over the top afterwards.
+     */
+    public PlayerData reset(UUID uuid) {
+        cache.remove(uuid);
+        File file = fileFor(uuid);
+        if (file.exists() && !file.delete()) {
+            plugin.getLogger().warning("[SolRNG] Couldn't delete player data file for " + uuid);
+        }
+        PlayerData fresh = new PlayerData(uuid);
+        cache.put(uuid, fresh);
+        return fresh;
+    }
+
     public void unload(UUID uuid) {
         PlayerData data = cache.remove(uuid);
         if (data != null) {
