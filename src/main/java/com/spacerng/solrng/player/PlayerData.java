@@ -14,7 +14,8 @@ public class PlayerData {
     private final UUID uuid;
     private double bonusLuck = 0.0;
     private long points = 0L; // shown on the scoreboard as "Credits"
-    private long tokens = 0L; // second scoreboard currency, reserved for future systems
+    private long tokens = 0L; // second scoreboard currency, earned from farming
+    private long shards = 0L; // third scoreboard currency, reserved for future systems
     // Multiplies roll speed: 1.0 = base roll-duration-seconds, 2.0 = twice as fast.
     // Granted by the Rolling Speed skill tree branch; armor upgrades could
     // add to this too later.
@@ -98,6 +99,20 @@ public class PlayerData {
     public boolean spendTokens(long amount) {
         if (tokens < amount) return false;
         tokens -= amount;
+        return true;
+    }
+
+    public long getShards() {
+        return shards;
+    }
+
+    public void addShards(long amount) {
+        this.shards += amount;
+    }
+
+    public boolean spendShards(long amount) {
+        if (shards < amount) return false;
+        shards -= amount;
         return true;
     }
 

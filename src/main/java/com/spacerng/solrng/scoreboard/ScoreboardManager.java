@@ -2,6 +2,7 @@ package com.spacerng.solrng.scoreboard;
 
 import com.spacerng.solrng.SolRNGPlugin;
 import com.spacerng.solrng.player.PlayerData;
+import com.spacerng.solrng.rarity.RollFormat;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.milkbowl.vault.economy.Economy;
@@ -39,12 +40,6 @@ public class ScoreboardManager {
     private static final String[] ROMAN_NUMERALS = {
             "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"
     };
-    // "Credits" is the longest currency label — Money/Tokens pad out to
-    // match it so the ":" lands in roughly the same spot on every line.
-    // Not pixel-perfect (Minecraft's default font isn't monospace) but
-    // keeps the value right next to its label instead of far off to the
-    // sidebar's edge.
-    private static final int CURRENCY_LABEL_WIDTH = "Credits".length();
 
     private final SolRNGPlugin plugin;
     private Economy economy;
@@ -114,11 +109,12 @@ public class ScoreboardManager {
         lines.add(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Luck: " + ChatColor.GREEN + "+" + String.format("%.2f", luckPercent) + "%");
         lines.add(ChatColor.YELLOW + "| " + prestigeLine(data));
         lines.add(""); // blank spacer
-        lines.add(ChatColor.GOLD + "" + ChatColor.BOLD + "CURRENCY");
+        lines.add(ChatColor.GOLD + "" + ChatColor.BOLD + "YOUR WALLET");
         lines.add(""); // breathing room under the title
-        lines.add(currencyLine(ChatColor.GOLD, "$", "Money", ChatColor.GREEN + formatMoney(player)));
-        lines.add(currencyLine(ChatColor.AQUA, "♦", "Tokens", ChatColor.AQUA + String.valueOf(data.getTokens())));
-        lines.add(currencyLine(ChatColor.LIGHT_PURPLE, "✦", "Credits", ChatColor.LIGHT_PURPLE + String.valueOf(data.getPoints())));
+        lines.add(balanceLine(player));
+        lines.add(walletLine("♦", data.getTokens(), "TOKENS", ChatColor.AQUA));
+        lines.add(walletLine("❖", data.getShards(), "SHARDS", ChatColor.DARK_PURPLE));
+        lines.add(walletLine("✦", data.getPoints(), "CREDITS", ChatColor.LIGHT_PURPLE));
 
         String rollStatus = rollStatusLine(player);
         if (rollStatus != null) {
@@ -139,9 +135,9 @@ public class ScoreboardManager {
         return ChatColor.WHITE + "Prestige: " + ChatColor.GOLD + "★ " + ChatColor.AQUA + numeral;
     }
 
-    private String currencyLine(ChatColor symbolColor, String symbol, String label, String coloredValue) {
-        String padded = label + " ".repeat(CURRENCY_LABEL_WIDTH - label.length());
-        return ChatColor.YELLOW + "| " + symbolColor + symbol + " " + ChatColor.WHITE + padded + ": " + coloredValue;
+    /** "$ 216M BALANCE" style — icon, abbreviated amount, label, all one color. */
+    private String walletLine(String symbol, long amount, String label, ChatColor color) {
+        return ChatColor.YELLOW + "| " + color + symbol + " " + RollFormat.abbreviate(amount) + " " + ChatColor.BOLD + label;
     }
 
     /**
@@ -156,9 +152,11 @@ public class ScoreboardManager {
         return null;
     }
 
-    private String formatMoney(Player player) {
-        if (economy == null) return "N/A";
-        return String.format("%.0f", economy.getBalance(player));
+    private String balanceLine(Player player) {
+        if (economy == null) {
+            return ChatColor.YELLOW + "| " + ChatColor.GREEN + "$ N/A " + ChatColor.BOLD + "BALANCE";
+        }
+        return walletLine("$", Math.round(economy.getBalance(player)), "BALANCE", ChatColor.GREEN);
     }
 
     /**

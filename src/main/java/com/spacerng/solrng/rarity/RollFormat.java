@@ -211,7 +211,8 @@ public final class RollFormat {
         return "1/" + abbreviate(odds);
     }
 
-    private static String abbreviate(long n) {
+    /** "1234" -> "1.2K", "5100000" -> "5.1M", etc. — also used for wallet balances. */
+    public static String abbreviate(long n) {
         if (n < 1_000) return String.valueOf(n);
         if (n < 1_000_000) return trimZero(n / 1_000.0) + "K";
         if (n < 1_000_000_000L) return trimZero(n / 1_000_000.0) + "M";
