@@ -99,10 +99,11 @@ public class IndexGui {
         meta.setDisplayName(ChatColor.AQUA + "" + ChatColor.BOLD + "Index Progress: " + discovered + "/" + total);
         List<String> lore = new ArrayList<>();
         lore.add(ChatColor.GRAY + "Every item carries its own Luck multiplier —");
-        lore.add(ChatColor.GRAY + "the rarer the find, the bigger its share.");
+        lore.add(ChatColor.GRAY + "the rarer the find, the bigger it is.");
+        lore.add(ChatColor.GRAY + "Equip one as your tag to use its multiplier.");
         lore.add("");
-        lore.add(ChatColor.GRAY + "Your index multiplier: " + ChatColor.GREEN
-                + String.format("%.2f", data.getIndexLuckMultiplier()) + "x");
+        lore.add(ChatColor.GRAY + "Equipped multiplier: " + ChatColor.GREEN
+                + String.format("%.2f", plugin.getRarityManager().tagMultiplierFor(data)) + "x");
         if (filter != null) {
             lore.add("");
             lore.add(ChatColor.GRAY + "Showing: " + plugin.getRarityManager().style(filter, filter.displayName())

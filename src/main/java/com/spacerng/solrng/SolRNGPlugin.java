@@ -23,17 +23,12 @@ import com.spacerng.solrng.player.PrestigeManager;
 import com.spacerng.solrng.player.SkillTreeManager;
 import com.spacerng.solrng.placeholder.SolRNGExpansion;
 import com.spacerng.solrng.rarity.RarityManager;
-import com.spacerng.solrng.rarity.RollableItem;
 import com.spacerng.solrng.scoreboard.ScoreboardManager;
 import com.spacerng.solrng.spawn.SpawnManager;
 import com.spacerng.solrng.starforge.StarforgeManager;
 import com.spacerng.solrng.tag.TagManager;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
 
 public final class SolRNGPlugin extends JavaPlugin {
 
@@ -110,34 +105,24 @@ public final class SolRNGPlugin extends JavaPlugin {
         starforgeManager.load(getConfig());
     }
 
-    // Ticks accumulated toward each auto-rolling player's next roll.
-    private final Map<UUID, Long> autoRollElapsed = new HashMap<>();
-
     /**
-     * Players with the Auto Roll node get a roll on their OWN roll-speed
-     * cadence — the same duration a manual roll would take, recomputed
-     * every cycle so Speed upgrades apply immediately.
+     * Auto Roll just presses right-click for the player: it starts a real
+     * roll whenever they aren't already mid-roll. Going through startRoll
+     * rather than granting instantly means auto-rolls get the same
+     * animation, sounds and notifications as manual ones, and the cadence
+     * comes out right for free since the roll itself takes exactly as
+     * long as the player's Speed says it should.
      */
     private void startAutoRollTask() {
         final long periodTicks = 5L;
         getServer().getScheduler().runTaskTimer(this, () -> {
             for (Player player : getServer().getOnlinePlayers()) {
                 PlayerData data = playerDataManager.get(player.getUniqueId());
-                if (!data.isAutoRollEnabled()) {
-                    autoRollElapsed.remove(player.getUniqueId());
-                    continue;
-                }
+                if (!data.isAutoRollEnabled()) continue;
+                if (!starforgeManager.isHolding(player)) continue; // refresh task turns the flag off
+                if (rollListener.isRolling(player.getUniqueId())) continue;
 
-                long elapsed = autoRollElapsed.getOrDefault(player.getUniqueId(), 0L) + periodTicks;
-                if (elapsed < rollListener.effectiveRollTicks(data)) {
-                    autoRollElapsed.put(player.getUniqueId(), elapsed);
-                    continue;
-                }
-
-                autoRollElapsed.put(player.getUniqueId(), 0L);
-                double luck = prestigeManager.effectiveLuck(data);
-                RollableItem result = rarityManager.roll(luck);
-                rollListener.grantRoll(player, data, result, true);
+                rollListener.startRoll(player);
             }
         }, periodTicks, periodTicks);
     }
@@ -195,9 +180,17 @@ public final class SolRNGPlugin extends JavaPlugin {
         getServer().getScheduler().runTaskTimer(this, () -> scoreboardManager.updateAll(), 20L, 20L);
     }
 
-    /** Recomputes armor Luck bonuses from what's actually worn, every second. */
+    /**
+     * Recomputes the bonuses that depend on what a player currently has
+     * equipped — worn armor and the held Starforge. Runs four times a
+     * second so picking the Starforge up or putting it away shows on the
+     * scoreboard more or less instantly.
+     */
     private void startArmorRefreshTask() {
-        getServer().getScheduler().runTaskTimer(this, () -> armorManager.refreshWornBonuses(), 20L, 20L);
+        getServer().getScheduler().runTaskTimer(this, () -> {
+            armorManager.refreshWornBonuses();
+            starforgeManager.refreshHeldBonuses();
+        }, 5L, 5L);
     }
 
     private void registerPlaceholderExpansion() {

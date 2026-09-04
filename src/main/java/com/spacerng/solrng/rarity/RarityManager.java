@@ -137,21 +137,16 @@ public class RarityManager {
     }
 
     /**
-     * A player's total index multiplier: 1 + the sum of every discovered
-     * item's (multiplier - 1). Summing the bonuses rather than multiplying
-     * them together keeps a full index worth a big number instead of an
-     * astronomical one — chaining 143 multiplications would run to many
-     * orders of magnitude.
+     * The Luck multiplier a player is currently getting from their index:
+     * the multiplier of whichever drop they have equipped as their tag,
+     * or 1.0 with nothing equipped. Grinding a deeper index is what gives
+     * you a rarer drop to equip, and equipping it is what cashes it in.
      */
-    public double indexMultiplierFor(java.util.Collection<String> discoveredNames) {
-        double bonus = 0.0;
-        for (String name : discoveredNames) {
-            RollableItem item = byName.get(name);
-            if (item != null) {
-                bonus += item.getLuckMultiplier() - 1.0;
-            }
-        }
-        return 1.0 + bonus;
+    public double tagMultiplierFor(com.spacerng.solrng.player.PlayerData data) {
+        String equipped = data.getEquippedTagItemKey();
+        if (equipped == null) return 1.0;
+        RollableItem item = byName.get(equipped);
+        return item == null ? 1.0 : item.getLuckMultiplier();
     }
 
     /** An item's own "colors"/bold/underline/strikethrough, or null if it doesn't define any. */

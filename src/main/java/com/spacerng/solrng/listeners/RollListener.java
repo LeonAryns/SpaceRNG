@@ -172,7 +172,7 @@ public class RollListener implements Listener {
      * multiplier (from the Rolling Speed skill tree branch, or future
      * armor upgrades) shortens the wait.
      */
-    private void startRoll(Player player) {
+    public void startRoll(Player player) {
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
 
         long totalTicks = effectiveRollTicks(data);
@@ -348,8 +348,6 @@ public class RollListener implements Listener {
         if (data.hasDiscovered(result.getDisplayName())) return;
 
         data.markDiscovered(result.getDisplayName());
-        data.setIndexLuckMultiplier(
-                plugin.getRarityManager().indexMultiplierFor(data.getDiscoveredItems()));
 
         if (!silent) {
             String notice = ChatColor.GREEN + "" + ChatColor.BOLD + "NEW! " + ChatColor.RESET

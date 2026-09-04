@@ -105,6 +105,33 @@ public class StarforgeManager {
         return tier == null ? 0.0 : tier.getLuckBonus();
     }
 
+    /** True while a Starforge is in either hand — main or off, both count. */
+    public boolean isHolding(Player player) {
+        return isStarforge(player.getInventory().getItemInMainHand())
+                || isStarforge(player.getInventory().getItemInOffHand());
+    }
+
+    /**
+     * Recomputes every online player's Starforge Luck from whether they're
+     * actually holding it, and switches Auto Roll off for anyone who's put
+     * theirs away. Same live-recompute pattern as worn armor.
+     */
+    public void refreshHeldBonuses() {
+        for (Player player : org.bukkit.Bukkit.getOnlinePlayers()) {
+            PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+            boolean holding = isHolding(player);
+            data.setStarforgeLuckBonus(holding ? luckBonusOf(data) : 0.0);
+
+            if (!holding && data.isAutoRollEnabled()) {
+                data.setAutoRollEnabled(false);
+                player.spigot().sendMessage(net.md_5.bungee.api.ChatMessageType.ACTION_BAR,
+                        new net.md_5.bungee.api.chat.TextComponent(
+                                ChatColor.RED + "" + ChatColor.BOLD + "Auto Roll OFF "
+                                        + ChatColor.RESET + ChatColor.GRAY + "(Starforge put away)"));
+            }
+        }
+    }
+
     private NamespacedKey rarityKey() {
         return plugin.getRollListener().getRarityKey();
     }
@@ -218,7 +245,7 @@ public class StarforgeManager {
     public List<String> statLines(StarforgeTier tier) {
         List<String> lore = new ArrayList<>();
         lore.add("");
-        lore.add(ChatColor.GRAY + "Stats:");
+        lore.add(ChatColor.GRAY + "When Held:");
         lore.add(ChatColor.AQUA + "◆ " + ChatColor.GRAY + "Luck: " + ChatColor.GREEN
                 + "+" + formatPercent(tier.getLuckBonus()) + "%");
         lore.add("");

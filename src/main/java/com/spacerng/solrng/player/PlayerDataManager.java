@@ -98,12 +98,6 @@ public class PlayerDataManager {
             data.setEquippedTag(tagItem, tagRarity);
         }
 
-        // Derived from the discovered set + the current item table, so it's
-        // recomputed on load rather than persisted — that way retuning the
-        // multiplier bands in config applies to everyone immediately.
-        data.setIndexLuckMultiplier(
-                plugin.getRarityManager().indexMultiplierFor(data.getDiscoveredItems()));
-
         return data;
     }
 

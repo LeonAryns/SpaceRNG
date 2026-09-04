@@ -61,6 +61,6 @@ public class PrestigeManager {
 
     public double effectiveLuck(PlayerData data) {
         return data.getEffectiveLuck(luckMultiplierPerPrestige,
-                plugin.getStarforgeManager().luckBonusOf(data));
+                plugin.getRarityManager().tagMultiplierFor(data));
     }
 }

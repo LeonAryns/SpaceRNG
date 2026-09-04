@@ -64,10 +64,9 @@ public class PlayerData {
     private double farmTokenMultiplier = 1.0;
     // Which Starforge the player owns — their BASE Luck comes from this.
     private String starforgeTier = "BASIC";
-    // Cached product of every discovered item's index multiplier. Not
-    // persisted: recomputed from discoveredItems on load and on each new
-    // discovery, since it's derived data and the item table can change.
-    private double indexLuckMultiplier = 1.0;
+    // Base Luck from the Starforge, but only while it's actually in a
+    // hand. Recomputed live like armorLuckBonus, not persisted.
+    private double starforgeLuckBonus = 0.0;
 
     public PlayerData(UUID uuid) {
         this.uuid = uuid;
@@ -290,16 +289,16 @@ public class PlayerData {
 
     /**
      * Total Luck actually applied to rolls. Each source has a distinct
-     * role: the Starforge tier sets the base, the skill tree and worn
-     * armor add flat bonuses on top, then the index collection and
-     * prestige both scale the whole total.
+     * role: the held Starforge sets the base, the skill tree and worn
+     * armor add flat bonuses on top, then the equipped tag's index
+     * multiplier and prestige both scale the whole total.
      *
-     * starforgeLuck is passed in rather than stored because it's derived
-     * from the tier id via StarforgeManager, same as armor's live recompute.
+     * indexMultiplier is passed in rather than stored because it's read
+     * off the equipped tag's item, which lives in RarityManager.
      */
-    public double getEffectiveLuck(double prestigeLuckMultiplierPerPrestige, double starforgeLuck) {
-        double base = starforgeLuck + bonusLuck + armorLuckBonus;
-        return base * indexLuckMultiplier * (1.0 + prestige * prestigeLuckMultiplierPerPrestige);
+    public double getEffectiveLuck(double prestigeLuckMultiplierPerPrestige, double indexMultiplier) {
+        double base = starforgeLuckBonus + bonusLuck + armorLuckBonus;
+        return base * indexMultiplier * (1.0 + prestige * prestigeLuckMultiplierPerPrestige);
     }
 
     public Set<String> getPurchasedArmorTiers() {
@@ -346,11 +345,11 @@ public class PlayerData {
         this.starforgeTier = starforgeTier;
     }
 
-    public double getIndexLuckMultiplier() {
-        return indexLuckMultiplier;
+    public double getStarforgeLuckBonus() {
+        return starforgeLuckBonus;
     }
 
-    public void setIndexLuckMultiplier(double indexLuckMultiplier) {
-        this.indexLuckMultiplier = Math.max(1.0, indexLuckMultiplier);
+    public void setStarforgeLuckBonus(double starforgeLuckBonus) {
+        this.starforgeLuckBonus = starforgeLuckBonus;
     }
 }

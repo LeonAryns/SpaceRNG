@@ -106,14 +106,14 @@ public class ScoreboardManager {
         lines.add(ChatColor.GOLD + "" + ChatColor.BOLD + player.getName());
         lines.add(""); // breathing room under the name
         lines.add(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Index: " + ChatColor.AQUA + discovered + ChatColor.GRAY + "/" + ChatColor.AQUA + totalItems
-                + ChatColor.DARK_GRAY + " (" + String.format("%.2f", data.getIndexLuckMultiplier()) + "x)");
+                + ChatColor.DARK_GRAY + " ("
+                + String.format("%.2f", plugin.getRarityManager().tagMultiplierFor(data)) + "x)");
         lines.add(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Luck: " + ChatColor.GREEN + "+" + String.format("%.2f", luckPercent) + "%");
         lines.add(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Speed: " + ChatColor.GREEN
                 + Math.round(data.getEffectiveRollSpeedMultiplier() * 100));
         lines.add(ChatColor.YELLOW + "| " + prestigeLine(data));
         lines.add(""); // blank spacer
-        lines.add(ChatColor.GOLD + "" + ChatColor.BOLD + "YOUR WALLET");
-        lines.add(""); // breathing room under the title
+        lines.add(ChatColor.GOLD + "" + ChatColor.BOLD + "Your Wallet");
         lines.add(balanceLine(player));
         lines.add(walletLine(data.getTokens(), "Tokens", ChatColor.AQUA));
         lines.add(walletLine(data.getShards(), "Shards", ChatColor.DARK_PURPLE));
