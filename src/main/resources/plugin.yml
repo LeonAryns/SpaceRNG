@@ -32,6 +32,9 @@ commands:
   options:
     description: Toggle rolling sound and animation
     usage: /options
+  starforge:
+    description: Upgrade your Starforge for more base Luck
+    usage: /starforge
   rngadmin:
     description: Admin tools for SolRNG
     usage: /rngadmin <reload|tokens|setspawn>

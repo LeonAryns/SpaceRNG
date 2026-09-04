@@ -62,6 +62,12 @@ public class PlayerData {
     // reward. Nothing raises this yet — reserved for future farming
     // upgrades (hoe enchants, prestige tie-in, etc.).
     private double farmTokenMultiplier = 1.0;
+    // Which Starforge the player owns — their BASE Luck comes from this.
+    private String starforgeTier = "BASIC";
+    // Cached product of every discovered item's index multiplier. Not
+    // persisted: recomputed from discoveredItems on load and on each new
+    // discovery, since it's derived data and the item table can change.
+    private double indexLuckMultiplier = 1.0;
 
     public PlayerData(UUID uuid) {
         this.uuid = uuid;
@@ -283,13 +289,17 @@ public class PlayerData {
     }
 
     /**
-     * Total Luck actually applied to rolls: base bonuses (skill tree,
-     * index discoveries) plus worn armor, then scaled by the prestige
-     * multiplier — prestige multiplies rather than adds, unlike every
-     * other Luck source.
+     * Total Luck actually applied to rolls. Each source has a distinct
+     * role: the Starforge tier sets the base, the skill tree and worn
+     * armor add flat bonuses on top, then the index collection and
+     * prestige both scale the whole total.
+     *
+     * starforgeLuck is passed in rather than stored because it's derived
+     * from the tier id via StarforgeManager, same as armor's live recompute.
      */
-    public double getEffectiveLuck(double prestigeLuckMultiplierPerPrestige) {
-        return (bonusLuck + armorLuckBonus) * (1.0 + prestige * prestigeLuckMultiplierPerPrestige);
+    public double getEffectiveLuck(double prestigeLuckMultiplierPerPrestige, double starforgeLuck) {
+        double base = starforgeLuck + bonusLuck + armorLuckBonus;
+        return base * indexLuckMultiplier * (1.0 + prestige * prestigeLuckMultiplierPerPrestige);
     }
 
     public Set<String> getPurchasedArmorTiers() {
@@ -326,5 +336,21 @@ public class PlayerData {
 
     public void setFarmTokenMultiplier(double farmTokenMultiplier) {
         this.farmTokenMultiplier = Math.max(0.1, farmTokenMultiplier);
+    }
+
+    public String getStarforgeTier() {
+        return starforgeTier;
+    }
+
+    public void setStarforgeTier(String starforgeTier) {
+        this.starforgeTier = starforgeTier;
+    }
+
+    public double getIndexLuckMultiplier() {
+        return indexLuckMultiplier;
+    }
+
+    public void setIndexLuckMultiplier(double indexLuckMultiplier) {
+        this.indexLuckMultiplier = Math.max(1.0, indexLuckMultiplier);
     }
 }

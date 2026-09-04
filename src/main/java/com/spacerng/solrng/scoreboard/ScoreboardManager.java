@@ -105,7 +105,8 @@ public class ScoreboardManager {
         lines.add(""); // breathing room under the header
         lines.add(ChatColor.GOLD + "" + ChatColor.BOLD + player.getName());
         lines.add(""); // breathing room under the name
-        lines.add(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Index: " + ChatColor.AQUA + discovered + ChatColor.GRAY + "/" + ChatColor.AQUA + totalItems);
+        lines.add(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Index: " + ChatColor.AQUA + discovered + ChatColor.GRAY + "/" + ChatColor.AQUA + totalItems
+                + ChatColor.DARK_GRAY + " (" + String.format("%.2f", data.getIndexLuckMultiplier()) + "x)");
         lines.add(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Luck: " + ChatColor.GREEN + "+" + String.format("%.2f", luckPercent) + "%");
         lines.add(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Speed: " + ChatColor.GREEN
                 + Math.round(data.getEffectiveRollSpeedMultiplier() * 100));

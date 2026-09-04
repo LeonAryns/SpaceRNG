@@ -208,6 +208,8 @@ public final class RollFormat {
         List<String> lore = new ArrayList<>();
         lore.add(ChatColor.GRAY + "Rarity: " + plugin.getRarityManager().style(item.getRarity(), item.getRarity().displayName()));
         lore.add(ChatColor.GRAY + "Chance: " + plugin.getRarityManager().style(item.getRarity(), chance(item.getOdds())));
+        lore.add(ChatColor.GRAY + "Index Luck: " + ChatColor.DARK_AQUA
+                + String.format("%.2f", item.getLuckMultiplier()) + "x");
         return lore;
     }
 

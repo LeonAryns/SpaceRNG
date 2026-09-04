@@ -4,12 +4,50 @@
 
 roll-item:
   material: NETHER_STAR
-  name: "&d&lRoll"
   # No cooldown anymore — every roll takes this many seconds to resolve,
-  # with an animation/progress bar while it's rolling. The Rolling Speed
-  # skill tree branch (and future armor upgrades) shorten this via a
-  # player's roll-speed multiplier.
+  # with an animation/progress bar while it's rolling. The Speed skill
+  # tree branch and worn armor shorten this via the player's Speed stat.
   roll-duration-seconds: 5
+
+# The Starforge — right-click to roll, left-click to toggle Auto Roll
+# (once the Auto Roll skill is unlocked). Everyone starts on BASIC;
+# better ones are bought in /starforge and give a bigger base Luck.
+# luck-bonus 0.25 = 25% Luck. This is a player's BASE luck — the skill
+# tree and armor add to it, and the index multiplier scales the total.
+starforge:
+  tiers:
+    BASIC:
+      display: "Basic Starforge"
+      luck-bonus: 0.25
+      cost-money: 0
+    INTERMEDIATE:
+      display: "Intermediate Starforge"
+      luck-bonus: 0.50
+      cost-money: 25000
+    ADVANCED:
+      display: "Advanced Starforge"
+      luck-bonus: 1.00
+      cost-money: 100000
+    REFINED:
+      display: "Refined Starforge"
+      luck-bonus: 1.75
+      cost-money: 350000
+    SUPERIOR:
+      display: "Superior Starforge"
+      luck-bonus: 3.00
+      cost-money: 1000000
+    MASTERWORK:
+      display: "Masterwork Starforge"
+      luck-bonus: 5.00
+      cost-money: 3000000
+    RADIANT:
+      display: "Radiant Starforge"
+      luck-bonus: 8.00
+      cost-money: 10000000
+    CELESTIAL:
+      display: "Celestial Starforge"
+      luck-bonus: 12.50
+      cost-money: 35000000
 
 # Farm crops (a shared field everyone harvests together) — breaking a
 # fully-grown crop listed here pays Tokens on top of its normal drop,
@@ -729,10 +767,22 @@ items:
     bold: true
 
 # /index — every unique item a player has ever rolled gets logged here.
-# The first time they roll a brand new item, they get a small permanent
-# Luck bonus on top of whatever the skill tree gives them.
+# Each item carries its own Luck MULTIPLIER, derived automatically from
+# its odds within its rarity: the rarest item in a tier gets the top of
+# that tier's band, the most common gets the bottom, everything else
+# scales linearly between them.
+#
+# Discovering an item adds its (multiplier - 1) to your index bonus, so
+# your total is 1 + the sum of everything you've found. Rare finds move
+# the needle far more than common ones.
 index:
-  luck-per-item: 0.01
+  luck-multipliers:
+    COMMON: [1.0, 1.1]
+    UNCOMMON: [1.1, 1.25]
+    RARE: [1.25, 1.5]
+    EPIC: [1.5, 2.0]
+    LEGENDARY: [2.0, 3.0]
+    MYTHICAL: [3.0, 5.0]
 
 # How many points ("Credits") a single item of each rarity is worth
 # when converted via /convert.

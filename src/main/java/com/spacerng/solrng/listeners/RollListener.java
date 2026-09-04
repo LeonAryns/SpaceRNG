@@ -94,22 +94,15 @@ public class RollListener implements Listener {
 
     @EventHandler
     public void onInteract(PlayerInteractEvent event) {
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+        Action action = event.getAction();
+        boolean rightClick = action == Action.RIGHT_CLICK_AIR || action == Action.RIGHT_CLICK_BLOCK;
+        boolean leftClick = action == Action.LEFT_CLICK_AIR || action == Action.LEFT_CLICK_BLOCK;
+        if (!rightClick && !leftClick) return;
         if (event.getHand() != EquipmentSlot.HAND) return; // ignore the duplicate off-hand firing
 
-        ItemStack hand = event.getItem();
-        if (hand == null) return;
-
-        String configuredMaterial = plugin.getConfig().getString("roll-item.material", "NETHER_STAR");
-        Material rollMaterial = Material.matchMaterial(configuredMaterial);
-        if (rollMaterial == null || hand.getType() != rollMaterial) return;
-
-        ItemMeta meta = hand.getItemMeta();
-        String expectedName = ChatColor.translateAlternateColorCodes('&',
-                plugin.getConfig().getString("roll-item.name", "&d&lRoll"));
-        if (meta == null || meta.getDisplayName() == null || !meta.getDisplayName().equals(expectedName)) {
-            return; // not our special item, just a normal nether star etc.
-        }
+        // Identified by its PersistentData tag, not its name — every
+        // Starforge tier is a different display name but the same item.
+        if (!plugin.getStarforgeManager().isStarforge(event.getItem())) return;
 
         event.setCancelled(true);
 
@@ -124,11 +117,36 @@ public class RollListener implements Listener {
         if (last != null && now - last < 100L) return;
         lastInteractMillis.put(player.getUniqueId(), now);
 
+        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+
+        if (leftClick) {
+            toggleAutoRoll(player, data);
+            return;
+        }
+
         if (isRolling(player.getUniqueId())) {
             return; // already mid-roll, ignore extra clicks
         }
 
         startRoll(player);
+    }
+
+    /**
+     * Left-clicking the Starforge flips Auto Roll, but only once the Auto
+     * Roll skill is unlocked — otherwise it just points them at the tree.
+     */
+    private void toggleAutoRoll(Player player, PlayerData data) {
+        if (!data.hasUnlocked("auto_roll_root")) {
+            sendActionBar(player, ChatColor.RED + "Unlock \"Auto Roll\" in /skilltree first!");
+            return;
+        }
+
+        boolean enabled = !data.isAutoRollEnabled();
+        data.setAutoRollEnabled(enabled);
+        sendActionBar(player, enabled
+                ? ChatColor.GREEN + "" + ChatColor.BOLD + "Auto Roll ON"
+                : ChatColor.RED + "" + ChatColor.BOLD + "Auto Roll OFF");
+        player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.7f, enabled ? 1.5f : 0.8f);
     }
 
     /**
@@ -313,12 +331,13 @@ public class RollListener implements Listener {
         if (data.hasDiscovered(result.getDisplayName())) return;
 
         data.markDiscovered(result.getDisplayName());
-        double bonus = plugin.getConfig().getDouble("index.luck-per-item", 0.01);
-        data.addBonusLuck(bonus);
+        data.setIndexLuckMultiplier(
+                plugin.getRarityManager().indexMultiplierFor(data.getDiscoveredItems()));
 
         if (!silent) {
             String notice = ChatColor.GREEN + "" + ChatColor.BOLD + "NEW! " + ChatColor.RESET
-                    + RollFormat.displayName(plugin, result) + ChatColor.GRAY + " added to your index";
+                    + RollFormat.displayName(plugin, result) + ChatColor.GRAY + " added to your index "
+                    + ChatColor.DARK_AQUA + "(" + String.format("%.2f", result.getLuckMultiplier()) + "x Luck)";
             player.sendMessage(notice);
             sendActionBar(player, notice);
             player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.8f, 1.3f);

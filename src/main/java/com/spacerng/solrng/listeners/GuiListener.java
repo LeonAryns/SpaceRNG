@@ -53,6 +53,36 @@ public class GuiListener implements Listener {
             handleArmorClick(event);
         } else if (topInventory.getHolder() instanceof OptionsHolder) {
             handleOptionsClick(event);
+        } else if (topInventory.getHolder() instanceof com.spacerng.solrng.gui.StarforgeHolder) {
+            handleStarforgeClick(event);
+        }
+    }
+
+    private void handleStarforgeClick(InventoryClickEvent event) {
+        event.setCancelled(true);
+        if (event.getClickedInventory() == null
+                || !(event.getClickedInventory().getHolder() instanceof com.spacerng.solrng.gui.StarforgeHolder)) return;
+
+        ItemStack clicked = event.getCurrentItem();
+        if (clicked == null || clicked.getItemMeta() == null) return;
+
+        NamespacedKey tierIdKey = com.spacerng.solrng.gui.StarforgeGui.tierIdKey(plugin);
+        String tierId = clicked.getItemMeta().getPersistentDataContainer().get(tierIdKey, PersistentDataType.STRING);
+        if (tierId == null) return;
+
+        Player player = (Player) event.getWhoClicked();
+        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+
+        if (plugin.getStarforgeManager().purchase(player, data, tierId)) {
+            var tier = plugin.getStarforgeManager().get(tierId);
+            player.sendMessage(ChatColor.GREEN + "Forged: " + ChatColor.LIGHT_PURPLE + tier.getDisplay()
+                    + ChatColor.GRAY + " (+"
+                    + com.spacerng.solrng.starforge.StarforgeManager.formatPercent(tier.getLuckBonus())
+                    + "% base Luck)");
+            player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_ANVIL_USE, 0.7f, 1.4f);
+            player.openInventory(com.spacerng.solrng.gui.StarforgeGui.build(plugin, player)); // refresh
+        } else {
+            player.sendMessage(ChatColor.RED + "You can't forge that yet.");
         }
     }
 

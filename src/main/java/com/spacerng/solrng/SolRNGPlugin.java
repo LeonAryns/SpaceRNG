@@ -8,6 +8,7 @@ import com.spacerng.solrng.commands.PrestigeCommand;
 import com.spacerng.solrng.commands.RngAdminCommand;
 import com.spacerng.solrng.commands.RngCoreCommand;
 import com.spacerng.solrng.commands.SkillTreeCommand;
+import com.spacerng.solrng.commands.StarforgeCommand;
 import com.spacerng.solrng.commands.TagCommand;
 import com.spacerng.solrng.farming.FarmingListener;
 import com.spacerng.solrng.farming.FarmingManager;
@@ -25,6 +26,7 @@ import com.spacerng.solrng.rarity.RarityManager;
 import com.spacerng.solrng.rarity.RollableItem;
 import com.spacerng.solrng.scoreboard.ScoreboardManager;
 import com.spacerng.solrng.spawn.SpawnManager;
+import com.spacerng.solrng.starforge.StarforgeManager;
 import com.spacerng.solrng.tag.TagManager;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -45,6 +47,7 @@ public final class SolRNGPlugin extends JavaPlugin {
     private ScoreboardManager scoreboardManager;
     private FarmingManager farmingManager;
     private SpawnManager spawnManager;
+    private StarforgeManager starforgeManager;
 
     @Override
     public void onEnable() {
@@ -53,12 +56,13 @@ public final class SolRNGPlugin extends JavaPlugin {
         this.rarityManager = new RarityManager(getLogger());
         this.skillTreeManager = new SkillTreeManager(getLogger());
         this.playerDataManager = new PlayerDataManager(this);
-        this.prestigeManager = new PrestigeManager();
+        this.prestigeManager = new PrestigeManager(this);
         this.armorManager = new ArmorManager(this);
         this.tagManager = new TagManager(this);
         this.scoreboardManager = new ScoreboardManager(this);
         this.farmingManager = new FarmingManager(this);
         this.spawnManager = new SpawnManager(this);
+        this.starforgeManager = new StarforgeManager(this);
 
         reloadAll();
 
@@ -77,6 +81,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         getCommand("prestige").setExecutor(new PrestigeCommand(this));
         getCommand("armor").setExecutor(new ArmorCommand(this));
         getCommand("options").setExecutor(new OptionsCommand(this));
+        getCommand("starforge").setExecutor(new StarforgeCommand(this));
         getCommand("rngadmin").setExecutor(new RngAdminCommand(this));
 
         startAutoRollTask();
@@ -102,6 +107,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         prestigeManager.load(getConfig());
         armorManager.load(getConfig());
         farmingManager.load(getConfig());
+        starforgeManager.load(getConfig());
     }
 
     // Ticks accumulated toward each auto-rolling player's next roll.
@@ -174,6 +180,10 @@ public final class SolRNGPlugin extends JavaPlugin {
 
     public SpawnManager getSpawnManager() {
         return spawnManager;
+    }
+
+    public StarforgeManager getStarforgeManager() {
+        return starforgeManager;
     }
 
     /**

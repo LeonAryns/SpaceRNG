@@ -93,14 +93,16 @@ public class IndexGui {
     private static ItemStack buildProgressInfo(SolRNGPlugin plugin, PlayerData data, Rarity filter, int shownCount) {
         int discovered = data.getDiscoveredItems().size();
         int total = plugin.getRarityManager().getItems().size();
-        double luckPerItem = plugin.getConfig().getDouble("index.luck-per-item", 0.01);
 
         ItemStack info = new ItemStack(Material.KNOWLEDGE_BOOK);
         ItemMeta meta = info.getItemMeta();
         meta.setDisplayName(ChatColor.AQUA + "" + ChatColor.BOLD + "Index Progress: " + discovered + "/" + total);
         List<String> lore = new ArrayList<>();
-        lore.add(ChatColor.GRAY + "Every new item adds " + ChatColor.GREEN + "+" + luckPerItem + " Luck" + ChatColor.GRAY + ".");
-        lore.add(ChatColor.GRAY + "Luck from your index so far: " + ChatColor.GREEN + "+" + String.format("%.2f", discovered * luckPerItem));
+        lore.add(ChatColor.GRAY + "Every item carries its own Luck multiplier —");
+        lore.add(ChatColor.GRAY + "the rarer the find, the bigger its share.");
+        lore.add("");
+        lore.add(ChatColor.GRAY + "Your index multiplier: " + ChatColor.GREEN
+                + String.format("%.2f", data.getIndexLuckMultiplier()) + "x");
         if (filter != null) {
             lore.add("");
             lore.add(ChatColor.GRAY + "Showing: " + plugin.getRarityManager().style(filter, filter.displayName())
@@ -141,6 +143,8 @@ public class IndexGui {
         } else {
             meta.setDisplayName(ChatColor.DARK_GRAY + "???");
             lore.add(ChatColor.GRAY + "Rarity: " + plugin.getRarityManager().style(item.getRarity(), item.getRarity().displayName()));
+            lore.add(ChatColor.GRAY + "Index Luck: " + ChatColor.DARK_AQUA
+                    + String.format("%.2f", item.getLuckMultiplier()) + "x");
             lore.add("");
             lore.add(ChatColor.RED + "Not yet discovered");
         }

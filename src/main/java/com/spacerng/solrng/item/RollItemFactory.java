@@ -1,37 +1,34 @@
 package com.spacerng.solrng.item;
 
 import com.spacerng.solrng.SolRNGPlugin;
-import org.bukkit.ChatColor;
-import org.bukkit.Material;
+import com.spacerng.solrng.starforge.StarforgeManager;
+import com.spacerng.solrng.starforge.StarforgeTier;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-
-import java.util.List;
 
 /**
- * Builds the special "Roll" item players right-click to roll. Shared by the
- * /rngcore give command and the automatic first-join starter kit so both
- * hand out an identical item.
+ * Builds a player's Starforge — the item they right-click to roll and
+ * left-click to toggle Auto Roll. Shared by the /rngcore give command and
+ * the first-join starter kit so both hand out the same thing.
+ *
+ * The item is always built for a specific tier; the actual construction
+ * lives in StarforgeManager since the tier table is loaded there.
  */
 public final class RollItemFactory {
 
     private RollItemFactory() {
     }
 
+    /** The player's own tier, or Basic if they somehow have none. */
     public static ItemStack create(SolRNGPlugin plugin, int amount) {
-        String materialName = plugin.getConfig().getString("roll-item.material", "NETHER_STAR");
-        Material material = Material.matchMaterial(materialName);
-        if (material == null) material = Material.NETHER_STAR;
+        StarforgeManager starforge = plugin.getStarforgeManager();
+        StarforgeTier tier = starforge.get(StarforgeManager.DEFAULT_TIER);
+        if (tier == null && !starforge.getOrderedTiers().isEmpty()) {
+            tier = starforge.getOrderedTiers().get(0);
+        }
+        if (tier == null) return new ItemStack(org.bukkit.Material.NETHER_STAR, amount);
 
-        ItemStack item = new ItemStack(material, amount);
-        ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(ChatColor.translateAlternateColorCodes('&',
-                plugin.getConfig().getString("roll-item.name", "&d&lRoll")));
-        meta.setLore(List.of(
-                ChatColor.GRAY + "Right-click to roll!",
-                ChatColor.GRAY + "Takes a few seconds to resolve."
-        ));
-        item.setItemMeta(meta);
+        ItemStack item = starforge.create(tier);
+        item.setAmount(amount);
         return item;
     }
 }

@@ -1,5 +1,6 @@
 package com.spacerng.solrng.player;
 
+import com.spacerng.solrng.SolRNGPlugin;
 import org.bukkit.configuration.file.FileConfiguration;
 
 /**
@@ -12,10 +13,15 @@ import org.bukkit.configuration.file.FileConfiguration;
  */
 public class PrestigeManager {
 
+    private final SolRNGPlugin plugin;
     private int rollsPerLevel;
     private int firstPrestigeLevels;
     private int levelsIncrementPerPrestige;
     private double luckMultiplierPerPrestige;
+
+    public PrestigeManager(SolRNGPlugin plugin) {
+        this.plugin = plugin;
+    }
 
     public void load(FileConfiguration config) {
         rollsPerLevel = config.getInt("prestige.rolls-per-level", 50);
@@ -54,6 +60,7 @@ public class PrestigeManager {
     }
 
     public double effectiveLuck(PlayerData data) {
-        return data.getEffectiveLuck(luckMultiplierPerPrestige);
+        return data.getEffectiveLuck(luckMultiplierPerPrestige,
+                plugin.getStarforgeManager().luckBonusOf(data));
     }
 }

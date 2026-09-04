@@ -36,6 +36,7 @@ public class RarityManager {
     );
 
     private final List<RollableItem> items = new ArrayList<>();
+    private final Map<String, RollableItem> byName = new java.util.HashMap<>();
     private final Map<Rarity, Double> luckFactors = new EnumMap<>(Rarity.class);
     private final Map<Rarity, RarityStyle> styles = new EnumMap<>(Rarity.class);
     // Rarities flagged with "symbol: true" wrap item names in an
@@ -84,7 +85,73 @@ public class RarityManager {
             }
         }
 
+        assignLuckMultipliers(config);
+
+        byName.clear();
+        for (RollableItem item : items) {
+            byName.put(item.getDisplayName(), item);
+        }
+
         logger.info("[SolRNG] Loaded " + items.size() + " rollable items across " + luckFactors.size() + " rarities.");
+    }
+
+    /**
+     * Gives every item its index Luck multiplier, scaled across its
+     * rarity's configured band by how rare it is WITHIN that rarity — the
+     * longest-odds item in a tier lands on the band's ceiling, the
+     * shortest-odds one on its floor, everything else linearly between.
+     * Derived rather than hand-written so the 143-item table stays
+     * maintainable and self-balancing when odds change.
+     */
+    private void assignLuckMultipliers(FileConfiguration config) {
+        for (Rarity rarity : Rarity.values()) {
+            List<Double> band = config.getDoubleList("index.luck-multipliers." + rarity.name());
+            double low = band.size() > 0 ? band.get(0) : 1.0;
+            double high = band.size() > 1 ? band.get(1) : low;
+
+            List<RollableItem> tier = new ArrayList<>();
+            for (RollableItem item : items) {
+                if (item.getRarity() == rarity) tier.add(item);
+            }
+            if (tier.isEmpty()) continue;
+
+            long minOdds = Long.MAX_VALUE;
+            long maxOdds = Long.MIN_VALUE;
+            for (RollableItem item : tier) {
+                minOdds = Math.min(minOdds, item.getOdds());
+                maxOdds = Math.max(maxOdds, item.getOdds());
+            }
+
+            for (RollableItem item : tier) {
+                double t = maxOdds == minOdds
+                        ? 1.0
+                        : (double) (item.getOdds() - minOdds) / (maxOdds - minOdds);
+                item.setLuckMultiplier(low + t * (high - low));
+            }
+        }
+    }
+
+    /** O(1) lookup used when recomputing a player's index multiplier. */
+    public RollableItem byName(String displayName) {
+        return byName.get(displayName);
+    }
+
+    /**
+     * A player's total index multiplier: 1 + the sum of every discovered
+     * item's (multiplier - 1). Summing the bonuses rather than multiplying
+     * them together keeps a full index worth a big number instead of an
+     * astronomical one — chaining 143 multiplications would run to many
+     * orders of magnitude.
+     */
+    public double indexMultiplierFor(java.util.Collection<String> discoveredNames) {
+        double bonus = 0.0;
+        for (String name : discoveredNames) {
+            RollableItem item = byName.get(name);
+            if (item != null) {
+                bonus += item.getLuckMultiplier() - 1.0;
+            }
+        }
+        return 1.0 + bonus;
     }
 
     /** An item's own "colors"/bold/underline/strikethrough, or null if it doesn't define any. */

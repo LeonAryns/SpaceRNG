@@ -1,8 +1,8 @@
 package com.spacerng.solrng.player;
 
+import com.spacerng.solrng.SolRNGPlugin;
 import com.spacerng.solrng.rarity.Rarity;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,11 +12,11 @@ import java.util.UUID;
 
 public class PlayerDataManager {
 
-    private final JavaPlugin plugin;
+    private final SolRNGPlugin plugin;
     private final File dataFolder;
     private final Map<UUID, PlayerData> cache = new HashMap<>();
 
-    public PlayerDataManager(JavaPlugin plugin) {
+    public PlayerDataManager(SolRNGPlugin plugin) {
         this.plugin = plugin;
         this.dataFolder = new File(plugin.getDataFolder(), "playerdata");
         if (!dataFolder.exists()) {
@@ -68,6 +68,7 @@ public class PlayerDataManager {
         data.setRollSoundEnabled(yml.getBoolean("roll-sound-enabled", true));
         data.setRollAnimationEnabled(yml.getBoolean("roll-animation-enabled", true));
         data.setFarmTokenMultiplier(yml.getDouble("farm-token-multiplier", 1.0));
+        data.setStarforgeTier(yml.getString("starforge-tier", "BASIC"));
 
         for (String node : yml.getStringList("unlocked-nodes")) {
             data.getUnlockedNodes().add(node);
@@ -97,6 +98,12 @@ public class PlayerDataManager {
             data.setEquippedTag(tagItem, tagRarity);
         }
 
+        // Derived from the discovered set + the current item table, so it's
+        // recomputed on load rather than persisted — that way retuning the
+        // multiplier bands in config applies to everyone immediately.
+        data.setIndexLuckMultiplier(
+                plugin.getRarityManager().indexMultiplierFor(data.getDiscoveredItems()));
+
         return data;
     }
 
@@ -117,6 +124,7 @@ public class PlayerDataManager {
         yml.set("roll-sound-enabled", data.isRollSoundEnabled());
         yml.set("roll-animation-enabled", data.isRollAnimationEnabled());
         yml.set("farm-token-multiplier", data.getFarmTokenMultiplier());
+        yml.set("starforge-tier", data.getStarforgeTier());
         yml.set("unlocked-nodes", new java.util.ArrayList<>(data.getUnlockedNodes()));
         for (Map.Entry<String, Integer> entry : data.getNodeLevels().entrySet()) {
             yml.set("node-levels." + entry.getKey(), entry.getValue());
