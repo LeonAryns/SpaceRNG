@@ -20,14 +20,17 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * /starforge — the upgrade shop. One row of tiers left to right in ladder
- * order: owned ones show green, the next one up is buyable, everything
- * past that is locked until you've worked your way there.
+ * /starforge — the upgrade shop, 6x9. The eight tiers run in ladder order
+ * across two centred rows: five on row 2, the last three centred on row 3.
+ * Owned tiers show as green dye, everything still to forge stays a Nether
+ * Star.
  */
 public class StarforgeGui {
 
-    private static final int[] TIER_SLOTS = {10, 11, 12, 13, 14, 15, 16, 19};
-    private static final int BALANCE_SLOT = 22;
+    // Row 2 holds five (columns 3-7), row 3 the remaining three centred
+    // (columns 4-6). Slot = (row-1)*9 + (column-1), both 1-indexed.
+    private static final int[] TIER_SLOTS = {11, 12, 13, 14, 15, 21, 22, 23};
+    private static final int BALANCE_SLOT = 49;
 
     public static NamespacedKey tierIdKey(SolRNGPlugin plugin) {
         return new NamespacedKey(plugin, "solrng_starforge_tier_id");
@@ -35,12 +38,12 @@ public class StarforgeGui {
 
     public static Inventory build(SolRNGPlugin plugin, Player player) {
         StarforgeHolder holder = new StarforgeHolder();
-        Inventory inv = Bukkit.createInventory(holder, 27,
+        Inventory inv = Bukkit.createInventory(holder, 54,
                 ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "Starforge");
         holder.setInventory(inv);
 
         ItemStack filler = filler();
-        for (int slot = 0; slot < 27; slot++) {
+        for (int slot = 0; slot < 54; slot++) {
             inv.setItem(slot, filler);
         }
 
@@ -64,9 +67,9 @@ public class StarforgeGui {
         boolean isNext = tier.getOrder() == currentOrder + 1;
         boolean affordable = starforge.canAfford(player, tier);
 
-        Material material = owned ? Material.LIME_DYE
-                : isNext ? (affordable ? Material.NETHER_STAR : Material.RED_DYE)
-                : Material.GRAY_DYE;
+        // Green only once it's actually yours; everything else stays a
+        // Nether Star so the ladder reads as one set of the same thing.
+        Material material = owned ? Material.LIME_DYE : Material.NETHER_STAR;
 
         ItemStack icon = new ItemStack(material);
         ItemMeta meta = icon.getItemMeta();

@@ -23,7 +23,33 @@ public class RngAdminCommand implements CommandExecutor {
             return true;
         }
         if (args.length == 0) {
-            sender.sendMessage(ChatColor.RED + "Usage: /rngadmin <reload|tokens|setspawn>");
+            sender.sendMessage(ChatColor.RED + "Usage: /rngadmin <reload|tokens|setspawn|starforge>");
+            return true;
+        }
+
+        if (args[0].equalsIgnoreCase("starforge")) {
+            Player target = args.length >= 2
+                    ? plugin.getServer().getPlayer(args[1])
+                    : (sender instanceof Player self ? self : null);
+            if (target == null) {
+                sender.sendMessage(ChatColor.RED + "Usage: /rngadmin starforge [player]");
+                return true;
+            }
+
+            PlayerData targetData = plugin.getPlayerDataManager().get(target.getUniqueId());
+            var tier = plugin.getStarforgeManager().tierOf(targetData);
+            if (tier == null) {
+                sender.sendMessage(ChatColor.RED + "No Starforge tiers are configured.");
+                return true;
+            }
+
+            // Hands over the tier they already own, so replacing a lost one
+            // never quietly demotes or promotes anybody.
+            target.getInventory().addItem(plugin.getStarforgeManager().create(tier));
+            target.sendMessage(ChatColor.GREEN + "You received your " + tier.getDisplay() + ".");
+            if (!target.equals(sender)) {
+                sender.sendMessage(ChatColor.GREEN + "Gave " + target.getName() + " their " + tier.getDisplay() + ".");
+            }
             return true;
         }
 
@@ -67,7 +93,7 @@ public class RngAdminCommand implements CommandExecutor {
             return true;
         }
 
-        sender.sendMessage(ChatColor.RED + "Usage: /rngadmin <reload|tokens|setspawn>");
+        sender.sendMessage(ChatColor.RED + "Usage: /rngadmin <reload|tokens|setspawn|starforge>");
         return true;
     }
 }

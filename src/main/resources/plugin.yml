@@ -37,7 +37,7 @@ commands:
     usage: /starforge
   rngadmin:
     description: Admin tools for SolRNG
-    usage: /rngadmin <reload|tokens|setspawn>
+    usage: /rngadmin <reload|tokens|setspawn|starforge>
     permission: solrng.admin
 
 permissions:

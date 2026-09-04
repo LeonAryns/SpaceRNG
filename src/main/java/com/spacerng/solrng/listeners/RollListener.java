@@ -132,20 +132,16 @@ public class RollListener implements Listener {
     }
 
     /**
-     * Pressing the drop key on the Starforge opens /options instead of
-     * throwing it on the floor — doubles as protection against losing it
-     * by accident.
+     * The Starforge can't be dropped — it's the one item a player can't
+     * afford to lose by fumbling the drop key.
      */
     @EventHandler
     public void onDrop(org.bukkit.event.player.PlayerDropItemEvent event) {
         if (!plugin.getStarforgeManager().isStarforge(event.getItemDrop().getItemStack())) return;
 
         event.setCancelled(true);
-        Player player = event.getPlayer();
-        // Opening an inventory from inside the drop event upsets the
-        // client's held-item state, so hand it to the next tick.
-        plugin.getServer().getScheduler().runTask(plugin,
-                () -> player.openInventory(com.spacerng.solrng.gui.OptionsGui.build(plugin, player)));
+        sendActionBar(event.getPlayer(),
+                ChatColor.RED + "Your Starforge can't be dropped.");
     }
 
     /**

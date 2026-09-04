@@ -829,59 +829,70 @@ economy:
 skilltree:
   # Nodes are paid for with Money (cost-money, Vault). Rolled drops are
   # the currency for /armor, potions and farming-hoe upgrades instead.
+  # "cost-growth" multiplies the price after each level of a leveled node
+  # (1.2 = each level costs 20% more than the last); omit it for flat.
+  # Slot comments are (column, row), both 1-indexed, in the 6x9 grid.
   nodes:
-    auto_roll_root:
+    auto_roll_root:            # (5,6) - the root
       display: "Auto Roll"
       cost-money: 1000
       requires: ""
       effect: AUTO_ROLL
       value: 0
 
-    # Directly above the root — gates the Farming/Armor/Potion chain on
-    # the right branch and the Speed/Luck leveled skills on the left.
-    luck_gate:
+    luck_skill:                # (5,5) - directly above the root
       display: "Luck"
-      cost-money: 5000
+      cost-money: 1000
+      cost-growth: 1.2
       requires: "auto_roll_root"
       effect: LUCK
-      value: 0.02
+      value: 0.05
+      max-level: 10
 
-    # Right branch, bottom to top: Farming -> Armor -> Potion.
-    farming_unlock:
+    # ROLL_SPEED value 0.02 = +2 Speed per level (100 Speed = baseline).
+    speed_skill:               # (4,5)
+      display: "Speed"
+      cost-money: 2000
+      requires: "luck_skill"
+      effect: ROLL_SPEED
+      value: 0.02
+      max-level: 10
+
+    auto_convert:              # (6,5)
+      display: "Auto Convert"
+      cost-money: 5000
+      requires: "luck_skill"
+      effect: UNLOCK_AUTO_CONVERT
+      value: 0
+
+    shiny_unlock:              # (8,5)
+      display: "Shiny Unlocked"
+      cost-money: 25000
+      requires: "luck_skill"
+      effect: UNLOCK_SHINY
+      value: 0
+
+    farming_unlock:            # (5,4)
       display: "Farming Unlocked"
-      cost-money: 15000
-      requires: "luck_gate"
+      cost-money: 10000
+      requires: "luck_skill"
       effect: UNLOCK_FARMING
       value: 0
-    armor_unlock:
+
+    # Armor and Potion have no requested position yet - parked in the
+    # middle column above Farming until you pick their slots.
+    armor_unlock:              # (5,3)
       display: "Armor Unlocked"
       cost-money: 40000
       requires: "farming_unlock"
       effect: UNLOCK_ARMOR
       value: 0
-    potion_unlock:
+    potion_unlock:             # (5,2)
       display: "Potion Unlocked"
       cost-money: 100000
       requires: "armor_unlock"
       effect: UNLOCK_POTION
       value: 0
-
-    # Left branch — leveled nodes, same cost paid per level.
-    # ROLL_SPEED value 0.02 = +2 Speed per level (100 Speed = baseline).
-    speed_skill:
-      display: "Speed"
-      cost-money: 3000
-      requires: "luck_gate"
-      effect: ROLL_SPEED
-      value: 0.02
-      max-level: 10
-    luck_skill:
-      display: "Luck"
-      cost-money: 5000
-      requires: "luck_gate"
-      effect: LUCK
-      value: 0.05
-      max-level: 10
 
 # Rolls of this rarity or higher get broadcast to the whole server.
 broadcast:

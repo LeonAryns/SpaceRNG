@@ -20,8 +20,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * The Starforge — the item players right-click to roll, left-click to
- * toggle Auto Roll, and drop-key to open settings. Its tier is what sets
+ * The Starforge — the item players right-click to roll and left-click to
+ * toggle Auto Roll. It can't be dropped. Its tier is what sets
  * a player's BASE Luck; the skill tree and armor add on top, and the
  * index multiplier scales the whole thing.
  *
@@ -250,7 +250,6 @@ public class StarforgeManager {
                 + "+" + formatPercent(tier.getLuckBonus()) + "%");
         lore.add("");
         lore.add(ChatColor.GRAY + "Punch " + ChatColor.DARK_GRAY + "» " + ChatColor.AQUA + "Auto Roll");
-        lore.add(ChatColor.GRAY + "Drop " + ChatColor.DARK_GRAY + "» " + ChatColor.AQUA + "Settings");
         lore.add("");
         lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "INTERACT TO ROLL");
         return lore;

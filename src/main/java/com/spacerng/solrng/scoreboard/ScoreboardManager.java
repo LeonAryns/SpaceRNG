@@ -63,7 +63,7 @@ public class ScoreboardManager {
     public void setup(Player player) {
         Scoreboard board = Bukkit.getScoreboardManager().getNewScoreboard();
         Objective objective = board.registerNewObjective(OBJECTIVE_ID, "dummy",
-                ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + "⚡ SpaceRNG ⚡");
+                ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + "✦ SpaceRNG ✦");
         objective.setDisplaySlot(DisplaySlot.SIDEBAR);
         player.setScoreboard(board);
         // A fresh personal Scoreboard has none of the tag teams other

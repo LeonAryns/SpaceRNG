@@ -22,40 +22,39 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * 6x9 skill tree. Layout (row*9+col, root at the bottom-middle):
+ * 6x9 skill tree. Slots are given as (column, row), both 1-indexed, which
+ * is how the layout gets specified — slot = (row-1)*9 + (column-1):
  * <pre>
- * row1:  ???(10)         farming_unlock(16)
- * row2:  luck_skill(19)  potion/armor col   armor_unlock(25)
- * row3:  speed_skill(28)                    potion_unlock(34)
- * row4:  37  38  39  luck_gate(40)  41  42  43   <- connector row, full width
- * row5:                 auto_roll_root(49)
+ * (5,2) potion_unlock   13
+ * (5,3) armor_unlock    22
+ * (5,4) farming_unlock  31
+ * (4,5) speed_skill     39   (5,5) luck_skill 40
+ * (6,5) auto_convert    41   (8,5) shiny_unlock 43
+ * (5,6) auto_roll_root  49   <- the root
  * </pre>
- * The row-4 connector fills columns 1-7 solid so the three branches visibly
- * merge into one path above the root. Everything else in the branch region
- * not claimed by a real node is a decorative "???" placeholder — reserved
- * for whatever gets designed later. Bottom-right corner shows Money.
+ * Slots between the real nodes render as decorative "???" placeholders so
+ * the tree reads as a connected path with room to grow. Bottom-right
+ * corner shows Money.
  */
 public class SkillTreeGui {
 
     private static final Map<String, Integer> SLOT_BY_ID = Map.of(
-            "auto_roll_root", 49,
-            "luck_gate", 40,
-            "farming_unlock", 16,
-            "armor_unlock", 25,
-            "potion_unlock", 34,
-            "luck_skill", 19,
-            "speed_skill", 28
+            "auto_roll_root", 49,   // (5,6)
+            "luck_skill", 40,       // (5,5)
+            "speed_skill", 39,      // (4,5)
+            "auto_convert", 41,     // (6,5)
+            "shiny_unlock", 43,     // (8,5)
+            "farming_unlock", 31,   // (5,4)
+            "armor_unlock", 22,     // (5,3)
+            "potion_unlock", 13     // (5,2)
     );
 
-    // Every slot that's part of the tree's visual branch structure: three
-    // vertical columns (rows 1-3) plus the row-4 connector spanning the
-    // full width between them. Anything here not claimed by a real node
-    // above renders as a decorative "???" placeholder.
+    // Slots that belong to the tree's visual structure. Anything here not
+    // claimed by a real node above renders as a "???" placeholder, which
+    // is what visually joins the nodes into a path.
     private static final int[] BRANCH_REGION_SLOTS = {
-            10, 13, 16,
-            19, 22, 25,
-            28, 31, 34,
-            37, 38, 39, 40, 41, 42, 43
+            13, 22, 31,
+            38, 39, 40, 41, 42, 43
     };
 
     private static final int STATS_SLOT = 53;
@@ -88,7 +87,7 @@ public class SkillTreeGui {
             SkillNode node = tree.get(entry.getKey());
             if (node == null) continue; // config doesn't define this id — leave the filler glass
 
-            boolean reqMet = node.getRequires() == null || data.hasUnlocked(node.getRequires());
+            boolean reqMet = tree.requirementMet(data, node);
             ItemStack icon = reqMet ? buildNodeIcon(plugin, player, data, node) : placeholderNode();
             inv.setItem(entry.getValue(), icon);
         }
@@ -111,7 +110,8 @@ public class SkillTreeGui {
             lore.add(ChatColor.GRAY + "Level: " + ChatColor.AQUA + level + ChatColor.GRAY + "/" + node.getMaxLevel());
         }
         if (canBuyMore) {
-            lore.add(ChatColor.GRAY + "Price: " + ChatColor.GOLD + "$" + String.format("%,.0f", node.getMoneyCost())
+            double price = plugin.getSkillTreeManager().priceFor(data, node);
+            lore.add(ChatColor.GRAY + "Price: " + ChatColor.GOLD + "$" + String.format("%,.0f", price)
                     + ChatColor.DARK_GRAY + " (" + formatMoney(player) + ")");
         } else {
             lore.add(ChatColor.GREEN + (leveled ? "Maxed!" : "Unlocked"));
@@ -119,8 +119,20 @@ public class SkillTreeGui {
         lore.add("");
         lore.add(describeEffect(node, level));
 
-        Material material = complete ? Material.LIME_DYE : (started ? Material.YELLOW_DYE : Material.RED_DYE);
-        ChatColor nameColor = complete ? ChatColor.GREEN : (started ? ChatColor.YELLOW : ChatColor.RED);
+        // A leveled node only goes green once it's actually finished —
+        // part-done reads as "still work to do" rather than complete.
+        Material material;
+        ChatColor nameColor;
+        if (complete) {
+            material = Material.LIME_DYE;
+            nameColor = ChatColor.GREEN;
+        } else if (leveled) {
+            material = Material.RECOVERY_COMPASS;
+            nameColor = started ? ChatColor.YELLOW : ChatColor.RED;
+        } else {
+            material = Material.RED_DYE;
+            nameColor = ChatColor.RED;
+        }
 
         ItemStack icon = new ItemStack(material);
         ItemMeta meta = icon.getItemMeta();
@@ -165,7 +177,7 @@ public class SkillTreeGui {
     private static String formatMoney(Player player) {
         var registration = Bukkit.getServicesManager().getRegistration(Economy.class);
         if (registration == null) return "N/A";
-        return "$" + String.format("%.0f", registration.getProvider().getBalance(player));
+        return "$" + String.format("%,.0f", registration.getProvider().getBalance(player));
     }
 
     private static String describeEffect(SkillNode node, int level) {
@@ -179,6 +191,7 @@ public class SkillTreeGui {
             case UNLOCK_FARMING -> ChatColor.DARK_AQUA + "Unlocks farming crops for Tokens";
             case UNLOCK_ARMOR -> ChatColor.DARK_AQUA + "Unlocks the /armor shop";
             case UNLOCK_POTION -> ChatColor.DARK_AQUA + "Unlocks the Potion system (coming soon)";
+            case UNLOCK_SHINY -> ChatColor.DARK_AQUA + "Unlocks Shiny drops (coming soon)";
             case AUTO_ROLL -> ChatColor.DARK_AQUA + "Rolls automatically at your own roll speed";
             case ROLL_SPEED -> leveled
                     ? ChatColor.DARK_AQUA + "+" + pct(node.getValue()) + " Speed per level "

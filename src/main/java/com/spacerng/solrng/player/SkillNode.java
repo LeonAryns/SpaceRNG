@@ -10,7 +10,8 @@ public class SkillNode {
         BONUS_ROLL_CHANCE,
         UNLOCK_FARMING,
         UNLOCK_ARMOR,
-        UNLOCK_POTION
+        UNLOCK_POTION,
+        UNLOCK_SHINY
     }
 
     private final String id;
@@ -26,8 +27,11 @@ public class SkillNode {
     // adding another `value` to the effect (e.g. maxLevel 10, value 0.05
     // LUCK = +5% Luck per level, up to +50% at level 10).
     private final int maxLevel;
+    // Multiplies the price after each level of a leveled node, so 1.2
+    // means every level costs 20% more than the one before. 1.0 = flat.
+    private final double costGrowth;
 
-    public SkillNode(String id, String display, double moneyCost, String requires, Effect effect, double value, int maxLevel) {
+    public SkillNode(String id, String display, double moneyCost, String requires, Effect effect, double value, int maxLevel, double costGrowth) {
         this.id = id;
         this.display = display;
         this.moneyCost = moneyCost;
@@ -35,6 +39,7 @@ public class SkillNode {
         this.effect = effect;
         this.value = value;
         this.maxLevel = Math.max(1, maxLevel);
+        this.costGrowth = costGrowth <= 0 ? 1.0 : costGrowth;
     }
 
     public String getId() {
@@ -63,5 +68,14 @@ public class SkillNode {
 
     public int getMaxLevel() {
         return maxLevel;
+    }
+
+    public double getCostGrowth() {
+        return costGrowth;
+    }
+
+    /** What the NEXT level costs, given how many are already bought. */
+    public double costAtLevel(int currentLevel) {
+        return moneyCost * Math.pow(costGrowth, currentLevel);
     }
 }

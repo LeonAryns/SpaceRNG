@@ -26,7 +26,10 @@ import java.util.List;
  */
 public class IndexGui {
 
-    private static final int PAGE_SIZE = 45; // rows 1-5
+    // Row 1 is the tab bar, row 2 a glass divider, so entries fill rows 3-6.
+    private static final int PAGE_SIZE = 36;
+    private static final int ENTRY_START_SLOT = 18;
+    private static final int DIVIDER_ROW_START = 9;
     private static final int PREV_SLOT = 6;
     private static final int PROGRESS_SLOT = 7;
     private static final int NEXT_SLOT = 8;
@@ -48,6 +51,12 @@ public class IndexGui {
 
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
 
+        // Divider under the tab bar so the filters read as their own
+        // section rather than running straight into the entries.
+        for (int slot = DIVIDER_ROW_START; slot < DIVIDER_ROW_START + 9; slot++) {
+            inv.setItem(slot, divider());
+        }
+
         for (Rarity rarity : Rarity.values()) {
             inv.setItem(rarity.ordinal(), buildTab(plugin, rarity, filter == rarity));
         }
@@ -62,7 +71,7 @@ public class IndexGui {
 
         int from = page * PAGE_SIZE;
         int to = Math.min(shown.size(), from + PAGE_SIZE);
-        int slot = 9;
+        int slot = ENTRY_START_SLOT;
         for (RollableItem item : shown.subList(from, to)) {
             inv.setItem(slot, buildEntry(plugin, data, item));
             slot++;
@@ -112,6 +121,15 @@ public class IndexGui {
         meta.setLore(lore);
         info.setItemMeta(meta);
         return info;
+    }
+
+    /** Same light-grey pane the other menus use as a section break. */
+    private static ItemStack divider() {
+        ItemStack pane = new ItemStack(Material.LIGHT_GRAY_STAINED_GLASS_PANE);
+        ItemMeta meta = pane.getItemMeta();
+        meta.setDisplayName(" ");
+        pane.setItemMeta(meta);
+        return pane;
     }
 
     private static ItemStack buildPageButton(boolean next, int page, int totalPages) {
