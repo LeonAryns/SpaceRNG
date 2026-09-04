@@ -3,6 +3,7 @@ package com.spacerng.solrng.gui;
 import com.spacerng.solrng.SolRNGPlugin;
 import com.spacerng.solrng.player.ArmorManager;
 import com.spacerng.solrng.player.ArmorTier;
+import com.spacerng.solrng.player.DropWallet;
 import com.spacerng.solrng.player.PlayerData;
 import com.spacerng.solrng.rarity.Rarity;
 import org.bukkit.Bukkit;
@@ -98,7 +99,7 @@ public class ArmorGui {
         } else {
             lore.add(ChatColor.GRAY + "Price:");
             for (Map.Entry<Rarity, Long> cost : tier.getCosts().entrySet()) {
-                long held = countHeld(player, rarityKey, cost.getKey());
+                long held = DropWallet.total(plugin, player, data, cost.getKey());
                 String costText = cost.getValue() + " " + cost.getKey().displayName();
                 lore.add(ChatColor.GRAY + " - " + plugin.getRarityManager().style(cost.getKey(), costText)
                         + ChatColor.DARK_GRAY + " (" + held + ")");
@@ -119,33 +120,21 @@ public class ArmorGui {
     }
 
     private static ItemStack buildDropTotals(SolRNGPlugin plugin, Player player, PlayerData data) {
-        NamespacedKey rarityKey = plugin.getRollListener().getRarityKey();
-
         ItemStack stats = new ItemStack(Material.HOPPER);
         ItemMeta meta = stats.getItemMeta();
         meta.setDisplayName(ChatColor.GOLD + "" + ChatColor.BOLD + "Drop Totals");
 
         List<String> lore = new ArrayList<>();
+        // Inventory plus banked — armor spends from both, so both count.
         for (Rarity rarity : Rarity.values()) {
-            long held = countHeld(player, rarityKey, rarity);
-            long converted = rarity == Rarity.COMMON ? data.getConvertedCommon()
-                    : rarity == Rarity.UNCOMMON ? data.getConvertedUncommon() : 0L;
-            lore.add(plugin.getRarityManager().style(rarity, rarity.displayName() + ": ") + ChatColor.WHITE + (held + converted));
+            long banked = data.getBankedDrops(rarity);
+            lore.add(plugin.getRarityManager().style(rarity, rarity.displayName() + ": ")
+                    + ChatColor.WHITE + DropWallet.total(plugin, player, data, rarity)
+                    + (banked > 0 ? ChatColor.DARK_GRAY + " (" + banked + " stored)" : ""));
         }
         meta.setLore(lore);
         stats.setItemMeta(meta);
         return stats;
     }
 
-    private static long countHeld(Player player, NamespacedKey rarityKey, Rarity rarity) {
-        long total = 0L;
-        for (ItemStack stack : player.getInventory().getContents()) {
-            if (stack == null || stack.getItemMeta() == null) continue;
-            String rarityName = stack.getItemMeta().getPersistentDataContainer().get(rarityKey, PersistentDataType.STRING);
-            if (rarity.name().equals(rarityName)) {
-                total += stack.getAmount();
-            }
-        }
-        return total;
-    }
 }

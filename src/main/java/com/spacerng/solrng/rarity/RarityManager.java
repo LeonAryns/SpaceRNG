@@ -162,6 +162,14 @@ public class RarityManager {
                 Boolean.TRUE.equals(raw.get("strikethrough")));
     }
 
+    /**
+     * Builds a style from raw config values — used by anything outside the
+     * item table that wants the same gradient look (the Starforge tiers).
+     */
+    public RarityStyle buildStyle(List<String> colors, boolean bold, boolean underline, boolean strikethrough) {
+        return parseStyle(colors, bold, underline, strikethrough);
+    }
+
     private RarityStyle parseStyle(List<String> colors, boolean bold, boolean underline, boolean strikethrough) {
         List<int[]> stops = new ArrayList<>();
         for (String colorStr : colors) {

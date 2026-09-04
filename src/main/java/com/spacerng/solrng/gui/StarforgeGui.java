@@ -73,8 +73,11 @@ public class StarforgeGui {
 
         ItemStack icon = new ItemStack(material);
         ItemMeta meta = icon.getItemMeta();
-        meta.setDisplayName((owned ? ChatColor.GREEN : isNext ? ChatColor.WHITE : ChatColor.DARK_GRAY)
-                + tier.getDisplay());
+        // Owned/next tiers wear their own colors; everything still out of
+        // reach stays greyed out so the ladder reads at a glance.
+        meta.setDisplayName(owned || isNext
+                ? tier.styledDisplay()
+                : ChatColor.DARK_GRAY + tier.getDisplay());
 
         // Same stat/controls block the held item shows, then the price.
         List<String> lore = new ArrayList<>(starforge.statLines(tier));
@@ -117,8 +120,8 @@ public class StarforgeGui {
                     + ChatColor.WHITE + plugin.getStarforgeManager().countHeld(player, rarity));
         }
         lore.add("");
-        lore.add(ChatColor.GRAY + "Current: " + ChatColor.WHITE
-                + (current == null ? "None" : current.getDisplay()));
+        lore.add(ChatColor.GRAY + "Current: "
+                + (current == null ? ChatColor.WHITE + "None" : current.styledDisplay()));
 
         meta.setLore(lore);
         item.setItemMeta(meta);

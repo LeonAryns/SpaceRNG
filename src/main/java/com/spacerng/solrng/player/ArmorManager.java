@@ -78,8 +78,9 @@ public class ArmorManager {
     }
 
     public boolean canAfford(Player player, ArmorTier tier, NamespacedKey rarityKey) {
+        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         for (Map.Entry<Rarity, Long> cost : tier.getCosts().entrySet()) {
-            if (countHeld(player, rarityKey, cost.getKey()) < cost.getValue()) return false;
+            if (DropWallet.total(plugin, player, data, cost.getKey()) < cost.getValue()) return false;
         }
         return true;
     }
@@ -95,8 +96,7 @@ public class ArmorManager {
         if (!canAfford(player, tier, rarityKey)) return false;
 
         for (Map.Entry<Rarity, Long> cost : tier.getCosts().entrySet()) {
-            consume(player, rarityKey, cost.getKey(), cost.getValue());
-            data.addConverted(cost.getKey(), cost.getValue());
+            DropWallet.spend(plugin, player, data, cost.getKey(), cost.getValue());
         }
 
         data.markArmorPurchased(tierId);
@@ -116,37 +116,6 @@ public class ArmorManager {
 
         Map<Integer, ItemStack> overflow = player.getInventory().addItem(piece);
         overflow.values().forEach(leftover -> player.getWorld().dropItemNaturally(player.getLocation(), leftover));
-    }
-
-    private long countHeld(Player player, NamespacedKey rarityKey, Rarity rarity) {
-        long total = 0L;
-        for (ItemStack stack : player.getInventory().getStorageContents()) {
-            if (stack == null || stack.getItemMeta() == null) continue;
-            String rarityName = stack.getItemMeta().getPersistentDataContainer().get(rarityKey, PersistentDataType.STRING);
-            if (rarity.name().equals(rarityName)) {
-                total += stack.getAmount();
-            }
-        }
-        return total;
-    }
-
-    private void consume(Player player, NamespacedKey rarityKey, Rarity rarity, long amount) {
-        ItemStack[] contents = player.getInventory().getStorageContents();
-        long remaining = amount;
-        for (int i = 0; i < contents.length && remaining > 0; i++) {
-            ItemStack stack = contents[i];
-            if (stack == null || stack.getItemMeta() == null) continue;
-            String rarityName = stack.getItemMeta().getPersistentDataContainer().get(rarityKey, PersistentDataType.STRING);
-            if (!rarity.name().equals(rarityName)) continue;
-
-            long take = Math.min(remaining, stack.getAmount());
-            stack.setAmount((int) (stack.getAmount() - take));
-            remaining -= take;
-            if (stack.getAmount() <= 0) {
-                contents[i] = null;
-            }
-        }
-        player.getInventory().setStorageContents(contents);
     }
 
     /**

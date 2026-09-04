@@ -103,20 +103,21 @@ public class ScoreboardManager {
 
         List<String> lines = new ArrayList<>();
         lines.add(""); // breathing room under the header
+        // Name sits directly on top of the stat block, same as "Your
+        // Wallet" sits directly on top of Balance.
         lines.add(ChatColor.GOLD + "" + ChatColor.BOLD + player.getName());
-        lines.add(""); // breathing room under the name
         lines.add(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Index: " + ChatColor.AQUA + discovered + ChatColor.GRAY + "/" + ChatColor.AQUA + totalItems
-                + ChatColor.DARK_GRAY + " ("
+                + ChatColor.WHITE + " ("
                 + String.format("%.2f", plugin.getRarityManager().tagMultiplierFor(data)) + "x)");
         lines.add(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Luck: " + ChatColor.GREEN + "+" + String.format("%.2f", luckPercent) + "%");
-        lines.add(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Speed: " + ChatColor.GREEN
+        lines.add(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Speed: " + ChatColor.YELLOW
                 + Math.round(data.getEffectiveRollSpeedMultiplier() * 100));
         lines.add(ChatColor.YELLOW + "| " + prestigeLine(data));
         lines.add(""); // blank spacer
         lines.add(ChatColor.GOLD + "" + ChatColor.BOLD + "Your Wallet");
         lines.add(balanceLine(player));
-        lines.add(walletLine(data.getTokens(), "Tokens", ChatColor.AQUA));
-        lines.add(walletLine(data.getShards(), "Shards", ChatColor.DARK_PURPLE));
+        lines.add(walletLine(data.getTokens(), "Tokens", ChatColor.YELLOW));
+        lines.add(walletLine(data.getShards(), "Shards", ChatColor.AQUA));
         lines.add(walletLine(data.getPoints(), "Credits", ChatColor.LIGHT_PURPLE));
 
         String rollStatus = rollStatusLine(player);
@@ -157,9 +158,9 @@ public class ScoreboardManager {
 
     private String balanceLine(Player player) {
         if (economy == null) {
-            return ChatColor.YELLOW + "| " + ChatColor.GREEN + "N/A Balance";
+            return ChatColor.YELLOW + "| " + ChatColor.DARK_GREEN + "N/A Balance";
         }
-        return walletLine(Math.round(economy.getBalance(player)), "Balance", ChatColor.GREEN);
+        return walletLine(Math.round(economy.getBalance(player)), "Balance", ChatColor.DARK_GREEN);
     }
 
     /**

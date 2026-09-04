@@ -11,13 +11,16 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.entity.Player;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ConvertGui {
 
+    private static final int STORED_SLOT = 49; // bottom row, centred
+
     public static Inventory build(SolRNGPlugin plugin, Player player) {
         ConvertHolder holder = new ConvertHolder();
-        Inventory inv = Bukkit.createInventory(holder, 54, ChatColor.DARK_GREEN + "Convert Items → Credits");
+        Inventory inv = Bukkit.createInventory(holder, 54, ChatColor.DARK_GREEN + "Convert Items → Drops");
         holder.setInventory(inv);
 
         // Glass border under the input rows so players know the rest isn't functional input.
@@ -32,8 +35,10 @@ public class ConvertGui {
         ItemStack confirm = new ItemStack(Material.LIME_CONCRETE);
         ItemMeta confirmMeta = confirm.getItemMeta();
         confirmMeta.setDisplayName(ChatColor.GREEN + "" + ChatColor.BOLD + "Convert!");
-        confirmMeta.setLore(List.of(ChatColor.GRAY + "Converts every item placed",
-                ChatColor.GRAY + "in the top three rows into Credits."));
+        confirmMeta.setLore(List.of(ChatColor.GRAY + "Converts every item placed in the",
+                ChatColor.GRAY + "top three rows into stored drops of",
+                ChatColor.GRAY + "the same rarity — spend them in",
+                ChatColor.GRAY + "/armor and /starforge."));
         confirm.setItemMeta(confirmMeta);
         inv.setItem(ConvertHolder.CONFIRM_SLOT, confirm);
 
@@ -56,6 +61,30 @@ public class ConvertGui {
             slot++;
         }
 
+        inv.setItem(STORED_SLOT, buildStoredPanel(plugin, data));
+
         return inv;
+    }
+
+    /**
+     * What the player has banked. Converting doesn't destroy a drop, it
+     * just moves it out of the inventory — so this is a running total of
+     * spendable Common/Uncommon/... rather than a separate currency.
+     */
+    private static ItemStack buildStoredPanel(SolRNGPlugin plugin, PlayerData data) {
+        ItemStack panel = new ItemStack(Material.CHEST);
+        ItemMeta meta = panel.getItemMeta();
+        meta.setDisplayName(ChatColor.GOLD + "" + ChatColor.BOLD + "Stored Drops");
+
+        List<String> lore = new ArrayList<>();
+        for (Rarity rarity : Rarity.values()) {
+            lore.add(plugin.getRarityManager().style(rarity, rarity.displayName() + ": ")
+                    + ChatColor.WHITE + data.getBankedDrops(rarity));
+        }
+        lore.add("");
+        lore.add(ChatColor.GRAY + "Spendable in /armor and /starforge.");
+        meta.setLore(lore);
+        panel.setItemMeta(meta);
+        return panel;
     }
 }

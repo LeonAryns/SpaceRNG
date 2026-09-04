@@ -75,7 +75,7 @@ public class GuiListener implements Listener {
 
         if (plugin.getStarforgeManager().purchase(player, data, tierId)) {
             var tier = plugin.getStarforgeManager().get(tierId);
-            player.sendMessage(ChatColor.GREEN + "Forged: " + ChatColor.LIGHT_PURPLE + tier.getDisplay()
+            player.sendMessage(ChatColor.GREEN + "Forged: " + tier.styledDisplay()
                     + ChatColor.GRAY + " (+"
                     + com.spacerng.solrng.starforge.StarforgeManager.formatPercent(tier.getLuckBonus())
                     + "% base Luck)");
@@ -266,11 +266,17 @@ public class GuiListener implements Listener {
         }
     }
 
+    /**
+     * Converting banks each item as a stored drop of its own rarity
+     * rather than paying Credits — a Common in the bank buys exactly what
+     * a Common in the inventory buys, so /armor and /starforge stay the
+     * sinks for rolled loot and Credits stay reserved for the paid store.
+     */
     private void convertInputSlots(Player player, Inventory top) {
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         NamespacedKey rarityKey = plugin.getRollListener().getRarityKey();
 
-        long totalPoints = 0;
+        java.util.Map<Rarity, Long> banked = new java.util.EnumMap<>(Rarity.class);
         int itemsConverted = 0;
 
         for (int slot : ConvertHolder.INPUT_SLOTS) {
@@ -284,23 +290,31 @@ public class GuiListener implements Listener {
 
             try {
                 Rarity rarity = Rarity.valueOf(rarityName);
-                long pointsEach = plugin.getConfig().getLong("conversion.points-per-rarity." + rarity.name(), 1L);
-                totalPoints += pointsEach * stack.getAmount();
-                itemsConverted += stack.getAmount();
-                data.addConverted(rarity, stack.getAmount());
+                long amount = stack.getAmount();
+                banked.merge(rarity, amount, Long::sum);
+                itemsConverted += amount;
+                data.addBankedDrops(rarity, amount);
+                data.addConverted(rarity, amount);
                 top.setItem(slot, null);
             } catch (IllegalArgumentException ignored) {
             }
         }
 
         if (itemsConverted == 0) {
-            player.sendMessage(ChatColor.RED + "Place some rolled items in the top row first.");
+            player.sendMessage(ChatColor.RED + "Place some rolled items in the top rows first.");
             return;
         }
 
-        data.addPoints(totalPoints);
+        StringBuilder summary = new StringBuilder();
+        for (java.util.Map.Entry<Rarity, Long> entry : banked.entrySet()) {
+            if (summary.length() > 0) summary.append(ChatColor.GRAY).append(", ");
+            summary.append(plugin.getRarityManager().style(entry.getKey(),
+                    entry.getValue() + " " + entry.getKey().displayName()));
+        }
+
         plugin.getScoreboardManager().update(player);
-        player.sendMessage(ChatColor.GREEN + "Converted " + itemsConverted + " item(s) → " + ChatColor.YELLOW + totalPoints + " Credits");
+        player.openInventory(ConvertGui.build(plugin, player)); // refresh the Stored Drops panel
+        player.sendMessage(ChatColor.GREEN + "Stored " + itemsConverted + " drop(s): " + summary);
     }
 
     private void handleAutoToggleClick(Player player, int rawSlot) {

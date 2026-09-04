@@ -14,14 +14,20 @@ roll-item:
 # better ones are bought in /starforge and give a bigger base Luck.
 # luck-bonus 0.25 = 25% Luck. This is a player's BASE luck — the skill
 # tree and armor add to it, and the index multiplier scales the total.
+# "colors" is the same per-character gradient engine the Epic+ item names
+# use: one entry = flat color, 2+ = a gradient across the name. Accepts
+# "#RRGGBB" hex or "&6"-style legacy codes, plus bold/underline/
+# strikethrough flags.
 starforge:
   tiers:
     BASIC:
       display: "Basic Starforge"
+      colors: ["#9AA0A6", "#D8DEE4"]
       luck-bonus: 0.25
       costs: {}
     INTERMEDIATE:
       display: "Intermediate Starforge"
+      colors: ["#2FBF4F", "#A6F26B"]
       luck-bonus: 0.50
       costs:
         COMMON: 75
@@ -29,6 +35,7 @@ starforge:
         RARE: 5
     ADVANCED:
       display: "Advanced Starforge"
+      colors: ["#1FB6E8", "#5B8CFF"]
       luck-bonus: 1.00
       costs:
         COMMON: 200
@@ -37,6 +44,8 @@ starforge:
         EPIC: 3
     REFINED:
       display: "Refined Starforge"
+      colors: ["#8B5CF6", "#E879F9"]
+      bold: true
       luck-bonus: 1.75
       costs:
         UNCOMMON: 200
@@ -44,6 +53,8 @@ starforge:
         EPIC: 10
     SUPERIOR:
       display: "Superior Starforge"
+      colors: ["#FF9F1C", "#FFE066"]
+      bold: true
       luck-bonus: 3.00
       costs:
         RARE: 150
@@ -53,12 +64,16 @@ starforge:
     # the rarer drops, so retune these once those feel right in-game.
     MASTERWORK:
       display: "Masterwork Starforge"
+      colors: ["#FF3D3D", "#FF9F1C", "#FFE066"]
+      bold: true
       luck-bonus: 5.00
       costs:
         EPIC: 100
         LEGENDARY: 10
     RADIANT:
       display: "Radiant Starforge"
+      colors: ["#00E5FF", "#FFFFFF", "#FFD200"]
+      bold: true
       luck-bonus: 8.00
       costs:
         EPIC: 250
@@ -66,6 +81,8 @@ starforge:
         MYTHICAL: 2
     CELESTIAL:
       display: "Celestial Starforge"
+      colors: ["#7F00FF", "#E100FF", "#00E0FF"]
+      bold: true
       luck-bonus: 12.50
       costs:
         LEGENDARY: 100
@@ -808,6 +825,9 @@ index:
 
 # How many points ("Credits") a single item of each rarity is worth
 # when converted via /convert.
+# Legacy: /convert now banks a stored drop of the item's own rarity
+# instead of paying Credits, so nothing reads these any more. Kept so the
+# values aren't lost if a Credit payout ever comes back.
 conversion:
   points-per-rarity:
     COMMON: 1
@@ -865,10 +885,12 @@ skilltree:
       effect: UNLOCK_AUTO_CONVERT
       value: 0
 
+    # Sits at the far end of the right-hand branch, so Luck alone doesn't
+    # expose it — Auto Convert has to be bought first.
     shiny_unlock:              # (8,5)
       display: "Shiny Unlocked"
       cost-money: 25000
-      requires: "luck_skill"
+      requires: "auto_convert"
       effect: UNLOCK_SHINY
       value: 0
 

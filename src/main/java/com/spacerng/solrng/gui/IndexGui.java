@@ -123,9 +123,9 @@ public class IndexGui {
         return info;
     }
 
-    /** Same light-grey pane the other menus use as a section break. */
+    /** Same black pane the other menus use as filler/section break. */
     private static ItemStack divider() {
-        ItemStack pane = new ItemStack(Material.LIGHT_GRAY_STAINED_GLASS_PANE);
+        ItemStack pane = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
         ItemMeta meta = pane.getItemMeta();
         meta.setDisplayName(" ");
         pane.setItemMeta(meta);
@@ -162,6 +162,10 @@ public class IndexGui {
         } else {
             meta.setDisplayName(ChatColor.DARK_GRAY + "???");
             lore.add(ChatColor.GRAY + "Rarity: " + plugin.getRarityManager().style(item.getRarity(), item.getRarity().displayName()));
+            // The odds show even before it's found — that's the hook that
+            // makes an undiscovered slot worth chasing.
+            lore.add(ChatColor.GRAY + "Chance: " + plugin.getRarityManager().style(item.getRarity(),
+                    RollFormat.chance(item.getOdds())));
             lore.add(ChatColor.GRAY + "Index Luck: " + ChatColor.DARK_AQUA
                     + String.format("%.2f", item.getLuckMultiplier()) + "x");
             lore.add("");

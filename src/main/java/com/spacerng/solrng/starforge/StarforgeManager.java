@@ -1,6 +1,7 @@
 package com.spacerng.solrng.starforge;
 
 import com.spacerng.solrng.SolRNGPlugin;
+import com.spacerng.solrng.player.DropWallet;
 import com.spacerng.solrng.player.PlayerData;
 import com.spacerng.solrng.rarity.Rarity;
 import org.bukkit.ChatColor;
@@ -77,7 +78,12 @@ public class StarforgeManager {
                     t.getString("display", id),
                     t.getDouble("luck-bonus", 0.0),
                     costs,
-                    order++));
+                    order++,
+                    plugin.getRarityManager().buildStyle(
+                            t.getStringList("colors"),
+                            t.getBoolean("bold", false),
+                            t.getBoolean("underline", false),
+                            t.getBoolean("strikethrough", false))));
         }
         plugin.getLogger().info("[SolRNG] Loaded " + tiers.size() + " Starforge tiers.");
     }
@@ -132,21 +138,13 @@ public class StarforgeManager {
         }
     }
 
-    private NamespacedKey rarityKey() {
-        return plugin.getRollListener().getRarityKey();
-    }
-
+    /**
+     * Spendable drops of a rarity: rolled items in the inventory plus
+     * whatever the player has banked through /convert.
+     */
     public long countHeld(Player player, Rarity rarity) {
-        NamespacedKey key = rarityKey();
-        long total = 0L;
-        for (ItemStack stack : player.getInventory().getStorageContents()) {
-            if (stack == null || stack.getItemMeta() == null) continue;
-            String rarityName = stack.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING);
-            if (rarity.name().equals(rarityName)) {
-                total += stack.getAmount();
-            }
-        }
-        return total;
+        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+        return DropWallet.total(plugin, player, data, rarity);
     }
 
     public boolean canAfford(Player player, StarforgeTier tier) {
@@ -154,26 +152,6 @@ public class StarforgeManager {
             if (countHeld(player, cost.getKey()) < cost.getValue()) return false;
         }
         return true;
-    }
-
-    private void consume(Player player, Rarity rarity, long amount) {
-        NamespacedKey key = rarityKey();
-        ItemStack[] contents = player.getInventory().getStorageContents();
-        long remaining = amount;
-        for (int i = 0; i < contents.length && remaining > 0; i++) {
-            ItemStack stack = contents[i];
-            if (stack == null || stack.getItemMeta() == null) continue;
-            String rarityName = stack.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING);
-            if (!rarity.name().equals(rarityName)) continue;
-
-            long take = Math.min(remaining, stack.getAmount());
-            stack.setAmount((int) (stack.getAmount() - take));
-            remaining -= take;
-            if (stack.getAmount() <= 0) {
-                contents[i] = null;
-            }
-        }
-        player.getInventory().setStorageContents(contents);
     }
 
     /**
@@ -190,8 +168,7 @@ public class StarforgeManager {
         if (!canAfford(player, target)) return false;
 
         for (Map.Entry<Rarity, Long> cost : target.getCosts().entrySet()) {
-            consume(player, cost.getKey(), cost.getValue());
-            data.addConverted(cost.getKey(), cost.getValue());
+            DropWallet.spend(plugin, player, data, cost.getKey(), cost.getValue());
         }
 
         data.setStarforgeTier(target.getId());
@@ -231,7 +208,7 @@ public class StarforgeManager {
 
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(ChatColor.WHITE + tier.getDisplay());
+        meta.setDisplayName(tier.styledDisplay());
         meta.setLore(statLines(tier));
         meta.getPersistentDataContainer().set(itemKey, PersistentDataType.STRING, tier.getId());
         item.setItemMeta(meta);

@@ -49,6 +49,23 @@ public class SkillTreeGui {
             "potion_unlock", 13     // (5,2)
     );
 
+    /**
+     * Each skill's own icon, so the tree reads at a glance instead of
+     * being eight identical dyes. State is carried by the name color
+     * (green = done, yellow = in progress, red = not started) plus an
+     * enchant glint once it's finished, rather than by swapping material.
+     */
+    private static final Map<String, Material> ICON_BY_ID = Map.of(
+            "auto_roll_root", Material.CLOCK,
+            "luck_skill", Material.RABBIT_FOOT,
+            "speed_skill", Material.SUGAR,
+            "auto_convert", Material.HOPPER,
+            "shiny_unlock", Material.AMETHYST_SHARD,
+            "farming_unlock", Material.WHEAT,
+            "armor_unlock", Material.IRON_CHESTPLATE,
+            "potion_unlock", Material.BREWING_STAND
+    );
+
     // Slots that belong to the tree's visual structure. Anything here not
     // claimed by a real node above renders as a "???" placeholder, which
     // is what visually joins the nodes into a path.
@@ -119,24 +136,19 @@ public class SkillTreeGui {
         lore.add("");
         lore.add(describeEffect(node, level));
 
-        // A leveled node only goes green once it's actually finished —
-        // part-done reads as "still work to do" rather than complete.
-        Material material;
-        ChatColor nameColor;
-        if (complete) {
-            material = Material.LIME_DYE;
-            nameColor = ChatColor.GREEN;
-        } else if (leveled) {
-            material = Material.RECOVERY_COMPASS;
-            nameColor = started ? ChatColor.YELLOW : ChatColor.RED;
-        } else {
-            material = Material.RED_DYE;
-            nameColor = ChatColor.RED;
-        }
+        // A leveled node only counts as green once it's actually
+        // finished — part-done reads as "still work to do".
+        Material material = ICON_BY_ID.getOrDefault(node.getId(), Material.RECOVERY_COMPASS);
+        ChatColor nameColor = complete ? ChatColor.GREEN
+                : started ? ChatColor.YELLOW
+                : ChatColor.RED;
 
         ItemStack icon = new ItemStack(material);
         ItemMeta meta = icon.getItemMeta();
         meta.setDisplayName(nameColor + node.getDisplay());
+        // Glint instead of a color-coded dye, so the skill keeps its own
+        // icon while still reading as "done" at a glance.
+        meta.setEnchantmentGlintOverride(complete ? Boolean.TRUE : null);
         meta.setLore(lore);
         meta.getPersistentDataContainer().set(nodeIdKey(plugin), PersistentDataType.STRING, node.getId());
         icon.setItemMeta(meta);
@@ -184,9 +196,9 @@ public class SkillTreeGui {
         boolean leveled = node.getMaxLevel() > 1;
         return switch (node.getEffect()) {
             case LUCK -> leveled
-                    ? ChatColor.DARK_AQUA + "+" + pct(node.getValue()) + "% Luck per level "
+                    ? ChatColor.GREEN + "+" + pct(node.getValue()) + "% Luck per level "
                         + ChatColor.GRAY + "(+" + pct(node.getValue() * level) + "% so far)"
-                    : ChatColor.DARK_AQUA + "+" + pct(node.getValue()) + "% Luck";
+                    : ChatColor.GREEN + "+" + pct(node.getValue()) + "% Luck";
             case UNLOCK_AUTO_CONVERT -> ChatColor.DARK_AQUA + "Unlocks auto-convert toggles in /convert";
             case UNLOCK_FARMING -> ChatColor.DARK_AQUA + "Unlocks farming crops for Tokens";
             case UNLOCK_ARMOR -> ChatColor.DARK_AQUA + "Unlocks the /armor shop";
@@ -194,9 +206,9 @@ public class SkillTreeGui {
             case UNLOCK_SHINY -> ChatColor.DARK_AQUA + "Unlocks Shiny drops (coming soon)";
             case AUTO_ROLL -> ChatColor.DARK_AQUA + "Rolls automatically at your own roll speed";
             case ROLL_SPEED -> leveled
-                    ? ChatColor.DARK_AQUA + "+" + pct(node.getValue()) + " Speed per level "
+                    ? ChatColor.YELLOW + "+" + pct(node.getValue()) + " Speed per level "
                         + ChatColor.GRAY + "(+" + pct(node.getValue() * level) + " so far)"
-                    : ChatColor.DARK_AQUA + "+" + pct(node.getValue()) + " Speed";
+                    : ChatColor.YELLOW + "+" + pct(node.getValue()) + " Speed";
             case BONUS_ROLL_CHANCE -> ChatColor.DARK_AQUA + "+" + pct(node.getValue()) + "% chance for a free bonus roll";
         };
     }

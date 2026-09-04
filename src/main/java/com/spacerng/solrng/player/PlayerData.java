@@ -2,6 +2,7 @@ package com.spacerng.solrng.player;
 
 import com.spacerng.solrng.rarity.Rarity;
 
+import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -37,6 +38,11 @@ public class PlayerData {
     // Chance (0.0-1.0) of an extra free roll right after any roll finishes —
     // granted by the Bonus Roll skill tree branch.
     private double bonusRollChance = 0.0;
+    // Virtual drop bank: /convert turns physical rolled items into stored
+    // drops of the same rarity instead of Credits, and /armor and
+    // /starforge spend from here once the player's inventory runs out.
+    // Credits stay reserved for the paid store.
+    private final Map<Rarity, Long> dropBank = new EnumMap<>(Rarity.class);
     // Lifetime count of Common/Uncommon items converted via /convert or
     // auto-convert — shown on the skill tree screen alongside what's
     // currently sitting unconverted in the player's inventory.
@@ -229,6 +235,32 @@ public class PlayerData {
 
     public void addBonusRollChance(double amount) {
         this.bonusRollChance = Math.min(1.0, this.bonusRollChance + amount);
+    }
+
+    public Map<Rarity, Long> getDropBank() {
+        return dropBank;
+    }
+
+    public long getBankedDrops(Rarity rarity) {
+        return dropBank.getOrDefault(rarity, 0L);
+    }
+
+    public void addBankedDrops(Rarity rarity, long amount) {
+        if (amount <= 0) return;
+        dropBank.merge(rarity, amount, Long::sum);
+    }
+
+    /**
+     * Spends up to {@code amount} banked drops of a rarity, returning how
+     * many were actually taken — the caller covers any shortfall from the
+     * player's physical inventory.
+     */
+    public long takeBankedDrops(Rarity rarity, long amount) {
+        long have = getBankedDrops(rarity);
+        long taken = Math.min(have, amount);
+        if (taken <= 0) return 0L;
+        dropBank.put(rarity, have - taken);
+        return taken;
     }
 
     public long getConvertedCommon() {

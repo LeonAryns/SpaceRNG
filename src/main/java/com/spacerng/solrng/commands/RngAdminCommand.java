@@ -46,9 +46,9 @@ public class RngAdminCommand implements CommandExecutor {
             // Hands over the tier they already own, so replacing a lost one
             // never quietly demotes or promotes anybody.
             target.getInventory().addItem(plugin.getStarforgeManager().create(tier));
-            target.sendMessage(ChatColor.GREEN + "You received your " + tier.getDisplay() + ".");
+            target.sendMessage(ChatColor.GREEN + "You received your " + tier.styledDisplay() + ChatColor.GREEN + ".");
             if (!target.equals(sender)) {
-                sender.sendMessage(ChatColor.GREEN + "Gave " + target.getName() + " their " + tier.getDisplay() + ".");
+                sender.sendMessage(ChatColor.GREEN + "Gave " + target.getName() + " their " + tier.styledDisplay() + ChatColor.GREEN + ".");
             }
             return true;
         }

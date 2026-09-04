@@ -70,6 +70,16 @@ public class PlayerDataManager {
         data.setFarmTokenMultiplier(yml.getDouble("farm-token-multiplier", 1.0));
         data.setStarforgeTier(yml.getString("starforge-tier", "BASIC"));
 
+        org.bukkit.configuration.ConfigurationSection bank = yml.getConfigurationSection("drop-bank");
+        if (bank != null) {
+            for (String rarityName : bank.getKeys(false)) {
+                try {
+                    data.addBankedDrops(Rarity.valueOf(rarityName), bank.getLong(rarityName));
+                } catch (IllegalArgumentException ignored) {
+                }
+            }
+        }
+
         for (String node : yml.getStringList("unlocked-nodes")) {
             data.getUnlockedNodes().add(node);
         }
@@ -119,6 +129,9 @@ public class PlayerDataManager {
         yml.set("roll-animation-enabled", data.isRollAnimationEnabled());
         yml.set("farm-token-multiplier", data.getFarmTokenMultiplier());
         yml.set("starforge-tier", data.getStarforgeTier());
+        for (Map.Entry<Rarity, Long> entry : data.getDropBank().entrySet()) {
+            yml.set("drop-bank." + entry.getKey().name(), entry.getValue());
+        }
         yml.set("unlocked-nodes", new java.util.ArrayList<>(data.getUnlockedNodes()));
         for (Map.Entry<String, Integer> entry : data.getNodeLevels().entrySet()) {
             yml.set("node-levels." + entry.getKey(), entry.getValue());

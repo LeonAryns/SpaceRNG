@@ -173,6 +173,13 @@ public class RollListener implements Listener {
 
         long totalTicks = effectiveRollTicks(data);
 
+        // The result is decided up front rather than when the timer ends,
+        // so the animation can land on it: the teaser flashes candidates,
+        // then the final frames ARE the drop you're about to be handed.
+        // Rolling at the end instead meant the reel visibly stopped on one
+        // item and gave you a different one.
+        RollableItem result = plugin.getRarityManager().roll(plugin.getPrestigeManager().effectiveLuck(data));
+
         long[] elapsed = {0L};
         int[] lastStep = {-1};
         remainingTicks.put(player.getUniqueId(), totalTicks);
@@ -185,7 +192,7 @@ public class RollListener implements Listener {
                 taskHolder[0].cancel();
                 rollingTasks.remove(player.getUniqueId());
                 remainingTicks.remove(player.getUniqueId());
-                finishRoll(player, data);
+                finishRoll(player, data, result);
                 return;
             }
 
@@ -195,12 +202,14 @@ public class RollListener implements Listener {
             }
 
             // Case-opening-style teaser: every 5% of the roll, flash a
-            // random candidate item + its odds in the center of the screen.
+            // candidate item + its odds in the center of the screen.
             if (data.isRollAnimationEnabled()) {
                 int step = (int) (elapsed[0] * 20 / totalTicks);
                 if (step != lastStep[0]) {
                     lastStep[0] = step;
-                    sendRollPreview(player, data);
+                    // The last frame already shows the real result, so the
+                    // reel visibly slows onto it instead of cutting to it.
+                    showRollTitle(player, step >= 19 ? result : randomPreview(data));
                 }
             }
         }, 0L, 2L);
@@ -226,24 +235,33 @@ public class RollListener implements Listener {
      * flash absurd combinations (a 1-in-10M item right before landing on
      * something 1-in-17), which didn't feel believable.
      */
-    private void sendRollPreview(Player player, PlayerData data) {
-        if (plugin.getRarityManager().getItems().isEmpty()) return;
-        RollableItem preview = plugin.getRarityManager().roll(plugin.getPrestigeManager().effectiveLuck(data));
+    private RollableItem randomPreview(PlayerData data) {
+        if (plugin.getRarityManager().getItems().isEmpty()) return null;
+        return plugin.getRarityManager().roll(plugin.getPrestigeManager().effectiveLuck(data));
+    }
+
+    /** Flashes one item + its odds in the center of the screen. */
+    private void showRollTitle(Player player, RollableItem item) {
+        if (item == null) return;
 
         Component name = LegacyComponentSerializer.legacySection()
-                .deserialize(RollFormat.displayName(plugin, preview));
+                .deserialize(RollFormat.displayName(plugin, item));
         Component odds = LegacyComponentSerializer.legacySection()
-                .deserialize(ChatColor.GRAY + "· " + RollFormat.chance(preview.getOdds()) + " ·");
+                .deserialize(ChatColor.GRAY + "· " + RollFormat.chance(item.getOdds()) + " ·");
 
         Title title = Title.title(name, odds, Title.Times.times(Duration.ZERO, Duration.ofMillis(600), Duration.ZERO));
         player.showTitle(title);
     }
 
-    private void finishRoll(Player player, PlayerData data) {
+    private void finishRoll(Player player, PlayerData data, RollableItem result) {
         clearActionBar(player);
         player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.8f, 1.2f);
 
-        RollableItem result = plugin.getRarityManager().roll(plugin.getPrestigeManager().effectiveLuck(data));
+        // Hold the landed item on screen so the reel ends on exactly what
+        // the player is handed.
+        if (data.isRollAnimationEnabled()) {
+            showRollTitle(player, result);
+        }
         grantRoll(player, data, result, false);
 
         // Bonus Roll skill tree branch: a chance to immediately chain into
@@ -277,12 +295,14 @@ public class RollListener implements Listener {
         double moneyEarned = depositRollMoney(player, result);
 
         if (data.isAutoConverting(rarity)) {
-            long points = plugin.getConfig().getLong("conversion.points-per-rarity." + rarity.name(), 1L);
-            data.addPoints(points);
+            // Auto-convert banks the drop instead of handing over the item —
+            // the same stored drops /convert produces, spendable in /armor
+            // and /starforge.
+            data.addBankedDrops(rarity, 1L);
             data.addConverted(rarity, 1L);
             if (!silent) {
                 sendHoverable(player, previewItem, RollFormat.personalRollLine(plugin, result)
-                        + ChatColor.YELLOW + " → +" + points + " Credits (auto-converted)");
+                        + ChatColor.YELLOW + " → stored (auto-converted)");
             }
         } else {
             Map<Integer, ItemStack> overflow = player.getInventory().addItem(previewItem.clone());
