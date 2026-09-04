@@ -1,6 +1,5 @@
 package com.spacerng.solrng.rarity;
 
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -14,9 +13,30 @@ import java.util.logging.Logger;
 
 public class RarityManager {
 
+    // Official Java Edition legacy palette (foreground), so "&6" etc. in
+    // config resolve to the exact vanilla RGB instead of an approximation.
+    private static final Map<Character, int[]> LEGACY_RGB = Map.ofEntries(
+            Map.entry('0', new int[]{0, 0, 0}),
+            Map.entry('1', new int[]{0, 0, 170}),
+            Map.entry('2', new int[]{0, 170, 0}),
+            Map.entry('3', new int[]{0, 170, 170}),
+            Map.entry('4', new int[]{170, 0, 0}),
+            Map.entry('5', new int[]{170, 0, 170}),
+            Map.entry('6', new int[]{255, 170, 0}),
+            Map.entry('7', new int[]{170, 170, 170}),
+            Map.entry('8', new int[]{85, 85, 85}),
+            Map.entry('9', new int[]{85, 85, 255}),
+            Map.entry('a', new int[]{85, 255, 85}),
+            Map.entry('b', new int[]{85, 255, 255}),
+            Map.entry('c', new int[]{255, 85, 85}),
+            Map.entry('d', new int[]{255, 85, 255}),
+            Map.entry('e', new int[]{255, 255, 85}),
+            Map.entry('f', new int[]{255, 255, 255})
+    );
+
     private final List<RollableItem> items = new ArrayList<>();
     private final Map<Rarity, Double> luckFactors = new EnumMap<>(Rarity.class);
-    private final Map<Rarity, String> colors = new EnumMap<>(Rarity.class);
+    private final Map<Rarity, RarityStyle> styles = new EnumMap<>(Rarity.class);
     private final Logger logger;
 
     public RarityManager(Logger logger) {
@@ -26,7 +46,7 @@ public class RarityManager {
     public void load(FileConfiguration config) {
         items.clear();
         luckFactors.clear();
-        colors.clear();
+        styles.clear();
 
         ConfigurationSection raritySection = config.getConfigurationSection("rarities");
         if (raritySection != null) {
@@ -35,10 +55,22 @@ public class RarityManager {
                 if (rarity == null) continue;
                 ConfigurationSection r = raritySection.getConfigurationSection(key);
                 if (r == null) continue;
+
                 double luckFactor = r.getDouble("luck-factor", 0.0);
-                String color = ChatColor.translateAlternateColorCodes('&', r.getString("color", "&f"));
                 luckFactors.put(rarity, luckFactor);
-                colors.put(rarity, color);
+
+                List<int[]> stops = new ArrayList<>();
+                for (String colorStr : r.getStringList("colors")) {
+                    int[] rgb = parseColor(colorStr);
+                    if (rgb != null) stops.add(rgb);
+                }
+                if (stops.isEmpty()) stops.add(new int[]{255, 255, 255});
+
+                boolean bold = r.getBoolean("bold", false);
+                boolean underline = r.getBoolean("underline", false);
+                boolean strikethrough = r.getBoolean("strikethrough", false);
+                boolean obfuscatedPrefix = r.getBoolean("obfuscated-prefix", false);
+                styles.put(rarity, new RarityStyle(stops, bold, underline, strikethrough, obfuscatedPrefix));
             }
         }
 
@@ -59,6 +91,30 @@ public class RarityManager {
         logger.info("[SolRNG] Loaded " + items.size() + " rollable items across " + luckFactors.size() + " rarities.");
     }
 
+    /** Accepts "&6"-style legacy codes or "#RRGGBB" hex. Null if unparseable. */
+    private int[] parseColor(String raw) {
+        if (raw == null) return null;
+        String s = raw.trim();
+        if (s.startsWith("#") && s.length() == 7) {
+            try {
+                return new int[]{
+                        Integer.parseInt(s.substring(1, 3), 16),
+                        Integer.parseInt(s.substring(3, 5), 16),
+                        Integer.parseInt(s.substring(5, 7), 16)
+                };
+            } catch (NumberFormatException ex) {
+                logger.warning("[SolRNG] Bad hex color in config: " + raw);
+                return null;
+            }
+        }
+        if ((s.startsWith("&") || s.startsWith("§")) && s.length() == 2) {
+            int[] rgb = LEGACY_RGB.get(Character.toLowerCase(s.charAt(1)));
+            if (rgb != null) return rgb;
+        }
+        logger.warning("[SolRNG] Unrecognized rarity color in config: " + raw);
+        return null;
+    }
+
     private Rarity safeRarity(String key) {
         try {
             return Rarity.valueOf(key.toUpperCase());
@@ -68,8 +124,10 @@ public class RarityManager {
         }
     }
 
-    public String colorFor(Rarity rarity) {
-        return colors.getOrDefault(rarity, "&f");
+    /** Applies the rarity's full style (color/gradient + formatting) to the given text. */
+    public String style(Rarity rarity, String text) {
+        RarityStyle style = styles.get(rarity);
+        return style == null ? text : style.apply(text);
     }
 
     public double luckFactorFor(Rarity rarity) {

@@ -115,9 +115,9 @@ public class SkillTreeGui {
         if (canBuyMore) {
             lore.add(ChatColor.GRAY + "Price:");
             for (Map.Entry<Rarity, Long> cost : node.getCosts().entrySet()) {
-                String color = plugin.getRarityManager().colorFor(cost.getKey());
                 long held = countHeld(player, rarityKey, cost.getKey());
-                lore.add(ChatColor.GRAY + " - " + color + cost.getValue() + " " + cost.getKey().displayName()
+                String costText = cost.getValue() + " " + cost.getKey().displayName();
+                lore.add(ChatColor.GRAY + " - " + plugin.getRarityManager().style(cost.getKey(), costText)
                         + ChatColor.DARK_GRAY + " (" + held + ")");
             }
         } else {

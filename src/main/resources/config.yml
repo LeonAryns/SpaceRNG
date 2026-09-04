@@ -82,23 +82,30 @@ armor:
 # the Luck stat biases rolls toward this tier. 0 = luck has no effect.
 # Effective weight = base weight * (1 + luck * luck-factor)
 rarities:
+  # "colors" takes &-legacy codes or "#RRGGBB" hex. One entry = flat color;
+  # two or more = a real per-character gradient across that text.
   COMMON:
-    color: "&f"
+    colors: ["&f"]
     luck-factor: 0.0
   UNCOMMON:
-    color: "&a"
+    colors: ["#55FF55", "#00AA00"]
     luck-factor: 0.15
   RARE:
-    color: "&9"
+    colors: ["#55FFFF", "#5555FF"]
+    bold: true
     luck-factor: 0.35
   EPIC:
-    color: "&5"
+    colors: ["#FF55FF", "#AA00AA"]
+    bold: true
+    obfuscated-prefix: true
     luck-factor: 0.6
   LEGENDARY:
-    color: "&6"
+    colors: ["&6"]
+    underline: true
     luck-factor: 1.0
   MYTHICAL:
-    color: "&c"
+    colors: ["&c"]
+    strikethrough: true
     luck-factor: 1.6
 
 # Every rollable item. "odds" = 1-in-X chance at 0 luck.

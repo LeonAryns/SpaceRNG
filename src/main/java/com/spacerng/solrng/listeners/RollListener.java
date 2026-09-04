@@ -307,9 +307,8 @@ public class RollListener implements Listener {
         data.addBonusLuck(bonus);
 
         if (!silent) {
-            String color = plugin.getRarityManager().colorFor(result.getRarity());
             String notice = ChatColor.GREEN + "" + ChatColor.BOLD + "NEW! " + ChatColor.RESET
-                    + color + result.getDisplayName() + ChatColor.GRAY + " added to your index";
+                    + plugin.getRarityManager().style(result.getRarity(), result.getDisplayName()) + ChatColor.GRAY + " added to your index";
             player.sendMessage(notice);
             sendActionBar(player, notice);
             player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.8f, 1.3f);

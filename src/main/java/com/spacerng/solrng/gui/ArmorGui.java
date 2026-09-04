@@ -96,9 +96,9 @@ public class ArmorGui {
         } else {
             lore.add(ChatColor.GRAY + "Price:");
             for (Map.Entry<Rarity, Long> cost : tier.getCosts().entrySet()) {
-                String color = plugin.getRarityManager().colorFor(cost.getKey());
                 long held = countHeld(player, rarityKey, cost.getKey());
-                lore.add(ChatColor.GRAY + " - " + color + cost.getValue() + " " + cost.getKey().displayName()
+                String costText = cost.getValue() + " " + cost.getKey().displayName();
+                lore.add(ChatColor.GRAY + " - " + plugin.getRarityManager().style(cost.getKey(), costText)
                         + ChatColor.DARK_GRAY + " (" + held + ")");
             }
         }
@@ -128,8 +128,7 @@ public class ArmorGui {
             long held = countHeld(player, rarityKey, rarity);
             long converted = rarity == Rarity.COMMON ? data.getConvertedCommon()
                     : rarity == Rarity.UNCOMMON ? data.getConvertedUncommon() : 0L;
-            String color = plugin.getRarityManager().colorFor(rarity);
-            lore.add(color + rarity.displayName() + ": " + ChatColor.WHITE + (held + converted));
+            lore.add(plugin.getRarityManager().style(rarity, rarity.displayName() + ": ") + ChatColor.WHITE + (held + converted));
         }
         meta.setLore(lore);
         stats.setItemMeta(meta);

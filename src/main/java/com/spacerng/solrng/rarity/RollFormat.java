@@ -189,10 +189,9 @@ public final class RollFormat {
      * message suffix and as stat lines on the item itself.
      */
     public static List<String> lore(SolRNGPlugin plugin, RollableItem item) {
-        String color = plugin.getRarityManager().colorFor(item.getRarity());
         List<String> lore = new ArrayList<>();
-        lore.add(ChatColor.GRAY + "Rarity: " + color + item.getRarity().displayName());
-        lore.add(ChatColor.GRAY + "Chance: " + color + chance(item.getOdds()));
+        lore.add(ChatColor.GRAY + "Rarity: " + plugin.getRarityManager().style(item.getRarity(), item.getRarity().displayName()));
+        lore.add(ChatColor.GRAY + "Chance: " + plugin.getRarityManager().style(item.getRarity(), chance(item.getOdds())));
         return lore;
     }
 
@@ -229,9 +228,8 @@ public final class RollFormat {
      * "⚡ You rolled Sand [COMMON] (1/67)".
      */
     public static String personalRollLine(SolRNGPlugin plugin, RollableItem item) {
-        String rarityColor = plugin.getRarityManager().colorFor(item.getRarity());
         return ChatColor.AQUA + "⚡ " + ChatColor.WHITE + "You rolled " + naturalColor(item.getMaterial()) + item.getDisplayName() + " "
-                + ChatColor.GRAY + "[" + rarityColor + item.getRarity().name() + ChatColor.GRAY + "] "
+                + ChatColor.GRAY + "[" + plugin.getRarityManager().style(item.getRarity(), item.getRarity().name()) + ChatColor.GRAY + "] "
                 + ChatColor.GRAY + "(" + compactOdds(item.getOdds()) + ")";
     }
 
@@ -241,11 +239,11 @@ public final class RollFormat {
      * "Odds: 1/1M"
      */
     public static String broadcastBanner(SolRNGPlugin plugin, String playerName, RollableItem item) {
-        String color = plugin.getRarityManager().colorFor(item.getRarity());
-        String rarityWord = item.getRarity().name();
-        return color + "" + ChatColor.BOLD + "✦ " + rarityWord + " DROP ✦" + "\n"
+        Rarity rarity = item.getRarity();
+        String rarityWord = rarity.name();
+        return plugin.getRarityManager().style(rarity, "✦ " + rarityWord + " DROP ✦") + "\n"
                 + ChatColor.WHITE + playerName + ChatColor.GRAY + " just found " + naturalColor(item.getMaterial()) + item.getDisplayName() + " "
-                + ChatColor.GRAY + "[" + color + rarityWord + ChatColor.GRAY + "]" + "\n"
+                + ChatColor.GRAY + "[" + plugin.getRarityManager().style(rarity, rarityWord) + ChatColor.GRAY + "]" + "\n"
                 + ChatColor.GRAY + "Odds: " + ChatColor.WHITE + compactOdds(item.getOdds());
     }
 }

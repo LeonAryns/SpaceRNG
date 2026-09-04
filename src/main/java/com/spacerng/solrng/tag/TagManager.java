@@ -91,8 +91,8 @@ public class TagManager {
 
     private String buildTagPrefix(PlayerData data) {
         if (data.getEquippedTagItemKey() == null || data.getEquippedTagRarity() == null) return "";
-        String color = plugin.getRarityManager().colorFor(Rarity.valueOf(data.getEquippedTagRarity()));
-        return color + "[" + data.getEquippedTagItemKey() + "] " + ChatColor.RESET;
+        Rarity rarity = Rarity.valueOf(data.getEquippedTagRarity());
+        return plugin.getRarityManager().style(rarity, "[" + data.getEquippedTagItemKey() + "]") + " " + ChatColor.RESET;
     }
 
     private void pushTeamToAllViewers(Player subject, String prefix) {

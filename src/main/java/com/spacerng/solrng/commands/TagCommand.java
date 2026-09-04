@@ -75,7 +75,7 @@ public class TagCommand implements CommandExecutor {
      */
     public static void equip(SolRNGPlugin plugin, Player player, PlayerData data, String rollName, String rarityName) {
         data.setEquippedTag(rollName, rarityName);
-        String color = plugin.getRarityManager().colorFor(Rarity.valueOf(rarityName));
+        Rarity rarity = Rarity.valueOf(rarityName);
         plugin.getTagManager().refreshPrefix(player, data);
 
         RollableItem rollable = plugin.getRarityManager().findByDisplayName(rollName);
@@ -87,6 +87,6 @@ public class TagCommand implements CommandExecutor {
                     ChatColor.GRAY + "Odds: " + ChatColor.WHITE + RollFormat.compactOdds(rollable.getOdds()));
         }
 
-        player.sendMessage(ChatColor.GREEN + "Equipped tag: " + color + "[" + rollName + "]");
+        player.sendMessage(ChatColor.GREEN + "Equipped tag: " + plugin.getRarityManager().style(rarity, "[" + rollName + "]"));
     }
 }

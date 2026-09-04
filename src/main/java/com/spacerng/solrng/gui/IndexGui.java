@@ -80,11 +80,9 @@ public class IndexGui {
             case LEGENDARY -> Material.ORANGE_DYE;
             case MYTHICAL -> Material.RED_DYE;
         };
-        String color = plugin.getRarityManager().colorFor(rarity);
-
         ItemStack tab = new ItemStack(material);
         ItemMeta meta = tab.getItemMeta();
-        meta.setDisplayName((selected ? ChatColor.BOLD.toString() : "") + color + rarity.displayName());
+        meta.setDisplayName(plugin.getRarityManager().style(rarity, rarity.displayName()));
         meta.setLore(List.of(selected
                 ? ChatColor.YELLOW + "Selected — click to clear"
                 : ChatColor.GRAY + "Click to filter"));
@@ -105,7 +103,7 @@ public class IndexGui {
         lore.add(ChatColor.GRAY + "Luck from your index so far: " + ChatColor.GREEN + "+" + String.format("%.2f", discovered * luckPerItem));
         if (filter != null) {
             lore.add("");
-            lore.add(ChatColor.GRAY + "Showing: " + plugin.getRarityManager().colorFor(filter) + filter.displayName()
+            lore.add(ChatColor.GRAY + "Showing: " + plugin.getRarityManager().style(filter, filter.displayName())
                     + ChatColor.GRAY + " (" + shownCount + ")");
         }
         meta.setLore(lore);
@@ -124,7 +122,6 @@ public class IndexGui {
 
     private static ItemStack buildEntry(SolRNGPlugin plugin, PlayerData data, RollableItem item) {
         boolean discovered = data.hasDiscovered(item.getDisplayName());
-        String color = plugin.getRarityManager().colorFor(item.getRarity());
 
         ItemStack icon = new ItemStack(discovered ? item.getMaterial() : Material.GRAY_DYE);
         ItemMeta meta = icon.getItemMeta();
@@ -143,7 +140,7 @@ public class IndexGui {
                     PersistentDataType.STRING, item.getDisplayName());
         } else {
             meta.setDisplayName(ChatColor.DARK_GRAY + "???");
-            lore.add(ChatColor.GRAY + "Rarity: " + color + item.getRarity().displayName());
+            lore.add(ChatColor.GRAY + "Rarity: " + plugin.getRarityManager().style(item.getRarity(), item.getRarity().displayName()));
             lore.add("");
             lore.add(ChatColor.RED + "Not yet discovered");
         }

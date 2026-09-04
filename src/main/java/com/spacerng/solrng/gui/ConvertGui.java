@@ -46,9 +46,8 @@ public class ConvertGui {
             ItemStack toggle = new ItemStack(!autoConvertUnlocked ? Material.GRAY_STAINED_GLASS_PANE
                     : on ? Material.LIME_CONCRETE : Material.RED_CONCRETE);
             ItemMeta meta = toggle.getItemMeta();
-            String color = plugin.getRarityManager().colorFor(rarity);
             String status = on ? ChatColor.GREEN + "" + ChatColor.BOLD + "On" : ChatColor.RED + "" + ChatColor.BOLD + "Off";
-            meta.setDisplayName(color + rarity.displayName() + ChatColor.GRAY + " — " + status);
+            meta.setDisplayName(plugin.getRarityManager().style(rarity, rarity.displayName()) + ChatColor.GRAY + " — " + status);
             meta.setLore(List.of(autoConvertUnlocked
                     ? ChatColor.GRAY + "Click to toggle auto-convert for this rarity."
                     : ChatColor.RED + "Unlock 'Auto-Convert' in /skilltree first."));
