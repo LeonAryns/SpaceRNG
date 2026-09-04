@@ -88,9 +88,9 @@ public class JoinQuitListener implements Listener {
     private void reattachHologram(org.bukkit.entity.Player player, PlayerData data) {
         RollableItem rollable = plugin.getRarityManager().findByDisplayName(data.getEquippedTagItemKey());
         if (rollable == null) return;
-        // Natural material color, same as the item's own in-inventory name.
+        // The item's own colors, matching how it's named everywhere else.
         plugin.getTagManager().showHologram(player,
-                RollFormat.naturalColor(rollable.getMaterial()) + data.getEquippedTagItemKey(),
+                RollFormat.displayName(plugin, rollable),
                 ChatColor.GRAY + "Odds: " + ChatColor.WHITE + RollFormat.compactOdds(rollable.getOdds()));
     }
 }

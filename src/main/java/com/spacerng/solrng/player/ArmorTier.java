@@ -7,7 +7,7 @@ import java.util.Map;
 
 /**
  * One /armor tier — a full set (helmet/chest/legs/boots), a drop cost, and
- * a flat Luck bonus that only applies while all 4 pieces are worn at once.
+ * the Luck and Speed bonuses each worn piece grants.
  */
 public class ArmorTier {
 
@@ -15,12 +15,14 @@ public class ArmorTier {
     private final String display;
     private final Map<Rarity, Long> costs;
     private final double luckBonus;
+    private final double speedBonus;
 
-    public ArmorTier(String id, String display, Map<Rarity, Long> costs, double luckBonus) {
+    public ArmorTier(String id, String display, Map<Rarity, Long> costs, double luckBonus, double speedBonus) {
         this.id = id;
         this.display = display;
         this.costs = costs;
         this.luckBonus = luckBonus;
+        this.speedBonus = speedBonus;
     }
 
     public String getId() {
@@ -37,6 +39,10 @@ public class ArmorTier {
 
     public double getLuckBonus() {
         return luckBonus;
+    }
+
+    public double getSpeedBonus() {
+        return speedBonus;
     }
 
     // Gold armor is "GOLDEN_*" in the Material enum, not "GOLD_*" — every

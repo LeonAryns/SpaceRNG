@@ -140,9 +140,7 @@ public class RollListener implements Listener {
     private void startRoll(Player player) {
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
 
-        double baseSeconds = plugin.getConfig().getDouble("roll-item.roll-duration-seconds", 5.0);
-        double multiplier = Math.max(0.1, data.getRollSpeedMultiplier());
-        long totalTicks = Math.max(1L, Math.round((baseSeconds / multiplier) * 20.0));
+        long totalTicks = effectiveRollTicks(data);
 
         long[] elapsed = {0L};
         int[] lastStep = {-1};
@@ -180,6 +178,18 @@ public class RollListener implements Listener {
     }
 
     /**
+     * How long one roll takes for this player right now, in ticks —
+     * base duration scaled by their current Speed (skill tree + worn
+     * armor). Auto Roll fires on this same cadence, so upgrading Speed
+     * speeds up manual and automatic rolls identically.
+     */
+    public long effectiveRollTicks(PlayerData data) {
+        double baseSeconds = plugin.getConfig().getDouble("roll-item.roll-duration-seconds", 5.0);
+        double multiplier = data.getEffectiveRollSpeedMultiplier();
+        return Math.max(1L, Math.round((baseSeconds / multiplier) * 20.0));
+    }
+
+    /**
      * Flashes a candidate item drawn from the same luck-weighted odds as
      * the real roll — pulling a uniform-random item here made the teaser
      * flash absurd combinations (a 1-in-10M item right before landing on
@@ -190,7 +200,7 @@ public class RollListener implements Listener {
         RollableItem preview = plugin.getRarityManager().roll(plugin.getPrestigeManager().effectiveLuck(data));
 
         Component name = LegacyComponentSerializer.legacySection()
-                .deserialize(RollFormat.naturalColor(preview.getMaterial()) + "" + ChatColor.BOLD + preview.getDisplayName());
+                .deserialize(RollFormat.displayName(plugin, preview));
         Component odds = LegacyComponentSerializer.legacySection()
                 .deserialize(ChatColor.GRAY + "· " + RollFormat.chance(preview.getOdds()) + " ·");
 
@@ -259,7 +269,7 @@ public class RollListener implements Listener {
             String moneyText = moneyEarned > 0
                     ? ChatColor.GREEN + "  +$" + String.format("%.0f", moneyEarned)
                     : "";
-            sendActionBar(player, RollFormat.naturalColor(result.getMaterial()) + "" + ChatColor.BOLD + result.getDisplayName()
+            sendActionBar(player, RollFormat.displayName(plugin, result)
                     + ChatColor.GRAY + "  " + RollFormat.compactOdds(result.getOdds()) + moneyText);
         }
 
@@ -308,7 +318,7 @@ public class RollListener implements Listener {
 
         if (!silent) {
             String notice = ChatColor.GREEN + "" + ChatColor.BOLD + "NEW! " + ChatColor.RESET
-                    + plugin.getRarityManager().style(result.getRarity(), result.getDisplayName()) + ChatColor.GRAY + " added to your index";
+                    + RollFormat.displayName(plugin, result) + ChatColor.GRAY + " added to your index";
             player.sendMessage(notice);
             sendActionBar(player, notice);
             player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.8f, 1.3f);

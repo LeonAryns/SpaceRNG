@@ -38,8 +38,9 @@ prestige:
   levels-increment-per-prestige: 5
   luck-multiplier-per-prestige: 0.10
 
-# /armor — sets bought with rolled drops, each granting a flat Luck bonus
-# while the FULL set (all 4 pieces) is actually worn.
+# /armor — sets bought with rolled drops. Each worn piece grants its
+# tier's Luck bonus and a smaller Speed bonus (speed-bonus 0.01 = +1
+# Speed, where 100 Speed is the baseline roll speed).
 armor:
   tiers:
     LEATHER:
@@ -47,65 +48,71 @@ armor:
       costs:
         COMMON: 20
       luck-bonus: 0.05
+      speed-bonus: 0.01
     CHAINMAIL:
       display: "Chainmail Set"
       costs:
         COMMON: 40
         UNCOMMON: 10
       luck-bonus: 0.10
+      speed-bonus: 0.02
     IRON:
       display: "Iron Set"
       costs:
         UNCOMMON: 15
         RARE: 5
       luck-bonus: 0.20
+      speed-bonus: 0.03
     GOLD:
       display: "Gold Set"
       costs:
         RARE: 10
         EPIC: 3
       luck-bonus: 0.35
+      speed-bonus: 0.05
     DIAMOND:
       display: "Diamond Set"
       costs:
         EPIC: 8
         LEGENDARY: 2
       luck-bonus: 0.60
+      speed-bonus: 0.08
     NETHERITE:
       display: "Netherite Set"
       costs:
         LEGENDARY: 3
         MYTHICAL: 1
       luck-bonus: 1.00
+      speed-bonus: 0.12
 
 # Rarity tiers, in ascending order. "luck-factor" controls how strongly
 # the Luck stat biases rolls toward this tier. 0 = luck has no effect.
 # Effective weight = base weight * (1 + luck * luck-factor)
 rarities:
-  # "colors" takes &-legacy codes or "#RRGGBB" hex. One entry = flat color;
-  # two or more = a real per-character gradient across that text.
+  # Rarities are just a plain label color now — the fancy gradients live
+  # on each individual item instead (see the per-item "colors" below).
+  # "symbol: true" wraps that rarity's item names in an obfuscated flair
+  # character on both sides (Epic and up).
   COMMON:
     colors: ["&f"]
     luck-factor: 0.0
   UNCOMMON:
-    colors: ["#55FF55", "#00AA00"]
+    colors: ["&a"]
     luck-factor: 0.15
   RARE:
-    colors: ["#55FFFF", "#5555FF"]
-    bold: true
+    colors: ["&9"]
     luck-factor: 0.35
   EPIC:
-    colors: ["#FF55FF", "#AA00AA"]
-    bold: true
-    obfuscated-prefix: true
+    colors: ["&5"]
+    symbol: true
     luck-factor: 0.6
   LEGENDARY:
     colors: ["&6"]
-    underline: true
+    symbol: true
     luck-factor: 1.0
   MYTHICAL:
     colors: ["&c"]
-    strikethrough: true
+    symbol: true
     luck-factor: 1.6
 
 # Every rollable item. "odds" = 1-in-X chance at 0 luck.
@@ -622,78 +629,104 @@ items:
     name: "Rotten Zombie"
     rarity: EPIC
     odds: 20000
+    colors: ["#7CB342", "#2E5B1F"]
   - material: SKELETON_SPAWN_EGG
     name: "Bone Marksman"
     rarity: EPIC
     odds: 22143
+    colors: ["#F5F5F5", "#9E9E9E"]
   - material: CREEPER_SPAWN_EGG
     name: "Creeper Menace"
     rarity: EPIC
     odds: 24517
+    colors: ["#7CFF6B", "#0B7A2B"]
   - material: SPIDER_SPAWN_EGG
     name: "Cave Crawler"
     rarity: EPIC
     odds: 27144
+    colors: ["#8B4A2B", "#3B1F14"]
   - material: ENDERMAN_SPAWN_EGG
     name: "Void Wanderer"
     rarity: EPIC
     odds: 30053
+    colors: ["#C77DFF", "#3A0CA3"]
   - material: WITCH_SPAWN_EGG
     name: "Vile Witch"
     rarity: EPIC
     odds: 33274
+    colors: ["#B084CC", "#4A2E5C"]
   - material: BLAZE_SPAWN_EGG
     name: "Blazing Fiend"
     rarity: EPIC
     odds: 36840
+    colors: ["#FFE066", "#FF6B00"]
   - material: PIGLIN_SPAWN_EGG
     name: "Piglin Raider"
     rarity: EPIC
     odds: 40789
+    colors: ["#FFC7A8", "#B04A2F"]
   - material: GUARDIAN_SPAWN_EGG
     name: "Abyssal Guardian"
     rarity: EPIC
     odds: 45160
+    colors: ["#7FE7DC", "#1B6E8C"]
   - material: SLIME_SPAWN_EGG
     name: "Gelatinous Slime"
     rarity: EPIC
     odds: 50000
+    colors: ["#9BFF8F", "#3FA34D"]
 
   # --- Legendary: the egg as drop ---
   - material: DRAGON_EGG
     name: "Dragon Egg"
     rarity: LEGENDARY
     odds: 100000
+    colors: ["#E0AAFF", "#240046"]
+    bold: true
   - material: WITHER_SKELETON_SPAWN_EGG
     name: "Cursed Skeleton"
     rarity: LEGENDARY
     odds: 125743
+    colors: ["#C9C9C9", "#2B2B2B"]
+    bold: true
   - material: RAVAGER_SPAWN_EGG
     name: "Rampaging Ravager"
     rarity: LEGENDARY
     odds: 158114
+    colors: ["#FF8A5B", "#7A1F0F"]
+    bold: true
   - material: ELDER_GUARDIAN_SPAWN_EGG
     name: "Ancient Guardian"
     rarity: LEGENDARY
     odds: 198818
+    colors: ["#B8F2E6", "#0F5257"]
+    bold: true
   - material: EVOKER_SPAWN_EGG
     name: "Evoker's Wrath"
     rarity: LEGENDARY
     odds: 250000
+    colors: ["#E8E8E8", "#6A00F4"]
+    bold: true
 
   # --- Mythical: the bosses ---
   - material: NETHER_STAR
     name: "The Wither"
     rarity: MYTHICAL
     odds: 1000000
+    colors: ["#F2F2F2", "#1A1A1A", "#8B0000"]
+    bold: true
   - material: ECHO_SHARD
     name: "The Warden"
     rarity: MYTHICAL
     odds: 2236068
+    colors: ["#59D6C0", "#0B3B3C", "#00151A"]
+    bold: true
   - material: ELYTRA
     name: "The Ender Dragon"
     rarity: MYTHICAL
     odds: 5000000
+    colors: ["#FF6EC7", "#7B2CBF", "#10002B"]
+    bold: true
 
 # /index — every unique item a player has ever rolled gets logged here.
 # The first time they roll a brand new item, they get a small permanent
@@ -722,24 +755,21 @@ economy:
 # unlocked first (blank = no requirement). "effect" tells the plugin
 # what the node does; "value" is its magnitude.
 skilltree:
-  # Nodes are paid for with rolled drops (Common, Uncommon, ...), not
-  # Credits — Credits are the real-money store currency, not something
-  # free gameplay should be able to spend on progression.
+  # Nodes are paid for with Money (cost-money, Vault). Rolled drops are
+  # the currency for /armor, potions and farming-hoe upgrades instead.
   nodes:
     auto_roll_root:
       display: "Auto Roll"
-      costs:
-        COMMON: 20
+      cost-money: 1000
       requires: ""
       effect: AUTO_ROLL
-      value: 10
+      value: 0
 
     # Directly above the root — gates the Farming/Armor/Potion chain on
     # the right branch and the Speed/Luck leveled skills on the left.
     luck_gate:
       display: "Luck"
-      costs:
-        COMMON: 50
+      cost-money: 5000
       requires: "auto_roll_root"
       effect: LUCK
       value: 0.02
@@ -747,39 +777,35 @@ skilltree:
     # Right branch, bottom to top: Farming -> Armor -> Potion.
     farming_unlock:
       display: "Farming Unlocked"
-      costs:
-        UNCOMMON: 20
+      cost-money: 15000
       requires: "luck_gate"
       effect: UNLOCK_FARMING
       value: 0
     armor_unlock:
       display: "Armor Unlocked"
-      costs:
-        UNCOMMON: 50
+      cost-money: 40000
       requires: "farming_unlock"
       effect: UNLOCK_ARMOR
       value: 0
     potion_unlock:
       display: "Potion Unlocked"
-      costs:
-        RARE: 15
+      cost-money: 100000
       requires: "armor_unlock"
       effect: UNLOCK_POTION
       value: 0
 
     # Left branch — leveled nodes, same cost paid per level.
+    # ROLL_SPEED value 0.02 = +2 Speed per level (100 Speed = baseline).
     speed_skill:
       display: "Speed"
-      costs:
-        COMMON: 15
+      cost-money: 3000
       requires: "luck_gate"
       effect: ROLL_SPEED
       value: 0.02
       max-level: 10
     luck_skill:
       display: "Luck"
-      costs:
-        COMMON: 15
+      cost-money: 5000
       requires: "luck_gate"
       effect: LUCK
       value: 0.05

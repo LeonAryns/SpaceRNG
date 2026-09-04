@@ -75,18 +75,17 @@ public class TagCommand implements CommandExecutor {
      */
     public static void equip(SolRNGPlugin plugin, Player player, PlayerData data, String rollName, String rarityName) {
         data.setEquippedTag(rollName, rarityName);
-        Rarity rarity = Rarity.valueOf(rarityName);
         plugin.getTagManager().refreshPrefix(player, data);
 
         RollableItem rollable = plugin.getRarityManager().findByDisplayName(rollName);
         if (rollable != null) {
-            // Natural material color, same as the item's own in-inventory
-            // name — not the rarity color, so the hologram visually
-            // matches the item itself.
-            plugin.getTagManager().showHologram(player, RollFormat.naturalColor(rollable.getMaterial()) + rollName,
+            // The item's own colors, so the hologram matches how the item
+            // itself is named everywhere else.
+            plugin.getTagManager().showHologram(player, RollFormat.displayName(plugin, rollable),
                     ChatColor.GRAY + "Odds: " + ChatColor.WHITE + RollFormat.compactOdds(rollable.getOdds()));
         }
 
-        player.sendMessage(ChatColor.GREEN + "Equipped tag: " + plugin.getRarityManager().style(rarity, "[" + rollName + "]"));
+        player.sendMessage(ChatColor.GREEN + "Equipped tag: "
+                + (rollable != null ? RollFormat.displayName(plugin, rollable) : rollName));
     }
 }

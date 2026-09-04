@@ -6,12 +6,14 @@ import java.awt.Color;
 import java.util.List;
 
 /**
- * A rarity's visual identity: one flat color, or a real per-character
- * gradient across 2+ color stops (computed here, not via a static prefix —
- * a fixed prefix string can't represent a gradient since the same prefix
- * would need to stretch across whatever text follows it, of whatever
- * length). Optional bold/underline/strikethrough, and a single obfuscated
- * "flair" character prepended before the text (used for Epic).
+ * A visual identity: one flat color, or a real per-character gradient
+ * across 2+ color stops (computed here, not via a static prefix — a fixed
+ * prefix string can't represent a gradient since the same prefix would
+ * need to stretch across whatever text follows it, of whatever length),
+ * plus optional bold/underline/strikethrough.
+ *
+ * Used for two things: each individual item's own look (config: per-item
+ * "colors"), and each rarity's plain label color.
  */
 public class RarityStyle {
 
@@ -19,22 +21,17 @@ public class RarityStyle {
     private final boolean bold;
     private final boolean underline;
     private final boolean strikethrough;
-    private final boolean obfuscatedPrefix;
 
-    public RarityStyle(List<int[]> colorStopsRgb, boolean bold, boolean underline, boolean strikethrough, boolean obfuscatedPrefix) {
+    public RarityStyle(List<int[]> colorStopsRgb, boolean bold, boolean underline, boolean strikethrough) {
         this.colorStopsRgb = colorStopsRgb;
         this.bold = bold;
         this.underline = underline;
         this.strikethrough = strikethrough;
-        this.obfuscatedPrefix = obfuscatedPrefix;
     }
 
-    /** Applies this rarity's color(s) and formatting to the given text. */
+    /** Applies this style's color(s) and formatting to the given text. */
     public String apply(String text) {
         StringBuilder out = new StringBuilder();
-        if (obfuscatedPrefix) {
-            out.append(ChatColor.MAGIC).append('#').append(ChatColor.RESET);
-        }
 
         if (colorStopsRgb.size() <= 1) {
             int[] rgb = colorStopsRgb.isEmpty() ? new int[]{255, 255, 255} : colorStopsRgb.get(0);

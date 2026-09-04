@@ -107,14 +107,16 @@ public class ScoreboardManager {
         lines.add(""); // breathing room under the name
         lines.add(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Index: " + ChatColor.AQUA + discovered + ChatColor.GRAY + "/" + ChatColor.AQUA + totalItems);
         lines.add(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Luck: " + ChatColor.GREEN + "+" + String.format("%.2f", luckPercent) + "%");
+        lines.add(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Speed: " + ChatColor.GREEN
+                + Math.round(data.getEffectiveRollSpeedMultiplier() * 100));
         lines.add(ChatColor.YELLOW + "| " + prestigeLine(data));
         lines.add(""); // blank spacer
         lines.add(ChatColor.GOLD + "" + ChatColor.BOLD + "YOUR WALLET");
         lines.add(""); // breathing room under the title
         lines.add(balanceLine(player));
-        lines.add(walletLine("♦", data.getTokens(), "TOKENS", ChatColor.AQUA));
-        lines.add(walletLine("❖", data.getShards(), "SHARDS", ChatColor.DARK_PURPLE));
-        lines.add(walletLine("✦", data.getPoints(), "CREDITS", ChatColor.LIGHT_PURPLE));
+        lines.add(walletLine(data.getTokens(), "Tokens", ChatColor.AQUA));
+        lines.add(walletLine(data.getShards(), "Shards", ChatColor.DARK_PURPLE));
+        lines.add(walletLine(data.getPoints(), "Credits", ChatColor.LIGHT_PURPLE));
 
         String rollStatus = rollStatusLine(player);
         if (rollStatus != null) {
@@ -135,9 +137,9 @@ public class ScoreboardManager {
         return ChatColor.WHITE + "Prestige: " + ChatColor.GOLD + "★ " + ChatColor.AQUA + numeral;
     }
 
-    /** "$ 216M BALANCE" style — icon, abbreviated amount, label, all one color. */
-    private String walletLine(String symbol, long amount, String label, ChatColor color) {
-        return ChatColor.YELLOW + "| " + color + symbol + " " + RollFormat.abbreviate(amount) + " " + ChatColor.BOLD + label;
+    /** "216M Balance" style — abbreviated amount + label, no icon, no all-caps. */
+    private String walletLine(long amount, String label, ChatColor color) {
+        return ChatColor.YELLOW + "| " + color + RollFormat.abbreviate(amount) + " " + label;
     }
 
     /**
@@ -154,9 +156,9 @@ public class ScoreboardManager {
 
     private String balanceLine(Player player) {
         if (economy == null) {
-            return ChatColor.YELLOW + "| " + ChatColor.GREEN + "$ N/A " + ChatColor.BOLD + "BALANCE";
+            return ChatColor.YELLOW + "| " + ChatColor.GREEN + "N/A Balance";
         }
-        return walletLine("$", Math.round(economy.getBalance(player)), "BALANCE", ChatColor.GREEN);
+        return walletLine(Math.round(economy.getBalance(player)), "Balance", ChatColor.GREEN);
     }
 
     /**

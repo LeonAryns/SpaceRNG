@@ -29,7 +29,9 @@ public class PlayerData {
     // backs /index and its per-discovery luck bonus.
     private final Set<String> discoveredItems = new HashSet<>();
     private final Set<Rarity> autoConvertRarities = EnumSet.noneOf(Rarity.class);
-    private int autoRollIntervalSeconds = 0; // 0 = disabled
+    // Auto-roll always fires at the player's own current roll speed — no
+    // separate fixed interval.
+    private boolean autoRollEnabled = false;
     private String equippedTagItemKey = null; // e.g. "Fallen Star"
     private String equippedTagRarity = null;  // stored so we can re-color it on load
     // Chance (0.0-1.0) of an extra free roll right after any roll finishes —
@@ -47,6 +49,9 @@ public class PlayerData {
     // Flat Luck bonus from currently-worn /armor — recomputed live each
     // tick from equipped armor, not persisted.
     private double armorLuckBonus = 0.0;
+    // Flat Speed bonus from currently-worn /armor — same live recompute
+    // as armorLuckBonus, not persisted.
+    private double armorSpeedBonus = 0.0;
     // /armor tiers ever bought (e.g. "LEATHER") — one-time purchase, worn
     // status is checked separately for whether the Luck bonus applies.
     private final Set<String> purchasedArmorTiers = new HashSet<>();
@@ -124,6 +129,23 @@ public class PlayerData {
         this.rollSpeedMultiplier = Math.max(0.1, rollSpeedMultiplier);
     }
 
+    public double getArmorSpeedBonus() {
+        return armorSpeedBonus;
+    }
+
+    public void setArmorSpeedBonus(double armorSpeedBonus) {
+        this.armorSpeedBonus = armorSpeedBonus;
+    }
+
+    /**
+     * Total roll speed actually applied: skill-tree base plus worn armor.
+     * 1.0 = the "100 Speed" baseline shown on the scoreboard (Speed = this
+     * x 100, rounded).
+     */
+    public double getEffectiveRollSpeedMultiplier() {
+        return Math.max(0.1, rollSpeedMultiplier + armorSpeedBonus);
+    }
+
     public Set<String> getUnlockedNodes() {
         return unlockedNodes;
     }
@@ -170,12 +192,12 @@ public class PlayerData {
         }
     }
 
-    public int getAutoRollIntervalSeconds() {
-        return autoRollIntervalSeconds;
+    public boolean isAutoRollEnabled() {
+        return autoRollEnabled;
     }
 
-    public void setAutoRollIntervalSeconds(int seconds) {
-        this.autoRollIntervalSeconds = seconds;
+    public void setAutoRollEnabled(boolean autoRollEnabled) {
+        this.autoRollEnabled = autoRollEnabled;
     }
 
     public String getEquippedTagItemKey() {

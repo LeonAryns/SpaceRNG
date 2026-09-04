@@ -90,6 +90,8 @@ public class ArmorGui {
         List<String> lore = new ArrayList<>();
         lore.add(ChatColor.DARK_AQUA + "+" + Math.round(tier.getLuckBonus() * 100) + "% Luck "
                 + ChatColor.GRAY + "(per piece worn)");
+        lore.add(ChatColor.DARK_AQUA + "+" + Math.round(tier.getSpeedBonus() * 100) + " Speed "
+                + ChatColor.GRAY + "(per piece worn)");
         lore.add("");
         if (owned) {
             lore.add(ChatColor.GREEN + "Owned");

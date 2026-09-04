@@ -29,6 +29,10 @@ import com.spacerng.solrng.tag.TagManager;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
 public final class SolRNGPlugin extends JavaPlugin {
 
     private RarityManager rarityManager;
@@ -100,26 +104,36 @@ public final class SolRNGPlugin extends JavaPlugin {
         farmingManager.load(getConfig());
     }
 
+    // Ticks accumulated toward each auto-rolling player's next roll.
+    private final Map<UUID, Long> autoRollElapsed = new HashMap<>();
+
     /**
-     * Runs every second; players with an autoroll skill tree node get an
-     * automatic roll on their configured interval instead of needing to
-     * right-click.
+     * Players with the Auto Roll node get a roll on their OWN roll-speed
+     * cadence — the same duration a manual roll would take, recomputed
+     * every cycle so Speed upgrades apply immediately.
      */
     private void startAutoRollTask() {
+        final long periodTicks = 5L;
         getServer().getScheduler().runTaskTimer(this, () -> {
             for (Player player : getServer().getOnlinePlayers()) {
                 PlayerData data = playerDataManager.get(player.getUniqueId());
-                int interval = data.getAutoRollIntervalSeconds();
-                if (interval <= 0) continue;
-
-                long nowSeconds = System.currentTimeMillis() / 1000L;
-                if (nowSeconds % interval == 0) {
-                    double luck = prestigeManager.effectiveLuck(data);
-                    RollableItem result = rarityManager.roll(luck);
-                    rollListener.grantRoll(player, data, result, true);
+                if (!data.isAutoRollEnabled()) {
+                    autoRollElapsed.remove(player.getUniqueId());
+                    continue;
                 }
+
+                long elapsed = autoRollElapsed.getOrDefault(player.getUniqueId(), 0L) + periodTicks;
+                if (elapsed < rollListener.effectiveRollTicks(data)) {
+                    autoRollElapsed.put(player.getUniqueId(), elapsed);
+                    continue;
+                }
+
+                autoRollElapsed.put(player.getUniqueId(), 0L);
+                double luck = prestigeManager.effectiveLuck(data);
+                RollableItem result = rarityManager.roll(luck);
+                rollListener.grantRoll(player, data, result, true);
             }
-        }, 20L, 20L);
+        }, periodTicks, periodTicks);
     }
 
     public RarityManager getRarityManager() {

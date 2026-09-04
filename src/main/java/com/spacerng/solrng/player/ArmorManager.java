@@ -53,6 +53,7 @@ public class ArmorManager {
             try {
                 String display = t.getString("display", id);
                 double luckBonus = t.getDouble("luck-bonus", 0.0);
+                double speedBonus = t.getDouble("speed-bonus", 0.0);
                 Map<Rarity, Long> costs = new EnumMap<>(Rarity.class);
                 ConfigurationSection costsSection = t.getConfigurationSection("costs");
                 if (costsSection != null) {
@@ -60,7 +61,7 @@ public class ArmorManager {
                         costs.put(Rarity.valueOf(rarityKey.toUpperCase()), costsSection.getLong(rarityKey));
                     }
                 }
-                tiers.put(id, new ArmorTier(id, display, costs, luckBonus));
+                tiers.put(id, new ArmorTier(id, display, costs, luckBonus, speedBonus));
             } catch (Exception ex) {
                 logger.warning("[SolRNG] Skipped malformed armor tier '" + id + "': " + ex.getMessage());
             }
@@ -157,20 +158,20 @@ public class ArmorManager {
     public void refreshWornBonuses() {
         for (Player player : Bukkit.getOnlinePlayers()) {
             PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
-            data.setArmorLuckBonus(wornLuckBonus(player));
-        }
-    }
+            PlayerInventory inv = player.getInventory();
 
-    private double wornLuckBonus(Player player) {
-        PlayerInventory inv = player.getInventory();
-        double total = 0.0;
-        for (ItemStack piece : new ItemStack[]{inv.getHelmet(), inv.getChestplate(), inv.getLeggings(), inv.getBoots()}) {
-            ArmorTier tier = tiers.get(tierOf(piece));
-            if (tier != null) {
-                total += tier.getLuckBonus();
+            double luck = 0.0;
+            double speed = 0.0;
+            for (ItemStack piece : new ItemStack[]{inv.getHelmet(), inv.getChestplate(), inv.getLeggings(), inv.getBoots()}) {
+                ArmorTier tier = tiers.get(tierOf(piece));
+                if (tier != null) {
+                    luck += tier.getLuckBonus();
+                    speed += tier.getSpeedBonus();
+                }
             }
+            data.setArmorLuckBonus(luck);
+            data.setArmorSpeedBonus(speed);
         }
-        return total;
     }
 
     private String tierOf(ItemStack piece) {

@@ -19,13 +19,13 @@ public final class RollFormat {
     }
 
     /**
-     * "Stone" colored like the actual block/item, not its rarity — rarity
-     * is still readable from the lore line below. Used for the item itself
-     * (its in-inventory display name) — the "you rolled X" phrasing only
-     * appears in chat, not baked into the item name.
+     * The item's name in its OWN colors (per-item "colors" in config —
+     * gradient/bold/etc), wrapped in the obfuscated flair for Epic-and-up
+     * rarities. Falls back to the material's flat natural color for items
+     * that don't define their own. Used everywhere the item is named.
      */
     public static String displayName(SolRNGPlugin plugin, RollableItem item) {
-        return naturalColor(item.getMaterial()) + item.getDisplayName();
+        return plugin.getRarityManager().styleItemName(item);
     }
 
     // Legacy chat only has 16 colors, so this is an approximation of each
@@ -244,7 +244,7 @@ public final class RollFormat {
      * "⚡ You rolled Sand [COMMON] (1/67)".
      */
     public static String personalRollLine(SolRNGPlugin plugin, RollableItem item) {
-        return ChatColor.AQUA + "⚡ " + ChatColor.WHITE + "You rolled " + naturalColor(item.getMaterial()) + item.getDisplayName() + " "
+        return ChatColor.AQUA + "⚡ " + ChatColor.WHITE + "You rolled " + displayName(plugin, item) + " "
                 + ChatColor.GRAY + "[" + plugin.getRarityManager().style(item.getRarity(), item.getRarity().name()) + ChatColor.GRAY + "] "
                 + ChatColor.GRAY + "(" + compactOdds(item.getOdds()) + ")";
     }
@@ -258,7 +258,7 @@ public final class RollFormat {
         Rarity rarity = item.getRarity();
         String rarityWord = rarity.name();
         return plugin.getRarityManager().style(rarity, "✦ " + rarityWord + " DROP ✦") + "\n"
-                + ChatColor.WHITE + playerName + ChatColor.GRAY + " just found " + naturalColor(item.getMaterial()) + item.getDisplayName() + " "
+                + ChatColor.WHITE + playerName + ChatColor.GRAY + " just found " + displayName(plugin, item) + " "
                 + ChatColor.GRAY + "[" + plugin.getRarityManager().style(rarity, rarityWord) + ChatColor.GRAY + "]" + "\n"
                 + ChatColor.GRAY + "Odds: " + ChatColor.WHITE + compactOdds(item.getOdds());
     }

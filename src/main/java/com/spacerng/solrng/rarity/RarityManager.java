@@ -1,5 +1,6 @@
 package com.spacerng.solrng.rarity;
 
+import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -37,6 +38,9 @@ public class RarityManager {
     private final List<RollableItem> items = new ArrayList<>();
     private final Map<Rarity, Double> luckFactors = new EnumMap<>(Rarity.class);
     private final Map<Rarity, RarityStyle> styles = new EnumMap<>(Rarity.class);
+    // Rarities flagged with "symbol: true" wrap item names in an
+    // obfuscated flair character on BOTH sides (Epic and up).
+    private final Map<Rarity, Boolean> symbolFlair = new EnumMap<>(Rarity.class);
     private final Logger logger;
 
     public RarityManager(Logger logger) {
@@ -47,6 +51,7 @@ public class RarityManager {
         items.clear();
         luckFactors.clear();
         styles.clear();
+        symbolFlair.clear();
 
         ConfigurationSection raritySection = config.getConfigurationSection("rarities");
         if (raritySection != null) {
@@ -56,21 +61,12 @@ public class RarityManager {
                 ConfigurationSection r = raritySection.getConfigurationSection(key);
                 if (r == null) continue;
 
-                double luckFactor = r.getDouble("luck-factor", 0.0);
-                luckFactors.put(rarity, luckFactor);
-
-                List<int[]> stops = new ArrayList<>();
-                for (String colorStr : r.getStringList("colors")) {
-                    int[] rgb = parseColor(colorStr);
-                    if (rgb != null) stops.add(rgb);
-                }
-                if (stops.isEmpty()) stops.add(new int[]{255, 255, 255});
-
-                boolean bold = r.getBoolean("bold", false);
-                boolean underline = r.getBoolean("underline", false);
-                boolean strikethrough = r.getBoolean("strikethrough", false);
-                boolean obfuscatedPrefix = r.getBoolean("obfuscated-prefix", false);
-                styles.put(rarity, new RarityStyle(stops, bold, underline, strikethrough, obfuscatedPrefix));
+                luckFactors.put(rarity, r.getDouble("luck-factor", 0.0));
+                styles.put(rarity, parseStyle(r.getStringList("colors"),
+                        r.getBoolean("bold", false),
+                        r.getBoolean("underline", false),
+                        r.getBoolean("strikethrough", false)));
+                symbolFlair.put(rarity, r.getBoolean("symbol", false));
             }
         }
 
@@ -82,13 +78,36 @@ public class RarityManager {
                 Rarity rarity = safeRarity(String.valueOf(raw.get("rarity")));
                 long odds = Long.parseLong(String.valueOf(raw.get("odds")));
                 if (rarity == null) continue;
-                items.add(new RollableItem(material, name, rarity, odds));
+                items.add(new RollableItem(material, name, rarity, odds, parseItemStyle(raw)));
             } catch (Exception ex) {
                 logger.warning("[SolRNG] Skipped a malformed item entry in config.yml: " + raw);
             }
         }
 
         logger.info("[SolRNG] Loaded " + items.size() + " rollable items across " + luckFactors.size() + " rarities.");
+    }
+
+    /** An item's own "colors"/bold/underline/strikethrough, or null if it doesn't define any. */
+    private RarityStyle parseItemStyle(Map<?, ?> raw) {
+        Object colorsRaw = raw.get("colors");
+        if (!(colorsRaw instanceof List<?> list) || list.isEmpty()) return null;
+
+        List<String> colors = new ArrayList<>();
+        for (Object o : list) colors.add(String.valueOf(o));
+        return parseStyle(colors,
+                Boolean.TRUE.equals(raw.get("bold")),
+                Boolean.TRUE.equals(raw.get("underline")),
+                Boolean.TRUE.equals(raw.get("strikethrough")));
+    }
+
+    private RarityStyle parseStyle(List<String> colors, boolean bold, boolean underline, boolean strikethrough) {
+        List<int[]> stops = new ArrayList<>();
+        for (String colorStr : colors) {
+            int[] rgb = parseColor(colorStr);
+            if (rgb != null) stops.add(rgb);
+        }
+        if (stops.isEmpty()) stops.add(new int[]{255, 255, 255});
+        return new RarityStyle(stops, bold, underline, strikethrough);
     }
 
     /** Accepts "&6"-style legacy codes or "#RRGGBB" hex. Null if unparseable. */
@@ -111,7 +130,7 @@ public class RarityManager {
             int[] rgb = LEGACY_RGB.get(Character.toLowerCase(s.charAt(1)));
             if (rgb != null) return rgb;
         }
-        logger.warning("[SolRNG] Unrecognized rarity color in config: " + raw);
+        logger.warning("[SolRNG] Unrecognized color in config: " + raw);
         return null;
     }
 
@@ -124,10 +143,28 @@ public class RarityManager {
         }
     }
 
-    /** Applies the rarity's full style (color/gradient + formatting) to the given text. */
+    /** The rarity's plain label color — used for the word "Legendary" etc, not for item names. */
     public String style(Rarity rarity, String text) {
         RarityStyle style = styles.get(rarity);
         return style == null ? text : style.apply(text);
+    }
+
+    /**
+     * An item's name in its OWN colors, wrapped in the obfuscated flair
+     * character on both sides if its rarity is flagged for it (Epic and
+     * up). Items without their own "colors" fall back to the flat natural
+     * color of their material.
+     */
+    public String styleItemName(RollableItem item) {
+        String colored = item.getStyle() != null
+                ? item.getStyle().apply(item.getDisplayName())
+                : RollFormat.naturalColor(item.getMaterial()) + item.getDisplayName();
+
+        if (!Boolean.TRUE.equals(symbolFlair.get(item.getRarity()))) {
+            return colored;
+        }
+        String flair = ChatColor.MAGIC + "#" + ChatColor.RESET;
+        return flair + " " + colored + " " + flair;
     }
 
     public double luckFactorFor(Rarity rarity) {

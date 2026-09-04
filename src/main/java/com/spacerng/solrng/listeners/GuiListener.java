@@ -184,9 +184,8 @@ public class GuiListener implements Listener {
         Player player = (Player) event.getWhoClicked();
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
 
-        NamespacedKey rarityKey = plugin.getRollListener().getRarityKey();
         com.spacerng.solrng.player.SkillNode node = plugin.getSkillTreeManager().get(nodeId);
-        boolean success = plugin.getSkillTreeManager().purchase(player, data, nodeId, rarityKey);
+        boolean success = plugin.getSkillTreeManager().purchase(player, data, nodeId);
         if (success) {
             if (node != null && node.getMaxLevel() > 1) {
                 player.sendMessage(ChatColor.GREEN + node.getDisplay() + " is now level "

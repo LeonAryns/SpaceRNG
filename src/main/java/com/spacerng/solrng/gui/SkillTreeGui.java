@@ -4,7 +4,6 @@ import com.spacerng.solrng.SolRNGPlugin;
 import com.spacerng.solrng.player.PlayerData;
 import com.spacerng.solrng.player.SkillNode;
 import com.spacerng.solrng.player.SkillTreeManager;
-import com.spacerng.solrng.rarity.Rarity;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -72,7 +71,6 @@ public class SkillTreeGui {
 
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         SkillTreeManager tree = plugin.getSkillTreeManager();
-        NamespacedKey rarityKey = plugin.getRollListener().getRarityKey();
 
         ItemStack filler = glassFiller();
         for (int slot = 0; slot < 54; slot++) {
@@ -91,7 +89,7 @@ public class SkillTreeGui {
             if (node == null) continue; // config doesn't define this id — leave the filler glass
 
             boolean reqMet = node.getRequires() == null || data.hasUnlocked(node.getRequires());
-            ItemStack icon = reqMet ? buildNodeIcon(plugin, player, data, node, rarityKey) : placeholderNode();
+            ItemStack icon = reqMet ? buildNodeIcon(plugin, player, data, node) : placeholderNode();
             inv.setItem(entry.getValue(), icon);
         }
 
@@ -100,7 +98,7 @@ public class SkillTreeGui {
         return inv;
     }
 
-    private static ItemStack buildNodeIcon(SolRNGPlugin plugin, Player player, PlayerData data, SkillNode node, NamespacedKey rarityKey) {
+    private static ItemStack buildNodeIcon(SolRNGPlugin plugin, Player player, PlayerData data, SkillNode node) {
         boolean leveled = node.getMaxLevel() > 1;
         int level = leveled ? data.getNodeLevel(node.getId()) : 0;
         boolean maxed = leveled && level >= node.getMaxLevel();
@@ -113,13 +111,8 @@ public class SkillTreeGui {
             lore.add(ChatColor.GRAY + "Level: " + ChatColor.AQUA + level + ChatColor.GRAY + "/" + node.getMaxLevel());
         }
         if (canBuyMore) {
-            lore.add(ChatColor.GRAY + "Price:");
-            for (Map.Entry<Rarity, Long> cost : node.getCosts().entrySet()) {
-                long held = countHeld(player, rarityKey, cost.getKey());
-                String costText = cost.getValue() + " " + cost.getKey().displayName();
-                lore.add(ChatColor.GRAY + " - " + plugin.getRarityManager().style(cost.getKey(), costText)
-                        + ChatColor.DARK_GRAY + " (" + held + ")");
-            }
+            lore.add(ChatColor.GRAY + "Price: " + ChatColor.GOLD + "$" + String.format("%,.0f", node.getMoneyCost())
+                    + ChatColor.DARK_GRAY + " (" + formatMoney(player) + ")");
         } else {
             lore.add(ChatColor.GREEN + (leveled ? "Maxed!" : "Unlocked"));
         }
@@ -175,18 +168,6 @@ public class SkillTreeGui {
         return "$" + String.format("%.0f", registration.getProvider().getBalance(player));
     }
 
-    private static long countHeld(Player player, NamespacedKey rarityKey, Rarity rarity) {
-        long total = 0L;
-        for (ItemStack stack : player.getInventory().getContents()) {
-            if (stack == null || stack.getItemMeta() == null) continue;
-            String rarityName = stack.getItemMeta().getPersistentDataContainer().get(rarityKey, PersistentDataType.STRING);
-            if (rarity.name().equals(rarityName)) {
-                total += stack.getAmount();
-            }
-        }
-        return total;
-    }
-
     private static String describeEffect(SkillNode node, int level) {
         boolean leveled = node.getMaxLevel() > 1;
         return switch (node.getEffect()) {
@@ -198,11 +179,11 @@ public class SkillTreeGui {
             case UNLOCK_FARMING -> ChatColor.DARK_AQUA + "Unlocks farming crops for Tokens";
             case UNLOCK_ARMOR -> ChatColor.DARK_AQUA + "Unlocks the /armor shop";
             case UNLOCK_POTION -> ChatColor.DARK_AQUA + "Unlocks the Potion system (coming soon)";
-            case AUTO_ROLL -> ChatColor.DARK_AQUA + "Auto-rolls every " + (int) node.getValue() + "s";
+            case AUTO_ROLL -> ChatColor.DARK_AQUA + "Rolls automatically at your own roll speed";
             case ROLL_SPEED -> leveled
-                    ? ChatColor.DARK_AQUA + "+" + pct(node.getValue()) + "% Roll Speed per level "
-                        + ChatColor.GRAY + "(+" + pct(node.getValue() * level) + "% so far)"
-                    : ChatColor.DARK_AQUA + "+" + node.getValue() + " roll speed";
+                    ? ChatColor.DARK_AQUA + "+" + pct(node.getValue()) + " Speed per level "
+                        + ChatColor.GRAY + "(+" + pct(node.getValue() * level) + " so far)"
+                    : ChatColor.DARK_AQUA + "+" + pct(node.getValue()) + " Speed";
             case BONUS_ROLL_CHANCE -> ChatColor.DARK_AQUA + "+" + pct(node.getValue()) + "% chance for a free bonus roll";
         };
     }

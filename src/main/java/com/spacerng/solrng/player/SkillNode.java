@@ -1,9 +1,5 @@
 package com.spacerng.solrng.player;
 
-import com.spacerng.solrng.rarity.Rarity;
-
-import java.util.Map;
-
 public class SkillNode {
 
     public enum Effect {
@@ -19,9 +15,9 @@ public class SkillNode {
 
     private final String id;
     private final String display;
-    // Paid in rolled drops (Common, Uncommon, ...), not Credits — Credits
-    // are reserved for the real-money store, not free skill progression.
-    private final Map<Rarity, Long> costs;
+    // Skill tree nodes are paid for with Money (Vault). Rolled drops are
+    // the currency for /armor, potions and farming-hoe upgrades instead.
+    private final double moneyCost;
     private final String requires; // id of required node, or null
     private final Effect effect;
     private final double value;
@@ -31,10 +27,10 @@ public class SkillNode {
     // LUCK = +5% Luck per level, up to +50% at level 10).
     private final int maxLevel;
 
-    public SkillNode(String id, String display, Map<Rarity, Long> costs, String requires, Effect effect, double value, int maxLevel) {
+    public SkillNode(String id, String display, double moneyCost, String requires, Effect effect, double value, int maxLevel) {
         this.id = id;
         this.display = display;
-        this.costs = costs;
+        this.moneyCost = moneyCost;
         this.requires = (requires == null || requires.isBlank()) ? null : requires;
         this.effect = effect;
         this.value = value;
@@ -49,8 +45,8 @@ public class SkillNode {
         return display;
     }
 
-    public Map<Rarity, Long> getCosts() {
-        return costs;
+    public double getMoneyCost() {
+        return moneyCost;
     }
 
     public String getRequires() {

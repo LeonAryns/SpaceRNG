@@ -2,7 +2,8 @@ package com.spacerng.solrng.tag;
 
 import com.spacerng.solrng.SolRNGPlugin;
 import com.spacerng.solrng.player.PlayerData;
-import com.spacerng.solrng.rarity.Rarity;
+import com.spacerng.solrng.rarity.RollFormat;
+import com.spacerng.solrng.rarity.RollableItem;
 import org.bukkit.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
@@ -58,7 +59,7 @@ public class TagManager {
     private static final String TEAM_PREFIX = "solrng_";
     // Local Y offset (in the entity's own render space) for each display.
     // Generous values to confidently clear the vanilla nameplate.
-    private static final float TOP_OFFSET = 0.70f;
+    private static final float TOP_OFFSET = 0.82f;
     private static final float BOTTOM_OFFSET = 0.50f;
     // TextDisplay entities support a real render scale (unlike chat/scoreboard
     // text, which has no font-size control at all) — this is what actually
@@ -91,8 +92,12 @@ public class TagManager {
 
     private String buildTagPrefix(PlayerData data) {
         if (data.getEquippedTagItemKey() == null || data.getEquippedTagRarity() == null) return "";
-        Rarity rarity = Rarity.valueOf(data.getEquippedTagRarity());
-        return plugin.getRarityManager().style(rarity, "[" + data.getEquippedTagItemKey() + "]") + " " + ChatColor.RESET;
+        RollableItem item = plugin.getRarityManager().findByDisplayName(data.getEquippedTagItemKey());
+        // The item's own colors, matching how it's named everywhere else.
+        String name = item != null
+                ? RollFormat.displayName(plugin, item)
+                : data.getEquippedTagItemKey();
+        return name + " " + ChatColor.RESET;
     }
 
     private void pushTeamToAllViewers(Player subject, String prefix) {
