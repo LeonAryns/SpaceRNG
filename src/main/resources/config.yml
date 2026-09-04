@@ -88,6 +88,31 @@ starforge:
         LEGENDARY: 100
         MYTHICAL: 10
 
+# The equipped-drop tag shown above a player's head.
+#
+# manage-nametag: true  - this plugin writes the nametag itself, via
+#                         scoreboard team prefixes.
+#                 false - hands nametags over to TAB (or any other nametag
+#                         plugin) and stops writing teams entirely. Two
+#                         plugins both setting team prefixes for the same
+#                         player fight each other and TAB's anti-override
+#                         wins, so set this to false once TAB is installed
+#                         and point TAB at %solrng_tag% instead.
+#
+# The tag placeholders keep working either way:
+#   %solrng_tag%            the nametag text (gradient + Epic+ flair)
+#   %solrng_tag_plain%      same colors, no obfuscated flair - use in TAB
+#   %solrng_tag_name%       uncolored item name
+#   %solrng_tag_odds%       e.g. 1,700
+#   %solrng_tag_multiplier% e.g. 1.14
+#   %solrng_prestige%       raw number
+#   %solrng_prestige_roman% I, II, III...
+#   %solrng_prestige_badge% blank at 0, otherwise a star + numeral
+#   %solrng_level%          the Lv/prestige badge
+#   %solrng_level_number%   raw level
+tag:
+  manage-nametag: true
+
 # Farm crops (a shared field everyone harvests together) — breaking a
 # fully-grown crop listed here pays Tokens on top of its normal drop,
 # scaled per-player by their own farmTokenMultiplier, then replants

@@ -226,11 +226,20 @@ public class RarityManager {
      * color of their material.
      */
     public String styleItemName(RollableItem item) {
+        return styleItemName(item, true);
+    }
+
+    /**
+     * Same, but the flair can be suppressed. The flair is an obfuscated
+     * character, which is fine on a nametag but reads as flickering noise
+     * in a tab list — so %solrng_tag_plain% asks for it without.
+     */
+    public String styleItemName(RollableItem item, boolean withFlair) {
         String colored = item.getStyle() != null
                 ? item.getStyle().apply(item.getDisplayName())
                 : RollFormat.naturalColor(item.getMaterial()) + item.getDisplayName();
 
-        if (!Boolean.TRUE.equals(symbolFlair.get(item.getRarity()))) {
+        if (!withFlair || !Boolean.TRUE.equals(symbolFlair.get(item.getRarity()))) {
             return colored;
         }
         String flair = ChatColor.MAGIC + "#" + ChatColor.RESET;

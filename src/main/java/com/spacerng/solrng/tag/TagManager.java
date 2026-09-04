@@ -86,8 +86,36 @@ public class TagManager {
      */
     public void refreshPrefix(Player player, PlayerData data) {
         String prefix = buildTagPrefix(data);
+        // Cached either way — %solrng_tag% reads from here, so the
+        // placeholder keeps working even when TAB owns the nametag.
         prefixCache.put(player.getUniqueId(), prefix);
-        pushTeamToAllViewers(player, prefix);
+
+        if (managesNametag()) {
+            pushTeamToAllViewers(player, prefix);
+        } else {
+            removeTeamFromAllViewers(player);
+        }
+    }
+
+    /**
+     * Whether this plugin writes the nametag itself. Turn it off when TAB
+     * (or any other nametag plugin) is installed: two plugins both writing
+     * scoreboard team prefixes for the same player fight each other, and
+     * TAB's anti-override will win. With this off, point TAB's
+     * tagprefix/tabprefix at %solrng_tag% instead.
+     */
+    private boolean managesNametag() {
+        return plugin.getConfig().getBoolean("tag.manage-nametag", true);
+    }
+
+    private void removeTeamFromAllViewers(Player subject) {
+        String teamName = TEAM_PREFIX + shortUuid(subject);
+        for (Player viewer : Bukkit.getOnlinePlayers()) {
+            Team team = viewer.getScoreboard().getTeam(teamName);
+            if (team != null) {
+                team.unregister();
+            }
+        }
     }
 
     private String buildTagPrefix(PlayerData data) {
@@ -125,6 +153,7 @@ public class TagManager {
      * their own, until someone re-equips.
      */
     public void syncAllTeamsTo(Player viewer) {
+        if (!managesNametag()) return; // TAB owns nametags — don't fight it
         Scoreboard board = viewer.getScoreboard();
         for (Player subject : Bukkit.getOnlinePlayers()) {
             String prefix = prefixCache.getOrDefault(subject.getUniqueId(), "");
