@@ -2,8 +2,7 @@ package com.spacerng.solrng.starforge;
 
 import com.spacerng.solrng.SolRNGPlugin;
 import com.spacerng.solrng.player.PlayerData;
-import net.milkbowl.vault.economy.Economy;
-import org.bukkit.Bukkit;
+import com.spacerng.solrng.rarity.Rarity;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -15,15 +14,16 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
- * The Starforge — the item players right-click to roll and left-click to
- * toggle Auto Roll. Its tier is what sets a player's BASE Luck; the skill
- * tree and armor add on top of that, and the index multiplier scales the
- * whole thing.
+ * The Starforge — the item players right-click to roll, left-click to
+ * toggle Auto Roll, and drop-key to open settings. Its tier is what sets
+ * a player's BASE Luck; the skill tree and armor add on top, and the
+ * index multiplier scales the whole thing.
  *
  * The tier is stored on PlayerData rather than read off the held item, so
  * losing or stashing the physical item never costs a player the Luck they
@@ -59,11 +59,24 @@ public class StarforgeManager {
         for (String id : section.getKeys(false)) {
             ConfigurationSection t = section.getConfigurationSection(id);
             if (t == null) continue;
+
+            Map<Rarity, Long> costs = new EnumMap<>(Rarity.class);
+            ConfigurationSection costsSection = t.getConfigurationSection("costs");
+            if (costsSection != null) {
+                for (String rarityKey : costsSection.getKeys(false)) {
+                    try {
+                        costs.put(Rarity.valueOf(rarityKey.toUpperCase()), costsSection.getLong(rarityKey));
+                    } catch (IllegalArgumentException ex) {
+                        plugin.getLogger().warning("[SolRNG] Unknown rarity '" + rarityKey + "' in starforge tier " + id);
+                    }
+                }
+            }
+
             tiers.put(id, new StarforgeTier(
                     id,
                     t.getString("display", id),
                     t.getDouble("luck-bonus", 0.0),
-                    t.getDouble("cost-money", 0.0),
+                    costs,
                     order++));
         }
         plugin.getLogger().info("[SolRNG] Loaded " + tiers.size() + " Starforge tiers.");
@@ -92,19 +105,54 @@ public class StarforgeManager {
         return tier == null ? 0.0 : tier.getLuckBonus();
     }
 
-    private Economy economy() {
-        var registration = Bukkit.getServicesManager().getRegistration(Economy.class);
-        return registration == null ? null : registration.getProvider();
+    private NamespacedKey rarityKey() {
+        return plugin.getRollListener().getRarityKey();
     }
 
-    public double balanceOf(Player player) {
-        Economy economy = economy();
-        return economy == null ? 0.0 : economy.getBalance(player);
+    public long countHeld(Player player, Rarity rarity) {
+        NamespacedKey key = rarityKey();
+        long total = 0L;
+        for (ItemStack stack : player.getInventory().getStorageContents()) {
+            if (stack == null || stack.getItemMeta() == null) continue;
+            String rarityName = stack.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING);
+            if (rarity.name().equals(rarityName)) {
+                total += stack.getAmount();
+            }
+        }
+        return total;
+    }
+
+    public boolean canAfford(Player player, StarforgeTier tier) {
+        for (Map.Entry<Rarity, Long> cost : tier.getCosts().entrySet()) {
+            if (countHeld(player, cost.getKey()) < cost.getValue()) return false;
+        }
+        return true;
+    }
+
+    private void consume(Player player, Rarity rarity, long amount) {
+        NamespacedKey key = rarityKey();
+        ItemStack[] contents = player.getInventory().getStorageContents();
+        long remaining = amount;
+        for (int i = 0; i < contents.length && remaining > 0; i++) {
+            ItemStack stack = contents[i];
+            if (stack == null || stack.getItemMeta() == null) continue;
+            String rarityName = stack.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING);
+            if (!rarity.name().equals(rarityName)) continue;
+
+            long take = Math.min(remaining, stack.getAmount());
+            stack.setAmount((int) (stack.getAmount() - take));
+            remaining -= take;
+            if (stack.getAmount() <= 0) {
+                contents[i] = null;
+            }
+        }
+        player.getInventory().setStorageContents(contents);
     }
 
     /**
-     * Buys a tier with Money. Only upgrades — you can't buy a tier at or
-     * below the one you already own. Hands over the new item on success.
+     * Buys a tier with rolled drops. Only upgrades — you can't buy a tier
+     * at or below the one you already own. Hands over the new item on
+     * success.
      */
     public boolean purchase(Player player, PlayerData data, String tierId) {
         StarforgeTier target = tiers.get(tierId);
@@ -112,10 +160,12 @@ public class StarforgeManager {
 
         StarforgeTier current = tierOf(data);
         if (current != null && target.getOrder() <= current.getOrder()) return false;
+        if (!canAfford(player, target)) return false;
 
-        Economy economy = economy();
-        if (economy == null || economy.getBalance(player) < target.getMoneyCost()) return false;
-        economy.withdrawPlayer(player, target.getMoneyCost());
+        for (Map.Entry<Rarity, Long> cost : target.getCosts().entrySet()) {
+            consume(player, cost.getKey(), cost.getValue());
+            data.addConverted(cost.getKey(), cost.getValue());
+        }
 
         data.setStarforgeTier(target.getId());
         replaceHeldStarforge(player, target);
@@ -154,18 +204,29 @@ public class StarforgeManager {
 
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + tier.getDisplay());
-        meta.setLore(List.of(
-                ChatColor.DARK_AQUA + "+" + formatPercent(tier.getLuckBonus()) + "% Luck",
-                "",
-                ChatColor.GRAY + "Right-click to " + ChatColor.WHITE + "roll",
-                ChatColor.GRAY + "Left-click to toggle " + ChatColor.WHITE + "Auto Roll",
-                "",
-                ChatColor.DARK_GRAY + "Upgrade it in /starforge"
-        ));
+        meta.setDisplayName(ChatColor.WHITE + tier.getDisplay());
+        meta.setLore(statLines(tier));
         meta.getPersistentDataContainer().set(itemKey, PersistentDataType.STRING, tier.getId());
         item.setItemMeta(meta);
         return item;
+    }
+
+    /**
+     * The shared top half of the tooltip — stats and controls. The shop
+     * icon appends a price block below this; the held item stops here.
+     */
+    public List<String> statLines(StarforgeTier tier) {
+        List<String> lore = new ArrayList<>();
+        lore.add("");
+        lore.add(ChatColor.GRAY + "Stats:");
+        lore.add(ChatColor.AQUA + "◆ " + ChatColor.GRAY + "Luck: " + ChatColor.GREEN
+                + "+" + formatPercent(tier.getLuckBonus()) + "%");
+        lore.add("");
+        lore.add(ChatColor.GRAY + "Punch " + ChatColor.DARK_GRAY + "» " + ChatColor.AQUA + "Auto Roll");
+        lore.add(ChatColor.GRAY + "Drop " + ChatColor.DARK_GRAY + "» " + ChatColor.AQUA + "Settings");
+        lore.add("");
+        lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "INTERACT TO ROLL");
+        return lore;
     }
 
     public static String formatPercent(double luckBonus) {

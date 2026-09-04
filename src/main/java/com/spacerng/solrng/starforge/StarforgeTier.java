@@ -1,19 +1,24 @@
 package com.spacerng.solrng.starforge;
 
-/** One Starforge tier — its display name, base Luck bonus, and Money price. */
+import com.spacerng.solrng.rarity.Rarity;
+
+import java.util.Map;
+
+/** One Starforge tier — its display name, base Luck bonus, and drop cost. */
 public class StarforgeTier {
 
     private final String id;
     private final String display;
     private final double luckBonus;
-    private final double moneyCost;
+    // Paid in rolled drops, same as /armor.
+    private final Map<Rarity, Long> costs;
     private final int order; // position in the ladder, 0 = Basic
 
-    public StarforgeTier(String id, String display, double luckBonus, double moneyCost, int order) {
+    public StarforgeTier(String id, String display, double luckBonus, Map<Rarity, Long> costs, int order) {
         this.id = id;
         this.display = display;
         this.luckBonus = luckBonus;
-        this.moneyCost = moneyCost;
+        this.costs = costs;
         this.order = order;
     }
 
@@ -29,8 +34,8 @@ public class StarforgeTier {
         return luckBonus;
     }
 
-    public double getMoneyCost() {
-        return moneyCost;
+    public Map<Rarity, Long> getCosts() {
+        return costs;
     }
 
     public int getOrder() {

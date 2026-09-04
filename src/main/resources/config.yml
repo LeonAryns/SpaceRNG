@@ -19,35 +19,57 @@ starforge:
     BASIC:
       display: "Basic Starforge"
       luck-bonus: 0.25
-      cost-money: 0
+      costs: {}
     INTERMEDIATE:
       display: "Intermediate Starforge"
       luck-bonus: 0.50
-      cost-money: 25000
+      costs:
+        COMMON: 75
+        UNCOMMON: 25
+        RARE: 5
     ADVANCED:
       display: "Advanced Starforge"
       luck-bonus: 1.00
-      cost-money: 100000
+      costs:
+        COMMON: 200
+        UNCOMMON: 75
+        RARE: 20
+        EPIC: 3
     REFINED:
       display: "Refined Starforge"
       luck-bonus: 1.75
-      cost-money: 350000
+      costs:
+        UNCOMMON: 200
+        RARE: 60
+        EPIC: 10
     SUPERIOR:
       display: "Superior Starforge"
       luck-bonus: 3.00
-      cost-money: 1000000
+      costs:
+        RARE: 150
+        EPIC: 35
+        LEGENDARY: 3
+    # Masterwork and up are placeholder prices — they're meant to need
+    # the rarer drops, so retune these once those feel right in-game.
     MASTERWORK:
       display: "Masterwork Starforge"
       luck-bonus: 5.00
-      cost-money: 3000000
+      costs:
+        EPIC: 100
+        LEGENDARY: 10
     RADIANT:
       display: "Radiant Starforge"
       luck-bonus: 8.00
-      cost-money: 10000000
+      costs:
+        EPIC: 250
+        LEGENDARY: 30
+        MYTHICAL: 2
     CELESTIAL:
       display: "Celestial Starforge"
       luck-bonus: 12.50
-      cost-money: 35000000
+      costs:
+        LEGENDARY: 100
+        MYTHICAL: 10
 
 # Farm crops (a shared field everyone harvests together) — breaking a
 # fully-grown crop listed here pays Tokens on top of its normal drop,
