@@ -82,7 +82,7 @@ public class TagCommand implements CommandExecutor {
             // The item's own colors, so the hologram matches how the item
             // itself is named everywhere else.
             plugin.getTagManager().showHologram(player, RollFormat.displayName(plugin, rollable),
-                    ChatColor.GRAY + "Odds: " + ChatColor.WHITE + RollFormat.compactOdds(rollable.getOdds()));
+                    RollFormat.tagOdds(plugin, rollable));
         }
 
         player.sendMessage(ChatColor.GREEN + "Equipped tag: "

@@ -215,7 +215,17 @@ public final class RollFormat {
      * "1 in 500" style odds string, used in item lore.
      */
     public static String chance(long odds) {
-        return "1 in " + odds;
+        return "1 in " + String.format("%,d", odds);
+    }
+
+    /**
+     * The floating tag's odds line: "★ 1 in 1,700 ★" in the item's flat
+     * rarity color. Uses ★ rather than a true emoji — Minecraft's default
+     * font has no emoji glyphs, so anything outside its character set
+     * would render as a missing-glyph box without a resource pack.
+     */
+    public static String tagOdds(SolRNGPlugin plugin, RollableItem item) {
+        return plugin.getRarityManager().style(item.getRarity(), "★ " + chance(item.getOdds()) + " ★");
     }
 
     /**

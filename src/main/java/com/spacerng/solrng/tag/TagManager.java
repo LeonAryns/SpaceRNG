@@ -164,10 +164,10 @@ public class TagManager {
     }
 
     /**
-     * (Re)builds the floating item-name/odds display above the player's
+     * (Re)builds the floating odds/item-name display above the player's
      * head. Safe to call repeatedly (e.g. on join or respawn) — always
-     * tears down any previous displays first. itemNameColored renders on
-     * TOP, oddsText renders just below it.
+     * tears down any previous displays first. oddsText renders on TOP,
+     * itemNameColored just below it.
      *
      * Both displays are mounted DIRECTLY on the player (not chained onto
      * each other) — a 2-level mount chain (player -> A -> B) was visibly
@@ -180,13 +180,13 @@ public class TagManager {
     public void showHologram(Player player, String itemNameColored, String oddsText) {
         hideHologram(player);
 
-        TextDisplay nameDisplay = spawnLine(player, itemNameColored, TOP_OFFSET);
-        TextDisplay oddsDisplay = spawnLine(player, oddsText, BOTTOM_OFFSET);
+        TextDisplay oddsDisplay = spawnLine(player, oddsText, TOP_OFFSET);
+        TextDisplay nameDisplay = spawnLine(player, itemNameColored, BOTTOM_OFFSET);
 
-        player.addPassenger(nameDisplay);
         player.addPassenger(oddsDisplay);
+        player.addPassenger(nameDisplay);
 
-        holograms.put(player.getUniqueId(), new TextDisplay[]{nameDisplay, oddsDisplay});
+        holograms.put(player.getUniqueId(), new TextDisplay[]{oddsDisplay, nameDisplay});
     }
 
     public void hideHologram(Player player) {

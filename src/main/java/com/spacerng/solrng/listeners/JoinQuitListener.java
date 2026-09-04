@@ -91,6 +91,6 @@ public class JoinQuitListener implements Listener {
         // The item's own colors, matching how it's named everywhere else.
         plugin.getTagManager().showHologram(player,
                 RollFormat.displayName(plugin, rollable),
-                ChatColor.GRAY + "Odds: " + ChatColor.WHITE + RollFormat.compactOdds(rollable.getOdds()));
+                RollFormat.tagOdds(plugin, rollable));
     }
 }
