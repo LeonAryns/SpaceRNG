@@ -173,7 +173,23 @@ public final class RollFormat {
             Map.entry(Material.TUFF, ChatColor.DARK_GRAY),
             Map.entry(Material.TURTLE_SCUTE, ChatColor.GREEN),
             Map.entry(Material.WHEAT, ChatColor.YELLOW),
-            Map.entry(Material.WHEAT_SEEDS, ChatColor.GOLD)
+            Map.entry(Material.WHEAT_SEEDS, ChatColor.GOLD),
+
+            // Epic (mobs) / Legendary (eggs) / Mythical (bosses) items.
+            Map.entry(Material.ZOMBIE_SPAWN_EGG, ChatColor.GREEN),
+            Map.entry(Material.SKELETON_SPAWN_EGG, ChatColor.WHITE),
+            Map.entry(Material.CREEPER_SPAWN_EGG, ChatColor.DARK_GREEN),
+            Map.entry(Material.SPIDER_SPAWN_EGG, ChatColor.DARK_GRAY),
+            Map.entry(Material.ENDERMAN_SPAWN_EGG, ChatColor.DARK_PURPLE),
+            Map.entry(Material.WITCH_SPAWN_EGG, ChatColor.LIGHT_PURPLE),
+            Map.entry(Material.BLAZE_SPAWN_EGG, ChatColor.GOLD),
+            Map.entry(Material.PIGLIN_SPAWN_EGG, ChatColor.GOLD),
+            Map.entry(Material.GUARDIAN_SPAWN_EGG, ChatColor.AQUA),
+            Map.entry(Material.SLIME_SPAWN_EGG, ChatColor.GREEN),
+            Map.entry(Material.WITHER_SKELETON_SPAWN_EGG, ChatColor.DARK_GRAY),
+            Map.entry(Material.RAVAGER_SPAWN_EGG, ChatColor.RED),
+            Map.entry(Material.ELDER_GUARDIAN_SPAWN_EGG, ChatColor.DARK_AQUA),
+            Map.entry(Material.EVOKER_SPAWN_EGG, ChatColor.DARK_GRAY)
     );
 
     /**

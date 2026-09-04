@@ -617,81 +617,81 @@ items:
     rarity: RARE
     odds: 20000
 
-  # --- Epic ---
-  - material: DIAMOND
-    name: "Diamond"
+  # --- Epic: the mobs in the game ---
+  - material: ZOMBIE_SPAWN_EGG
+    name: "Rotten Zombie"
     rarity: EPIC
     odds: 20000
-  - material: ANCIENT_DEBRIS
-    name: "Ancient Debris"
+  - material: SKELETON_SPAWN_EGG
+    name: "Bone Marksman"
     rarity: EPIC
     odds: 22143
-  - material: ENDER_EYE
-    name: "Eye of Ender"
+  - material: CREEPER_SPAWN_EGG
+    name: "Creeper Menace"
     rarity: EPIC
     odds: 24517
-  - material: GOLDEN_APPLE
-    name: "Enchanted Apple"
+  - material: SPIDER_SPAWN_EGG
+    name: "Cave Crawler"
     rarity: EPIC
     odds: 27144
-  - material: NAUTILUS_SHELL
-    name: "Nautilus Shell"
+  - material: ENDERMAN_SPAWN_EGG
+    name: "Void Wanderer"
     rarity: EPIC
     odds: 30053
-  - material: NETHERITE_SCRAP
-    name: "Netherite Scrap"
+  - material: WITCH_SPAWN_EGG
+    name: "Vile Witch"
     rarity: EPIC
     odds: 33274
-  - material: DRAGON_BREATH
-    name: "Dragon Breath"
+  - material: BLAZE_SPAWN_EGG
+    name: "Blazing Fiend"
     rarity: EPIC
     odds: 36840
-  - material: SHULKER_BOX
-    name: "Shulker Box"
+  - material: PIGLIN_SPAWN_EGG
+    name: "Piglin Raider"
     rarity: EPIC
     odds: 40789
-  - material: CONDUIT
-    name: "Conduit"
+  - material: GUARDIAN_SPAWN_EGG
+    name: "Abyssal Guardian"
     rarity: EPIC
     odds: 45160
-  - material: END_CRYSTAL
-    name: "End Crystal"
+  - material: SLIME_SPAWN_EGG
+    name: "Gelatinous Slime"
     rarity: EPIC
     odds: 50000
 
-  # --- Legendary ---
-  - material: NETHERITE_INGOT
-    name: "Netherite"
+  # --- Legendary: the egg as drop ---
+  - material: DRAGON_EGG
+    name: "Dragon Egg"
     rarity: LEGENDARY
     odds: 100000
-  - material: NETHERITE_BLOCK
-    name: "Netherite Block"
+  - material: WITHER_SKELETON_SPAWN_EGG
+    name: "Cursed Skeleton"
     rarity: LEGENDARY
     odds: 125743
-  - material: BEACON
-    name: "Beacon"
+  - material: RAVAGER_SPAWN_EGG
+    name: "Rampaging Ravager"
     rarity: LEGENDARY
     odds: 158114
-  - material: TOTEM_OF_UNDYING
-    name: "Totem of Undying"
+  - material: ELDER_GUARDIAN_SPAWN_EGG
+    name: "Ancient Guardian"
     rarity: LEGENDARY
     odds: 198818
-  - material: HEART_OF_THE_SEA
-    name: "Heart of the Sea"
+  - material: EVOKER_SPAWN_EGG
+    name: "Evoker's Wrath"
     rarity: LEGENDARY
     odds: 250000
 
-  # --- Mythical ---
+  # --- Mythical: the bosses ---
   - material: NETHER_STAR
-    name: "Fallen Star"
+    name: "The Wither"
     rarity: MYTHICAL
     odds: 1000000
-  - material: DRAGON_EGG
-    name: "Dragon Egg"
+  - material: ECHO_SHARD
+    name: "The Warden"
     rarity: MYTHICAL
     odds: 2236068
   - material: ELYTRA
-    name: "Celestial Wings"
+    name: "The Ender Dragon"
     rarity: MYTHICAL
     odds: 5000000
 
