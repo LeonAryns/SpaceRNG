@@ -54,6 +54,10 @@ commands:
     description: See the starting guide and what's next
     usage: /guide
     aliases: [quests, tutorial]
+  daily:
+    description: Claim your daily streak reward
+    usage: /daily
+    aliases: [streak, dailyreward]
   buy:
     description: Spend store Credits
     usage: /buy

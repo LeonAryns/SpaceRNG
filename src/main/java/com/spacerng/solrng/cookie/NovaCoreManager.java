@@ -181,7 +181,11 @@ public class NovaCoreManager {
         }
 
         double luck = plugin.getPrestigeManager().baseLuck(data);
-        double chance = chanceAt(tier, luck);
+        // Nova Touch nudges the roll itself rather than the Luck feeding it,
+        // so it stays useful at high Luck where the odds already clamp.
+        double chance = Math.min(maxChance, chanceAt(tier, luck)
+                + plugin.getPrestigeManager().upgradeTotal(data,
+                        com.spacerng.solrng.player.PrestigeUpgrade.Effect.NOVA_ODDS));
         boolean success = ThreadLocalRandom.current().nextDouble() < chance;
 
         if (success) {

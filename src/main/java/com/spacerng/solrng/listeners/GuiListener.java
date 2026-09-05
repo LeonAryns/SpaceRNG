@@ -8,6 +8,8 @@ import com.spacerng.solrng.gui.BuyGui;
 import com.spacerng.solrng.gui.BuyHolder;
 import com.spacerng.solrng.gui.ConvertGui;
 import com.spacerng.solrng.gui.CropsGui;
+import com.spacerng.solrng.gui.DailyGui;
+import com.spacerng.solrng.gui.DailyHolder;
 import com.spacerng.solrng.gui.CropsHolder;
 import com.spacerng.solrng.gui.ConvertHolder;
 import com.spacerng.solrng.gui.IndexGui;
@@ -74,6 +76,8 @@ public class GuiListener implements Listener {
             handleNovaCoreClick(event);
         } else if (topInventory.getHolder() instanceof BuyHolder) {
             handleBuyClick(event);
+        } else if (topInventory.getHolder() instanceof DailyHolder) {
+            handleDailyClick(event);
         }
     }
 
@@ -251,6 +255,20 @@ public class GuiListener implements Listener {
         player.openInventory(BuyGui.build(plugin, player));
     }
 
+    private void handleDailyClick(InventoryClickEvent event) {
+        event.setCancelled(true);
+        if (event.getClickedInventory() == null
+                || !(event.getClickedInventory().getHolder() instanceof DailyHolder)) return;
+        if (event.getRawSlot() != DailyGui.CLAIM_SLOT) return;
+
+        Player player = (Player) event.getWhoClicked();
+        if (!plugin.getDailyManager().claim(player)) {
+            player.sendMessage(ChatColor.RED + "You've already claimed today. Come back tomorrow.");
+            player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
+        }
+        player.openInventory(DailyGui.build(plugin, player));
+    }
+
     private void handleArmorClick(InventoryClickEvent event) {
         event.setCancelled(true);
         if (event.getClickedInventory() == null || !(event.getClickedInventory().getHolder() instanceof ArmorHolder)) return;
@@ -287,33 +305,91 @@ public class GuiListener implements Listener {
 
     private void handlePrestigeClick(InventoryClickEvent event) {
         event.setCancelled(true);
-        if (event.getClickedInventory() == null || !(event.getClickedInventory().getHolder() instanceof PrestigeHolder)) return;
+        if (event.getClickedInventory() == null
+                || !(event.getClickedInventory().getHolder() instanceof PrestigeHolder holder)) return;
 
         Player player = (Player) event.getWhoClicked();
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         PrestigeManager prestige = plugin.getPrestigeManager();
         int rawSlot = event.getRawSlot();
 
-        if (rawSlot == PrestigeHolder.LEVEL_SLOT) {
-            if (prestige.levelUp(data)) {
-                plugin.getTagManager().refreshPrefix(player, data);
-                player.sendMessage(ChatColor.GREEN + "Level up! You're now level " + data.getLevel() + ".");
-                player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_LEVELUP, 0.6f, 1.2f);
+        if (holder.isUpgradesPage()) {
+            if (rawSlot == PrestigeGui.BACK_SLOT) {
                 player.openInventory(PrestigeGui.build(plugin, player));
-            } else {
-                player.sendMessage(ChatColor.RED + "Keep rolling to level up.");
+                return;
             }
-        } else if (rawSlot == PrestigeHolder.PRESTIGE_SLOT) {
-            if (prestige.prestige(data)) {
-                plugin.getTagManager().refreshPrefix(player, data);
-                player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "Prestiged! " + ChatColor.RESET
-                        + ChatColor.GRAY + "You're now [P" + data.getPrestige() + "] and back to level 1.");
-                player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_ENDER_DRAGON_GROWL, 0.5f, 1.5f);
-                player.openInventory(PrestigeGui.build(plugin, player));
-            } else {
-                player.sendMessage(ChatColor.RED + "Not enough levels to prestige yet.");
-            }
+            handleUpgradeClick(player, data, prestige, event);
+            return;
         }
+
+        if (rawSlot == PrestigeGui.UPGRADES_SLOT) {
+            player.openInventory(PrestigeGui.buildUpgrades(plugin, player));
+            return;
+        }
+
+        if (rawSlot == PrestigeGui.LEVEL_SLOT) {
+            if (prestige.levelUp(data)) {
+                player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "LEVEL UP! "
+                        + ChatColor.RESET + ChatColor.GRAY + "You're now level "
+                        + ChatColor.WHITE + data.getLevel() + ChatColor.GRAY + ".");
+                player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_LEVELUP, 0.8f, 1.5f);
+            } else {
+                player.sendMessage(ChatColor.RED + "You need more rolls to level up.");
+            }
+        } else if (rawSlot == PrestigeGui.PRESTIGE_SLOT) {
+            if (prestige.prestige(data)) {
+                player.sendMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "ASCENDED! "
+                        + ChatColor.RESET + ChatColor.GRAY + "Prestige "
+                        + ChatColor.WHITE + data.getPrestige() + ChatColor.GRAY + ", and "
+                        + ChatColor.LIGHT_PURPLE + "+" + prestige.getPointsPerPrestige()
+                        + ChatColor.GRAY + " Prestige Points to spend.");
+                player.playSound(player.getLocation(), org.bukkit.Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0f, 1.0f);
+            } else {
+                player.sendMessage(ChatColor.RED + "You don't have enough levels to ascend yet.");
+                return;
+            }
+        } else {
+            return;
+        }
+
+        plugin.getScoreboardManager().update(player);
+        plugin.getLuckBarManager().update(player);
+        player.openInventory(PrestigeGui.build(plugin, player));
+    }
+
+    /** Shift-click buys as many levels as the player's points allow. */
+    private void handleUpgradeClick(Player player, PlayerData data, PrestigeManager prestige,
+                                    InventoryClickEvent event) {
+        ItemStack clicked = event.getCurrentItem();
+        if (clicked == null || clicked.getItemMeta() == null) return;
+
+        String id = clicked.getItemMeta().getPersistentDataContainer()
+                .get(PrestigeGui.upgradeKey(plugin), PersistentDataType.STRING);
+        if (id == null) return;
+
+        int bought = 0;
+        if (event.isShiftClick()) {
+            while (prestige.buyUpgrade(data, id)) bought++;
+        } else if (prestige.buyUpgrade(data, id)) {
+            bought = 1;
+        }
+
+        if (bought == 0) {
+            player.sendMessage(ChatColor.RED + "You can't upgrade that right now.");
+            player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
+            return;
+        }
+
+        var upgrade = prestige.getUpgrade(id);
+        player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "UPGRADED "
+                + ChatColor.RESET + ChatColor.YELLOW + upgrade.getDisplay()
+                + ChatColor.GRAY + " to level " + ChatColor.WHITE + data.getUpgradeLevel(id)
+                + (bought > 1 ? ChatColor.DARK_GRAY + " (+" + bought + ")" : ""));
+        player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_ENCHANTMENT_TABLE_USE, 0.8f, 1.4f);
+
+        plugin.getScoreboardManager().update(player);
+        plugin.getLuckBarManager().update(player);
+        player.openInventory(PrestigeGui.buildUpgrades(plugin, player));
     }
 
     private void handleIndexClick(InventoryClickEvent event) {

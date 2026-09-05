@@ -95,6 +95,16 @@ public class PlayerDataManager {
         data.getClaimedMilestones().addAll(yml.getStringList("claimed-milestones"));
         data.getAnnouncedMilestones().addAll(yml.getStringList("announced-milestones"));
         data.getCompletedQuests().addAll(yml.getStringList("completed-quests"));
+        data.setDailyStreak(yml.getInt("daily-streak", 0));
+        data.setDailyLastClaimDay(yml.getLong("daily-last-claim-day", 0L));
+        data.setDailyTotalClaims(yml.getLong("daily-total-claims", 0L));
+        data.setPrestigePoints(yml.getInt("prestige-points", 0));
+        org.bukkit.configuration.ConfigurationSection upgrades = yml.getConfigurationSection("prestige-upgrades");
+        if (upgrades != null) {
+            for (String id : upgrades.getKeys(false)) {
+                data.setUpgradeLevel(id, upgrades.getInt(id));
+            }
+        }
 
         org.bukkit.configuration.ConfigurationSection bank = yml.getConfigurationSection("drop-bank");
         if (bank != null) {
@@ -173,6 +183,13 @@ public class PlayerDataManager {
         yml.set("claimed-milestones", new java.util.ArrayList<>(data.getClaimedMilestones()));
         yml.set("announced-milestones", new java.util.ArrayList<>(data.getAnnouncedMilestones()));
         yml.set("completed-quests", new java.util.ArrayList<>(data.getCompletedQuests()));
+        yml.set("daily-streak", data.getDailyStreak());
+        yml.set("daily-last-claim-day", data.getDailyLastClaimDay());
+        yml.set("daily-total-claims", data.getDailyTotalClaims());
+        yml.set("prestige-points", data.getPrestigePoints());
+        for (Map.Entry<String, Integer> entry : data.getPrestigeUpgrades().entrySet()) {
+            yml.set("prestige-upgrades." + entry.getKey(), entry.getValue());
+        }
         for (Map.Entry<Rarity, Long> entry : data.getDropBank().entrySet()) {
             yml.set("drop-bank." + entry.getKey().name(), entry.getValue());
         }

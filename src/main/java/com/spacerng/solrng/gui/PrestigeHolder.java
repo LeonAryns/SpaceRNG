@@ -15,6 +15,14 @@ public class PrestigeHolder implements InventoryHolder {
         this.inventory = inventory;
     }
 
-    public static final int LEVEL_SLOT = 11;
-    public static final int PRESTIGE_SLOT = 15;
+    /** True when this is the upgrades board rather than the main card. */
+    private boolean upgradesPage;
+
+    public boolean isUpgradesPage() {
+        return upgradesPage;
+    }
+
+    public void setUpgradesPage(boolean upgradesPage) {
+        this.upgradesPage = upgradesPage;
+    }
 }

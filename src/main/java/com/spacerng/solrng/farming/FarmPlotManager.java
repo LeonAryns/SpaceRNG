@@ -322,10 +322,15 @@ public class FarmPlotManager {
 
         // Same universal multiplier the Nova Core gives Luck and Money.
         multiplier *= plugin.getNovaCoreManager().multiplierAt(data.getNovaTier());
+        // Token Master from the prestige upgrades rides on top.
+        multiplier += plugin.getPrestigeManager().upgradeTotal(data,
+                com.spacerng.solrng.player.PrestigeUpgrade.Effect.TOKEN_BONUS);
         long tokens = Math.round(crop.getTokens() * multiplier);
         long shards = shardsUnlocked(data) ? crop.getShards() : 0L;
 
-        double shardGreed = hoe.powerOf(data, "SHARD_GREED");
+        double shardGreed = hoe.powerOf(data, "SHARD_GREED")
+                + plugin.getPrestigeManager().upgradeTotal(data,
+                        com.spacerng.solrng.player.PrestigeUpgrade.Effect.SHARD_BONUS);
         if (shardsUnlocked(data) && shardGreed > 0 && ThreadLocalRandom.current().nextDouble() < shardGreed) {
             shards += 1;
         }

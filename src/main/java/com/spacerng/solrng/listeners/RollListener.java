@@ -421,7 +421,9 @@ public class RollListener implements Listener {
         // multiplier, not a Luck-only one.
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         double nova = plugin.getNovaCoreManager().multiplierAt(data.getNovaTier());
-        double money = result.getOdds() * multiplier * nova;
+        double upgrade = 1.0 + plugin.getPrestigeManager().upgradeTotal(data,
+                com.spacerng.solrng.player.PrestigeUpgrade.Effect.MONEY_BONUS);
+        double money = result.getOdds() * multiplier * nova * upgrade;
         registration.getProvider().depositPlayer(player, money);
         return money;
     }

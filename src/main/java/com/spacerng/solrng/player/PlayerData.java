@@ -84,6 +84,15 @@ public class PlayerData {
     // effectively "how far in am I", but keyed by id so the order can be
     // changed later without resetting anyone.
     private final Set<String> completedQuests = new HashSet<>();
+    // Daily streak: the run so far, and the epoch day it was last claimed.
+    // A calendar day, not a rolling 24h window — see DailyManager.
+    private int dailyStreak = 0;
+    private long dailyLastClaimDay = 0L;
+    private long dailyTotalClaims = 0L;
+    // Prestige Points and what they've been spent on. Points are the part
+    // of prestige the player chooses how to use.
+    private int prestigePoints = 0;
+    private final Map<String, Integer> prestigeUpgrades = new HashMap<>();
     // Lifetime farm crops harvested. The only milestone track that needed
     // its own counter; the rest are derived from existing state.
     private long cropsHarvested = 0L;
@@ -409,6 +418,64 @@ public class PlayerData {
 
     public void markQuestCompleted(String id) {
         completedQuests.add(id);
+    }
+
+    public int getDailyStreak() {
+        return dailyStreak;
+    }
+
+    public void setDailyStreak(int dailyStreak) {
+        this.dailyStreak = Math.max(0, dailyStreak);
+    }
+
+    public long getDailyLastClaimDay() {
+        return dailyLastClaimDay;
+    }
+
+    public void setDailyLastClaimDay(long dailyLastClaimDay) {
+        this.dailyLastClaimDay = dailyLastClaimDay;
+    }
+
+    public long getDailyTotalClaims() {
+        return dailyTotalClaims;
+    }
+
+    public void addDailyTotalClaims(long amount) {
+        this.dailyTotalClaims += amount;
+    }
+
+    public void setDailyTotalClaims(long dailyTotalClaims) {
+        this.dailyTotalClaims = dailyTotalClaims;
+    }
+
+    public int getPrestigePoints() {
+        return prestigePoints;
+    }
+
+    public void setPrestigePoints(int prestigePoints) {
+        this.prestigePoints = Math.max(0, prestigePoints);
+    }
+
+    public void addPrestigePoints(int amount) {
+        this.prestigePoints = Math.max(0, this.prestigePoints + amount);
+    }
+
+    public boolean spendPrestigePoints(int amount) {
+        if (prestigePoints < amount) return false;
+        prestigePoints -= amount;
+        return true;
+    }
+
+    public Map<String, Integer> getPrestigeUpgrades() {
+        return prestigeUpgrades;
+    }
+
+    public int getUpgradeLevel(String id) {
+        return prestigeUpgrades.getOrDefault(id, 0);
+    }
+
+    public void setUpgradeLevel(String id, int level) {
+        prestigeUpgrades.put(id, Math.max(0, level));
     }
 
     public long getCropsHarvested() {

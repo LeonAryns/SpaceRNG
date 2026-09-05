@@ -224,6 +224,24 @@ public class QuestManager {
         bar.setVisible(true);
     }
 
+    /**
+     * A periodic chat line for anyone still on the guide. The boss bar is
+     * easy to stop seeing after a while; one line every couple of minutes
+     * puts the next step back in front of them without nagging.
+     */
+    public void nudgeAll() {
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+            Quest quest = current(player, data);
+            if (quest == null) continue;
+
+            player.sendMessage(ChatColor.DARK_GRAY + "[" + ChatColor.GREEN + ChatColor.BOLD + "GUIDE"
+                    + ChatColor.RESET + ChatColor.DARK_GRAY + "] " + ChatColor.GRAY + "Next: "
+                    + ChatColor.WHITE + quest.getDisplay()
+                    + ChatColor.DARK_GRAY + "  —  " + ChatColor.GRAY + "see " + ChatColor.YELLOW + "/guide");
+        }
+    }
+
     public void hide(UUID uuid) {
         BossBar bar = bars.remove(uuid);
         if (bar != null) {

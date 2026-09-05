@@ -8,6 +8,7 @@ import com.spacerng.solrng.commands.PrestigeCommand;
 import com.spacerng.solrng.commands.BuyCommand;
 import com.spacerng.solrng.commands.CropsCommand;
 import com.spacerng.solrng.commands.FarmTreeCommand;
+import com.spacerng.solrng.commands.DailyCommand;
 import com.spacerng.solrng.commands.GuideCommand;
 import com.spacerng.solrng.commands.NovaCoreCommand;
 import com.spacerng.solrng.commands.MilestonesCommand;
@@ -56,6 +57,8 @@ public final class SolRNGPlugin extends JavaPlugin {
     private com.spacerng.solrng.cookie.NovaCoreManager novaCoreManager;
     private com.spacerng.solrng.farming.HoeEnchantManager hoeEnchantManager;
     private com.spacerng.solrng.quest.QuestManager questManager;
+    private com.spacerng.solrng.announce.AnnouncerManager announcerManager;
+    private com.spacerng.solrng.daily.DailyManager dailyManager;
 
     @Override
     public void onEnable() {
@@ -78,6 +81,8 @@ public final class SolRNGPlugin extends JavaPlugin {
         this.novaCoreManager = new com.spacerng.solrng.cookie.NovaCoreManager(this);
         this.hoeEnchantManager = new com.spacerng.solrng.farming.HoeEnchantManager(this);
         this.questManager = new com.spacerng.solrng.quest.QuestManager(this);
+        this.announcerManager = new com.spacerng.solrng.announce.AnnouncerManager(this);
+        this.dailyManager = new com.spacerng.solrng.daily.DailyManager(this);
 
         reloadAll();
 
@@ -104,6 +109,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         getCommand("novacore").setExecutor(new NovaCoreCommand(this));
         getCommand("farmtree").setExecutor(new FarmTreeCommand(this));
         getCommand("guide").setExecutor(new GuideCommand(this));
+        getCommand("daily").setExecutor(new DailyCommand(this));
         getCommand("buy").setExecutor(new BuyCommand(this));
         getCommand("rngadmin").setExecutor(adminCommand);
         getCommand("rngadmin").setTabCompleter(adminCommand);
@@ -140,6 +146,8 @@ public final class SolRNGPlugin extends JavaPlugin {
         novaCoreManager.load(getConfig());
         hoeEnchantManager.load(getConfig());
         questManager.load(getConfig());
+        announcerManager.load(getConfig());
+        dailyManager.load(getConfig());
     }
 
     /**
@@ -218,6 +226,14 @@ public final class SolRNGPlugin extends JavaPlugin {
         return luckBarManager;
     }
 
+    public com.spacerng.solrng.announce.AnnouncerManager getAnnouncerManager() {
+        return announcerManager;
+    }
+
+    public com.spacerng.solrng.daily.DailyManager getDailyManager() {
+        return dailyManager;
+    }
+
     public com.spacerng.solrng.quest.QuestManager getQuestManager() {
         return questManager;
     }
@@ -286,6 +302,16 @@ public final class SolRNGPlugin extends JavaPlugin {
         // the milestone sweep — a quest that says 7/10 while you're at 9 is
         // worse than no counter at all.
         getServer().getScheduler().runTaskTimer(this, () -> questManager.checkAll(), 40L, 40L);
+
+        // Rotating tips. Started here rather than inside the manager so a
+        // /rngadmin reload can change the message list without leaving a
+        // second timer running behind it.
+        getServer().getScheduler().runTaskTimer(this, () -> announcerManager.broadcastNext(),
+                announcerManager.getIntervalTicks(), announcerManager.getIntervalTicks());
+
+        // A gentle nudge for anyone still on the guide, well apart from the
+        // tips so the two never land together.
+        getServer().getScheduler().runTaskTimer(this, () -> questManager.nudgeAll(), 2400L, 2400L);
     }
 
     private void registerPlaceholderExpansion() {

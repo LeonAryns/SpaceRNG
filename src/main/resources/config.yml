@@ -2,6 +2,12 @@
 # SolRNG configuration
 # ============================================
 
+# The sidebar's fixed text. Colour codes use "&".
+scoreboard:
+  title: "&5&l\u2726 SPACERNG \u2726"
+  season: "SEASON I"
+  footer: "SPACERNG.MINEHUT.GG"
+
 roll-item:
   material: NETHER_STAR
   # No cooldown anymore — every roll takes this many seconds to resolve,
@@ -236,6 +242,57 @@ farming:
 # Levels are earned by rolling; prestiging resets your level for a
 # permanent Luck *multiplier* (applied on top of every other Luck source).
 prestige:
+  # Points awarded per ascend, spent on the upgrades below. Points are the
+  # part of prestige the player chooses how to use, which is what makes
+  # prestiging a decision rather than a button.
+  points-per-prestige: 1
+  # Slot is "column,row", 1-indexed, in a 6x9 menu.
+  upgrades:
+    lucky_star:
+      display: "Lucky Star"
+      icon: NETHER_STAR
+      slot: "3,2"
+      effect: LUCK_BONUS
+      per-level: 0.02
+      unit: "%"
+      max-level: 50
+      cost-points: 1
+    token_master:
+      display: "Token Master"
+      icon: RAW_GOLD
+      slot: "5,2"
+      effect: TOKEN_BONUS
+      per-level: 0.005
+      unit: "%"
+      max-level: 60
+      cost-points: 1
+    gold_rush:
+      display: "Gold Rush"
+      icon: GOLD_INGOT
+      slot: "7,2"
+      effect: MONEY_BONUS
+      per-level: 0.01
+      unit: "%"
+      max-level: 50
+      cost-points: 1
+    shard_seeker:
+      display: "Shard Seeker"
+      icon: PRISMARINE_CRYSTALS
+      slot: "4,4"
+      effect: SHARD_BONUS
+      per-level: 0.005
+      unit: "%"
+      max-level: 40
+      cost-points: 2
+    nova_touch:
+      display: "Nova Touch"
+      icon: HEART_OF_THE_SEA
+      slot: "6,4"
+      effect: NOVA_ODDS
+      per-level: 0.004
+      unit: "%"
+      max-level: 25
+      cost-points: 3
   rolls-per-level: 50
   first-prestige-levels: 10
   levels-increment-per-prestige: 5
@@ -1162,6 +1219,65 @@ milestones:
         - { at: 168, tokens: 120000 }
         - { at: 336, tokens: 250000 }
         - { at: 720, tokens: 600000 }
+
+# Rotating server tips. These rotate in ORDER, not at random: random
+# repeats itself and leaves some tips unseen for ages, which is exactly
+# wrong for something meant to teach. Each list entry is one block of
+# lines sent together under the header.
+announcements:
+  enabled: true
+  interval-seconds: 300
+  header: "&b&l\u2600 SERVER TIPS \u2600"
+  messages:
+    - - "&3\u258e &e\u25b8 &fLeft-click&7 your Starforge to toggle &bAuto Roll&7."
+      - "&3\u258e &e\u25b8 &7Put spare drops in &e/convert&7 to buy armor and Starforges."
+    - - "&3\u258e &e\u25b8 &7Every drop has its own &bIndex Luck&7 \u2014 equip the best in &e/index&7."
+      - "&3\u258e &e\u25b8 &7Unlock &fIndex Luck&7 in &e/skilltree&7 before you can wear one."
+    - - "&3\u258e &e\u25b8 &d/novacore&7 is a push-your-luck ladder. Every tier multiplies &feverything&7."
+      - "&3\u258e &e\u25b8 &7Checkpoints at &f5&7, &f11&7 and &f18&7 catch a bad run."
+    - - "&3\u258e &e\u25b8 &a/farmtree&7 has crops, hoe enchants and Token multipliers."
+      - "&3\u258e &e\u25b8 &7Pick what grows for you with &e/crops&7 \u2014 the field is yours alone."
+    - - "&3\u258e &e\u25b8 &7Long-run goals live in &e/milestones&7. Rewards wait there to be claimed."
+      - "&3\u258e &e\u25b8 &7New here? &e/guide&7 walks you through everything."
+    - - "&3\u258e &e\u25b8 &7Claim your streak every day with &e/daily&7 \u2014 miss one and it resets."
+      - "&3\u258e &e\u25b8 &d/buy&7 has a &5Global Luck Boost&7 that helps the whole server."
+
+# The daily streak (/daily). No checkpoints on purpose: the whole tension
+# of a streak is that there's no safety net.
+#
+# Days are calendar days in this timezone, not rolling 24h windows \u2014 a
+# rolling window slowly punishes people for playing earlier each day.
+daily:
+  timezone: "UTC"
+  days:
+    - { tokens: 2500, note: "Welcome back." }
+    - { tokens: 5000 }
+    - { tokens: 10000, shards: 1 }
+    - { tokens: 20000 }
+    - { tokens: 35000, shards: 2 }
+    - { tokens: 55000 }
+    - { tokens: 100000, shards: 5, note: "One week." }
+    - { tokens: 140000 }
+    - { tokens: 190000, shards: 6 }
+    - { tokens: 250000 }
+    - { tokens: 320000, shards: 8 }
+    - { tokens: 400000 }
+    - { tokens: 500000, shards: 10 }
+    - { tokens: 750000, shards: 15, note: "Two weeks." }
+    - { tokens: 850000 }
+    - { tokens: 1000000, shards: 18 }
+    - { tokens: 1200000 }
+    - { tokens: 1400000, shards: 20 }
+    - { tokens: 1700000 }
+    - { tokens: 2000000, shards: 25 }
+    - { tokens: 2400000, note: "Three weeks." }
+    - { tokens: 2800000, shards: 28 }
+    - { tokens: 3300000 }
+    - { tokens: 3900000, shards: 32 }
+    - { tokens: 4600000 }
+    - { tokens: 5400000, shards: 36 }
+    - { tokens: 6300000 }
+    - { tokens: 10000000, shards: 50, note: "Four weeks. Nicely done." }
 
 # ============================================
 # Starting guide (/guide)
