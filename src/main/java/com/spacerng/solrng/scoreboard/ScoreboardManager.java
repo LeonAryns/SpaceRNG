@@ -2,7 +2,6 @@ package com.spacerng.solrng.scoreboard;
 
 import com.spacerng.solrng.SolRNGPlugin;
 import com.spacerng.solrng.player.PlayerData;
-import com.spacerng.solrng.gui.Lore;
 import com.spacerng.solrng.rarity.RollFormat;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
@@ -104,58 +103,46 @@ public class ScoreboardManager {
         double luckPercent = plugin.getPrestigeManager().effectiveLuck(data) * 100.0;
 
         List<String> lines = new ArrayList<>();
-        lines.add(ChatColor.DARK_GRAY + plugin.getConfig().getString("scoreboard.season", "SEASON I"));
-        lines.add("");
-        lines.add(ChatColor.GOLD + Lore.BULLET + " " + ChatColor.GOLD + ChatColor.BOLD
-                + player.getName().toUpperCase());
-        lines.add(entry(ChatColor.GOLD, "PRESTIGE", ChatColor.AQUA + prestigeText(data)));
-        lines.add(entry(ChatColor.GREEN, "LUCK", ChatColor.GREEN + "+" + String.format("%.2f", luckPercent) + "%"));
-        lines.add(entry(ChatColor.YELLOW, "SPEED",
-                ChatColor.YELLOW + String.valueOf(Math.round(data.getEffectiveRollSpeedMultiplier() * 100))));
-        lines.add(entry(ChatColor.LIGHT_PURPLE, "MULTI", ChatColor.LIGHT_PURPLE
-                + String.format("%.2f", plugin.getNovaCoreManager().multiplierAt(data.getNovaTier())) + "x"));
-        lines.add(entry(ChatColor.AQUA, "INDEX", ChatColor.AQUA + String.valueOf(discovered)
-                + ChatColor.DARK_GRAY + "/" + ChatColor.AQUA + totalItems));
-
-        lines.add("");
-        lines.add(ChatColor.GOLD + Lore.BULLET + " " + ChatColor.GOLD + ChatColor.BOLD + "WALLET");
-        lines.add(wallet(ChatColor.DARK_GREEN, balanceText(player), "MONEY"));
-        lines.add(wallet(ChatColor.YELLOW, RollFormat.abbreviate(data.getTokens()), "TOKENS"));
-        lines.add(wallet(ChatColor.AQUA, RollFormat.abbreviate(data.getShards()), "SHARDS"));
-        lines.add(wallet(ChatColor.LIGHT_PURPLE, RollFormat.abbreviate(data.getPoints()), "CREDITS"));
+        lines.add(""); // breathing room under the header
+        // Name sits directly on top of the stat block, same as "Your
+        // Wallet" sits directly on top of Balance.
+        lines.add(ChatColor.GOLD + "" + ChatColor.BOLD + player.getName());
+        lines.add(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Index: " + ChatColor.AQUA + discovered + ChatColor.GRAY + "/" + ChatColor.AQUA + totalItems
+                + ChatColor.WHITE + " ("
+                + String.format("%.2f", plugin.getRarityManager().tagMultiplierFor(data)) + "x)");
+        lines.add(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Luck: " + ChatColor.GREEN + "+" + String.format("%.2f", luckPercent) + "%");
+        lines.add(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Speed: " + ChatColor.YELLOW
+                + Math.round(data.getEffectiveRollSpeedMultiplier() * 100));
+        lines.add(ChatColor.YELLOW + "| " + prestigeLine(data));
+        lines.add(""); // blank spacer
+        lines.add(ChatColor.GOLD + "" + ChatColor.BOLD + "Your Wallet");
+        lines.add(balanceLine(player));
+        lines.add(walletLine(data.getTokens(), "Tokens", ChatColor.YELLOW));
+        lines.add(walletLine(data.getShards(), "Shards", ChatColor.AQUA));
+        lines.add(walletLine(data.getPoints(), "Credits", ChatColor.LIGHT_PURPLE));
 
         String rollStatus = rollStatusLine(player);
         if (rollStatus != null) {
-            lines.add("");
+            lines.add(""); // blank spacer
             lines.add(rollStatus);
         }
-        lines.add("");
-        lines.add(ChatColor.DARK_GRAY + plugin.getConfig().getString("scoreboard.footer", "SPACERNG.MINEHUT.GG"));
+        lines.add(""); // blank spacer
+        lines.add(ChatColor.GRAY + "SpaceRNG.Minehut.gg");
         return lines;
     }
 
-    /**
-     * "▎ LUCK: +34.00%" — the bullet carries the stat's own colour, so the
-     * left edge of the board reads as a colour key before any of the text
-     * is parsed.
-     */
-    private String entry(ChatColor accent, String label, String value) {
-        return accent + Lore.BULLET + " " + ChatColor.WHITE + label + ChatColor.DARK_GRAY + ": " + value;
-    }
-
-    /** "▎ $11.17K MONEY" — amount first, then what it is. */
-    private String wallet(ChatColor accent, String amount, String label) {
-        return accent + Lore.BULLET + " " + accent + ChatColor.BOLD + amount + ChatColor.RESET
-                + " " + ChatColor.GRAY + label;
-    }
-
-    /** "★ III", or "★ 0" before the first prestige. */
-    private String prestigeText(PlayerData data) {
+    /** Just Prestige with a star icon — Level is no longer shown on the sidebar. */
+    private String prestigeLine(PlayerData data) {
         String numeral = data.getPrestige() <= 0 ? "0"
                 : data.getPrestige() <= ROMAN_NUMERALS.length
                         ? ROMAN_NUMERALS[data.getPrestige() - 1]
                         : String.valueOf(data.getPrestige());
-        return ChatColor.GOLD + Lore.STAR + " " + ChatColor.AQUA + numeral;
+        return ChatColor.WHITE + "Prestige: " + ChatColor.GOLD + "★ " + ChatColor.AQUA + numeral;
+    }
+
+    /** "216M Balance" style — abbreviated amount + label, no icon, no all-caps. */
+    private String walletLine(long amount, String label, ChatColor color) {
+        return ChatColor.YELLOW + "| " + color + RollFormat.abbreviate(amount) + " " + label;
     }
 
     /**
@@ -170,9 +157,11 @@ public class ScoreboardManager {
         return null;
     }
 
-    private String balanceText(Player player) {
-        if (economy == null) return "N/A";
-        return "$" + RollFormat.abbreviate(Math.round(economy.getBalance(player)));
+    private String balanceLine(Player player) {
+        if (economy == null) {
+            return ChatColor.YELLOW + "| " + ChatColor.DARK_GREEN + "N/A Balance";
+        }
+        return walletLine(Math.round(economy.getBalance(player)), "Balance", ChatColor.DARK_GREEN);
     }
 
     /**

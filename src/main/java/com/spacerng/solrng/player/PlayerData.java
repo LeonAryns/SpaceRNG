@@ -106,6 +106,9 @@ public class PlayerData {
     private final Set<String> unlockedCrops = new HashSet<>();
     // Whether farm crops pay Shards as well as Tokens.
     private boolean cropShardsUnlocked = false;
+    // Hoe enchant levels bought with Tokens. The farming tree gates which
+    // enchants count at all, so a level here is inert until it's unlocked.
+    private final Map<String, Integer> hoeEnchantLevels = new HashMap<>();
     // Nova Core ladder (/rngcookie): the tier currently held, and the
     // deepest ever reached. A failed climb drops the first back to a
     // checkpoint; the second is a record and never falls.
@@ -541,6 +544,18 @@ public class PlayerData {
 
     public void setNovaBestTier(int novaBestTier) {
         this.novaBestTier = Math.max(0, novaBestTier);
+    }
+
+    public Map<String, Integer> getHoeEnchantLevels() {
+        return hoeEnchantLevels;
+    }
+
+    public int getHoeEnchantLevel(String id) {
+        return hoeEnchantLevels.getOrDefault(id, 0);
+    }
+
+    public void setHoeEnchantLevel(String id, int level) {
+        hoeEnchantLevels.put(id, Math.max(0, level));
     }
 
     public boolean isRollSoundEnabled() {

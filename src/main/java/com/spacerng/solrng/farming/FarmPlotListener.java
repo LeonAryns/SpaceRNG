@@ -100,6 +100,21 @@ public class FarmPlotListener implements Listener {
         }
     }
 
+    /** Right-clicking the hoe opens its upgrade board. */
+    @EventHandler
+    public void onInteract(org.bukkit.event.player.PlayerInteractEvent event) {
+        if (event.getHand() != org.bukkit.inventory.EquipmentSlot.HAND) return;
+
+        var action = event.getAction();
+        if (action != org.bukkit.event.block.Action.RIGHT_CLICK_AIR
+                && action != org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK) return;
+        if (!plugin.getFarmingManager().isBoundHoe(event.getItem())) return;
+
+        event.setCancelled(true);
+        event.getPlayer().openInventory(
+                com.spacerng.solrng.gui.HoeGui.build(plugin, event.getPlayer()));
+    }
+
     private void sendActionBar(Player player, String text) {
         player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(text));
     }

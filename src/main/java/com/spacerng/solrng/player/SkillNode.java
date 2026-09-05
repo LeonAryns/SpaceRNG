@@ -116,6 +116,15 @@ public class SkillNode {
         return moneyCost * Math.pow(costGrowth, currentLevel);
     }
 
+    /**
+     * Which wallet this node is bought from. It follows the tree rather
+     * than being set per node: a tree that charged two different
+     * currencies would make its prices impossible to compare at a glance.
+     */
+    public boolean usesTokens() {
+        return "farmtree".equals(tree);
+    }
+
     /** Converts a 1-indexed (column, row) into a 9-wide inventory slot. */
     public static int slotOf(int column, int row) {
         return (row - 1) * 9 + (column - 1);

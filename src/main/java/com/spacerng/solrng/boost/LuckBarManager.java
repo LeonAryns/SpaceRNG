@@ -82,10 +82,16 @@ public class LuckBarManager {
             double total = Math.max(1.0, plugin.getConfig().getInt("boost.duration-seconds", 900));
             bar.setProgress(Math.max(0.0, Math.min(1.0, boost.secondsLeft() / total)));
         } else {
-            title.append(ChatColor.AQUA).append(ChatColor.BOLD).append("✦ ")
-                    .append(ChatColor.WHITE).append("Luck ")
-                    .append(ChatColor.GREEN).append("+").append(String.format("%.2f", luck * 100.0)).append("%");
-            bar.setColor(BarColor.BLUE);
+            // No boost running: the bar sells one. Luck already has a
+            // permanent home on the sidebar, so repeating it here wastes
+            // the only line of screen that's always visible.
+            title.append(ChatColor.LIGHT_PURPLE).append(ChatColor.BOLD)
+                    .append("BUY GLOBAL ")
+                    .append(BoostManager.formatMultiplier(boost.nextMultiplier()).toUpperCase())
+                    .append(" LUCK")
+                    .append(ChatColor.RESET).append(ChatColor.GRAY).append("  in ")
+                    .append(ChatColor.YELLOW).append("/store");
+            bar.setColor(BarColor.PINK);
             bar.setProgress(1.0);
         }
 

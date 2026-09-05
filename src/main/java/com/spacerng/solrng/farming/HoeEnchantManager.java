@@ -13,11 +13,15 @@ import java.util.Map;
 /**
  * Hoe enchants: the farming equivalent of the Starforge ladder.
  *
- * An enchant is unlocked by a node in the farming tree and then LEVELLED by
- * further nodes, so the hoe itself never needs an inventory of upgrade
- * items — its power is entirely a read of what the player has bought. That
- * keeps a bound, undroppable hoe honest: there's nothing to lose, trade or
- * duplicate, and a wipe of the tree wipes the hoe with it.
+ * An enchant is UNLOCKED by a node in the farming tree and then LEVELLED
+ * with Tokens by right-clicking the hoe. Splitting it that way keeps a
+ * handful of progression choices apart from a sink you return to
+ * constantly, and neither menu has to explain the other.
+ *
+ * The hoe item itself stores nothing: its power is read back from the tree
+ * and the player's bought levels every time. A bound, undroppable hoe with
+ * no state can't be lost, traded or duplicated, and re-locking an enchant
+ * can't leave one carrying power it isn't entitled to.
  *
  * Every enchant's numbers live in config. What each one DOES is applied in
  * FarmPlotManager at harvest time, keyed off the ids below.
@@ -25,8 +29,8 @@ import java.util.Map;
 public class HoeEnchantManager {
 
     /** One enchant definition. Level comes from the player's skill nodes. */
-    public record Enchant(String id, String display, String description, int maxLevel,
-                          double perLevel, String colour) {
+    public record Enchant(String id, String display, String description, String icon, int maxLevel,
+                          double perLevel, String colour, long baseCost, double costGrowth) {
 
         /** e.g. "Token Greed III" in the enchant's own colour. */
         public String styled(int level) {
@@ -61,9 +65,12 @@ public class HoeEnchantManager {
                     id.toUpperCase(),
                     e.getString("display", id),
                     e.getString("description", ""),
+                    e.getString("icon", "ENCHANTED_BOOK"),
                     Math.max(1, e.getInt("max-level", 5)),
                     e.getDouble("per-level", 0.0),
-                    colourOf(e.getString("color", "&d"))));
+                    colourOf(e.getString("color", "&d")),
+                    e.getLong("base-cost", 25000L),
+                    e.getDouble("cost-growth", 1.12)));
         }
         plugin.getLogger().info("[SolRNG] Loaded " + enchants.size() + " hoe enchants.");
     }
@@ -81,30 +88,69 @@ public class HoeEnchantManager {
     }
 
     /**
-     * A player's level in an enchant, read straight off their farming tree.
-     * UNLOCK_ENCHANT grants level 1; every rank of an ENCHANT_POWER node
-     * pointing at the same enchant adds another.
-     *
-     * Derived rather than stored, so respeccing or an admin wipe can never
-     * leave a hoe carrying an enchant the tree no longer justifies.
+     * Whether the farming tree has opened this enchant up. The tree decides
+     * WHICH enchants exist for a player; the hoe menu decides how strong
+     * they are. Splitting it that way keeps a handful of progression
+     * choices apart from a Token sink you return to constantly.
+     */
+    public boolean isUnlocked(PlayerData data, String enchantId) {
+        for (SkillNode node : plugin.getSkillTreeManager().getNodes("farmtree").values()) {
+            if (node.getTarget() == null || !node.getTarget().equalsIgnoreCase(enchantId)) continue;
+            if (node.getEffect() != SkillNode.Effect.UNLOCK_ENCHANT) continue;
+            if (data.hasUnlocked(node.getId())) return true;
+        }
+        return false;
+    }
+
+    /**
+     * A player's level: what they've bought on the hoe, plus any rank of an
+     * ENCHANT_POWER node pointing at the same enchant. Zero while it's
+     * still locked, whatever has been bought — so re-locking an enchant
+     * can never leave a hoe carrying power it isn't entitled to.
      */
     public int levelOf(PlayerData data, String enchantId) {
         Enchant enchant = get(enchantId);
-        if (enchant == null) return 0;
+        if (enchant == null || !isUnlocked(data, enchantId)) return 0;
 
-        int level = 0;
+        int level = data.getHoeEnchantLevel(enchant.id());
         for (SkillNode node : plugin.getSkillTreeManager().getNodes("farmtree").values()) {
             if (node.getTarget() == null || !node.getTarget().equalsIgnoreCase(enchantId)) continue;
-
-            if (node.getEffect() == SkillNode.Effect.UNLOCK_ENCHANT && data.hasUnlocked(node.getId())) {
-                level += 1;
-            } else if (node.getEffect() == SkillNode.Effect.ENCHANT_POWER) {
-                level += node.getMaxLevel() > 1
-                        ? data.getNodeLevel(node.getId())
-                        : (data.hasUnlocked(node.getId()) ? 1 : 0);
-            }
+            if (node.getEffect() != SkillNode.Effect.ENCHANT_POWER) continue;
+            level += node.getMaxLevel() > 1
+                    ? data.getNodeLevel(node.getId())
+                    : (data.hasUnlocked(node.getId()) ? 1 : 0);
         }
         return Math.min(level, enchant.maxLevel());
+    }
+
+    /** Tokens for the next level. Grows so late levels are a real sink. */
+    public long costFor(Enchant enchant, int currentLevel) {
+        return Math.round(enchant.baseCost() * Math.pow(enchant.costGrowth(), currentLevel));
+    }
+
+    /** "12.5%" or "+1.80x" — how an enchant's power reads in its tooltip. */
+    public String describePower(Enchant enchant, int level) {
+        double power = enchant.perLevel() * level;
+        if (enchant.id().equals("TOKEN_GREED") || enchant.id().equals("MOMENTUM")) {
+            return "+" + String.format("%.2f", power) + "x";
+        }
+        return String.format("%.2f", power * 100.0) + "%";
+    }
+
+    /**
+     * Buys one level with Tokens. Returns false when it's locked, maxed or
+     * unaffordable — the menu already knows which, so it reports it.
+     */
+    public boolean buy(PlayerData data, String enchantId) {
+        Enchant enchant = get(enchantId);
+        if (enchant == null || !isUnlocked(data, enchantId)) return false;
+
+        int level = levelOf(data, enchantId);
+        if (level >= enchant.maxLevel()) return false;
+        if (!data.spendTokens(costFor(enchant, level))) return false;
+
+        data.setHoeEnchantLevel(enchant.id(), data.getHoeEnchantLevel(enchant.id()) + 1);
+        return true;
     }
 
     /** The enchant's total effect at the player's level — 0 if not unlocked. */

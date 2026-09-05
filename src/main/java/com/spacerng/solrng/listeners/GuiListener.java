@@ -10,6 +10,8 @@ import com.spacerng.solrng.gui.ConvertGui;
 import com.spacerng.solrng.gui.CropsGui;
 import com.spacerng.solrng.gui.DailyGui;
 import com.spacerng.solrng.gui.DailyHolder;
+import com.spacerng.solrng.gui.HoeGui;
+import com.spacerng.solrng.gui.HoeHolder;
 import com.spacerng.solrng.gui.CropsHolder;
 import com.spacerng.solrng.gui.ConvertHolder;
 import com.spacerng.solrng.gui.IndexGui;
@@ -78,6 +80,8 @@ public class GuiListener implements Listener {
             handleBuyClick(event);
         } else if (topInventory.getHolder() instanceof DailyHolder) {
             handleDailyClick(event);
+        } else if (topInventory.getHolder() instanceof HoeHolder) {
+            handleHoeClick(event);
         }
     }
 
@@ -267,6 +271,50 @@ public class GuiListener implements Listener {
             player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
         }
         player.openInventory(DailyGui.build(plugin, player));
+    }
+
+    /** Buys enchant levels with Tokens; shift-click buys ten. */
+    private void handleHoeClick(InventoryClickEvent event) {
+        event.setCancelled(true);
+        if (event.getClickedInventory() == null
+                || !(event.getClickedInventory().getHolder() instanceof HoeHolder)) return;
+
+        ItemStack clicked = event.getCurrentItem();
+        if (clicked == null || clicked.getItemMeta() == null) return;
+        String id = clicked.getItemMeta().getPersistentDataContainer()
+                .get(HoeGui.enchantKey(plugin), PersistentDataType.STRING);
+        if (id == null) return;
+
+        Player player = (Player) event.getWhoClicked();
+        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+        var hoe = plugin.getHoeEnchantManager();
+
+        int bought = 0;
+        int attempts = event.isShiftClick() ? 10 : 1;
+        for (int i = 0; i < attempts && hoe.buy(data, id); i++) {
+            bought++;
+        }
+
+        if (bought == 0) {
+            var enchant = hoe.get(id);
+            player.sendMessage(ChatColor.RED + (enchant != null && !hoe.isUnlocked(data, id)
+                    ? "Unlock that enchant in /farmtree first."
+                    : "You can't upgrade that right now."));
+            player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
+            return;
+        }
+
+        var enchant = hoe.get(id);
+        player.sendMessage(ChatColor.GREEN + "Upgraded " + enchant.styled(0) + ChatColor.GREEN
+                + " to level " + ChatColor.WHITE + hoe.levelOf(data, id)
+                + (bought > 1 ? ChatColor.DARK_GRAY + " (+" + bought + ")" : ""));
+        player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_ENCHANTMENT_TABLE_USE, 0.8f, 1.5f);
+
+        // The hoe's lore is a snapshot, so it has to be rewritten whenever
+        // what it describes changes.
+        plugin.getFarmingManager().refreshHoe(player, data);
+        plugin.getScoreboardManager().update(player);
+        player.openInventory(HoeGui.build(plugin, player));
     }
 
     private void handleArmorClick(InventoryClickEvent event) {
@@ -474,6 +522,8 @@ public class GuiListener implements Listener {
                 player.sendMessage(ChatColor.GREEN + "You received a Farmer's Hoe — bound to you!");
             }
 
+            // A farm node can change what the hoe shows, so rewrite it.
+            plugin.getFarmingManager().refreshHoe(player, data);
             player.openInventory(SkillTreeGui.build(plugin, player, holder.getTree(), holder.getPage()));
         } else {
             player.sendMessage(ChatColor.RED + "You can't unlock that yet.");

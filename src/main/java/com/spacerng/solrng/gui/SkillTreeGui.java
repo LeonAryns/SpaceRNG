@@ -41,6 +41,7 @@ public class SkillTreeGui {
     private static final int[] RESERVED = {
             1, 2, 3, 4, 5, 6, 7,   // (2,1) through (8,1)
             10,                    // (2,2)
+            38,                    // (3,5)
             16, 25, 34,            // (8,2) (8,3) (8,4)
             19, 28, 37             // (2,3) (2,4) (2,5)
     };
@@ -123,7 +124,7 @@ public class SkillTreeGui {
             }
         }
 
-        inv.setItem(STATS_SLOT, buildMoneyPanel(player));
+        inv.setItem(STATS_SLOT, buildWalletPanel(player, data, farming));
         if (page > 0) {
             inv.setItem(PREV_SLOT, pageButton(Material.SPECTRAL_ARROW, "◀ Previous", page, pageCount()));
         }
@@ -161,13 +162,18 @@ public class SkillTreeGui {
         if (!complete) {
             double price = plugin.getSkillTreeManager().priceFor(data, node);
             boolean affordable = plugin.getSkillTreeManager().canAfford(player, data, node);
+            boolean tokens = node.usesTokens();
+            ChatColor tint = tokens ? ChatColor.YELLOW : ChatColor.DARK_GREEN;
             lore.add((affordable ? ChatColor.YELLOW : ChatColor.RED) + "▎ " + ChatColor.GRAY + "Price: "
-                    + (affordable ? ChatColor.DARK_GREEN : ChatColor.RED) + "$" + String.format("%,.0f", price));
-            lore.add(ChatColor.DARK_GRAY + "▎ You have " + ChatColor.DARK_GREEN + formatMoney(player));
+                    + (affordable ? tint : ChatColor.RED)
+                    + (tokens ? String.format("%,.0f", price) + " Tokens" : "$" + String.format("%,.0f", price)));
+            lore.add(ChatColor.DARK_GRAY + "▎ You have " + tint
+                    + (tokens ? String.format("%,d", data.getTokens()) + " Tokens" : formatMoney(player)));
             lore.add("");
             lore.add(affordable
                     ? ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO BUY"
-                    : ChatColor.RED + "" + ChatColor.BOLD + "NOT ENOUGH MONEY");
+                    : ChatColor.RED + "" + ChatColor.BOLD
+                            + (node.usesTokens() ? "NOT ENOUGH TOKENS" : "NOT ENOUGH MONEY"));
         } else {
             lore.add("");
             lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + (leveled ? "MAXED" : "UNLOCKED"));
@@ -211,14 +217,20 @@ public class SkillTreeGui {
         return pane;
     }
 
-    private static ItemStack buildMoneyPanel(Player player) {
-        ItemStack stats = new ItemStack(Material.GOLD_INGOT);
+    private static ItemStack buildWalletPanel(Player player, PlayerData data, boolean farming) {
+        ItemStack stats = new ItemStack(farming ? Material.WHEAT : Material.GOLD_INGOT);
         ItemMeta meta = stats.getItemMeta();
-        meta.setDisplayName(ChatColor.GOLD + "" + ChatColor.BOLD + "MONEY");
+        meta.setDisplayName((farming ? ChatColor.YELLOW : ChatColor.GOLD) + "" + ChatColor.BOLD
+                + (farming ? "TOKENS" : "MONEY"));
         meta.setLore(List.of(
                 ChatColor.DARK_GRAY + "WALLET",
                 "",
-                ChatColor.DARK_GREEN + "▎ " + ChatColor.DARK_GREEN + formatMoney(player)));
+                (farming ? ChatColor.YELLOW : ChatColor.GOLD) + "▎ "
+                        + (farming ? ChatColor.YELLOW + String.format("%,d", data.getTokens()) + " Tokens"
+                                   : ChatColor.DARK_GREEN + formatMoney(player)),
+                "",
+                ChatColor.DARK_GRAY + (farming ? "Farm skills are bought with Tokens."
+                                              : "Skills are bought with Money.")));
         stats.setItemMeta(meta);
         return stats;
     }

@@ -93,6 +93,12 @@ public class PlayerDataManager {
         data.setSelectedCrop(yml.getString("selected-crop", "WHEAT"));
         data.setCropShardsUnlocked(yml.getBoolean("crop-shards-unlocked", false));
         data.getUnlockedCrops().addAll(yml.getStringList("unlocked-crops"));
+        org.bukkit.configuration.ConfigurationSection hoeLevels = yml.getConfigurationSection("hoe-enchants");
+        if (hoeLevels != null) {
+            for (String id : hoeLevels.getKeys(false)) {
+                data.setHoeEnchantLevel(id, hoeLevels.getInt(id));
+            }
+        }
         data.getClaimedMilestones().addAll(yml.getStringList("claimed-milestones"));
         data.getAnnouncedMilestones().addAll(yml.getStringList("announced-milestones"));
         data.getCompletedQuests().addAll(yml.getStringList("completed-quests"));
@@ -230,6 +236,9 @@ public class PlayerDataManager {
         yml.set("selected-crop", data.getSelectedCrop());
         yml.set("crop-shards-unlocked", data.isCropShardsUnlocked());
         yml.set("unlocked-crops", new java.util.ArrayList<>(data.getUnlockedCrops()));
+        for (Map.Entry<String, Integer> entry : data.getHoeEnchantLevels().entrySet()) {
+            yml.set("hoe-enchants." + entry.getKey(), entry.getValue());
+        }
         yml.set("claimed-milestones", new java.util.ArrayList<>(data.getClaimedMilestones()));
         yml.set("announced-milestones", new java.util.ArrayList<>(data.getAnnouncedMilestones()));
         yml.set("completed-quests", new java.util.ArrayList<>(data.getCompletedQuests()));

@@ -156,56 +156,84 @@ farming:
   # itself never holds any state — its power is a read of what's been
   # bought. Nothing to lose, trade or duplicate.
   #
-  # "per-level" means different things per enchant, noted on each.
+  # Levels are BOUGHT with Tokens by right-clicking the hoe; the farming
+  # tree only decides which enchants are available at all. base-cost is the
+  # first level, multiplied by cost-growth for every level after it.
+  #
+  # "per-level" means different things per enchant.
   enchants:
     TOKEN_GREED:
       display: "Token Greed"
+      icon: GOLD_NUGGET
+      base-cost: 25000
+      cost-growth: 1.08
       description: "More Tokens from every crop."
       color: "&e"
-      max-level: 10
-      per-level: 0.15      # +0.15x to the Token multiplier per level
+      max-level: 250
+      per-level: 0.02
     SHARD_GREED:
       display: "Shard Greed"
+      icon: PRISMARINE_CRYSTALS
+      base-cost: 60000
+      cost-growth: 1.1
       description: "A chance at a bonus Shard."
       color: "&b"
-      max-level: 8
-      per-level: 0.04      # 4% chance of +1 Shard per level
+      max-level: 150
+      per-level: 0.002
     FORTUNE:
       display: "Fortune"
+      icon: EMERALD
+      base-cost: 90000
+      cost-growth: 1.12
       description: "A chance to double a whole harvest."
       color: "&6"
-      max-level: 8
-      per-level: 0.03      # 3% chance per level
+      max-level: 100
+      per-level: 0.003
     GREEN_THUMB:
       display: "Green Thumb"
+      icon: BONE_MEAL
+      base-cost: 40000
+      cost-growth: 1.1
       description: "Your crops regrow faster."
       color: "&a"
-      max-level: 8
-      per-level: 0.07      # 7% off the regrow timer per level
+      max-level: 100
+      per-level: 0.006
     MOMENTUM:
       display: "Momentum"
+      icon: FEATHER
+      base-cost: 75000
+      cost-growth: 1.09
       description: "The longer you farm without stopping, the more you earn."
       color: "&d"
-      max-level: 10
-      per-level: 0.01      # +0.01x per harvest in the run, per level
+      max-level: 200
+      per-level: 0.001
     BLAST_HARVEST:
       display: "Blast Harvest"
+      icon: TNT
+      base-cost: 150000
+      cost-growth: 1.14
       description: "A chance to blow up the crops around you."
       color: "&c"
-      max-level: 8
-      per-level: 0.04      # 4% chance per level; radius grows every 3 levels
+      max-level: 80
+      per-level: 0.005
     CREDIT_FINDER:
       display: "Credit Finder"
+      icon: SUNFLOWER
+      base-cost: 2500000
+      cost-growth: 1.3
       description: "A tiny chance to turn up a store Credit."
       color: "&5"
-      max-level: 5
-      per-level: 0.0002    # 0.02% per level
+      max-level: 25
+      per-level: 4e-05
     NOVA_FINDER:
       display: "Nova Finder"
+      icon: HEART_OF_THE_SEA
+      base-cost: 1500000
+      cost-growth: 1.28
       description: "A tiny chance at a free Nova Core forge."
       color: "&3"
-      max-level: 5
-      per-level: 0.0008    # 0.08% per level
+      max-level: 25
+      per-level: 0.00015
 
   crop-types:
     WHEAT:
@@ -1273,32 +1301,32 @@ daily:
   days:
     - { tokens: 2500, note: "Welcome back." }
     - { tokens: 5000 }
-    - { tokens: 10000, shards: 1 }
+    - { tokens: 10000, shards: 1, credits: 1 }
     - { tokens: 20000 }
-    - { tokens: 35000, shards: 2 }
+    - { tokens: 35000, shards: 2, credits: 2 }
     - { tokens: 55000 }
-    - { tokens: 100000, shards: 5, note: "One week." }
+    - { tokens: 100000, shards: 5, credits: 5, note: "One week." }
     - { tokens: 140000 }
     - { tokens: 190000, shards: 6 }
     - { tokens: 250000 }
-    - { tokens: 320000, shards: 8 }
+    - { tokens: 320000, shards: 8, credits: 5 }
     - { tokens: 400000 }
     - { tokens: 500000, shards: 10 }
-    - { tokens: 750000, shards: 15, note: "Two weeks." }
+    - { tokens: 750000, shards: 15, credits: 10, note: "Two weeks." }
     - { tokens: 850000 }
     - { tokens: 1000000, shards: 18 }
     - { tokens: 1200000 }
-    - { tokens: 1400000, shards: 20 }
+    - { tokens: 1400000, shards: 20, credits: 10 }
     - { tokens: 1700000 }
     - { tokens: 2000000, shards: 25 }
-    - { tokens: 2400000, note: "Three weeks." }
+    - { tokens: 2400000, credits: 15, note: "Three weeks." }
     - { tokens: 2800000, shards: 28 }
     - { tokens: 3300000 }
-    - { tokens: 3900000, shards: 32 }
+    - { tokens: 3900000, shards: 32, credits: 15 }
     - { tokens: 4600000 }
     - { tokens: 5400000, shards: 36 }
     - { tokens: 6300000 }
-    - { tokens: 10000000, shards: 50, note: "Four weeks. Nicely done." }
+    - { tokens: 10000000, shards: 50, credits: 50, note: "Four weeks. Nicely done." }
 
 # ============================================
 # Starting guide (/guide)
@@ -1442,6 +1470,10 @@ guide:
 #   ENCHANT_POWER    target = an enchants id; +1 level per rank
 #   TOKEN_MULTIPLIER +value to the farm Token multiplier per level
 #   FARM_SPEED       reserved for a global regrow cut
+#
+# Farm skills are bought with TOKENS, not Money — the currency the farm
+# itself produces. "cost-money" is still the key name, it's just spent as
+# Tokens for nodes in this tree.
 farmtree:
   nodes:
     farm_root:                 # (5,6) — the root, mirrors Auto Roll
@@ -1509,7 +1541,7 @@ farmtree:
 
     fortune:                   # (4,4)
       display: "Fortune"
-      slot: "4,4"
+      slot: "8,4"
       icon: EMERALD
       cost-money: 40000
       requires: "crop_carrots"
@@ -1519,7 +1551,7 @@ farmtree:
 
     blast_harvest:             # (6,4)
       display: "Blast Harvest"
-      slot: "6,4"
+      slot: "8,3"
       icon: TNT
       cost-money: 60000
       requires: "crop_carrots"
@@ -1539,7 +1571,7 @@ farmtree:
 
     farming_shards:            # (4,3) — the id farming.shards-node points at
       display: "Shard Harvest"
-      slot: "4,3"
+      slot: "2,4"
       icon: PRISMARINE_CRYSTALS
       cost-money: 150000
       requires: "crop_potatoes"
@@ -1548,7 +1580,7 @@ farmtree:
 
     shard_greed:               # (6,3)
       display: "Shard Greed"
-      slot: "6,3"
+      slot: "2,3"
       icon: PRISMARINE_SHARD
       cost-money: 200000
       requires: "farming_shards"
@@ -1568,7 +1600,7 @@ farmtree:
 
     momentum:                  # (4,2)
       display: "Momentum"
-      slot: "4,2"
+      slot: "2,2"
       icon: FEATHER
       cost-money: 500000
       requires: "crop_beetroot"
@@ -1578,7 +1610,7 @@ farmtree:
 
     crop_netherwart:           # (6,2)
       display: "Nether Wart"
-      slot: "6,2"
+      slot: "8,2"
       icon: NETHER_WART
       cost-money: 1000000
       requires: "crop_beetroot"

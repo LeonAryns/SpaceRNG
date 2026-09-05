@@ -106,6 +106,9 @@ public class SkillTreeManager {
 
     /** False when Vault/an economy plugin isn't installed — nothing is buyable then. */
     public boolean canAfford(Player player, PlayerData data, SkillNode node) {
+        if (node.usesTokens()) {
+            return data.getTokens() >= Math.round(priceFor(data, node));
+        }
         Economy economy = economy();
         return economy != null && economy.getBalance(player) >= priceFor(data, node);
     }
@@ -142,9 +145,13 @@ public class SkillTreeManager {
         if (!requirementMet(data, node)) return false;
 
         double price = priceFor(data, node);
-        Economy economy = economy();
-        if (economy == null || economy.getBalance(player) < price) return false;
-        economy.withdrawPlayer(player, price);
+        if (node.usesTokens()) {
+            if (!data.spendTokens(Math.round(price))) return false;
+        } else {
+            Economy economy = economy();
+            if (economy == null || economy.getBalance(player) < price) return false;
+            economy.withdrawPlayer(player, price);
+        }
 
         if (node.getMaxLevel() > 1) {
             data.setNodeLevel(nodeId, data.getNodeLevel(nodeId) + 1);

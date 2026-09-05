@@ -82,32 +82,61 @@ public class FarmingManager {
     public ItemStack createBoundHoe(com.spacerng.solrng.player.PlayerData data) {
         ItemStack hoe = new ItemStack(Material.WOODEN_HOE);
         ItemMeta meta = hoe.getItemMeta();
-        meta.setDisplayName(ChatColor.GREEN + "" + ChatColor.BOLD + "FARMER'S HOE");
+        meta.setDisplayName(ChatColor.GOLD + "Farmer's Hoe " + ChatColor.DARK_GRAY + "["
+                + ChatColor.YELLOW + "I" + ChatColor.DARK_GRAY + "]");
 
         java.util.List<String> lore = new java.util.ArrayList<>();
-        lore.add(ChatColor.DARK_GRAY + "FARMING");
+        lore.add(ChatColor.DARK_GRAY + "Farming Tool");
         lore.add("");
+
+        var enchants = plugin.getHoeEnchantManager();
+        double tokenBonus = data == null ? 0.0 : enchants.powerOf(data, "TOKEN_GREED");
+        double speedBonus = data == null ? 0.0 : enchants.powerOf(data, "GREEN_THUMB");
+
+        lore.add(ChatColor.GOLD + "Information");
+        lore.add(ChatColor.DARK_GRAY + "\u251c " + ChatColor.GREEN + "TOKENS: "
+                + ChatColor.WHITE + "+" + String.format("%.0f", tokenBonus * 100.0) + "%");
+        lore.add(ChatColor.DARK_GRAY + "\u251c " + ChatColor.AQUA + "SPEED: "
+                + ChatColor.WHITE + "+" + String.format("%.0f", speedBonus * 100.0) + "%");
+        lore.add("");
+
+        lore.add(ChatColor.GOLD + "Enchants");
+        boolean any = false;
         if (data != null) {
-            var enchants = plugin.getHoeEnchantManager();
-            boolean any = false;
             for (var enchant : enchants.getEnchants().values()) {
                 int level = enchants.levelOf(data, enchant.id());
                 if (level <= 0) continue;
-                lore.add(ChatColor.GRAY + "▎ " + enchant.styled(level));
+                lore.add(ChatColor.DARK_GRAY + "\u251c " + enchant.styled(level));
                 any = true;
             }
-            if (!any) {
-                lore.add(ChatColor.DARK_GRAY + "▎ No enchants yet — see /farmtree");
-            }
-            lore.add("");
         }
-        lore.add(ChatColor.GRAY + "Bound to you — can't be dropped.");
-        lore.add(ChatColor.GRAY + "Used to work the SpaceRNG farm.");
+        if (!any) {
+            lore.add(ChatColor.DARK_GRAY + "\u251c " + ChatColor.RED + "No Enchants");
+        }
+        lore.add("");
+
+        lore.add(ChatColor.GOLD + "Attachments");
+        lore.add(ChatColor.DARK_GRAY + "\u251c " + ChatColor.RED + "No Attachments");
+        lore.add("");
+        lore.add(ChatColor.DARK_GRAY + "[" + ChatColor.YELLOW + "RIGHT CLICK TO UPGRADE"
+                + ChatColor.DARK_GRAY + "]");
+
         meta.setLore(lore);
         meta.setUnbreakable(true);
         meta.getPersistentDataContainer().set(boundKey, PersistentDataType.BYTE, (byte) 1);
         hoe.setItemMeta(meta);
         return hoe;
+    }
+
+    /** Rewrites a held hoe in place so its lore matches what's been bought. */
+    public void refreshHoe(org.bukkit.entity.Player player, com.spacerng.solrng.player.PlayerData data) {
+        ItemStack[] contents = player.getInventory().getContents();
+        for (int i = 0; i < contents.length; i++) {
+            if (isBoundHoe(contents[i])) {
+                contents[i] = createBoundHoe(data);
+            }
+        }
+        player.getInventory().setContents(contents);
     }
 
     public boolean isBoundHoe(ItemStack item) {
