@@ -48,6 +48,7 @@ public class SkillNode {
         ENCHANT_PROC,       // +value x EVERY hoe enchant's chance
         ENCHANT_CAP,        // +value to the level ceiling of every hoe enchant
         CROP_YIELD,         // target = crop id, +value x its Tokens and Gems
+        HOE_TIER,           // +value steps up farming.hoe-tiers
         TOKEN_MULTIPLIER,   // +value to the farm Token multiplier per level
         FARM_SPEED          // -value regrow time per level
     }

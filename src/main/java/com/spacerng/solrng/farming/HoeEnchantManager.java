@@ -30,7 +30,7 @@ public class HoeEnchantManager {
 
     /** One enchant definition. Level comes from the player's skill nodes. */
     public record Enchant(String id, String display, String description, String icon, int maxLevel,
-                          double perLevel, String colour, long baseCost, double costGrowth) {
+                          int baseCap, double perLevel, String colour, long baseCost, double costGrowth) {
 
         /** e.g. "Token Greed III" in the enchant's own colour. */
         public String styled(int level) {
@@ -66,7 +66,8 @@ public class HoeEnchantManager {
                     e.getString("display", id),
                     e.getString("description", ""),
                     e.getString("icon", "ENCHANTED_BOOK"),
-                    Math.max(1, e.getInt("max-level", 5)),
+                    Math.max(1, e.getInt("max-level", 1000)),
+                    Math.max(1, e.getInt("base-cap", e.getInt("max-level", 1000))),
                     e.getDouble("per-level", 0.0),
                     colourOf(e.getString("color", "&d")),
                     e.getLong("base-cost", 25000L),
@@ -128,7 +129,12 @@ public class HoeEnchantManager {
         if (enchant == null) return 0;
         int bonus = (int) Math.round(plugin.getSkillTreeManager()
                 .totalOf(data, SkillNode.Effect.ENCHANT_CAP));
-        return enchant.maxLevel() + Math.max(0, bonus);
+        // base-cap is where an enchant starts, max-level is where it can
+        // ever finish, and Enchant Mastery is the whole distance between
+        // them. Adding the bonus to max-level instead — which is what this
+        // used to do — meant the ceiling was never reachable and mastery
+        // bought nothing you could see.
+        return Math.min(enchant.maxLevel(), enchant.baseCap() + Math.max(0, bonus));
     }
 
     public int maxLevelFor(PlayerData data, String enchantId) {
@@ -142,11 +148,18 @@ public class HoeEnchantManager {
 
     /** "12.5%" or "+1.80x" — how an enchant's power reads in its tooltip. */
     public String describePower(Enchant enchant, int level) {
-        double power = enchant.perLevel() * level;
-        if (enchant.id().equals("TOKEN_GREED") || enchant.id().equals("MOMENTUM")) {
-            return "+" + String.format("%.2f", power) + "x";
-        }
-        return String.format("%.2f", power * 100.0) + "%";
+        // Every enchant is a percentage now, so "level 400 of 1000" means
+        // the same thing whichever one you're reading.
+        return format(enchant.perLevel() * level);
+    }
+
+    /** "+12.5%" — one shape for every enchant's magnitude. */
+    public static String format(double power) {
+        double percent = power * 100.0;
+        String number = percent >= 100 || percent == Math.rint(percent)
+                ? String.format("%,.0f", percent)
+                : String.format("%.2f", percent);
+        return "+" + number + "%";
     }
 
     /**
@@ -180,13 +193,15 @@ public class HoeEnchantManager {
 
     /** The same figure the skill tree quotes, for one player. */
     public String describePower(PlayerData data, String enchantId) {
-        Enchant enchant = get(enchantId);
-        if (enchant == null) return "0%";
-        double power = powerOf(data, enchantId);
-        if (enchant.id().equals("TOKEN_GREED") || enchant.id().equals("MOMENTUM")) {
-            return "+" + String.format("%.2f", power) + "x";
-        }
-        return String.format("%.2f", power * 100.0) + "%";
+        return get(enchantId) == null ? "+0%" : format(powerOf(data, enchantId));
+    }
+
+    /** Whether this enchant fires on a roll rather than applying always. */
+    public boolean isProc(String enchantId) {
+        return switch (enchantId == null ? "" : enchantId.toUpperCase()) {
+            case "TOKEN_GREED", "GREEN_THUMB", "MOMENTUM" -> false;
+            default -> true;
+        };
     }
 
     public boolean has(PlayerData data, String enchantId) {

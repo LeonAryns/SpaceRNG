@@ -92,6 +92,8 @@ public class PlayerDataManager {
         data.setPrestige(yml.getInt("prestige", 0));
         data.setRollSoundEnabled(yml.getBoolean("roll-sound-enabled", true));
         data.setRollAnimationEnabled(yml.getBoolean("roll-animation-enabled", true));
+        data.setFarmSoundEnabled(yml.getBoolean("farm-sound-enabled", true));
+        data.setEnchantSoundEnabled(yml.getBoolean("enchant-sound-enabled", true));
         data.setAutoConvertShiny(yml.getBoolean("auto-convert-shiny", false));
         data.getDiscoveredShiny().addAll(yml.getStringList("discovered-shiny"));
         for (String rarityName : yml.getStringList("disabled-auras")) {
@@ -256,6 +258,8 @@ public class PlayerDataManager {
         yml.set("prestige", data.getPrestige());
         yml.set("roll-sound-enabled", data.isRollSoundEnabled());
         yml.set("roll-animation-enabled", data.isRollAnimationEnabled());
+        yml.set("farm-sound-enabled", data.isFarmSoundEnabled());
+        yml.set("enchant-sound-enabled", data.isEnchantSoundEnabled());
         yml.set("auto-convert-shiny", data.isAutoConvertShiny());
         yml.set("discovered-shiny", new java.util.ArrayList<>(data.getDiscoveredShiny()));
         java.util.List<String> disabledAuras = new java.util.ArrayList<>();

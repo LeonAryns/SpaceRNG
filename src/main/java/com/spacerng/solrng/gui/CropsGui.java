@@ -100,6 +100,7 @@ public class CropsGui {
             case POTATOES -> Material.POTATO;
             case BEETROOTS -> Material.BEETROOT;
             case NETHER_WART -> Material.NETHER_WART;
+            case SWEET_BERRY_BUSH -> Material.SWEET_BERRIES;
             default -> cropBlock.isItem() ? cropBlock : Material.WHEAT_SEEDS;
         };
     }

@@ -172,14 +172,10 @@ public class SkillTreeGui {
 
         ItemStack icon = new ItemStack(material);
         ItemMeta meta = icon.getItemMeta();
-        // A leveled skill wears its level as a badge, the way the farming
-        // enchants do; a one-time unlock gets the framed title instead. The
-        // two shapes are how you tell at a glance which kind of thing a
-        // slot is without reading anything.
-        meta.setDisplayName(leveled
-                ? ChatColor.DARK_GRAY + "[" + accent + level + Lore.STAR + ChatColor.DARK_GRAY + "] "
-                        + accent + ChatColor.BOLD + node.getDisplay()
-                : Lore.title(accent, node.getDisplay()));
+        // No star badge on the name: a star means mastery in this plugin,
+        // and hanging one off every level of every skill spent the symbol
+        // on nothing. The level is in the lore, where it belongs.
+        meta.setDisplayName(Lore.title(accent, node.getDisplay()));
         // Glint instead of a colour-coded dye, so the skill keeps its own
         // icon while still reading as "done" at a glance.
         meta.setEnchantmentGlintOverride(complete ? Boolean.TRUE : null);
@@ -366,6 +362,9 @@ public class SkillTreeGui {
             case CROP_YIELD -> scaled(ChatColor.GREEN,
                     "+" + pct(value) + "% Tokens and Gems from " + target,
                     "+" + pct(value * level) + "%", leveled);
+            case HOE_TIER -> scaled(ChatColor.GOLD,
+                    "Upgrades the Farmer's Hoe itself",
+                    trim(value * level) + " tier" + (value * level == 1 ? "" : "s") + " up", leveled);
             case TOKEN_MULTIPLIER -> scaled(ChatColor.YELLOW,
                     "+" + trim(value) + "x farm Tokens", "+" + trim(value * level) + "x", leveled);
             case FARM_SPEED -> scaled(ChatColor.GREEN,

@@ -295,14 +295,30 @@ public class GuiListener implements Listener {
         if (event.getClickedInventory() == null
                 || !(event.getClickedInventory().getHolder() instanceof HoeHolder)) return;
 
+        Player player = (Player) event.getWhoClicked();
+        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+
+        if (event.getRawSlot() == HoeGui.farmSoundSlot()) {
+            data.setFarmSoundEnabled(!data.isFarmSoundEnabled());
+            player.openInventory(HoeGui.build(plugin, player));
+            player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.7f,
+                    data.isFarmSoundEnabled() ? 1.5f : 0.8f);
+            return;
+        }
+        if (event.getRawSlot() == HoeGui.enchantSoundSlot()) {
+            data.setEnchantSoundEnabled(!data.isEnchantSoundEnabled());
+            player.openInventory(HoeGui.build(plugin, player));
+            player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.7f,
+                    data.isEnchantSoundEnabled() ? 1.5f : 0.8f);
+            return;
+        }
+
         ItemStack clicked = event.getCurrentItem();
         if (clicked == null || clicked.getItemMeta() == null) return;
         String id = clicked.getItemMeta().getPersistentDataContainer()
                 .get(HoeGui.enchantKey(plugin), PersistentDataType.STRING);
         if (id == null) return;
 
-        Player player = (Player) event.getWhoClicked();
-        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         var hoe = plugin.getHoeEnchantManager();
 
         int bought = 0;
@@ -321,8 +337,8 @@ public class GuiListener implements Listener {
         }
 
         var enchant = hoe.get(id);
-        player.sendMessage(ChatColor.GREEN + "Upgraded " + enchant.styled(0) + ChatColor.GREEN
-                + " to level " + ChatColor.WHITE + hoe.levelOf(data, id)
+        player.sendMessage(ChatColor.GREEN + "Upgraded " + enchant.colour() + enchant.display()
+                + ChatColor.GREEN + " to level " + ChatColor.WHITE + hoe.levelOf(data, id)
                 + (bought > 1 ? ChatColor.DARK_GRAY + " (+" + bought + ")" : ""));
         player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_ENCHANTMENT_TABLE_USE, 0.8f, 1.5f);
 
@@ -537,6 +553,14 @@ public class GuiListener implements Listener {
                 player.sendMessage(ChatColor.GREEN + "Unlocked: " + (node != null ? node.getDisplay() : nodeId));
             }
             player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_LEVELUP, 0.6f, 1.4f);
+
+            // A tool upgrade changes the hoe's material, so the item in the
+            // player's hand has to be rebuilt, not just relabelled.
+            if (node != null && node.getEffect() == com.spacerng.solrng.player.SkillNode.Effect.HOE_TIER) {
+                player.sendMessage(ChatColor.GOLD + "Your hoe is now "
+                        + ChatColor.YELLOW + plugin.getFarmingManager().tierOf(data).display()
+                        + ChatColor.GOLD + ".");
+            }
 
             if (nodeId.equals("farming_unlock")) {
                 player.getInventory().addItem(plugin.getFarmingManager().createBoundHoe(data));

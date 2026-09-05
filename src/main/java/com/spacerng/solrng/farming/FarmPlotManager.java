@@ -91,6 +91,13 @@ public class FarmPlotManager {
 
     private int regrowTicks = 60;
     private String shardsNode = "";
+    // Both sounds are configured rather than hard-coded, and both can be
+    // switched off per player from the hoe menu — a farm is the one place
+    // in this plugin somebody might sit for an hour straight.
+    private org.bukkit.Sound harvestSound = org.bukkit.Sound.BLOCK_CROP_BREAK;
+    private float harvestPitch = 1.4f;
+    private org.bukkit.Sound procSound = org.bukkit.Sound.BLOCK_AMETHYST_BLOCK_CHIME;
+    private float procPitch = 1.7f;
 
     public FarmPlotManager(SolRNGPlugin plugin) {
         this.plugin = plugin;
@@ -104,6 +111,11 @@ public class FarmPlotManager {
         crops.clear();
         regrowTicks = Math.max(1, config.getInt("farming.regrow-seconds", 3)) * 20;
         shardsNode = config.getString("farming.shards-node", "");
+        harvestSound = soundOf(config.getString("farming.sounds.harvest"), org.bukkit.Sound.BLOCK_CROP_BREAK);
+        harvestPitch = (float) config.getDouble("farming.sounds.harvest-pitch", 1.4);
+        procSound = soundOf(config.getString("farming.sounds.enchant-proc"),
+                org.bukkit.Sound.BLOCK_AMETHYST_BLOCK_CHIME);
+        procPitch = (float) config.getDouble("farming.sounds.enchant-proc-pitch", 1.7);
 
         ConfigurationSection section = config.getConfigurationSection("farming.crop-types");
         if (section != null) {
@@ -127,6 +139,34 @@ public class FarmPlotManager {
         }
         plugin.getLogger().info("[SolRNG] Loaded " + crops.size() + " farm crop types.");
         loadPlots();
+    }
+
+    /** A named sound, or the fallback if config names one that doesn't exist. */
+    private org.bukkit.Sound soundOf(String name, org.bukkit.Sound fallback) {
+        if (name == null || name.isBlank()) return fallback;
+        try {
+            return org.bukkit.Sound.valueOf(name.toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            plugin.getLogger().warning("[SolRNG] Unknown farming sound '" + name + "', using "
+                    + fallback.name() + ".");
+            return fallback;
+        }
+    }
+
+    /** The crop coming up. Quiet on purpose — it fires several times a second. */
+    private void playHarvest(Player player, PlayerData data) {
+        if (!data.isFarmSoundEnabled()) return;
+        player.playSound(player.getLocation(), harvestSound, 0.35f, harvestPitch);
+    }
+
+    /**
+     * An enchant firing. Louder and higher than the harvest, because the
+     * whole point is that it stands out from the sound you're already
+     * hearing constantly.
+     */
+    private void playProc(Player player, PlayerData data, float pitch) {
+        if (!data.isEnchantSoundEnabled()) return;
+        player.playSound(player.getLocation(), procSound, 0.8f, pitch);
     }
 
     public Map<String, CropType> getCrops() {
@@ -372,9 +412,10 @@ public class FarmPlotManager {
         int regrow = regrowTicksFor(data);
         mine.put(plot, now + regrow);
 
-        // Token Greed and Momentum both scale the base payout; Fortune
-        // doubles whatever comes out of that.
+        // The tool itself, Token Greed and Momentum all scale the base
+        // payout; Fortune doubles whatever comes out of that.
         double multiplier = data.getFarmTokenMultiplier()
+                + plugin.getFarmingManager().tierOf(data).tokenBonus()
                 + hoe.powerOf(data, "TOKEN_GREED")
                 + momentumBonus(player, hoe, data, chain);
 
@@ -404,7 +445,9 @@ public class FarmPlotManager {
         double shardGreed = hoe.powerOf(data, "SHARD_GREED")
                 + plugin.getPrestigeManager().upgradeTotal(data,
                         com.spacerng.solrng.player.PrestigeUpgrade.Effect.SHARD_BONUS);
-        if (shardsUnlocked(data) && shardGreed > 0 && ThreadLocalRandom.current().nextDouble() < shardGreed) {
+        boolean gemProc = shardsUnlocked(data) && shardGreed > 0
+                && ThreadLocalRandom.current().nextDouble() < shardGreed;
+        if (gemProc) {
             shards += 1;
         }
 
@@ -412,6 +455,9 @@ public class FarmPlotManager {
         if (fortune) {
             tokens *= 2;
             shards *= 2;
+        }
+        if (chain && (gemProc || fortune)) {
+            playProc(player, data, fortune ? 1.9f : procPitch);
         }
 
         if (tokens > 0) data.addTokens(tokens);
@@ -428,6 +474,7 @@ public class FarmPlotManager {
         }, regrow);
 
         if (chain) {
+            playHarvest(player, data);
             rollBonusEnchants(player, data, hoe, plot);
             announce(player, tokens, shards, fortune);
         }
@@ -435,10 +482,11 @@ public class FarmPlotManager {
         return true;
     }
 
-    /** Green Thumb shortens how long a plot stays gone for that player. */
+    /** Green Thumb and the tool's own tier both shorten the regrow wait. */
     private int regrowTicksFor(PlayerData data) {
-        double faster = plugin.getHoeEnchantManager().powerOf(data, "GREEN_THUMB");
-        return (int) Math.max(10, Math.round(regrowTicks * (1.0 - Math.min(0.8, faster))));
+        double faster = plugin.getHoeEnchantManager().powerOf(data, "GREEN_THUMB")
+                + plugin.getFarmingManager().tierOf(data).speedBonus();
+        return (int) Math.max(10, Math.round(regrowTicks * (1.0 - Math.min(0.85, faster))));
     }
 
     /**
@@ -477,7 +525,9 @@ public class FarmPlotManager {
             if (swept > 0) {
                 player.getWorld().spawnParticle(org.bukkit.Particle.EXPLOSION, plot.clone().add(0.5, 0.5, 0.5),
                         2, 0.4, 0.2, 0.4, 0.0);
-                player.playSound(plot, org.bukkit.Sound.ENTITY_GENERIC_EXPLODE, 0.5f, 1.6f);
+                if (data.isEnchantSoundEnabled()) {
+                    player.playSound(plot, org.bukkit.Sound.ENTITY_GENERIC_EXPLODE, 0.5f, 1.6f);
+                }
                 sendActionBar(player, ChatColor.RED + "" + ChatColor.BOLD + "BLAST! "
                         + ChatColor.RESET + ChatColor.GRAY + swept + " extra crops");
             }
@@ -488,18 +538,21 @@ public class FarmPlotManager {
             data.addPoints(1L);
             player.sendMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "CREDIT FOUND! "
                     + ChatColor.RESET + ChatColor.GRAY + "+1 Credit from the soil.");
-            player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_AMETHYST_BLOCK_CHIME, 1.0f, 1.6f);
+            playProc(player, data, 1.2f);
         }
 
         double nova = hoe.powerOf(data, "NOVA_FINDER");
         if (nova > 0 && ThreadLocalRandom.current().nextDouble() < nova) {
             player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "NOVA SPARK! "
                     + ChatColor.RESET + ChatColor.GRAY + "A free Nova Core forge attempt.");
+            playProc(player, data, 0.9f);
             plugin.getNovaCoreManager().attempt(player, data, false);
         }
     }
 
     private void announce(Player player, long tokens, long shards, boolean fortune) {
+        // Sound is handled by playHarvest/playProc so the two can be
+        // switched off independently; this line is text only.
         StringBuilder reward = new StringBuilder();
         reward.append(ChatColor.YELLOW).append("+").append(String.format("%,d", tokens)).append(" Tokens");
         if (shards > 0) {
@@ -511,7 +564,6 @@ public class FarmPlotManager {
                     .append("FORTUNE x2");
         }
         sendActionBar(player, reward.toString());
-        player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_ITEM_PICKUP, 0.5f, 1.6f);
     }
 
     private void sendActionBar(Player player, String text) {

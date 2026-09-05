@@ -75,6 +75,10 @@ public class PlayerData {
     // /options toggles.
     private boolean rollSoundEnabled = true;
     private boolean rollAnimationEnabled = true;
+    // Farming's own two, toggled from the hoe menu rather than /options —
+    // they belong next to the thing that makes the noise.
+    private boolean farmSoundEnabled = true;
+    private boolean enchantSoundEnabled = true;
     // Multiplies Tokens earned from harvesting farm crops. 1.0 = base
     // reward. Nothing raises this yet — reserved for future farming
     // upgrades (hoe enchants, prestige tie-in, etc.).
@@ -682,6 +686,22 @@ public class PlayerData {
 
     public void setRollSoundEnabled(boolean rollSoundEnabled) {
         this.rollSoundEnabled = rollSoundEnabled;
+    }
+
+    public boolean isFarmSoundEnabled() {
+        return farmSoundEnabled;
+    }
+
+    public void setFarmSoundEnabled(boolean farmSoundEnabled) {
+        this.farmSoundEnabled = farmSoundEnabled;
+    }
+
+    public boolean isEnchantSoundEnabled() {
+        return enchantSoundEnabled;
+    }
+
+    public void setEnchantSoundEnabled(boolean enchantSoundEnabled) {
+        this.enchantSoundEnabled = enchantSoundEnabled;
     }
 
     public boolean isRollAnimationEnabled() {
