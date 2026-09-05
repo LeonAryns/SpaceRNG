@@ -80,6 +80,10 @@ public class PlayerData {
     // "you reached it" message fires once while the reward waits in
     // /milestones to be collected by hand.
     private final Set<String> announcedMilestones = new HashSet<>();
+    // Starting-guide steps already cleared. The guide is linear, so this is
+    // effectively "how far in am I", but keyed by id so the order can be
+    // changed later without resetting anyone.
+    private final Set<String> completedQuests = new HashSet<>();
     // Lifetime farm crops harvested. The only milestone track that needed
     // its own counter; the rest are derived from existing state.
     private long cropsHarvested = 0L;
@@ -393,6 +397,18 @@ public class PlayerData {
 
     public void markMilestoneAnnounced(String key) {
         announcedMilestones.add(key);
+    }
+
+    public Set<String> getCompletedQuests() {
+        return completedQuests;
+    }
+
+    public boolean hasCompletedQuest(String id) {
+        return completedQuests.contains(id);
+    }
+
+    public void markQuestCompleted(String id) {
+        completedQuests.add(id);
     }
 
     public long getCropsHarvested() {

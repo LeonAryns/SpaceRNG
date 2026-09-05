@@ -417,7 +417,11 @@ public class RollListener implements Listener {
         if (registration == null) return 0.0;
 
         double multiplier = plugin.getConfig().getDouble("economy.money-per-odds-multiplier", 10.0);
-        double money = result.getOdds() * multiplier;
+        // The Nova Core lifts Money as well as Luck — it's a universal
+        // multiplier, not a Luck-only one.
+        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+        double nova = plugin.getNovaCoreManager().multiplierAt(data.getNovaTier());
+        double money = result.getOdds() * multiplier * nova;
         registration.getProvider().depositPlayer(player, money);
         return money;
     }

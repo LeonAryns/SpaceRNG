@@ -212,9 +212,60 @@ public class FarmPlotManager {
             if (plot.getWorld() == null || !plot.getWorld().equals(world)) continue;
             if (plot.distanceSquared(player.getLocation()) > rangeSq) continue;
 
+            // Heal before drawing. Sending a crop for a plot whose real
+            // block is gone paints a ghost the client believes in but the
+            // server doesn't: it looks farmable and produces no break event
+            // at all, so it can't be harvested OR removed. That's what made
+            // plots "disappear" — they were still listed, still drawn, and
+            // completely inert.
+            if (!restore(plot)) continue;
+
             boolean gone = mine != null && mine.getOrDefault(plot, 0L) > now;
             player.sendBlockChange(plot, gone ? air : grown);
         }
+    }
+
+    /**
+     * Puts the marker block back if something removed it. Returns false
+     * only when the chunk isn't loaded, in which case there's nothing to
+     * fix yet and nothing to draw either.
+     *
+     * Plots are a list of coordinates, not blocks, so the two can drift
+     * apart — a piston, an explosion, world edit, a rollback, or the world
+     * simply not having been saved. Re-asserting is cheaper and far more
+     * robust than trying to intercept every way a block can die.
+     */
+    private boolean restore(Location plot) {
+        World world = plot.getWorld();
+        if (world == null) return false;
+        if (!world.isChunkLoaded(plot.getBlockX() >> 4, plot.getBlockZ() >> 4)) return false;
+
+        Block block = plot.getBlock();
+        if (block.getType() == MARKER) return true;
+
+        block.setType(MARKER, false);
+        BlockData data = block.getBlockData();
+        if (data instanceof Ageable ageable) {
+            ageable.setAge(ageable.getMaximumAge());
+            block.setBlockData(ageable, false);
+        }
+        return true;
+    }
+
+    /**
+     * Re-asserts every plot in a loaded chunk. Run once shortly after
+     * startup so a field is whole again before anyone reaches it.
+     */
+    public int healAll() {
+        int healed = 0;
+        for (Location plot : plots) {
+            World world = plot.getWorld();
+            if (world == null) continue;
+            if (!world.isChunkLoaded(plot.getBlockX() >> 4, plot.getBlockZ() >> 4)) continue;
+            if (plot.getBlock().getType() == MARKER) continue;
+            if (restore(plot)) healed++;
+        }
+        return healed;
     }
 
     public void renderAll() {
@@ -269,6 +320,8 @@ public class FarmPlotManager {
                 + hoe.powerOf(data, "TOKEN_GREED")
                 + momentumBonus(player, hoe, data, chain);
 
+        // Same universal multiplier the Nova Core gives Luck and Money.
+        multiplier *= plugin.getNovaCoreManager().multiplierAt(data.getNovaTier());
         long tokens = Math.round(crop.getTokens() * multiplier);
         long shards = shardsUnlocked(data) ? crop.getShards() : 0L;
 

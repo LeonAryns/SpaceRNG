@@ -53,6 +53,7 @@ public class JoinQuitListener implements Listener {
 
         plugin.getScoreboardManager().setup(event.getPlayer());
         plugin.getLuckBarManager().show(event.getPlayer());
+        plugin.getQuestManager().check(event.getPlayer());
         plugin.getFarmPlotManager().render(event.getPlayer());
     }
 
@@ -64,6 +65,7 @@ public class JoinQuitListener implements Listener {
         plugin.getTagManager().forgetPrefix(event.getPlayer().getUniqueId());
         plugin.getFarmPlotManager().forget(event.getPlayer().getUniqueId());
         plugin.getLuckBarManager().hide(event.getPlayer().getUniqueId());
+        plugin.getQuestManager().hide(event.getPlayer().getUniqueId());
         plugin.getPlayerDataManager().unload(event.getPlayer().getUniqueId());
     }
 

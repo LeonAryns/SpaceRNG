@@ -50,6 +50,10 @@ commands:
     description: Open the farming skill tree
     usage: /farmtree
     aliases: [farmskills]
+  guide:
+    description: See the starting guide and what's next
+    usage: /guide
+    aliases: [quests, tutorial]
   buy:
     description: Spend store Credits
     usage: /buy

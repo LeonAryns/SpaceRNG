@@ -63,22 +63,28 @@ public class LuckBarManager {
         BoostManager boost = plugin.getBoostManager();
 
         StringBuilder title = new StringBuilder();
-        title.append(ChatColor.LIGHT_PURPLE).append(ChatColor.BOLD).append("✦ ")
-                .append(ChatColor.WHITE).append("Luck ")
-                .append(ChatColor.GREEN).append("+").append(String.format("%.2f", luck * 100.0)).append("%");
 
         if (boost.isActive()) {
-            title.append(ChatColor.GRAY).append("  |  ")
-                    .append(ChatColor.LIGHT_PURPLE).append(ChatColor.BOLD)
-                    .append(BoostManager.formatMultiplier(boost.multiplier()))
-                    .append(ChatColor.RESET).append(ChatColor.GRAY).append(" boost ")
-                    .append(ChatColor.WHITE).append(boost.timeLeftText());
+            // A live boost is the headline — it's the thing that's temporary
+            // and the thing somebody paid for, so it leads and the personal
+            // Luck number follows it.
+            title.append(ChatColor.LIGHT_PURPLE).append(ChatColor.BOLD)
+                    .append("GLOBAL ").append(BoostManager.formatMultiplier(boost.multiplier()).toUpperCase())
+                    .append(" LUCK")
+                    .append(ChatColor.RESET).append(ChatColor.GRAY).append("  ")
+                    .append(ChatColor.WHITE).append(boost.timeLeftText())
+                    .append(ChatColor.DARK_GRAY).append("  |  ")
+                    .append(ChatColor.WHITE).append("Luck ")
+                    .append(ChatColor.GREEN).append("+").append(String.format("%.2f", luck * 100.0)).append("%");
             bar.setColor(BarColor.PURPLE);
             // Drains over the boost's own window, so the bar is a timer
             // rather than a meaningless full line.
             double total = Math.max(1.0, plugin.getConfig().getInt("boost.duration-seconds", 900));
             bar.setProgress(Math.max(0.0, Math.min(1.0, boost.secondsLeft() / total)));
         } else {
+            title.append(ChatColor.AQUA).append(ChatColor.BOLD).append("✦ ")
+                    .append(ChatColor.WHITE).append("Luck ")
+                    .append(ChatColor.GREEN).append("+").append(String.format("%.2f", luck * 100.0)).append("%");
             bar.setColor(BarColor.BLUE);
             bar.setProgress(1.0);
         }

@@ -41,7 +41,11 @@ public class NovaCoreManager {
     private double luckWeight = 1.0;
     private double minChance = 0.02;
     private double maxChance = 0.95;
-    private double multiplierPerTier = 0.5;
+    // One multiplier per tier, read straight from config. A formula gave a
+    // straight line that was far too steep at the top; a hand-written curve
+    // lets the early tiers be a gentle nudge and the last few be a real
+    // prize.
+    private java.util.List<Double> multipliers = java.util.List.of();
     private long baseCost = 500L;
     private double costGrowth = 1.18;
 
@@ -57,7 +61,7 @@ public class NovaCoreManager {
         luckWeight = config.getDouble("novacore.luck-weight", 1.0);
         minChance = config.getDouble("novacore.min-chance", 0.02);
         maxChance = config.getDouble("novacore.max-chance", 0.95);
-        multiplierPerTier = config.getDouble("novacore.multiplier-per-tier", 0.5);
+        multipliers = config.getDoubleList("novacore.multipliers");
         baseCost = config.getLong("novacore.base-cost-tokens", 500L);
         costGrowth = config.getDouble("novacore.cost-growth", 1.18);
     }
@@ -127,9 +131,18 @@ public class NovaCoreManager {
         return ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "Nova Core";
     }
 
-    /** The Luck multiplier a tier is worth. */
+    /**
+     * The universal multiplier a tier is worth — it scales Luck, the Money
+     * a roll pays, and farm Tokens alike. One number that lifts everything
+     * is easier to reason about than three separate ladders, and it makes
+     * the climb worth doing whatever a player is actually grinding.
+     *
+     * Tier 0 is always 1.00x.
+     */
     public double multiplierAt(int tier) {
-        return 1.0 + tier * multiplierPerTier;
+        if (tier <= 0 || multipliers.isEmpty()) return 1.0;
+        int index = Math.min(tier, multipliers.size()) - 1;
+        return multipliers.get(index);
     }
 
     public long costFor(int tier) {

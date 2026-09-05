@@ -8,6 +8,7 @@ import com.spacerng.solrng.commands.PrestigeCommand;
 import com.spacerng.solrng.commands.BuyCommand;
 import com.spacerng.solrng.commands.CropsCommand;
 import com.spacerng.solrng.commands.FarmTreeCommand;
+import com.spacerng.solrng.commands.GuideCommand;
 import com.spacerng.solrng.commands.NovaCoreCommand;
 import com.spacerng.solrng.commands.MilestonesCommand;
 import com.spacerng.solrng.commands.RngAdminCommand;
@@ -54,6 +55,7 @@ public final class SolRNGPlugin extends JavaPlugin {
     private com.spacerng.solrng.boost.LuckBarManager luckBarManager;
     private com.spacerng.solrng.cookie.NovaCoreManager novaCoreManager;
     private com.spacerng.solrng.farming.HoeEnchantManager hoeEnchantManager;
+    private com.spacerng.solrng.quest.QuestManager questManager;
 
     @Override
     public void onEnable() {
@@ -75,6 +77,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         this.luckBarManager = new com.spacerng.solrng.boost.LuckBarManager(this);
         this.novaCoreManager = new com.spacerng.solrng.cookie.NovaCoreManager(this);
         this.hoeEnchantManager = new com.spacerng.solrng.farming.HoeEnchantManager(this);
+        this.questManager = new com.spacerng.solrng.quest.QuestManager(this);
 
         reloadAll();
 
@@ -100,6 +103,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         getCommand("crops").setExecutor(new CropsCommand(this));
         getCommand("novacore").setExecutor(new NovaCoreCommand(this));
         getCommand("farmtree").setExecutor(new FarmTreeCommand(this));
+        getCommand("guide").setExecutor(new GuideCommand(this));
         getCommand("buy").setExecutor(new BuyCommand(this));
         getCommand("rngadmin").setExecutor(adminCommand);
         getCommand("rngadmin").setTabCompleter(adminCommand);
@@ -115,6 +119,7 @@ public final class SolRNGPlugin extends JavaPlugin {
     @Override
     public void onDisable() {
         luckBarManager.removeAll();
+        questManager.removeAll();
         if (playerDataManager != null) {
             playerDataManager.saveAll();
         }
@@ -134,6 +139,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         boostManager.load(getConfig());
         novaCoreManager.load(getConfig());
         hoeEnchantManager.load(getConfig());
+        questManager.load(getConfig());
     }
 
     /**
@@ -212,6 +218,10 @@ public final class SolRNGPlugin extends JavaPlugin {
         return luckBarManager;
     }
 
+    public com.spacerng.solrng.quest.QuestManager getQuestManager() {
+        return questManager;
+    }
+
     public com.spacerng.solrng.farming.HoeEnchantManager getHoeEnchantManager() {
         return hoeEnchantManager;
     }
@@ -253,6 +263,16 @@ public final class SolRNGPlugin extends JavaPlugin {
         // range, and picks up anyone who logged in near one.
         getServer().getScheduler().runTaskTimer(this, () -> farmPlotManager.renderAll(), 40L, 40L);
 
+        // Once, a few seconds in: put back any farm plot whose block went
+        // missing while the server was down. Chunks need to be loaded for
+        // this to see anything, hence the delay.
+        getServer().getScheduler().runTaskLater(this, () -> {
+            int healed = farmPlotManager.healAll();
+            if (healed > 0) {
+                getLogger().info("[SolRNG] Restored " + healed + " missing farm plot block(s).");
+            }
+        }, 100L);
+
         // The Luck bar has to tick on its own: a global boost's countdown
         // changes it every second even when the player does nothing.
         getServer().getScheduler().runTaskTimer(this, () -> luckBarManager.updateAll(), 20L, 20L);
@@ -261,6 +281,11 @@ public final class SolRNGPlugin extends JavaPlugin {
         // landing a second late is invisible, and this can't miss a value
         // change the way per-event hooks can.
         getServer().getScheduler().runTaskTimer(this, () -> milestoneManager.checkAll(), 100L, 100L);
+
+        // The guide's bar has to move as you play, so it ticks faster than
+        // the milestone sweep — a quest that says 7/10 while you're at 9 is
+        // worse than no counter at all.
+        getServer().getScheduler().runTaskTimer(this, () -> questManager.checkAll(), 40L, 40L);
     }
 
     private void registerPlaceholderExpansion() {

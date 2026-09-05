@@ -34,23 +34,16 @@ import java.util.Set;
 public class SkillTreeGui {
 
     /**
-     * The shape of the main tree — the live branch plus everything
-     * reserved for later. Anything here without a node becomes a "???".
+     * Slots that are part of a tree's shape regardless of what's in them.
+     * The whole of row 1 between the corners is held for future skills, as
+     * is the left and right column of the branch region.
      */
-    private static final int[] MAIN_REGION = {
-            // Live branch: root up the middle, then left and right.
-            13, 22, 31,
-            38, 39, 40, 41, 42, 43,
-            // Reserved.
-            1,                  // (2,1)
-            4,                  // (5,1)
-            7, 16, 25, 34,      // (8,1) (8,2) (8,3) (8,4)
-            10,                 // (2,2)
-            19, 28, 37          // (2,3) (2,4) (2,5)
+    private static final int[] RESERVED = {
+            1, 2, 3, 4, 5, 6, 7,   // (2,1) through (8,1)
+            10,                    // (2,2)
+            16, 25, 34,            // (8,2) (8,3) (8,4)
+            19, 28, 37             // (2,3) (2,4) (2,5)
     };
-
-    /** The farming tree uses the same silhouette, so both read as a set. */
-    private static final int[] FARM_REGION = MAIN_REGION;
 
     private static final int STATS_SLOT = 53;
     private static final int PREV_SLOT = 0;
@@ -100,24 +93,19 @@ public class SkillTreeGui {
             inv.setItem(slot, filler);
         }
 
-        int[] region = farming ? FARM_REGION : MAIN_REGION;
         Map<String, SkillNode> nodes = manager.getNodes(tree);
 
-        // Page 2 onward is the same silhouette with nothing placed in it —
-        // the room the tree still has to grow into.
-        Set<Integer> claimed = new HashSet<>();
-        if (page == 0) {
-            for (SkillNode node : nodes.values()) {
-                if (node.getSlot() >= 0 && node.getSlot() < 54) claimed.add(node.getSlot());
-            }
+        // The tree's silhouette is the reserved slots plus wherever this
+        // tree's own nodes sit. Page 2 draws that exact silhouette with
+        // nothing in it, so every page is the same shape and later pages
+        // are visibly room to grow rather than a different menu.
+        Set<Integer> shape = new HashSet<>();
+        for (int slot : RESERVED) shape.add(slot);
+        for (SkillNode node : nodes.values()) {
+            if (node.getSlot() >= 0 && node.getSlot() < 54) shape.add(node.getSlot());
         }
 
-        for (int slot : region) {
-            if (!claimed.contains(slot)) {
-                inv.setItem(slot, placeholderNode());
-            }
-        }
-
+        Set<Integer> placed = new HashSet<>();
         if (page == 0) {
             for (SkillNode node : nodes.values()) {
                 if (node.getSlot() < 0 || node.getSlot() >= 54) continue;
@@ -125,6 +113,13 @@ public class SkillTreeGui {
                 inv.setItem(node.getSlot(), reqMet
                         ? buildNodeIcon(plugin, player, data, node)
                         : placeholderNode());
+                placed.add(node.getSlot());
+            }
+        }
+
+        for (int slot : shape) {
+            if (!placed.contains(slot)) {
+                inv.setItem(slot, placeholderNode());
             }
         }
 
@@ -167,8 +162,8 @@ public class SkillTreeGui {
             double price = plugin.getSkillTreeManager().priceFor(data, node);
             boolean affordable = plugin.getSkillTreeManager().canAfford(player, data, node);
             lore.add((affordable ? ChatColor.YELLOW : ChatColor.RED) + "▎ " + ChatColor.GRAY + "Price: "
-                    + (affordable ? ChatColor.GOLD : ChatColor.RED) + "$" + String.format("%,.0f", price));
-            lore.add(ChatColor.DARK_GRAY + "▎ You have " + formatMoney(player));
+                    + (affordable ? ChatColor.DARK_GREEN : ChatColor.RED) + "$" + String.format("%,.0f", price));
+            lore.add(ChatColor.DARK_GRAY + "▎ You have " + ChatColor.DARK_GREEN + formatMoney(player));
             lore.add("");
             lore.add(affordable
                     ? ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO BUY"
@@ -223,7 +218,7 @@ public class SkillTreeGui {
         meta.setLore(List.of(
                 ChatColor.DARK_GRAY + "WALLET",
                 "",
-                ChatColor.GOLD + "▎ " + ChatColor.WHITE + formatMoney(player)));
+                ChatColor.DARK_GREEN + "▎ " + ChatColor.DARK_GREEN + formatMoney(player)));
         stats.setItemMeta(meta);
         return stats;
     }

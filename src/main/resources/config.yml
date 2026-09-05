@@ -1164,6 +1164,134 @@ milestones:
         - { at: 720, tokens: 600000 }
 
 # ============================================
+# Starting guide (/guide)
+# ============================================
+# A single ordered run that walks a new player through every system, with
+# the current step on a boss bar. Linear on purpose: a grid of optional
+# objectives is a checklist, a queue of one thing is a tutorial.
+#
+# Progress is READ from live state, never counted here, so steps can be
+# reordered or rewritten without resetting anybody — and a player who
+# already did something is credited for it the moment they log in.
+#
+# goal is one of:
+#   ROLLS DISCOVERIES SKILL_NODES HAS_NODE TAG_EQUIPPED BANKED_DROPS
+#   STARFORGE_TIER ARMOR_PIECES CROPS_HARVESTED NOVA_TIER
+#   MILESTONES_CLAIMED LEVEL PRESTIGE
+# HAS_NODE uses "target" for the node id.
+guide:
+  quests:
+    - id: first_rolls
+      display: "Roll 10 times"
+      hint: "Right-click your Starforge to roll."
+      goal: ROLLS
+      amount: 10
+      tokens: 500
+    - id: first_index
+      display: "Discover 5 different drops"
+      hint: "Every new drop is logged in /index."
+      goal: DISCOVERIES
+      amount: 5
+      tokens: 750
+    - id: auto_roll
+      display: "Unlock Auto Roll"
+      hint: "Open /skilltree and buy the root skill, then left-click your Starforge."
+      goal: HAS_NODE
+      target: auto_roll_root
+      amount: 1
+      tokens: 1000
+    - id: first_luck
+      display: "Buy your first Luck level"
+      hint: "Luck sits directly above Auto Roll in /skilltree."
+      goal: HAS_NODE
+      target: luck_skill
+      amount: 1
+      tokens: 1500
+    - id: convert_drops
+      display: "Store 25 drops in /convert"
+      hint: "Drop rolled items into /convert — stored drops buy armor and Starforges."
+      goal: BANKED_DROPS
+      amount: 25
+      tokens: 2000
+    - id: starforge_upgrade
+      display: "Upgrade your Starforge"
+      hint: "Spend stored drops in /starforge to raise your base Luck."
+      goal: STARFORGE_TIER
+      amount: 1
+      tokens: 3000
+    - id: index_luck
+      display: "Unlock Index Luck"
+      hint: "In /skilltree, right of Luck. It's what lets you equip a tag."
+      goal: HAS_NODE
+      target: index_luck
+      amount: 1
+      tokens: 4000
+    - id: equip_tag
+      display: "Equip a tag"
+      hint: "Click any discovered drop in /index to wear it and take its multiplier."
+      goal: TAG_EQUIPPED
+      amount: 1
+      tokens: 5000
+    - id: armor_unlock
+      display: "Unlock the armor shop"
+      hint: "Buy Armor Unlocked in /skilltree, above Farming."
+      goal: HAS_NODE
+      target: armor_unlock
+      amount: 1
+      tokens: 6000
+    - id: first_armor
+      display: "Buy an armor piece"
+      hint: "/armor sells pieces one at a time — every worn piece adds Luck and Speed."
+      goal: ARMOR_PIECES
+      amount: 1
+      tokens: 8000
+    - id: farming_unlock
+      display: "Unlock farming"
+      hint: "Buy Farming Unlocked in /skilltree to get the Farmer's Hoe."
+      goal: HAS_NODE
+      target: farming_unlock
+      amount: 1
+      tokens: 10000
+    - id: first_harvest
+      display: "Harvest 50 crops"
+      hint: "Break crops on the farm. Pick what grows for you with /crops."
+      goal: CROPS_HARVESTED
+      amount: 50
+      tokens: 12000
+    - id: farm_skills
+      display: "Buy your first farming skill"
+      hint: "/farmtree is a whole second tree — crops, hoe enchants and Token multipliers."
+      goal: HAS_NODE
+      target: farm_root
+      amount: 1
+      tokens: 15000
+    - id: nova_core
+      display: "Forge a Nova Core tier"
+      hint: "/novacore is a push-your-luck ladder. Every tier multiplies everything."
+      goal: NOVA_TIER
+      amount: 1
+      tokens: 20000
+    - id: claim_milestone
+      display: "Claim a milestone reward"
+      hint: "/milestones tracks the long game. Rewards wait there until you collect them."
+      goal: MILESTONES_CLAIMED
+      amount: 1
+      tokens: 25000
+    - id: reach_level
+      display: "Reach level 5"
+      hint: "Rolling levels you up. Spend levels in /prestige."
+      goal: LEVEL
+      amount: 5
+      tokens: 30000
+    - id: first_prestige
+      display: "Prestige once"
+      hint: "/prestige trades your level for a permanent Luck multiplier."
+      goal: PRESTIGE
+      amount: 1
+      tokens: 100000
+      money: 50000
+
+# ============================================
 # Farming skill tree (/farmtree)
 # ============================================
 # Same 6x9 shape as the main tree and the same node format — slot is
@@ -1370,7 +1498,12 @@ novacore:
   luck-weight: 1.0
   min-chance: 0.02
   max-chance: 0.95
-  multiplier-per-tier: 0.5
+  # One entry per tier. This is a UNIVERSAL multiplier: it scales Luck,
+  # the Money a roll pays and farm Tokens together, so the ladder is worth
+  # climbing whatever you're grinding. Gentle at the bottom, steep at the
+  # very top.
+  multipliers: [1.02, 1.05, 1.10, 1.15, 1.25, 1.40, 1.55, 1.75, 2.00, 2.25,
+                2.50, 2.85, 3.25, 3.75, 4.25, 5.00, 6.00, 7.50, 9.00, 12.00]
   base-cost-tokens: 500
   cost-growth: 1.18
 
