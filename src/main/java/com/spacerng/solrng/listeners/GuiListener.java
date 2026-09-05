@@ -127,9 +127,12 @@ public class GuiListener implements Listener {
         } else if (rawSlot == OptionsHolder.ANIMATION_SLOT) {
             data.setRollAnimationEnabled(!data.isRollAnimationEnabled());
             player.openInventory(OptionsGui.build(plugin, player));
-        } else if (rawSlot == OptionsHolder.AURA_SLOT) {
-            data.setRevealAuraEnabled(!data.isRevealAuraEnabled());
-            player.openInventory(OptionsGui.build(plugin, player));
+        } else if (rawSlot == OptionsHolder.AURA_EPIC_SLOT) {
+            toggleAura(player, data, com.spacerng.solrng.rarity.Rarity.EPIC);
+        } else if (rawSlot == OptionsHolder.AURA_LEGENDARY_SLOT) {
+            toggleAura(player, data, com.spacerng.solrng.rarity.Rarity.LEGENDARY);
+        } else if (rawSlot == OptionsHolder.AURA_MYTHICAL_SLOT) {
+            toggleAura(player, data, com.spacerng.solrng.rarity.Rarity.MYTHICAL);
         }
     }
 
@@ -315,6 +318,11 @@ public class GuiListener implements Listener {
         plugin.getFarmingManager().refreshHoe(player, data);
         plugin.getScoreboardManager().update(player);
         player.openInventory(HoeGui.build(plugin, player));
+    }
+
+    private void toggleAura(Player player, PlayerData data, com.spacerng.solrng.rarity.Rarity rarity) {
+        data.setAuraEnabled(rarity, !data.isAuraEnabled(rarity));
+        player.openInventory(OptionsGui.build(plugin, player));
     }
 
     private void handleArmorClick(InventoryClickEvent event) {
@@ -607,6 +615,19 @@ public class GuiListener implements Listener {
             return;
         }
 
+        if (rawSlot == ConvertHolder.SHINY_TOGGLE_SLOT) {
+            PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+            if (!data.hasUnlocked("auto_convert")) {
+                player.sendMessage(ChatColor.RED + "Unlock 'Auto-Convert' in /skilltree first.");
+                return;
+            }
+            data.setAutoConvertShiny(!data.isAutoConvertShiny());
+            player.sendMessage(ChatColor.AQUA + "Shiny auto-convert is now "
+                    + (data.isAutoConvertShiny() ? ChatColor.GREEN + "ON" : ChatColor.RED + "OFF"));
+            player.openInventory(ConvertGui.build(plugin, player));
+            return;
+        }
+
         if (rawSlot >= ConvertHolder.AUTO_TOGGLE_ROW_START && rawSlot <= ConvertHolder.AUTO_TOGGLE_ROW_END) {
             handleAutoToggleClick(player, rawSlot);
         }
@@ -682,8 +703,12 @@ public class GuiListener implements Listener {
                 long amount = stack.getAmount();
                 banked.merge(rarity, amount, Long::sum);
                 itemsConverted += amount;
-                data.addBankedDrops(rarity, amount);
-                data.addConverted(rarity, amount);
+                if (plugin.getRollListener().isShiny(stack)) {
+                    data.addBankedShiny(rarity, amount);
+                } else {
+                    data.addBankedDrops(rarity, amount);
+                    data.addConverted(rarity, amount);
+                }
                 top.setItem(slot, null);
             } catch (IllegalArgumentException ignored) {
             }

@@ -39,6 +39,7 @@ public class RollListener implements Listener {
     private final SolRNGPlugin plugin;
     private final NamespacedKey rarityKey;
     private final NamespacedKey rollNameKey;
+    private final NamespacedKey shinyKey;
     private final Map<UUID, BukkitTask> rollingTasks = new HashMap<>();
     // ticks remaining in the current roll, kept up to date so the scoreboard
     // can show a live countdown without duplicating the timing logic.
@@ -63,6 +64,7 @@ public class RollListener implements Listener {
         this.plugin = plugin;
         this.rarityKey = new NamespacedKey(plugin, "solrng_rarity");
         this.rollNameKey = new NamespacedKey(plugin, "solrng_roll_name");
+        this.shinyKey = new NamespacedKey(plugin, "solrng_shiny");
     }
 
     public NamespacedKey getRarityKey() {
@@ -71,6 +73,26 @@ public class RollListener implements Listener {
 
     public NamespacedKey getRollNameKey() {
         return rollNameKey;
+    }
+
+    public NamespacedKey getShinyKey() {
+        return shinyKey;
+    }
+
+    public boolean isShiny(ItemStack item) {
+        return item != null && item.getItemMeta() != null
+                && item.getItemMeta().getPersistentDataContainer().has(shinyKey, PersistentDataType.BYTE);
+    }
+
+    /**
+     * Whether this roll comes out shiny. Gated on the skill node, so the
+     * chance simply doesn't exist until it's bought — a player who hasn't
+     * unlocked it never rolls one and never sees a near-miss.
+     */
+    public boolean rollShiny(PlayerData data) {
+        String node = plugin.getConfig().getString("shiny.node", "shiny_unlock");
+        if (!node.isEmpty() && !data.hasUnlocked(node)) return false;
+        return random.nextDouble() < plugin.getConfig().getDouble("shiny.chance", 0.01);
     }
 
     public boolean isRolling(UUID uuid) {
@@ -210,6 +232,7 @@ public class RollListener implements Listener {
         // Rolling at the end instead meant the reel visibly stopped on one
         // item and gave you a different one.
         RollableItem result = plugin.getRarityManager().roll(plugin.getPrestigeManager().effectiveLuck(data));
+        boolean shiny = rollShiny(data);
 
         // An Epic+ roll is stretched to at least the length of its own
         // build-up, so the effect always gets to play out in full — a
@@ -240,7 +263,7 @@ public class RollListener implements Listener {
                 taskHolder[0].cancel();
                 rollingTasks.remove(player.getUniqueId());
                 remainingTicks.remove(player.getUniqueId());
-                finishRoll(player, data, result);
+                finishRoll(player, data, result, shiny);
                 return;
             }
 
@@ -304,7 +327,7 @@ public class RollListener implements Listener {
         player.showTitle(title);
     }
 
-    private void finishRoll(Player player, PlayerData data, RollableItem result) {
+    private void finishRoll(Player player, PlayerData data, RollableItem result, boolean shiny) {
         clearActionBar(player);
         // The level-up chime would land on the same tick as a big drop's
         // detonation and just clutter it — the aura brings its own.
@@ -367,21 +390,32 @@ public class RollListener implements Listener {
      * item is built so chat messages can show a hoverable tooltip of it.
      */
     public void grantRoll(Player player, PlayerData data, RollableItem result, boolean silent) {
+        grantRoll(player, data, result, silent, rollShiny(data));
+    }
+
+    public void grantRoll(Player player, PlayerData data, RollableItem result, boolean silent, boolean shiny) {
         data.addRoll();
         Rarity rarity = result.getRarity();
-        ItemStack previewItem = buildTaggedItem(result);
+        ItemStack previewItem = buildTaggedItem(result, shiny);
 
         double moneyEarned = depositRollMoney(player, result);
 
-        if (data.isAutoConverting(rarity)) {
-            // Auto-convert banks the drop instead of handing over the item —
-            // the same stored drops /convert produces, spendable in /armor
-            // and /starforge.
-            data.addBankedDrops(rarity, 1L);
-            data.addConverted(rarity, 1L);
+        // A shiny is only ever auto-converted by its OWN switch. The normal
+        // per-rarity toggles are set for the common version of a drop, and
+        // letting one of those swallow a 1-in-100 find would be the single
+        // most annoying thing the plugin could do.
+        boolean converting = shiny ? data.isAutoConvertShiny() : data.isAutoConverting(rarity);
+
+        if (converting) {
+            if (shiny) {
+                data.addBankedShiny(rarity, 1L);
+            } else {
+                data.addBankedDrops(rarity, 1L);
+                data.addConverted(rarity, 1L);
+            }
             if (!silent) {
-                sendHoverable(player, previewItem, RollFormat.personalRollLine(plugin, result)
-                        + ChatColor.YELLOW + " → stored (auto-converted)");
+                sendHoverable(player, previewItem, RollFormat.personalRollLine(plugin, result, shiny)
+                        + ChatColor.YELLOW + " \u2192 stored (auto-converted)");
             }
         } else {
             Map<Integer, ItemStack> overflow = player.getInventory().addItem(previewItem.clone());
@@ -391,7 +425,7 @@ public class RollListener implements Listener {
                 player.sendMessage(ChatColor.RED + "Your inventory is full — the item dropped at your feet!");
             }
             if (!silent) {
-                sendHoverable(player, previewItem, RollFormat.personalRollLine(plugin, result));
+                sendHoverable(player, previewItem, RollFormat.personalRollLine(plugin, result, shiny));
             }
         }
 
@@ -399,12 +433,12 @@ public class RollListener implements Listener {
             String moneyText = moneyEarned > 0
                     ? ChatColor.GREEN + "  +$" + String.format("%.0f", moneyEarned)
                     : "";
-            sendActionBar(player, RollFormat.displayName(plugin, result)
+            sendActionBar(player, RollFormat.displayName(plugin, result, shiny)
                     + ChatColor.GRAY + "  " + RollFormat.compactOdds(result.getOdds()) + moneyText);
         }
 
-        maybeRegisterDiscovery(player, data, result, silent);
-        maybeBroadcast(player, result, previewItem);
+        maybeRegisterDiscovery(player, data, result, silent, shiny);
+        maybeBroadcast(player, result, previewItem, shiny);
     }
 
     /**
@@ -445,34 +479,52 @@ public class RollListener implements Listener {
      * /index and grants a small permanent luck bonus — collecting every
      * item is itself a form of progression.
      */
-    private void maybeRegisterDiscovery(Player player, PlayerData data, RollableItem result, boolean silent) {
-        if (data.hasDiscovered(result.getDisplayName())) return;
+    private void maybeRegisterDiscovery(Player player, PlayerData data, RollableItem result, boolean silent,
+                                        boolean shiny) {
+        boolean newBase = !data.hasDiscovered(result.getDisplayName());
+        boolean newShiny = shiny && !data.hasDiscoveredShiny(result.getDisplayName());
+        if (!newBase && !newShiny) return;
 
-        data.markDiscovered(result.getDisplayName());
+        if (newBase) data.markDiscovered(result.getDisplayName());
+        if (newShiny) data.markShinyDiscovered(result.getDisplayName());
+        if (silent) return;
 
-        if (!silent) {
-            String notice = ChatColor.GREEN + "" + ChatColor.BOLD + "NEW! " + ChatColor.RESET
-                    + RollFormat.displayName(plugin, result) + ChatColor.GRAY + " added to your index "
-                    + ChatColor.DARK_AQUA + "(" + String.format("%.2f", result.getLuckMultiplier()) + "x Luck)";
-            player.sendMessage(notice);
-            sendActionBar(player, notice);
-            player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.8f, 1.3f);
-        }
+        String notice = (newShiny
+                ? ChatColor.AQUA + "" + ChatColor.BOLD + "NEW SHINY! "
+                : ChatColor.GREEN + "" + ChatColor.BOLD + "NEW! ")
+                + ChatColor.RESET + RollFormat.displayName(plugin, result, shiny)
+                + ChatColor.GRAY + " added to your index "
+                + ChatColor.DARK_AQUA + "(" + String.format("%.2f", result.getLuckMultiplier()) + "x Luck)";
+        player.sendMessage(notice);
+        sendActionBar(player, notice);
+        player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.8f, newShiny ? 1.8f : 1.3f);
     }
 
-    /** The physical, PDC-tagged drop item. Public so /rngadmin can hand them out. */
     public ItemStack buildTaggedItem(RollableItem result) {
+        return buildTaggedItem(result, false);
+    }
+
+    /**
+     * The physical, PDC-tagged drop item. A shiny carries an extra tag, an
+     * enchant glint and its own name styling, so it's obvious in an
+     * inventory without having to read the tooltip.
+     */
+    public ItemStack buildTaggedItem(RollableItem result, boolean shiny) {
         ItemStack item = new ItemStack(result.getMaterial());
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(RollFormat.displayName(plugin, result));
-        meta.setLore(RollFormat.lore(plugin, result));
+        meta.setDisplayName(RollFormat.displayName(plugin, result, shiny));
+        meta.setLore(RollFormat.lore(plugin, result, shiny));
         meta.getPersistentDataContainer().set(rarityKey, PersistentDataType.STRING, result.getRarity().name());
         meta.getPersistentDataContainer().set(rollNameKey, PersistentDataType.STRING, result.getDisplayName());
+        if (shiny) {
+            meta.getPersistentDataContainer().set(shinyKey, PersistentDataType.BYTE, (byte) 1);
+            meta.setEnchantmentGlintOverride(Boolean.TRUE);
+        }
         item.setItemMeta(meta);
         return item;
     }
 
-    private void maybeBroadcast(Player player, RollableItem result, ItemStack previewItem) {
+    private void maybeBroadcast(Player player, RollableItem result, ItemStack previewItem, boolean shiny) {
         String minRarityName = plugin.getConfig().getString("broadcast.min-rarity-to-broadcast", "EPIC");
         Rarity minRarity;
         try {
@@ -481,10 +533,13 @@ public class RollListener implements Listener {
             minRarity = Rarity.EPIC;
         }
 
-        if (result.getRarity().ordinal() < minRarity.ordinal()) return;
+        // A shiny is a 1-in-100 on top of whatever the drop already was, so
+        // it's worth announcing even at a rarity that normally isn't.
+        boolean shinyWorthy = shiny && plugin.getConfig().getBoolean("shiny.broadcast", true);
+        if (!shinyWorthy && result.getRarity().ordinal() < minRarity.ordinal()) return;
 
         Component banner = LegacyComponentSerializer.legacySection()
-                .deserialize(RollFormat.broadcastBanner(plugin, player.getName(), result))
+                .deserialize(RollFormat.broadcastBanner(plugin, player.getName(), result, shiny))
                 .hoverEvent(previewItem.asHoverEvent());
         Bukkit.broadcast(banner);
     }

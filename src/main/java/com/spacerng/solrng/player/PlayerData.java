@@ -30,6 +30,16 @@ public class PlayerData {
     // backs /index and its per-discovery luck bonus.
     private final Set<String> discoveredItems = new HashSet<>();
     private final Set<Rarity> autoConvertRarities = EnumSet.noneOf(Rarity.class);
+    // Shinies are held apart from ordinary drops at every level: their own
+    // discovery set, their own bank, and their own auto-convert switch.
+    // Folding them into the normal ones would mean a 1-in-100 find could be
+    // eaten by a toggle set for the common version of the same drop.
+    private final Set<String> discoveredShiny = new HashSet<>();
+    private final Map<Rarity, Long> shinyBank = new EnumMap<>(Rarity.class);
+    private boolean autoConvertShiny = false;
+    // Rarities whose reveal aura this player has switched off. Stored as
+    // the exceptions so a new rarity is visible by default.
+    private final Set<Rarity> disabledAuras = EnumSet.noneOf(Rarity.class);
     // Auto-roll always fires at the player's own current roll speed — no
     // separate fixed interval.
     private boolean autoRollEnabled = false;
@@ -65,10 +75,6 @@ public class PlayerData {
     // /options toggles.
     private boolean rollSoundEnabled = true;
     private boolean rollAnimationEnabled = true;
-    // Whether this player SEES and HEARS Epic+ reveal auras — their own
-    // and other people's. The effect is sent per-viewer, so switching it
-    // off only quiets it for them.
-    private boolean revealAuraEnabled = true;
     // Multiplies Tokens earned from harvesting farm crops. 1.0 = base
     // reward. Nothing raises this yet — reserved for future farming
     // upgrades (hoe enchants, prestige tie-in, etc.).
@@ -558,6 +564,47 @@ public class PlayerData {
         hoeEnchantLevels.put(id, Math.max(0, level));
     }
 
+    public Set<String> getDiscoveredShiny() {
+        return discoveredShiny;
+    }
+
+    public boolean hasDiscoveredShiny(String itemDisplayName) {
+        return discoveredShiny.contains(itemDisplayName);
+    }
+
+    public void markShinyDiscovered(String itemDisplayName) {
+        discoveredShiny.add(itemDisplayName);
+    }
+
+    public Map<Rarity, Long> getShinyBank() {
+        return shinyBank;
+    }
+
+    public long getBankedShiny(Rarity rarity) {
+        return shinyBank.getOrDefault(rarity, 0L);
+    }
+
+    public void addBankedShiny(Rarity rarity, long amount) {
+        if (amount <= 0) return;
+        shinyBank.merge(rarity, amount, Long::sum);
+    }
+
+    public long takeBankedShiny(Rarity rarity, long amount) {
+        long have = getBankedShiny(rarity);
+        long taken = Math.min(have, amount);
+        if (taken <= 0) return 0L;
+        shinyBank.put(rarity, have - taken);
+        return taken;
+    }
+
+    public boolean isAutoConvertShiny() {
+        return autoConvertShiny;
+    }
+
+    public void setAutoConvertShiny(boolean autoConvertShiny) {
+        this.autoConvertShiny = autoConvertShiny;
+    }
+
     public boolean isRollSoundEnabled() {
         return rollSoundEnabled;
     }
@@ -574,12 +621,27 @@ public class PlayerData {
         this.rollAnimationEnabled = rollAnimationEnabled;
     }
 
-    public boolean isRevealAuraEnabled() {
-        return revealAuraEnabled;
+    /**
+     * Whether this player sees the reveal aura for a given rarity. Split
+     * per tier because the tiers are wildly different events: a Mythical
+     * once a month is a spectacle, an Epic several times an hour can be a
+     * nuisance, and one switch can't express that.
+     */
+    public boolean isAuraEnabled(Rarity rarity) {
+        return rarity != null && !disabledAuras.contains(rarity);
     }
 
-    public void setRevealAuraEnabled(boolean revealAuraEnabled) {
-        this.revealAuraEnabled = revealAuraEnabled;
+    public void setAuraEnabled(Rarity rarity, boolean enabled) {
+        if (rarity == null) return;
+        if (enabled) {
+            disabledAuras.remove(rarity);
+        } else {
+            disabledAuras.add(rarity);
+        }
+    }
+
+    public Set<Rarity> getDisabledAuras() {
+        return disabledAuras;
     }
 
     public double getFarmTokenMultiplier() {

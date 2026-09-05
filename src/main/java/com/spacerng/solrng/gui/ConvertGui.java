@@ -61,6 +61,7 @@ public class ConvertGui {
             slot++;
         }
 
+        inv.setItem(ConvertHolder.SHINY_TOGGLE_SLOT, buildShinyToggle(data));
         inv.setItem(STORED_SLOT, buildStoredPanel(plugin, data));
 
         return inv;
@@ -71,6 +72,32 @@ public class ConvertGui {
      * just moves it out of the inventory — so this is a running total of
      * spendable Common/Uncommon/... rather than a separate currency.
      */
+    /**
+     * The shiny switch, kept away from the rarity row on purpose. A shiny
+     * is a 1-in-100 find; having it swallowed by a toggle somebody set for
+     * the common version of the same drop would be the worst thing this
+     * menu could do, so it only ever answers to this button.
+     */
+    private static ItemStack buildShinyToggle(PlayerData data) {
+        boolean on = data.isAutoConvertShiny();
+        ItemStack item = new ItemStack(on ? Material.LIME_CONCRETE : Material.RED_CONCRETE);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(ChatColor.AQUA + "" + ChatColor.BOLD + "\u2726 Shiny "
+                + ChatColor.RESET + ChatColor.GRAY + "\u2014 "
+                + (on ? ChatColor.GREEN.toString() + ChatColor.BOLD + "On"
+                      : ChatColor.RED.toString() + ChatColor.BOLD + "Off"));
+        meta.setLore(List.of(
+                ChatColor.DARK_GRAY + "Shinies are NEVER auto-converted by",
+                ChatColor.DARK_GRAY + "the rarity switches \u2014 only by this one.",
+                "",
+                ChatColor.GRAY + "They bank separately from normal drops.",
+                "",
+                ChatColor.YELLOW + "Click to toggle"));
+        meta.setEnchantmentGlintOverride(on ? Boolean.TRUE : null);
+        item.setItemMeta(meta);
+        return item;
+    }
+
     private static ItemStack buildStoredPanel(SolRNGPlugin plugin, PlayerData data) {
         ItemStack panel = new ItemStack(Material.CHEST);
         ItemMeta meta = panel.getItemMeta();
@@ -78,11 +105,14 @@ public class ConvertGui {
 
         List<String> lore = new ArrayList<>();
         for (Rarity rarity : Rarity.values()) {
+            long shiny = data.getBankedShiny(rarity);
             lore.add(plugin.getRarityManager().style(rarity, rarity.displayName() + ": ")
-                    + ChatColor.WHITE + data.getBankedDrops(rarity));
+                    + ChatColor.GRAY + data.getBankedDrops(rarity)
+                    + (shiny > 0 ? ChatColor.DARK_GRAY + "  " + ChatColor.AQUA + "\u2726 " + shiny : ""));
         }
         lore.add("");
         lore.add(ChatColor.GRAY + "Spendable in /armor and /starforge.");
+        lore.add(ChatColor.AQUA + "\u2726 " + ChatColor.DARK_GRAY + "Shinies are banked separately.");
         meta.setLore(lore);
         panel.setItemMeta(meta);
         return panel;

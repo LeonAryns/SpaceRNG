@@ -31,7 +31,10 @@ import java.util.List;
  * their own payoff.
  *
  * Particles and sounds are sent per-viewer rather than through the World,
- * so anyone who switched the aura off in /options is skipped.
+ * so anyone who switched THIS RARITY's aura off in /options is skipped.
+ * The toggle is per tier because the tiers are different events: a
+ * Mythical once a month is a spectacle, an Epic several times an hour can
+ * be a nuisance, and one switch can't express that.
  */
 public final class RollAura {
 
@@ -230,7 +233,7 @@ public final class RollAura {
         Location origin = player.getLocation();
         for (Player nearby : player.getWorld().getPlayers()) {
             if (nearby.getLocation().distanceSquared(origin) > rangeSq) continue;
-            if (!plugin.getPlayerDataManager().get(nearby.getUniqueId()).isRevealAuraEnabled()) continue;
+            if (!plugin.getPlayerDataManager().get(nearby.getUniqueId()).isAuraEnabled(rarity)) continue;
             audience.add(nearby);
         }
     }

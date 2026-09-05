@@ -390,7 +390,7 @@ rarities:
   # "symbol: true" wraps that rarity's item names in an obfuscated flair
   # character on both sides (Epic and up).
   COMMON:
-    colors: ["&f"]
+    colors: ["&7"]
     luck-factor: 0.0
   UNCOMMON:
     colors: ["&a"]
@@ -1675,6 +1675,21 @@ novacore:
                 2.50, 2.85, 3.25, 3.75, 4.25, 5.00, 6.00, 7.50, 9.00, 12.00]
   base-cost-tokens: 500
   cost-growth: 1.18
+
+# Shiny drops. A shiny is the same drop with a marker, an enchant glint
+# and its own entry in /index — 1 in 100 rolls by default, so roughly one
+# shiny per 100 of any given drop.
+#
+# It's gated on a skill node: until that's bought the chance simply
+# doesn't exist, so a player never rolls one or sees a near-miss.
+#
+# Shinies are NEVER auto-converted by the normal per-rarity toggles —
+# only by their own switch in /convert — and they bank separately.
+shiny:
+  chance: 0.01
+  node: "shiny_unlock"
+  marker: "&b&l✦"
+  broadcast: true
 
 # Rolls of this rarity or higher get broadcast to the whole server.
 broadcast:

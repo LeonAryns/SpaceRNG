@@ -25,7 +25,20 @@ public final class RollFormat {
      * that don't define their own. Used everywhere the item is named.
      */
     public static String displayName(SolRNGPlugin plugin, RollableItem item) {
-        return plugin.getRarityManager().styleItemName(item);
+        return displayName(plugin, item, false);
+    }
+
+    /**
+     * A shiny keeps the drop's own colours but gains a marker on both
+     * sides, so it reads as "the same thing, rarer" rather than a
+     * different item.
+     */
+    public static String displayName(SolRNGPlugin plugin, RollableItem item, boolean shiny) {
+        String name = plugin.getRarityManager().styleItemName(item);
+        if (!shiny) return name;
+        String mark = plugin.getConfig().getString("shiny.marker", "&b&l\u2726");
+        String marker = ChatColor.translateAlternateColorCodes('&', mark);
+        return marker + " " + name + " " + marker;
     }
 
     // Legacy chat only has 16 colors, so this is an approximation of each
@@ -41,16 +54,16 @@ public final class RollFormat {
             Map.entry(Material.BAMBOO, ChatColor.GREEN),
             Map.entry(Material.BEACON, ChatColor.AQUA),
             Map.entry(Material.BEETROOT, ChatColor.DARK_RED),
-            Map.entry(Material.BIRCH_LOG, ChatColor.WHITE),
+            Map.entry(Material.BIRCH_LOG, ChatColor.GRAY),
             Map.entry(Material.BLAZE_POWDER, ChatColor.GOLD),
             Map.entry(Material.BLAZE_ROD, ChatColor.GOLD),
-            Map.entry(Material.BONE, ChatColor.WHITE),
-            Map.entry(Material.BOOK, ChatColor.WHITE),
+            Map.entry(Material.BONE, ChatColor.GRAY),
+            Map.entry(Material.BOOK, ChatColor.GRAY),
             Map.entry(Material.BRUSH, ChatColor.GOLD),
             Map.entry(Material.BUCKET, ChatColor.GRAY),
             Map.entry(Material.BUDDING_AMETHYST, ChatColor.LIGHT_PURPLE),
             Map.entry(Material.CACTUS, ChatColor.GREEN),
-            Map.entry(Material.CALCITE, ChatColor.WHITE),
+            Map.entry(Material.CALCITE, ChatColor.GRAY),
             Map.entry(Material.CARROT, ChatColor.GOLD),
             Map.entry(Material.CHARCOAL, ChatColor.DARK_GRAY),
             Map.entry(Material.CHERRY_LOG, ChatColor.LIGHT_PURPLE),
@@ -70,13 +83,13 @@ public final class RollFormat {
             Map.entry(Material.DIAMOND, ChatColor.AQUA),
             Map.entry(Material.DIAMOND_HORSE_ARMOR, ChatColor.AQUA),
             Map.entry(Material.DIAMOND_ORE, ChatColor.AQUA),
-            Map.entry(Material.DIORITE, ChatColor.WHITE),
+            Map.entry(Material.DIORITE, ChatColor.GRAY),
             Map.entry(Material.DIRT, ChatColor.GOLD),
             Map.entry(Material.DRAGON_BREATH, ChatColor.LIGHT_PURPLE),
             Map.entry(Material.DRAGON_EGG, ChatColor.DARK_PURPLE),
             Map.entry(Material.DRIPSTONE_BLOCK, ChatColor.GOLD),
             Map.entry(Material.ECHO_SHARD, ChatColor.DARK_AQUA),
-            Map.entry(Material.EGG, ChatColor.WHITE),
+            Map.entry(Material.EGG, ChatColor.GRAY),
             Map.entry(Material.ELYTRA, ChatColor.DARK_PURPLE),
             Map.entry(Material.EMERALD, ChatColor.GREEN),
             Map.entry(Material.EMERALD_ORE, ChatColor.GREEN),
@@ -85,11 +98,11 @@ public final class RollFormat {
             Map.entry(Material.ENDER_PEARL, ChatColor.DARK_AQUA),
             Map.entry(Material.END_CRYSTAL, ChatColor.LIGHT_PURPLE),
             Map.entry(Material.EXPERIENCE_BOTTLE, ChatColor.GREEN),
-            Map.entry(Material.FEATHER, ChatColor.WHITE),
+            Map.entry(Material.FEATHER, ChatColor.GRAY),
             Map.entry(Material.FERMENTED_SPIDER_EYE, ChatColor.DARK_RED),
             Map.entry(Material.FISHING_ROD, ChatColor.GOLD),
             Map.entry(Material.FLINT, ChatColor.DARK_GRAY),
-            Map.entry(Material.GHAST_TEAR, ChatColor.WHITE),
+            Map.entry(Material.GHAST_TEAR, ChatColor.GRAY),
             Map.entry(Material.GLOWSTONE, ChatColor.YELLOW),
             Map.entry(Material.GLOWSTONE_DUST, ChatColor.YELLOW),
             Map.entry(Material.GLOW_INK_SAC, ChatColor.AQUA),
@@ -105,9 +118,9 @@ public final class RollFormat {
             Map.entry(Material.HONEYCOMB, ChatColor.GOLD),
             Map.entry(Material.HONEY_BOTTLE, ChatColor.GOLD),
             Map.entry(Material.INK_SAC, ChatColor.BLACK),
-            Map.entry(Material.IRON_BLOCK, ChatColor.WHITE),
-            Map.entry(Material.IRON_INGOT, ChatColor.WHITE),
-            Map.entry(Material.IRON_NUGGET, ChatColor.WHITE),
+            Map.entry(Material.IRON_BLOCK, ChatColor.GRAY),
+            Map.entry(Material.IRON_INGOT, ChatColor.GRAY),
+            Map.entry(Material.IRON_NUGGET, ChatColor.GRAY),
             Map.entry(Material.JUNGLE_LOG, ChatColor.GOLD),
             Map.entry(Material.KELP, ChatColor.DARK_GREEN),
             Map.entry(Material.LAPIS_BLOCK, ChatColor.BLUE),
@@ -120,12 +133,12 @@ public final class RollFormat {
             Map.entry(Material.MOSS_BLOCK, ChatColor.DARK_GREEN),
             Map.entry(Material.MUD, ChatColor.DARK_GRAY),
             Map.entry(Material.MUSIC_DISC_13, ChatColor.BLACK),
-            Map.entry(Material.NAME_TAG, ChatColor.WHITE),
-            Map.entry(Material.NAUTILUS_SHELL, ChatColor.WHITE),
+            Map.entry(Material.NAME_TAG, ChatColor.GRAY),
+            Map.entry(Material.NAUTILUS_SHELL, ChatColor.GRAY),
             Map.entry(Material.NETHERITE_BLOCK, ChatColor.DARK_GRAY),
             Map.entry(Material.NETHERITE_INGOT, ChatColor.DARK_GRAY),
             Map.entry(Material.NETHERITE_SCRAP, ChatColor.DARK_GRAY),
-            Map.entry(Material.NETHER_STAR, ChatColor.WHITE),
+            Map.entry(Material.NETHER_STAR, ChatColor.GRAY),
             Map.entry(Material.OAK_LOG, ChatColor.GOLD),
             Map.entry(Material.OAK_PLANKS, ChatColor.GOLD),
             Map.entry(Material.OBSIDIAN, ChatColor.DARK_PURPLE),
@@ -136,12 +149,12 @@ public final class RollFormat {
             Map.entry(Material.PRISMARINE_CRYSTALS, ChatColor.AQUA),
             Map.entry(Material.PRISMARINE_SHARD, ChatColor.AQUA),
             Map.entry(Material.PUFFERFISH, ChatColor.YELLOW),
-            Map.entry(Material.QUARTZ, ChatColor.WHITE),
-            Map.entry(Material.RABBIT_FOOT, ChatColor.WHITE),
+            Map.entry(Material.QUARTZ, ChatColor.GRAY),
+            Map.entry(Material.RABBIT_FOOT, ChatColor.GRAY),
             Map.entry(Material.RABBIT_HIDE, ChatColor.GOLD),
             Map.entry(Material.RAW_COPPER, ChatColor.GOLD),
             Map.entry(Material.RAW_GOLD, ChatColor.YELLOW),
-            Map.entry(Material.RAW_IRON, ChatColor.WHITE),
+            Map.entry(Material.RAW_IRON, ChatColor.GRAY),
             Map.entry(Material.RECOVERY_COMPASS, ChatColor.DARK_PURPLE),
             Map.entry(Material.REDSTONE, ChatColor.RED),
             Map.entry(Material.REDSTONE_BLOCK, ChatColor.RED),
@@ -156,14 +169,14 @@ public final class RollFormat {
             Map.entry(Material.SHULKER_BOX, ChatColor.LIGHT_PURPLE),
             Map.entry(Material.SHULKER_SHELL, ChatColor.LIGHT_PURPLE),
             Map.entry(Material.SLIME_BALL, ChatColor.GREEN),
-            Map.entry(Material.SNOWBALL, ChatColor.WHITE),
+            Map.entry(Material.SNOWBALL, ChatColor.GRAY),
             Map.entry(Material.SPECTRAL_ARROW, ChatColor.YELLOW),
             Map.entry(Material.SPIDER_EYE, ChatColor.RED),
             Map.entry(Material.SPRUCE_LOG, ChatColor.DARK_RED),
             Map.entry(Material.SPYGLASS, ChatColor.GRAY),
             Map.entry(Material.STICK, ChatColor.GOLD),
-            Map.entry(Material.STRING, ChatColor.WHITE),
-            Map.entry(Material.SUGAR, ChatColor.WHITE),
+            Map.entry(Material.STRING, ChatColor.GRAY),
+            Map.entry(Material.SUGAR, ChatColor.GRAY),
             Map.entry(Material.SUGAR_CANE, ChatColor.GREEN),
             Map.entry(Material.TERRACOTTA, ChatColor.RED),
             Map.entry(Material.TOTEM_OF_UNDYING, ChatColor.YELLOW),
@@ -177,7 +190,7 @@ public final class RollFormat {
 
             // Epic (mobs) / Legendary (eggs) / Mythical (bosses) items.
             Map.entry(Material.ZOMBIE_SPAWN_EGG, ChatColor.GREEN),
-            Map.entry(Material.SKELETON_SPAWN_EGG, ChatColor.WHITE),
+            Map.entry(Material.SKELETON_SPAWN_EGG, ChatColor.GRAY),
             Map.entry(Material.CREEPER_SPAWN_EGG, ChatColor.DARK_GREEN),
             Map.entry(Material.SPIDER_SPAWN_EGG, ChatColor.DARK_GRAY),
             Map.entry(Material.ENDERMAN_SPAWN_EGG, ChatColor.DARK_PURPLE),
@@ -195,9 +208,13 @@ public final class RollFormat {
     /**
      * Best-effort match to how the material actually looks — legacy chat
      * only has 16 colors, so this is an approximation, not exact.
+     *
+     * Nothing maps to pure white: a drop tag renders directly beside a
+     * player's name in the tab list, and a white tag on a white name is
+     * unreadable.
      */
     public static ChatColor naturalColor(Material material) {
-        return NATURAL_COLORS.getOrDefault(material, ChatColor.WHITE);
+        return NATURAL_COLORS.getOrDefault(material, ChatColor.GRAY);
     }
 
     /**
@@ -205,7 +222,18 @@ public final class RollFormat {
      * message suffix and as stat lines on the item itself.
      */
     public static List<String> lore(SolRNGPlugin plugin, RollableItem item) {
+        return lore(plugin, item, false);
+    }
+
+    public static List<String> lore(SolRNGPlugin plugin, RollableItem item, boolean shiny) {
         List<String> lore = new ArrayList<>();
+        if (shiny) {
+            lore.add(ChatColor.AQUA + "" + ChatColor.BOLD + "SHINY "
+                    + ChatColor.RESET + ChatColor.DARK_GRAY + "1 in "
+                    + Math.round(1.0 / Math.max(0.0001, plugin.getConfig().getDouble("shiny.chance", 0.01)))
+                    + " drops");
+            lore.add("");
+        }
         lore.add(ChatColor.GRAY + "Rarity: " + plugin.getRarityManager().style(item.getRarity(), item.getRarity().displayName()));
         lore.add(ChatColor.GRAY + "Chance: " + plugin.getRarityManager().style(item.getRarity(), chance(item.getOdds())));
         lore.add(ChatColor.GRAY + "Index Luck: " + ChatColor.DARK_AQUA
@@ -256,7 +284,11 @@ public final class RollFormat {
      * "⚡ You rolled Sand [COMMON] (1/67)".
      */
     public static String personalRollLine(SolRNGPlugin plugin, RollableItem item) {
-        return ChatColor.AQUA + "⚡ " + ChatColor.WHITE + "You rolled " + displayName(plugin, item) + " "
+        return personalRollLine(plugin, item, false);
+    }
+
+    public static String personalRollLine(SolRNGPlugin plugin, RollableItem item, boolean shiny) {
+        return ChatColor.AQUA + "⚡ " + ChatColor.GRAY + "You rolled " + displayName(plugin, item, shiny) + " "
                 + ChatColor.GRAY + "[" + plugin.getRarityManager().style(item.getRarity(), item.getRarity().name()) + ChatColor.GRAY + "] "
                 + ChatColor.GRAY + "(" + compactOdds(item.getOdds()) + ")";
     }
@@ -267,10 +299,15 @@ public final class RollFormat {
      * "Odds: 1/1M"
      */
     public static String broadcastBanner(SolRNGPlugin plugin, String playerName, RollableItem item) {
+        return broadcastBanner(plugin, playerName, item, false);
+    }
+
+    public static String broadcastBanner(SolRNGPlugin plugin, String playerName, RollableItem item, boolean shiny) {
         Rarity rarity = item.getRarity();
-        String rarityWord = rarity.name();
+        String rarityWord = (shiny ? "SHINY " : "") + rarity.name();
         return plugin.getRarityManager().style(rarity, "✦ " + rarityWord + " DROP ✦") + "\n"
-                + ChatColor.WHITE + playerName + ChatColor.GRAY + " just found " + displayName(plugin, item) + " "
+                + ChatColor.YELLOW + playerName + ChatColor.GRAY + " just found "
+                + displayName(plugin, item, shiny) + " "
                 + ChatColor.GRAY + "[" + plugin.getRarityManager().style(rarity, rarityWord) + ChatColor.GRAY + "]" + "\n"
                 + ChatColor.GRAY + "Odds: " + ChatColor.WHITE + compactOdds(item.getOdds());
     }

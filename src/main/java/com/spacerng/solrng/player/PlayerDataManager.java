@@ -83,7 +83,23 @@ public class PlayerDataManager {
         data.setPrestige(yml.getInt("prestige", 0));
         data.setRollSoundEnabled(yml.getBoolean("roll-sound-enabled", true));
         data.setRollAnimationEnabled(yml.getBoolean("roll-animation-enabled", true));
-        data.setRevealAuraEnabled(yml.getBoolean("reveal-aura-enabled", true));
+        data.setAutoConvertShiny(yml.getBoolean("auto-convert-shiny", false));
+        data.getDiscoveredShiny().addAll(yml.getStringList("discovered-shiny"));
+        for (String rarityName : yml.getStringList("disabled-auras")) {
+            try {
+                data.setAuraEnabled(Rarity.valueOf(rarityName), false);
+            } catch (IllegalArgumentException ignored) {
+            }
+        }
+        org.bukkit.configuration.ConfigurationSection shiny = yml.getConfigurationSection("shiny-bank");
+        if (shiny != null) {
+            for (String rarityName : shiny.getKeys(false)) {
+                try {
+                    data.addBankedShiny(Rarity.valueOf(rarityName), shiny.getLong(rarityName));
+                } catch (IllegalArgumentException ignored) {
+                }
+            }
+        }
         data.setFarmTokenMultiplier(yml.getDouble("farm-token-multiplier", 1.0));
         data.setStarforgeTier(yml.getString("starforge-tier", "BASIC"));
         data.setCropsHarvested(yml.getLong("crops-harvested", 0L));
@@ -226,7 +242,14 @@ public class PlayerDataManager {
         yml.set("prestige", data.getPrestige());
         yml.set("roll-sound-enabled", data.isRollSoundEnabled());
         yml.set("roll-animation-enabled", data.isRollAnimationEnabled());
-        yml.set("reveal-aura-enabled", data.isRevealAuraEnabled());
+        yml.set("auto-convert-shiny", data.isAutoConvertShiny());
+        yml.set("discovered-shiny", new java.util.ArrayList<>(data.getDiscoveredShiny()));
+        java.util.List<String> disabledAuras = new java.util.ArrayList<>();
+        for (Rarity r : data.getDisabledAuras()) disabledAuras.add(r.name());
+        yml.set("disabled-auras", disabledAuras);
+        for (Map.Entry<Rarity, Long> entry : data.getShinyBank().entrySet()) {
+            yml.set("shiny-bank." + entry.getKey().name(), entry.getValue());
+        }
         yml.set("farm-token-multiplier", data.getFarmTokenMultiplier());
         yml.set("starforge-tier", data.getStarforgeTier());
         yml.set("crops-harvested", data.getCropsHarvested());

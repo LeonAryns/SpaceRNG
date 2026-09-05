@@ -111,6 +111,8 @@ public class IndexGui {
         lore.add(ChatColor.GRAY + "the rarer the find, the bigger it is.");
         lore.add(ChatColor.GRAY + "Equip one as your tag to use its multiplier.");
         lore.add("");
+        lore.add(ChatColor.GRAY + "Shinies found: " + ChatColor.AQUA + data.getDiscoveredShiny().size()
+                + ChatColor.GRAY + "/" + ChatColor.AQUA + total);
         lore.add(ChatColor.GRAY + "Equipped multiplier: " + ChatColor.GREEN
                 + String.format("%.2f", plugin.getRarityManager().tagMultiplierFor(data)) + "x");
         if (filter != null) {
@@ -143,6 +145,7 @@ public class IndexGui {
 
     private static ItemStack buildEntry(SolRNGPlugin plugin, PlayerData data, RollableItem item) {
         boolean discovered = data.hasDiscovered(item.getDisplayName());
+        boolean shiny = data.hasDiscoveredShiny(item.getDisplayName());
 
         ItemStack icon = new ItemStack(discovered ? item.getMaterial() : Material.GRAY_DYE);
         ItemMeta meta = icon.getItemMeta();
@@ -153,6 +156,11 @@ public class IndexGui {
             lore.addAll(RollFormat.lore(plugin, item));
             lore.add("");
             lore.add(ChatColor.GREEN + "✔ Discovered");
+            // The shiny is a second, rarer find of the same drop, so it's a
+            // line on the entry rather than an entry of its own.
+            lore.add(shiny
+                    ? ChatColor.AQUA + "✦ Shiny found"
+                    : ChatColor.DARK_GRAY + "✦ Shiny not found");
             lore.add(ChatColor.YELLOW + "Click to equip as your tag");
 
             meta.getPersistentDataContainer().set(plugin.getRollListener().getRarityKey(),
@@ -170,8 +178,12 @@ public class IndexGui {
                     + String.format("%.2f", item.getLuckMultiplier()) + "x");
             lore.add("");
             lore.add(ChatColor.RED + "Not yet discovered");
+            lore.add(ChatColor.DARK_GRAY + "✦ Shiny not found");
         }
         meta.setLore(lore);
+        // A glint on the entry marks the shiny as caught — the same signal
+        // the shiny item itself carries.
+        meta.setEnchantmentGlintOverride(shiny ? Boolean.TRUE : null);
         icon.setItemMeta(meta);
         return icon;
     }
