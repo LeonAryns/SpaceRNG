@@ -76,6 +76,10 @@ public class PlayerData {
     // Milestone tiers already awarded, keyed "track:index" — the ledger
     // that stops a tier paying out twice.
     private final Set<String> claimedMilestones = new HashSet<>();
+    // Tiers the player has been TOLD about. Separate from claimed so the
+    // "you reached it" message fires once while the reward waits in
+    // /milestones to be collected by hand.
+    private final Set<String> announcedMilestones = new HashSet<>();
     // Lifetime farm crops harvested. The only milestone track that needed
     // its own counter; the rest are derived from existing state.
     private long cropsHarvested = 0L;
@@ -377,6 +381,18 @@ public class PlayerData {
 
     public void markMilestoneClaimed(String key) {
         claimedMilestones.add(key);
+    }
+
+    public Set<String> getAnnouncedMilestones() {
+        return announcedMilestones;
+    }
+
+    public boolean hasAnnouncedMilestone(String key) {
+        return announcedMilestones.contains(key);
+    }
+
+    public void markMilestoneAnnounced(String key) {
+        announcedMilestones.add(key);
     }
 
     public long getCropsHarvested() {

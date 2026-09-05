@@ -15,32 +15,39 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * /rngcookie — the Nova Core ladder as a board you climb.
+ * /novacore — the ladder drawn as a path you can actually trace.
  *
- * Tiers run left to right in rows: cleared ones are green, the tier you're
- * standing on is a Nova Core, and checkpoints are marked so the safe rungs
- * are obvious before you commit to a climb. The forge button at the bottom
- * always shows the real odds and the real price, because the whole appeal
- * is deciding whether to push one more step.
+ * The tiers snake through the menu rather than filling rows left to right,
+ * so the climb reads as a route with a start and an end instead of a
+ * spreadsheet. Colour carries the state: green behind you, yellow ahead,
+ * and a glinting yellow pane on the rung you're about to attempt.
  */
 public class NovaCoreGui {
 
-    private static final int[] TIER_SLOTS = {
-            10, 11, 12, 13, 14, 15, 16,
-            19, 20, 21, 22, 23, 24, 25,
-            28, 29, 30, 31, 32, 33, 34,
-            37, 38, 39, 40, 41, 42, 43
+    /**
+     * The route, in (column, row) order — 1-indexed, converted to slots as
+     * (row-1)*9 + (column-1). Tier 1 is the first entry.
+     */
+    private static final int[] PATH_SLOTS = {
+            37, 28, 19, 10,   // (2,5) (2,4) (2,3) (2,2)  — up the left side
+            11, 12,           // (3,2) (4,2)              — across the top
+            21, 30, 39,       // (4,3) (4,4) (4,5)        — back down
+            40, 41,           // (5,5) (6,5)              — across the bottom
+            32, 23, 14,       // (6,4) (6,3) (6,2)        — up again
+            15, 16,           // (7,2) (8,2)              — across
+            25, 34, 43,       // (8,3) (8,4) (8,5)        — down the right
+            44                // (9,5)                    — the last rung
     };
+
     public static final int FORGE_SLOT = 49;
     private static final int INFO_SLOT = 45;
 
     public static Inventory build(SolRNGPlugin plugin, Player player) {
         NovaCoreHolder holder = new NovaCoreHolder();
-        Inventory inv = Bukkit.createInventory(holder, 54,
-                ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + "Nova Core Tiers");
+        Inventory inv = Bukkit.createInventory(holder, 54, plugin.getNovaCoreManager().styledTitle());
         holder.setInventory(inv);
 
-        ItemStack filler = pane(Material.GRAY_STAINED_GLASS_PANE);
+        ItemStack filler = pane(Material.BLACK_STAINED_GLASS_PANE, " ");
         for (int slot = 0; slot < 54; slot++) {
             inv.setItem(slot, filler);
         }
@@ -49,8 +56,9 @@ public class NovaCoreGui {
         NovaCoreManager nova = plugin.getNovaCoreManager();
         int tier = data.getNovaTier();
 
-        for (int t = 1; t <= nova.getMaxTier() && t <= TIER_SLOTS.length; t++) {
-            inv.setItem(TIER_SLOTS[t - 1], buildTier(nova, t, tier));
+        int rungs = Math.min(nova.getMaxTier(), PATH_SLOTS.length);
+        for (int t = 1; t <= rungs; t++) {
+            inv.setItem(PATH_SLOTS[t - 1], buildTier(nova, t, tier));
         }
 
         inv.setItem(INFO_SLOT, buildInfo(plugin, data, nova, tier));
@@ -60,63 +68,74 @@ public class NovaCoreGui {
 
     private static ItemStack buildTier(NovaCoreManager nova, int tier, int current) {
         boolean cleared = tier <= current;
-        boolean here = tier == current + 1;
+        boolean next = tier == current + 1;
         boolean checkpoint = nova.isCheckpoint(tier);
 
+        // Checkpoints keep their own icon at every state — they're the part
+        // of the route worth planning around.
         Material material;
-        if (here) {
-            material = Material.HEART_OF_THE_SEA;          // the rung you're attempting
-        } else if (checkpoint) {
-            material = cleared ? Material.EMERALD : Material.ENDER_EYE;
+        if (checkpoint) {
+            material = cleared ? Material.ENDER_EYE : Material.ENDER_PEARL;
+        } else if (cleared) {
+            material = Material.GREEN_STAINED_GLASS_PANE;
         } else {
-            material = cleared ? Material.LIME_STAINED_GLASS_PANE : Material.GRAY_STAINED_GLASS_PANE;
+            material = Material.YELLOW_STAINED_GLASS_PANE;
         }
 
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName((cleared ? ChatColor.GREEN : here ? ChatColor.YELLOW : ChatColor.DARK_GRAY)
-                + "" + ChatColor.BOLD + "Tier " + tier
+        meta.setDisplayName((cleared ? ChatColor.GREEN : next ? ChatColor.YELLOW : ChatColor.GRAY)
+                + "" + ChatColor.BOLD + "TIER " + tier
                 + (checkpoint ? ChatColor.AQUA + " ✦" : ""));
 
         List<String> lore = new ArrayList<>();
         lore.add(ChatColor.DARK_GRAY + "NOVA CORE");
         lore.add("");
-        lore.add(ChatColor.YELLOW + "▎ " + ChatColor.GRAY + "Luck: " + ChatColor.LIGHT_PURPLE
-                + String.format("%.2f", nova.multiplierAt(tier)) + "x");
+        lore.add((cleared ? ChatColor.GREEN : ChatColor.YELLOW) + "▎ " + ChatColor.GRAY + "Luck: "
+                + ChatColor.LIGHT_PURPLE + String.format("%.2f", nova.multiplierAt(tier)) + "x");
         if (checkpoint) {
-            lore.add(ChatColor.AQUA + "▎ " + ChatColor.GRAY + "Checkpoint — failures fall back here");
+            lore.add(ChatColor.AQUA + "▎ " + ChatColor.GRAY + "Checkpoint");
+            lore.add(ChatColor.DARK_GRAY + "   A shatter never falls below here.");
         }
         lore.add("");
-        lore.add(cleared ? ChatColor.GREEN + "Already forged"
-                : here ? ChatColor.YELLOW + "Next up"
-                : ChatColor.DARK_GRAY + "Locked");
+        if (cleared) {
+            lore.add(ChatColor.GREEN + "✔ Forged");
+        } else if (next) {
+            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "NEXT UP");
+        } else {
+            lore.add(ChatColor.DARK_GRAY + "Locked");
+        }
 
         meta.setLore(lore);
-        meta.setEnchantmentGlintOverride(here ? Boolean.TRUE : null);
+        // Only the rung you're attempting glints, so the eye lands on it.
+        meta.setEnchantmentGlintOverride(next ? Boolean.TRUE : null);
         item.setItemMeta(meta);
         return item;
     }
 
     private static ItemStack buildInfo(SolRNGPlugin plugin, PlayerData data, NovaCoreManager nova, int tier) {
-        ItemStack item = new ItemStack(Material.KNOWLEDGE_BOOK);
+        ItemStack item = new ItemStack(Material.HEART_OF_THE_SEA);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "NOVA CORE");
+        meta.setDisplayName(nova.styledName());
 
         List<String> lore = new ArrayList<>();
         lore.add(ChatColor.DARK_GRAY + "PUSH YOUR LUCK");
         lore.add("");
-        lore.add(ChatColor.GRAY + "Every forge either climbs a tier or");
-        lore.add(ChatColor.GRAY + "drops you to the last checkpoint.");
+        lore.add(ChatColor.GRAY + "Every forge climbs a tier, or drops");
+        lore.add(ChatColor.GRAY + "you to the last checkpoint.");
         lore.add("");
-        lore.add(ChatColor.YELLOW + "▎ " + ChatColor.GRAY + "Tier: " + ChatColor.AQUA + tier
+        lore.add(ChatColor.AQUA + "▎ " + ChatColor.GRAY + "Tier: " + ChatColor.AQUA + ChatColor.BOLD + tier
                 + ChatColor.GRAY + "/" + ChatColor.AQUA + nova.getMaxTier());
-        lore.add(ChatColor.YELLOW + "▎ " + ChatColor.GRAY + "Multi: " + ChatColor.LIGHT_PURPLE
-                + String.format("%.2f", nova.multiplierAt(tier)) + "x");
+        lore.add(ChatColor.LIGHT_PURPLE + "▎ " + ChatColor.GRAY + "Multi: " + ChatColor.LIGHT_PURPLE
+                + ChatColor.BOLD + String.format("%.2f", nova.multiplierAt(tier)) + "x");
         lore.add(ChatColor.YELLOW + "▎ " + ChatColor.GRAY + "Best ever: " + ChatColor.WHITE
                 + data.getNovaBestTier());
-        lore.add(ChatColor.YELLOW + "▎ " + ChatColor.GRAY + "Safety net: " + ChatColor.WHITE
-                + "tier " + nova.checkpointBelow(tier));
+        lore.add(ChatColor.GREEN + "▎ " + ChatColor.GRAY + "Safety net: " + ChatColor.WHITE + "tier "
+                + nova.checkpointBelow(tier));
+        lore.add("");
+        lore.add(ChatColor.DARK_GRAY + "Checkpoints: " + ChatColor.GRAY + nova.checkpointList());
         meta.setLore(lore);
+        meta.setEnchantmentGlintOverride(Boolean.TRUE);
         item.setItemMeta(meta);
         return item;
     }
@@ -128,7 +147,7 @@ public class NovaCoreGui {
         double chance = nova.chanceAt(tier, luck);
         boolean affordable = data.getTokens() >= cost;
 
-        ItemStack item = new ItemStack(maxed ? Material.EMERALD_BLOCK : Material.HEART_OF_THE_SEA);
+        ItemStack item = new ItemStack(maxed ? Material.NETHER_STAR : Material.HEART_OF_THE_SEA);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(maxed
                 ? ChatColor.GREEN + "" + ChatColor.BOLD + "FULLY FORGED"
@@ -140,30 +159,32 @@ public class NovaCoreGui {
         if (maxed) {
             lore.add(ChatColor.GREEN + "There's nothing left to climb.");
         } else {
-            lore.add(ChatColor.YELLOW + "▎ " + ChatColor.GRAY + "Success: "
-                    + (chance >= 0.5 ? ChatColor.GREEN : chance >= 0.2 ? ChatColor.YELLOW : ChatColor.RED)
+            ChatColor odds = chance >= 0.5 ? ChatColor.GREEN : chance >= 0.2 ? ChatColor.YELLOW : ChatColor.RED;
+            lore.add(odds + "▎ " + ChatColor.GRAY + "Success: " + odds + ChatColor.BOLD
                     + String.format("%.1f%%", chance * 100.0));
-            lore.add(ChatColor.YELLOW + "▎ " + ChatColor.GRAY + "Cost: "
-                    + (affordable ? ChatColor.WHITE : ChatColor.RED) + String.format("%,d", cost) + " Tokens");
-            lore.add(ChatColor.YELLOW + "▎ " + ChatColor.GRAY + "On fail: " + ChatColor.RED + "back to tier "
+            lore.add((affordable ? ChatColor.YELLOW : ChatColor.RED) + "▎ " + ChatColor.GRAY + "Cost: "
+                    + (affordable ? ChatColor.WHITE : ChatColor.RED)
+                    + String.format("%,d", cost) + ChatColor.GRAY + " Tokens");
+            lore.add(ChatColor.RED + "▎ " + ChatColor.GRAY + "On fail: " + ChatColor.RED + "back to tier "
                     + nova.checkpointBelow(tier));
             lore.add("");
-            lore.add(ChatColor.DARK_GRAY + "Your Luck raises the odds — the Nova");
-            lore.add(ChatColor.DARK_GRAY + "Core's own multiplier doesn't.");
+            lore.add(ChatColor.DARK_GRAY + "Your Luck raises the odds. The Nova");
+            lore.add(ChatColor.DARK_GRAY + "Core's own multiplier does not.");
             lore.add("");
             lore.add(affordable
                     ? ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO FORGE"
                     : ChatColor.RED + "" + ChatColor.BOLD + "NOT ENOUGH TOKENS");
         }
         meta.setLore(lore);
+        meta.setEnchantmentGlintOverride(maxed ? Boolean.TRUE : null);
         item.setItemMeta(meta);
         return item;
     }
 
-    private static ItemStack pane(Material material) {
+    private static ItemStack pane(Material material, String name) {
         ItemStack pane = new ItemStack(material);
         ItemMeta meta = pane.getItemMeta();
-        meta.setDisplayName(" ");
+        meta.setDisplayName(name);
         pane.setItemMeta(meta);
         return pane;
     }

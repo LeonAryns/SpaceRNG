@@ -16,6 +16,9 @@ import java.util.logging.Logger;
  */
 public class SkillTreeManager {
 
+    /** Config sections that hold a tree. Adding one here adds a tree. */
+    public static final java.util.List<String> TREES = java.util.List.of("skilltree", "farmtree");
+
     private final Map<String, SkillNode> nodes = new LinkedHashMap<>();
     private final Logger logger;
 
@@ -23,9 +26,22 @@ public class SkillTreeManager {
         this.logger = logger;
     }
 
+    /**
+     * Loads every tree in the config. Nodes from all trees live in one flat
+     * map because a player's unlocks are one flat set — the tree id is just
+     * which menu draws it. That keeps purchase, requirements and saved data
+     * identical no matter how many trees exist.
+     */
     public void load(FileConfiguration config) {
         nodes.clear();
-        ConfigurationSection section = config.getConfigurationSection("skilltree.nodes");
+        for (String tree : TREES) {
+            loadTree(config, tree);
+        }
+        logger.info("[SolRNG] Loaded " + nodes.size() + " skill nodes across " + TREES.size() + " trees.");
+    }
+
+    private void loadTree(FileConfiguration config, String tree) {
+        ConfigurationSection section = config.getConfigurationSection(tree + ".nodes");
         if (section == null) return;
 
         for (String id : section.getKeys(false)) {
@@ -38,15 +54,36 @@ public class SkillTreeManager {
                 double value = n.getDouble("value", 0.0);
                 int maxLevel = n.getInt("max-level", 1);
                 double moneyCost = n.getDouble("cost-money", 0.0);
-
                 double costGrowth = n.getDouble("cost-growth", 1.0);
+                String icon = n.getString("icon", "RECOVERY_COMPASS");
+                String target = n.getString("target", "");
 
-                nodes.put(id, new SkillNode(id, display, moneyCost, requires, effect, value, maxLevel, costGrowth));
+                // "5,6" is (column, row), both 1-indexed — the same way the
+                // layout gets described when it's being designed.
+                int slot = -1;
+                String raw = n.getString("slot", "");
+                if (!raw.isBlank()) {
+                    String[] parts = raw.split(",");
+                    if (parts.length == 2) {
+                        slot = SkillNode.slotOf(Integer.parseInt(parts[0].trim()), Integer.parseInt(parts[1].trim()));
+                    }
+                }
+
+                nodes.put(id, new SkillNode(id, display, moneyCost, requires, effect, value,
+                        maxLevel, costGrowth, tree, slot, icon, target));
             } catch (Exception ex) {
                 logger.warning("[SolRNG] Skipped malformed skill node '" + id + "': " + ex.getMessage());
             }
         }
-        logger.info("[SolRNG] Loaded " + nodes.size() + " skill tree nodes.");
+    }
+
+    /** Every node belonging to one tree, in config order. */
+    public Map<String, SkillNode> getNodes(String tree) {
+        Map<String, SkillNode> out = new LinkedHashMap<>();
+        for (Map.Entry<String, SkillNode> entry : nodes.entrySet()) {
+            if (entry.getValue().getTree().equals(tree)) out.put(entry.getKey(), entry.getValue());
+        }
+        return out;
     }
 
     public Map<String, SkillNode> getNodes() {
@@ -118,8 +155,16 @@ public class SkillTreeManager {
         switch (node.getEffect()) {
             case LUCK -> data.addBonusLuck(node.getValue());
             case AUTO_ROLL -> data.setAutoRollEnabled(true);
+            case TOKEN_MULTIPLIER -> data.setFarmTokenMultiplier(data.getFarmTokenMultiplier() + node.getValue());
+            case UNLOCK_CROP -> {
+                if (node.getTarget() != null) data.getUnlockedCrops().add(node.getTarget().toUpperCase());
+            }
+            case UNLOCK_SHARDS -> data.setCropShardsUnlocked(true);
+            // UNLOCK_ENCHANT / ENCHANT_POWER / FARM_SPEED are read back off
+            // the node levels when a harvest happens, so buying them needs
+            // no side effect here.
             case UNLOCK_AUTO_CONVERT, UNLOCK_FARMING, UNLOCK_ARMOR, UNLOCK_POTION, UNLOCK_SHINY,
-                 UNLOCK_INDEX_LUCK -> { /* gate flags only — checked via data.hasUnlocked() elsewhere */ }
+                 UNLOCK_INDEX_LUCK, UNLOCK_ENCHANT, ENCHANT_POWER, FARM_SPEED -> { /* gate flags only — checked via data.hasUnlocked() elsewhere */ }
             case ROLL_SPEED -> data.setRollSpeedMultiplier(data.getRollSpeedMultiplier() + node.getValue());
             case BONUS_ROLL_CHANCE -> data.addBonusRollChance(node.getValue());
         }

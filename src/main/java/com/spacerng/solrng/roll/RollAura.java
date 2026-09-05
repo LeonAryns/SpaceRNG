@@ -47,6 +47,10 @@ public final class RollAura {
     // the sound IS the lightning, not a follow-up to it.
     private static final long FINAL_STRIKE = 16L;
 
+    // Ticks after the strike that the ding lands on. Long enough that the
+    // impact sounds have cleared, short enough that the bolt is still lit.
+    private static final long DING_OFFSET = 5L;
+
     // ---------------------------------------------------------- per-rarity
 
     private static long durationFor(Rarity rarity) {
@@ -496,7 +500,12 @@ public final class RollAura {
             puff(Particle.EXPLOSION_EMITTER, core, 2, 1.2, 0.6, 1.2, 0.0);
             sound(Sound.ENTITY_LIGHTNING_BOLT_IMPACT, 4.0f, 0.7f);
             sound(Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 4.0f, 0.5f);
-            sound(Sound.ENTITY_ENDER_DRAGON_GROWL, 4.0f, 1.1f);
+        } else if (frame == FINAL_STRIKE + DING_OFFSET) {
+            // The ding gets its own frame. On the strike tick it was
+            // competing with a thunder crack, an impact and a growl, all at
+            // volume 4 — Minecraft drops samples when too many play at once,
+            // and the quiet bells are the first to go. Five ticks later the
+            // bolt is still on screen but the channel is clear.
             dingChord(4.0f);
         }
 
@@ -531,9 +540,7 @@ public final class RollAura {
      * sting on top is what makes it read as "you got something".
      */
     private void dingChord(float volume) {
-        sound(Sound.BLOCK_NOTE_BLOCK_BELL, volume, 1.00f);
         sound(Sound.BLOCK_NOTE_BLOCK_BELL, volume, 1.50f);
-        sound(Sound.BLOCK_NOTE_BLOCK_CHIME, volume, 1.50f);
         sound(Sound.BLOCK_AMETHYST_BLOCK_CHIME, volume, 1.20f);
         sound(Sound.UI_TOAST_CHALLENGE_COMPLETE, volume, 1.0f);
     }

@@ -144,6 +144,63 @@ farming:
   #
   # Shards only ever pay once shards-node is unlocked (or granted).
   shards-node: "farming_shards"
+  # ---- Hoe enchants ----
+  # An enchant is switched on by an UNLOCK_ENCHANT node in the farming tree
+  # and levelled by ENCHANT_POWER nodes pointing at the same id, so the hoe
+  # itself never holds any state — its power is a read of what's been
+  # bought. Nothing to lose, trade or duplicate.
+  #
+  # "per-level" means different things per enchant, noted on each.
+  enchants:
+    TOKEN_GREED:
+      display: "Token Greed"
+      description: "More Tokens from every crop."
+      color: "&e"
+      max-level: 10
+      per-level: 0.15      # +0.15x to the Token multiplier per level
+    SHARD_GREED:
+      display: "Shard Greed"
+      description: "A chance at a bonus Shard."
+      color: "&b"
+      max-level: 8
+      per-level: 0.04      # 4% chance of +1 Shard per level
+    FORTUNE:
+      display: "Fortune"
+      description: "A chance to double a whole harvest."
+      color: "&6"
+      max-level: 8
+      per-level: 0.03      # 3% chance per level
+    GREEN_THUMB:
+      display: "Green Thumb"
+      description: "Your crops regrow faster."
+      color: "&a"
+      max-level: 8
+      per-level: 0.07      # 7% off the regrow timer per level
+    MOMENTUM:
+      display: "Momentum"
+      description: "The longer you farm without stopping, the more you earn."
+      color: "&d"
+      max-level: 10
+      per-level: 0.01      # +0.01x per harvest in the run, per level
+    BLAST_HARVEST:
+      display: "Blast Harvest"
+      description: "A chance to blow up the crops around you."
+      color: "&c"
+      max-level: 8
+      per-level: 0.04      # 4% chance per level; radius grows every 3 levels
+    CREDIT_FINDER:
+      display: "Credit Finder"
+      description: "A tiny chance to turn up a store Credit."
+      color: "&5"
+      max-level: 5
+      per-level: 0.0002    # 0.02% per level
+    NOVA_FINDER:
+      display: "Nova Finder"
+      description: "A tiny chance at a free Nova Core forge."
+      color: "&3"
+      max-level: 5
+      per-level: 0.0008    # 0.08% per level
+
   crop-types:
     WHEAT:
       display: "Wheat"
@@ -932,6 +989,8 @@ skilltree:
   nodes:
     auto_roll_root:            # (5,6) - the root
       display: "Auto Roll"
+      slot: "5,6"
+      icon: CLOCK
       cost-money: 1000
       requires: ""
       effect: AUTO_ROLL
@@ -939,6 +998,8 @@ skilltree:
 
     luck_skill:                # (5,5) - directly above the root
       display: "Luck"
+      slot: "5,5"
+      icon: RABBIT_FOOT
       cost-money: 1000
       cost-growth: 1.2
       requires: "auto_roll_root"
@@ -949,6 +1010,8 @@ skilltree:
     # ROLL_SPEED value 0.02 = +2 Speed per level (100 Speed = baseline).
     speed_skill:               # (4,5)
       display: "Speed"
+      slot: "4,5"
+      icon: SUGAR
       cost-money: 2000
       requires: "luck_skill"
       effect: ROLL_SPEED
@@ -957,6 +1020,8 @@ skilltree:
 
     auto_convert:              # (6,5)
       display: "Auto Convert"
+      slot: "6,5"
+      icon: HOPPER
       cost-money: 5000
       requires: "luck_skill"
       effect: UNLOCK_AUTO_CONVERT
@@ -967,6 +1032,8 @@ skilltree:
     # whole index chase has a gate in front of it.
     index_luck:                # (7,5)
       display: "Index Luck"
+      slot: "7,5"
+      icon: KNOWLEDGE_BOOK
       cost-money: 15000
       requires: "auto_convert"
       effect: UNLOCK_INDEX_LUCK
@@ -976,6 +1043,8 @@ skilltree:
     # expose it — the whole right branch has to be bought first.
     shiny_unlock:              # (8,5)
       display: "Shiny Unlocked"
+      slot: "8,5"
+      icon: AMETHYST_SHARD
       cost-money: 25000
       requires: "index_luck"
       effect: UNLOCK_SHINY
@@ -983,6 +1052,8 @@ skilltree:
 
     farming_unlock:            # (5,4)
       display: "Farming Unlocked"
+      slot: "5,4"
+      icon: WHEAT
       cost-money: 10000
       requires: "luck_skill"
       effect: UNLOCK_FARMING
@@ -992,12 +1063,16 @@ skilltree:
     # middle column above Farming until you pick their slots.
     armor_unlock:              # (5,3)
       display: "Armor Unlocked"
+      slot: "5,3"
+      icon: IRON_CHESTPLATE
       cost-money: 25000
       requires: "farming_unlock"
       effect: UNLOCK_ARMOR
       value: 0
     potion_unlock:             # (5,2)
       display: "Potion Unlocked"
+      slot: "5,2"
+      icon: BREWING_STAND
       cost-money: 100000
       requires: "armor_unlock"
       effect: UNLOCK_POTION
@@ -1088,6 +1163,184 @@ milestones:
         - { at: 336, tokens: 250000 }
         - { at: 720, tokens: 600000 }
 
+# ============================================
+# Farming skill tree (/farmtree)
+# ============================================
+# Same 6x9 shape as the main tree and the same node format — slot is
+# "column,row", both 1-indexed. This is a FOUNDATION: the layout, the
+# effects and the plumbing are real, the exact numbers are a first pass.
+#
+# Effects available here:
+#   UNLOCK_CROP      target = a crop-types id
+#   UNLOCK_SHARDS    farm crops start paying Shards
+#   UNLOCK_ENCHANT   target = an enchants id; grants level 1
+#   ENCHANT_POWER    target = an enchants id; +1 level per rank
+#   TOKEN_MULTIPLIER +value to the farm Token multiplier per level
+#   FARM_SPEED       reserved for a global regrow cut
+farmtree:
+  nodes:
+    farm_root:                 # (5,6) — the root, mirrors Auto Roll
+      display: "Cultivation"
+      slot: "5,6"
+      icon: WHEAT
+      cost-money: 5000
+      requires: ""
+      effect: TOKEN_MULTIPLIER
+      value: 0.25
+
+    token_greed:               # (5,5)
+      display: "Token Greed"
+      slot: "5,5"
+      icon: GOLD_NUGGET
+      cost-money: 7500
+      requires: "farm_root"
+      effect: UNLOCK_ENCHANT
+      target: "TOKEN_GREED"
+      value: 0
+
+    token_greed_power:         # (4,5) — ranks up the enchant above
+      display: "Greed Mastery"
+      slot: "4,5"
+      icon: GOLD_INGOT
+      cost-money: 10000
+      cost-growth: 1.35
+      requires: "token_greed"
+      effect: ENCHANT_POWER
+      target: "TOKEN_GREED"
+      value: 1
+      max-level: 9
+
+    harvest_speed:             # (6,5) — 2% faster per level, ten levels
+      display: "Green Thumb"
+      slot: "6,5"
+      icon: BONE_MEAL
+      cost-money: 12000
+      cost-growth: 1.25
+      requires: "farm_root"
+      effect: UNLOCK_ENCHANT
+      target: "GREEN_THUMB"
+      value: 0
+
+    token_multiplier:          # (7,5) — the flat 1.05x-style ladder
+      display: "Rich Soil"
+      slot: "7,5"
+      icon: DIRT
+      cost-money: 20000
+      cost-growth: 1.3
+      requires: "harvest_speed"
+      effect: TOKEN_MULTIPLIER
+      value: 0.05
+      max-level: 10
+
+    crop_carrots:              # (5,4)
+      display: "Carrots"
+      slot: "5,4"
+      icon: CARROT
+      cost-money: 25000
+      requires: "farm_root"
+      effect: UNLOCK_CROP
+      target: "CARROTS"
+      value: 0
+
+    fortune:                   # (4,4)
+      display: "Fortune"
+      slot: "4,4"
+      icon: EMERALD
+      cost-money: 40000
+      requires: "crop_carrots"
+      effect: UNLOCK_ENCHANT
+      target: "FORTUNE"
+      value: 0
+
+    blast_harvest:             # (6,4)
+      display: "Blast Harvest"
+      slot: "6,4"
+      icon: TNT
+      cost-money: 60000
+      requires: "crop_carrots"
+      effect: UNLOCK_ENCHANT
+      target: "BLAST_HARVEST"
+      value: 0
+
+    crop_potatoes:             # (5,3)
+      display: "Potatoes"
+      slot: "5,3"
+      icon: POTATO
+      cost-money: 90000
+      requires: "crop_carrots"
+      effect: UNLOCK_CROP
+      target: "POTATOES"
+      value: 0
+
+    farming_shards:            # (4,3) — the id farming.shards-node points at
+      display: "Shard Harvest"
+      slot: "4,3"
+      icon: PRISMARINE_CRYSTALS
+      cost-money: 150000
+      requires: "crop_potatoes"
+      effect: UNLOCK_SHARDS
+      value: 0
+
+    shard_greed:               # (6,3)
+      display: "Shard Greed"
+      slot: "6,3"
+      icon: PRISMARINE_SHARD
+      cost-money: 200000
+      requires: "farming_shards"
+      effect: UNLOCK_ENCHANT
+      target: "SHARD_GREED"
+      value: 0
+
+    crop_beetroot:             # (5,2)
+      display: "Beetroot"
+      slot: "5,2"
+      icon: BEETROOT
+      cost-money: 350000
+      requires: "crop_potatoes"
+      effect: UNLOCK_CROP
+      target: "BEETROOTS"
+      value: 0
+
+    momentum:                  # (4,2)
+      display: "Momentum"
+      slot: "4,2"
+      icon: FEATHER
+      cost-money: 500000
+      requires: "crop_beetroot"
+      effect: UNLOCK_ENCHANT
+      target: "MOMENTUM"
+      value: 0
+
+    crop_netherwart:           # (6,2)
+      display: "Nether Wart"
+      slot: "6,2"
+      icon: NETHER_WART
+      cost-money: 1000000
+      requires: "crop_beetroot"
+      effect: UNLOCK_CROP
+      target: "NETHER_WART"
+      value: 0
+
+    nova_finder:               # (8,5) — the far end of the right branch
+      display: "Nova Finder"
+      slot: "8,5"
+      icon: HEART_OF_THE_SEA
+      cost-money: 2500000
+      requires: "token_multiplier"
+      effect: UNLOCK_ENCHANT
+      target: "NOVA_FINDER"
+      value: 0
+
+    credit_finder:             # (5,1) — the very top of the tree
+      display: "Credit Finder"
+      slot: "5,1"
+      icon: SUNFLOWER
+      cost-money: 10000000
+      requires: "crop_netherwart"
+      effect: UNLOCK_ENCHANT
+      target: "CREDIT_FINDER"
+      value: 0
+
 # The global Luck boost, bought with store Credits in /buy. One boost
 # runs for the whole server at a time: the first purchase turns it on at
 # 2x, and buying again while it's live doubles it (2x -> 4x -> 8x ...),
@@ -1108,8 +1361,10 @@ boost:
 # reaching checkpoint 1 is roughly a 62% run; by tier 20 the same player
 # is at ~6% a step, which keeps the top of the ladder a real grind.
 novacore:
-  max-tier: 25
-  checkpoint-every: 5
+  max-tier: 20
+  # First checkpoint tier; each gap after it is one longer, so the
+  # defaults give 5, 11, 18 across a 20-tier ladder.
+  first-checkpoint: 5
   base-chance: 0.75
   decay: 0.85
   luck-weight: 1.0

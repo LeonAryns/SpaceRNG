@@ -70,13 +70,40 @@ public class FarmingManager {
 
     /** Reward for unlocking "farming_unlock" — soulbound via {@link #isBoundHoe}. */
     public ItemStack createBoundHoe() {
+        return createBoundHoe(null);
+    }
+
+    /**
+     * The hoe, with whatever enchants the owner's farming tree currently
+     * justifies written into its lore. Passing null gives the plain item —
+     * the enchants are derived, never stored, so a fresh copy is always
+     * accurate.
+     */
+    public ItemStack createBoundHoe(com.spacerng.solrng.player.PlayerData data) {
         ItemStack hoe = new ItemStack(Material.WOODEN_HOE);
         ItemMeta meta = hoe.getItemMeta();
-        meta.setDisplayName(ChatColor.GREEN + "" + ChatColor.BOLD + "Farmer's Hoe");
-        meta.setLore(List.of(
-                ChatColor.GRAY + "Bound to you — can't be dropped.",
-                ChatColor.GRAY + "Used to work the SpaceRNG farm."
-        ));
+        meta.setDisplayName(ChatColor.GREEN + "" + ChatColor.BOLD + "FARMER'S HOE");
+
+        java.util.List<String> lore = new java.util.ArrayList<>();
+        lore.add(ChatColor.DARK_GRAY + "FARMING");
+        lore.add("");
+        if (data != null) {
+            var enchants = plugin.getHoeEnchantManager();
+            boolean any = false;
+            for (var enchant : enchants.getEnchants().values()) {
+                int level = enchants.levelOf(data, enchant.id());
+                if (level <= 0) continue;
+                lore.add(ChatColor.GRAY + "▎ " + enchant.styled(level));
+                any = true;
+            }
+            if (!any) {
+                lore.add(ChatColor.DARK_GRAY + "▎ No enchants yet — see /farmtree");
+            }
+            lore.add("");
+        }
+        lore.add(ChatColor.GRAY + "Bound to you — can't be dropped.");
+        lore.add(ChatColor.GRAY + "Used to work the SpaceRNG farm.");
+        meta.setLore(lore);
         meta.setUnbreakable(true);
         meta.getPersistentDataContainer().set(boundKey, PersistentDataType.BYTE, (byte) 1);
         hoe.setItemMeta(meta);

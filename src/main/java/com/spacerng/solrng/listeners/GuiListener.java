@@ -145,11 +145,41 @@ public class GuiListener implements Listener {
 
         ItemStack clicked = event.getCurrentItem();
         if (clicked == null || clicked.getItemMeta() == null) return;
-        String trackId = clicked.getItemMeta().getPersistentDataContainer()
-                .get(MilestoneGui.trackKey(plugin), PersistentDataType.STRING);
+        var pdc = clicked.getItemMeta().getPersistentDataContainer();
+
+        String trackId = pdc.get(MilestoneGui.trackKey(plugin), PersistentDataType.STRING);
         if (trackId != null && !trackId.equals(holder.getTrackId())) {
             player.openInventory(MilestoneGui.build(plugin, player, trackId, 0));
+            return;
         }
+
+        // Rewards are collected by hand: clicking a full rung is what pays.
+        String tierRef = pdc.get(MilestoneGui.tierKey(plugin), PersistentDataType.STRING);
+        if (tierRef == null) return;
+
+        String[] parts = tierRef.split(":");
+        if (parts.length != 2) return;
+        var track = plugin.getMilestoneManager().get(parts[0]);
+        if (track == null) return;
+
+        int index;
+        try {
+            index = Integer.parseInt(parts[1]);
+        } catch (NumberFormatException ex) {
+            return;
+        }
+        if (index < 0 || index >= track.getTiers().size()) return;
+
+        var tier = track.getTiers().get(index);
+        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+        if (data.hasClaimedMilestone(track.keyFor(tier))) return; // already taken, stay quiet
+
+        if (!plugin.getMilestoneManager().claim(player, track, tier)) {
+            player.sendMessage(ChatColor.RED + "You haven't reached that milestone yet.");
+            player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
+            return;
+        }
+        player.openInventory(MilestoneGui.build(plugin, player, holder.getTrackId(), holder.getPage()));
     }
 
     /** Picking a crop repaints the shared farm for this player only. */
@@ -328,7 +358,18 @@ public class GuiListener implements Listener {
 
     private void handleSkillTreeClick(InventoryClickEvent event) {
         event.setCancelled(true); // whole GUI is view/click only, no item movement
-        if (event.getClickedInventory() == null || !(event.getClickedInventory().getHolder() instanceof SkillTreeHolder)) return;
+        if (event.getClickedInventory() == null
+                || !(event.getClickedInventory().getHolder() instanceof SkillTreeHolder holder)) return;
+
+        Player clicker = (Player) event.getWhoClicked();
+        if (event.getRawSlot() == SkillTreeGui.prevSlot()) {
+            clicker.openInventory(SkillTreeGui.build(plugin, clicker, holder.getTree(), holder.getPage() - 1));
+            return;
+        }
+        if (event.getRawSlot() == SkillTreeGui.nextSlot()) {
+            clicker.openInventory(SkillTreeGui.build(plugin, clicker, holder.getTree(), holder.getPage() + 1));
+            return;
+        }
 
         ItemStack clicked = event.getCurrentItem();
         if (clicked == null || clicked.getItemMeta() == null) return;
@@ -353,11 +394,11 @@ public class GuiListener implements Listener {
             player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_LEVELUP, 0.6f, 1.4f);
 
             if (nodeId.equals("farming_unlock")) {
-                player.getInventory().addItem(plugin.getFarmingManager().createBoundHoe());
+                player.getInventory().addItem(plugin.getFarmingManager().createBoundHoe(data));
                 player.sendMessage(ChatColor.GREEN + "You received a Farmer's Hoe — bound to you!");
             }
 
-            player.openInventory(SkillTreeGui.build(plugin, player)); // refresh
+            player.openInventory(SkillTreeGui.build(plugin, player, holder.getTree(), holder.getPage()));
         } else {
             player.sendMessage(ChatColor.RED + "You can't unlock that yet.");
         }

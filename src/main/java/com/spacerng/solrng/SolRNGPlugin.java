@@ -7,6 +7,7 @@ import com.spacerng.solrng.commands.OptionsCommand;
 import com.spacerng.solrng.commands.PrestigeCommand;
 import com.spacerng.solrng.commands.BuyCommand;
 import com.spacerng.solrng.commands.CropsCommand;
+import com.spacerng.solrng.commands.FarmTreeCommand;
 import com.spacerng.solrng.commands.NovaCoreCommand;
 import com.spacerng.solrng.commands.MilestonesCommand;
 import com.spacerng.solrng.commands.RngAdminCommand;
@@ -52,6 +53,7 @@ public final class SolRNGPlugin extends JavaPlugin {
     private com.spacerng.solrng.boost.BoostManager boostManager;
     private com.spacerng.solrng.boost.LuckBarManager luckBarManager;
     private com.spacerng.solrng.cookie.NovaCoreManager novaCoreManager;
+    private com.spacerng.solrng.farming.HoeEnchantManager hoeEnchantManager;
 
     @Override
     public void onEnable() {
@@ -72,6 +74,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         this.boostManager = new com.spacerng.solrng.boost.BoostManager(this);
         this.luckBarManager = new com.spacerng.solrng.boost.LuckBarManager(this);
         this.novaCoreManager = new com.spacerng.solrng.cookie.NovaCoreManager(this);
+        this.hoeEnchantManager = new com.spacerng.solrng.farming.HoeEnchantManager(this);
 
         reloadAll();
 
@@ -95,7 +98,8 @@ public final class SolRNGPlugin extends JavaPlugin {
         RngAdminCommand adminCommand = new RngAdminCommand(this);
         getCommand("milestones").setExecutor(new MilestonesCommand(this));
         getCommand("crops").setExecutor(new CropsCommand(this));
-        getCommand("rngcookie").setExecutor(new NovaCoreCommand(this));
+        getCommand("novacore").setExecutor(new NovaCoreCommand(this));
+        getCommand("farmtree").setExecutor(new FarmTreeCommand(this));
         getCommand("buy").setExecutor(new BuyCommand(this));
         getCommand("rngadmin").setExecutor(adminCommand);
         getCommand("rngadmin").setTabCompleter(adminCommand);
@@ -129,6 +133,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         milestoneManager.load(getConfig());
         boostManager.load(getConfig());
         novaCoreManager.load(getConfig());
+        hoeEnchantManager.load(getConfig());
     }
 
     /**
@@ -205,6 +210,10 @@ public final class SolRNGPlugin extends JavaPlugin {
 
     public com.spacerng.solrng.boost.LuckBarManager getLuckBarManager() {
         return luckBarManager;
+    }
+
+    public com.spacerng.solrng.farming.HoeEnchantManager getHoeEnchantManager() {
+        return hoeEnchantManager;
     }
 
     public com.spacerng.solrng.cookie.NovaCoreManager getNovaCoreManager() {

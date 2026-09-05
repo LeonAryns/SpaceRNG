@@ -12,7 +12,14 @@ public class SkillNode {
         UNLOCK_ARMOR,
         UNLOCK_POTION,
         UNLOCK_SHINY,
-        UNLOCK_INDEX_LUCK
+        UNLOCK_INDEX_LUCK,
+        // --- farming tree ---
+        UNLOCK_CROP,        // target = crop id
+        UNLOCK_SHARDS,      // farm crops start paying Shards
+        UNLOCK_ENCHANT,     // target = hoe enchant id
+        ENCHANT_POWER,      // target = hoe enchant id, +value per level
+        TOKEN_MULTIPLIER,   // +value to the farm Token multiplier per level
+        FARM_SPEED          // -value regrow time per level
     }
 
     private final String id;
@@ -31,8 +38,16 @@ public class SkillNode {
     // Multiplies the price after each level of a leveled node, so 1.2
     // means every level costs 20% more than the one before. 1.0 = flat.
     private final double costGrowth;
+    // Which tree this node belongs to, and where it sits in it. Both come
+    // from config so a new tree is a config change rather than a code one.
+    private final String tree;
+    private final int slot;
+    private final String icon;
+    // Free-form pointer some effects need — a crop id, an enchant id.
+    private final String target;
 
-    public SkillNode(String id, String display, double moneyCost, String requires, Effect effect, double value, int maxLevel, double costGrowth) {
+    public SkillNode(String id, String display, double moneyCost, String requires, Effect effect, double value,
+                     int maxLevel, double costGrowth, String tree, int slot, String icon, String target) {
         this.id = id;
         this.display = display;
         this.moneyCost = moneyCost;
@@ -41,6 +56,10 @@ public class SkillNode {
         this.value = value;
         this.maxLevel = Math.max(1, maxLevel);
         this.costGrowth = costGrowth <= 0 ? 1.0 : costGrowth;
+        this.tree = tree;
+        this.slot = slot;
+        this.icon = icon;
+        this.target = (target == null || target.isBlank()) ? null : target;
     }
 
     public String getId() {
@@ -75,8 +94,30 @@ public class SkillNode {
         return costGrowth;
     }
 
+    public String getTree() {
+        return tree;
+    }
+
+    /** Inventory slot, already converted from the config's (column, row). */
+    public int getSlot() {
+        return slot;
+    }
+
+    public String getIcon() {
+        return icon;
+    }
+
+    public String getTarget() {
+        return target;
+    }
+
     /** What the NEXT level costs, given how many are already bought. */
     public double costAtLevel(int currentLevel) {
         return moneyCost * Math.pow(costGrowth, currentLevel);
+    }
+
+    /** Converts a 1-indexed (column, row) into a 9-wide inventory slot. */
+    public static int slotOf(int column, int row) {
+        return (row - 1) * 9 + (column - 1);
     }
 }

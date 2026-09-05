@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * The shared farm, seen differently by everybody standing on it.
@@ -58,6 +59,9 @@ public class FarmPlotManager {
      */
     private static final Material MARKER = Material.WHEAT;
 
+    /** Momentum stops compounding here, so a long session can't run away. */
+    private static final long MOMENTUM_CAP = 50L;
+
     private final SolRNGPlugin plugin;
     private final NamespacedKey plotItemKey;
     private final File plotFile;
@@ -66,6 +70,9 @@ public class FarmPlotManager {
     private final Set<Location> plots = new HashSet<>();
     // Per player, the plots they've harvested and the tick they come back.
     private final Map<UUID, Map<Location, Long>> harvested = new HashMap<>();
+    // Momentum: how many harvests in the current unbroken run, and when the
+    // last one landed. Kept in memory only — a streak is a session thing.
+    private final Map<UUID, long[]> momentum = new HashMap<>(); // {streak, lastMillis}
 
     private int regrowTicks = 60;
     private String shardsNode = "";
@@ -231,6 +238,18 @@ public class FarmPlotManager {
      * regrows. Returns false if it's already been taken.
      */
     public boolean harvest(Player player, Location location) {
+        return harvest(player, location, true);
+    }
+
+    /**
+     * Pays out one harvest and hides that plot from this player until it
+     * regrows. Returns false if it's already been taken.
+     *
+     * {@code chain} is false for plots swept up by Blast Harvest, which
+     * stops one explosion from triggering another and keeps the effect from
+     * cascading across the whole field.
+     */
+    public boolean harvest(Player player, Location location, boolean chain) {
         Location plot = normalise(location);
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         CropType crop = cropFor(data);
@@ -240,34 +259,144 @@ public class FarmPlotManager {
         long now = player.getWorld().getFullTime();
         if (mine.getOrDefault(plot, 0L) > now) return false; // still regrowing for them
 
-        mine.put(plot, now + regrowTicks);
+        HoeEnchantManager hoe = plugin.getHoeEnchantManager();
+        int regrow = regrowTicksFor(data);
+        mine.put(plot, now + regrow);
 
-        long tokens = Math.round(crop.getTokens() * data.getFarmTokenMultiplier());
+        // Token Greed and Momentum both scale the base payout; Fortune
+        // doubles whatever comes out of that.
+        double multiplier = data.getFarmTokenMultiplier()
+                + hoe.powerOf(data, "TOKEN_GREED")
+                + momentumBonus(player, hoe, data, chain);
+
+        long tokens = Math.round(crop.getTokens() * multiplier);
         long shards = shardsUnlocked(data) ? crop.getShards() : 0L;
+
+        double shardGreed = hoe.powerOf(data, "SHARD_GREED");
+        if (shardsUnlocked(data) && shardGreed > 0 && ThreadLocalRandom.current().nextDouble() < shardGreed) {
+            shards += 1;
+        }
+
+        boolean fortune = ThreadLocalRandom.current().nextDouble() < hoe.powerOf(data, "FORTUNE");
+        if (fortune) {
+            tokens *= 2;
+            shards *= 2;
+        }
+
         if (tokens > 0) data.addTokens(tokens);
         if (shards > 0) data.addShards(shards);
         data.addCropsHarvested(1L);
 
         player.sendBlockChange(plot, Bukkit.createBlockData(Material.AIR));
+        final CropType regrown = crop;
         plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
             if (player.isOnline() && plots.contains(plot)) {
-                player.sendBlockChange(plot, grownData(crop.getMaterial()));
+                player.sendBlockChange(plot, grownData(regrown.getMaterial()));
             }
-        }, regrowTicks);
+        }, regrow);
 
-        String reward = ChatColor.YELLOW + "+" + String.format("%,d", tokens) + " Tokens";
-        if (shards > 0) {
-            reward += ChatColor.GRAY + "  " + ChatColor.AQUA + "+" + String.format("%,d", shards) + " Shards";
+        if (chain) {
+            rollBonusEnchants(player, data, hoe, plot);
+            announce(player, tokens, shards, fortune);
         }
-        player.spigot().sendMessage(net.md_5.bungee.api.ChatMessageType.ACTION_BAR,
-                new net.md_5.bungee.api.chat.TextComponent(reward));
-        player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_ITEM_PICKUP, 0.5f, 1.6f);
         plugin.getScoreboardManager().update(player);
         return true;
     }
 
+    /** Green Thumb shortens how long a plot stays gone for that player. */
+    private int regrowTicksFor(PlayerData data) {
+        double faster = plugin.getHoeEnchantManager().powerOf(data, "GREEN_THUMB");
+        return (int) Math.max(10, Math.round(regrowTicks * (1.0 - Math.min(0.8, faster))));
+    }
+
+    /**
+     * Momentum: an unbroken run of harvests builds a bonus that decays the
+     * moment you stop. It rewards staying in the field rather than clicking
+     * a plot every few minutes, which is the behaviour a farm wants.
+     */
+    private double momentumBonus(Player player, HoeEnchantManager hoe, PlayerData data, boolean chain) {
+        double perStack = hoe.powerOf(data, "MOMENTUM");
+        if (perStack <= 0) return 0.0;
+
+        long[] state = momentum.computeIfAbsent(player.getUniqueId(), k -> new long[]{0L, 0L});
+        long now = System.currentTimeMillis();
+        if (chain) {
+            // More than five seconds idle and the run is over.
+            state[0] = (now - state[1] > 5_000L) ? 1L : Math.min(state[0] + 1L, MOMENTUM_CAP);
+            state[1] = now;
+        }
+        return perStack * state[0];
+    }
+
+    /** Blast Harvest, Credit Finder and Nova Finder all roll here. */
+    private void rollBonusEnchants(Player player, PlayerData data, HoeEnchantManager hoe, Location plot) {
+        double blast = hoe.powerOf(data, "BLAST_HARVEST");
+        if (blast > 0 && ThreadLocalRandom.current().nextDouble() < blast) {
+            int radius = 1 + hoe.levelOf(data, "BLAST_HARVEST") / 3;
+            int swept = 0;
+            for (int dx = -radius; dx <= radius; dx++) {
+                for (int dz = -radius; dz <= radius; dz++) {
+                    if (dx == 0 && dz == 0) continue;
+                    Location near = plot.clone().add(dx, 0, dz);
+                    if (!plots.contains(normalise(near))) continue;
+                    if (harvest(player, near, false)) swept++;
+                }
+            }
+            if (swept > 0) {
+                player.getWorld().spawnParticle(org.bukkit.Particle.EXPLOSION, plot.clone().add(0.5, 0.5, 0.5),
+                        2, 0.4, 0.2, 0.4, 0.0);
+                player.playSound(plot, org.bukkit.Sound.ENTITY_GENERIC_EXPLODE, 0.5f, 1.6f);
+                sendActionBar(player, ChatColor.RED + "" + ChatColor.BOLD + "BLAST! "
+                        + ChatColor.RESET + ChatColor.GRAY + swept + " extra crops");
+            }
+        }
+
+        double credit = hoe.powerOf(data, "CREDIT_FINDER");
+        if (credit > 0 && ThreadLocalRandom.current().nextDouble() < credit) {
+            data.addPoints(1L);
+            player.sendMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "CREDIT FOUND! "
+                    + ChatColor.RESET + ChatColor.GRAY + "+1 Credit from the soil.");
+            player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_AMETHYST_BLOCK_CHIME, 1.0f, 1.6f);
+        }
+
+        double nova = hoe.powerOf(data, "NOVA_FINDER");
+        if (nova > 0 && ThreadLocalRandom.current().nextDouble() < nova) {
+            player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "NOVA SPARK! "
+                    + ChatColor.RESET + ChatColor.GRAY + "A free Nova Core forge attempt.");
+            plugin.getNovaCoreManager().attempt(player, data, false);
+        }
+    }
+
+    private void announce(Player player, long tokens, long shards, boolean fortune) {
+        StringBuilder reward = new StringBuilder();
+        reward.append(ChatColor.YELLOW).append("+").append(String.format("%,d", tokens)).append(" Tokens");
+        if (shards > 0) {
+            reward.append(ChatColor.GRAY).append("  ").append(ChatColor.AQUA)
+                    .append("+").append(String.format("%,d", shards)).append(" Shards");
+        }
+        if (fortune) {
+            reward.append(ChatColor.GRAY).append("  ").append(ChatColor.GOLD).append(ChatColor.BOLD)
+                    .append("FORTUNE x2");
+        }
+        sendActionBar(player, reward.toString());
+        player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_ITEM_PICKUP, 0.5f, 1.6f);
+    }
+
+    private void sendActionBar(Player player, String text) {
+        player.spigot().sendMessage(net.md_5.bungee.api.ChatMessageType.ACTION_BAR,
+                new net.md_5.bungee.api.chat.TextComponent(text));
+    }
+
     public void forget(UUID uuid) {
         harvested.remove(uuid);
+        momentum.remove(uuid);
+    }
+
+    /** Momentum stacks currently held, for the hoe's tooltip. */
+    public long momentumStacks(UUID uuid) {
+        long[] state = momentum.get(uuid);
+        if (state == null) return 0L;
+        return System.currentTimeMillis() - state[1] > 5_000L ? 0L : state[0];
     }
 
     // ----------------------------------------------------------- the item

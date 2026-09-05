@@ -62,7 +62,10 @@ public class BuyGui {
 
         ItemStack item = new ItemStack(Material.FIREWORK_STAR);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "GLOBAL LUCK BOOST");
+        // Named after what you'd actually be buying right now, so the shelf
+        // reads "Global 2x Luck" rather than a generic product name.
+        meta.setDisplayName(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "GLOBAL "
+                + BoostManager.formatMultiplier(boost.nextMultiplier()).toUpperCase() + " LUCK");
 
         List<String> lore = new ArrayList<>();
         lore.add(ChatColor.DARK_GRAY + "STORE");

@@ -17,6 +17,8 @@ import org.bukkit.persistence.PersistentDataType;
 
 public class TagCommand implements CommandExecutor {
 
+    private static final String INDEX_LUCK_NODE = "index_luck";
+
     private final SolRNGPlugin plugin;
 
     public TagCommand(SolRNGPlugin plugin) {
@@ -74,6 +76,18 @@ public class TagCommand implements CommandExecutor {
      * held item) and the /index GUI (reads a clicked collection-log entry).
      */
     public static void equip(SolRNGPlugin plugin, Player player, PlayerData data, String rollName, String rarityName) {
+        // The tag IS the index multiplier, so equipping one is gated on the
+        // skill that turns that multiplier on. Letting people equip first
+        // and quietly get 1.00x reads as a bug rather than a lock.
+        if (!data.hasUnlocked(INDEX_LUCK_NODE)) {
+            player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "LOCKED "
+                    + ChatColor.RESET + ChatColor.GRAY + "Unlock " + ChatColor.YELLOW + "Index Luck"
+                    + ChatColor.GRAY + " in " + ChatColor.YELLOW + "/skilltree" + ChatColor.GRAY
+                    + " to equip a tag.");
+            player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.9f, 1.0f);
+            return;
+        }
+
         data.setEquippedTag(rollName, rarityName);
         plugin.getTagManager().refreshPrefix(player, data);
 

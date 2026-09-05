@@ -42,10 +42,14 @@ commands:
   crops:
     description: Choose which crop the shared farm grows for you
     usage: /crops
-  rngcookie:
+  novacore:
     description: Climb the Nova Core tier ladder
-    usage: /rngcookie
-    aliases: [novacore, cookie]
+    usage: /novacore
+    aliases: [nova]
+  farmtree:
+    description: Open the farming skill tree
+    usage: /farmtree
+    aliases: [farmskills]
   buy:
     description: Spend store Credits
     usage: /buy

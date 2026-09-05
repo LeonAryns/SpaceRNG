@@ -93,6 +93,7 @@ public class PlayerDataManager {
         data.setCropShardsUnlocked(yml.getBoolean("crop-shards-unlocked", false));
         data.getUnlockedCrops().addAll(yml.getStringList("unlocked-crops"));
         data.getClaimedMilestones().addAll(yml.getStringList("claimed-milestones"));
+        data.getAnnouncedMilestones().addAll(yml.getStringList("announced-milestones"));
 
         org.bukkit.configuration.ConfigurationSection bank = yml.getConfigurationSection("drop-bank");
         if (bank != null) {
@@ -169,6 +170,7 @@ public class PlayerDataManager {
         yml.set("crop-shards-unlocked", data.isCropShardsUnlocked());
         yml.set("unlocked-crops", new java.util.ArrayList<>(data.getUnlockedCrops()));
         yml.set("claimed-milestones", new java.util.ArrayList<>(data.getClaimedMilestones()));
+        yml.set("announced-milestones", new java.util.ArrayList<>(data.getAnnouncedMilestones()));
         for (Map.Entry<Rarity, Long> entry : data.getDropBank().entrySet()) {
             yml.set("drop-bank." + entry.getKey().name(), entry.getValue());
         }

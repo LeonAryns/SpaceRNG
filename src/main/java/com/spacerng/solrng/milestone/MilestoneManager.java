@@ -112,8 +112,10 @@ public class MilestoneManager {
     }
 
     /**
-     * Awards anything newly reached. Safe to call as often as you like —
-     * a tier already in claimedMilestones is skipped, so nothing double-pays.
+     * Announces anything newly reached. Rewards are NOT handed over here —
+     * they wait in /milestones to be collected by hand, so the payout is a
+     * deliberate click rather than a number that quietly moves while you're
+     * doing something else.
      */
     public void check(Player player) {
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
@@ -122,19 +124,51 @@ public class MilestoneManager {
             for (MilestoneTrack.Tier tier : track.getTiers()) {
                 if (progress < tier.threshold()) break; // tiers are ascending
                 String key = track.keyFor(tier);
-                if (data.hasClaimedMilestone(key)) continue;
+                if (data.hasAnnouncedMilestone(key)) continue;
 
-                data.markMilestoneClaimed(key);
-                payOut(player, data, tier);
+                data.markMilestoneAnnounced(key);
                 announce(player, track, tier);
             }
         }
     }
 
-    public void checkAll() {
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            check(player);
+    /** True once the bar is full but the reward is still sitting there. */
+    public boolean isClaimable(Player player, PlayerData data, MilestoneTrack track, MilestoneTrack.Tier tier) {
+        return progress(player, data, track.getId()) >= tier.threshold()
+                && !data.hasClaimedMilestone(track.keyFor(tier));
+    }
+
+    /**
+     * Hands over one tier's reward. Returns false if it isn't earned yet or
+     * has already been taken, so the caller can say which.
+     */
+    public boolean claim(Player player, MilestoneTrack track, MilestoneTrack.Tier tier) {
+        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+        if (!isClaimable(player, data, track, tier)) return false;
+
+        String key = track.keyFor(tier);
+        data.markMilestoneClaimed(key);
+        data.markMilestoneAnnounced(key);
+        payOut(player, data, tier);
+
+        String reward = rewardText(tier);
+        player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "CLAIMED "
+                + ChatColor.RESET + ChatColor.YELLOW + track.getDisplay() + ChatColor.GRAY + " » "
+                + ChatColor.WHITE + String.format("%,d", tier.threshold()) + " " + track.getUnit()
+                + (reward.isEmpty() ? "" : ChatColor.GRAY + "  +" + reward));
+        player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.9f, 1.4f);
+        return true;
+    }
+
+    /** How many tiers are sitting unclaimed on a track right now. */
+    public int claimableCount(Player player, PlayerData data, MilestoneTrack track) {
+        long progress = progress(player, data, track.getId());
+        int count = 0;
+        for (MilestoneTrack.Tier tier : track.getTiers()) {
+            if (progress < tier.threshold()) break;
+            if (!data.hasClaimedMilestone(track.keyFor(tier))) count++;
         }
+        return count;
     }
 
     private void payOut(Player player, PlayerData data, MilestoneTrack.Tier tier) {
@@ -150,7 +184,7 @@ public class MilestoneManager {
     }
 
     private void announce(Player player, MilestoneTrack track, MilestoneTrack.Tier tier) {
-        String header = ChatColor.GOLD + "" + ChatColor.BOLD + "★ MILESTONE ★";
+        String header = ChatColor.GOLD + "" + ChatColor.BOLD + "★ MILESTONE REACHED ★";
         String line = ChatColor.YELLOW + track.getDisplay() + ChatColor.GRAY + " » "
                 + ChatColor.WHITE + String.format("%,d", tier.threshold()) + " " + track.getUnit();
 
@@ -160,9 +194,9 @@ public class MilestoneManager {
 
         String reward = rewardText(tier);
         if (!reward.isEmpty()) {
-            player.sendMessage(ChatColor.GRAY + "Reward: " + reward);
+            player.sendMessage(ChatColor.GRAY + "Reward waiting: " + reward);
         }
-        player.sendMessage(ChatColor.GRAY + "See them all with " + ChatColor.YELLOW + "/milestones");
+        player.sendMessage(ChatColor.GRAY + "Claim it in " + ChatColor.YELLOW + "/milestones");
         player.sendMessage("");
 
         Component title = LegacyComponentSerializer.legacySection().deserialize(header);

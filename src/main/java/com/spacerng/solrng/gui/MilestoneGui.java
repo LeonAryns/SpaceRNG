@@ -48,6 +48,11 @@ public class MilestoneGui {
         return new NamespacedKey(plugin, "solrng_milestone_track");
     }
 
+    /** Identifies a claimable rung, stored as "track:index". */
+    public static NamespacedKey tierKey(SolRNGPlugin plugin) {
+        return new NamespacedKey(plugin, "solrng_milestone_tier");
+    }
+
     /** Opens on the first track, or on whichever one was asked for. */
     public static Inventory build(SolRNGPlugin plugin, Player player, String trackId, int page) {
         var tracks = plugin.getMilestoneManager().getTracks();
@@ -98,7 +103,7 @@ public class MilestoneGui {
         for (int t = from; t < to; t++) {
             int offset = t - from;
             int slot = TIER_START + (offset / TIERS_PER_ROW) * 9 + (offset % TIERS_PER_ROW);
-            inv.setItem(slot, buildTierPane(plugin, track, tiers.get(t), progress));
+            inv.setItem(slot, buildTierPane(plugin, data, track, tiers.get(t), progress));
         }
 
         inv.setItem(INFO_SLOT, buildSummary(plugin, track, progress));
@@ -136,6 +141,11 @@ public class MilestoneGui {
                 + (done == total ? ChatColor.GREEN : ChatColor.WHITE) + done + ChatColor.GRAY + "/" + total);
         lore.add(ChatColor.YELLOW + BULLET + " " + ChatColor.GRAY + "Progress: " + ChatColor.WHITE
                 + String.format("%,d", progress) + ChatColor.GRAY + " " + track.getUnit());
+        int ready = plugin.getMilestoneManager().claimableCount(player, data, track);
+        if (ready > 0) {
+            lore.add(ChatColor.YELLOW + BULLET + " " + ChatColor.GOLD + ChatColor.BOLD
+                    + ready + " reward" + (ready == 1 ? "" : "s") + " to claim");
+        }
         lore.add("");
         lore.add(active ? ChatColor.GREEN + "Viewing this track" : ChatColor.YELLOW + "Click to view");
 
@@ -152,18 +162,23 @@ public class MilestoneGui {
      * One rung. Reads as a card: the goal, the category, what it asks of
      * you, what it pays, and how far along you are with a filled bar.
      */
-    private static ItemStack buildTierPane(SolRNGPlugin plugin, MilestoneTrack track,
+    private static ItemStack buildTierPane(SolRNGPlugin plugin, PlayerData data, MilestoneTrack track,
                                            MilestoneTrack.Tier tier, long progress) {
         boolean reached = progress >= tier.threshold();
-        ChatColor accent = reached ? ChatColor.GREEN : ChatColor.RED;
+        boolean claimed = data.hasClaimedMilestone(track.keyFor(tier));
+        boolean claimable = reached && !claimed;
+        ChatColor accent = claimed ? ChatColor.GREEN : claimable ? ChatColor.YELLOW : ChatColor.RED;
 
-        ItemStack pane = new ItemStack(reached
-                ? Material.LIME_STAINED_GLASS_PANE
-                : Material.RED_STAINED_GLASS_PANE);
+        // Three states, three colours: still to earn, earned and waiting,
+        // and spent. A claimable rung also glints so a full menu shows what
+        // there is to collect without reading anything.
+        ItemStack pane = new ItemStack(claimed
+                ? Material.GREEN_STAINED_GLASS_PANE
+                : claimable ? Material.LIME_STAINED_GLASS_PANE : Material.RED_STAINED_GLASS_PANE);
         ItemMeta meta = pane.getItemMeta();
         meta.setDisplayName(accent + "" + ChatColor.BOLD
                 + String.format("%,d", tier.threshold()) + " " + track.getUnit().toUpperCase()
-                + ChatColor.DARK_GRAY + " [" + (reached ? "UNLOCKED" : "LOCKED") + "]");
+                + ChatColor.DARK_GRAY + " [" + (claimed ? "CLAIMED" : claimable ? "READY" : "LOCKED") + "]");
 
         List<String> lore = new ArrayList<>();
         lore.add(ChatColor.DARK_GRAY + "MILESTONES");
@@ -180,8 +195,19 @@ public class MilestoneGui {
                 + String.format("%,d", Math.min(progress, tier.threshold()))
                 + ChatColor.GRAY + "/" + ChatColor.WHITE + String.format("%,d", tier.threshold()));
         lore.add(accent + BULLET + " " + progressBar(progress, tier.threshold()));
+        lore.add("");
+        if (claimed) {
+            lore.add(ChatColor.GREEN + "✔ Claimed");
+        } else if (claimable) {
+            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO CLAIM");
+        } else {
+            lore.add(ChatColor.RED + String.format("%,d", tier.threshold() - progress) + " to go");
+        }
 
         meta.setLore(lore);
+        meta.setEnchantmentGlintOverride(claimable ? Boolean.TRUE : null);
+        meta.getPersistentDataContainer().set(tierKey(plugin), PersistentDataType.STRING,
+                track.getId() + ":" + tier.index());
         pane.setItemMeta(meta);
         return pane;
     }

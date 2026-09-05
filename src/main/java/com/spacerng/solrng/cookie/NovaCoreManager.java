@@ -34,8 +34,8 @@ public class NovaCoreManager {
 
     private final SolRNGPlugin plugin;
 
-    private int maxTier = 25;
-    private int checkpointEvery = 5;
+    private int maxTier = 20;
+    private int firstCheckpoint = 5;
     private double baseChance = 0.75;
     private double decay = 0.85;
     private double luckWeight = 1.0;
@@ -50,8 +50,8 @@ public class NovaCoreManager {
     }
 
     public void load(FileConfiguration config) {
-        maxTier = config.getInt("novacore.max-tier", 25);
-        checkpointEvery = Math.max(1, config.getInt("novacore.checkpoint-every", 5));
+        maxTier = config.getInt("novacore.max-tier", 20);
+        firstCheckpoint = Math.max(1, config.getInt("novacore.first-checkpoint", 5));
         baseChance = config.getDouble("novacore.base-chance", 0.75);
         decay = config.getDouble("novacore.decay", 0.85);
         luckWeight = config.getDouble("novacore.luck-weight", 1.0);
@@ -66,17 +66,65 @@ public class NovaCoreManager {
         return maxTier;
     }
 
-    public int getCheckpointEvery() {
-        return checkpointEvery;
+    public int getFirstCheckpoint() {
+        return firstCheckpoint;
+    }
+
+    /**
+     * Checkpoints widen as you climb: the first gap is
+     * checkpoint-first-gap, and every gap after it is one longer. With the
+     * defaults that's 5, 11, 18, 26 — safe ground gets rarer exactly as the
+     * odds get worse, so the back half of the ladder is where the risk
+     * actually lives.
+     */
+    private java.util.List<Integer> checkpoints() {
+        java.util.List<Integer> out = new java.util.ArrayList<>();
+        int at = firstCheckpoint;
+        int gap = firstCheckpoint + 1;
+        while (at <= maxTier) {
+            out.add(at);
+            at += gap;
+            gap++;
+        }
+        return out;
     }
 
     public boolean isCheckpoint(int tier) {
-        return tier > 0 && tier % checkpointEvery == 0;
+        return tier > 0 && checkpoints().contains(tier);
     }
 
     /** Where a failed attempt drops you back to. */
     public int checkpointBelow(int tier) {
-        return (tier / checkpointEvery) * checkpointEvery;
+        int best = 0;
+        for (int checkpoint : checkpoints()) {
+            if (checkpoint <= tier) best = checkpoint;
+            else break;
+        }
+        return best;
+    }
+
+    /** "5, 11, 18" — for the menu's footnote. */
+    public String checkpointList() {
+        java.util.List<String> parts = new java.util.ArrayList<>();
+        for (int checkpoint : checkpoints()) parts.add(String.valueOf(checkpoint));
+        return String.join(", ", parts);
+    }
+
+    /**
+     * The Nova Core's name in a rainbow gradient, built with the same
+     * per-character engine the Epic+ item names use — it's the single
+     * flashiest thing in the plugin, so it gets the flashiest treatment.
+     */
+    public String styledName() {
+        return plugin.getRarityManager()
+                .buildStyle(java.util.List.of("#FF4E6A", "#FFB03A", "#FFF35C", "#5CFF8F", "#4FC3FF", "#B36BFF"),
+                        true, false, false)
+                .apply("NOVA CORE");
+    }
+
+    /** Inventory titles can't take hex colours, so the menu gets a flat one. */
+    public String styledTitle() {
+        return ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "Nova Core";
     }
 
     /** The Luck multiplier a tier is worth. */
@@ -101,6 +149,11 @@ public class NovaCoreManager {
      * that's the whole tension of the ladder.
      */
     public boolean attempt(Player player, PlayerData data) {
+        return attempt(player, data, true);
+    }
+
+    /** {@code charge} is false for free attempts, e.g. the Nova Finder enchant. */
+    public boolean attempt(Player player, PlayerData data, boolean charge) {
         int tier = data.getNovaTier();
         if (tier >= maxTier) {
             player.sendMessage(ChatColor.GREEN + "Your Nova Core is already fully forged.");
@@ -108,7 +161,7 @@ public class NovaCoreManager {
         }
 
         long cost = costFor(tier);
-        if (!data.spendTokens(cost)) {
+        if (charge && !data.spendTokens(cost)) {
             player.sendMessage(ChatColor.RED + "You need " + String.format("%,d", cost) + " Tokens for that.");
             player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
             return false;
