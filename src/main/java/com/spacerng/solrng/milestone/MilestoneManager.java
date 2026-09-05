@@ -179,14 +179,14 @@ public class MilestoneManager {
     }
 
     private void payOut(Player player, PlayerData data, MilestoneTrack.Tier tier) {
-        double bonus = plugin.getSkillTreeManager()
-                .multiplierOf(data, com.spacerng.solrng.player.SkillNode.Effect.MILESTONE_BONUS);
-        if (tier.tokens() > 0) data.addTokens(Math.round(tier.tokens() * bonus));
-        if (tier.shards() > 0) data.addShards(Math.round(tier.shards() * bonus));
+        // Fixed, like the daily streak: a milestone is a milestone whoever
+        // reaches it, so nothing in the trees scales what it pays.
+        if (tier.tokens() > 0) data.addTokens(tier.tokens());
+        if (tier.shards() > 0) data.addShards(tier.shards());
         if (tier.money() > 0) {
             var registration = Bukkit.getServicesManager().getRegistration(Economy.class);
             if (registration != null) {
-                registration.getProvider().depositPlayer(player, tier.money() * bonus);
+                registration.getProvider().depositPlayer(player, tier.money());
             }
         }
         plugin.getScoreboardManager().update(player);

@@ -102,12 +102,15 @@ public class SkillTreeGui {
         }
 
         inv.setItem(STATS_SLOT, buildWalletPanel(plugin, player, data, farming));
+        // Up and down, not next and previous: the tree is climbed from a
+        // root at the bottom, so a later page is literally higher up and
+        // calling it "next" fights the thing the layout is saying.
         if (page > 0) {
-            inv.setItem(PREV_SLOT, pageButton(Material.SPECTRAL_ARROW, "◀ Previous",
+            inv.setItem(PREV_SLOT, pageButton(Material.SPECTRAL_ARROW, "▼ Page Down",
                     manager.pageName(tree, page - 1), page, pageCount));
         }
         if (page < pageCount - 1) {
-            inv.setItem(NEXT_SLOT, pageButton(Material.ARROW, "Next ▶",
+            inv.setItem(NEXT_SLOT, pageButton(Material.ARROW, "▲ Page Up",
                     manager.pageName(tree, page + 1), page + 2, pageCount));
         }
         return inv;
@@ -119,8 +122,7 @@ public class SkillTreeGui {
         meta.setDisplayName(ChatColor.YELLOW + "" + ChatColor.BOLD + label);
         List<String> lore = new ArrayList<>();
         if (!name.isEmpty()) {
-            lore.add(Lore.state(name));
-            lore.add("");
+            lore.add(Lore.line(ChatColor.LIGHT_PURPLE, name));
         }
         lore.add(Lore.stat(ChatColor.AQUA, "Page", shownPage + " / " + total));
         meta.setLore(lore);
@@ -142,8 +144,6 @@ public class SkillTreeGui {
         boolean affordable = plugin.getSkillTreeManager().canAfford(player, data, node);
 
         List<String> lore = new ArrayList<>();
-        lore.add(Lore.state(leveled ? "upgrade" : "unlock"));
-        lore.add("");
         lore.add(Lore.section(ChatColor.AQUA, "Effect"));
         lore.addAll(describeEffect(node, level));
         lore.add("");
@@ -195,18 +195,22 @@ public class SkillTreeGui {
      * what stands between you and it is most of what makes a tree readable.
      */
     private static ItemStack lockedNode(SolRNGPlugin plugin, PlayerData data, SkillNode node) {
-        SkillNode parent = plugin.getSkillTreeManager().get(node.getRequires());
+        List<SkillNode> missing = plugin.getSkillTreeManager().missingRequirements(data, node);
+
         ItemStack icon = new ItemStack(Material.GRAY_DYE);
         ItemMeta meta = icon.getItemMeta();
         meta.setDisplayName(Lore.title(ChatColor.DARK_GRAY, "???"));
-        meta.setLore(List.of(
-                Lore.state("locked"),
-                "",
-                Lore.line(ChatColor.RED, "Buy the skill before it first."),
-                "",
-                ChatColor.RED + "" + ChatColor.BOLD + "LOCKED",
-                ChatColor.RED + Lore.BULLET + " " + ChatColor.GRAY + "Needs " + ChatColor.YELLOW
-                        + (parent == null ? "an earlier skill" : parent.getDisplay())));
+
+        List<String> lore = new ArrayList<>();
+        lore.add(Lore.section(ChatColor.RED, missing.size() > 1 ? "Needs all of" : "Needs"));
+        for (SkillNode parent : missing) {
+            lore.add(ChatColor.RED + Lore.BULLET + " " + ChatColor.GRAY
+                    + (parent == null ? "an earlier skill" : parent.getDisplay())
+                    + "  " + ChatColor.RED + Lore.CROSS);
+        }
+        lore.add("");
+        lore.add(ChatColor.RED + "" + ChatColor.BOLD + "LOCKED");
+        meta.setLore(lore);
         icon.setItemMeta(meta);
         return icon;
     }
@@ -220,8 +224,6 @@ public class SkillTreeGui {
         ItemMeta meta = icon.getItemMeta();
         meta.setDisplayName(Lore.title(ChatColor.DARK_GRAY, "???"));
         meta.setLore(List.of(
-                Lore.state("empty"),
-                "",
                 ChatColor.DARK_GRAY + Lore.BULLET + " Reserved for a future skill."));
         icon.setItemMeta(meta);
         return icon;
@@ -244,8 +246,6 @@ public class SkillTreeGui {
         meta.setDisplayName(Lore.title(wallet.colour(), player.getName()));
 
         List<String> lore = new ArrayList<>();
-        lore.add(Lore.state("wallet"));
-        lore.add("");
         lore.add(wallet.colour() + Lore.BULLET + " " + wallet.amount(balance));
         lore.add("");
         lore.add(Lore.section(ChatColor.AQUA, "Your stats"));
@@ -325,10 +325,6 @@ public class SkillTreeGui {
             case CONVERT_BONUS -> scaled(ChatColor.AQUA,
                     "+" + pct(value) + "% chance a converted drop banks twice",
                     pct(value * level) + "%", leveled);
-            case DAILY_BONUS -> scaled(ChatColor.GREEN,
-                    "+" + pct(value) + "% from every /daily reward", "+" + pct(value * level) + "%", leveled);
-            case MILESTONE_BONUS -> scaled(ChatColor.GREEN,
-                    "+" + pct(value) + "% from every /milestones reward", "+" + pct(value * level) + "%", leveled);
             case PASS_XP -> scaled(ChatColor.GOLD,
                     "+" + pct(value) + "% Battle Pass XP", "+" + pct(value * level) + "%", leveled);
 
@@ -337,13 +333,6 @@ public class SkillTreeGui {
                             + ChatColor.LIGHT_PURPLE + " rolls, one roll at "
                             + ChatColor.WHITE + String.format("%,.0f", value) + "x" + ChatColor.LIGHT_PURPLE + " Luck",
                     ChatColor.DARK_GRAY + "▎ Announced before it fires.");
-            case PITY -> List.of(
-                    ChatColor.LIGHT_PURPLE + "▎ " + String.format("%,d", node.getInterval())
-                            + " rolls without a " + target + " or better",
-                    ChatColor.LIGHT_PURPLE + "▎ forces the next roll to be one",
-                    ChatColor.DARK_GRAY + "▎ A lucky roll is never downgraded.");
-            case NOVA_DISCOUNT -> scaled(ChatColor.YELLOW,
-                    "-" + pct(value) + "% Nova Core climb cost", "-" + pct(value * level) + "%", leveled);
             case NOVA_SAFETY -> scaled(ChatColor.AQUA,
                     "+" + pct(value) + "% chance a failed Nova climb holds",
                     pct(value * level) + "%", leveled);
@@ -362,9 +351,21 @@ public class SkillTreeGui {
 
             case UNLOCK_CROP -> gate("Unlocks " + target + " on the farm");
             case UNLOCK_SHARDS -> gate("Farm crops start paying Gems");
-            case UNLOCK_ENCHANT -> List.of(ChatColor.LIGHT_PURPLE + "▎ Unlocks the " + target + " hoe enchant");
+            case UNLOCK_ENCHANT -> List.of(
+                    ChatColor.LIGHT_PURPLE + "▎ Unlocks the " + target + " hoe enchant",
+                    ChatColor.DARK_GRAY + "▎ Level it up on the hoe itself.");
             case ENCHANT_POWER -> scaled(ChatColor.LIGHT_PURPLE,
-                    "+1 " + target + " level per rank", "+" + level, leveled);
+                    "+" + trim(value) + " free " + target + " level" + (value == 1 ? "" : "s") + " per rank",
+                    "+" + trim(value * level), leveled);
+            case ENCHANT_PROC -> scaled(ChatColor.LIGHT_PURPLE,
+                    "+" + pct(value) + "% to EVERY hoe enchant's chance",
+                    "+" + pct(value * level) + "%", leveled);
+            case ENCHANT_CAP -> scaled(ChatColor.AQUA,
+                    "+" + trim(value) + " max level on every hoe enchant",
+                    "+" + trim(value * level), leveled);
+            case CROP_YIELD -> scaled(ChatColor.GREEN,
+                    "+" + pct(value) + "% Tokens and Gems from " + target,
+                    "+" + pct(value * level) + "%", leveled);
             case TOKEN_MULTIPLIER -> scaled(ChatColor.YELLOW,
                     "+" + trim(value) + "x farm Tokens", "+" + trim(value * level) + "x", leveled);
             case FARM_SPEED -> scaled(ChatColor.GREEN,

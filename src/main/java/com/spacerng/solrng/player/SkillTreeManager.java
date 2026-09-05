@@ -93,7 +93,7 @@ public class SkillTreeManager {
 
                 nodes.put(id, new SkillNode(id, display, moneyCost, requires, effect, value,
                         maxLevel, costGrowth, tree, parseSlot(n.getString("slot", "")), page,
-                        icon, target, interval));
+                        icon, target, interval, n.getStringList("requires-all")));
             } catch (Exception ex) {
                 logger.warning("[SolRNG] Skipped malformed skill node '" + id + "': " + ex.getMessage());
             }
@@ -216,6 +216,27 @@ public class SkillTreeManager {
         return best;
     }
 
+    /**
+     * The same sum, but only across nodes pointing at one target — a crop
+     * id, an enchant id. Lets one effect be repeated per thing it acts on
+     * without needing an effect per thing.
+     */
+    public double totalOf(PlayerData data, SkillNode.Effect effect, String target) {
+        if (target == null) return 0.0;
+        double total = 0.0;
+        for (SkillNode node : nodes.values()) {
+            if (node.getEffect() != effect) continue;
+            if (node.getTarget() == null || !node.getTarget().equalsIgnoreCase(target)) continue;
+            int level = levelOf(data, node);
+            if (level > 0) total += node.getValue() * level;
+        }
+        return total;
+    }
+
+    public double multiplierOf(PlayerData data, SkillNode.Effect effect, String target) {
+        return 1.0 + totalOf(data, effect, target);
+    }
+
     /** Turns "5,6"-style Luck/Speed sums into the number the menus show. */
     public double skillLuck(PlayerData data) {
         return totalOf(data, SkillNode.Effect.LUCK);
@@ -250,11 +271,33 @@ public class SkillTreeManager {
      * soon as you've started investing rather than making you max it out.
      */
     public boolean requirementMet(PlayerData data, SkillNode node) {
-        String requires = node.getRequires();
-        if (requires == null) return true;
-        SkillNode parent = nodes.get(requires);
-        if (parent == null) return data.hasUnlocked(requires);
-        return levelOf(data, parent) >= 1;
+        return missingRequirements(data, node).isEmpty();
+    }
+
+    /**
+     * Which prerequisites this player still hasn't got. Returned rather
+     * than a bare boolean so a locked node can name what's in the way —
+     * "you need something else first" is the least useful thing a tree can
+     * say.
+     */
+    public List<SkillNode> missingRequirements(PlayerData data, SkillNode node) {
+        List<SkillNode> missing = new ArrayList<>();
+        addIfMissing(data, node.getRequires(), missing);
+        for (String id : node.getRequiresAll()) {
+            addIfMissing(data, id, missing);
+        }
+        return missing;
+    }
+
+    private void addIfMissing(PlayerData data, String id, List<SkillNode> missing) {
+        if (id == null || id.isBlank()) return;
+        SkillNode parent = nodes.get(id);
+        if (parent == null) {
+            // A node id with no definition can only be checked as a flag.
+            if (!data.hasUnlocked(id)) missing.add(null);
+            return;
+        }
+        if (levelOf(data, parent) < 1 && !missing.contains(parent)) missing.add(parent);
     }
 
     /**

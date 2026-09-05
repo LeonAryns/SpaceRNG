@@ -150,14 +150,12 @@ public class NovaCoreManager {
     }
 
     /**
-     * The same cost after the Core Efficiency skills. Floored at 10% of
-     * list price: a discount chain that could reach zero would turn the
-     * ladder into a free reroll button.
+     * A climb costs what it costs. Nothing discounts it: the Tokens are
+     * the whole risk, and a skill that shaved them would be taking the
+     * tension out of the one system built entirely from tension.
      */
     public long costFor(PlayerData data, int tier) {
-        double discount = plugin.getSkillTreeManager()
-                .totalOf(data, com.spacerng.solrng.player.SkillNode.Effect.NOVA_DISCOUNT);
-        return Math.max(1L, Math.round(costFor(tier) * Math.max(0.10, 1.0 - discount)));
+        return costFor(tier);
     }
 
     /** Core Anchor: the chance a failed climb doesn't drop you at all. */

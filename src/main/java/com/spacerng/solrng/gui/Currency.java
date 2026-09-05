@@ -21,19 +21,29 @@ import org.bukkit.ChatColor;
  */
 public enum Currency {
 
-    COINS("Coins", "●", ChatColor.GOLD),
-    TOKENS("Tokens", "✿", ChatColor.GREEN),
-    GEMS("Gems", "◆", ChatColor.AQUA),
-    CREDITS("Credits", "✪", ChatColor.LIGHT_PURPLE);
+    COINS("Coins", "●", ChatColor.GOLD, false),
+    TOKENS("Tokens", "✿", ChatColor.GREEN, false),
+    GEMS("Gems", "◆", ChatColor.AQUA, false),
+    // Credits are the one currency real money buys, so they get the one
+    // treatment nothing else in the plugin uses. colour() stays purple for
+    // bullets and accents — a rainbow bullet would just look broken.
+    CREDITS("Credits", "✪", ChatColor.LIGHT_PURPLE, true);
 
     private final String label;
     private final String icon;
     private final ChatColor colour;
+    private final boolean rainbow;
 
-    Currency(String label, String icon, ChatColor colour) {
+    Currency(String label, String icon, ChatColor colour, boolean rainbow) {
         this.label = label;
         this.icon = icon;
         this.colour = colour;
+        this.rainbow = rainbow;
+    }
+
+    /** Paints one readout in this currency's own style. */
+    private String paint(String text) {
+        return rainbow ? Lore.rainbow(text) : colour + text;
     }
 
     public String label() {
@@ -50,12 +60,12 @@ public enum Currency {
 
     /** The coloured glyph on its own, for prefixing a line. */
     public String mark() {
-        return colour + icon;
+        return paint(icon);
     }
 
     /** "● 1.2M Coins" — the full readout, all in the currency's colour. */
     public String amount(long value) {
-        return colour + icon + " " + RollFormat.abbreviate(value) + " " + label;
+        return paint(icon + " " + RollFormat.abbreviate(value) + " " + label);
     }
 
     /**
@@ -64,12 +74,12 @@ public enum Currency {
      * changing colour and looking like a different currency.
      */
     public String price(long value, boolean affordable) {
-        return colour + icon + " " + (affordable ? colour : ChatColor.RED)
-                + RollFormat.abbreviate(value) + " " + (affordable ? colour : ChatColor.RED) + label;
+        String text = icon + " " + RollFormat.abbreviate(value) + " " + label;
+        return affordable ? paint(text) : ChatColor.RED + text;
     }
 
     /** "● 1,200,000 Coins" — unabbreviated, for when the exact figure matters. */
     public String exact(long value) {
-        return colour + icon + " " + String.format("%,d", value) + " " + label;
+        return paint(icon + " " + String.format("%,d", value) + " " + label);
     }
 }

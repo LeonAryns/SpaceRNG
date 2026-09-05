@@ -134,15 +134,6 @@ public class PlayerDataManager {
         data.setPassXp(yml.getLong("pass-xp", 0L));
         data.setPassPremium(yml.getBoolean("pass-premium", false));
         data.getPassClaimed().addAll(yml.getStringList("pass-claimed"));
-        org.bukkit.configuration.ConfigurationSection pity = yml.getConfigurationSection("pity");
-        if (pity != null) {
-            for (String rarityName : pity.getKeys(false)) {
-                try {
-                    data.setRollsSince(Rarity.valueOf(rarityName), pity.getLong(rarityName));
-                } catch (IllegalArgumentException ignored) {
-                }
-            }
-        }
         data.setPrestigePoints(yml.getInt("prestige-points", 0));
         org.bukkit.configuration.ConfigurationSection upgrades = yml.getConfigurationSection("prestige-upgrades");
         if (upgrades != null) {
@@ -295,9 +286,6 @@ public class PlayerDataManager {
         yml.set("pass-xp", data.getPassXp());
         yml.set("pass-premium", data.isPassPremium());
         yml.set("pass-claimed", new java.util.ArrayList<>(data.getPassClaimed()));
-        for (Map.Entry<Rarity, Long> entry : data.getRollsSinceRarity().entrySet()) {
-            yml.set("pity." + entry.getKey().name(), entry.getValue());
-        }
         yml.set("prestige-points", data.getPrestigePoints());
         for (Map.Entry<String, Integer> entry : data.getPrestigeUpgrades().entrySet()) {
             yml.set("prestige-upgrades." + entry.getKey(), entry.getValue());

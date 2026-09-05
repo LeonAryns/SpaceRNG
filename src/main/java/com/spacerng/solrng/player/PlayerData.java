@@ -129,10 +129,6 @@ public class PlayerData {
     // than added on purchase, so retuning a Speed skill in config retunes
     // it for everyone who already owns it. Refreshed on a timer, not saved.
     private double skillSpeedBonus = 0.0;
-    // Rolls since the last drop of at least each rarity — what the Pity
-    // Timer skills count against. Kept per rarity because several pity
-    // nodes can be owned at once, each watching a different tier.
-    private final Map<Rarity, Long> rollsSinceRarity = new EnumMap<>(Rarity.class);
     // Battle Pass (/pass). The season number is stored so that starting a
     // new season resets XP and claims without touching anything else.
     private int passSeason = 1;
@@ -356,34 +352,6 @@ public class PlayerData {
             convertedCommon += amount;
         } else if (rarity == Rarity.UNCOMMON) {
             convertedUncommon += amount;
-        }
-    }
-
-    /**
-     * How many rolls have passed without one of at least this rarity. A
-     * roll of rarity R clears the counter for R and for everything below
-     * it, so a Legendary satisfies a Rare pity timer as well as its own.
-     */
-    public long getRollsSince(Rarity rarity) {
-        return rollsSinceRarity.getOrDefault(rarity, 0L);
-    }
-
-    public void setRollsSince(Rarity rarity, long value) {
-        rollsSinceRarity.put(rarity, Math.max(0L, value));
-    }
-
-    public Map<Rarity, Long> getRollsSinceRarity() {
-        return rollsSinceRarity;
-    }
-
-    /** Advances every pity counter, then clears the ones this roll satisfied. */
-    public void notePityRoll(Rarity rolled) {
-        for (Rarity rarity : Rarity.values()) {
-            if (rolled != null && rolled.ordinal() >= rarity.ordinal()) {
-                rollsSinceRarity.put(rarity, 0L);
-            } else {
-                rollsSinceRarity.merge(rarity, 1L, Long::sum);
-            }
         }
     }
 

@@ -113,14 +113,26 @@ public class HoeEnchantManager {
         if (enchant == null || !isUnlocked(data, enchantId)) return 0;
 
         int level = data.getHoeEnchantLevel(enchant.id());
-        for (SkillNode node : plugin.getSkillTreeManager().getNodes("farmtree").values()) {
-            if (node.getTarget() == null || !node.getTarget().equalsIgnoreCase(enchantId)) continue;
-            if (node.getEffect() != SkillNode.Effect.ENCHANT_POWER) continue;
-            level += node.getMaxLevel() > 1
-                    ? data.getNodeLevel(node.getId())
-                    : (data.hasUnlocked(node.getId()) ? 1 : 0);
-        }
-        return Math.min(level, enchant.maxLevel());
+        level += (int) Math.round(plugin.getSkillTreeManager()
+                .totalOf(data, SkillNode.Effect.ENCHANT_POWER, enchantId));
+        return Math.min(level, maxLevelFor(data, enchant));
+    }
+
+    /**
+     * The enchant's ceiling for this player: its configured maximum plus
+     * whatever the Enchant Mastery nodes have raised it by. Mastery is the
+     * thing that lets a hoe keep growing once every enchant is capped, so
+     * the ceiling has to be a read of the tree rather than a constant.
+     */
+    public int maxLevelFor(PlayerData data, Enchant enchant) {
+        if (enchant == null) return 0;
+        int bonus = (int) Math.round(plugin.getSkillTreeManager()
+                .totalOf(data, SkillNode.Effect.ENCHANT_CAP));
+        return enchant.maxLevel() + Math.max(0, bonus);
+    }
+
+    public int maxLevelFor(PlayerData data, String enchantId) {
+        return maxLevelFor(data, get(enchantId));
     }
 
     /** Tokens for the next level. Grows so late levels are a real sink. */
@@ -146,7 +158,7 @@ public class HoeEnchantManager {
         if (enchant == null || !isUnlocked(data, enchantId)) return false;
 
         int level = levelOf(data, enchantId);
-        if (level >= enchant.maxLevel()) return false;
+        if (level >= maxLevelFor(data, enchant)) return false;
         if (!data.spendTokens(costFor(enchant, level))) return false;
 
         data.setHoeEnchantLevel(enchant.id(), data.getHoeEnchantLevel(enchant.id()) + 1);
@@ -157,7 +169,24 @@ public class HoeEnchantManager {
     public double powerOf(PlayerData data, String enchantId) {
         Enchant enchant = get(enchantId);
         if (enchant == null) return 0.0;
-        return enchant.perLevel() * levelOf(data, enchantId);
+        // Proc Chance lifts every enchant at once, so it multiplies the
+        // total rather than adding levels — a flat level bonus would be
+        // worth wildly different amounts to a 0.02/level enchant and a
+        // 0.00004/level one.
+        double proc = plugin.getSkillTreeManager()
+                .multiplierOf(data, SkillNode.Effect.ENCHANT_PROC);
+        return enchant.perLevel() * levelOf(data, enchantId) * proc;
+    }
+
+    /** The same figure the skill tree quotes, for one player. */
+    public String describePower(PlayerData data, String enchantId) {
+        Enchant enchant = get(enchantId);
+        if (enchant == null) return "0%";
+        double power = powerOf(data, enchantId);
+        if (enchant.id().equals("TOKEN_GREED") || enchant.id().equals("MOMENTUM")) {
+            return "+" + String.format("%.2f", power) + "x";
+        }
+        return String.format("%.2f", power * 100.0) + "%";
     }
 
     public boolean has(PlayerData data, String enchantId) {

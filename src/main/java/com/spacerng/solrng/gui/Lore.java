@@ -29,7 +29,91 @@ public final class Lore {
     private static final String BAR_FULL = "▬";
     private static final int BAR_LENGTH = 20;
 
+    // The plugin's headline gradient — light lilac into deep violet. Used
+    // for sidebar section headers so the two of them read as one voice.
+    private static final String[] HEADER_STOPS = {"#E9BBFF", "#C07BFF", "#8B3FE0", "#6A21C4"};
+    // A full loop of the spectrum, ending where it started so a long
+    // string doesn't finish on a jarringly different colour from its start.
+    private static final String[] RAINBOW_STOPS = {
+            "#FF5555", "#FFAA00", "#FFFF55", "#55FF55", "#55FFFF", "#FF55FF", "#FF5555"
+    };
+
     private Lore() {
+    }
+
+    /**
+     * A per-character gradient across hex stops, emitted as legacy §x
+     * codes.
+     *
+     * Written here rather than reusing RarityManager's engine because that
+     * one is loaded from config and belongs to the item table; a header
+     * colour shouldn't change because somebody retuned a rarity. Spaces
+     * are left uncoloured — colouring them wastes six characters a piece
+     * against Minecraft's line length limits and looks identical.
+     */
+    public static String gradient(String text, String... hexStops) {
+        return gradient(text, false, hexStops);
+    }
+
+    /**
+     * Bold has to be re-emitted after every colour code, not once at the
+     * front: a colour code clears formatting in Minecraft, so a single
+     * leading §l is wiped out by the first character's own colour.
+     */
+    public static String gradient(String text, boolean bold, String... hexStops) {
+        if (hexStops.length == 0) return text;
+        String weight = bold ? ChatColor.BOLD.toString() : "";
+        if (hexStops.length == 1) return of(hexStops[0]) + weight + text;
+
+        StringBuilder out = new StringBuilder();
+        int length = text.length();
+        int segments = hexStops.length - 1;
+        for (int i = 0; i < length; i++) {
+            char c = text.charAt(i);
+            if (c == ' ') {
+                out.append(' ');
+                continue;
+            }
+            double t = length <= 1 ? 0.0 : (double) i / (length - 1);
+            int segment = Math.min((int) (t * segments), segments - 1);
+            double local = (t * segments) - segment;
+            out.append(of(blend(hexStops[segment], hexStops[segment + 1], local)))
+               .append(weight)
+               .append(c);
+        }
+        return out.toString();
+    }
+
+    /** A bold sidebar/menu section header in the house purple. */
+    public static String header(String text) {
+        return gradient(text, true, HEADER_STOPS);
+    }
+
+    /** Full-spectrum text — the Credits treatment. */
+    public static String rainbow(String text) {
+        return gradient(text, RAINBOW_STOPS);
+    }
+
+    private static String blend(String fromHex, String toHex, double t) {
+        int[] a = rgb(fromHex);
+        int[] b = rgb(toHex);
+        return String.format("#%02X%02X%02X",
+                (int) Math.round(a[0] + (b[0] - a[0]) * t),
+                (int) Math.round(a[1] + (b[1] - a[1]) * t),
+                (int) Math.round(a[2] + (b[2] - a[2]) * t));
+    }
+
+    private static int[] rgb(String hex) {
+        String clean = hex.startsWith("#") ? hex.substring(1) : hex;
+        return new int[]{
+                Integer.parseInt(clean.substring(0, 2), 16),
+                Integer.parseInt(clean.substring(2, 4), 16),
+                Integer.parseInt(clean.substring(4, 6), 16)};
+    }
+
+    private static String of(String hex) {
+        int[] c = rgb(hex);
+        return net.md_5.bungee.api.ChatColor.of(new java.awt.Color(c[0], c[1], c[2])).toString();
     }
 
     /** 「 Prestige 4 」 — the framed name a headline item carries. */

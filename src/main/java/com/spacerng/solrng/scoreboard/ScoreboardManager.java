@@ -3,6 +3,7 @@ package com.spacerng.solrng.scoreboard;
 import com.spacerng.solrng.SolRNGPlugin;
 import com.spacerng.solrng.player.PlayerData;
 import com.spacerng.solrng.gui.Currency;
+import com.spacerng.solrng.gui.Lore;
 import com.spacerng.solrng.rarity.RollFormat;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
@@ -33,7 +34,15 @@ import java.util.List;
 public class ScoreboardManager {
 
     private static final String OBJECTIVE_ID = "solrng_side";
-    private static final LegacyComponentSerializer LEGACY = LegacyComponentSerializer.legacySection();
+    // Hex-aware on purpose: the section headers and the Credits line are
+    // per-character gradients, which arrive as the §x§r§r§g§g§b§b form
+    // Bungee's ChatColor emits. The plain legacySection() serializer drops
+    // those on the floor and the text comes out mangled.
+    private static final LegacyComponentSerializer LEGACY = LegacyComponentSerializer.builder()
+            .character(LegacyComponentSerializer.SECTION_CHAR)
+            .hexColors()
+            .useUnusualXRepeatedCharacterHexFormat()
+            .build();
     // Generous upper bound on possible line count (currently maxes out
     // around 13) so leftover entries from a longer previous frame — e.g.
     // the "Rolling... Ns" lines once a roll finishes — always get cleared.
@@ -106,8 +115,10 @@ public class ScoreboardManager {
         List<String> lines = new ArrayList<>();
         lines.add(""); // breathing room under the header
         // Name sits directly on top of the stat block, same as "Your
-        // Wallet" sits directly on top of Balance.
-        lines.add(ChatColor.GOLD + "" + ChatColor.BOLD + player.getName());
+        // Wallet" sits directly on top of the wallet. Both headers share
+        // one purple gradient so they read as the same voice, and neither
+        // can be confused with a currency line underneath it.
+        lines.add(Lore.header(player.getName()));
         lines.add(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Index: " + ChatColor.AQUA + discovered + ChatColor.GRAY + "/" + ChatColor.AQUA + totalItems
                 + ChatColor.WHITE + " ("
                 + String.format("%.2f", plugin.getRarityManager().tagMultiplierFor(data)) + "x)");
@@ -116,9 +127,7 @@ public class ScoreboardManager {
                 + Math.round(data.getEffectiveRollSpeedMultiplier() * 100));
         lines.add(ChatColor.YELLOW + "| " + prestigeLine(data));
         lines.add(""); // blank spacer
-        // White, not gold: the header used to be the same colour as the
-        // Coins line directly under it, which made the two read as one.
-        lines.add(ChatColor.WHITE + "" + ChatColor.BOLD + "Your Wallet");
+        lines.add(Lore.header("Your Wallet"));
         lines.add(balanceLine(player));
         lines.add(walletLine(Currency.TOKENS, data.getTokens()));
         lines.add(walletLine(Currency.GEMS, data.getShards()));
@@ -143,9 +152,16 @@ public class ScoreboardManager {
         return ChatColor.WHITE + "Prestige: " + ChatColor.GOLD + "★ " + ChatColor.AQUA + numeral;
     }
 
-    /** "| ● 216M Coins" — the pipe, then the currency's own glyph and colour. */
+    /**
+     * "● 216M Coins" — the currency's own glyph IS the gutter mark.
+     *
+     * The stat block above uses a yellow pipe in the same position, so
+     * every line in the sidebar starts with exactly one glyph and a space
+     * and the whole column lines up. Keeping the pipe as well pushed the
+     * wallet text one glyph right of everything else.
+     */
     private String walletLine(Currency currency, long amount) {
-        return ChatColor.YELLOW + "| " + currency.amount(amount);
+        return currency.amount(amount);
     }
 
     /**
@@ -162,7 +178,7 @@ public class ScoreboardManager {
 
     private String balanceLine(Player player) {
         if (economy == null) {
-            return ChatColor.YELLOW + "| " + Currency.COINS.mark() + " N/A";
+            return Currency.COINS.mark() + " N/A";
         }
         return walletLine(Currency.COINS, Math.round(economy.getBalance(player)));
     }

@@ -94,26 +94,32 @@ public class ArmorGui {
 
         ItemStack icon = new ItemStack(tier.materialFor(piece));
         ItemMeta meta = icon.getItemMeta();
-        meta.setDisplayName((owned ? ChatColor.GREEN : ChatColor.AQUA) + tier.pieceDisplay(piece));
+        meta.setDisplayName(Lore.title(owned ? ChatColor.GREEN : ChatColor.AQUA,
+                ChatColor.stripColor(tier.pieceDisplay(piece))));
 
+        List<String> lore = new ArrayList<>();
+        lore.add(Lore.section(ChatColor.AQUA, "While worn"));
         // Exactly the stat block the real item carries, so what you see in
         // the shop is what you get.
-        List<String> lore = new ArrayList<>(armor.statLines(tier));
+        lore.addAll(armor.statLines(tier));
         lore.add("");
         if (owned) {
             lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "OWNED");
         } else {
-            lore.add(ChatColor.GRAY + "Price:");
+            boolean affordable = true;
+            lore.add(Lore.section(ChatColor.YELLOW, "Price"));
             for (Map.Entry<Rarity, Long> cost : tier.getCosts().entrySet()) {
                 long held = DropWallet.total(plugin, player, data, cost.getKey());
                 boolean enough = held >= cost.getValue();
-                lore.add(ChatColor.DARK_GRAY + " - " + (enough ? ChatColor.WHITE : ChatColor.RED)
-                        + ChatColor.BOLD + cost.getValue() + "x "
-                        + plugin.getRarityManager().styleBold(cost.getKey(), cost.getKey().displayName())
-                        + ChatColor.DARK_GRAY + " (" + held + ")");
+                affordable &= enough;
+                lore.add(Lore.requirement(
+                        plugin.getRarityManager().style(cost.getKey(), cost.getKey().displayName()),
+                        String.valueOf(held), String.valueOf(cost.getValue()), enough));
             }
             lore.add("");
-            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO BUY THIS PIECE");
+            lore.add(affordable
+                    ? ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO BUY THIS PIECE"
+                    : ChatColor.RED + "" + ChatColor.BOLD + "NOT ENOUGH DROPS");
         }
         meta.setLore(lore);
         meta.getPersistentDataContainer().set(tierIdKey, PersistentDataType.STRING, tier.getId());
@@ -133,16 +139,19 @@ public class ArmorGui {
     private static ItemStack buildDropTotals(SolRNGPlugin plugin, Player player, PlayerData data) {
         ItemStack stats = new ItemStack(Material.HOPPER);
         ItemMeta meta = stats.getItemMeta();
-        meta.setDisplayName(ChatColor.GOLD + "" + ChatColor.BOLD + "Drop Totals");
+        meta.setDisplayName(Lore.title(ChatColor.GOLD, "Your Drops"));
 
         List<String> lore = new ArrayList<>();
+        lore.add(Lore.section(ChatColor.GOLD, "Spendable here"));
         // Inventory plus banked — armor spends from both, so both count.
         for (Rarity rarity : Rarity.values()) {
             long banked = data.getBankedDrops(rarity);
-            lore.add(plugin.getRarityManager().style(rarity, rarity.displayName() + ": ")
+            lore.add(plugin.getRarityManager().style(rarity, Lore.BULLET + " " + rarity.displayName() + ": ")
                     + ChatColor.WHITE + DropWallet.total(plugin, player, data, rarity)
                     + (banked > 0 ? ChatColor.DARK_GRAY + " (" + banked + " stored)" : ""));
         }
+        lore.add("");
+        lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " Held items first, then your bank.");
         meta.setLore(lore);
         stats.setItemMeta(meta);
         return stats;

@@ -21,15 +21,10 @@ public class SkillNode {
         GEM_MULTIPLIER,     // +value x Gems earned from farming
         DUPLICATE_BONUS,    // +value x Coins when the roll is already in the index
         CONVERT_BONUS,      // +value chance a converted drop banks twice
-        DAILY_BONUS,        // +value x every /daily reward
-        MILESTONE_BONUS,    // +value x every /milestones reward
         PASS_XP,            // +value x Battle Pass XP
 
         // --- general tree: event effects ---
         SUPERCHARGE,        // every `interval` rolls, one roll at value x Luck
-        PITY,               // `interval` rolls with nothing at `target` rarity
-                            // or better forces the next roll to be one
-        NOVA_DISCOUNT,      // -value Nova Core climb cost per level
         NOVA_SAFETY,        // +value chance a failed Nova climb doesn't drop you
 
         // --- general tree: gates ---
@@ -49,7 +44,10 @@ public class SkillNode {
         UNLOCK_CROP,        // target = crop id
         UNLOCK_SHARDS,      // farm crops start paying Gems
         UNLOCK_ENCHANT,     // target = hoe enchant id
-        ENCHANT_POWER,      // target = hoe enchant id, +value per level
+        ENCHANT_POWER,      // target = hoe enchant id, +value levels per rank
+        ENCHANT_PROC,       // +value x EVERY hoe enchant's chance
+        ENCHANT_CAP,        // +value to the level ceiling of every hoe enchant
+        CROP_YIELD,         // target = crop id, +value x its Tokens and Gems
         TOKEN_MULTIPLIER,   // +value to the farm Token multiplier per level
         FARM_SPEED          // -value regrow time per level
     }
@@ -77,16 +75,20 @@ public class SkillNode {
     // Which page of the tree draws this node, 0-indexed.
     private final int page;
     private final String icon;
-    // Free-form pointer some effects need — a crop id, an enchant id, a
-    // rarity name for PITY.
+    // Free-form pointer some effects need — a crop id, an enchant id.
     private final String target;
     // How many rolls between triggers, for the effects that fire on a
-    // count rather than continuously (SUPERCHARGE, PITY).
+    // count rather than continuously (SUPERCHARGE).
     private final int interval;
+    // Extra prerequisites, ALL of which must be owned. `requires` alone can
+    // only express one path; a page root has to demand the whole page below
+    // it, not just the one branch that happens to end at the capstone.
+    private final java.util.List<String> requiresAll;
 
     public SkillNode(String id, String display, double moneyCost, String requires, Effect effect, double value,
                      int maxLevel, double costGrowth, String tree, int slot, int page, String icon,
-                     String target, int interval) {
+                     String target, int interval, java.util.List<String> requiresAll) {
+        this.requiresAll = requiresAll == null ? java.util.List.of() : java.util.List.copyOf(requiresAll);
         this.id = id;
         this.display = display;
         this.moneyCost = moneyCost;
@@ -117,6 +119,11 @@ public class SkillNode {
 
     public String getRequires() {
         return requires;
+    }
+
+    /** Every extra prerequisite, all of which must be owned. Never null. */
+    public java.util.List<String> getRequiresAll() {
+        return requiresAll;
     }
 
     public Effect getEffect() {

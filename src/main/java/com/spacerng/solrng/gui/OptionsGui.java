@@ -54,15 +54,18 @@ public class OptionsGui {
 
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(name + ChatColor.GRAY + " — "
+        meta.setDisplayName(name + ChatColor.DARK_GRAY + " — "
                 + (on ? ChatColor.GREEN.toString() + ChatColor.BOLD + "On"
                       : ChatColor.RED.toString() + ChatColor.BOLD + "Off"));
         meta.setLore(List.of(
-                ChatColor.DARK_GRAY + "The particle build-up and sound for",
-                ChatColor.DARK_GRAY + rarity.displayName() + " drops — yours and everyone",
-                ChatColor.DARK_GRAY + "else's. Off hides them for you only.",
+                Lore.section(ChatColor.AQUA, "What it hides"),
+                Lore.line(ChatColor.AQUA, "The build-up and burst for"),
+                Lore.line(ChatColor.AQUA, rarity.displayName() + " drops — yours and"),
+                Lore.line(ChatColor.AQUA, "everyone else's."),
                 "",
-                ChatColor.YELLOW + "Click to toggle"));
+                ChatColor.DARK_GRAY + Lore.BULLET + " Off only affects what you see.",
+                "",
+                ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO TOGGLE"));
         meta.setEnchantmentGlintOverride(on ? Boolean.TRUE : null);
         item.setItemMeta(meta);
         return item;
@@ -71,16 +74,17 @@ public class OptionsGui {
     private static ItemStack toggleItem(Material material, String label, boolean on, String... description) {
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(ChatColor.YELLOW + label + ChatColor.GRAY + " — "
+        meta.setDisplayName(Lore.title(ChatColor.YELLOW, label) + ChatColor.DARK_GRAY + " — "
                 + (on ? ChatColor.GREEN.toString() + ChatColor.BOLD + "On"
                       : ChatColor.RED.toString() + ChatColor.BOLD + "Off"));
 
         List<String> lore = new ArrayList<>();
+        lore.add(Lore.section(ChatColor.AQUA, "What it controls"));
         for (String line : description) {
-            lore.add(ChatColor.DARK_GRAY + line);
+            lore.add(Lore.line(ChatColor.AQUA, line));
         }
         lore.add("");
-        lore.add(ChatColor.YELLOW + "Click to toggle");
+        lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO TOGGLE");
         meta.setLore(lore);
         meta.setEnchantmentGlintOverride(on ? Boolean.TRUE : null);
         item.setItemMeta(meta);

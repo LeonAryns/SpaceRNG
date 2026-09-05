@@ -79,27 +79,29 @@ public class StarforgeGui {
                 ? tier.styledDisplay()
                 : ChatColor.DARK_GRAY + tier.getDisplay());
 
+        List<String> lore = new ArrayList<>();
+        lore.add(Lore.section(ChatColor.LIGHT_PURPLE, "While held"));
         // Same stat/controls block the held item shows, then the price.
-        List<String> lore = new ArrayList<>(starforge.statLines(tier));
+        lore.addAll(starforge.statLines(tier));
         lore.add("");
         if (owned) {
             lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "OWNED");
         } else if (isNext) {
-            lore.add(ChatColor.GRAY + "Price:");
+            lore.add(Lore.section(ChatColor.YELLOW, "Price"));
             for (Map.Entry<Rarity, Long> cost : tier.getCosts().entrySet()) {
                 long held = starforge.countHeld(player, cost.getKey());
-                boolean enough = held >= cost.getValue();
-                lore.add(ChatColor.DARK_GRAY + "- " + (enough ? ChatColor.WHITE : ChatColor.RED)
-                        + ChatColor.BOLD + cost.getValue() + "x "
-                        + plugin.getRarityManager().styleBold(cost.getKey(), cost.getKey().displayName())
-                        + ChatColor.DARK_GRAY + " (" + held + ")");
+                lore.add(Lore.requirement(
+                        plugin.getRarityManager().style(cost.getKey(), cost.getKey().displayName()),
+                        String.valueOf(held), String.valueOf(cost.getValue()),
+                        held >= cost.getValue()));
             }
             lore.add("");
             lore.add(affordable
                     ? ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO BUY"
                     : ChatColor.RED + "" + ChatColor.BOLD + "NOT ENOUGH DROPS");
         } else {
-            lore.add(ChatColor.DARK_GRAY + "Forge the tiers before it first.");
+            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "LOCKED");
+            lore.add(ChatColor.RED + Lore.BULLET + " " + ChatColor.GRAY + "Forge the tiers before it first.");
         }
 
         meta.setLore(lore);
@@ -111,15 +113,16 @@ public class StarforgeGui {
     private static ItemStack buildBalance(SolRNGPlugin plugin, Player player, StarforgeTier current) {
         ItemStack item = new ItemStack(Material.HOPPER);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(ChatColor.GOLD + "" + ChatColor.BOLD + "Your Drops");
+        meta.setDisplayName(Lore.title(ChatColor.GOLD, "Your Drops"));
 
         List<String> lore = new ArrayList<>();
+        lore.add(Lore.section(ChatColor.GOLD, "Spendable here"));
         for (Rarity rarity : Rarity.values()) {
-            lore.add(plugin.getRarityManager().style(rarity, rarity.displayName() + ": ")
+            lore.add(plugin.getRarityManager().style(rarity, Lore.BULLET + " " + rarity.displayName() + ": ")
                     + ChatColor.WHITE + plugin.getStarforgeManager().countHeld(player, rarity));
         }
         lore.add("");
-        lore.add(ChatColor.GRAY + "Current: "
+        lore.add(ChatColor.LIGHT_PURPLE + Lore.BULLET + " " + ChatColor.GRAY + "Forged: "
                 + (current == null ? ChatColor.WHITE + "None" : current.styledDisplay()));
 
         meta.setLore(lore);

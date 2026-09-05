@@ -79,8 +79,6 @@ public class DailyGui {
         meta.setDisplayName(Lore.title(accent, "Day " + day.day()));
 
         List<String> lore = new ArrayList<>();
-        lore.add(Lore.state(claimed ? "claimed" : claimable ? "ready" : current ? "in progress" : "locked"));
-        lore.add("");
         if (!day.note().isEmpty()) {
             lore.add(ChatColor.GRAY + day.note());
             lore.add("");
@@ -110,11 +108,11 @@ public class DailyGui {
         meta.setDisplayName(Lore.title(ChatColor.GOLD, "Your Streak"));
 
         List<String> lore = new ArrayList<>();
-        lore.add(Lore.state("daily"));
+        lore.add(Lore.section(ChatColor.GOLD, "How it works"));
+        lore.add(Lore.line(ChatColor.GOLD, "One claim a day. Miss a day and"));
+        lore.add(Lore.line(ChatColor.GOLD, "the streak starts over."));
         lore.add("");
-        lore.add(ChatColor.GRAY + "One claim a day. Miss a day and the");
-        lore.add(ChatColor.GRAY + "streak starts over — there's no net.");
-        lore.add("");
+        lore.add(Lore.section(ChatColor.AQUA, "Information"));
         lore.add(Lore.stat(ChatColor.GOLD, "Streak", streak + "/" + daily.length()));
         lore.add(Lore.stat(ChatColor.AQUA, "Lifetime claims", String.format("%,d", data.getDailyTotalClaims())));
         lore.add(Lore.stat(ChatColor.YELLOW, "Next claim", daily.timeUntilNext(data)));
@@ -129,12 +127,10 @@ public class DailyGui {
         ItemStack item = new ItemStack(ready ? Material.CHEST : Material.BARRIER);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(ready
-                ? ChatColor.GREEN + "" + ChatColor.BOLD + "CLAIM DAY " + next
-                : ChatColor.RED + "" + ChatColor.BOLD + "ALREADY CLAIMED TODAY");
+                ? Lore.title(ChatColor.GREEN, "Claim Day " + next)
+                : Lore.title(ChatColor.RED, "Already Claimed"));
 
         List<String> lore = new ArrayList<>();
-        lore.add(Lore.state("daily"));
-        lore.add("");
         if (ready) {
             String reward = daily.getDays().isEmpty() ? "" : daily.rewardText(daily.getDays().get(next - 1));
             if (!reward.isEmpty()) {

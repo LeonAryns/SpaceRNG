@@ -34,11 +34,16 @@ public class ConvertGui {
 
         ItemStack confirm = new ItemStack(Material.LIME_CONCRETE);
         ItemMeta confirmMeta = confirm.getItemMeta();
-        confirmMeta.setDisplayName(ChatColor.GREEN + "" + ChatColor.BOLD + "Convert!");
-        confirmMeta.setLore(List.of(ChatColor.GRAY + "Converts every item placed in the",
-                ChatColor.GRAY + "top three rows into stored drops of",
-                ChatColor.GRAY + "the same rarity — spend them in",
-                ChatColor.GRAY + "/armor and /starforge."));
+        confirmMeta.setDisplayName(Lore.title(ChatColor.GREEN, "Convert"));
+        confirmMeta.setLore(List.of(
+                Lore.section(ChatColor.GREEN, "What it does"),
+                Lore.line(ChatColor.GREEN, "Turns everything in the top three"),
+                Lore.line(ChatColor.GREEN, "rows into stored drops of the"),
+                Lore.line(ChatColor.GREEN, "same rarity."),
+                "",
+                ChatColor.DARK_GRAY + Lore.BULLET + " Spend them in /armor and /starforge.",
+                "",
+                ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO CONVERT"));
         confirm.setItemMeta(confirmMeta);
         inv.setItem(ConvertHolder.CONFIRM_SLOT, confirm);
 
@@ -52,10 +57,19 @@ public class ConvertGui {
                     : on ? Material.LIME_CONCRETE : Material.RED_CONCRETE);
             ItemMeta meta = toggle.getItemMeta();
             String status = on ? ChatColor.GREEN + "" + ChatColor.BOLD + "On" : ChatColor.RED + "" + ChatColor.BOLD + "Off";
-            meta.setDisplayName(plugin.getRarityManager().style(rarity, rarity.displayName()) + ChatColor.GRAY + " — " + status);
-            meta.setLore(List.of(autoConvertUnlocked
-                    ? ChatColor.GRAY + "Click to toggle auto-convert for this rarity."
-                    : ChatColor.RED + "Unlock 'Auto-Convert' in /skilltree first."));
+            meta.setDisplayName(plugin.getRarityManager().style(rarity, rarity.displayName())
+                    + ChatColor.DARK_GRAY + " — " + status);
+            meta.setLore(autoConvertUnlocked
+                    ? List.of(
+                            Lore.line(ChatColor.AQUA, "Every " + rarity.displayName() + " you roll goes"),
+                            Lore.line(ChatColor.AQUA, "straight to your bank."),
+                            "",
+                            ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO TOGGLE")
+                    : List.of(
+                            ChatColor.RED + "" + ChatColor.BOLD + "LOCKED",
+                            ChatColor.RED + Lore.BULLET + " " + ChatColor.GRAY + "Unlock "
+                                    + ChatColor.YELLOW + "Auto Convert" + ChatColor.GRAY + " in "
+                                    + ChatColor.YELLOW + "/skilltree"));
             toggle.setItemMeta(meta);
             inv.setItem(slot, toggle);
             slot++;
@@ -82,17 +96,17 @@ public class ConvertGui {
         boolean on = data.isAutoConvertShiny();
         ItemStack item = new ItemStack(on ? Material.LIME_CONCRETE : Material.RED_CONCRETE);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(ChatColor.AQUA + "" + ChatColor.BOLD + "\u2726 Shiny "
-                + ChatColor.RESET + ChatColor.GRAY + "\u2014 "
+        meta.setDisplayName(Lore.title(ChatColor.AQUA, Lore.SPARK + " Shiny")
+                + ChatColor.DARK_GRAY + " — "
                 + (on ? ChatColor.GREEN.toString() + ChatColor.BOLD + "On"
                       : ChatColor.RED.toString() + ChatColor.BOLD + "Off"));
         meta.setLore(List.of(
-                ChatColor.DARK_GRAY + "Shinies are NEVER auto-converted by",
-                ChatColor.DARK_GRAY + "the rarity switches \u2014 only by this one.",
+                Lore.section(ChatColor.AQUA, "Shinies only"),
+                Lore.line(ChatColor.AQUA, "The rarity switches never touch"),
+                Lore.line(ChatColor.AQUA, "a shiny. Only this one does."),
+                Lore.line(ChatColor.AQUA, "They bank separately too."),
                 "",
-                ChatColor.GRAY + "They bank separately from normal drops.",
-                "",
-                ChatColor.YELLOW + "Click to toggle"));
+                ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO TOGGLE"));
         meta.setEnchantmentGlintOverride(on ? Boolean.TRUE : null);
         item.setItemMeta(meta);
         return item;
@@ -101,18 +115,20 @@ public class ConvertGui {
     private static ItemStack buildStoredPanel(SolRNGPlugin plugin, PlayerData data) {
         ItemStack panel = new ItemStack(Material.CHEST);
         ItemMeta meta = panel.getItemMeta();
-        meta.setDisplayName(ChatColor.GOLD + "" + ChatColor.BOLD + "Stored Drops");
+        meta.setDisplayName(Lore.title(ChatColor.GOLD, "Stored Drops"));
 
         List<String> lore = new ArrayList<>();
+        lore.add(Lore.section(ChatColor.GOLD, "Your bank"));
         for (Rarity rarity : Rarity.values()) {
             long shiny = data.getBankedShiny(rarity);
-            lore.add(plugin.getRarityManager().style(rarity, rarity.displayName() + ": ")
-                    + ChatColor.GRAY + data.getBankedDrops(rarity)
-                    + (shiny > 0 ? ChatColor.DARK_GRAY + "  " + ChatColor.AQUA + "\u2726 " + shiny : ""));
+            lore.add(plugin.getRarityManager().style(rarity, Lore.BULLET + " " + rarity.displayName() + ": ")
+                    + ChatColor.WHITE + data.getBankedDrops(rarity)
+                    + (shiny > 0 ? ChatColor.DARK_GRAY + "  " + ChatColor.AQUA + Lore.SPARK + " " + shiny : ""));
         }
         lore.add("");
-        lore.add(ChatColor.GRAY + "Spendable in /armor and /starforge.");
-        lore.add(ChatColor.AQUA + "\u2726 " + ChatColor.DARK_GRAY + "Shinies are banked separately.");
+        lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " Spendable in /armor and /starforge.");
+        lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " " + ChatColor.AQUA + Lore.SPARK
+                + ChatColor.DARK_GRAY + " Shinies bank separately.");
         meta.setLore(lore);
         panel.setItemMeta(meta);
         return panel;

@@ -47,15 +47,20 @@ has nothing to say; never reorder them.
 
 ```
 1  DISPLAY NAME   Lore.title(...) or a HoeGui-style [3★] badge + name
-2  STATE TAG      Lore.state("locked") — dark grey, one word or two
+2  SECTIONS       Lore.section() headers, each followed by ▎ bullet lines
 3  (blank)
-4  SECTIONS       Lore.section() headers, each followed by ▎ bullet lines
-5  (blank)
-6  ACTION FOOTER  what a click does, or why it can't
+4  ACTION FOOTER  what a click does, or why it can't
 ```
 
 The blank lines are load-bearing. A tooltip with no breathing room reads
 as a wall and people stop reading it.
+
+**No category tag under the name.** `Lore.state("upgrade")` under an item
+called "Luck I", or `[FREE TRACK]` under one called "Free 12", is a line
+that costs a row and says nothing. Use `Lore.state` only when it carries
+something the title genuinely doesn't — a season name, a mode. The
+locked/ready/claimed distinction belongs in the footer, where it already
+lives.
 
 ### The action footer, verbatim
 
@@ -98,6 +103,10 @@ can read its state without reading the words.
 - **ALL CAPS on an item's own name**, except deliberate headers and the
   action footer. The user has rejected this twice.
 - Gold for anything that isn't Coins, on the sidebar.
+- A **different icon for the same family of skill**. Luck I through Luck
+  VIII are all a rabbit's foot; if Curator I is a bookshelf then Curator
+  II is a bookshelf too. Recognising a skill you already understand is
+  most of what makes a deep tree readable.
 
 ## Icons
 
@@ -121,8 +130,11 @@ Currency glyphs come from `Currency`, never typed inline.
   Section breaks use the same pane so the eye reads them as structure.
 - **Locked / undefined slots** are `GRAY_DYE` named `???` with a
   dark-grey reason. Showing a locked thing exists beats hiding it.
-- **Navigation**: `SPECTRAL_ARROW` = previous, `ARROW` = next, and both
-  say `Page N/M`. Keep them in the same slots across menus.
+- **Navigation**: `SPECTRAL_ARROW` = back, `ARROW` = forward, and both
+  say `Page N/M`. Keep them in the same slots across menus. In a menu
+  that is climbed from a root at the bottom — the skill trees — they read
+  **▲ Page Up** and **▼ Page Down**, not next/previous: calling a higher
+  page "next" fights what the layout is saying.
 - **The player's own panel** goes top-right or bottom-right and uses
   their head (`PLAYER_HEAD` + `SkullMeta.setOwningPlayer`).
 - **Glint** (`meta.setEnchantmentGlintOverride`) marks *done* or

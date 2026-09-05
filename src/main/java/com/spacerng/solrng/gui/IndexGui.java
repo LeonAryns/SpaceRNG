@@ -98,8 +98,8 @@ public class IndexGui {
         ItemMeta meta = tab.getItemMeta();
         meta.setDisplayName(plugin.getRarityManager().style(rarity, rarity.displayName()));
         meta.setLore(List.of(selected
-                ? ChatColor.YELLOW + "Selected — click to clear"
-                : ChatColor.GRAY + "Click to filter"));
+                ? ChatColor.GREEN + "" + ChatColor.BOLD + "SHOWING THIS TIER"
+                : ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO FILTER"));
         tab.setItemMeta(meta);
         return tab;
     }
@@ -217,32 +217,37 @@ public class IndexGui {
         List<String> lore = new ArrayList<>();
         if (discovered) {
             meta.setDisplayName(RollFormat.displayName(plugin, item));
+            lore.add(Lore.section(ChatColor.AQUA, "The drop"));
             lore.addAll(RollFormat.lore(plugin, item));
             lore.add("");
-            lore.add(ChatColor.GREEN + "✔ Discovered");
+            lore.add(ChatColor.GREEN + Lore.BULLET + " " + ChatColor.GRAY + "Discovered  "
+                    + ChatColor.GREEN + Lore.TICK);
             // The shiny is a second, rarer find of the same drop, so it's a
             // line on the entry rather than an entry of its own.
             lore.add(shiny
-                    ? ChatColor.AQUA + "✦ Shiny found"
-                    : ChatColor.DARK_GRAY + "✦ Shiny not found");
-            lore.add(ChatColor.YELLOW + "Click to equip as your tag");
+                    ? ChatColor.AQUA + Lore.BULLET + " " + ChatColor.GRAY + "Shiny found  "
+                            + ChatColor.AQUA + Lore.SPARK
+                    : ChatColor.DARK_GRAY + Lore.BULLET + " Shiny not found");
+            lore.add("");
+            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO EQUIP AS YOUR TAG");
 
             meta.getPersistentDataContainer().set(plugin.getRollListener().getRarityKey(),
                     PersistentDataType.STRING, item.getRarity().name());
             meta.getPersistentDataContainer().set(plugin.getRollListener().getRollNameKey(),
                     PersistentDataType.STRING, item.getDisplayName());
         } else {
-            meta.setDisplayName(ChatColor.DARK_GRAY + "???");
-            lore.add(ChatColor.GRAY + "Rarity: " + plugin.getRarityManager().style(item.getRarity(), item.getRarity().displayName()));
+            meta.setDisplayName(Lore.title(ChatColor.DARK_GRAY, "???"));
+            lore.add(Lore.section(ChatColor.AQUA, "What's known"));
+            lore.add(Lore.stat(ChatColor.AQUA, "Rarity",
+                    ChatColor.stripColor(item.getRarity().displayName())));
             // The odds show even before it's found — that's the hook that
             // makes an undiscovered slot worth chasing.
-            lore.add(ChatColor.GRAY + "Chance: " + plugin.getRarityManager().style(item.getRarity(),
-                    RollFormat.chance(item.getOdds())));
-            lore.add(ChatColor.GRAY + "Index Luck: " + ChatColor.DARK_AQUA
-                    + String.format("%.2f", item.getLuckMultiplier()) + "x");
+            lore.add(Lore.stat(ChatColor.AQUA, "Chance", RollFormat.chance(item.getOdds())));
+            lore.add(Lore.stat(ChatColor.AQUA, "Index Luck",
+                    String.format("%.2f", item.getLuckMultiplier()) + "x"));
             lore.add("");
-            lore.add(ChatColor.RED + "Not yet discovered");
-            lore.add(ChatColor.DARK_GRAY + "✦ Shiny not found");
+            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "NOT YET DISCOVERED");
+            lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " Shiny not found");
         }
         meta.setLore(lore);
         // A glint on the entry marks the shiny as caught — the same signal

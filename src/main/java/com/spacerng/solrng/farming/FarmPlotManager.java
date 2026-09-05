@@ -331,10 +331,15 @@ public class FarmPlotManager {
         // later, far more expensive nodes feel like nothing.
         multiplier *= plugin.getSkillTreeManager()
                 .multiplierOf(data, com.spacerng.solrng.player.SkillNode.Effect.TOKEN_GAIN);
+        // Per-crop yield skills stack on top, so specialising in one crop
+        // is a real choice against raising every crop a little.
+        double cropYield = plugin.getSkillTreeManager()
+                .multiplierOf(data, com.spacerng.solrng.player.SkillNode.Effect.CROP_YIELD, crop.getId());
+        multiplier *= cropYield;
         long tokens = Math.round(crop.getTokens() * multiplier);
 
         double gemMultiplier = plugin.getSkillTreeManager()
-                .multiplierOf(data, com.spacerng.solrng.player.SkillNode.Effect.GEM_MULTIPLIER);
+                .multiplierOf(data, com.spacerng.solrng.player.SkillNode.Effect.GEM_MULTIPLIER) * cropYield;
         long shards = shardsUnlocked(data)
                 ? Math.round(crop.getShards() * gemMultiplier) : 0L;
 

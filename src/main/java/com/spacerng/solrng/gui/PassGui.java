@@ -26,17 +26,22 @@ import java.util.List;
  */
 public class PassGui {
 
-    private static final int LEVEL_ROW = 0;    // slots 0-8
-    private static final int FREE_ROW = 9;     // slots 9-17
-    private static final int PREMIUM_ROW = 18; // slots 18-26
-    private static final int DIVIDER_ROW = 27; // slots 27-35
-    private static final int NAV_ROW = 36;     // slots 36-44
+    // Free above, levels in the middle, premium below — so one level is a
+    // vertical column of "what this rung is worth on each track", read
+    // top to bottom, instead of two lists you have to line up by eye.
+    private static final int TOP_ROW = 0;      // slots 0-8   banner
+    private static final int FREE_ROW = 9;     // slots 9-17  free track
+    private static final int LEVEL_ROW = 18;   // slots 18-26 level markers
+    private static final int PREMIUM_ROW = 27; // slots 27-35 premium track
+    private static final int DIVIDER_ROW = 36; // slots 36-44
+    private static final int NAV_ROW = 45;     // slots 45-53
 
-    private static final int PREV_SLOT = 36;
-    private static final int PROGRESS_SLOT = 40;
-    private static final int PREMIUM_SLOT = 38;
-    private static final int CLAIM_ALL_SLOT = 42;
-    private static final int NEXT_SLOT = 44;
+    private static final int BANNER_SLOT = 4;
+    private static final int PREV_SLOT = 45;
+    private static final int PREMIUM_SLOT = 47;
+    private static final int PROGRESS_SLOT = 49;
+    private static final int CLAIM_ALL_SLOT = 51;
+    private static final int NEXT_SLOT = 53;
     private static final int PER_PAGE = 9;
 
     public static NamespacedKey levelKey(SolRNGPlugin plugin) {
@@ -73,23 +78,25 @@ public class PassGui {
 
         PassHolder holder = new PassHolder();
         holder.setPage(page);
-        Inventory inv = Bukkit.createInventory(holder, 45,
+        Inventory inv = Bukkit.createInventory(holder, 54,
                 ChatColor.GOLD + "" + ChatColor.BOLD + "Battle Pass"
                         + ChatColor.GRAY + " — " + pass.getSeasonName());
         holder.setInventory(inv);
 
         ItemStack divider = pane(Material.BLACK_STAINED_GLASS_PANE, " ");
         for (int i = 0; i < 9; i++) {
+            inv.setItem(TOP_ROW + i, divider);
             inv.setItem(DIVIDER_ROW + i, divider);
             inv.setItem(NAV_ROW + i, divider);
         }
+        inv.setItem(BANNER_SLOT, banner(pass, page, totalPages));
 
         int current = pass.levelOf(data);
         for (int column = 0; column < PER_PAGE; column++) {
             int level = page * PER_PAGE + column + 1;
             if (level > pass.getMaxLevel()) {
-                inv.setItem(LEVEL_ROW + column, divider);
                 inv.setItem(FREE_ROW + column, divider);
+                inv.setItem(LEVEL_ROW + column, divider);
                 inv.setItem(PREMIUM_ROW + column, divider);
                 continue;
             }
@@ -111,6 +118,21 @@ public class PassGui {
         return inv;
     }
 
+    /** The season's own card, centred above the tracks. */
+    private static ItemStack banner(PassManager pass, int page, int totalPages) {
+        ItemStack item = new ItemStack(Material.WRITTEN_BOOK);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(Lore.title(ChatColor.GOLD, pass.getSeasonName()));
+        meta.setLore(List.of(
+                Lore.line(ChatColor.GREEN, "Free track above the levels."),
+                Lore.line(ChatColor.LIGHT_PURPLE, "Premium track below them."),
+                "",
+                Lore.stat(ChatColor.AQUA, "Levels", String.valueOf(pass.getMaxLevel())),
+                Lore.stat(ChatColor.AQUA, "Page", (page + 1) + " / " + totalPages)));
+        item.setItemMeta(meta);
+        return item;
+    }
+
     /**
      * The level number itself. Green once cleared, yellow for the one
      * being worked on, grey for everything still ahead — the same three
@@ -130,8 +152,6 @@ public class PassGui {
         meta.setDisplayName(Lore.title(accent, "Level " + rung.level()));
 
         List<String> lore = new ArrayList<>();
-        lore.add(Lore.state(cleared ? "cleared" : active ? "in progress" : "locked"));
-        lore.add("");
         if (cleared) {
             lore.add(ChatColor.GREEN + Lore.BULLET + " " + ChatColor.GRAY + "Reached  "
                     + ChatColor.GREEN + Lore.TICK);
@@ -157,7 +177,7 @@ public class PassGui {
             ItemStack empty = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
             ItemMeta emptyMeta = empty.getItemMeta();
             emptyMeta.setDisplayName(Lore.title(ChatColor.DARK_GRAY, premium ? "Premium" : "Free"));
-            emptyMeta.setLore(List.of(Lore.state("empty"), "",
+            emptyMeta.setLore(List.of(
                     ChatColor.DARK_GRAY + Lore.BULLET + " Nothing on this rung."));
             empty.setItemMeta(emptyMeta);
             return empty;
@@ -179,8 +199,6 @@ public class PassGui {
                 (premium ? "Premium" : "Free") + " " + rung.level()));
 
         List<String> lore = new ArrayList<>();
-        lore.add(Lore.state(premium ? "premium track" : "free track"));
-        lore.add("");
         lore.add(Lore.section(accent, "Reward"));
         lore.addAll(pass.describeLines(reward));
         if (!reward.note().isEmpty()) {
@@ -217,8 +235,6 @@ public class PassGui {
         meta.setDisplayName(Lore.title(ChatColor.GOLD, player.getName()));
 
         List<String> lore = new ArrayList<>();
-        lore.add(Lore.state(pass.getSeasonName()));
-        lore.add("");
         lore.add(Lore.stat(ChatColor.GOLD, "Level", current + " / " + pass.getMaxLevel()));
         if (current < pass.getMaxLevel()) {
             long into = pass.xpIntoLevel(data);
@@ -251,8 +267,6 @@ public class PassGui {
         meta.setDisplayName(Lore.title(ChatColor.LIGHT_PURPLE, "Premium Pass"));
 
         List<String> lore = new ArrayList<>();
-        lore.add(Lore.state("season upgrade"));
-        lore.add("");
         lore.add(Lore.section(ChatColor.LIGHT_PURPLE, "What it does"));
         lore.add(Lore.line(ChatColor.LIGHT_PURPLE, "Opens the second reward track."));
         lore.add(Lore.line(ChatColor.LIGHT_PURPLE, "Back-pays every level you"));
@@ -290,8 +304,6 @@ public class PassGui {
         meta.setDisplayName(Lore.title(waiting > 0 ? ChatColor.YELLOW : ChatColor.DARK_GRAY, "Claim All"));
 
         List<String> lore = new ArrayList<>();
-        lore.add(Lore.state("collect"));
-        lore.add("");
         if (waiting > 0) {
             lore.add(Lore.stat(ChatColor.YELLOW, "Waiting",
                     waiting + " reward" + (waiting == 1 ? "" : "s")));

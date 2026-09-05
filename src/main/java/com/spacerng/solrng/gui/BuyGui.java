@@ -62,43 +62,36 @@ public class BuyGui {
         ItemMeta meta = item.getItemMeta();
         // Named after what you'd actually be buying right now, so the shelf
         // reads "Global 2x Luck" rather than a generic product name.
-        meta.setDisplayName(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "GLOBAL "
-                + BoostManager.formatMultiplier(boost.nextMultiplier()).toUpperCase() + " LUCK");
+        meta.setDisplayName(Lore.title(ChatColor.LIGHT_PURPLE, "Global "
+                + BoostManager.formatMultiplier(boost.nextMultiplier()) + " Luck"));
 
         List<String> lore = new ArrayList<>();
-        lore.add(ChatColor.DARK_GRAY + "STORE");
+        lore.add(Lore.section(ChatColor.LIGHT_PURPLE, "What it does"));
+        lore.add(Lore.line(ChatColor.LIGHT_PURPLE, "Multiplies Luck for everyone on"));
+        lore.add(Lore.line(ChatColor.LIGHT_PURPLE, "the server for "
+                + (plugin.getConfig().getInt("boost.duration-seconds", 900) / 60) + " minutes."));
         lore.add("");
-        lore.add(ChatColor.GRAY + "Multiplies Luck for " + ChatColor.WHITE + "everyone");
-        lore.add(ChatColor.GRAY + "on the server for "
-                + ChatColor.WHITE + (plugin.getConfig().getInt("boost.duration-seconds", 900) / 60)
-                + ChatColor.GRAY + " minutes.");
-        lore.add("");
+        lore.add(Lore.section(ChatColor.AQUA, "Right now"));
         if (boost.isActive()) {
-            lore.add(ChatColor.LIGHT_PURPLE + "▎ " + ChatColor.GRAY + "Live now: "
-                    + ChatColor.LIGHT_PURPLE + ChatColor.BOLD
-                    + BoostManager.formatMultiplier(boost.multiplier()));
-            lore.add(ChatColor.LIGHT_PURPLE + "▎ " + ChatColor.GRAY + "Time left: "
-                    + ChatColor.WHITE + boost.timeLeftText());
+            lore.add(Lore.stat(ChatColor.LIGHT_PURPLE, "Live",
+                    BoostManager.formatMultiplier(boost.multiplier())));
+            lore.add(Lore.stat(ChatColor.LIGHT_PURPLE, "Time left", boost.timeLeftText()));
             if (boost.getBoughtBy() != null) {
-                lore.add(ChatColor.LIGHT_PURPLE + "▎ " + ChatColor.GRAY + "Started by: "
-                        + ChatColor.WHITE + boost.getBoughtBy());
+                lore.add(Lore.stat(ChatColor.LIGHT_PURPLE, "Started by", boost.getBoughtBy()));
             }
         } else {
-            lore.add(ChatColor.DARK_GRAY + "▎ " + ChatColor.GRAY + "Nothing running right now.");
+            lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " Nothing running right now.");
         }
         lore.add("");
         if (maxed) {
             lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "MAXED FOR THIS BOOST");
-            lore.add(ChatColor.DARK_GRAY + "Buyable again once it expires.");
+            lore.add(ChatColor.GREEN + Lore.BULLET + " " + ChatColor.GRAY + "Buyable again once it expires.");
         } else {
-            lore.add(ChatColor.YELLOW + "▎ " + ChatColor.GRAY + "Next: "
-                    + ChatColor.LIGHT_PURPLE + ChatColor.BOLD
-                    + BoostManager.formatMultiplier(boost.nextMultiplier())
-                    + ChatColor.RESET + ChatColor.GRAY + " for "
-                    + (affordable ? ChatColor.WHITE : ChatColor.RED)
-                    + String.format("%,d", cost) + " Credits");
-            lore.add(ChatColor.DARK_GRAY + "Buying while it's live doubles it");
-            lore.add(ChatColor.DARK_GRAY + "and resets the clock.");
+            lore.add(Lore.stat(ChatColor.LIGHT_PURPLE, "Next",
+                    BoostManager.formatMultiplier(boost.nextMultiplier())));
+            lore.add((affordable ? ChatColor.YELLOW : ChatColor.RED) + Lore.BULLET + " "
+                    + ChatColor.GRAY + "Cost: " + Currency.CREDITS.price(cost, affordable));
+            lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " Buying while it's live doubles it.");
             lore.add("");
             lore.add(affordable
                     ? ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO BUY"
@@ -122,25 +115,27 @@ public class BuyGui {
 
         ItemStack item = new ItemStack(Material.WRITTEN_BOOK);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "PREMIUM BATTLE PASS");
+        meta.setDisplayName(Lore.title(ChatColor.LIGHT_PURPLE, "Premium Battle Pass"));
 
         java.util.List<String> lore = new java.util.ArrayList<>();
-        lore.add(ChatColor.DARK_GRAY + pass.getSeasonName().toUpperCase());
-        lore.add("");
-        lore.add(ChatColor.GRAY + "A second reward track for the whole");
-        lore.add(ChatColor.GRAY + "season, including every level you have");
-        lore.add(ChatColor.GRAY + "already cleared.");
+        lore.add(Lore.section(ChatColor.LIGHT_PURPLE, pass.getSeasonName()));
+        lore.add(Lore.line(ChatColor.LIGHT_PURPLE, "A second reward track for the"));
+        lore.add(Lore.line(ChatColor.LIGHT_PURPLE, "whole season, including every"));
+        lore.add(Lore.line(ChatColor.LIGHT_PURPLE, "level you have already cleared."));
         lore.add("");
         if (owned) {
             lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "UNLOCKED");
-            lore.add(ChatColor.GRAY + "Claim your rewards in " + ChatColor.YELLOW + "/pass");
+            lore.add(ChatColor.GREEN + Lore.BULLET + " " + ChatColor.GRAY + "Claim it in "
+                    + ChatColor.YELLOW + "/pass");
         } else {
-            lore.add(ChatColor.LIGHT_PURPLE + "▎ " + ChatColor.GRAY + "Price: " + ChatColor.LIGHT_PURPLE
-                    + String.format("%,d", pass.getPremiumCost()) + " Credits");
-            lore.add(ChatColor.DARK_GRAY + "▎ You have " + ChatColor.LIGHT_PURPLE
-                    + String.format("%,d", data.getPoints()) + " Credits");
+            boolean affordable = data.getPoints() >= pass.getPremiumCost();
+            lore.add(Lore.section(ChatColor.AQUA, "Information"));
+            lore.add((affordable ? ChatColor.YELLOW : ChatColor.RED) + Lore.BULLET + " "
+                    + ChatColor.GRAY + "Cost: " + Currency.CREDITS.price(pass.getPremiumCost(), affordable));
+            lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " " + ChatColor.DARK_GRAY + "You have "
+                    + Currency.CREDITS.amount(data.getPoints()));
             lore.add("");
-            lore.add(data.getPoints() >= pass.getPremiumCost()
+            lore.add(affordable
                     ? ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO UNLOCK"
                     : ChatColor.RED + "" + ChatColor.BOLD + "NOT ENOUGH CREDITS");
         }
@@ -153,16 +148,14 @@ public class BuyGui {
     private static ItemStack comingSoon(Material material, String name, String... description) {
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(ChatColor.DARK_GRAY + "" + ChatColor.BOLD + name);
+        meta.setDisplayName(Lore.title(ChatColor.DARK_GRAY, name));
 
         List<String> lore = new ArrayList<>();
-        lore.add(ChatColor.DARK_GRAY + "STORE");
-        lore.add("");
         for (String line : description) {
-            lore.add(ChatColor.GRAY + line);
+            lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " " + line);
         }
         lore.add("");
-        lore.add(ChatColor.DARK_GRAY + "Coming soon");
+        lore.add(ChatColor.DARK_GRAY + "" + ChatColor.BOLD + "COMING SOON");
         meta.setLore(lore);
         item.setItemMeta(meta);
         return item;
@@ -171,14 +164,12 @@ public class BuyGui {
     private static ItemStack buildBalance(PlayerData data) {
         ItemStack item = new ItemStack(Material.SUNFLOWER);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(ChatColor.GOLD + "" + ChatColor.BOLD + "YOUR CREDITS");
+        meta.setDisplayName(Lore.title(ChatColor.LIGHT_PURPLE, "Your Credits"));
         meta.setLore(List.of(
-                ChatColor.DARK_GRAY + "STORE",
+                Currency.CREDITS.colour() + Lore.BULLET + " " + Currency.CREDITS.amount(data.getPoints()),
                 "",
-                ChatColor.YELLOW + "▎ " + ChatColor.WHITE + RollFormat.abbreviate(data.getPoints()) + " Credits",
-                "",
-                ChatColor.GRAY + "Credits can't be earned in game —",
-                ChatColor.GRAY + "they only come from the web store."));
+                ChatColor.DARK_GRAY + Lore.BULLET + " Credits can't be earned in game —",
+                ChatColor.DARK_GRAY + Lore.BULLET + " they only come from the web store."));
         item.setItemMeta(meta);
         return item;
     }

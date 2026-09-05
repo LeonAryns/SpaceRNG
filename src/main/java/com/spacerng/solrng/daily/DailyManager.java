@@ -122,19 +122,15 @@ public class DailyManager {
         data.setDailyLastClaimDay(today());
         data.addDailyTotalClaims(1L);
 
-        // Daily Devotion scales what the streak pays. Credits are left out
-        // on purpose: they're the paid-store currency, and a skill that
-        // multiplied them would make them earnable through gameplay.
-        double bonus = plugin.getSkillTreeManager()
-                .multiplierOf(data, com.spacerng.solrng.player.SkillNode.Effect.DAILY_BONUS);
-        if (reward.tokens() > 0) data.addTokens(Math.round(reward.tokens() * bonus));
-        if (reward.shards() > 0) data.addShards(Math.round(reward.shards() * bonus));
+        // A streak pays the same to everyone, on purpose: no skill scales
+        // it. The reward for turning up every day shouldn't depend on how
+        // deep into a tree you happen to be.
+        if (reward.tokens() > 0) data.addTokens(reward.tokens());
+        if (reward.shards() > 0) data.addShards(reward.shards());
         if (reward.credits() > 0) data.addPoints(reward.credits());
         if (reward.money() > 0) {
             var registration = Bukkit.getServicesManager().getRegistration(Economy.class);
-            if (registration != null) {
-                registration.getProvider().depositPlayer(player, reward.money() * bonus);
-            }
+            if (registration != null) registration.getProvider().depositPlayer(player, reward.money());
         }
 
         player.sendMessage("");

@@ -61,26 +61,29 @@ public class CropsGui {
 
         ItemStack icon = new ItemStack(unlocked ? seedItem(crop.getMaterial()) : Material.GRAY_DYE);
         ItemMeta meta = icon.getItemMeta();
-        meta.setDisplayName((selected ? ChatColor.GREEN : unlocked ? ChatColor.YELLOW : ChatColor.DARK_GRAY)
-                + "" + ChatColor.BOLD + crop.getDisplay());
+        meta.setDisplayName(Lore.title(
+                selected ? ChatColor.GREEN : unlocked ? ChatColor.YELLOW : ChatColor.DARK_GRAY,
+                crop.getDisplay()));
 
         List<String> lore = new ArrayList<>();
-        lore.add(ChatColor.GRAY + "Per harvest:");
-        lore.add(ChatColor.YELLOW + "◆ " + String.format("%,d", crop.getTokens()) + " Tokens");
+        lore.add(Lore.section(ChatColor.GREEN, "Per harvest"));
+        lore.add(Currency.TOKENS.colour() + Lore.BULLET + " " + Currency.TOKENS.exact(crop.getTokens()));
         if (crop.getShards() > 0) {
-            boolean shards = farm.shardsUnlocked(data);
-            lore.add((shards ? ChatColor.AQUA : ChatColor.DARK_GRAY) + "◆ "
-                    + String.format("%,d", crop.getShards()) + " Gems"
-                    + (shards ? "" : ChatColor.DARK_GRAY + " (locked)"));
+            boolean gems = farm.shardsUnlocked(data);
+            lore.add((gems ? Currency.GEMS.colour() : ChatColor.DARK_GRAY) + Lore.BULLET + " "
+                    + (gems ? Currency.GEMS.exact(crop.getShards())
+                            : ChatColor.DARK_GRAY + Currency.GEMS.icon() + " "
+                                    + String.format("%,d", crop.getShards()) + " Gems (locked)"));
         }
         lore.add("");
         if (selected) {
             lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "GROWING NOW");
         } else if (unlocked) {
-            lore.add(ChatColor.YELLOW + "Click to plant this");
+            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO PLANT");
         } else {
-            lore.add(ChatColor.RED + "Locked");
-            lore.add(ChatColor.DARK_GRAY + "Needs: " + crop.getRequiresNode());
+            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "LOCKED");
+            lore.add(ChatColor.RED + Lore.BULLET + " " + ChatColor.GRAY + "Unlock it in "
+                    + ChatColor.YELLOW + "/farmtree");
         }
 
         meta.setLore(lore);
@@ -104,15 +107,16 @@ public class CropsGui {
     private static ItemStack info(SolRNGPlugin plugin, PlayerData data, FarmPlotManager farm) {
         ItemStack item = new ItemStack(Material.HOPPER);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(ChatColor.GOLD + "" + ChatColor.BOLD + "Your Farm");
+        meta.setDisplayName(Lore.title(ChatColor.GOLD, "Your Farm"));
         meta.setLore(List.of(
-                ChatColor.GRAY + "The field is shared, but the crop on it",
-                ChatColor.GRAY + "is yours alone — nobody else sees your",
-                ChatColor.GRAY + "choice, or your harvests.",
+                Lore.section(ChatColor.GREEN, "How it works"),
+                Lore.line(ChatColor.GREEN, "The field is shared, but the crop"),
+                Lore.line(ChatColor.GREEN, "on it is yours alone."),
                 "",
-                ChatColor.GRAY + "Harvested: " + ChatColor.WHITE + String.format("%,d", data.getCropsHarvested()),
-                ChatColor.GRAY + "Gem payouts: "
-                        + (farm.shardsUnlocked(data) ? ChatColor.GREEN + "Unlocked" : ChatColor.RED + "Locked")));
+                Lore.section(ChatColor.AQUA, "Information"),
+                Lore.stat(ChatColor.AQUA, "Harvested", String.format("%,d", data.getCropsHarvested())),
+                Lore.stat(ChatColor.AQUA, "Gem payouts",
+                        farm.shardsUnlocked(data) ? "Unlocked" : "Locked")));
         item.setItemMeta(meta);
         return item;
     }

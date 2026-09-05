@@ -127,27 +127,29 @@ public class MilestoneGui {
 
         ItemStack icon = new ItemStack(track.getIcon());
         ItemMeta meta = icon.getItemMeta();
-        meta.setDisplayName((active ? ChatColor.GREEN : ChatColor.YELLOW) + "" + ChatColor.BOLD
-                + track.getDisplay().toUpperCase());
+        meta.setDisplayName(Lore.title(active ? ChatColor.GREEN : ChatColor.YELLOW, track.getDisplay()));
 
         List<String> lore = new ArrayList<>();
-        lore.add(ChatColor.DARK_GRAY + "MILESTONES");
-        lore.add("");
         if (!track.getDescription().isEmpty()) {
-            lore.add(ChatColor.GRAY + track.getDescription());
+            lore.add(Lore.section(ChatColor.YELLOW, "About"));
+            lore.add(Lore.line(ChatColor.YELLOW, track.getDescription()));
             lore.add("");
         }
-        lore.add(ChatColor.YELLOW + BULLET + " " + ChatColor.GRAY + "Completed: "
-                + (done == total ? ChatColor.GREEN : ChatColor.WHITE) + done + ChatColor.GRAY + "/" + total);
-        lore.add(ChatColor.YELLOW + BULLET + " " + ChatColor.GRAY + "Progress: " + ChatColor.WHITE
-                + String.format("%,d", progress) + ChatColor.GRAY + " " + track.getUnit());
+        lore.add(Lore.section(ChatColor.AQUA, "Information"));
+        lore.add(Lore.stat(done == total ? ChatColor.GREEN : ChatColor.AQUA,
+                "Completed", done + " / " + total));
+        lore.add(Lore.stat(ChatColor.AQUA, "Progress",
+                String.format("%,d", progress) + " " + track.getUnit()));
+        lore.add(Lore.bar(total == 0 ? 0.0 : (double) done / total));
         int ready = plugin.getMilestoneManager().claimableCount(player, data, track);
         if (ready > 0) {
-            lore.add(ChatColor.YELLOW + BULLET + " " + ChatColor.GOLD + ChatColor.BOLD
-                    + ready + " reward" + (ready == 1 ? "" : "s") + " to claim");
+            lore.add(Lore.stat(ChatColor.GOLD, "Waiting",
+                    ready + " reward" + (ready == 1 ? "" : "s") + " to claim"));
         }
         lore.add("");
-        lore.add(active ? ChatColor.GREEN + "Viewing this track" : ChatColor.YELLOW + "Click to view");
+        lore.add(active
+                ? ChatColor.GREEN + "" + ChatColor.BOLD + "VIEWING"
+                : ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO VIEW");
 
         meta.setLore(lore);
         // Glint marks the open tab without changing its icon, so the row
@@ -169,39 +171,50 @@ public class MilestoneGui {
         boolean claimable = reached && !claimed;
         ChatColor accent = claimed ? ChatColor.GREEN : claimable ? ChatColor.YELLOW : ChatColor.RED;
 
-        // Three states, three colours: still to earn, earned and waiting,
-        // and spent. A claimable rung also glints so a full menu shows what
-        // there is to collect without reading anything.
+        // Three states, three icons: a lodestone for a rung still out of
+        // reach, a lime pane for one earned and waiting, a green pane for
+        // one already spent. A claimable rung also glints, so a full menu
+        // shows what there is to collect without reading anything.
         ItemStack pane = new ItemStack(claimed
                 ? Material.GREEN_STAINED_GLASS_PANE
-                : claimable ? Material.LIME_STAINED_GLASS_PANE : Material.RED_STAINED_GLASS_PANE);
+                : claimable ? Material.LIME_STAINED_GLASS_PANE : Material.LODESTONE);
         ItemMeta meta = pane.getItemMeta();
-        meta.setDisplayName(accent + "" + ChatColor.BOLD
-                + String.format("%,d", tier.threshold()) + " " + track.getUnit().toUpperCase()
-                + ChatColor.DARK_GRAY + " [" + (claimed ? "CLAIMED" : claimable ? "READY" : "LOCKED") + "]");
+        meta.setDisplayName(Lore.title(accent,
+                String.format("%,d", tier.threshold()) + " " + track.getUnit()));
 
         List<String> lore = new ArrayList<>();
-        lore.add(ChatColor.DARK_GRAY + "MILESTONES");
+        lore.add(Lore.section(ChatColor.AQUA, "Goal"));
+        lore.add(Lore.line(ChatColor.AQUA, track.getVerb() + " " + String.format("%,d", tier.threshold())
+                + " " + track.getUnit() + "."));
         lore.add("");
-        lore.add(ChatColor.GRAY + track.getVerb() + " " + ChatColor.WHITE + String.format("%,d", tier.threshold())
-                + ChatColor.GRAY + " " + track.getUnit() + " to");
-        lore.add(ChatColor.GRAY + "unlock this reward.");
-        lore.add("");
-        if (tier.tokens() > 0) {
-            lore.add(accent + BULLET + " " + ChatColor.WHITE + RollFormat.abbreviate(tier.tokens()) + " Tokens");
+        if (tier.tokens() > 0 || tier.shards() > 0 || tier.money() > 0) {
+            lore.add(Lore.section(ChatColor.GOLD, "Reward"));
+            if (tier.tokens() > 0) {
+                lore.add(Currency.TOKENS.colour() + Lore.BULLET + " " + Currency.TOKENS.amount(tier.tokens()));
+            }
+            if (tier.shards() > 0) {
+                lore.add(Currency.GEMS.colour() + Lore.BULLET + " " + Currency.GEMS.amount(tier.shards()));
+            }
+            if (tier.money() > 0) {
+                lore.add(Currency.COINS.colour() + Lore.BULLET + " "
+                        + Currency.COINS.amount(Math.round(tier.money())));
+            }
             lore.add("");
         }
-        lore.add(accent + BULLET + " " + ChatColor.GRAY + "Progress: " + ChatColor.WHITE
-                + String.format("%,d", Math.min(progress, tier.threshold()))
-                + ChatColor.GRAY + "/" + ChatColor.WHITE + String.format("%,d", tier.threshold()));
-        lore.add(accent + BULLET + " " + progressBar(progress, tier.threshold()));
+        lore.add(Lore.section(ChatColor.AQUA, "Progress"));
+        lore.add(Lore.requirement(track.getUnit(),
+                String.format("%,d", Math.min(progress, tier.threshold())),
+                String.format("%,d", tier.threshold()), progress >= tier.threshold()));
+        lore.add(Lore.bar(tier.threshold() <= 0 ? 1.0 : (double) progress / tier.threshold()));
         lore.add("");
         if (claimed) {
-            lore.add(ChatColor.GREEN + "✔ Claimed");
+            lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "CLAIMED");
         } else if (claimable) {
             lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO CLAIM");
         } else {
-            lore.add(ChatColor.RED + String.format("%,d", tier.threshold() - progress) + " to go");
+            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "LOCKED");
+            lore.add(ChatColor.RED + Lore.BULLET + " " + ChatColor.GRAY
+                    + String.format("%,d", tier.threshold() - progress) + " " + track.getUnit() + " to go");
         }
 
         meta.setLore(lore);

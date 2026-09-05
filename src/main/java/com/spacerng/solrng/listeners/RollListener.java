@@ -255,7 +255,7 @@ public class RollListener implements Listener {
         // then the final frames ARE the drop you're about to be handed.
         // Rolling at the end instead meant the reel visibly stopped on one
         // item and gave you a different one.
-        RollableItem result = rollWithPity(data, luck);
+        RollableItem result = plugin.getRarityManager().roll(luck);
         boolean shiny = rollShiny(data);
 
         // An Epic+ roll is stretched to at least the length of its own
@@ -317,38 +317,6 @@ public class RollListener implements Listener {
         }, 0L, 2L);
 
         rollingTasks.put(player.getUniqueId(), taskHolder[0]);
-    }
-
-    /**
-     * Applies the Pity Timer skills. Each one watches its own rarity: when
-     * `interval` rolls have gone by without a drop of at least that
-     * rarity, the next roll is forced to be one.
-     *
-     * The normal roll happens first and is only overridden if it came out
-     * below the floor — so a pity timer never downgrades a lucky roll, and
-     * a natural hit resets the counter exactly like a forced one.
-     */
-    private RollableItem rollWithPity(PlayerData data, double luck) {
-        RollableItem result = plugin.getRarityManager().roll(luck);
-
-        Rarity floor = null;
-        for (SkillNode node : plugin.getSkillTreeManager().owned(data, SkillNode.Effect.PITY)) {
-            if (node.getInterval() <= 0 || node.getTarget() == null) continue;
-            Rarity min;
-            try {
-                min = Rarity.valueOf(node.getTarget().toUpperCase());
-            } catch (IllegalArgumentException ex) {
-                continue;
-            }
-            // +1 because this roll is the one the counter is about to reach.
-            if (data.getRollsSince(min) + 1 < node.getInterval()) continue;
-            if (floor == null || min.ordinal() > floor.ordinal()) floor = min;
-        }
-
-        if (floor != null && result.getRarity().ordinal() < floor.ordinal()) {
-            return plugin.getRarityManager().rollAtLeast(luck, floor);
-        }
-        return result;
     }
 
     /** Instant Roll: the whole animation collapses to a single tick. */
@@ -521,9 +489,6 @@ public class RollListener implements Listener {
                     + ChatColor.GRAY + "  " + RollFormat.compactOdds(result.getOdds()) + moneyText);
         }
 
-        // Advance the pity counters for every tier this roll didn't reach,
-        // and clear the ones it did.
-        data.notePityRoll(rarity);
         plugin.getPassManager().awardRoll(player, data, rarity);
 
         maybeRegisterDiscovery(player, data, result, silent, shiny);

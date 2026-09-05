@@ -84,26 +84,24 @@ public class NovaCoreGui {
 
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName((cleared ? ChatColor.GREEN : next ? ChatColor.YELLOW : ChatColor.GRAY)
-                + "" + ChatColor.BOLD + "TIER " + tier
-                + (checkpoint ? ChatColor.AQUA + " ✦" : ""));
+        meta.setDisplayName(Lore.title(cleared ? ChatColor.GREEN : next ? ChatColor.YELLOW : ChatColor.GRAY,
+                "Tier " + tier + (checkpoint ? " " + Lore.SPARK : "")));
 
         List<String> lore = new ArrayList<>();
-        lore.add(ChatColor.DARK_GRAY + "NOVA CORE");
-        lore.add("");
-        lore.add((cleared ? ChatColor.GREEN : ChatColor.YELLOW) + "▎ " + ChatColor.GRAY + "Luck: "
-                + ChatColor.LIGHT_PURPLE + String.format("%.2f", nova.multiplierAt(tier)) + "x");
+        lore.add(Lore.section(ChatColor.LIGHT_PURPLE, "Holding this tier"));
+        lore.add(Lore.line(ChatColor.LIGHT_PURPLE,
+                String.format("%.2f", nova.multiplierAt(tier)) + "x Luck, Coins and Tokens"));
         if (checkpoint) {
-            lore.add(ChatColor.AQUA + "▎ " + ChatColor.GRAY + "Checkpoint");
-            lore.add(ChatColor.DARK_GRAY + "   A shatter never falls below here.");
+            lore.add(Lore.line(ChatColor.AQUA, "Checkpoint — a shatter never"));
+            lore.add(Lore.line(ChatColor.AQUA, "drops you below here."));
         }
         lore.add("");
         if (cleared) {
-            lore.add(ChatColor.GREEN + "✔ Forged");
+            lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "FORGED");
         } else if (next) {
             lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "NEXT UP");
         } else {
-            lore.add(ChatColor.DARK_GRAY + "Locked");
+            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "LOCKED");
         }
 
         meta.setLore(lore);
@@ -119,21 +117,19 @@ public class NovaCoreGui {
         meta.setDisplayName(nova.styledName());
 
         List<String> lore = new ArrayList<>();
-        lore.add(ChatColor.DARK_GRAY + "PUSH YOUR LUCK");
+        lore.add(Lore.section(ChatColor.LIGHT_PURPLE, "How it works"));
+        lore.add(Lore.line(ChatColor.LIGHT_PURPLE, "Every forge climbs a tier, or"));
+        lore.add(Lore.line(ChatColor.LIGHT_PURPLE, "drops you to the last checkpoint."));
+        lore.add(Lore.line(ChatColor.LIGHT_PURPLE, "Every tier held multiplies Luck,"));
+        lore.add(Lore.line(ChatColor.LIGHT_PURPLE, "Coins and Tokens at once."));
         lore.add("");
-        lore.add(ChatColor.GRAY + "Every forge climbs a tier, or drops");
-        lore.add(ChatColor.GRAY + "you to the last checkpoint.");
-        lore.add("");
-        lore.add(ChatColor.AQUA + "▎ " + ChatColor.GRAY + "Tier: " + ChatColor.AQUA + ChatColor.BOLD + tier
-                + ChatColor.GRAY + "/" + ChatColor.AQUA + nova.getMaxTier());
-        lore.add(ChatColor.LIGHT_PURPLE + "▎ " + ChatColor.GRAY + "Multi: " + ChatColor.LIGHT_PURPLE
-                + ChatColor.BOLD + String.format("%.2f", nova.multiplierAt(tier)) + "x");
-        lore.add(ChatColor.YELLOW + "▎ " + ChatColor.GRAY + "Best ever: " + ChatColor.WHITE
-                + data.getNovaBestTier());
-        lore.add(ChatColor.GREEN + "▎ " + ChatColor.GRAY + "Safety net: " + ChatColor.WHITE + "tier "
-                + nova.checkpointBelow(tier));
-        lore.add("");
-        lore.add(ChatColor.DARK_GRAY + "Checkpoints: " + ChatColor.GRAY + nova.checkpointList());
+        lore.add(Lore.section(ChatColor.AQUA, "Information"));
+        lore.add(Lore.stat(ChatColor.AQUA, "Tier", tier + " / " + nova.getMaxTier()));
+        lore.add(Lore.stat(ChatColor.LIGHT_PURPLE, "Multiplier",
+                String.format("%.2f", nova.multiplierAt(tier)) + "x"));
+        lore.add(Lore.stat(ChatColor.YELLOW, "Best ever", String.valueOf(data.getNovaBestTier())));
+        lore.add(Lore.stat(ChatColor.GREEN, "Safety net", "tier " + nova.checkpointBelow(tier)));
+        lore.add(Lore.stat(ChatColor.DARK_AQUA, "Checkpoints", nova.checkpointList()));
         meta.setLore(lore);
         meta.setEnchantmentGlintOverride(Boolean.TRUE);
         item.setItemMeta(meta);
@@ -150,26 +146,24 @@ public class NovaCoreGui {
         ItemStack item = new ItemStack(maxed ? Material.NETHER_STAR : Material.HEART_OF_THE_SEA);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(maxed
-                ? ChatColor.GREEN + "" + ChatColor.BOLD + "FULLY FORGED"
-                : ChatColor.YELLOW + "" + ChatColor.BOLD + "FORGE TIER " + (tier + 1));
+                ? Lore.title(ChatColor.GREEN, "Fully Forged")
+                : Lore.title(ChatColor.YELLOW, "Forge Tier " + (tier + 1)));
 
         List<String> lore = new ArrayList<>();
-        lore.add(ChatColor.DARK_GRAY + "NOVA CORE");
-        lore.add("");
         if (maxed) {
-            lore.add(ChatColor.GREEN + "There's nothing left to climb.");
+            lore.add(Lore.line(ChatColor.GREEN, "There's nothing left to climb."));
+            lore.add("");
+            lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "MAXED");
         } else {
             ChatColor odds = chance >= 0.5 ? ChatColor.GREEN : chance >= 0.2 ? ChatColor.YELLOW : ChatColor.RED;
-            lore.add(odds + "▎ " + ChatColor.GRAY + "Success: " + odds + ChatColor.BOLD
-                    + String.format("%.1f%%", chance * 100.0));
-            lore.add((affordable ? ChatColor.YELLOW : ChatColor.RED) + "▎ " + ChatColor.GRAY + "Cost: "
-                    + (affordable ? ChatColor.WHITE : ChatColor.RED)
-                    + String.format("%,d", cost) + ChatColor.GRAY + " Tokens");
-            lore.add(ChatColor.RED + "▎ " + ChatColor.GRAY + "On fail: " + ChatColor.RED + "back to tier "
-                    + nova.checkpointBelow(tier));
+            lore.add(Lore.section(ChatColor.AQUA, "This attempt"));
+            lore.add(Lore.stat(odds, "Success", String.format("%.1f%%", chance * 100.0)));
+            lore.add((affordable ? ChatColor.YELLOW : ChatColor.RED) + Lore.BULLET + " "
+                    + ChatColor.GRAY + "Cost: " + Currency.TOKENS.price(cost, affordable));
+            lore.add(Lore.stat(ChatColor.RED, "On fail", "back to tier " + nova.checkpointBelow(tier)));
             lore.add("");
-            lore.add(ChatColor.DARK_GRAY + "Your Luck raises the odds. The Nova");
-            lore.add(ChatColor.DARK_GRAY + "Core's own multiplier does not.");
+            lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " Your Luck raises the odds. The Core's");
+            lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " own multiplier does not.");
             lore.add("");
             lore.add(affordable
                     ? ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO FORGE"

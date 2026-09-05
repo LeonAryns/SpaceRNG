@@ -67,7 +67,8 @@ public class HoeGui {
                                           HoeEnchantManager.Enchant enchant) {
         boolean unlocked = hoe.isUnlocked(data, enchant.id());
         int level = hoe.levelOf(data, enchant.id());
-        boolean maxed = level >= enchant.maxLevel();
+        int cap = hoe.maxLevelFor(data, enchant);
+        boolean maxed = level >= cap;
         long cost = hoe.costFor(enchant, level);
         boolean affordable = data.getTokens() >= cost;
 
@@ -81,7 +82,7 @@ public class HoeGui {
 
         List<String> lore = new ArrayList<>();
         lore.add(ChatColor.DARK_GRAY + enchant.display().toUpperCase() + " CHANCE: "
-                + ChatColor.AQUA + hoe.describePower(enchant, level));
+                + ChatColor.AQUA + hoe.describePower(data, enchant.id()));
         lore.add("");
         lore.add(Lore.section(ChatColor.AQUA, "Description"));
         for (String line : wrap(enchant.description())) {
@@ -91,7 +92,7 @@ public class HoeGui {
         lore.add(Lore.section(ChatColor.AQUA, "Information"));
         lore.add(ChatColor.AQUA + Lore.BULLET + " " + ChatColor.WHITE + "Level: "
                 + ChatColor.GREEN + level + ChatColor.GRAY + " / " + ChatColor.RED
-                + String.format("%,d", enchant.maxLevel()));
+                + String.format("%,d", cap));
         if (!maxed) {
             lore.add(ChatColor.AQUA + Lore.BULLET + " " + ChatColor.WHITE + "Cost: "
                     + (affordable ? ChatColor.YELLOW : ChatColor.RED) + Lore.shorten(cost)
