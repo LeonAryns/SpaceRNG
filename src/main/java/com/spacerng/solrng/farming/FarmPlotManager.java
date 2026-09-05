@@ -74,8 +74,9 @@ public class FarmPlotManager {
      */
     private static final Material LEGACY_MARKER = Material.WHEAT;
 
-    /** Momentum stops compounding here, so a long session can't run away. */
-    private static final long MOMENTUM_CAP = 50L;
+    // Momentum has no stack cap any more — the ceiling is the Momentum
+    // enchant's level, which is a thing you buy rather than a constant
+    // nobody could see.
 
     private final SolRNGPlugin plugin;
     private final NamespacedKey plotItemKey;
@@ -98,6 +99,9 @@ public class FarmPlotManager {
     private float harvestPitch = 1.4f;
     private org.bukkit.Sound procSound = org.bukkit.Sound.BLOCK_AMETHYST_BLOCK_CHIME;
     private float procPitch = 1.7f;
+    private double momentumPerThousand = 0.01;
+    private double momentumPerLevelCap = 0.05;
+    private long momentumIdleMillis = 30_000L;
 
     public FarmPlotManager(SolRNGPlugin plugin) {
         this.plugin = plugin;
@@ -116,6 +120,9 @@ public class FarmPlotManager {
         procSound = soundOf(config.getString("farming.sounds.enchant-proc"),
                 org.bukkit.Sound.BLOCK_AMETHYST_BLOCK_CHIME);
         procPitch = (float) config.getDouble("farming.sounds.enchant-proc-pitch", 1.7);
+        momentumPerThousand = config.getDouble("farming.momentum.per-thousand-crops", 0.01);
+        momentumPerLevelCap = config.getDouble("farming.momentum.per-level-cap", 0.05);
+        momentumIdleMillis = Math.max(1L, config.getLong("farming.momentum.idle-seconds", 30L)) * 1000L;
 
         ConfigurationSection section = config.getConfigurationSection("farming.crop-types");
         if (section != null) {
@@ -412,12 +419,15 @@ public class FarmPlotManager {
         int regrow = regrowTicksFor(data);
         mine.put(plot, now + regrow);
 
-        // The tool itself, Token Greed and Momentum all scale the base
-        // payout; Fortune doubles whatever comes out of that.
+        // The tool itself and Token Greed add to the base payout; Fortune
+        // doubles whatever comes out of that.
         double multiplier = data.getFarmTokenMultiplier()
                 + plugin.getFarmingManager().tierOf(data).tokenBonus()
-                + hoe.powerOf(data, "TOKEN_GREED")
-                + momentumBonus(player, hoe, data, chain);
+                + hoe.powerOf(data, "TOKEN_GREED");
+        // Momentum MULTIPLIES instead of adding. It's the one bonus that
+        // has to be earned live rather than bought, so it should be worth
+        // more the better everything else already is.
+        multiplier *= momentumMultiplier(player, hoe, data, chain);
 
         // Same universal multiplier the Nova Core gives Luck and Money.
         multiplier *= plugin.getNovaCoreManager().multiplierAt(data.getNovaTier());
@@ -490,22 +500,52 @@ public class FarmPlotManager {
     }
 
     /**
-     * Momentum: an unbroken run of harvests builds a bonus that decays the
-     * moment you stop. It rewards staying in the field rather than clicking
-     * a plot every few minutes, which is the behaviour a farm wants.
+     * Momentum: an unbroken run of harvests builds a multiplier that is
+     * gone the moment you stop. It rewards staying in the field rather
+     * than clicking a plot every few minutes, which is the behaviour a
+     * farm wants.
+     *
+     * The enchant sets the CEILING, the field fills it. That split is the
+     * whole point: it's the one farm bonus you can't simply buy, and the
+     * boss bar exists so nobody is quietly sitting on a number they can't
+     * see.
      */
-    private double momentumBonus(Player player, HoeEnchantManager hoe, PlayerData data, boolean chain) {
-        double perStack = hoe.powerOf(data, "MOMENTUM");
-        if (perStack <= 0) return 0.0;
+    private double momentumMultiplier(Player player, HoeEnchantManager hoe, PlayerData data, boolean chain) {
+        int level = hoe.levelOf(data, "MOMENTUM");
+        double cap = momentumPerLevelCap * level;
+        if (cap <= 0) {
+            plugin.getMomentumBar().hide(player.getUniqueId());
+            return 1.0;
+        }
 
         long[] state = momentum.computeIfAbsent(player.getUniqueId(), k -> new long[]{0L, 0L});
         long now = System.currentTimeMillis();
         if (chain) {
-            // More than five seconds idle and the run is over.
-            state[0] = (now - state[1] > 5_000L) ? 1L : Math.min(state[0] + 1L, MOMENTUM_CAP);
+            state[0] = (now - state[1] > momentumIdleMillis) ? 1L : state[0] + 1L;
             state[1] = now;
         }
-        return perStack * state[0];
+
+        double bonus = Math.min(cap, (state[0] / 1000.0) * momentumPerThousand);
+        if (chain) {
+            plugin.getMomentumBar().update(player, state[0], bonus, cap);
+        }
+        return 1.0 + bonus;
+    }
+
+    /**
+     * Ends any run that has gone quiet and takes its bar down. Run on a
+     * timer rather than from a "stopped farming" event, because there
+     * isn't one — you stop by simply not doing anything.
+     */
+    public void expireMomentum() {
+        long now = System.currentTimeMillis();
+        java.util.Iterator<Map.Entry<UUID, long[]>> it = momentum.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<UUID, long[]> entry = it.next();
+            if (now - entry.getValue()[1] <= momentumIdleMillis) continue;
+            it.remove();
+            plugin.getMomentumBar().hide(entry.getKey());
+        }
     }
 
     /** Blast Harvest, Credit Finder and Nova Finder all roll here. */
@@ -574,13 +614,14 @@ public class FarmPlotManager {
     public void forget(UUID uuid) {
         harvested.remove(uuid);
         momentum.remove(uuid);
+        plugin.getMomentumBar().hide(uuid);
     }
 
-    /** Momentum stacks currently held, for the hoe's tooltip. */
+    /** Crops in the run currently going, or 0 when there isn't one. */
     public long momentumStacks(UUID uuid) {
         long[] state = momentum.get(uuid);
         if (state == null) return 0L;
-        return System.currentTimeMillis() - state[1] > 5_000L ? 0L : state[0];
+        return System.currentTimeMillis() - state[1] > momentumIdleMillis ? 0L : state[0];
     }
 
     // ----------------------------------------------------------- the item

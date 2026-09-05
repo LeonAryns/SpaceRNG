@@ -63,6 +63,7 @@ public final class SolRNGPlugin extends JavaPlugin {
     private com.spacerng.solrng.daily.DailyManager dailyManager;
     private com.spacerng.solrng.leaderboard.LeaderboardManager leaderboardManager;
     private com.spacerng.solrng.pass.PassManager passManager;
+    private com.spacerng.solrng.farming.MomentumBar momentumBar;
 
     @Override
     public void onEnable() {
@@ -89,6 +90,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         this.announcerManager = new com.spacerng.solrng.announce.AnnouncerManager(this);
         this.dailyManager = new com.spacerng.solrng.daily.DailyManager(this);
         this.passManager = new com.spacerng.solrng.pass.PassManager(this);
+        this.momentumBar = new com.spacerng.solrng.farming.MomentumBar();
 
         reloadAll();
 
@@ -136,6 +138,7 @@ public final class SolRNGPlugin extends JavaPlugin {
     public void onDisable() {
         luckBarManager.removeAll();
         questManager.removeAll();
+        if (momentumBar != null) momentumBar.removeAll();
         if (playerDataManager != null) {
             playerDataManager.saveAll();
         }
@@ -253,6 +256,10 @@ public final class SolRNGPlugin extends JavaPlugin {
         return passManager;
     }
 
+    public com.spacerng.solrng.farming.MomentumBar getMomentumBar() {
+        return momentumBar;
+    }
+
     public com.spacerng.solrng.daily.DailyManager getDailyManager() {
         return dailyManager;
     }
@@ -319,6 +326,10 @@ public final class SolRNGPlugin extends JavaPlugin {
         // The Luck bar has to tick on its own: a global boost's countdown
         // changes it every second even when the player does nothing.
         getServer().getScheduler().runTaskTimer(this, () -> luckBarManager.updateAll(), 20L, 20L);
+
+        // A farming run ends by nothing happening, so something has to
+        // notice the silence and take the Momentum bar down.
+        getServer().getScheduler().runTaskTimer(this, () -> farmPlotManager.expireMomentum(), 40L, 40L);
 
         // One sweep covers every milestone track for everyone. A tier
         // landing a second late is invisible, and this can't miss a value

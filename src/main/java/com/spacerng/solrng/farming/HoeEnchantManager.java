@@ -193,7 +193,14 @@ public class HoeEnchantManager {
 
     /** The same figure the skill tree quotes, for one player. */
     public String describePower(PlayerData data, String enchantId) {
-        return get(enchantId) == null ? "+0%" : format(powerOf(data, enchantId));
+        if (get(enchantId) == null) return "+0%";
+        // Momentum's number is a ceiling on a live multiplier, not a bonus
+        // you're already getting, so it says so rather than pretending to
+        // be the same kind of figure as the others.
+        if ("MOMENTUM".equalsIgnoreCase(enchantId)) {
+            return "up to " + String.format("%.2f", 1.0 + powerOf(data, enchantId)) + "x";
+        }
+        return format(powerOf(data, enchantId));
     }
 
     /** Whether this enchant fires on a roll rather than applying always. */

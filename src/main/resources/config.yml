@@ -228,14 +228,17 @@ farming:
       icon: FEATHER
       base-cost: 7500
       cost-growth: 1.008
-      description: "The longer you farm without stopping, the more you earn."
+      description: "Keep farming without stopping and your payout climbs."
       color: "&d"
       # The hard ceiling. base-cap is what you START with; Enchant
       # Mastery in /farmtree is what closes the gap between them.
       max-level: 1000
       base-cap: 100
-      per-level: 0.0004
-      # +40% at the ceiling.
+      # Momentum's per-level is the CEILING it raises, not a payout of its
+      # own: each level adds this much to how far a farming run can climb.
+      # At the starting cap of 100 levels that's +5.00x.
+      per-level: 0.05
+      # +5000% at the ceiling.
     BLAST_HARVEST:
       display: "Blast Harvest"
       icon: TNT
@@ -260,22 +263,8 @@ farming:
       # Mastery in /farmtree is what closes the gap between them.
       max-level: 1000
       base-cap: 100
-      per-level: 5e-05
-      # +5% at the ceiling.
-    CREDIT_FINDER:
-      display: "Credit Finder"
-      icon: SUNFLOWER
-      base-cost: 250000
-      cost-growth: 1.011
-      description: "A tiny chance to turn up a store Credit."
-      color: "&5"
-      # The hard ceiling. base-cap is what you START with; Enchant
-      # Mastery in /farmtree is what closes the gap between them.
-      max-level: 1000
-      base-cap: 100
-      per-level: 2e-05
-      # +2% at the ceiling.
-
+      per-level: 0.00001
+      # +1% at the ceiling.
   crop-types:
     WHEAT:
       display: "Wheat"
@@ -313,6 +302,26 @@ farming:
       tokens: 10000
       shards: 30
       requires-node: "crop_berries"
+
+  # ---- Momentum ----
+  # A farming RUN. Every crop you take adds to it, and the whole thing is
+  # gone if you stop for longer than idle-seconds — the boss bar across the
+  # top IS the run, so there's never any doubt what you're sitting on.
+  #
+  # It's the one farm bonus you can't buy outright: the enchant only raises
+  # the ceiling, and the field is what fills it.
+  momentum:
+    # Added to the multiplier for every 1,000 crops in the current run.
+    per-thousand-crops: 0.01
+    # The ceiling, per level of the Momentum enchant. At the starting cap
+    # of 100 levels that's a +5.00x ceiling.
+    #
+    # Reaching a +5.00x ceiling at 0.01 per thousand takes 500,000 crops in
+    # one run. Set per-thousand-crops to 0.10 if you want that to be
+    # 50,000 instead.
+    per-level-cap: 0.05
+    # Seconds without a harvest before the run ends.
+    idle-seconds: 30
 
   # ---- Hoe tiers ----
   # The Tool Upgrade nodes in /farmtree walk the hoe up this list. A tier
@@ -2914,40 +2923,41 @@ farmtree:
       max-level: 10
       target: "BLAST_HARVEST"
 
-    nova_finder_power:
-      display: "Nova Finder Ranks"
+    nova_finder:
+      display: "Nova Finder"
       page: 2
       slot: "7,2"
       icon: HEART_OF_THE_SEA
       cost-money: 71800000
-      cost-growth: 1.45
       requires: "gems_5"
+      effect: UNLOCK_ENCHANT
+      value: 0
+      target: "NOVA_FINDER"
+
+    growth_4:
+      display: "Growth IV"
+      page: 2
+      slot: "2,2"
+      icon: BONE_MEAL
+      cost-money: 126000000
+      cost-growth: 1.32
+      requires: "blast_power"
+      effect: FARM_SPEED
+      value: 0.05
+      max-level: 10
+
+    nova_finder_power:
+      display: "Nova Finder Ranks"
+      page: 2
+      slot: "8,2"
+      icon: HEART_OF_THE_SEA
+      cost-money: 126000000
+      cost-growth: 1.45
+      requires: "nova_finder"
       effect: ENCHANT_POWER
       value: 5
       max-level: 5
       target: "NOVA_FINDER"
-
-    nova_finder:
-      display: "Nova Finder"
-      page: 2
-      slot: "2,2"
-      icon: HEART_OF_THE_SEA
-      cost-money: 126000000
-      requires: "blast_power"
-      effect: UNLOCK_ENCHANT
-      value: 0
-      target: "NOVA_FINDER"
-
-    credit_finder:
-      display: "Credit Finder"
-      page: 2
-      slot: "8,2"
-      icon: SUNFLOWER
-      cost-money: 126000000
-      requires: "nova_finder_power"
-      effect: UNLOCK_ENCHANT
-      value: 0
-      target: "CREDIT_FINDER"
 
 # The global Luck boost, bought with store Credits in /buy. One boost
 # runs for the whole server at a time: the first purchase turns it on at
