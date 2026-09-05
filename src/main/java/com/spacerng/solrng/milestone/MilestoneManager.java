@@ -132,6 +132,13 @@ public class MilestoneManager {
         }
     }
 
+    /** The 5s sweep — one pass covers every track for everyone online. */
+    public void checkAll() {
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            check(player);
+        }
+    }
+
     /** True once the bar is full but the reward is still sitting there. */
     public boolean isClaimable(Player player, PlayerData data, MilestoneTrack track, MilestoneTrack.Tier tier) {
         return progress(player, data, track.getId()) >= tier.threshold()
