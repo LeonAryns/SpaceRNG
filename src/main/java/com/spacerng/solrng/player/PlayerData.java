@@ -96,6 +96,10 @@ public class PlayerData {
     // Lifetime farm crops harvested. The only milestone track that needed
     // its own counter; the rest are derived from existing state.
     private long cropsHarvested = 0L;
+    // What's been farmed since the last payout. Separate from the lifetime
+    // count because a payout has to be about what you did TODAY, while the
+    // all-time number is the one worth bragging about.
+    private long cropsThisPeriod = 0L;
     // The crop this player sees on the shared farm, and which ones they're
     // allowed to pick. Everyone starts on wheat.
     private String selectedCrop = "WHEAT";
@@ -484,6 +488,15 @@ public class PlayerData {
 
     public void addCropsHarvested(long amount) {
         this.cropsHarvested += amount;
+        this.cropsThisPeriod += amount;
+    }
+
+    public long getCropsThisPeriod() {
+        return cropsThisPeriod;
+    }
+
+    public void setCropsThisPeriod(long cropsThisPeriod) {
+        this.cropsThisPeriod = Math.max(0L, cropsThisPeriod);
     }
 
     public void setCropsHarvested(long cropsHarvested) {

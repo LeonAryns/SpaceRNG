@@ -105,8 +105,82 @@ public class SolRNGExpansion extends PlaceholderExpansion {
                 return String.valueOf(data.getLevel());
 
             default:
+                // Leaderboard keys are dynamic (top_farming_1_name and so
+                // on), so they're matched by prefix rather than listed.
+                String board = leaderboard(player, params.toLowerCase());
+                if (board != null) return board;
                 return null; // unknown key — let PAPI report it as unrecognised
         }
+    }
+
+    /**
+     * The leaderboard family, shaped for a hologram to read line by line:
+     *
+     *   %solrng_top_<board>_<place>_name%     the player's name
+     *   %solrng_top_<board>_<place>_value%    their number, short form
+     *   %solrng_top_<board>_<place>_reward%   Credits that place pays
+     *   %solrng_farm_reset%                   "9h 15m 10s"
+     *   %solrng_farm_place%                   the VIEWER's place
+     *   %solrng_farm_value%                   the viewer's own total
+     *
+     * Names come back bare so a hologram can feed one straight into a
+     * head line, and empty rather than "null" so an unfilled podium slot
+     * renders as nothing instead of an error.
+     */
+    private String leaderboard(Player player, String params) {
+        var boards = plugin.getLeaderboardManager();
+
+        if (params.equals("farm_reset")) {
+            return boards.resetCountdown();
+        }
+        if (params.equals("farm_place")) {
+            int place = boards.positionOf("farming", player.getUniqueId());
+            return place > 0 ? String.valueOf(place) : "-";
+        }
+        if (params.equals("farm_value")) {
+            var entry = boards.entryOf(player.getUniqueId());
+            return entry == null ? "0" : String.format("%,d", entry.farmedPeriod());
+        }
+
+        if (!params.startsWith("top_")) return null;
+
+        // top_<board>_<place>_<field>
+        int lastSplit = params.lastIndexOf('_');
+        if (lastSplit < 0) return null;
+        String field = params.substring(lastSplit + 1);
+        String rest = params.substring(4, lastSplit);
+
+        int placeSplit = rest.lastIndexOf('_');
+        if (placeSplit < 0) return null;
+        String board = rest.substring(0, placeSplit);
+
+        int place;
+        try {
+            place = Integer.parseInt(rest.substring(placeSplit + 1));
+        } catch (NumberFormatException ex) {
+            return null;
+        }
+        if (place < 1) return null;
+
+        var rows = boards.top(board, place);
+        if (rows.size() < place) return ""; // podium slot nobody has filled
+
+        var entry = rows.get(place - 1);
+        long value = switch (board) {
+            case "farming" -> entry.farmedPeriod();
+            case "farming_total" -> entry.farmedTotal();
+            case "rolls" -> entry.rolls();
+            case "prestige" -> entry.prestige();
+            default -> entry.discoveries();
+        };
+
+        return switch (field) {
+            case "name" -> entry.name();
+            case "value" -> com.spacerng.solrng.gui.Lore.shorten(value);
+            case "raw" -> String.valueOf(value);
+            case "reward" -> String.valueOf(boards.payoutFor(place));
+            default -> null;
+        };
     }
 
     private RollableItem equippedItem(PlayerData data) {

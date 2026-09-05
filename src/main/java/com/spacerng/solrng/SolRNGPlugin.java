@@ -9,6 +9,7 @@ import com.spacerng.solrng.commands.BuyCommand;
 import com.spacerng.solrng.commands.CropsCommand;
 import com.spacerng.solrng.commands.FarmTreeCommand;
 import com.spacerng.solrng.commands.DailyCommand;
+import com.spacerng.solrng.commands.TopCommand;
 import com.spacerng.solrng.commands.GuideCommand;
 import com.spacerng.solrng.commands.NovaCoreCommand;
 import com.spacerng.solrng.commands.MilestonesCommand;
@@ -59,6 +60,7 @@ public final class SolRNGPlugin extends JavaPlugin {
     private com.spacerng.solrng.quest.QuestManager questManager;
     private com.spacerng.solrng.announce.AnnouncerManager announcerManager;
     private com.spacerng.solrng.daily.DailyManager dailyManager;
+    private com.spacerng.solrng.leaderboard.LeaderboardManager leaderboardManager;
 
     @Override
     public void onEnable() {
@@ -66,6 +68,7 @@ public final class SolRNGPlugin extends JavaPlugin {
 
         this.rarityManager = new RarityManager(getLogger());
         this.skillTreeManager = new SkillTreeManager(getLogger());
+        this.leaderboardManager = new com.spacerng.solrng.leaderboard.LeaderboardManager(this);
         this.playerDataManager = new PlayerDataManager(this);
         this.prestigeManager = new PrestigeManager(this);
         this.armorManager = new ArmorManager(this);
@@ -110,6 +113,9 @@ public final class SolRNGPlugin extends JavaPlugin {
         getCommand("farmtree").setExecutor(new FarmTreeCommand(this));
         getCommand("guide").setExecutor(new GuideCommand(this));
         getCommand("daily").setExecutor(new DailyCommand(this));
+        TopCommand topCommand = new TopCommand(this);
+        getCommand("top").setExecutor(topCommand);
+        getCommand("top").setTabCompleter(topCommand);
         getCommand("buy").setExecutor(new BuyCommand(this));
         getCommand("rngadmin").setExecutor(adminCommand);
         getCommand("rngadmin").setTabCompleter(adminCommand);
@@ -128,6 +134,9 @@ public final class SolRNGPlugin extends JavaPlugin {
         questManager.removeAll();
         if (playerDataManager != null) {
             playerDataManager.saveAll();
+        }
+        if (leaderboardManager != null) {
+            leaderboardManager.saveIndex();
         }
         getLogger().info("SolRNG disabled, player data saved.");
     }
@@ -148,6 +157,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         questManager.load(getConfig());
         announcerManager.load(getConfig());
         dailyManager.load(getConfig());
+        leaderboardManager.load(getConfig());
     }
 
     /**
@@ -228,6 +238,10 @@ public final class SolRNGPlugin extends JavaPlugin {
 
     public com.spacerng.solrng.announce.AnnouncerManager getAnnouncerManager() {
         return announcerManager;
+    }
+
+    public com.spacerng.solrng.leaderboard.LeaderboardManager getLeaderboardManager() {
+        return leaderboardManager;
     }
 
     public com.spacerng.solrng.daily.DailyManager getDailyManager() {
@@ -312,6 +326,11 @@ public final class SolRNGPlugin extends JavaPlugin {
         // A gentle nudge for anyone still on the guide, well apart from the
         // tips so the two never land together.
         getServer().getScheduler().runTaskTimer(this, () -> questManager.nudgeAll(), 2400L, 2400L);
+
+        // Checks whether a farming period is due to roll over. On a timer
+        // rather than scheduled for the hour, so it still fires if the
+        // server was down when the hour passed.
+        getServer().getScheduler().runTaskTimer(this, () -> leaderboardManager.tick(), 600L, 600L);
     }
 
     private void registerPlaceholderExpansion() {

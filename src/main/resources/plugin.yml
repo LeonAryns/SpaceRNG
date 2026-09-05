@@ -58,13 +58,17 @@ commands:
     description: Claim your daily streak reward
     usage: /daily
     aliases: [streak, dailyreward]
+  top:
+    description: Leaderboards, including the daily farming payout
+    usage: /top [farming|farming_total|rolls|prestige|index]
+    aliases: [leaderboard, baltop]
   buy:
     description: Spend store Credits
     usage: /buy
     aliases: [store, shop]
   rngadmin:
     description: Admin tools for SolRNG
-    usage: /rngadmin <reload|setspawn|starforge|reset|give|drops|bank|aura|roll|unlock|odds|farmblock|farmfill|crops|milestones|boost|nova>
+    usage: /rngadmin <reload|setspawn|starforge|reset|give|drops|bank|aura|roll|unlock|odds|farmblock|farmfill|crops|milestones|boost|nova|payout>
     permission: solrng.admin
     aliases: [solrngadmin]
 

@@ -36,7 +36,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
     private static final List<String> SUBCOMMANDS = List.of(
             "reload", "setspawn", "starforge", "reset", "give", "drops",
             "bank", "aura", "roll", "unlock", "odds", "farmblock", "crops",
-            "milestones", "farmfill", "boost", "nova", "placeholders", "help");
+            "milestones", "farmfill", "boost", "nova", "placeholders", "payout", "help");
     private static final List<String> CURRENCIES = List.of("money", "tokens", "shards", "credits");
 
     private final SolRNGPlugin plugin;
@@ -76,6 +76,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             case "boost" -> doBoost(sender, args);
             case "nova" -> doNova(sender, args);
             case "placeholders" -> doPlaceholders(sender);
+            case "payout" -> doPayout(sender);
             default -> {
                 sendHelp(sender);
                 yield true;
@@ -105,6 +106,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         line(sender, "boost", "<level> [minutes]", "Force the global Luck boost on");
         line(sender, "nova", "<tier> [player]", "Set a Nova Core tier");
         line(sender, "placeholders", "", "What every %solrng_% placeholder resolves to right now");
+        line(sender, "payout", "", "Run the farming payout now and reset the period");
     }
 
     private void line(CommandSender sender, String sub, String args, String description) {
@@ -722,6 +724,14 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
                     + (unresolved ? ChatColor.RED + "UNRESOLVED" : ChatColor.WHITE + "[" + value + ChatColor.WHITE + "]"));
         }
         sender.sendMessage(ChatColor.GRAY + "Empty is normal for tag placeholders with no tag equipped.");
+        return true;
+    }
+
+    /** Forces the farming payout, for testing the podium without waiting. */
+    private boolean doPayout(CommandSender sender) {
+        plugin.getLeaderboardManager().runPayout();
+        plugin.getLeaderboardManager().saveIndex();
+        sender.sendMessage(ChatColor.GREEN + "Farming payout run and period reset.");
         return true;
     }
 

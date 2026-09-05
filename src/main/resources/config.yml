@@ -1220,6 +1220,27 @@ milestones:
         - { at: 336, tokens: 250000 }
         - { at: 720, tokens: 600000 }
 
+# Leaderboards and the daily farming payout.
+#
+# The plugin keeps its own player index (leaderboard.yml) because the live
+# cache only holds players who are ONLINE — a board built from that would
+# quietly be a board of whoever happens to be connected.
+#
+# The period rolls over at reset-hour in this timezone. Winners are paid
+# even if they're offline at the time: their save file is credited
+# directly.
+#
+# For a hologram, use DecentHolograms with these placeholders:
+#   %solrng_top_farming_1_name%    %solrng_top_farming_1_value%
+#   %solrng_top_farming_1_reward%  %solrng_farm_reset%
+#   %solrng_farm_place%            %solrng_farm_value%
+# Boards: farming, farming_total, rolls, prestige, index
+leaderboard:
+  timezone: "UTC"
+  farming:
+    reset-hour: 0
+    credit-payouts: [150, 75, 25]
+
 # Rotating server tips. These rotate in ORDER, not at random: random
 # repeats itself and leaves some tips unseen for ages, which is exactly
 # wrong for something meant to teach. Each list entry is one block of

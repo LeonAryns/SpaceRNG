@@ -87,6 +87,7 @@ public class PlayerDataManager {
         data.setFarmTokenMultiplier(yml.getDouble("farm-token-multiplier", 1.0));
         data.setStarforgeTier(yml.getString("starforge-tier", "BASIC"));
         data.setCropsHarvested(yml.getLong("crops-harvested", 0L));
+        data.setCropsThisPeriod(yml.getLong("crops-this-period", 0L));
         data.setNovaTier(yml.getInt("nova-tier", 0));
         data.setNovaBestTier(yml.getInt("nova-best-tier", 0));
         data.setSelectedCrop(yml.getString("selected-crop", "WHEAT"));
@@ -155,6 +156,54 @@ public class PlayerDataManager {
         return data;
     }
 
+    /**
+     * Pays an offline player by editing their save file directly. A farming
+     * payout lands at a fixed hour whether or not the winner is connected,
+     * and "you only get paid if you happened to be online" is not a rule
+     * anybody would accept.
+     */
+    public void awardOffline(UUID uuid, long credits) {
+        if (credits <= 0) return;
+
+        PlayerData cached = cache.get(uuid);
+        if (cached != null) {
+            cached.addPoints(credits);
+            return;
+        }
+
+        File file = fileFor(uuid);
+        YamlConfiguration yml = file.exists() ? YamlConfiguration.loadConfiguration(file) : new YamlConfiguration();
+        yml.set("points", yml.getLong("points", 0L) + credits);
+        try {
+            yml.save(file);
+        } catch (IOException e) {
+            plugin.getLogger().warning("[SolRNG] Couldn't pay offline player " + uuid + ": " + e.getMessage());
+        }
+    }
+
+    /** Zeroes the period counter in every save file that isn't loaded. */
+    public void clearOfflinePeriods() {
+        File[] files = dataFolder.listFiles((dir, name) -> name.endsWith(".yml"));
+        if (files == null) return;
+
+        for (File file : files) {
+            String raw = file.getName().substring(0, file.getName().length() - 4);
+            try {
+                if (cache.containsKey(UUID.fromString(raw))) continue; // handled live
+            } catch (IllegalArgumentException ex) {
+                continue;
+            }
+
+            YamlConfiguration yml = YamlConfiguration.loadConfiguration(file);
+            if (yml.getLong("crops-this-period", 0L) == 0L) continue;
+            yml.set("crops-this-period", 0L);
+            try {
+                yml.save(file);
+            } catch (IOException ignored) {
+            }
+        }
+    }
+
     public void save(PlayerData data) {
         YamlConfiguration yml = new YamlConfiguration();
         yml.set("luck", data.getBonusLuck());
@@ -175,6 +224,7 @@ public class PlayerDataManager {
         yml.set("farm-token-multiplier", data.getFarmTokenMultiplier());
         yml.set("starforge-tier", data.getStarforgeTier());
         yml.set("crops-harvested", data.getCropsHarvested());
+        yml.set("crops-this-period", data.getCropsThisPeriod());
         yml.set("nova-tier", data.getNovaTier());
         yml.set("nova-best-tier", data.getNovaBestTier());
         yml.set("selected-crop", data.getSelectedCrop());
@@ -210,6 +260,10 @@ public class PlayerDataManager {
             yml.set("tag-item", data.getEquippedTagItemKey());
             yml.set("tag-rarity", data.getEquippedTagRarity());
         }
+
+        // The index mirrors the save, so it can never be staler than the
+        // file it describes.
+        plugin.getLeaderboardManager().record(data);
 
         try {
             yml.save(fileFor(data.getUuid()));
