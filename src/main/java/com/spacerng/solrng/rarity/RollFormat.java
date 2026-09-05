@@ -268,10 +268,13 @@ public final class RollFormat {
 
     /** "1234" -> "1.2K", "5100000" -> "5.1M", etc. — also used for wallet balances. */
     public static String abbreviate(long n) {
+        if (n < 0) return "-" + abbreviate(-n);
         if (n < 1_000) return String.valueOf(n);
         if (n < 1_000_000) return trimZero(n / 1_000.0) + "K";
         if (n < 1_000_000_000L) return trimZero(n / 1_000_000.0) + "M";
-        return trimZero(n / 1_000_000_000.0) + "B";
+        if (n < 1_000_000_000_000L) return trimZero(n / 1_000_000_000.0) + "B";
+        if (n < 1_000_000_000_000_000L) return trimZero(n / 1_000_000_000_000.0) + "T";
+        return trimZero(n / 1_000_000_000_000_000.0) + "Q";
     }
 
     private static String trimZero(double value) {

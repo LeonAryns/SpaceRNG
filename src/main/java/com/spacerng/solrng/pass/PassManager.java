@@ -310,25 +310,58 @@ public class PassManager {
         }
     }
 
-    /** "5,000 Tokens, 2 Gems" — blank when a rung pays nothing. */
+    /** "✿ 5K Tokens, ◆ 2 Gems" — blank when a rung pays nothing. */
     public String describe(Reward reward) {
         List<String> parts = new ArrayList<>();
         if (reward.tokens() > 0) {
-            parts.add(ChatColor.YELLOW + String.format("%,d", reward.tokens()) + " Tokens");
+            parts.add(com.spacerng.solrng.gui.Currency.TOKENS.amount(reward.tokens()));
         }
         if (reward.gems() > 0) {
-            parts.add(ChatColor.AQUA + String.format("%,d", reward.gems()) + " Gems");
+            parts.add(com.spacerng.solrng.gui.Currency.GEMS.amount(reward.gems()));
         }
         if (reward.coins() > 0) {
-            parts.add(ChatColor.GOLD + String.format("%,.0f", reward.coins()) + " Coins");
+            parts.add(com.spacerng.solrng.gui.Currency.COINS.amount(Math.round(reward.coins())));
         }
         if (reward.credits() > 0) {
-            parts.add(ChatColor.LIGHT_PURPLE + String.format("%,d", reward.credits()) + " Credits");
+            parts.add(com.spacerng.solrng.gui.Currency.CREDITS.amount(reward.credits()));
         }
         if (reward.dropRarity() != null && reward.dropAmount() > 0) {
             parts.add(plugin.getRarityManager().style(reward.dropRarity(),
-                    String.format("%,d", reward.dropAmount()) + " " + reward.dropRarity().displayName()));
+                    "\u2726 " + String.format("%,d", reward.dropAmount()) + " "
+                            + reward.dropRarity().displayName()));
         }
         return String.join(ChatColor.GRAY + ", ", parts);
+    }
+
+    /** The same payout as one line per item, for a lore block. */
+    public List<String> describeLines(Reward reward) {
+        List<String> lines = new ArrayList<>();
+        if (reward.tokens() > 0) {
+            lines.add(com.spacerng.solrng.gui.Currency.TOKENS.colour()
+                    + com.spacerng.solrng.gui.Lore.BULLET + " "
+                    + com.spacerng.solrng.gui.Currency.TOKENS.amount(reward.tokens()));
+        }
+        if (reward.gems() > 0) {
+            lines.add(com.spacerng.solrng.gui.Currency.GEMS.colour()
+                    + com.spacerng.solrng.gui.Lore.BULLET + " "
+                    + com.spacerng.solrng.gui.Currency.GEMS.amount(reward.gems()));
+        }
+        if (reward.coins() > 0) {
+            lines.add(com.spacerng.solrng.gui.Currency.COINS.colour()
+                    + com.spacerng.solrng.gui.Lore.BULLET + " "
+                    + com.spacerng.solrng.gui.Currency.COINS.amount(Math.round(reward.coins())));
+        }
+        if (reward.credits() > 0) {
+            lines.add(com.spacerng.solrng.gui.Currency.CREDITS.colour()
+                    + com.spacerng.solrng.gui.Lore.BULLET + " "
+                    + com.spacerng.solrng.gui.Currency.CREDITS.amount(reward.credits()));
+        }
+        if (reward.dropRarity() != null && reward.dropAmount() > 0) {
+            lines.add(plugin.getRarityManager().style(reward.dropRarity(),
+                    com.spacerng.solrng.gui.Lore.BULLET + " \u2726 "
+                            + String.format("%,d", reward.dropAmount()) + " "
+                            + reward.dropRarity().displayName() + " drops"));
+        }
+        return lines;
     }
 }

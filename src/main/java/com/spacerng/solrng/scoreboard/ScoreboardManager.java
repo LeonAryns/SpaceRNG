@@ -2,6 +2,7 @@ package com.spacerng.solrng.scoreboard;
 
 import com.spacerng.solrng.SolRNGPlugin;
 import com.spacerng.solrng.player.PlayerData;
+import com.spacerng.solrng.gui.Currency;
 import com.spacerng.solrng.rarity.RollFormat;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
@@ -56,7 +57,7 @@ public class ScoreboardManager {
         var registration = plugin.getServer().getServicesManager().getRegistration(Economy.class);
         if (registration != null) {
             this.economy = registration.getProvider();
-            plugin.getLogger().info("[SolRNG] Hooked into Vault economy for the Money scoreboard stat.");
+            plugin.getLogger().info("[SolRNG] Hooked into Vault economy for the Coins scoreboard stat.");
         }
     }
 
@@ -115,11 +116,13 @@ public class ScoreboardManager {
                 + Math.round(data.getEffectiveRollSpeedMultiplier() * 100));
         lines.add(ChatColor.YELLOW + "| " + prestigeLine(data));
         lines.add(""); // blank spacer
-        lines.add(ChatColor.GOLD + "" + ChatColor.BOLD + "Your Wallet");
+        // White, not gold: the header used to be the same colour as the
+        // Coins line directly under it, which made the two read as one.
+        lines.add(ChatColor.WHITE + "" + ChatColor.BOLD + "Your Wallet");
         lines.add(balanceLine(player));
-        lines.add(walletLine(data.getTokens(), "Tokens", ChatColor.YELLOW));
-        lines.add(walletLine(data.getShards(), "Gems", ChatColor.AQUA));
-        lines.add(walletLine(data.getPoints(), "Credits", ChatColor.LIGHT_PURPLE));
+        lines.add(walletLine(Currency.TOKENS, data.getTokens()));
+        lines.add(walletLine(Currency.GEMS, data.getShards()));
+        lines.add(walletLine(Currency.CREDITS, data.getPoints()));
 
         String rollStatus = rollStatusLine(player);
         if (rollStatus != null) {
@@ -140,9 +143,9 @@ public class ScoreboardManager {
         return ChatColor.WHITE + "Prestige: " + ChatColor.GOLD + "★ " + ChatColor.AQUA + numeral;
     }
 
-    /** "216M Balance" style — abbreviated amount + label, no icon, no all-caps. */
-    private String walletLine(long amount, String label, ChatColor color) {
-        return ChatColor.YELLOW + "| " + color + RollFormat.abbreviate(amount) + " " + label;
+    /** "| ● 216M Coins" — the pipe, then the currency's own glyph and colour. */
+    private String walletLine(Currency currency, long amount) {
+        return ChatColor.YELLOW + "| " + currency.amount(amount);
     }
 
     /**
@@ -159,11 +162,9 @@ public class ScoreboardManager {
 
     private String balanceLine(Player player) {
         if (economy == null) {
-            return ChatColor.YELLOW + "| " + ChatColor.GOLD + "N/A Coins";
+            return ChatColor.YELLOW + "| " + Currency.COINS.mark() + " N/A";
         }
-        // Gold, because Coins IS the gold currency — the other three each
-        // own a colour too, so the sidebar reads as four distinct wallets.
-        return walletLine(Math.round(economy.getBalance(player)), "Coins", ChatColor.GOLD);
+        return walletLine(Currency.COINS, Math.round(economy.getBalance(player)));
     }
 
     /**

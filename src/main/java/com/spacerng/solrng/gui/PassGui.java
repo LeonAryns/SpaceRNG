@@ -99,7 +99,7 @@ public class PassGui {
             inv.setItem(PREMIUM_ROW + column, rewardIcon(plugin, pass, data, rung, PassManager.PREMIUM, current));
         }
 
-        inv.setItem(PROGRESS_SLOT, progressPanel(plugin, pass, data, current));
+        inv.setItem(PROGRESS_SLOT, progressPanel(plugin, player, pass, data, current));
         inv.setItem(PREMIUM_SLOT, premiumPanel(pass, data));
         inv.setItem(CLAIM_ALL_SLOT, claimAllPanel(pass, data));
         if (page > 0) {
@@ -120,26 +120,28 @@ public class PassGui {
     private static ItemStack levelMarker(PassManager pass, PlayerData data, PassManager.Level rung, int current) {
         boolean cleared = current >= rung.level();
         boolean active = current + 1 == rung.level();
+        ChatColor accent = cleared ? ChatColor.GREEN : active ? ChatColor.YELLOW : ChatColor.DARK_GRAY;
 
         ItemStack item = new ItemStack(cleared ? Material.LIME_STAINED_GLASS_PANE
                 : active ? Material.YELLOW_STAINED_GLASS_PANE
                          : Material.GRAY_STAINED_GLASS_PANE);
         item.setAmount(Math.max(1, Math.min(64, rung.level())));
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName((cleared ? ChatColor.GREEN : active ? ChatColor.YELLOW : ChatColor.DARK_GRAY)
-                + "" + ChatColor.BOLD + "LEVEL " + rung.level());
+        meta.setDisplayName(Lore.title(accent, "Level " + rung.level()));
 
         List<String> lore = new ArrayList<>();
+        lore.add(Lore.state(cleared ? "cleared" : active ? "in progress" : "locked"));
+        lore.add("");
         if (cleared) {
-            lore.add(ChatColor.GREEN + "✔ Reached");
+            lore.add(ChatColor.GREEN + Lore.BULLET + " " + ChatColor.GRAY + "Reached  "
+                    + ChatColor.GREEN + Lore.TICK);
         } else if (active) {
             long into = pass.xpIntoLevel(data);
+            lore.add(Lore.requirement("XP", String.format("%,d", into),
+                    String.format("%,d", rung.xpRequired()), false));
             lore.add(Lore.bar(rung.xpRequired() <= 0 ? 1.0 : (double) into / rung.xpRequired()));
-            lore.add(ChatColor.GRAY + String.format("%,d", into) + ChatColor.DARK_GRAY + " / "
-                    + ChatColor.GRAY + String.format("%,d", rung.xpRequired()) + " XP");
         } else {
-            lore.add(ChatColor.DARK_GRAY + "Locked");
-            lore.add(ChatColor.DARK_GRAY + String.format("%,d", rung.xpRequired()) + " XP to clear");
+            lore.add(Lore.stat(ChatColor.DARK_GRAY, "Costs", String.format("%,d", rung.xpRequired()) + " XP"));
         }
         meta.setLore(lore);
         item.setItemMeta(meta);
@@ -152,14 +154,19 @@ public class PassGui {
         PassManager.Reward reward = premium ? rung.premium() : rung.free();
 
         if (reward.isEmpty()) {
-            ItemStack empty = pane(Material.GRAY_STAINED_GLASS_PANE,
-                    ChatColor.DARK_GRAY + (premium ? "No premium reward" : "No free reward"));
+            ItemStack empty = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
+            ItemMeta emptyMeta = empty.getItemMeta();
+            emptyMeta.setDisplayName(Lore.title(ChatColor.DARK_GRAY, premium ? "Premium" : "Free"));
+            emptyMeta.setLore(List.of(Lore.state("empty"), "",
+                    ChatColor.DARK_GRAY + Lore.BULLET + " Nothing on this rung."));
+            empty.setItemMeta(emptyMeta);
             return empty;
         }
 
         boolean claimed = data.hasClaimedPass(track, rung.level());
         boolean earned = current >= rung.level();
         boolean locked = premium && !data.isPassPremium();
+        ChatColor accent = premium ? ChatColor.LIGHT_PURPLE : ChatColor.GREEN;
 
         Material material = claimed ? Material.LIME_DYE
                 : locked ? Material.IRON_BARS
@@ -168,24 +175,27 @@ public class PassGui {
 
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName((premium ? ChatColor.LIGHT_PURPLE : ChatColor.GREEN) + "" + ChatColor.BOLD
-                + (premium ? "PREMIUM" : "FREE") + ChatColor.RESET + ChatColor.GRAY + " · Level " + rung.level());
+        meta.setDisplayName(Lore.title(claimed ? ChatColor.GREEN : accent,
+                (premium ? "Premium" : "Free") + " " + rung.level()));
 
         List<String> lore = new ArrayList<>();
-        lore.add(ChatColor.DARK_GRAY + (premium ? "PREMIUM TRACK" : "FREE TRACK"));
+        lore.add(Lore.state(premium ? "premium track" : "free track"));
         lore.add("");
-        lore.add(ChatColor.GRAY + "Reward: " + pass.describe(reward));
+        lore.add(Lore.section(accent, "Reward"));
+        lore.addAll(pass.describeLines(reward));
         if (!reward.note().isEmpty()) {
-            lore.add(ChatColor.DARK_GRAY + reward.note());
+            lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " " + reward.note());
         }
         lore.add("");
         if (claimed) {
             lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "CLAIMED");
         } else if (locked) {
-            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "PREMIUM ONLY");
-            lore.add(ChatColor.DARK_GRAY + "Unlock the premium track below.");
+            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "LOCKED");
+            lore.add(ChatColor.RED + Lore.BULLET + " " + ChatColor.GRAY + "Unlock the premium track below.");
         } else if (!earned) {
-            lore.add(ChatColor.RED + "▎ " + ChatColor.GRAY + "Reach level " + ChatColor.RED + rung.level());
+            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "LOCKED");
+            lore.add(ChatColor.RED + Lore.BULLET + " " + ChatColor.GRAY + "Reach level "
+                    + ChatColor.YELLOW + rung.level());
         } else {
             lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO CLAIM");
         }
@@ -197,33 +207,37 @@ public class PassGui {
         return item;
     }
 
-    private static ItemStack progressPanel(SolRNGPlugin plugin, PassManager pass, PlayerData data, int current) {
-        ItemStack item = new ItemStack(Material.EXPERIENCE_BOTTLE);
+    private static ItemStack progressPanel(SolRNGPlugin plugin, Player player, PassManager pass,
+                                           PlayerData data, int current) {
+        ItemStack item = new ItemStack(Material.PLAYER_HEAD);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(ChatColor.GOLD + "" + ChatColor.BOLD + "YOUR PASS");
+        if (meta instanceof org.bukkit.inventory.meta.SkullMeta skull) {
+            skull.setOwningPlayer(player);
+        }
+        meta.setDisplayName(Lore.title(ChatColor.GOLD, player.getName()));
 
         List<String> lore = new ArrayList<>();
-        lore.add(ChatColor.DARK_GRAY + pass.getSeasonName().toUpperCase());
+        lore.add(Lore.state(pass.getSeasonName()));
         lore.add("");
-        lore.add(ChatColor.YELLOW + "▎ " + ChatColor.GRAY + "Level: " + ChatColor.YELLOW + current
-                + ChatColor.GRAY + "/" + ChatColor.YELLOW + pass.getMaxLevel());
+        lore.add(Lore.stat(ChatColor.GOLD, "Level", current + " / " + pass.getMaxLevel()));
         if (current < pass.getMaxLevel()) {
             long into = pass.xpIntoLevel(data);
             long needed = pass.xpForNextLevel(data);
             lore.add(Lore.bar(needed <= 0 ? 1.0 : (double) into / needed));
-            lore.add(ChatColor.DARK_GRAY + "▎ " + ChatColor.GRAY + String.format("%,d", needed - into)
-                    + " XP to level " + (current + 1));
+            lore.add(Lore.stat(ChatColor.AQUA, "Next level",
+                    String.format("%,d", Math.max(0, needed - into)) + " XP"));
         } else {
-            lore.add(ChatColor.GREEN + "▎ Season complete.");
+            lore.add(Lore.bar(1.0));
+            lore.add(Lore.line(ChatColor.GREEN, "Season complete."));
         }
         lore.add("");
-        lore.add(ChatColor.DARK_GRAY + "Rolls and harvests both earn XP —");
-        lore.add(ChatColor.DARK_GRAY + "the rarer the roll, the more it pays.");
+        lore.add(Lore.section(ChatColor.AQUA, "Earning XP"));
+        lore.add(Lore.line(ChatColor.AQUA, "Every roll — rarer pays more."));
+        lore.add(Lore.line(ChatColor.AQUA, "Every crop you harvest."));
         double bonus = plugin.getSkillTreeManager()
                 .totalOf(data, com.spacerng.solrng.player.SkillNode.Effect.PASS_XP);
         if (bonus > 0) {
-            lore.add(ChatColor.AQUA + "▎ " + ChatColor.GRAY + "Skill bonus: " + ChatColor.AQUA
-                    + "+" + Math.round(bonus * 100) + "% XP");
+            lore.add(Lore.stat(ChatColor.GREEN, "Skill bonus", "+" + Math.round(bonus * 100) + "% XP"));
         }
         meta.setLore(lore);
         item.setItemMeta(meta);
@@ -234,25 +248,27 @@ public class PassGui {
         boolean owned = data.isPassPremium();
         ItemStack item = new ItemStack(owned ? Material.AMETHYST_SHARD : Material.NETHER_STAR);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "PREMIUM PASS");
+        meta.setDisplayName(Lore.title(ChatColor.LIGHT_PURPLE, "Premium Pass"));
 
         List<String> lore = new ArrayList<>();
-        lore.add(ChatColor.DARK_GRAY + "SEASON UPGRADE");
+        lore.add(Lore.state("season upgrade"));
+        lore.add("");
+        lore.add(Lore.section(ChatColor.LIGHT_PURPLE, "What it does"));
+        lore.add(Lore.line(ChatColor.LIGHT_PURPLE, "Opens the second reward track."));
+        lore.add(Lore.line(ChatColor.LIGHT_PURPLE, "Back-pays every level you"));
+        lore.add(Lore.line(ChatColor.LIGHT_PURPLE, "have already cleared."));
         lore.add("");
         if (owned) {
             lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "UNLOCKED");
-            lore.add(ChatColor.GRAY + "Every premium reward is yours to claim.");
         } else {
-            lore.add(ChatColor.GRAY + "Opens the second reward track for the");
-            lore.add(ChatColor.GRAY + "whole season — including every level");
-            lore.add(ChatColor.GRAY + "you have already passed.");
+            boolean affordable = data.getPoints() >= pass.getPremiumCost();
+            lore.add(Lore.section(ChatColor.LIGHT_PURPLE, "Information"));
+            lore.add((affordable ? ChatColor.YELLOW : ChatColor.RED) + Lore.BULLET + " "
+                    + ChatColor.GRAY + "Cost: " + Currency.CREDITS.price(pass.getPremiumCost(), affordable));
+            lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " " + ChatColor.DARK_GRAY + "You have "
+                    + Currency.CREDITS.amount(data.getPoints()));
             lore.add("");
-            lore.add(ChatColor.LIGHT_PURPLE + "▎ " + ChatColor.GRAY + "Price: " + ChatColor.LIGHT_PURPLE
-                    + String.format("%,d", pass.getPremiumCost()) + " Credits");
-            lore.add(ChatColor.DARK_GRAY + "▎ You have " + ChatColor.LIGHT_PURPLE
-                    + String.format("%,d", data.getPoints()) + " Credits");
-            lore.add("");
-            lore.add(data.getPoints() >= pass.getPremiumCost()
+            lore.add(affordable
                     ? ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO UNLOCK"
                     : ChatColor.RED + "" + ChatColor.BOLD + "NOT ENOUGH CREDITS");
         }
@@ -271,13 +287,21 @@ public class PassGui {
 
         ItemStack item = new ItemStack(waiting > 0 ? Material.HOPPER : Material.BARRIER);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName((waiting > 0 ? ChatColor.YELLOW : ChatColor.DARK_GRAY) + "" + ChatColor.BOLD
-                + "CLAIM ALL");
-        meta.setLore(waiting > 0
-                ? List.of(ChatColor.GRAY + "" + waiting + " reward" + (waiting == 1 ? "" : "s") + " waiting.",
-                          "",
-                          ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO COLLECT")
-                : List.of(ChatColor.DARK_GRAY + "Nothing to collect right now."));
+        meta.setDisplayName(Lore.title(waiting > 0 ? ChatColor.YELLOW : ChatColor.DARK_GRAY, "Claim All"));
+
+        List<String> lore = new ArrayList<>();
+        lore.add(Lore.state("collect"));
+        lore.add("");
+        if (waiting > 0) {
+            lore.add(Lore.stat(ChatColor.YELLOW, "Waiting",
+                    waiting + " reward" + (waiting == 1 ? "" : "s")));
+            lore.add("");
+            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO COLLECT");
+        } else {
+            lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " Nothing to collect right now.");
+        }
+        meta.setLore(lore);
+        meta.setEnchantmentGlintOverride(waiting > 0 ? Boolean.TRUE : null);
         item.setItemMeta(meta);
         return item;
     }
@@ -286,7 +310,7 @@ public class PassGui {
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(ChatColor.YELLOW + "" + ChatColor.BOLD + label);
-        meta.setLore(List.of(ChatColor.GRAY + "Page " + shownPage + "/" + total));
+        meta.setLore(List.of(Lore.stat(ChatColor.AQUA, "Page", shownPage + " / " + total)));
         item.setItemMeta(meta);
         return item;
     }

@@ -4,7 +4,6 @@ import com.spacerng.solrng.SolRNGPlugin;
 import com.spacerng.solrng.player.PlayerData;
 import com.spacerng.solrng.player.SkillNode;
 import com.spacerng.solrng.player.SkillTreeManager;
-import com.spacerng.solrng.rarity.RollFormat;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -120,9 +119,10 @@ public class SkillTreeGui {
         meta.setDisplayName(ChatColor.YELLOW + "" + ChatColor.BOLD + label);
         List<String> lore = new ArrayList<>();
         if (!name.isEmpty()) {
-            lore.add(ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + name.toUpperCase());
+            lore.add(Lore.state(name));
+            lore.add("");
         }
-        lore.add(ChatColor.GRAY + "Page " + shownPage + "/" + total);
+        lore.add(Lore.stat(ChatColor.AQUA, "Page", shownPage + " / " + total));
         meta.setLore(lore);
         item.setItemMeta(meta);
         return item;
@@ -134,46 +134,52 @@ public class SkillTreeGui {
         boolean maxed = leveled && level >= node.getMaxLevel();
         boolean started = leveled ? level > 0 : data.hasUnlocked(node.getId());
         boolean complete = leveled ? maxed : started;
+        ChatColor accent = complete ? ChatColor.GREEN : started ? ChatColor.YELLOW : ChatColor.AQUA;
+
+        Currency wallet = node.usesTokens() ? Currency.TOKENS : Currency.COINS;
+        long price = Math.round(plugin.getSkillTreeManager().priceFor(data, node));
+        long balance = node.usesTokens() ? data.getTokens() : balanceOf(player);
+        boolean affordable = plugin.getSkillTreeManager().canAfford(player, data, node);
 
         List<String> lore = new ArrayList<>();
-        lore.add(ChatColor.DARK_GRAY + (node.getTree().equals("farmtree") ? "FARMING SKILL" : "SKILL"));
+        lore.add(Lore.state(leveled ? "upgrade" : "unlock"));
         lore.add("");
+        lore.add(Lore.section(ChatColor.AQUA, "Effect"));
         lore.addAll(describeEffect(node, level));
         lore.add("");
+        lore.add(Lore.section(ChatColor.AQUA, "Information"));
         if (leveled) {
-            lore.add(ChatColor.AQUA + "▎ " + ChatColor.GRAY + "Level: " + ChatColor.AQUA + level
-                    + ChatColor.GRAY + "/" + ChatColor.AQUA + node.getMaxLevel());
+            lore.add(Lore.stat(ChatColor.AQUA, "Level", level + " / " + node.getMaxLevel()));
             lore.add(Lore.bar(level / (double) node.getMaxLevel()));
         }
         if (!complete) {
-            double price = plugin.getSkillTreeManager().priceFor(data, node);
-            boolean affordable = plugin.getSkillTreeManager().canAfford(player, data, node);
-            boolean tokens = node.usesTokens();
-            ChatColor tint = tokens ? ChatColor.YELLOW : ChatColor.GOLD;
-            lore.add((affordable ? ChatColor.YELLOW : ChatColor.RED) + "▎ " + ChatColor.GRAY + "Price: "
-                    + (affordable ? tint : ChatColor.RED)
-                    + RollFormat.abbreviate(Math.round(price)) + (tokens ? " Tokens" : " Coins"));
-            lore.add(ChatColor.DARK_GRAY + "▎ You have " + tint
-                    + (tokens ? RollFormat.abbreviate(data.getTokens()) + " Tokens"
-                              : formatCoins(player)));
-            lore.add("");
-            lore.add(affordable
-                    ? ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO BUY"
-                    : ChatColor.RED + "" + ChatColor.BOLD
-                            + (tokens ? "NOT ENOUGH TOKENS" : "NOT ENOUGH COINS"));
-        } else {
-            lore.add("");
+            lore.add((affordable ? ChatColor.YELLOW : ChatColor.RED) + Lore.BULLET + " "
+                    + ChatColor.GRAY + "Cost: " + wallet.price(price, affordable));
+            lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " " + ChatColor.DARK_GRAY + "You have "
+                    + wallet.amount(balance));
+        }
+        lore.add("");
+        if (complete) {
             lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + (leveled ? "MAXED" : "UNLOCKED"));
+        } else if (affordable) {
+            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + (leveled ? "CLICK TO UPGRADE" : "CLICK TO UNLOCK"));
+        } else {
+            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "NOT ENOUGH " + wallet.label().toUpperCase());
         }
 
         Material material = Material.matchMaterial(node.getIcon());
         if (material == null) material = Material.RECOVERY_COMPASS;
 
-        ChatColor nameColor = complete ? ChatColor.GREEN : started ? ChatColor.YELLOW : ChatColor.RED;
-
         ItemStack icon = new ItemStack(material);
         ItemMeta meta = icon.getItemMeta();
-        meta.setDisplayName(nameColor + "" + ChatColor.BOLD + node.getDisplay().toUpperCase());
+        // A leveled skill wears its level as a badge, the way the farming
+        // enchants do; a one-time unlock gets the framed title instead. The
+        // two shapes are how you tell at a glance which kind of thing a
+        // slot is without reading anything.
+        meta.setDisplayName(leveled
+                ? ChatColor.DARK_GRAY + "[" + accent + level + Lore.STAR + ChatColor.DARK_GRAY + "] "
+                        + accent + ChatColor.BOLD + node.getDisplay()
+                : Lore.title(accent, node.getDisplay()));
         // Glint instead of a colour-coded dye, so the skill keeps its own
         // icon while still reading as "done" at a glance.
         meta.setEnchantmentGlintOverride(complete ? Boolean.TRUE : null);
@@ -192,11 +198,14 @@ public class SkillTreeGui {
         SkillNode parent = plugin.getSkillTreeManager().get(node.getRequires());
         ItemStack icon = new ItemStack(Material.GRAY_DYE);
         ItemMeta meta = icon.getItemMeta();
-        meta.setDisplayName(ChatColor.DARK_GRAY + "" + ChatColor.BOLD + "???");
+        meta.setDisplayName(Lore.title(ChatColor.DARK_GRAY, "???"));
         meta.setLore(List.of(
-                ChatColor.DARK_GRAY + "LOCKED",
+                Lore.state("locked"),
                 "",
-                ChatColor.GRAY + "Requires " + ChatColor.RED
+                Lore.line(ChatColor.RED, "Buy the skill before it first."),
+                "",
+                ChatColor.RED + "" + ChatColor.BOLD + "LOCKED",
+                ChatColor.RED + Lore.BULLET + " " + ChatColor.GRAY + "Needs " + ChatColor.YELLOW
                         + (parent == null ? "an earlier skill" : parent.getDisplay())));
         icon.setItemMeta(meta);
         return icon;
@@ -209,8 +218,11 @@ public class SkillTreeGui {
     private static ItemStack placeholderNode() {
         ItemStack icon = new ItemStack(Material.GRAY_DYE);
         ItemMeta meta = icon.getItemMeta();
-        meta.setDisplayName(ChatColor.DARK_GRAY + "" + ChatColor.BOLD + "???");
-        meta.setLore(List.of(ChatColor.DARK_GRAY + "Reserved for a future skill."));
+        meta.setDisplayName(Lore.title(ChatColor.DARK_GRAY, "???"));
+        meta.setLore(List.of(
+                Lore.state("empty"),
+                "",
+                ChatColor.DARK_GRAY + Lore.BULLET + " Reserved for a future skill."));
         icon.setItemMeta(meta);
         return icon;
     }
@@ -224,38 +236,46 @@ public class SkillTreeGui {
     }
 
     private static ItemStack buildWalletPanel(SolRNGPlugin plugin, Player player, PlayerData data, boolean farming) {
+        Currency wallet = farming ? Currency.TOKENS : Currency.COINS;
+        long balance = farming ? data.getTokens() : balanceOf(player);
+
         ItemStack stats = new ItemStack(farming ? Material.WHEAT : Material.GOLD_INGOT);
         ItemMeta meta = stats.getItemMeta();
-        meta.setDisplayName((farming ? ChatColor.YELLOW : ChatColor.GOLD) + "" + ChatColor.BOLD
-                + (farming ? "TOKENS" : "COINS"));
+        meta.setDisplayName(Lore.title(wallet.colour(), player.getName()));
 
         List<String> lore = new ArrayList<>();
-        lore.add(ChatColor.DARK_GRAY + "WALLET");
+        lore.add(Lore.state("wallet"));
         lore.add("");
-        lore.add(farming
-                ? ChatColor.YELLOW + "▎ " + RollFormat.abbreviate(data.getTokens()) + " Tokens"
-                : ChatColor.GOLD + "▎ " + formatCoins(player));
-        if (!farming) {
-            // The two headline stats the tree is bought to raise, so the
-            // effect of a purchase is visible without leaving the menu.
-            lore.add("");
-            lore.add(ChatColor.GREEN + "▎ " + ChatColor.GRAY + "Luck: " + ChatColor.GREEN + "+"
-                    + String.format("%.2f", plugin.getPrestigeManager().effectiveLuck(data) * 100.0) + "%");
-            lore.add(ChatColor.YELLOW + "▎ " + ChatColor.GRAY + "Speed: " + ChatColor.YELLOW
-                    + Math.round(data.getEffectiveRollSpeedMultiplier() * 100));
-        }
+        lore.add(wallet.colour() + Lore.BULLET + " " + wallet.amount(balance));
         lore.add("");
-        lore.add(ChatColor.DARK_GRAY + (farming ? "Farm skills are bought with Tokens."
-                                                : "Skills are bought with Coins."));
+        lore.add(Lore.section(ChatColor.AQUA, "Your stats"));
+        lore.add(Lore.stat(ChatColor.GREEN, "Luck", "+"
+                + String.format("%.2f", plugin.getPrestigeManager().effectiveLuck(data) * 100.0) + "%"));
+        lore.add(Lore.stat(ChatColor.YELLOW, "Speed",
+                String.valueOf(Math.round(data.getEffectiveRollSpeedMultiplier() * 100))));
+        lore.add(Lore.stat(ChatColor.AQUA, "Skills owned", String.valueOf(ownedCount(plugin, data))));
+        lore.add("");
+        lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " "
+                + (farming ? "Farm skills are bought with Tokens."
+                           : "Skills are bought with Coins."));
         meta.setLore(lore);
         stats.setItemMeta(meta);
         return stats;
     }
 
-    private static String formatCoins(Player player) {
+    /** Levels bought across every tree — one number for "how far in am I". */
+    private static int ownedCount(SolRNGPlugin plugin, PlayerData data) {
+        int total = 0;
+        for (SkillNode node : plugin.getSkillTreeManager().getNodes().values()) {
+            total += plugin.getSkillTreeManager().levelOf(data, node);
+        }
+        return total;
+    }
+
+    private static long balanceOf(Player player) {
         var registration = Bukkit.getServicesManager().getRegistration(Economy.class);
-        if (registration == null) return "N/A";
-        return RollFormat.abbreviate(Math.round(registration.getProvider().getBalance(player))) + " Coins";
+        if (registration == null) return 0L;
+        return Math.round(registration.getProvider().getBalance(player));
     }
 
     /**

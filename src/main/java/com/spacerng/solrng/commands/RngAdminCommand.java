@@ -35,7 +35,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
 
     private static final List<String> SUBCOMMANDS = List.of(
             "reload", "setspawn", "starforge", "reset", "give", "drops",
-            "bank", "aura", "roll", "unlock", "odds", "farmblock", "crops",
+            "bank", "aura", "roll", "unlock", "unlockall", "lockall", "odds", "farmblock", "crops",
             "milestones", "farmfill", "boost", "nova", "placeholders", "payout", "help");
     private static final List<String> CURRENCIES = List.of("coins", "tokens", "gems", "credits");
 
@@ -68,6 +68,8 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             case "aura" -> doAura(sender, args);
             case "roll" -> doRoll(sender, args);
             case "unlock" -> doUnlock(sender, args);
+            case "unlockall" -> doUnlockAll(sender, args);
+            case "lockall" -> doLockAll(sender, args);
             case "odds" -> doOdds(sender, args);
             case "farmblock" -> doFarmBlock(sender, args);
             case "crops" -> doCrops(sender, args);
@@ -97,7 +99,9 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         line(sender, "bank", "<rarity|all> <amount> [player]", "Stored drops (the /convert bank)");
         line(sender, "aura", "<epic|legendary|mythical> [player]", "Replay the full reveal build-up + burst");
         line(sender, "roll", "<rarity> [player]", "Force a real roll result of that rarity");
-        line(sender, "unlock", "<node|all> [player]", "Grant a skill tree node");
+        line(sender, "unlock", "<node|all> [player]", "Grant one skill tree node");
+        line(sender, "unlockall", "[player]", "Max out every skill in every tree");
+        line(sender, "lockall", "[player]", "Wipe every skill, to test the tree from scratch");
         line(sender, "odds", "[rarity]", "Label vs. true odds, and each tier's real share");
         line(sender, "farmblock", "[amount]", "Farm Plot blocks - place to build the shared farm");
         line(sender, "crops", "<unlock|lock> <crop|gems|all> [player]", "Grant or revoke crops");
@@ -407,6 +411,60 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
 
         plugin.getScoreboardManager().update(target);
         sender.sendMessage(ChatColor.GREEN + "Unlocked " + granted + " node(s) for " + target.getName() + ".");
+        return true;
+    }
+
+    /**
+     * Every node in every tree, maxed, free. This is the one command you
+     * want before testing a menu: with ~110 nodes across two trees,
+     * buying them by hand to see what a finished tree looks like isn't a
+     * realistic thing to ask.
+     */
+    private boolean doUnlockAll(CommandSender sender, String[] args) {
+        Player target = resolve(sender, args.length >= 2 ? args[1] : null);
+        if (target == null) return true;
+
+        PlayerData data = plugin.getPlayerDataManager().get(target.getUniqueId());
+        int granted = 0;
+        for (SkillNode node : plugin.getSkillTreeManager().getNodes().values()) {
+            grantNode(data, node);
+            granted++;
+        }
+
+        plugin.getScoreboardManager().update(target);
+        plugin.getFarmingManager().refreshHoe(target, data);
+        sender.sendMessage(ChatColor.GREEN + "Maxed " + granted + " skill node(s) for "
+                + target.getName() + ".");
+        sender.sendMessage(ChatColor.DARK_GRAY + "Luck is now +"
+                + String.format("%.2f", plugin.getPrestigeManager().effectiveLuck(data) * 100.0)
+                + "%, Speed " + Math.round(data.getEffectiveRollSpeedMultiplier() * 100) + ".");
+        return true;
+    }
+
+    /**
+     * The other half of the pair: strips every node so the tree can be
+     * walked from the root again. Stats are derived from node levels now,
+     * so clearing the levels IS clearing the stats — there's nothing left
+     * behind to reset separately.
+     */
+    private boolean doLockAll(CommandSender sender, String[] args) {
+        Player target = resolve(sender, args.length >= 2 ? args[1] : null);
+        if (target == null) return true;
+
+        PlayerData data = plugin.getPlayerDataManager().get(target.getUniqueId());
+        int cleared = data.getUnlockedNodes().size() + data.getNodeLevels().size();
+        data.getUnlockedNodes().clear();
+        data.getNodeLevels().clear();
+        // These three are the side effects a purchase writes directly, so
+        // they're the only ones that need undoing by hand.
+        data.setAutoRollEnabled(false);
+        data.setFarmTokenMultiplier(1.0);
+        data.setCropShardsUnlocked(false);
+        data.setSkillSpeedBonus(0.0);
+
+        plugin.getScoreboardManager().update(target);
+        sender.sendMessage(ChatColor.GREEN + "Cleared " + cleared + " skill entr(ies) for "
+                + target.getName() + ".");
         return true;
     }
 
@@ -779,6 +837,10 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         if (!sender.hasPermission("solrng.admin")) return List.of();
 
         if (args.length == 1) return partial(args[0], SUBCOMMANDS);
+        if (args.length == 2 && (args[0].equalsIgnoreCase("unlockall")
+                || args[0].equalsIgnoreCase("lockall"))) {
+            return partial(args[1], playerNames());
+        }
 
         String sub = args[0].toLowerCase(Locale.ROOT);
         if (args.length == 2) {
