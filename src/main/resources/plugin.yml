@@ -42,9 +42,17 @@ commands:
   crops:
     description: Choose which crop the shared farm grows for you
     usage: /crops
+  rngcookie:
+    description: Climb the Nova Core tier ladder
+    usage: /rngcookie
+    aliases: [novacore, cookie]
+  buy:
+    description: Spend store Credits
+    usage: /buy
+    aliases: [store, shop]
   rngadmin:
     description: Admin tools for SolRNG
-    usage: /rngadmin <reload|setspawn|starforge|reset|give|drops|bank|aura|roll|unlock|odds|farmblock|crops|milestones>
+    usage: /rngadmin <reload|setspawn|starforge|reset|give|drops|bank|aura|roll|unlock|odds|farmblock|farmfill|crops|milestones|boost|nova>
     permission: solrng.admin
     aliases: [solrngadmin]
 

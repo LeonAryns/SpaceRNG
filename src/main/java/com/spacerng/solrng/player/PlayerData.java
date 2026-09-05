@@ -85,6 +85,11 @@ public class PlayerData {
     private final Set<String> unlockedCrops = new HashSet<>();
     // Whether farm crops pay Shards as well as Tokens.
     private boolean cropShardsUnlocked = false;
+    // Nova Core ladder (/rngcookie): the tier currently held, and the
+    // deepest ever reached. A failed climb drops the first back to a
+    // checkpoint; the second is a record and never falls.
+    private int novaTier = 0;
+    private int novaBestTier = 0;
     // Which Starforge the player owns — their BASE Luck comes from this.
     private String starforgeTier = "BASIC";
     // Base Luck from the Starforge, but only while it's actually in a
@@ -408,6 +413,22 @@ public class PlayerData {
 
     public void setCropShardsUnlocked(boolean cropShardsUnlocked) {
         this.cropShardsUnlocked = cropShardsUnlocked;
+    }
+
+    public int getNovaTier() {
+        return novaTier;
+    }
+
+    public void setNovaTier(int novaTier) {
+        this.novaTier = Math.max(0, novaTier);
+    }
+
+    public int getNovaBestTier() {
+        return novaBestTier;
+    }
+
+    public void setNovaBestTier(int novaBestTier) {
+        this.novaBestTier = Math.max(0, novaBestTier);
     }
 
     public boolean isRollSoundEnabled() {

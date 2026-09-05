@@ -43,6 +43,10 @@ public final class RollAura {
     // stop orbiting and collapse into the point the drop bursts out of.
     private static final double IMPLODE_FROM = 0.88;
 
+    // The frame Mythical's last bolt falls on. The ding fires here too —
+    // the sound IS the lightning, not a follow-up to it.
+    private static final long FINAL_STRIKE = 16L;
+
     // ---------------------------------------------------------- per-rarity
 
     private static long durationFor(Rarity rarity) {
@@ -57,9 +61,9 @@ public final class RollAura {
     public static long finaleTicks(Rarity rarity) {
         if (!isBigDrop(rarity)) return 0L;
         return switch (rarity) {
-            case MYTHICAL -> 100L; // 5s
-            case LEGENDARY -> 40L; // 2s
-            default -> 24L;        // 1.2s, Epic
+            case MYTHICAL -> 46L;  // 2.3s — ends just after the last bolt
+            case LEGENDARY -> 28L; // 1.4s
+            default -> 20L;        // 1s, Epic
         };
     }
 
@@ -459,8 +463,8 @@ public final class RollAura {
 
         // The shell: a real sphere growing out through the viewer. This is
         // the part that makes the burst visible from inside it.
-        if (frame <= 45) {
-            double p = frame / 45.0;
+        if (frame <= 26) {
+            double p = frame / 26.0;
             double radius = 1.0 + ease(p) * 17.0;
             // Thins out as it grows so the far edge doesn't turn into a wall.
             int rings = p < 0.5 ? 7 : 5;
@@ -470,7 +474,7 @@ public final class RollAura {
 
         // The pillar: straight up, so it's the landmark everyone turns to.
         double pillarLife = 1.0 - ((double) frame / length);
-        double pillarWidth = 0.4 + 1.6 * Math.sin(Math.min(1.0, frame / 25.0) * Math.PI * 0.5) * pillarLife;
+        double pillarWidth = 0.4 + 1.6 * Math.sin(Math.min(1.0, frame / 14.0) * Math.PI * 0.5) * pillarLife;
         for (double y = 0.0; y < 30.0; y += 1.0) {
             double sway = Math.sin((y * 0.4) + (frame * 0.25)) * pillarWidth;
             dustAt(base.clone().add(sway, y, Math.cos((y * 0.4) + (frame * 0.25)) * pillarWidth),
@@ -480,70 +484,58 @@ public final class RollAura {
             puff(Particle.ELECTRIC_SPARK, base.clone().add(0, 4.0 + (frame % 20), 0), 4, 0.6, 0.6, 0.6, 0.04);
         }
 
-        // Widening lightning rings, each with a lower, longer roll of thunder.
-        if (frame == 6) {
-            lightningRing(9.0, 5);
+        // Two widening rings, then THE strike — the last bolt and the ding
+        // land on the same frame, so the sound is the lightning rather than
+        // an afterthought several seconds behind it.
+        if (frame == 8) {
+            lightningRing(10.0, 6);
             sound(Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 4.0f, 0.7f);
-        } else if (frame == 16) {
-            lightningRing(13.0, 6);
-            sound(Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 4.0f, 0.6f);
-        } else if (frame == 28) {
-            lightningRing(17.0, 7);
+        } else if (frame == FINAL_STRIKE) {
+            lightningRing(16.0, 10);
+            puff(Particle.FLASH, core, 2, 0.0, 0.0, 0.0, 0.0);
+            puff(Particle.EXPLOSION_EMITTER, core, 2, 1.2, 0.6, 1.2, 0.0);
+            sound(Sound.ENTITY_LIGHTNING_BOLT_IMPACT, 4.0f, 0.7f);
             sound(Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 4.0f, 0.5f);
+            sound(Sound.ENTITY_ENDER_DRAGON_GROWL, 4.0f, 1.1f);
+            dingChord(4.0f);
         }
 
-        // Four ground shockwaves, staggered, travelling well past the aura.
-        // Drawn every other frame and at a moderate point density — at full
-        // rate the four rings alone were most of the packets in the scene.
+        // Ground shockwaves rolling out past the aura. Drawn every other
+        // frame and at moderate density — at full rate these rings alone
+        // were most of the packets in the scene.
         if (frame % 2 == 0) {
-            for (int wave = 0; wave < 4; wave++) {
-                double wp = ((double) frame / length) - (wave * 0.16);
+            for (int wave = 0; wave < 3; wave++) {
+                double wp = ((double) frame / length) - (wave * 0.18);
                 if (wp <= 0.0 || wp > 1.0) continue;
                 double radius = ease(wp) * 24.0;
                 ring(base, radius, (int) (14 + radius * 1.6), wave == 0 ? dustBright : dust, 0.05);
             }
         }
 
-        // Embers falling back through the whole area, not just overhead.
-        if (frame >= 20 && frame % 2 == 0) {
+        // Embers falling back down through the whole area — this is the
+        // only thing that runs past the strike, so the scene settles rather
+        // than cutting out.
+        if (frame >= 10 && frame % 2 == 0) {
             puff(Particle.DRAGON_BREATH, base.clone().add(0, 18.0, 0), 12, 11.0, 3.0, 11.0, 0.01);
             puff(Particle.ELECTRIC_SPARK, base.clone().add(0, 12.0, 0), 8, 8.0, 4.0, 8.0, 0.03);
         }
-
-        if (frame == 50) {
-            puff(Particle.EXPLOSION_EMITTER, core, 2, 1.0, 0.6, 1.0, 0.0);
-            puff(Particle.FLASH, core, 1, 0.0, 0.0, 0.0, 0.0);
-            lightningRing(11.0, 4);
-            sound(Sound.ENTITY_ENDER_DRAGON_GROWL, 4.0f, 1.0f);
-            sound(Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 3.5f, 0.5f);
-        }
-
-        if (frame == 78) {
-            sound(Sound.BLOCK_BEACON_DEACTIVATE, 3.0f, 0.6f);
-            sound(Sound.BLOCK_AMETHYST_BLOCK_CHIME, 3.0f, 0.7f);
-        }
-
-        // The finish: a rising three-note ding so the sequence RESOLVES
-        // instead of just trailing off into silence.
-        finishDing(frame, 84, 89, 94, 3.0f);
     }
 
     /**
-     * An ascending major triad landing on a bright chime — the sound of
-     * something being completed. Fired on three separate frames so it
-     * reads as a phrase rather than a chord.
+     * The ding. Five samples on the SAME tick rather than an arpeggio over
+     * three: spread out it arrived long after the visual and read as a
+     * separate event, where a stacked chord lands as one bright hit on the
+     * lightning itself.
+     *
+     * The two bells a fifth apart plus the chime give it body; the toast
+     * sting on top is what makes it read as "you got something".
      */
-    private void finishDing(long frame, long first, long second, long third, float volume) {
-        if (frame == first) {
-            sound(Sound.BLOCK_NOTE_BLOCK_BELL, volume, 1.00f);
-        } else if (frame == second) {
-            sound(Sound.BLOCK_NOTE_BLOCK_BELL, volume, 1.26f);
-        } else if (frame == third) {
-            sound(Sound.BLOCK_NOTE_BLOCK_BELL, volume, 1.50f);
-            sound(Sound.BLOCK_NOTE_BLOCK_CHIME, volume, 1.50f);
-            sound(Sound.UI_TOAST_CHALLENGE_COMPLETE, volume, 1.0f);
-            sound(Sound.ENTITY_PLAYER_LEVELUP, volume * 0.7f, 1.2f);
-        }
+    private void dingChord(float volume) {
+        sound(Sound.BLOCK_NOTE_BLOCK_BELL, volume, 1.00f);
+        sound(Sound.BLOCK_NOTE_BLOCK_BELL, volume, 1.50f);
+        sound(Sound.BLOCK_NOTE_BLOCK_CHIME, volume, 1.50f);
+        sound(Sound.BLOCK_AMETHYST_BLOCK_CHIME, volume, 1.20f);
+        sound(Sound.UI_TOAST_CHALLENGE_COMPLETE, volume, 1.0f);
     }
 
     /** A ring of harmless, visual-only bolts around the player. */
@@ -615,8 +607,11 @@ public final class RollAura {
             puff(accent, base.clone().add(0, 2.6, 0), 6, maxRadius * 0.35, 0.5, maxRadius * 0.35, 0.02);
         }
 
-        if (rarity == Rarity.LEGENDARY) {
-            finishDing(frame, 26, 31, 36, 2.5f);
+        // Legendary's burst is on frame 1, so the ding belongs right
+        // behind it — at frame 26 it was landing well after the visual had
+        // already finished.
+        if (rarity == Rarity.LEGENDARY && frame == 5) {
+            dingChord(3.0f);
         }
     }
 }

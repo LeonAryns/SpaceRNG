@@ -59,8 +59,20 @@ public class PrestigeManager {
         return true;
     }
 
-    public double effectiveLuck(PlayerData data) {
-        return data.getEffectiveLuck(luckMultiplierPerPrestige,
+    /**
+     * Luck WITHOUT the Nova Core's own multiplier. The /rngcookie ladder
+     * rolls against this: feeding a tier's multiplier back into the odds
+     * of climbing to the next tier makes the ladder easier the further up
+     * you get, which is backwards.
+     */
+    public double baseLuck(PlayerData data) {
+        double luck = data.getEffectiveLuck(luckMultiplierPerPrestige,
                 plugin.getRarityManager().tagMultiplierFor(data));
+        return luck * plugin.getBoostManager().multiplier();
+    }
+
+    /** Everything: base Luck, the global boost, and the Nova Core tier. */
+    public double effectiveLuck(PlayerData data) {
+        return baseLuck(data) * plugin.getNovaCoreManager().multiplierAt(data.getNovaTier());
     }
 }

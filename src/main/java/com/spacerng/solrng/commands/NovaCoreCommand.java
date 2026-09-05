@@ -1,30 +1,28 @@
 package com.spacerng.solrng.commands;
 
 import com.spacerng.solrng.SolRNGPlugin;
-import com.spacerng.solrng.gui.MilestoneGui;
+import com.spacerng.solrng.gui.NovaCoreGui;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-public class MilestonesCommand implements CommandExecutor {
+public class NovaCoreCommand implements CommandExecutor {
 
     private final SolRNGPlugin plugin;
 
-    public MilestonesCommand(SolRNGPlugin plugin) {
+    public NovaCoreCommand(SolRNGPlugin plugin) {
         this.plugin = plugin;
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage(ChatColor.RED + "Only players have milestones.");
+            sender.sendMessage(ChatColor.RED + "Only players can forge a Nova Core.");
             return true;
         }
-        // Catch anything reached while they were offline before showing it.
-        plugin.getMilestoneManager().check(player);
-        player.openInventory(MilestoneGui.build(plugin, player, null, 0));
+        player.openInventory(NovaCoreGui.build(plugin, player));
         return true;
     }
 }

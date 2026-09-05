@@ -87,6 +87,8 @@ public class PlayerDataManager {
         data.setFarmTokenMultiplier(yml.getDouble("farm-token-multiplier", 1.0));
         data.setStarforgeTier(yml.getString("starforge-tier", "BASIC"));
         data.setCropsHarvested(yml.getLong("crops-harvested", 0L));
+        data.setNovaTier(yml.getInt("nova-tier", 0));
+        data.setNovaBestTier(yml.getInt("nova-best-tier", 0));
         data.setSelectedCrop(yml.getString("selected-crop", "WHEAT"));
         data.setCropShardsUnlocked(yml.getBoolean("crop-shards-unlocked", false));
         data.getUnlockedCrops().addAll(yml.getStringList("unlocked-crops"));
@@ -161,6 +163,8 @@ public class PlayerDataManager {
         yml.set("farm-token-multiplier", data.getFarmTokenMultiplier());
         yml.set("starforge-tier", data.getStarforgeTier());
         yml.set("crops-harvested", data.getCropsHarvested());
+        yml.set("nova-tier", data.getNovaTier());
+        yml.set("nova-best-tier", data.getNovaBestTier());
         yml.set("selected-crop", data.getSelectedCrop());
         yml.set("crop-shards-unlocked", data.isCropShardsUnlocked());
         yml.set("unlocked-crops", new java.util.ArrayList<>(data.getUnlockedCrops()));

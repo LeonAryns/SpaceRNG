@@ -66,8 +66,13 @@ public class FarmPlotListener implements Listener {
         event.setCancelled(true);
         Player player = event.getPlayer();
 
-        // An admin sneaking is removing the tile, not farming it.
-        if (player.isSneaking() && player.hasPermission("solrng.admin")) {
+        // Sneaking in creative removes the real tile; anything else — any
+        // gamemode, any click — is just harvesting the crop on top of it.
+        // Gating on creative means an admin can farm normally in survival
+        // without accidentally deleting the field.
+        if (player.getGameMode() == org.bukkit.GameMode.CREATIVE
+                && player.isSneaking()
+                && player.hasPermission("solrng.admin")) {
             farm.removePlot(event.getBlock().getLocation());
             farm.renderAll();
             sendActionBar(player, ChatColor.RED + "Farm plot removed "

@@ -36,7 +36,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
     private static final List<String> SUBCOMMANDS = List.of(
             "reload", "setspawn", "starforge", "reset", "give", "drops",
             "bank", "aura", "roll", "unlock", "odds", "farmblock", "crops",
-            "milestones", "help");
+            "milestones", "farmfill", "boost", "nova", "placeholders", "help");
     private static final List<String> CURRENCIES = List.of("money", "tokens", "shards", "credits");
 
     private final SolRNGPlugin plugin;
@@ -72,6 +72,10 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             case "farmblock" -> doFarmBlock(sender, args);
             case "crops" -> doCrops(sender, args);
             case "milestones" -> doMilestones(sender, args);
+            case "farmfill" -> doFarmFill(sender, args);
+            case "boost" -> doBoost(sender, args);
+            case "nova" -> doNova(sender, args);
+            case "placeholders" -> doPlaceholders(sender);
             default -> {
                 sendHelp(sender);
                 yield true;
@@ -97,6 +101,10 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         line(sender, "farmblock", "[amount]", "Farm Plot blocks - place to build the shared farm");
         line(sender, "crops", "<unlock|lock> <crop|shards|all> [player]", "Grant or revoke crops");
         line(sender, "milestones", "<check|reset> [player]", "Force a check, or wipe claimed tiers");
+        line(sender, "farmfill", "<radius> [confirm]", "Fill a square of farm plots around you");
+        line(sender, "boost", "<level> [minutes]", "Force the global Luck boost on");
+        line(sender, "nova", "<tier> [player]", "Set a Nova Core tier");
+        line(sender, "placeholders", "", "What every %solrng_% placeholder resolves to right now");
     }
 
     private void line(CommandSender sender, String sub, String args, String description) {
@@ -581,6 +589,142 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         return true;
     }
 
+    /**
+     * Fills a square of farm plots centred on where you stand, at your own
+     * feet level. Placing a field by hand is fine for a demo and miserable
+     * for a real one.
+     */
+    private boolean doFarmFill(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(ChatColor.RED + "Stand where you want the field.");
+            return true;
+        }
+        if (args.length < 2) {
+            sender.sendMessage(ChatColor.RED + "Usage: /rngadmin farmfill <radius> [confirm]");
+            return true;
+        }
+
+        Long parsed = parseAmount(sender, args[1]);
+        if (parsed == null) return true;
+        int radius = (int) Math.min(20L, parsed);
+
+        int side = radius * 2 + 1;
+        int total = side * side;
+        // Big fills rewrite a lot of blocks and are tedious to undo, so
+        // anything past a modest patch takes a second confirmation.
+        if (total > 121 && (args.length < 3 || !args[2].equalsIgnoreCase("confirm"))) {
+            sender.sendMessage(ChatColor.RED + "That's " + side + "x" + side + " = " + total + " plots.");
+            sender.sendMessage(ChatColor.RED + "Run " + ChatColor.YELLOW + "/rngadmin farmfill "
+                    + radius + " confirm" + ChatColor.RED + " if you're sure.");
+            return true;
+        }
+
+        var farm = plugin.getFarmPlotManager();
+        var origin = player.getLocation().getBlock();
+        int placed = 0;
+        int skipped = 0;
+        for (int dx = -radius; dx <= radius; dx++) {
+            for (int dz = -radius; dz <= radius; dz++) {
+                var block = origin.getRelative(dx, 0, dz);
+                if (farm.isPlot(block.getLocation())) {
+                    skipped++;
+                    continue;
+                }
+                // Only claim empty space — never overwrite someone's build.
+                if (!block.getType().isAir() && !block.isReplaceable()) {
+                    skipped++;
+                    continue;
+                }
+                farm.addPlot(block);
+                placed++;
+            }
+        }
+        farm.renderAll();
+        sender.sendMessage(ChatColor.GREEN + "Placed " + placed + " plot(s)"
+                + (skipped > 0 ? ChatColor.GRAY + ", skipped " + skipped + " occupied block(s)" : "")
+                + ChatColor.GRAY + ". " + farm.plotCount() + " total.");
+        return true;
+    }
+
+    /** /rngadmin boost &lt;level&gt; [minutes] — force the global boost on for testing. */
+    private boolean doBoost(CommandSender sender, String[] args) {
+        if (args.length < 2) {
+            sender.sendMessage(ChatColor.GRAY + "Boost: " + ChatColor.LIGHT_PURPLE
+                    + com.spacerng.solrng.boost.BoostManager.formatMultiplier(plugin.getBoostManager().multiplier())
+                    + ChatColor.GRAY + ", " + ChatColor.WHITE + plugin.getBoostManager().timeLeftText()
+                    + ChatColor.GRAY + " left. Usage: /rngadmin boost <level> [minutes]");
+            return true;
+        }
+        Long level = parseAmount(sender, args[1]);
+        if (level == null) return true;
+
+        int minutes = 15;
+        if (args.length >= 3) {
+            Long parsed = parseAmount(sender, args[2]);
+            if (parsed == null) return true;
+            minutes = (int) Math.max(1L, parsed);
+        }
+
+        plugin.getBoostManager().force((int) Math.min(level, plugin.getBoostManager().getMaxLevel()), minutes,
+                sender.getName());
+        plugin.getLuckBarManager().updateAll();
+        sender.sendMessage(ChatColor.GREEN + "Boost set to "
+                + com.spacerng.solrng.boost.BoostManager.formatMultiplier(plugin.getBoostManager().multiplier())
+                + " for " + minutes + " minute(s).");
+        return true;
+    }
+
+    /** /rngadmin nova &lt;tier&gt; [player] */
+    private boolean doNova(CommandSender sender, String[] args) {
+        if (args.length < 2) {
+            sender.sendMessage(ChatColor.RED + "Usage: /rngadmin nova <tier> [player]");
+            return true;
+        }
+        Long tier = parseAmount(sender, args[1]);
+        if (tier == null) return true;
+
+        Player target = resolve(sender, args.length >= 3 ? args[2] : null);
+        if (target == null) return true;
+
+        PlayerData data = plugin.getPlayerDataManager().get(target.getUniqueId());
+        int clamped = (int) Math.min(tier, plugin.getNovaCoreManager().getMaxTier());
+        data.setNovaTier(clamped);
+        if (clamped > data.getNovaBestTier()) data.setNovaBestTier(clamped);
+        plugin.getLuckBarManager().update(target);
+        plugin.getScoreboardManager().update(target);
+        sender.sendMessage(ChatColor.GREEN + "Set " + target.getName() + " to Nova Core tier " + clamped + " ("
+                + String.format("%.2f", plugin.getNovaCoreManager().multiplierAt(clamped)) + "x Luck).");
+        return true;
+    }
+
+    /**
+     * Prints what every placeholder currently resolves to for the sender.
+     * This is the fast way to tell a TAB configuration problem from a
+     * plugin one: if the values show up here, the data is fine and the
+     * fault is in TAB's config or its PlaceholderAPI hook.
+     */
+    private boolean doPlaceholders(CommandSender sender) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(ChatColor.RED + "Placeholders are per-player.");
+            return true;
+        }
+        if (plugin.getServer().getPluginManager().getPlugin("PlaceholderAPI") == null) {
+            sender.sendMessage(ChatColor.RED + "PlaceholderAPI isn't installed, so nothing is registered.");
+            return true;
+        }
+
+        sender.sendMessage(ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + "SolRNG placeholders");
+        for (String key : List.of("tag", "tag_plain", "tag_name", "tag_odds", "tag_multiplier",
+                "prestige", "prestige_roman", "prestige_badge", "level", "level_number")) {
+            String value = me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(player, "%solrng_" + key + "%");
+            boolean unresolved = value.equals("%solrng_" + key + "%");
+            sender.sendMessage(ChatColor.YELLOW + "%solrng_" + key + "%" + ChatColor.DARK_GRAY + " -> "
+                    + (unresolved ? ChatColor.RED + "UNRESOLVED" : ChatColor.WHITE + "[" + value + ChatColor.WHITE + "]"));
+        }
+        sender.sendMessage(ChatColor.GRAY + "Empty is normal for tag placeholders with no tag equipped.");
+        return true;
+    }
+
     // ---------------------------------------------------------------- utils
 
     private RollableItem randomItemOf(Rarity rarity) {
@@ -649,12 +793,17 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
                 case "crops" -> partial(args[1], List.of("unlock", "lock"));
                 case "milestones" -> partial(args[1], List.of("check", "reset"));
                 case "farmblock" -> partial(args[1], List.of("1", "16", "64"));
+                case "farmfill" -> partial(args[1], List.of("2", "5", "10", "20"));
+                case "boost" -> partial(args[1], List.of("1", "2", "3", "4", "5"));
+                case "nova" -> partial(args[1], List.of("0", "5", "10", "25"));
                 default -> List.of();
             };
         }
         if (args.length == 3) {
             return switch (sub) {
                 case "reset" -> partial(args[2], List.of("confirm"));
+                case "farmfill" -> partial(args[2], List.of("confirm"));
+                case "nova" -> partial(args[2], playerNames());
                 case "give", "drops", "bank" -> partial(args[2], List.of("1", "10", "100", "1000"));
                 case "aura", "roll", "unlock", "starforge", "milestones", "farmblock" ->
                         partial(args[2], playerNames());

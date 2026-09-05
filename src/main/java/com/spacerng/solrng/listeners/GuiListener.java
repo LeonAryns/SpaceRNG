@@ -4,6 +4,8 @@ import com.spacerng.solrng.SolRNGPlugin;
 import com.spacerng.solrng.commands.TagCommand;
 import com.spacerng.solrng.gui.ArmorGui;
 import com.spacerng.solrng.gui.ArmorHolder;
+import com.spacerng.solrng.gui.BuyGui;
+import com.spacerng.solrng.gui.BuyHolder;
 import com.spacerng.solrng.gui.ConvertGui;
 import com.spacerng.solrng.gui.CropsGui;
 import com.spacerng.solrng.gui.CropsHolder;
@@ -12,6 +14,8 @@ import com.spacerng.solrng.gui.IndexGui;
 import com.spacerng.solrng.gui.IndexHolder;
 import com.spacerng.solrng.gui.MilestoneGui;
 import com.spacerng.solrng.gui.MilestoneHolder;
+import com.spacerng.solrng.gui.NovaCoreGui;
+import com.spacerng.solrng.gui.NovaCoreHolder;
 import com.spacerng.solrng.gui.OptionsGui;
 import com.spacerng.solrng.gui.OptionsHolder;
 import com.spacerng.solrng.gui.PrestigeGui;
@@ -66,6 +70,10 @@ public class GuiListener implements Listener {
             handleMilestoneClick(event);
         } else if (topInventory.getHolder() instanceof CropsHolder) {
             handleCropsClick(event);
+        } else if (topInventory.getHolder() instanceof NovaCoreHolder) {
+            handleNovaCoreClick(event);
+        } else if (topInventory.getHolder() instanceof BuyHolder) {
+            handleBuyClick(event);
         }
     }
 
@@ -117,7 +125,7 @@ public class GuiListener implements Listener {
         }
     }
 
-    /** The milestone screens are read-only: pick a track, page, or go back. */
+    /** Read-only: switch track tab, or page through the current one. */
     private void handleMilestoneClick(InventoryClickEvent event) {
         event.setCancelled(true);
         if (event.getClickedInventory() == null
@@ -126,27 +134,21 @@ public class GuiListener implements Listener {
         Player player = (Player) event.getWhoClicked();
         int rawSlot = event.getRawSlot();
 
-        if (holder.getTrackId() != null) {
-            if (rawSlot == MilestoneGui.backSlot()) {
-                player.openInventory(MilestoneGui.buildRoot(plugin, player));
-                return;
-            }
-            if (rawSlot == MilestoneGui.prevSlot()) {
-                player.openInventory(MilestoneGui.buildTrack(plugin, player, holder.getTrackId(), holder.getPage() - 1));
-                return;
-            }
-            if (rawSlot == MilestoneGui.nextSlot()) {
-                player.openInventory(MilestoneGui.buildTrack(plugin, player, holder.getTrackId(), holder.getPage() + 1));
-                return;
-            }
+        if (rawSlot == MilestoneGui.prevSlot()) {
+            player.openInventory(MilestoneGui.build(plugin, player, holder.getTrackId(), holder.getPage() - 1));
+            return;
+        }
+        if (rawSlot == MilestoneGui.nextSlot()) {
+            player.openInventory(MilestoneGui.build(plugin, player, holder.getTrackId(), holder.getPage() + 1));
+            return;
         }
 
         ItemStack clicked = event.getCurrentItem();
         if (clicked == null || clicked.getItemMeta() == null) return;
         String trackId = clicked.getItemMeta().getPersistentDataContainer()
                 .get(MilestoneGui.trackKey(plugin), PersistentDataType.STRING);
-        if (trackId != null) {
-            player.openInventory(MilestoneGui.buildTrack(plugin, player, trackId, 0));
+        if (trackId != null && !trackId.equals(holder.getTrackId())) {
+            player.openInventory(MilestoneGui.build(plugin, player, trackId, 0));
         }
     }
 
@@ -180,6 +182,43 @@ public class GuiListener implements Listener {
                 + ChatColor.GREEN + ".");
         player.playSound(player.getLocation(), org.bukkit.Sound.ITEM_CROP_PLANT, 0.8f, 1.2f);
         player.openInventory(CropsGui.build(plugin, player));
+    }
+
+    /** One button: forge the next Nova Core tier. */
+    private void handleNovaCoreClick(InventoryClickEvent event) {
+        event.setCancelled(true);
+        if (event.getClickedInventory() == null
+                || !(event.getClickedInventory().getHolder() instanceof NovaCoreHolder)) return;
+        if (event.getRawSlot() != NovaCoreGui.FORGE_SLOT) return;
+
+        Player player = (Player) event.getWhoClicked();
+        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+        plugin.getNovaCoreManager().attempt(player, data);
+        // Reopened either way — the odds, the price and the board all moved.
+        player.openInventory(NovaCoreGui.build(plugin, player));
+        plugin.getLuckBarManager().update(player);
+    }
+
+    private void handleBuyClick(InventoryClickEvent event) {
+        event.setCancelled(true);
+        if (event.getClickedInventory() == null
+                || !(event.getClickedInventory().getHolder() instanceof BuyHolder)) return;
+        if (event.getRawSlot() != BuyGui.BOOST_SLOT) return;
+
+        Player player = (Player) event.getWhoClicked();
+        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+
+        if (plugin.getBoostManager().isMaxed()) {
+            player.sendMessage(ChatColor.RED + "The boost is already at its cap for this run.");
+            return;
+        }
+        if (!plugin.getBoostManager().purchase(player, data)) {
+            player.sendMessage(ChatColor.RED + "You need "
+                    + String.format("%,d", plugin.getBoostManager().nextCost()) + " Credits for that.");
+            return;
+        }
+        plugin.getLuckBarManager().updateAll();
+        player.openInventory(BuyGui.build(plugin, player));
     }
 
     private void handleArmorClick(InventoryClickEvent event) {

@@ -22,15 +22,17 @@ public class MilestoneTrack {
     private final String display;
     private final Material icon;
     private final String unit;        // "prestiges", "hours", ...
+    private final String verb;        // "Farm", "Reach", ... for the lore sentence
     private final String description;
     private final List<Tier> tiers;
 
-    public MilestoneTrack(String id, String display, Material icon, String unit, String description,
-                          List<Tier> tiers) {
+    public MilestoneTrack(String id, String display, Material icon, String unit, String verb,
+                          String description, List<Tier> tiers) {
         this.id = id;
         this.display = display;
         this.icon = icon;
         this.unit = unit;
+        this.verb = verb;
         this.description = description;
         this.tiers = tiers;
     }
@@ -49,6 +51,10 @@ public class MilestoneTrack {
 
     public String getUnit() {
         return unit;
+    }
+
+    public String getVerb() {
+        return verb;
     }
 
     public String getDescription() {

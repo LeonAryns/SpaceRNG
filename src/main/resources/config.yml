@@ -1014,6 +1014,7 @@ skilltree:
 milestones:
   tracks:
     prestige:
+      verb: "Reach"
       display: "Prestige"
       icon: NETHER_STAR
       unit: "prestiges"
@@ -1022,16 +1023,17 @@ milestones:
         - { at: 1, tokens: 1000 }
         - { at: 2, tokens: 2500 }
         - { at: 3, tokens: 5000 }
-        - { at: 5, tokens: 10000, shards: 1 }
-        - { at: 10, tokens: 25000, shards: 3 }
-        - { at: 15, tokens: 50000, shards: 5 }
-        - { at: 20, tokens: 100000, shards: 10 }
-        - { at: 25, tokens: 200000, shards: 15 }
-        - { at: 35, tokens: 400000, shards: 25 }
-        - { at: 50, tokens: 750000, shards: 40 }
-        - { at: 75, tokens: 1500000, shards: 75 }
-        - { at: 100, tokens: 3000000, shards: 150 }
+        - { at: 5, tokens: 10000 }
+        - { at: 10, tokens: 25000 }
+        - { at: 15, tokens: 50000 }
+        - { at: 20, tokens: 100000 }
+        - { at: 25, tokens: 200000 }
+        - { at: 35, tokens: 400000 }
+        - { at: 50, tokens: 750000 }
+        - { at: 75, tokens: 1500000 }
+        - { at: 100, tokens: 3000000 }
     rarity:
+      verb: "Discover"
       display: "Collection"
       icon: END_CRYSTAL
       unit: "drops found"
@@ -1042,14 +1044,15 @@ milestones:
         - { at: 20, tokens: 2500 }
         - { at: 30, tokens: 5000 }
         - { at: 45, tokens: 10000 }
-        - { at: 60, tokens: 20000, shards: 2 }
-        - { at: 80, tokens: 40000, shards: 5 }
-        - { at: 100, tokens: 80000, shards: 10 }
-        - { at: 115, tokens: 150000, shards: 20 }
-        - { at: 130, tokens: 300000, shards: 35 }
-        - { at: 140, tokens: 600000, shards: 60 }
-        - { at: 143, tokens: 1500000, shards: 120 }
+        - { at: 60, tokens: 20000 }
+        - { at: 80, tokens: 40000 }
+        - { at: 100, tokens: 80000 }
+        - { at: 115, tokens: 150000 }
+        - { at: 130, tokens: 300000 }
+        - { at: 140, tokens: 600000 }
+        - { at: 143, tokens: 1500000 }
     farming:
+      verb: "Farm"
       display: "Farming"
       icon: WHEAT
       unit: "crops"
@@ -1060,14 +1063,15 @@ milestones:
         - { at: 1000, tokens: 3000 }
         - { at: 2500, tokens: 7500 }
         - { at: 5000, tokens: 15000 }
-        - { at: 10000, tokens: 30000, shards: 2 }
-        - { at: 25000, tokens: 75000, shards: 5 }
-        - { at: 50000, tokens: 150000, shards: 10 }
-        - { at: 100000, tokens: 300000, shards: 20 }
-        - { at: 250000, tokens: 750000, shards: 40 }
-        - { at: 500000, tokens: 1500000, shards: 75 }
-        - { at: 1000000, tokens: 3000000, shards: 150 }
+        - { at: 10000, tokens: 30000 }
+        - { at: 25000, tokens: 75000 }
+        - { at: 50000, tokens: 150000 }
+        - { at: 100000, tokens: 300000 }
+        - { at: 250000, tokens: 750000 }
+        - { at: 500000, tokens: 1500000 }
+        - { at: 1000000, tokens: 3000000 }
     playtime:
+      verb: "Play"
       display: "Playtime"
       icon: CLOCK
       unit: "hours"
@@ -1077,12 +1081,43 @@ milestones:
         - { at: 3, tokens: 1500 }
         - { at: 6, tokens: 3000 }
         - { at: 12, tokens: 6000 }
-        - { at: 24, tokens: 15000, shards: 1 }
-        - { at: 48, tokens: 30000, shards: 3 }
-        - { at: 96, tokens: 60000, shards: 6 }
-        - { at: 168, tokens: 120000, shards: 12 }
-        - { at: 336, tokens: 250000, shards: 25 }
-        - { at: 720, tokens: 600000, shards: 60 }
+        - { at: 24, tokens: 15000 }
+        - { at: 48, tokens: 30000 }
+        - { at: 96, tokens: 60000 }
+        - { at: 168, tokens: 120000 }
+        - { at: 336, tokens: 250000 }
+        - { at: 720, tokens: 600000 }
+
+# The global Luck boost, bought with store Credits in /buy. One boost
+# runs for the whole server at a time: the first purchase turns it on at
+# 2x, and buying again while it's live doubles it (2x -> 4x -> 8x ...),
+# each step costing cost-growth times the last and resetting the clock.
+# When it expires the ladder resets, so the next buyer starts at 2x.
+boost:
+  duration-seconds: 900
+  base-cost-credits: 250
+  cost-growth: 2.5
+  max-level: 5
+
+# The Nova Core ladder (/rngcookie). Each forge either climbs a tier or
+# drops you to the last checkpoint, and every tier is worth a permanent
+# Luck multiplier of 1 + tier * multiplier-per-tier.
+#
+# Odds of clearing tier T = base-chance * decay^T * (1 + luck), clamped.
+# At 100% Luck that's ~95/95/95/92/78% for the first five tiers, so
+# reaching checkpoint 1 is roughly a 62% run; by tier 20 the same player
+# is at ~6% a step, which keeps the top of the ladder a real grind.
+novacore:
+  max-tier: 25
+  checkpoint-every: 5
+  base-chance: 0.75
+  decay: 0.85
+  luck-weight: 1.0
+  min-chance: 0.02
+  max-chance: 0.95
+  multiplier-per-tier: 0.5
+  base-cost-tokens: 500
+  cost-growth: 1.18
 
 # Rolls of this rarity or higher get broadcast to the whole server.
 broadcast:

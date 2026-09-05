@@ -80,6 +80,7 @@ public class MilestoneManager {
                     t.getString("display", id),
                     icon,
                     t.getString("unit", ""),
+                    t.getString("verb", "Reach"),
                     t.getString("description", ""),
                     tiers));
         }

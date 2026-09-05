@@ -72,8 +72,15 @@ public class SkillTreeGui {
     // claimed by a real node above renders as a "???" placeholder, which
     // is what visually joins the nodes into a path.
     private static final int[] BRANCH_REGION_SLOTS = {
+            // The live branch: root up the middle, then left and right.
             13, 22, 31,
-            38, 39, 40, 41, 42, 43
+            38, 39, 40, 41, 42, 43,
+            // Reserved for skills still to come, so the shape of the whole
+            // tree is visible from day one rather than appearing later.
+            4,                  // (5,1)
+            7, 16, 25, 34,      // (8,1) (8,2) (8,3) (8,4)
+            9, 10,              // (1,2) (2,2)
+            19, 28, 37          // (2,3) (2,4) (2,5)
     };
 
     private static final int STATS_SLOT = 53;

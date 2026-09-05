@@ -5,7 +5,9 @@ import com.spacerng.solrng.commands.ConvertCommand;
 import com.spacerng.solrng.commands.IndexCommand;
 import com.spacerng.solrng.commands.OptionsCommand;
 import com.spacerng.solrng.commands.PrestigeCommand;
+import com.spacerng.solrng.commands.BuyCommand;
 import com.spacerng.solrng.commands.CropsCommand;
+import com.spacerng.solrng.commands.NovaCoreCommand;
 import com.spacerng.solrng.commands.MilestonesCommand;
 import com.spacerng.solrng.commands.RngAdminCommand;
 import com.spacerng.solrng.commands.RngCoreCommand;
@@ -47,6 +49,9 @@ public final class SolRNGPlugin extends JavaPlugin {
     private StarforgeManager starforgeManager;
     private com.spacerng.solrng.farming.FarmPlotManager farmPlotManager;
     private com.spacerng.solrng.milestone.MilestoneManager milestoneManager;
+    private com.spacerng.solrng.boost.BoostManager boostManager;
+    private com.spacerng.solrng.boost.LuckBarManager luckBarManager;
+    private com.spacerng.solrng.cookie.NovaCoreManager novaCoreManager;
 
     @Override
     public void onEnable() {
@@ -64,6 +69,9 @@ public final class SolRNGPlugin extends JavaPlugin {
         this.starforgeManager = new StarforgeManager(this);
         this.farmPlotManager = new com.spacerng.solrng.farming.FarmPlotManager(this);
         this.milestoneManager = new com.spacerng.solrng.milestone.MilestoneManager(this);
+        this.boostManager = new com.spacerng.solrng.boost.BoostManager(this);
+        this.luckBarManager = new com.spacerng.solrng.boost.LuckBarManager(this);
+        this.novaCoreManager = new com.spacerng.solrng.cookie.NovaCoreManager(this);
 
         reloadAll();
 
@@ -87,6 +95,8 @@ public final class SolRNGPlugin extends JavaPlugin {
         RngAdminCommand adminCommand = new RngAdminCommand(this);
         getCommand("milestones").setExecutor(new MilestonesCommand(this));
         getCommand("crops").setExecutor(new CropsCommand(this));
+        getCommand("rngcookie").setExecutor(new NovaCoreCommand(this));
+        getCommand("buy").setExecutor(new BuyCommand(this));
         getCommand("rngadmin").setExecutor(adminCommand);
         getCommand("rngadmin").setTabCompleter(adminCommand);
 
@@ -100,6 +110,7 @@ public final class SolRNGPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        luckBarManager.removeAll();
         if (playerDataManager != null) {
             playerDataManager.saveAll();
         }
@@ -116,6 +127,8 @@ public final class SolRNGPlugin extends JavaPlugin {
         starforgeManager.load(getConfig());
         farmPlotManager.load(getConfig());
         milestoneManager.load(getConfig());
+        boostManager.load(getConfig());
+        novaCoreManager.load(getConfig());
     }
 
     /**
@@ -186,6 +199,18 @@ public final class SolRNGPlugin extends JavaPlugin {
         return farmPlotManager;
     }
 
+    public com.spacerng.solrng.boost.BoostManager getBoostManager() {
+        return boostManager;
+    }
+
+    public com.spacerng.solrng.boost.LuckBarManager getLuckBarManager() {
+        return luckBarManager;
+    }
+
+    public com.spacerng.solrng.cookie.NovaCoreManager getNovaCoreManager() {
+        return novaCoreManager;
+    }
+
     public com.spacerng.solrng.milestone.MilestoneManager getMilestoneManager() {
         return milestoneManager;
     }
@@ -218,6 +243,10 @@ public final class SolRNGPlugin extends JavaPlugin {
         // Repaints the shared farm so plots appear as players walk into
         // range, and picks up anyone who logged in near one.
         getServer().getScheduler().runTaskTimer(this, () -> farmPlotManager.renderAll(), 40L, 40L);
+
+        // The Luck bar has to tick on its own: a global boost's countdown
+        // changes it every second even when the player does nothing.
+        getServer().getScheduler().runTaskTimer(this, () -> luckBarManager.updateAll(), 20L, 20L);
 
         // One sweep covers every milestone track for everyone. A tier
         // landing a second late is invisible, and this can't miss a value
