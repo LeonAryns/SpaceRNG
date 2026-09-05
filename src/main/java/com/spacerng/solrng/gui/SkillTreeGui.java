@@ -4,6 +4,7 @@ import com.spacerng.solrng.SolRNGPlugin;
 import com.spacerng.solrng.player.PlayerData;
 import com.spacerng.solrng.player.SkillNode;
 import com.spacerng.solrng.player.SkillTreeManager;
+import com.spacerng.solrng.rarity.RollFormat;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -18,13 +19,13 @@ import org.bukkit.persistence.PersistentDataType;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
- * A 6x9 skill tree, drawn entirely from config. Every node declares its own
- * (column, row) and icon, so adding a skill — or a whole second tree, like
- * the farming one — is a config change rather than a code change.
+ * A 6x9 skill tree, drawn entirely from config. Every node declares its
+ * own page, (column, row) and icon, so adding a skill — or a whole extra
+ * page, or a whole second tree like the farming one — is a config change
+ * rather than a code change.
  *
  * Slots in the tree's shape that no node has claimed render as "???"
  * placeholders. That's deliberate: the outline of everything still to come
@@ -32,19 +33,6 @@ import java.util.Set;
  * tree feel like a map rather than a list that grows.
  */
 public class SkillTreeGui {
-
-    /**
-     * Slots that are part of a tree's shape regardless of what's in them.
-     * The whole of row 1 between the corners is held for future skills, as
-     * is the left and right column of the branch region.
-     */
-    private static final int[] RESERVED = {
-            1, 2, 3, 4, 5, 6, 7,   // (2,1) through (8,1)
-            10,                    // (2,2)
-            38,                    // (3,5)
-            16, 25, 34,            // (8,2) (8,3) (8,4)
-            19, 28, 37             // (2,3) (2,4) (2,5)
-    };
 
     private static final int STATS_SLOT = 53;
     private static final int PREV_SLOT = 0;
@@ -62,60 +50,50 @@ public class SkillTreeGui {
         return NEXT_SLOT;
     }
 
-    /** Total pages a tree has. Page 0 is the live layout. */
-    public static int pageCount() {
-        return 2;
-    }
-
     public static Inventory build(SolRNGPlugin plugin, Player player) {
         return build(plugin, player, "skilltree", 0);
     }
 
     public static Inventory build(SolRNGPlugin plugin, Player player, String tree, int page) {
         boolean farming = "farmtree".equals(tree);
-        page = Math.max(0, Math.min(page, pageCount() - 1));
+        SkillTreeManager manager = plugin.getSkillTreeManager();
+        int pageCount = manager.pageCount(tree);
+        page = Math.max(0, Math.min(page, pageCount - 1));
 
         SkillTreeHolder holder = new SkillTreeHolder();
         holder.setTree(tree);
         holder.setPage(page);
 
+        String pageName = manager.pageName(tree, page);
         String title = (farming
                 ? ChatColor.DARK_GREEN + "" + ChatColor.BOLD + "Farming Skills"
                 : ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + "Skill Tree")
-                + (page > 0 ? ChatColor.GRAY + " — Page " + (page + 1) : "");
+                + ChatColor.GRAY + " — " + (pageName.isEmpty() ? "Page " + (page + 1) : pageName);
         Inventory inv = Bukkit.createInventory(holder, 54, title);
         holder.setInventory(inv);
 
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
-        SkillTreeManager manager = plugin.getSkillTreeManager();
 
         ItemStack filler = glassFiller();
         for (int slot = 0; slot < 54; slot++) {
             inv.setItem(slot, filler);
         }
 
-        Map<String, SkillNode> nodes = manager.getNodes(tree);
-
-        // The tree's silhouette is the reserved slots plus wherever this
-        // tree's own nodes sit. Page 2 draws that exact silhouette with
-        // nothing in it, so every page is the same shape and later pages
-        // are visibly room to grow rather than a different menu.
-        Set<Integer> shape = new HashSet<>();
-        for (int slot : RESERVED) shape.add(slot);
-        for (SkillNode node : nodes.values()) {
-            if (node.getSlot() >= 0 && node.getSlot() < 54) shape.add(node.getSlot());
-        }
-
+        // The silhouette is the tree's reserved slots plus wherever this
+        // page's own nodes sit. Every page is therefore the same shape, and
+        // an empty page reads as visible room to grow rather than as a
+        // different menu.
+        List<SkillNode> nodes = manager.getNodes(tree, page);
+        Set<Integer> shape = new HashSet<>(manager.reservedSlots(tree));
         Set<Integer> placed = new HashSet<>();
-        if (page == 0) {
-            for (SkillNode node : nodes.values()) {
-                if (node.getSlot() < 0 || node.getSlot() >= 54) continue;
-                boolean reqMet = manager.requirementMet(data, node);
-                inv.setItem(node.getSlot(), reqMet
-                        ? buildNodeIcon(plugin, player, data, node)
-                        : placeholderNode());
-                placed.add(node.getSlot());
-            }
+        for (SkillNode node : nodes) {
+            if (node.getSlot() < 0 || node.getSlot() >= 54) continue;
+            shape.add(node.getSlot());
+            boolean reqMet = manager.requirementMet(data, node);
+            inv.setItem(node.getSlot(), reqMet
+                    ? buildNodeIcon(plugin, player, data, node)
+                    : lockedNode(plugin, data, node));
+            placed.add(node.getSlot());
         }
 
         for (int slot : shape) {
@@ -124,27 +102,34 @@ public class SkillTreeGui {
             }
         }
 
-        inv.setItem(STATS_SLOT, buildWalletPanel(player, data, farming));
+        inv.setItem(STATS_SLOT, buildWalletPanel(plugin, player, data, farming));
         if (page > 0) {
-            inv.setItem(PREV_SLOT, pageButton(Material.SPECTRAL_ARROW, "◀ Previous", page, pageCount()));
+            inv.setItem(PREV_SLOT, pageButton(Material.SPECTRAL_ARROW, "◀ Previous",
+                    manager.pageName(tree, page - 1), page, pageCount));
         }
-        if (page < pageCount() - 1) {
-            inv.setItem(NEXT_SLOT, pageButton(Material.ARROW, "Next ▶", page + 2, pageCount()));
+        if (page < pageCount - 1) {
+            inv.setItem(NEXT_SLOT, pageButton(Material.ARROW, "Next ▶",
+                    manager.pageName(tree, page + 1), page + 2, pageCount));
         }
         return inv;
     }
 
-    private static ItemStack pageButton(Material material, String label, int shownPage, int total) {
+    private static ItemStack pageButton(Material material, String label, String name, int shownPage, int total) {
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(ChatColor.YELLOW + "" + ChatColor.BOLD + label);
-        meta.setLore(List.of(ChatColor.GRAY + "Page " + shownPage + "/" + total));
+        List<String> lore = new ArrayList<>();
+        if (!name.isEmpty()) {
+            lore.add(ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + name.toUpperCase());
+        }
+        lore.add(ChatColor.GRAY + "Page " + shownPage + "/" + total);
+        meta.setLore(lore);
         item.setItemMeta(meta);
         return item;
     }
 
     private static ItemStack buildNodeIcon(SolRNGPlugin plugin, Player player, PlayerData data, SkillNode node) {
-        boolean leveled = node.getMaxLevel() > 1;
+        boolean leveled = node.isLeveled();
         int level = leveled ? data.getNodeLevel(node.getId()) : 0;
         boolean maxed = leveled && level >= node.getMaxLevel();
         boolean started = leveled ? level > 0 : data.hasUnlocked(node.getId());
@@ -153,27 +138,29 @@ public class SkillTreeGui {
         List<String> lore = new ArrayList<>();
         lore.add(ChatColor.DARK_GRAY + (node.getTree().equals("farmtree") ? "FARMING SKILL" : "SKILL"));
         lore.add("");
-        lore.add(describeEffect(node, level));
+        lore.addAll(describeEffect(node, level));
         lore.add("");
         if (leveled) {
             lore.add(ChatColor.AQUA + "▎ " + ChatColor.GRAY + "Level: " + ChatColor.AQUA + level
                     + ChatColor.GRAY + "/" + ChatColor.AQUA + node.getMaxLevel());
+            lore.add(Lore.bar(level / (double) node.getMaxLevel()));
         }
         if (!complete) {
             double price = plugin.getSkillTreeManager().priceFor(data, node);
             boolean affordable = plugin.getSkillTreeManager().canAfford(player, data, node);
             boolean tokens = node.usesTokens();
-            ChatColor tint = tokens ? ChatColor.YELLOW : ChatColor.DARK_GREEN;
+            ChatColor tint = tokens ? ChatColor.YELLOW : ChatColor.GOLD;
             lore.add((affordable ? ChatColor.YELLOW : ChatColor.RED) + "▎ " + ChatColor.GRAY + "Price: "
                     + (affordable ? tint : ChatColor.RED)
-                    + (tokens ? String.format("%,.0f", price) + " Tokens" : "$" + String.format("%,.0f", price)));
+                    + RollFormat.abbreviate(Math.round(price)) + (tokens ? " Tokens" : " Coins"));
             lore.add(ChatColor.DARK_GRAY + "▎ You have " + tint
-                    + (tokens ? String.format("%,d", data.getTokens()) + " Tokens" : formatMoney(player)));
+                    + (tokens ? RollFormat.abbreviate(data.getTokens()) + " Tokens"
+                              : formatCoins(player)));
             lore.add("");
             lore.add(affordable
                     ? ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO BUY"
                     : ChatColor.RED + "" + ChatColor.BOLD
-                            + (node.usesTokens() ? "NOT ENOUGH TOKENS" : "NOT ENOUGH MONEY"));
+                            + (tokens ? "NOT ENOUGH TOKENS" : "NOT ENOUGH COINS"));
         } else {
             lore.add("");
             lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + (leveled ? "MAXED" : "UNLOCKED"));
@@ -192,6 +179,25 @@ public class SkillTreeGui {
         meta.setEnchantmentGlintOverride(complete ? Boolean.TRUE : null);
         meta.setLore(lore);
         meta.getPersistentDataContainer().set(nodeIdKey(plugin), PersistentDataType.STRING, node.getId());
+        icon.setItemMeta(meta);
+        return icon;
+    }
+
+    /**
+     * A real node whose prerequisite isn't met yet. It names what's in the
+     * way rather than hiding the slot outright — knowing a skill exists and
+     * what stands between you and it is most of what makes a tree readable.
+     */
+    private static ItemStack lockedNode(SolRNGPlugin plugin, PlayerData data, SkillNode node) {
+        SkillNode parent = plugin.getSkillTreeManager().get(node.getRequires());
+        ItemStack icon = new ItemStack(Material.GRAY_DYE);
+        ItemMeta meta = icon.getItemMeta();
+        meta.setDisplayName(ChatColor.DARK_GRAY + "" + ChatColor.BOLD + "???");
+        meta.setLore(List.of(
+                ChatColor.DARK_GRAY + "LOCKED",
+                "",
+                ChatColor.GRAY + "Requires " + ChatColor.RED
+                        + (parent == null ? "an earlier skill" : parent.getDisplay())));
         icon.setItemMeta(meta);
         return icon;
     }
@@ -217,66 +223,146 @@ public class SkillTreeGui {
         return pane;
     }
 
-    private static ItemStack buildWalletPanel(Player player, PlayerData data, boolean farming) {
+    private static ItemStack buildWalletPanel(SolRNGPlugin plugin, Player player, PlayerData data, boolean farming) {
         ItemStack stats = new ItemStack(farming ? Material.WHEAT : Material.GOLD_INGOT);
         ItemMeta meta = stats.getItemMeta();
         meta.setDisplayName((farming ? ChatColor.YELLOW : ChatColor.GOLD) + "" + ChatColor.BOLD
-                + (farming ? "TOKENS" : "MONEY"));
-        meta.setLore(List.of(
-                ChatColor.DARK_GRAY + "WALLET",
-                "",
-                (farming ? ChatColor.YELLOW : ChatColor.GOLD) + "▎ "
-                        + (farming ? ChatColor.YELLOW + String.format("%,d", data.getTokens()) + " Tokens"
-                                   : ChatColor.DARK_GREEN + formatMoney(player)),
-                "",
-                ChatColor.DARK_GRAY + (farming ? "Farm skills are bought with Tokens."
-                                              : "Skills are bought with Money.")));
+                + (farming ? "TOKENS" : "COINS"));
+
+        List<String> lore = new ArrayList<>();
+        lore.add(ChatColor.DARK_GRAY + "WALLET");
+        lore.add("");
+        lore.add(farming
+                ? ChatColor.YELLOW + "▎ " + RollFormat.abbreviate(data.getTokens()) + " Tokens"
+                : ChatColor.GOLD + "▎ " + formatCoins(player));
+        if (!farming) {
+            // The two headline stats the tree is bought to raise, so the
+            // effect of a purchase is visible without leaving the menu.
+            lore.add("");
+            lore.add(ChatColor.GREEN + "▎ " + ChatColor.GRAY + "Luck: " + ChatColor.GREEN + "+"
+                    + String.format("%.2f", plugin.getPrestigeManager().effectiveLuck(data) * 100.0) + "%");
+            lore.add(ChatColor.YELLOW + "▎ " + ChatColor.GRAY + "Speed: " + ChatColor.YELLOW
+                    + Math.round(data.getEffectiveRollSpeedMultiplier() * 100));
+        }
+        lore.add("");
+        lore.add(ChatColor.DARK_GRAY + (farming ? "Farm skills are bought with Tokens."
+                                                : "Skills are bought with Coins."));
+        meta.setLore(lore);
         stats.setItemMeta(meta);
         return stats;
     }
 
-    private static String formatMoney(Player player) {
+    private static String formatCoins(Player player) {
         var registration = Bukkit.getServicesManager().getRegistration(Economy.class);
         if (registration == null) return "N/A";
-        return "$" + String.format("%,.0f", registration.getProvider().getBalance(player));
+        return RollFormat.abbreviate(Math.round(registration.getProvider().getBalance(player))) + " Coins";
     }
 
-    private static String describeEffect(SkillNode node, int level) {
-        boolean leveled = node.getMaxLevel() > 1;
+    /**
+     * The human-readable "what does this do". Leveled nodes show both the
+     * per-level value and the running total, so a half-bought skill still
+     * answers "what am I getting right now" without arithmetic.
+     */
+    private static List<String> describeEffect(SkillNode node, int level) {
+        boolean leveled = node.isLeveled();
         String target = node.getTarget() == null ? "" : prettify(node.getTarget());
+        double value = node.getValue();
+
         return switch (node.getEffect()) {
-            case LUCK -> leveled
-                    ? ChatColor.GREEN + "▎ +" + pct(node.getValue()) + "% Luck per level "
-                        + ChatColor.GRAY + "(+" + pct(node.getValue() * level) + "% now)"
-                    : ChatColor.GREEN + "▎ +" + pct(node.getValue()) + "% Luck";
-            case ROLL_SPEED -> leveled
-                    ? ChatColor.YELLOW + "▎ +" + pct(node.getValue()) + " Speed per level "
-                        + ChatColor.GRAY + "(+" + pct(node.getValue() * level) + " now)"
-                    : ChatColor.YELLOW + "▎ +" + pct(node.getValue()) + " Speed";
-            case UNLOCK_AUTO_CONVERT -> ChatColor.AQUA + "▎ Unlocks auto-convert in /convert";
-            case UNLOCK_FARMING -> ChatColor.AQUA + "▎ Unlocks the farm and the Farmer's Hoe";
-            case UNLOCK_ARMOR -> ChatColor.AQUA + "▎ Unlocks the /armor shop";
-            case UNLOCK_POTION -> ChatColor.AQUA + "▎ Unlocks the Potion system (coming soon)";
-            case UNLOCK_SHINY -> ChatColor.AQUA + "▎ Unlocks Shiny drops (coming soon)";
-            case UNLOCK_INDEX_LUCK -> ChatColor.AQUA + "▎ Lets you equip a tag for its index Luck";
-            case AUTO_ROLL -> ChatColor.AQUA + "▎ Rolls automatically at your own speed";
-            case BONUS_ROLL_CHANCE -> ChatColor.AQUA + "▎ +" + pct(node.getValue()) + "% chance of a free roll";
-            case UNLOCK_CROP -> ChatColor.GREEN + "▎ Unlocks " + target + " on the farm";
-            case UNLOCK_SHARDS -> ChatColor.AQUA + "▎ Farm crops start paying Shards";
-            case UNLOCK_ENCHANT -> ChatColor.LIGHT_PURPLE + "▎ Unlocks the " + target + " hoe enchant";
-            case ENCHANT_POWER -> leveled
-                    ? ChatColor.LIGHT_PURPLE + "▎ +1 " + target + " level per rank "
-                        + ChatColor.GRAY + "(+" + level + " now)"
-                    : ChatColor.LIGHT_PURPLE + "▎ +1 " + target + " level";
-            case TOKEN_MULTIPLIER -> leveled
-                    ? ChatColor.YELLOW + "▎ +" + String.format("%.2f", node.getValue()) + "x Tokens per level "
-                        + ChatColor.GRAY + "(+" + String.format("%.2f", node.getValue() * level) + "x now)"
-                    : ChatColor.YELLOW + "▎ +" + String.format("%.2f", node.getValue()) + "x farm Tokens";
-            case FARM_SPEED -> leveled
-                    ? ChatColor.GREEN + "▎ " + pct(node.getValue()) + "% faster regrow per level "
-                        + ChatColor.GRAY + "(" + pct(node.getValue() * level) + "% now)"
-                    : ChatColor.GREEN + "▎ " + pct(node.getValue()) + "% faster regrow";
+            case LUCK -> scaled(ChatColor.GREEN, "+" + pct(value) + "% Luck", pct(value * level) + "%", leveled);
+            case ROLL_SPEED -> scaled(ChatColor.YELLOW, "+" + pct(value) + " Speed", "+" + pct(value * level), leveled);
+            case BONUS_ROLL_CHANCE -> scaled(ChatColor.LIGHT_PURPLE,
+                    "+" + pct(value) + "% chance of a second free roll", pct(value * level) + "%", leveled);
+            case INSTANT_ROLL -> scaled(ChatColor.AQUA,
+                    "+" + pct(value) + "% chance a roll resolves instantly", pct(value * level) + "%", leveled);
+            case SHINY_CHANCE -> scaled(ChatColor.AQUA,
+                    "+" + pct(value) + "% Shiny chance", "+" + pct(value * level) + "%", leveled);
+            case LUCK_PER_DISCOVERY -> scaled(ChatColor.GREEN,
+                    "+" + trim(value * 100) + "% Luck per Index entry found",
+                    "+" + trim(value * level * 100) + "% each", leveled);
+            case LUCK_PER_PRESTIGE -> scaled(ChatColor.GREEN,
+                    "+" + pct(value) + "% Luck per Prestige held",
+                    "+" + pct(value * level) + "% each", leveled);
+            case STARFORGE_POWER -> scaled(ChatColor.LIGHT_PURPLE,
+                    "+" + pct(value) + "% to your Starforge's Luck",
+                    "+" + pct(value * level) + "%", leveled);
+            case ARMOR_POWER -> scaled(ChatColor.AQUA,
+                    "+" + pct(value) + "% to the Luck from worn armor",
+                    "+" + pct(value * level) + "%", leveled);
+
+            case MONEY_MULTIPLIER -> scaled(ChatColor.GOLD,
+                    "+" + pct(value) + "% Coins per roll", "+" + pct(value * level) + "%", leveled);
+            case MONEY_PER_LEVEL -> List.of(
+                    ChatColor.GOLD + "▎ +" + pct(value) + "% Coins per /prestige level",
+                    ChatColor.DARK_GRAY + "▎ Grows every time you level up.");
+            case TOKEN_GAIN -> scaled(ChatColor.YELLOW,
+                    "+" + pct(value) + "% Tokens from farming", "+" + pct(value * level) + "%", leveled);
+            case GEM_MULTIPLIER -> scaled(ChatColor.AQUA,
+                    "+" + pct(value) + "% Gems from farming", "+" + pct(value * level) + "%", leveled);
+            case DUPLICATE_BONUS -> scaled(ChatColor.GOLD,
+                    "+" + pct(value) + "% Coins on a drop you already own",
+                    "+" + pct(value * level) + "%", leveled);
+            case CONVERT_BONUS -> scaled(ChatColor.AQUA,
+                    "+" + pct(value) + "% chance a converted drop banks twice",
+                    pct(value * level) + "%", leveled);
+            case DAILY_BONUS -> scaled(ChatColor.GREEN,
+                    "+" + pct(value) + "% from every /daily reward", "+" + pct(value * level) + "%", leveled);
+            case MILESTONE_BONUS -> scaled(ChatColor.GREEN,
+                    "+" + pct(value) + "% from every /milestones reward", "+" + pct(value * level) + "%", leveled);
+            case PASS_XP -> scaled(ChatColor.GOLD,
+                    "+" + pct(value) + "% Battle Pass XP", "+" + pct(value * level) + "%", leveled);
+
+            case SUPERCHARGE -> List.of(
+                    ChatColor.LIGHT_PURPLE + "▎ Every " + ChatColor.WHITE + String.format("%,d", node.getInterval())
+                            + ChatColor.LIGHT_PURPLE + " rolls, one roll at "
+                            + ChatColor.WHITE + String.format("%,.0f", value) + "x" + ChatColor.LIGHT_PURPLE + " Luck",
+                    ChatColor.DARK_GRAY + "▎ Announced before it fires.");
+            case PITY -> List.of(
+                    ChatColor.LIGHT_PURPLE + "▎ " + String.format("%,d", node.getInterval())
+                            + " rolls without a " + target + " or better",
+                    ChatColor.LIGHT_PURPLE + "▎ forces the next roll to be one",
+                    ChatColor.DARK_GRAY + "▎ A lucky roll is never downgraded.");
+            case NOVA_DISCOUNT -> scaled(ChatColor.YELLOW,
+                    "-" + pct(value) + "% Nova Core climb cost", "-" + pct(value * level) + "%", leveled);
+            case NOVA_SAFETY -> scaled(ChatColor.AQUA,
+                    "+" + pct(value) + "% chance a failed Nova climb holds",
+                    pct(value * level) + "%", leveled);
+
+            case AUTO_ROLL -> gate("Rolls automatically at your own Speed");
+            case UNLOCK_CONVERT -> gate("Unlocks /convert — turn drops into stored ones");
+            case UNLOCK_AUTO_CONVERT -> gate("Unlocks the auto-convert switches in /convert");
+            case UNLOCK_FARMING -> gate("Unlocks the farm and the Farmer's Hoe");
+            case UNLOCK_ARMOR -> gate("Unlocks the /armor shop");
+            case UNLOCK_POTION -> gate("Unlocks the Potion system (coming soon)");
+            case UNLOCK_SHINY -> gate("Unlocks Shiny drops — 1 in 100 rolls");
+            case UNLOCK_INDEX_LUCK -> gate("Lets you equip a tag for its Index Luck");
+            case UNLOCK_ARTIFACT -> gate("Unlocks the Artifact shop (coming soon)");
+            case UNLOCK_PRIVATE_VAULT -> gate("Unlocks your Private Vault — /pv");
+            case UNLOCK_PASS -> gate("Unlocks the Battle Pass — /pass");
+
+            case UNLOCK_CROP -> gate("Unlocks " + target + " on the farm");
+            case UNLOCK_SHARDS -> gate("Farm crops start paying Gems");
+            case UNLOCK_ENCHANT -> List.of(ChatColor.LIGHT_PURPLE + "▎ Unlocks the " + target + " hoe enchant");
+            case ENCHANT_POWER -> scaled(ChatColor.LIGHT_PURPLE,
+                    "+1 " + target + " level per rank", "+" + level, leveled);
+            case TOKEN_MULTIPLIER -> scaled(ChatColor.YELLOW,
+                    "+" + trim(value) + "x farm Tokens", "+" + trim(value * level) + "x", leveled);
+            case FARM_SPEED -> scaled(ChatColor.GREEN,
+                    pct(value) + "% faster regrow", pct(value * level) + "%", leveled);
         };
+    }
+
+    /** "+5% Luck per level  (+20% now)" — one shape for every leveled stat. */
+    private static List<String> scaled(ChatColor colour, String per, String now, boolean leveled) {
+        if (!leveled) {
+            return List.of(colour + "▎ " + per);
+        }
+        return List.of(colour + "▎ " + per + " per level",
+                ChatColor.DARK_GRAY + "▎ " + now + " right now");
+    }
+
+    private static List<String> gate(String text) {
+        return List.of(ChatColor.AQUA + "▎ " + text);
     }
 
     /** "token_greed" -> "Token Greed", for lore that names a target. */
@@ -292,5 +378,11 @@ public class SkillTreeGui {
 
     private static int pct(double fraction) {
         return (int) Math.round(fraction * 100);
+    }
+
+    /** Keeps the decimals only when there are any — "0.4", not "0.40". */
+    private static String trim(double value) {
+        if (Math.abs(value - Math.round(value)) < 0.001) return String.valueOf(Math.round(value));
+        return String.format("%.2f", value).replaceAll("0+$", "").replaceAll("\\.$", "");
     }
 }

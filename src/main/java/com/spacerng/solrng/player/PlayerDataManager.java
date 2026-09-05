@@ -69,13 +69,22 @@ public class PlayerDataManager {
         }
 
         YamlConfiguration yml = YamlConfiguration.loadConfiguration(file);
-        data.addBonusLuck(yml.getDouble("luck", 0.0));
+
+        // Luck, Speed and Double Roll used to be added into these fields at
+        // purchase time; they're derived from node levels now. A save from
+        // before that change would double-count, so the first load after the
+        // upgrade drops the baked-in copies. The node levels are untouched,
+        // so nothing bought is actually lost — it just gets recomputed.
+        boolean derived = yml.getBoolean("derived-skills", false);
+        if (derived) {
+            data.addBonusLuck(yml.getDouble("luck", 0.0));
+            data.setRollSpeedMultiplier(yml.getDouble("roll-speed-multiplier", 1.0));
+            data.addBonusRollChance(yml.getDouble("bonus-roll-chance", 0.0));
+        }
         data.addPoints(yml.getLong("points", 0L));
         data.addTokens(yml.getLong("tokens", 0L));
         data.addShards(yml.getLong("shards", 0L));
-        data.setRollSpeedMultiplier(yml.getDouble("roll-speed-multiplier", 1.0));
         data.setAutoRollEnabled(yml.getBoolean("auto-roll-enabled", false));
-        data.addBonusRollChance(yml.getDouble("bonus-roll-chance", 0.0));
         data.addConverted(Rarity.COMMON, yml.getLong("converted-common", 0L));
         data.addConverted(Rarity.UNCOMMON, yml.getLong("converted-uncommon", 0L));
         data.setTotalRolls(yml.getLong("total-rolls", 0L));
@@ -121,6 +130,19 @@ public class PlayerDataManager {
         data.setDailyStreak(yml.getInt("daily-streak", 0));
         data.setDailyLastClaimDay(yml.getLong("daily-last-claim-day", 0L));
         data.setDailyTotalClaims(yml.getLong("daily-total-claims", 0L));
+        data.setPassSeason(yml.getInt("pass-season", 1));
+        data.setPassXp(yml.getLong("pass-xp", 0L));
+        data.setPassPremium(yml.getBoolean("pass-premium", false));
+        data.getPassClaimed().addAll(yml.getStringList("pass-claimed"));
+        org.bukkit.configuration.ConfigurationSection pity = yml.getConfigurationSection("pity");
+        if (pity != null) {
+            for (String rarityName : pity.getKeys(false)) {
+                try {
+                    data.setRollsSince(Rarity.valueOf(rarityName), pity.getLong(rarityName));
+                } catch (IllegalArgumentException ignored) {
+                }
+            }
+        }
         data.setPrestigePoints(yml.getInt("prestige-points", 0));
         org.bukkit.configuration.ConfigurationSection upgrades = yml.getConfigurationSection("prestige-upgrades");
         if (upgrades != null) {
@@ -228,7 +250,8 @@ public class PlayerDataManager {
 
     public void save(PlayerData data) {
         YamlConfiguration yml = new YamlConfiguration();
-        yml.set("luck", data.getBonusLuck());
+        yml.set("luck", data.getFlatLuck());
+        yml.set("derived-skills", true);
         yml.set("points", data.getPoints());
         yml.set("tokens", data.getTokens());
         yml.set("shards", data.getShards());
@@ -268,6 +291,13 @@ public class PlayerDataManager {
         yml.set("daily-streak", data.getDailyStreak());
         yml.set("daily-last-claim-day", data.getDailyLastClaimDay());
         yml.set("daily-total-claims", data.getDailyTotalClaims());
+        yml.set("pass-season", data.getPassSeason());
+        yml.set("pass-xp", data.getPassXp());
+        yml.set("pass-premium", data.isPassPremium());
+        yml.set("pass-claimed", new java.util.ArrayList<>(data.getPassClaimed()));
+        for (Map.Entry<Rarity, Long> entry : data.getRollsSinceRarity().entrySet()) {
+            yml.set("pity." + entry.getKey().name(), entry.getValue());
+        }
         yml.set("prestige-points", data.getPrestigePoints());
         for (Map.Entry<String, Integer> entry : data.getPrestigeUpgrades().entrySet()) {
             yml.set("prestige-upgrades." + entry.getKey(), entry.getValue());

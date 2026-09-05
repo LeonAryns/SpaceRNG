@@ -37,7 +37,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             "reload", "setspawn", "starforge", "reset", "give", "drops",
             "bank", "aura", "roll", "unlock", "odds", "farmblock", "crops",
             "milestones", "farmfill", "boost", "nova", "placeholders", "payout", "help");
-    private static final List<String> CURRENCIES = List.of("money", "tokens", "shards", "credits");
+    private static final List<String> CURRENCIES = List.of("coins", "tokens", "gems", "credits");
 
     private final SolRNGPlugin plugin;
     private final Random random = new Random();
@@ -92,7 +92,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         line(sender, "setspawn", "", "Set the join/spawn point to where you stand");
         line(sender, "starforge", "[tier] [player]", "Give a Starforge (defaults to the tier they own)");
         line(sender, "reset", "<player> confirm", "Wipe a player back to a brand-new account");
-        line(sender, "give", "<money|tokens|shards|credits> <amount> [player]", "Top up a currency");
+        line(sender, "give", "<coins|tokens|gems|credits> <amount> [player]", "Top up a currency");
         line(sender, "drops", "<rarity|all> <amount> [player]", "Physical rolled drops in the inventory");
         line(sender, "bank", "<rarity|all> <amount> [player]", "Stored drops (the /convert bank)");
         line(sender, "aura", "<epic|legendary|mythical> [player]", "Replay the full reveal build-up + burst");
@@ -100,7 +100,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         line(sender, "unlock", "<node|all> [player]", "Grant a skill tree node");
         line(sender, "odds", "[rarity]", "Label vs. true odds, and each tier's real share");
         line(sender, "farmblock", "[amount]", "Farm Plot blocks - place to build the shared farm");
-        line(sender, "crops", "<unlock|lock> <crop|shards|all> [player]", "Grant or revoke crops");
+        line(sender, "crops", "<unlock|lock> <crop|gems|all> [player]", "Grant or revoke crops");
         line(sender, "milestones", "<check|reset> [player]", "Force a check, or wipe claimed tiers");
         line(sender, "farmfill", "<radius> [confirm]", "Fill a square of farm plots around you");
         line(sender, "boost", "<level> [minutes]", "Force the global Luck boost on");
@@ -214,7 +214,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
     /** /rngadmin give &lt;currency&gt; &lt;amount&gt; [player] */
     private boolean doGive(CommandSender sender, String[] args) {
         if (args.length < 3) {
-            sender.sendMessage(ChatColor.RED + "Usage: /rngadmin give <money|tokens|shards|credits> <amount> [player]");
+            sender.sendMessage(ChatColor.RED + "Usage: /rngadmin give <coins|tokens|gems|credits> <amount> [player]");
             return true;
         }
         Long amount = parseAmount(sender, args[2]);
@@ -226,19 +226,21 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         PlayerData data = plugin.getPlayerDataManager().get(target.getUniqueId());
         String currency = args[1].toLowerCase(Locale.ROOT);
         switch (currency) {
-            case "money" -> {
+            // The old names still work, so anything scripted against them
+              // (a web store callback, a console macro) keeps running.
+            case "coins", "money" -> {
                 var registration = Bukkit.getServicesManager().getRegistration(Economy.class);
                 if (registration == null) {
-                    sender.sendMessage(ChatColor.RED + "No Vault economy is installed, so Money can't be given.");
+                    sender.sendMessage(ChatColor.RED + "No Vault economy is installed, so Coins can't be given.");
                     return true;
                 }
                 registration.getProvider().depositPlayer(target, amount);
             }
             case "tokens" -> data.addTokens(amount);
-            case "shards" -> data.addShards(amount);
+            case "gems", "shards" -> data.addShards(amount);
             case "credits" -> data.addPoints(amount);
             default -> {
-                sender.sendMessage(ChatColor.RED + "Unknown currency. Use money, tokens, shards or credits.");
+                sender.sendMessage(ChatColor.RED + "Unknown currency. Use coins, tokens, gems or credits.");
                 return true;
             }
         }
@@ -414,26 +416,14 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
      * testing.
      */
     private void grantNode(PlayerData data, SkillNode node) {
-        if (node.getMaxLevel() > 1) {
-            int missing = node.getMaxLevel() - data.getNodeLevel(node.getId());
-            for (int i = 0; i < missing; i++) {
-                applyEffect(data, node);
-            }
+        if (node.isLeveled()) {
             data.setNodeLevel(node.getId(), node.getMaxLevel());
-        } else if (!data.hasUnlocked(node.getId())) {
-            applyEffect(data, node);
         }
         data.getUnlockedNodes().add(node.getId());
-    }
-
-    private void applyEffect(PlayerData data, SkillNode node) {
-        switch (node.getEffect()) {
-            case LUCK -> data.addBonusLuck(node.getValue());
-            case ROLL_SPEED -> data.setRollSpeedMultiplier(data.getRollSpeedMultiplier() + node.getValue());
-            case BONUS_ROLL_CHANCE -> data.addBonusRollChance(node.getValue());
-            case AUTO_ROLL -> data.setAutoRollEnabled(true);
-            default -> { /* gate flags only */ }
-        }
+        // Luck, Speed and every other magnitude are read back out of the
+        // node levels, so setting the level IS granting the stat. Only the
+        // one-way switches need anything applied.
+        plugin.getSkillTreeManager().applySideEffects(data, node);
     }
 
     // ----------------------------------------------------------------- odds
@@ -523,7 +513,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
     /** /rngadmin crops &lt;unlock|lock&gt; &lt;crop|shards|all&gt; [player] */
     private boolean doCrops(CommandSender sender, String[] args) {
         if (args.length < 3) {
-            sender.sendMessage(ChatColor.RED + "Usage: /rngadmin crops <unlock|lock> <crop|shards|all> [player]");
+            sender.sendMessage(ChatColor.RED + "Usage: /rngadmin crops <unlock|lock> <crop|gems|all> [player]");
             return true;
         }
         boolean unlock = args[1].equalsIgnoreCase("unlock");
@@ -539,7 +529,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         var farm = plugin.getFarmPlotManager();
         String what = args[2].toLowerCase(Locale.ROOT);
 
-        if (what.equals("shards")) {
+        if (what.equals("gems") || what.equals("shards")) {
             data.setCropShardsUnlocked(unlock);
         } else if (what.equals("all")) {
             data.setCropShardsUnlocked(unlock);
@@ -862,7 +852,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         for (String id : plugin.getFarmPlotManager().getCrops().keySet()) {
             out.add(id.toLowerCase(Locale.ROOT));
         }
-        out.add("shards");
+        out.add("gems");
         out.add("all");
         return out;
     }

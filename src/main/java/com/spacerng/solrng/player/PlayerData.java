@@ -125,6 +125,22 @@ public class PlayerData {
     // Base Luck from the Starforge, but only while it's actually in a
     // hand. Recomputed live like armorLuckBonus, not persisted.
     private double starforgeLuckBonus = 0.0;
+    // Speed granted by skill tree nodes. Derived from node levels rather
+    // than added on purchase, so retuning a Speed skill in config retunes
+    // it for everyone who already owns it. Refreshed on a timer, not saved.
+    private double skillSpeedBonus = 0.0;
+    // Rolls since the last drop of at least each rarity — what the Pity
+    // Timer skills count against. Kept per rarity because several pity
+    // nodes can be owned at once, each watching a different tier.
+    private final Map<Rarity, Long> rollsSinceRarity = new EnumMap<>(Rarity.class);
+    // Battle Pass (/pass). The season number is stored so that starting a
+    // new season resets XP and claims without touching anything else.
+    private int passSeason = 1;
+    private long passXp = 0L;
+    private boolean passPremium = false;
+    // Rewards already taken, keyed "F:12" / "P:12" for the free and
+    // premium track of level 12.
+    private final Set<String> passClaimed = new HashSet<>();
 
     public PlayerData(UUID uuid) {
         this.uuid = uuid;
@@ -200,13 +216,21 @@ public class PlayerData {
         this.armorSpeedBonus = armorSpeedBonus;
     }
 
+    public double getSkillSpeedBonus() {
+        return skillSpeedBonus;
+    }
+
+    public void setSkillSpeedBonus(double skillSpeedBonus) {
+        this.skillSpeedBonus = Math.max(0.0, skillSpeedBonus);
+    }
+
     /**
-     * Total roll speed actually applied: skill-tree base plus worn armor.
-     * 1.0 = the "100 Speed" baseline shown on the scoreboard (Speed = this
-     * x 100, rounded).
+     * Total roll speed actually applied: the 1.0 baseline, plus every
+     * Speed node bought, plus worn armor. 1.0 = the "100 Speed" baseline
+     * shown on the scoreboard (Speed = this x 100, rounded).
      */
     public double getEffectiveRollSpeedMultiplier() {
-        return Math.max(0.1, rollSpeedMultiplier + armorSpeedBonus);
+        return Math.max(0.1, rollSpeedMultiplier + skillSpeedBonus + armorSpeedBonus);
     }
 
     public Set<String> getUnlockedNodes() {
@@ -335,6 +359,34 @@ public class PlayerData {
         }
     }
 
+    /**
+     * How many rolls have passed without one of at least this rarity. A
+     * roll of rarity R clears the counter for R and for everything below
+     * it, so a Legendary satisfies a Rare pity timer as well as its own.
+     */
+    public long getRollsSince(Rarity rarity) {
+        return rollsSinceRarity.getOrDefault(rarity, 0L);
+    }
+
+    public void setRollsSince(Rarity rarity, long value) {
+        rollsSinceRarity.put(rarity, Math.max(0L, value));
+    }
+
+    public Map<Rarity, Long> getRollsSinceRarity() {
+        return rollsSinceRarity;
+    }
+
+    /** Advances every pity counter, then clears the ones this roll satisfied. */
+    public void notePityRoll(Rarity rolled) {
+        for (Rarity rarity : Rarity.values()) {
+            if (rolled != null && rolled.ordinal() >= rarity.ordinal()) {
+                rollsSinceRarity.put(rarity, 0L);
+            } else {
+                rollsSinceRarity.merge(rarity, 1L, Long::sum);
+            }
+        }
+    }
+
     public long getTotalRolls() {
         return totalRolls;
     }
@@ -372,17 +424,16 @@ public class PlayerData {
     }
 
     /**
-     * Total Luck actually applied to rolls. Each source has a distinct
-     * role: the held Starforge sets the base, the skill tree and worn
-     * armor add flat bonuses on top, then the equipped tag's index
-     * multiplier and prestige both scale the whole total.
+     * The flat Luck that isn't tied to a skill node — admin grants, and
+     * anything a future system hands out directly.
      *
-     * indexMultiplier is passed in rather than stored because it's read
-     * off the equipped tag's item, which lives in RarityManager.
+     * The full Luck calculation deliberately does NOT live here: it needs
+     * the skill tree, the index, prestige upgrades and the global boost,
+     * none of which a plain data object should know about. PrestigeManager
+     * assembles it instead, and is the single place to read Luck from.
      */
-    public double getEffectiveLuck(double prestigeLuckMultiplierPerPrestige, double indexMultiplier) {
-        double base = starforgeLuckBonus + bonusLuck + armorLuckBonus;
-        return base * indexMultiplier * (1.0 + prestige * prestigeLuckMultiplierPerPrestige);
+    public double getFlatLuck() {
+        return bonusLuck;
     }
 
     public Set<String> getPurchasedArmorTiers() {
@@ -459,6 +510,58 @@ public class PlayerData {
 
     public void setDailyTotalClaims(long dailyTotalClaims) {
         this.dailyTotalClaims = dailyTotalClaims;
+    }
+
+    public int getPassSeason() {
+        return passSeason;
+    }
+
+    public void setPassSeason(int passSeason) {
+        this.passSeason = Math.max(1, passSeason);
+    }
+
+    public long getPassXp() {
+        return passXp;
+    }
+
+    public void setPassXp(long passXp) {
+        this.passXp = Math.max(0L, passXp);
+    }
+
+    public void addPassXp(long amount) {
+        if (amount <= 0) return;
+        this.passXp += amount;
+    }
+
+    public boolean isPassPremium() {
+        return passPremium;
+    }
+
+    public void setPassPremium(boolean passPremium) {
+        this.passPremium = passPremium;
+    }
+
+    public Set<String> getPassClaimed() {
+        return passClaimed;
+    }
+
+    /** track is "F" for the free row or "P" for the premium one. */
+    public boolean hasClaimedPass(String track, int level) {
+        return passClaimed.contains(track + ":" + level);
+    }
+
+    public void markPassClaimed(String track, int level) {
+        passClaimed.add(track + ":" + level);
+    }
+
+    /**
+     * Wipes everything season-scoped. The season number itself is set by
+     * the caller, so a reset is one call rather than a checklist.
+     */
+    public void resetPass() {
+        passXp = 0L;
+        passPremium = false;
+        passClaimed.clear();
     }
 
     public int getPrestigePoints() {

@@ -179,12 +179,14 @@ public class MilestoneManager {
     }
 
     private void payOut(Player player, PlayerData data, MilestoneTrack.Tier tier) {
-        if (tier.tokens() > 0) data.addTokens(tier.tokens());
-        if (tier.shards() > 0) data.addShards(tier.shards());
+        double bonus = plugin.getSkillTreeManager()
+                .multiplierOf(data, com.spacerng.solrng.player.SkillNode.Effect.MILESTONE_BONUS);
+        if (tier.tokens() > 0) data.addTokens(Math.round(tier.tokens() * bonus));
+        if (tier.shards() > 0) data.addShards(Math.round(tier.shards() * bonus));
         if (tier.money() > 0) {
             var registration = Bukkit.getServicesManager().getRegistration(Economy.class);
             if (registration != null) {
-                registration.getProvider().depositPlayer(player, tier.money());
+                registration.getProvider().depositPlayer(player, tier.money() * bonus);
             }
         }
         plugin.getScoreboardManager().update(player);
@@ -216,14 +218,14 @@ public class MilestoneManager {
         player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0f, 1.0f);
     }
 
-    /** "1,000 Tokens, 5 Shards" — blank when a tier pays nothing. */
+    /** "1,000 Tokens, 5 Gems" — blank when a tier pays nothing. */
     public String rewardText(MilestoneTrack.Tier tier) {
         List<String> parts = new ArrayList<>();
         if (tier.tokens() > 0) {
             parts.add(ChatColor.YELLOW + String.format("%,d", tier.tokens()) + " Tokens");
         }
         if (tier.shards() > 0) {
-            parts.add(ChatColor.AQUA + String.format("%,d", tier.shards()) + " Shards");
+            parts.add(ChatColor.AQUA + String.format("%,d", tier.shards()) + " Gems");
         }
         if (tier.money() > 0) {
             parts.add(ChatColor.DARK_GREEN + "$" + String.format("%,.0f", tier.money()));

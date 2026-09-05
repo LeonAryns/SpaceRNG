@@ -2,6 +2,8 @@ package com.spacerng.solrng.listeners;
 
 import com.spacerng.solrng.SolRNGPlugin;
 import com.spacerng.solrng.player.PlayerData;
+import com.spacerng.solrng.player.SkillNode;
+import com.spacerng.solrng.player.SkillTreeManager;
 import com.spacerng.solrng.rarity.Rarity;
 import com.spacerng.solrng.roll.RollAura;
 import com.spacerng.solrng.rarity.RollFormat;
@@ -92,7 +94,19 @@ public class RollListener implements Listener {
     public boolean rollShiny(PlayerData data) {
         String node = plugin.getConfig().getString("shiny.node", "shiny_unlock");
         if (!node.isEmpty() && !data.hasUnlocked(node)) return false;
-        return random.nextDouble() < plugin.getConfig().getDouble("shiny.chance", 0.01);
+        return random.nextDouble() < shinyChance(data);
+    }
+
+    /**
+     * The base 1-in-100, scaled by the Shiny Chance skills. They add to a
+     * multiplier rather than to the chance itself, so "+10% per level"
+     * means a tenth more shinies per level whatever the base is set to —
+     * retuning shiny.chance doesn't silently retune the skills too.
+     */
+    public double shinyChance(PlayerData data) {
+        double base = plugin.getConfig().getDouble("shiny.chance", 0.01);
+        return Math.min(1.0, base * plugin.getSkillTreeManager()
+                .multiplierOf(data, SkillNode.Effect.SHINY_CHANCE));
     }
 
     public boolean isRolling(UUID uuid) {
@@ -226,12 +240,22 @@ public class RollListener implements Listener {
     public void startRoll(Player player) {
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
 
+        // Supercharge fires on the roll NUMBER, so it has to be decided
+        // against the roll that is about to happen rather than the one
+        // that just did — grantRoll is what increments the counter.
+        long rollNumber = data.getTotalRolls() + 1;
+        double supercharge = plugin.getSkillTreeManager().superchargeFor(data, rollNumber);
+        double luck = plugin.getPrestigeManager().effectiveLuck(data) * supercharge;
+        if (supercharge > 1.0) {
+            announceSupercharge(player, supercharge);
+        }
+
         // The result is decided up front rather than when the timer ends,
         // so the animation can land on it: the teaser flashes candidates,
         // then the final frames ARE the drop you're about to be handed.
         // Rolling at the end instead meant the reel visibly stopped on one
         // item and gave you a different one.
-        RollableItem result = plugin.getRarityManager().roll(plugin.getPrestigeManager().effectiveLuck(data));
+        RollableItem result = rollWithPity(data, luck);
         boolean shiny = rollShiny(data);
 
         // An Epic+ roll is stretched to at least the length of its own
@@ -239,12 +263,16 @@ public class RollListener implements Listener {
         // 10-second Mythical reveal on a 2-second roll would just be a
         // flash. It also means a longer-than-usual roll is itself the
         // first hint that something good is coming.
+        //
+        // Instant Roll deliberately can't skip a big drop: the reveal IS
+        // the reward there, and cutting it would be a downgrade dressed up
+        // as an upgrade.
         // Assigned once: the timer lambda below captures it, so it has to
         // stay effectively final.
         long baseTicks = effectiveRollTicks(data);
         final long totalTicks = RollAura.isBigDrop(result.getRarity())
                 ? Math.max(baseTicks, RollAura.durationTicks(result.getRarity()))
-                : baseTicks;
+                : (rollsInstantly(data) ? 1L : baseTicks);
 
         RollAura aura = RollAura.start(plugin, player, result.getRarity());
         if (aura != null) {
@@ -289,6 +317,57 @@ public class RollListener implements Listener {
         }, 0L, 2L);
 
         rollingTasks.put(player.getUniqueId(), taskHolder[0]);
+    }
+
+    /**
+     * Applies the Pity Timer skills. Each one watches its own rarity: when
+     * `interval` rolls have gone by without a drop of at least that
+     * rarity, the next roll is forced to be one.
+     *
+     * The normal roll happens first and is only overridden if it came out
+     * below the floor — so a pity timer never downgrades a lucky roll, and
+     * a natural hit resets the counter exactly like a forced one.
+     */
+    private RollableItem rollWithPity(PlayerData data, double luck) {
+        RollableItem result = plugin.getRarityManager().roll(luck);
+
+        Rarity floor = null;
+        for (SkillNode node : plugin.getSkillTreeManager().owned(data, SkillNode.Effect.PITY)) {
+            if (node.getInterval() <= 0 || node.getTarget() == null) continue;
+            Rarity min;
+            try {
+                min = Rarity.valueOf(node.getTarget().toUpperCase());
+            } catch (IllegalArgumentException ex) {
+                continue;
+            }
+            // +1 because this roll is the one the counter is about to reach.
+            if (data.getRollsSince(min) + 1 < node.getInterval()) continue;
+            if (floor == null || min.ordinal() > floor.ordinal()) floor = min;
+        }
+
+        if (floor != null && result.getRarity().ordinal() < floor.ordinal()) {
+            return plugin.getRarityManager().rollAtLeast(luck, floor);
+        }
+        return result;
+    }
+
+    /** Instant Roll: the whole animation collapses to a single tick. */
+    private boolean rollsInstantly(PlayerData data) {
+        double chance = plugin.getSkillTreeManager().totalOf(data, SkillNode.Effect.INSTANT_ROLL);
+        return chance > 0.0 && random.nextDouble() < chance;
+    }
+
+    /**
+     * Supercharge announces itself before the roll rather than after. The
+     * whole appeal of "every 100th roll is a 10x" is the anticipation, and
+     * telling the player afterwards throws that away.
+     */
+    private void announceSupercharge(Player player, double multiplier) {
+        String label = ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "\u26a1 SUPERCHARGED ROLL \u26a1";
+        player.sendMessage(label + ChatColor.RESET + ChatColor.GRAY + "  this one rolls at "
+                + ChatColor.LIGHT_PURPLE + String.format("%,.0f", multiplier) + "x"
+                + ChatColor.GRAY + " Luck.");
+        player.playSound(player.getLocation(), Sound.BLOCK_BEACON_POWER_SELECT, 1.0f, 1.4f);
     }
 
     /**
@@ -361,9 +440,11 @@ public class RollListener implements Listener {
         }
         grantRoll(player, data, result, false);
 
-        // Bonus Roll skill tree branch: a chance to immediately chain into
+        // Double Roll skill tree branch: a chance to immediately chain into
         // another free roll, no click required.
-        if (data.getBonusRollChance() > 0.0 && random.nextDouble() < data.getBonusRollChance()) {
+        double bonusChance = data.getBonusRollChance()
+                + plugin.getSkillTreeManager().totalOf(data, SkillNode.Effect.BONUS_ROLL_CHANCE);
+        if (bonusChance > 0.0 && random.nextDouble() < bonusChance) {
             player.sendMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "Bonus Roll! " + ChatColor.RESET
                     + ChatColor.GRAY + "Rolling again...");
             // Waits out the finale rather than being swallowed by the lock.
@@ -398,7 +479,10 @@ public class RollListener implements Listener {
         Rarity rarity = result.getRarity();
         ItemStack previewItem = buildTaggedItem(result, shiny);
 
-        double moneyEarned = depositRollMoney(player, result);
+        // Read before the discovery is registered, so a first find pays the
+        // normal rate and only genuine repeats get the Duplicate bonus.
+        boolean duplicate = data.hasDiscovered(result.getDisplayName());
+        double moneyEarned = depositRollMoney(player, data, result, duplicate);
 
         // A shiny is only ever auto-converted by its OWN switch. The normal
         // per-rarity toggles are set for the common version of a drop, and
@@ -431,11 +515,16 @@ public class RollListener implements Listener {
 
         if (!silent) {
             String moneyText = moneyEarned > 0
-                    ? ChatColor.GREEN + "  +$" + String.format("%.0f", moneyEarned)
+                    ? ChatColor.GOLD + "  +" + RollFormat.abbreviate(Math.round(moneyEarned)) + " Coins"
                     : "";
             sendActionBar(player, RollFormat.displayName(plugin, result, shiny)
                     + ChatColor.GRAY + "  " + RollFormat.compactOdds(result.getOdds()) + moneyText);
         }
+
+        // Advance the pity counters for every tier this roll didn't reach,
+        // and clear the ones it did.
+        data.notePityRoll(rarity);
+        plugin.getPassManager().awardRoll(player, data, rarity);
 
         maybeRegisterDiscovery(player, data, result, silent, shiny);
         maybeBroadcast(player, result, previewItem, shiny);
@@ -446,18 +535,24 @@ public class RollListener implements Listener {
      * money = odds x configured multiplier, so rarer items pay out more.
      * Returns 0 if Vault/an economy plugin isn't installed.
      */
-    private double depositRollMoney(Player player, RollableItem result) {
+    private double depositRollMoney(Player player, PlayerData data, RollableItem result, boolean duplicate) {
         var registration = Bukkit.getServicesManager().getRegistration(Economy.class);
         if (registration == null) return 0.0;
 
+        SkillTreeManager skills = plugin.getSkillTreeManager();
         double multiplier = plugin.getConfig().getDouble("economy.money-per-odds-multiplier", 10.0);
-        // The Nova Core lifts Money as well as Luck — it's a universal
+        // The Nova Core lifts Coins as well as Luck — it's a universal
         // multiplier, not a Luck-only one.
-        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         double nova = plugin.getNovaCoreManager().multiplierAt(data.getNovaTier());
         double upgrade = 1.0 + plugin.getPrestigeManager().upgradeTotal(data,
                 com.spacerng.solrng.player.PrestigeUpgrade.Effect.MONEY_BONUS);
-        double money = result.getOdds() * multiplier * nova * upgrade;
+        // Coins skills, plus Coins Per Level which scales off the /prestige
+        // level rather than off a level of its own.
+        double skill = 1.0 + skills.totalOf(data, SkillNode.Effect.MONEY_MULTIPLIER)
+                + skills.totalOf(data, SkillNode.Effect.MONEY_PER_LEVEL) * data.getLevel();
+        double dupe = duplicate ? skills.multiplierOf(data, SkillNode.Effect.DUPLICATE_BONUS) : 1.0;
+
+        double money = result.getOdds() * multiplier * nova * upgrade * skill * dupe;
         registration.getProvider().depositPlayer(player, money);
         return money;
     }

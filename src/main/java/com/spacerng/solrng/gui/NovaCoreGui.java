@@ -142,7 +142,7 @@ public class NovaCoreGui {
 
     private static ItemStack buildForge(SolRNGPlugin plugin, PlayerData data, NovaCoreManager nova, int tier) {
         boolean maxed = tier >= nova.getMaxTier();
-        long cost = nova.costFor(tier);
+        long cost = nova.costFor(data, tier);
         double luck = plugin.getPrestigeManager().baseLuck(data);
         double chance = nova.chanceAt(tier, luck);
         boolean affordable = data.getTokens() >= cost;

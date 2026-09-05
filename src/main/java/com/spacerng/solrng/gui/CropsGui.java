@@ -70,7 +70,7 @@ public class CropsGui {
         if (crop.getShards() > 0) {
             boolean shards = farm.shardsUnlocked(data);
             lore.add((shards ? ChatColor.AQUA : ChatColor.DARK_GRAY) + "◆ "
-                    + String.format("%,d", crop.getShards()) + " Shards"
+                    + String.format("%,d", crop.getShards()) + " Gems"
                     + (shards ? "" : ChatColor.DARK_GRAY + " (locked)"));
         }
         lore.add("");
@@ -111,7 +111,7 @@ public class CropsGui {
                 ChatColor.GRAY + "choice, or your harvests.",
                 "",
                 ChatColor.GRAY + "Harvested: " + ChatColor.WHITE + String.format("%,d", data.getCropsHarvested()),
-                ChatColor.GRAY + "Shard payouts: "
+                ChatColor.GRAY + "Gem payouts: "
                         + (farm.shardsUnlocked(data) ? ChatColor.GREEN + "Unlocked" : ChatColor.RED + "Locked")));
         item.setItemMeta(meta);
         return item;

@@ -149,6 +149,24 @@ public class NovaCoreManager {
         return Math.round(baseCost * Math.pow(costGrowth, tier));
     }
 
+    /**
+     * The same cost after the Core Efficiency skills. Floored at 10% of
+     * list price: a discount chain that could reach zero would turn the
+     * ladder into a free reroll button.
+     */
+    public long costFor(PlayerData data, int tier) {
+        double discount = plugin.getSkillTreeManager()
+                .totalOf(data, com.spacerng.solrng.player.SkillNode.Effect.NOVA_DISCOUNT);
+        return Math.max(1L, Math.round(costFor(tier) * Math.max(0.10, 1.0 - discount)));
+    }
+
+    /** Core Anchor: the chance a failed climb doesn't drop you at all. */
+    public boolean holdsOnFailure(PlayerData data) {
+        double chance = plugin.getSkillTreeManager()
+                .totalOf(data, com.spacerng.solrng.player.SkillNode.Effect.NOVA_SAFETY);
+        return chance > 0 && ThreadLocalRandom.current().nextDouble() < chance;
+    }
+
     /** Odds of clearing the step from {@code tier} to {@code tier + 1}. */
     public double chanceAt(int tier, double luck) {
         double raw = baseChance * Math.pow(decay, tier) * (1.0 + luck * luckWeight);
@@ -173,7 +191,7 @@ public class NovaCoreManager {
             return false;
         }
 
-        long cost = costFor(tier);
+        long cost = costFor(data, tier);
         if (charge && !data.spendTokens(cost)) {
             player.sendMessage(ChatColor.RED + "You need " + String.format("%,d", cost) + " Tokens for that.");
             player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
@@ -201,6 +219,14 @@ public class NovaCoreManager {
             player.playSound(player.getLocation(),
                     isCheckpoint(next) ? Sound.BLOCK_BEACON_POWER_SELECT : Sound.ENTITY_EXPERIENCE_ORB_PICKUP,
                     0.9f, isCheckpoint(next) ? 1.4f : 1.8f);
+        } else if (holdsOnFailure(data)) {
+            // Core Anchor: the attempt is still lost, and so are the Tokens.
+            // Only the fall is cancelled — otherwise the skill would remove
+            // the risk instead of softening it.
+            player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "Anchored! "
+                    + ChatColor.RESET + ChatColor.GRAY + "The climb failed but your Core held at tier "
+                    + ChatColor.WHITE + tier);
+            player.playSound(player.getLocation(), Sound.BLOCK_ANVIL_LAND, 0.6f, 1.6f);
         } else {
             int fallback = checkpointBelow(tier);
             data.setNovaTier(fallback);

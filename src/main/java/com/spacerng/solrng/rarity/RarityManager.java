@@ -285,6 +285,20 @@ public class RarityManager {
      * favors rarer tiers without needing to touch common items directly.
      */
     public RollableItem roll(double luck) {
+        return roll(luck, null);
+    }
+
+    /**
+     * A roll restricted to a floor rarity, for the Pity Timer skills.
+     * Weights inside the surviving band keep their normal proportions, so
+     * a forced Rare+ is still much more likely to be a Rare than a
+     * Mythical — pity guarantees you something good, not something absurd.
+     */
+    public RollableItem rollAtLeast(double luck, Rarity minimum) {
+        return roll(luck, minimum);
+    }
+
+    private RollableItem roll(double luck, Rarity minimum) {
         if (items.isEmpty()) {
             throw new IllegalStateException("No rollable items configured — check config.yml");
         }
@@ -294,10 +308,20 @@ public class RarityManager {
 
         for (int i = 0; i < items.size(); i++) {
             RollableItem item = items.get(i);
+            if (minimum != null && item.getRarity().ordinal() < minimum.ordinal()) {
+                effectiveWeights[i] = 0.0;
+                continue;
+            }
             double factor = 1.0 + (luck * luckFactorFor(item.getRarity()));
             double weight = item.getBaseWeight() * factor;
             effectiveWeights[i] = weight;
             totalWeight += weight;
+        }
+
+        // Nothing survived the floor (a rarity with no items configured).
+        // Falling back to an unrestricted roll beats handing back null.
+        if (totalWeight <= 0.0) {
+            return minimum == null ? items.get(0) : roll(luck, null);
         }
 
         double roll = ThreadLocalRandom.current().nextDouble() * totalWeight;

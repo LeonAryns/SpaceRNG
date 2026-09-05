@@ -325,8 +325,18 @@ public class FarmPlotManager {
         // Token Master from the prestige upgrades rides on top.
         multiplier += plugin.getPrestigeManager().upgradeTotal(data,
                 com.spacerng.solrng.player.PrestigeUpgrade.Effect.TOKEN_BONUS);
+        // The general tree's Tokens skills multiply on top of everything
+        // the farm tree already stacked, rather than adding into the same
+        // pile — two trees feeding one number additively would make the
+        // later, far more expensive nodes feel like nothing.
+        multiplier *= plugin.getSkillTreeManager()
+                .multiplierOf(data, com.spacerng.solrng.player.SkillNode.Effect.TOKEN_GAIN);
         long tokens = Math.round(crop.getTokens() * multiplier);
-        long shards = shardsUnlocked(data) ? crop.getShards() : 0L;
+
+        double gemMultiplier = plugin.getSkillTreeManager()
+                .multiplierOf(data, com.spacerng.solrng.player.SkillNode.Effect.GEM_MULTIPLIER);
+        long shards = shardsUnlocked(data)
+                ? Math.round(crop.getShards() * gemMultiplier) : 0L;
 
         double shardGreed = hoe.powerOf(data, "SHARD_GREED")
                 + plugin.getPrestigeManager().upgradeTotal(data,
@@ -344,6 +354,7 @@ public class FarmPlotManager {
         if (tokens > 0) data.addTokens(tokens);
         if (shards > 0) data.addShards(shards);
         data.addCropsHarvested(1L);
+        plugin.getPassManager().awardHarvest(player, data, 1L);
 
         player.sendBlockChange(plot, Bukkit.createBlockData(Material.AIR));
         final CropType regrown = crop;
@@ -430,7 +441,7 @@ public class FarmPlotManager {
         reward.append(ChatColor.YELLOW).append("+").append(String.format("%,d", tokens)).append(" Tokens");
         if (shards > 0) {
             reward.append(ChatColor.GRAY).append("  ").append(ChatColor.AQUA)
-                    .append("+").append(String.format("%,d", shards)).append(" Shards");
+                    .append("+").append(String.format("%,d", shards)).append(" Gems");
         }
         if (fortune) {
             reward.append(ChatColor.GRAY).append("  ").append(ChatColor.GOLD).append(ChatColor.BOLD)

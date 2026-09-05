@@ -44,9 +44,7 @@ public class BuyGui {
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
 
         inv.setItem(BOOST_SLOT, buildBoost(plugin, data));
-        inv.setItem(BATTLEPASS_SLOT, comingSoon(Material.WRITTEN_BOOK, "BATTLE PASS",
-                "A season of checkpoints with its own",
-                "reward track, unlocked with Credits."));
+        inv.setItem(BATTLEPASS_SLOT, buildPass(plugin, data));
         inv.setItem(RANKS_SLOT, comingSoon(Material.NAME_TAG, "RANKS",
                 "Permanent perks and a coloured tag.",
                 "Handled by the permissions plugin."));
@@ -109,6 +107,45 @@ public class BuyGui {
 
         meta.setLore(lore);
         meta.setEnchantmentGlintOverride(boost.isActive() ? Boolean.TRUE : null);
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    /**
+     * The premium track, sold here as well as inside /pass. Credits are
+     * spent in this menu, so a Credit purchase that only existed somewhere
+     * else would be the one thing missing from the shop.
+     */
+    private static ItemStack buildPass(SolRNGPlugin plugin, PlayerData data) {
+        com.spacerng.solrng.pass.PassManager pass = plugin.getPassManager();
+        boolean owned = data.isPassPremium();
+
+        ItemStack item = new ItemStack(Material.WRITTEN_BOOK);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "PREMIUM BATTLE PASS");
+
+        java.util.List<String> lore = new java.util.ArrayList<>();
+        lore.add(ChatColor.DARK_GRAY + pass.getSeasonName().toUpperCase());
+        lore.add("");
+        lore.add(ChatColor.GRAY + "A second reward track for the whole");
+        lore.add(ChatColor.GRAY + "season, including every level you have");
+        lore.add(ChatColor.GRAY + "already cleared.");
+        lore.add("");
+        if (owned) {
+            lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "UNLOCKED");
+            lore.add(ChatColor.GRAY + "Claim your rewards in " + ChatColor.YELLOW + "/pass");
+        } else {
+            lore.add(ChatColor.LIGHT_PURPLE + "▎ " + ChatColor.GRAY + "Price: " + ChatColor.LIGHT_PURPLE
+                    + String.format("%,d", pass.getPremiumCost()) + " Credits");
+            lore.add(ChatColor.DARK_GRAY + "▎ You have " + ChatColor.LIGHT_PURPLE
+                    + String.format("%,d", data.getPoints()) + " Credits");
+            lore.add("");
+            lore.add(data.getPoints() >= pass.getPremiumCost()
+                    ? ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO UNLOCK"
+                    : ChatColor.RED + "" + ChatColor.BOLD + "NOT ENOUGH CREDITS");
+        }
+        meta.setLore(lore);
+        meta.setEnchantmentGlintOverride(owned ? Boolean.TRUE : null);
         item.setItemMeta(meta);
         return item;
     }

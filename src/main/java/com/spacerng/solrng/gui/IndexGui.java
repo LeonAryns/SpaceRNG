@@ -14,8 +14,13 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 
+import org.bukkit.Statistic;
+import org.bukkit.inventory.meta.SkullMeta;
+
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Collection log: every rollable item, greyed out until the player has
@@ -61,7 +66,7 @@ public class IndexGui {
             inv.setItem(rarity.ordinal(), buildTab(plugin, rarity, filter == rarity));
         }
 
-        inv.setItem(PROGRESS_SLOT, buildProgressInfo(plugin, data, filter, shown.size()));
+        inv.setItem(PROGRESS_SLOT, buildProfile(plugin, player, data, filter, shown.size()));
         if (page > 0) {
             inv.setItem(PREV_SLOT, buildPageButton(false, page, totalPages));
         }
@@ -99,22 +104,69 @@ public class IndexGui {
         return tab;
     }
 
-    private static ItemStack buildProgressInfo(SolRNGPlugin plugin, PlayerData data, Rarity filter, int shownCount) {
+    /**
+     * The player's own card, top right. It's their head rather than a
+     * book because this panel is about them, not about the collection —
+     * and it carries the two numbers the sidebar doesn't already show
+     * (rolls and playtime) plus the per-rarity breakdown, which is the
+     * thing you actually want while staring at a wall of entries.
+     */
+    private static ItemStack buildProfile(SolRNGPlugin plugin, Player player, PlayerData data,
+                                          Rarity filter, int shownCount) {
         int discovered = data.getDiscoveredItems().size();
         int total = plugin.getRarityManager().getItems().size();
 
-        ItemStack info = new ItemStack(Material.KNOWLEDGE_BOOK);
+        ItemStack info = new ItemStack(Material.PLAYER_HEAD);
         ItemMeta meta = info.getItemMeta();
-        meta.setDisplayName(ChatColor.AQUA + "" + ChatColor.BOLD + "Index Progress: " + discovered + "/" + total);
+        // Not every meta is a SkullMeta on every server build, so the head
+        // degrades to a blank one rather than throwing.
+        if (meta instanceof SkullMeta skull) {
+            skull.setOwningPlayer(player);
+        }
+        meta.setDisplayName(ChatColor.AQUA + "" + ChatColor.BOLD + player.getName());
+
         List<String> lore = new ArrayList<>();
-        lore.add(ChatColor.GRAY + "Every item carries its own Luck multiplier —");
-        lore.add(ChatColor.GRAY + "the rarer the find, the bigger it is.");
-        lore.add(ChatColor.GRAY + "Equip one as your tag to use its multiplier.");
+        lore.add(ChatColor.DARK_GRAY + "YOUR INDEX");
         lore.add("");
-        lore.add(ChatColor.GRAY + "Shinies found: " + ChatColor.AQUA + data.getDiscoveredShiny().size()
-                + ChatColor.GRAY + "/" + ChatColor.AQUA + total);
-        lore.add(ChatColor.GRAY + "Equipped multiplier: " + ChatColor.GREEN
+        lore.add(ChatColor.AQUA + "▎ " + ChatColor.GRAY + "Discovered: " + ChatColor.AQUA + discovered
+                + ChatColor.DARK_GRAY + "/" + ChatColor.AQUA + total);
+        lore.add(Lore.bar(total <= 0 ? 0.0 : (double) discovered / total));
+        lore.add(ChatColor.AQUA + "▎ " + ChatColor.GRAY + "Shinies: " + ChatColor.AQUA
+                + data.getDiscoveredShiny().size() + ChatColor.DARK_GRAY + "/" + ChatColor.AQUA + total);
+        lore.add(ChatColor.GREEN + "▎ " + ChatColor.GRAY + "Index Luck: " + ChatColor.GREEN
                 + String.format("%.2f", plugin.getRarityManager().tagMultiplierFor(data)) + "x");
+
+        lore.add("");
+        lore.add(ChatColor.DARK_GRAY + "BY RARITY");
+        Map<Rarity, Integer> found = new EnumMap<>(Rarity.class);
+        Map<Rarity, Integer> tierTotal = new EnumMap<>(Rarity.class);
+        Map<Rarity, Integer> shinyFound = new EnumMap<>(Rarity.class);
+        for (RollableItem item : plugin.getRarityManager().getItems()) {
+            tierTotal.merge(item.getRarity(), 1, Integer::sum);
+            if (data.hasDiscovered(item.getDisplayName())) {
+                found.merge(item.getRarity(), 1, Integer::sum);
+            }
+            if (data.hasDiscoveredShiny(item.getDisplayName())) {
+                shinyFound.merge(item.getRarity(), 1, Integer::sum);
+            }
+        }
+        for (Rarity rarity : Rarity.values()) {
+            int have = found.getOrDefault(rarity, 0);
+            int all = tierTotal.getOrDefault(rarity, 0);
+            if (all == 0) continue;
+            int shiny = shinyFound.getOrDefault(rarity, 0);
+            lore.add(plugin.getRarityManager().style(rarity, "▎ " + rarity.displayName() + ": ")
+                    + (have >= all ? ChatColor.GREEN : ChatColor.GRAY) + have
+                    + ChatColor.DARK_GRAY + "/" + ChatColor.GRAY + all
+                    + (shiny > 0 ? ChatColor.DARK_GRAY + "   " + ChatColor.AQUA + "✦ " + shiny : ""));
+        }
+
+        lore.add("");
+        lore.add(ChatColor.YELLOW + "▎ " + ChatColor.GRAY + "Rolls: " + ChatColor.YELLOW
+                + String.format("%,d", data.getTotalRolls()));
+        lore.add(ChatColor.YELLOW + "▎ " + ChatColor.GRAY + "Playtime: " + ChatColor.YELLOW
+                + playtime(player));
+
         if (filter != null) {
             lore.add("");
             lore.add(ChatColor.GRAY + "Showing: " + plugin.getRarityManager().style(filter, filter.displayName())
@@ -123,6 +175,18 @@ public class IndexGui {
         meta.setLore(lore);
         info.setItemMeta(meta);
         return info;
+    }
+
+    /** PLAY_ONE_MINUTE is misnamed — it counts ticks, not minutes. */
+    private static String playtime(Player player) {
+        long ticks = player.getStatistic(Statistic.PLAY_ONE_MINUTE);
+        long seconds = ticks / 20L;
+        long days = seconds / 86400L;
+        long hours = (seconds % 86400L) / 3600L;
+        long minutes = (seconds % 3600L) / 60L;
+        if (days > 0) return days + "d " + hours + "h " + minutes + "m";
+        if (hours > 0) return hours + "h " + minutes + "m";
+        return minutes + "m";
     }
 
     /** Same black pane the other menus use as filler/section break. */

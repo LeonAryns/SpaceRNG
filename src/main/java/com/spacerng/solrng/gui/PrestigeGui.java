@@ -241,7 +241,7 @@ public class PrestigeGui {
             case LUCK_BONUS -> "Luck Bonus";
             case TOKEN_BONUS -> "Token Bonus";
             case MONEY_BONUS -> "Money Bonus";
-            case SHARD_BONUS -> "Shard Chance";
+            case SHARD_BONUS -> "Gem Chance";
             case NOVA_ODDS -> "Nova Odds";
         };
     }

@@ -3,19 +3,51 @@ package com.spacerng.solrng.player;
 public class SkillNode {
 
     public enum Effect {
-        LUCK,
-        UNLOCK_AUTO_CONVERT,
+        // --- general tree: stats ---
+        LUCK,               // +value Luck per level
+        ROLL_SPEED,         // +value Speed per level (0.02 = +2 on the 100 scale)
+        BONUS_ROLL_CHANCE,  // +value chance of a free extra roll
+        INSTANT_ROLL,       // +value chance the roll resolves with no animation
+        SHINY_CHANCE,       // +value x base shiny chance per level
+        LUCK_PER_DISCOVERY, // +value Luck for every entry found in /index
+        LUCK_PER_PRESTIGE,  // +value Luck for every prestige
+        STARFORGE_POWER,    // +value x the held Starforge's base Luck
+        ARMOR_POWER,        // +value x the Luck from worn armor
+
+        // --- general tree: currencies ---
+        MONEY_MULTIPLIER,   // +value x Coins earned per roll
+        MONEY_PER_LEVEL,    // +value x Coins for every /prestige level held
+        TOKEN_GAIN,         // +value x Tokens earned from farming
+        GEM_MULTIPLIER,     // +value x Gems earned from farming
+        DUPLICATE_BONUS,    // +value x Coins when the roll is already in the index
+        CONVERT_BONUS,      // +value chance a converted drop banks twice
+        DAILY_BONUS,        // +value x every /daily reward
+        MILESTONE_BONUS,    // +value x every /milestones reward
+        PASS_XP,            // +value x Battle Pass XP
+
+        // --- general tree: event effects ---
+        SUPERCHARGE,        // every `interval` rolls, one roll at value x Luck
+        PITY,               // `interval` rolls with nothing at `target` rarity
+                            // or better forces the next roll to be one
+        NOVA_DISCOUNT,      // -value Nova Core climb cost per level
+        NOVA_SAFETY,        // +value chance a failed Nova climb doesn't drop you
+
+        // --- general tree: gates ---
         AUTO_ROLL,
-        ROLL_SPEED,
-        BONUS_ROLL_CHANCE,
+        UNLOCK_CONVERT,
+        UNLOCK_AUTO_CONVERT,
         UNLOCK_FARMING,
         UNLOCK_ARMOR,
         UNLOCK_POTION,
         UNLOCK_SHINY,
         UNLOCK_INDEX_LUCK,
+        UNLOCK_ARTIFACT,
+        UNLOCK_PRIVATE_VAULT,
+        UNLOCK_PASS,
+
         // --- farming tree ---
         UNLOCK_CROP,        // target = crop id
-        UNLOCK_SHARDS,      // farm crops start paying Shards
+        UNLOCK_SHARDS,      // farm crops start paying Gems
         UNLOCK_ENCHANT,     // target = hoe enchant id
         ENCHANT_POWER,      // target = hoe enchant id, +value per level
         TOKEN_MULTIPLIER,   // +value to the farm Token multiplier per level
@@ -24,7 +56,7 @@ public class SkillNode {
 
     private final String id;
     private final String display;
-    // Skill tree nodes are paid for with Money (Vault). Rolled drops are
+    // Skill tree nodes are paid for with Coins (Vault). Rolled drops are
     // the currency for /armor, potions and farming-hoe upgrades instead.
     private final double moneyCost;
     private final String requires; // id of required node, or null
@@ -42,12 +74,19 @@ public class SkillNode {
     // from config so a new tree is a config change rather than a code one.
     private final String tree;
     private final int slot;
+    // Which page of the tree draws this node, 0-indexed.
+    private final int page;
     private final String icon;
-    // Free-form pointer some effects need — a crop id, an enchant id.
+    // Free-form pointer some effects need — a crop id, an enchant id, a
+    // rarity name for PITY.
     private final String target;
+    // How many rolls between triggers, for the effects that fire on a
+    // count rather than continuously (SUPERCHARGE, PITY).
+    private final int interval;
 
     public SkillNode(String id, String display, double moneyCost, String requires, Effect effect, double value,
-                     int maxLevel, double costGrowth, String tree, int slot, String icon, String target) {
+                     int maxLevel, double costGrowth, String tree, int slot, int page, String icon,
+                     String target, int interval) {
         this.id = id;
         this.display = display;
         this.moneyCost = moneyCost;
@@ -58,8 +97,10 @@ public class SkillNode {
         this.costGrowth = costGrowth <= 0 ? 1.0 : costGrowth;
         this.tree = tree;
         this.slot = slot;
+        this.page = Math.max(0, page);
         this.icon = icon;
         this.target = (target == null || target.isBlank()) ? null : target;
+        this.interval = Math.max(0, interval);
     }
 
     public String getId() {
@@ -103,12 +144,26 @@ public class SkillNode {
         return slot;
     }
 
+    /** 0-indexed page of the tree menu this node is drawn on. */
+    public int getPage() {
+        return page;
+    }
+
     public String getIcon() {
         return icon;
     }
 
     public String getTarget() {
         return target;
+    }
+
+    public int getInterval() {
+        return interval;
+    }
+
+    /** Whether this node is bought once or bought level by level. */
+    public boolean isLeveled() {
+        return maxLevel > 1;
     }
 
     /** What the NEXT level costs, given how many are already bought. */

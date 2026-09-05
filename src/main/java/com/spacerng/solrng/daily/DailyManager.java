@@ -122,12 +122,19 @@ public class DailyManager {
         data.setDailyLastClaimDay(today());
         data.addDailyTotalClaims(1L);
 
-        if (reward.tokens() > 0) data.addTokens(reward.tokens());
-        if (reward.shards() > 0) data.addShards(reward.shards());
+        // Daily Devotion scales what the streak pays. Credits are left out
+        // on purpose: they're the paid-store currency, and a skill that
+        // multiplied them would make them earnable through gameplay.
+        double bonus = plugin.getSkillTreeManager()
+                .multiplierOf(data, com.spacerng.solrng.player.SkillNode.Effect.DAILY_BONUS);
+        if (reward.tokens() > 0) data.addTokens(Math.round(reward.tokens() * bonus));
+        if (reward.shards() > 0) data.addShards(Math.round(reward.shards() * bonus));
         if (reward.credits() > 0) data.addPoints(reward.credits());
         if (reward.money() > 0) {
             var registration = Bukkit.getServicesManager().getRegistration(Economy.class);
-            if (registration != null) registration.getProvider().depositPlayer(player, reward.money());
+            if (registration != null) {
+                registration.getProvider().depositPlayer(player, reward.money() * bonus);
+            }
         }
 
         player.sendMessage("");
@@ -142,14 +149,14 @@ public class DailyManager {
         return true;
     }
 
-    /** "5,000 Tokens, 2 Shards" — blank when a day pays nothing. */
+    /** "5,000 Tokens, 2 Gems" — blank when a day pays nothing. */
     public String rewardText(Day day) {
         List<String> parts = new ArrayList<>();
         if (day.tokens() > 0) {
             parts.add(ChatColor.YELLOW + String.format("%,d", day.tokens()) + " Tokens");
         }
         if (day.shards() > 0) {
-            parts.add(ChatColor.AQUA + String.format("%,d", day.shards()) + " Shards");
+            parts.add(ChatColor.AQUA + String.format("%,d", day.shards()) + " Gems");
         }
         if (day.money() > 0) {
             parts.add(ChatColor.DARK_GREEN + "$" + String.format("%,.0f", day.money()));

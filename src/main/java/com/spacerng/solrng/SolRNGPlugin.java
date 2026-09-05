@@ -4,6 +4,7 @@ import com.spacerng.solrng.commands.ArmorCommand;
 import com.spacerng.solrng.commands.ConvertCommand;
 import com.spacerng.solrng.commands.IndexCommand;
 import com.spacerng.solrng.commands.OptionsCommand;
+import com.spacerng.solrng.commands.PassCommand;
 import com.spacerng.solrng.commands.PrestigeCommand;
 import com.spacerng.solrng.commands.BuyCommand;
 import com.spacerng.solrng.commands.CropsCommand;
@@ -61,6 +62,7 @@ public final class SolRNGPlugin extends JavaPlugin {
     private com.spacerng.solrng.announce.AnnouncerManager announcerManager;
     private com.spacerng.solrng.daily.DailyManager dailyManager;
     private com.spacerng.solrng.leaderboard.LeaderboardManager leaderboardManager;
+    private com.spacerng.solrng.pass.PassManager passManager;
 
     @Override
     public void onEnable() {
@@ -86,6 +88,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         this.questManager = new com.spacerng.solrng.quest.QuestManager(this);
         this.announcerManager = new com.spacerng.solrng.announce.AnnouncerManager(this);
         this.dailyManager = new com.spacerng.solrng.daily.DailyManager(this);
+        this.passManager = new com.spacerng.solrng.pass.PassManager(this);
 
         reloadAll();
 
@@ -117,6 +120,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         getCommand("top").setExecutor(topCommand);
         getCommand("top").setTabCompleter(topCommand);
         getCommand("buy").setExecutor(new BuyCommand(this));
+        getCommand("pass").setExecutor(new PassCommand(this));
         getCommand("rngadmin").setExecutor(adminCommand);
         getCommand("rngadmin").setTabCompleter(adminCommand);
 
@@ -158,6 +162,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         announcerManager.load(getConfig());
         dailyManager.load(getConfig());
         leaderboardManager.load(getConfig());
+        passManager.load(getConfig());
     }
 
     /**
@@ -244,6 +249,10 @@ public final class SolRNGPlugin extends JavaPlugin {
         return leaderboardManager;
     }
 
+    public com.spacerng.solrng.pass.PassManager getPassManager() {
+        return passManager;
+    }
+
     public com.spacerng.solrng.daily.DailyManager getDailyManager() {
         return dailyManager;
     }
@@ -287,6 +296,10 @@ public final class SolRNGPlugin extends JavaPlugin {
         getServer().getScheduler().runTaskTimer(this, () -> {
             armorManager.refreshWornBonuses();
             starforgeManager.refreshHeldBonuses();
+            for (Player player : getServer().getOnlinePlayers()) {
+                PlayerData data = playerDataManager.get(player.getUniqueId());
+                data.setSkillSpeedBonus(skillTreeManager.skillSpeed(data));
+            }
         }, 5L, 5L);
 
         // Repaints the shared farm so plots appear as players walk into

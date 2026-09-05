@@ -76,6 +76,8 @@ public class GuiListener implements Listener {
             handleCropsClick(event);
         } else if (topInventory.getHolder() instanceof NovaCoreHolder) {
             handleNovaCoreClick(event);
+        } else if (topInventory.getHolder() instanceof com.spacerng.solrng.gui.PassHolder) {
+            handlePassClick(event);
         } else if (topInventory.getHolder() instanceof BuyHolder) {
             handleBuyClick(event);
         } else if (topInventory.getHolder() instanceof DailyHolder) {
@@ -244,10 +246,21 @@ public class GuiListener implements Listener {
         event.setCancelled(true);
         if (event.getClickedInventory() == null
                 || !(event.getClickedInventory().getHolder() instanceof BuyHolder)) return;
-        if (event.getRawSlot() != BuyGui.BOOST_SLOT) return;
-
         Player player = (Player) event.getWhoClicked();
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+
+        if (event.getRawSlot() == BuyGui.BATTLEPASS_SLOT) {
+            if (data.isPassPremium()) return;
+            if (!plugin.getPassManager().buyPremium(player, data)) {
+                player.sendMessage(ChatColor.RED + "You need "
+                        + String.format("%,d", plugin.getPassManager().getPremiumCost())
+                        + " Credits for the premium track.");
+                return;
+            }
+            player.openInventory(BuyGui.build(plugin, player));
+            return;
+        }
+        if (event.getRawSlot() != BuyGui.BOOST_SLOT) return;
 
         if (plugin.getBoostManager().isMaxed()) {
             player.sendMessage(ChatColor.RED + "The boost is already at its cap for this run.");
@@ -530,6 +543,11 @@ public class GuiListener implements Listener {
                 player.sendMessage(ChatColor.GREEN + "You received a Farmer's Hoe — bound to you!");
             }
 
+            if (node != null) {
+                announceUnlock(player, node);
+                runUnlockCommands(player, node);
+            }
+
             // A farm node can change what the hoe shows, so rewrite it.
             plugin.getFarmingManager().refreshHoe(player, data);
             player.openInventory(SkillTreeGui.build(plugin, player, holder.getTree(), holder.getPage()));
@@ -703,10 +721,20 @@ public class GuiListener implements Listener {
                 long amount = stack.getAmount();
                 banked.merge(rarity, amount, Long::sum);
                 itemsConverted += amount;
+                // Refinery: each drop independently gets a chance to bank
+                // twice. Rolled per item rather than once for the batch, so
+                // converting a stack of 64 pays the average instead of an
+                // all-or-nothing double.
+                double refinery = plugin.getSkillTreeManager()
+                        .totalOf(data, com.spacerng.solrng.player.SkillNode.Effect.CONVERT_BONUS);
+                long extra = 0L;
+                for (long i = 0; refinery > 0 && i < amount; i++) {
+                    if (Math.random() < refinery) extra++;
+                }
                 if (plugin.getRollListener().isShiny(stack)) {
-                    data.addBankedShiny(rarity, amount);
+                    data.addBankedShiny(rarity, amount + extra);
                 } else {
-                    data.addBankedDrops(rarity, amount);
+                    data.addBankedDrops(rarity, amount + extra);
                     data.addConverted(rarity, amount);
                 }
                 top.setItem(slot, null);
@@ -747,5 +775,108 @@ public class GuiListener implements Listener {
         player.sendMessage(ChatColor.YELLOW + "Auto-convert for " + rarity.name() + " is now "
                 + (data.isAutoConverting(rarity) ? ChatColor.GREEN + "ON" : ChatColor.RED + "OFF"));
         player.openInventory(ConvertGui.build(plugin, player)); // refresh
+    }
+
+    /**
+     * A gate skill that opens a whole menu deserves more than a one-line
+     * "unlocked" — the point of buying it is the thing it leads to, so the
+     * message names the command to go and use.
+     */
+    private void announceUnlock(Player player, com.spacerng.solrng.player.SkillNode node) {
+        String hint = switch (node.getEffect()) {
+            case UNLOCK_CONVERT -> "/convert";
+            case UNLOCK_AUTO_CONVERT -> "/convert";
+            case UNLOCK_ARMOR -> "/armor";
+            case UNLOCK_INDEX_LUCK -> "/index";
+            case UNLOCK_PASS -> "/pass";
+            case UNLOCK_PRIVATE_VAULT -> "/pv";
+            case UNLOCK_FARMING -> "/crops";
+            default -> null;
+        };
+        if (hint == null) return;
+        player.sendMessage(ChatColor.GRAY + "Open it with " + ChatColor.YELLOW + hint + ChatColor.GRAY + ".");
+    }
+
+    /**
+     * Some unlocks live outside this plugin — a Private Vault is another
+     * plugin's permission. The commands are configured rather than
+     * hard-coded so the skill still works whatever /pv plugin is installed,
+     * and silently does nothing at all if none is.
+     */
+    private void runUnlockCommands(Player player, com.spacerng.solrng.player.SkillNode node) {
+        String key = switch (node.getEffect()) {
+            case UNLOCK_PRIVATE_VAULT -> "private-vault";
+            case UNLOCK_ARTIFACT -> "artifact";
+            case UNLOCK_POTION -> "potion";
+            default -> null;
+        };
+        if (key == null) return;
+
+        for (String raw : plugin.getConfig().getStringList("unlock-commands." + key)) {
+            if (raw == null || raw.isBlank()) continue;
+            plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(),
+                    raw.replace("{player}", player.getName()));
+        }
+    }
+
+    private void handlePassClick(InventoryClickEvent event) {
+        event.setCancelled(true);
+        if (event.getClickedInventory() == null
+                || !(event.getClickedInventory().getHolder()
+                        instanceof com.spacerng.solrng.gui.PassHolder holder)) return;
+
+        Player player = (Player) event.getWhoClicked();
+        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+        com.spacerng.solrng.pass.PassManager pass = plugin.getPassManager();
+        int slot = event.getRawSlot();
+
+        if (slot == com.spacerng.solrng.gui.PassGui.prevSlot()) {
+            player.openInventory(com.spacerng.solrng.gui.PassGui.build(plugin, player, holder.getPage() - 1));
+            return;
+        }
+        if (slot == com.spacerng.solrng.gui.PassGui.nextSlot()) {
+            player.openInventory(com.spacerng.solrng.gui.PassGui.build(plugin, player, holder.getPage() + 1));
+            return;
+        }
+        if (slot == com.spacerng.solrng.gui.PassGui.premiumSlot()) {
+            if (data.isPassPremium()) return;
+            if (!pass.buyPremium(player, data)) {
+                player.sendMessage(ChatColor.RED + "You need "
+                        + String.format("%,d", pass.getPremiumCost()) + " Credits for the premium track.");
+                return;
+            }
+            player.openInventory(com.spacerng.solrng.gui.PassGui.build(plugin, player, holder.getPage()));
+            return;
+        }
+        if (slot == com.spacerng.solrng.gui.PassGui.claimAllSlot()) {
+            int claimed = pass.claimAll(player, data);
+            if (claimed == 0) {
+                player.sendMessage(ChatColor.RED + "Nothing to claim right now.");
+                return;
+            }
+            player.openInventory(com.spacerng.solrng.gui.PassGui.build(plugin, player, holder.getPage()));
+            return;
+        }
+
+        ItemStack clicked = event.getCurrentItem();
+        if (clicked == null || clicked.getItemMeta() == null) return;
+        ItemMeta meta = clicked.getItemMeta();
+        Integer level = meta.getPersistentDataContainer()
+                .get(com.spacerng.solrng.gui.PassGui.levelKey(plugin), PersistentDataType.INTEGER);
+        String track = meta.getPersistentDataContainer()
+                .get(com.spacerng.solrng.gui.PassGui.trackKey(plugin), PersistentDataType.STRING);
+        if (level == null || track == null) return;
+
+        if (!pass.claim(player, data, level, track)) {
+            if (com.spacerng.solrng.pass.PassManager.PREMIUM.equals(track) && !data.isPassPremium()) {
+                player.sendMessage(ChatColor.RED + "That reward is on the premium track.");
+            } else if (data.hasClaimedPass(track, level)) {
+                player.sendMessage(ChatColor.RED + "You already claimed that one.");
+            } else {
+                player.sendMessage(ChatColor.RED + "Reach level " + level + " first.");
+            }
+            return;
+        }
+        player.openInventory(com.spacerng.solrng.gui.PassGui.build(plugin, player, holder.getPage()));
     }
 }

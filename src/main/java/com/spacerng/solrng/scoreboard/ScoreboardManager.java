@@ -118,7 +118,7 @@ public class ScoreboardManager {
         lines.add(ChatColor.GOLD + "" + ChatColor.BOLD + "Your Wallet");
         lines.add(balanceLine(player));
         lines.add(walletLine(data.getTokens(), "Tokens", ChatColor.YELLOW));
-        lines.add(walletLine(data.getShards(), "Shards", ChatColor.AQUA));
+        lines.add(walletLine(data.getShards(), "Gems", ChatColor.AQUA));
         lines.add(walletLine(data.getPoints(), "Credits", ChatColor.LIGHT_PURPLE));
 
         String rollStatus = rollStatusLine(player);
@@ -159,9 +159,11 @@ public class ScoreboardManager {
 
     private String balanceLine(Player player) {
         if (economy == null) {
-            return ChatColor.YELLOW + "| " + ChatColor.DARK_GREEN + "N/A Balance";
+            return ChatColor.YELLOW + "| " + ChatColor.GOLD + "N/A Coins";
         }
-        return walletLine(Math.round(economy.getBalance(player)), "Balance", ChatColor.DARK_GREEN);
+        // Gold, because Coins IS the gold currency — the other three each
+        // own a colour too, so the sidebar reads as four distinct wallets.
+        return walletLine(Math.round(economy.getBalance(player)), "Coins", ChatColor.GOLD);
     }
 
     /**

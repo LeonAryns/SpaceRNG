@@ -131,14 +131,51 @@ public class PrestigeManager {
     }
 
     /**
-     * Luck WITHOUT the Nova Core's own multiplier. The /rngcookie ladder
+     * Luck WITHOUT the Nova Core's own multiplier. The /novacore ladder
      * rolls against this: feeding a tier's multiplier back into the odds
      * of climbing to the next tier makes the ladder easier the further up
      * you get, which is backwards.
+     *
+     * This is the one place Luck is assembled, and the order matters:
+     *
+     *   flat  = Starforge (x Forge Attunement)
+     *         + worn armor (x Quartermaster)
+     *         + every Luck node bought
+     *         + Curator, per entry found in /index
+     *         + Prestige Affinity, per prestige held
+     *         + anything granted directly (admin, future systems)
+     *   total = flat x equipped tag's index multiplier
+     *                x (1 + prestige x luck-multiplier-per-prestige)
+     *         + Prestige Points spent on Luck
+     *   result = total x the global boost
+     *
+     * Flat sources add so that a new one is always worth something; the
+     * tag and prestige multiply so that late progression scales what you
+     * already built rather than being one more small addition.
+     *
+     * Every skill contribution here is read live from node levels, so
+     * retuning a value in config.yml immediately retunes it for everyone
+     * who owns it — nothing is frozen into a save file.
      */
     public double baseLuck(PlayerData data) {
-        double luck = data.getEffectiveLuck(luckMultiplierPerPrestige,
-                plugin.getRarityManager().tagMultiplierFor(data));
+        SkillTreeManager skills = plugin.getSkillTreeManager();
+
+        double starforge = data.getStarforgeLuckBonus()
+                * skills.multiplierOf(data, SkillNode.Effect.STARFORGE_POWER);
+        double armor = data.getArmorLuckBonus()
+                * skills.multiplierOf(data, SkillNode.Effect.ARMOR_POWER);
+        double curator = skills.totalOf(data, SkillNode.Effect.LUCK_PER_DISCOVERY)
+                * data.getDiscoveredItems().size();
+        double affinity = skills.totalOf(data, SkillNode.Effect.LUCK_PER_PRESTIGE)
+                * data.getPrestige();
+
+        double flat = starforge + armor + skills.skillLuck(data)
+                + curator + affinity + data.getFlatLuck();
+
+        double luck = flat
+                * plugin.getRarityManager().tagMultiplierFor(data)
+                * (1.0 + data.getPrestige() * luckMultiplierPerPrestige);
+
         // Prestige Points spent on Luck ride along with everything else the
         // player has bought, before the global boost scales the total.
         luck += upgradeTotal(data, PrestigeUpgrade.Effect.LUCK_BONUS);

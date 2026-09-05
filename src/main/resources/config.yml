@@ -148,7 +148,7 @@ farming:
   # new crops can hang off new skill nodes later without a code change.
   # Until those nodes exist, /rngadmin crops can grant them for testing.
   #
-  # Shards only ever pay once shards-node is unlocked (or granted).
+  # Gems only ever pay once shards-node is unlocked (or granted).
   shards-node: "farming_shards"
   # ---- Hoe enchants ----
   # An enchant is switched on by an UNLOCK_ENCHANT node in the farming tree
@@ -172,11 +172,11 @@ farming:
       max-level: 250
       per-level: 0.02
     SHARD_GREED:
-      display: "Shard Greed"
+      display: "Gem Greed"
       icon: PRISMARINE_CRYSTALS
       base-cost: 60000
       cost-growth: 1.1
-      description: "A chance at a bonus Shard."
+      description: "A chance at a bonus Gem."
       color: "&b"
       max-level: 150
       per-level: 0.002
@@ -304,7 +304,7 @@ prestige:
       max-level: 50
       cost-points: 1
     shard_seeker:
-      display: "Shard Seeker"
+      display: "Gem Seeker"
       icon: PRISMARINE_CRYSTALS
       slot: "4,4"
       effect: SHARD_BONUS
@@ -1056,24 +1056,55 @@ conversion:
     LEGENDARY: 1000
     MYTHICAL: 10000
 
-# Every roll also pays out real Money (Vault), on top of the item itself —
-# money = item's odds x this multiplier, so a 1-in-30 item pays 300 Money
+# Every roll also pays out real Coins (the Vault economy), on top of the
+# item itself - coins = odds x this multiplier, so a 1-in-30 item pays 300
 # at the default 10x. Requires Vault + an economy plugin to be installed.
 economy:
   money-per-odds-multiplier: 10.0
 
-# Skill tree nodes. "requires" is the id of the node that must be
-# unlocked first (blank = no requirement). "effect" tells the plugin
-# what the node does; "value" is its magnitude.
+# The general skill tree. Four pages, all the same shape: a root at the
+# bottom of the middle column, a spine across row 5, three lines climbing
+# at columns 2, 5 and 8, and a crown along row 1. Each page's capstone at
+# (5,1) is the requirement for the next page's root, so the four pages are
+# one ladder rather than four menus.
+#
+# Luck, Speed and Coins deliberately recur once or twice a page. A skill
+# you already understand showing up again, stronger and further out, is
+# what makes depth in the tree feel like it's worth something.
+#
+# "requires" is the id of the node that must be unlocked first (blank =
+# no requirement). "effect" tells the plugin what the node does and
+# "value" is its magnitude, per level for a leveled node. "cost-growth"
+# multiplies the price after each level (1.25 = each level costs 25% more).
+# "page" is which page the node is drawn on, 1-indexed. Slot is
+# (column, row), both 1-indexed, in the 6x9 grid.
+#
+# Prices are a first pass: page base x 1.75 per step of depth, so a page
+# spans roughly 480x from its root to its capstone, and each page starts
+# 1000x above the last.
 skilltree:
-  # Nodes are paid for with Money (cost-money, Vault). Rolled drops are
-  # the currency for /armor, potions and farming-hoe upgrades instead.
-  # "cost-growth" multiplies the price after each level of a leveled node
-  # (1.2 = each level costs 20% more than the last); omit it for flat.
-  # Slot comments are (column, row), both 1-indexed, in the 6x9 grid.
+  # Slots that belong to the tree's silhouette on every page even when no
+  # node sits there. Drawn as "???" so the shape of what's still to come
+  # is visible from the first time the menu is opened.
+  reserved: ["2,1", "3,1", "4,1", "5,1", "6,1", "7,1", "8,1",
+             "2,2", "5,2", "8,2",
+             "2,3", "5,3", "8,3",
+             "2,4", "5,4", "8,4",
+             "2,5", "3,5", "4,5", "5,5", "6,5", "7,5", "8,5",
+             "5,6"]
+  # One more page than there are populated ones, so there is always
+  # visible room to grow.
+  pages: 5
+  page-names: ["Foundations", "Ascension", "Convergence", "Singularity", "Uncharted"]
   nodes:
-    auto_roll_root:            # (5,6) - the root
+
+    # ====================================================================
+    #  PAGE 1 - FOUNDATIONS
+    # ====================================================================
+
+    auto_roll_root:
       display: "Auto Roll"
+      page: 1
       slot: "5,6"
       icon: CLOCK
       cost-money: 1000
@@ -1081,88 +1112,1125 @@ skilltree:
       effect: AUTO_ROLL
       value: 0
 
-    luck_skill:                # (5,5) - directly above the root
-      display: "Luck"
+    luck_skill:
+      display: "Luck I"
+      page: 1
       slot: "5,5"
       icon: RABBIT_FOOT
-      cost-money: 1000
-      cost-growth: 1.2
+      cost-money: 1750
+      cost-growth: 1.22
       requires: "auto_roll_root"
       effect: LUCK
       value: 0.05
       max-level: 10
 
-    # ROLL_SPEED value 0.02 = +2 Speed per level (100 Speed = baseline).
-    speed_skill:               # (4,5)
-      display: "Speed"
+    speed_skill:
+      display: "Speed I"
+      page: 1
       slot: "4,5"
       icon: SUGAR
-      cost-money: 2000
+      cost-money: 3060
+      cost-growth: 1.22
       requires: "luck_skill"
       effect: ROLL_SPEED
       value: 0.02
       max-level: 10
 
-    auto_convert:              # (6,5)
-      display: "Auto Convert"
+    convert_unlock:
+      display: "Convert"
+      page: 1
       slot: "6,5"
-      icon: HOPPER
-      cost-money: 5000
+      icon: CHEST
+      cost-money: 3060
       requires: "luck_skill"
+      effect: UNLOCK_CONVERT
+      value: 0
+
+    coins_1:
+      display: "Coins I"
+      page: 1
+      slot: "5,4"
+      icon: GOLD_NUGGET
+      cost-money: 3060
+      cost-growth: 1.25
+      requires: "luck_skill"
+      effect: MONEY_MULTIPLIER
+      value: 0.1
+      max-level: 10
+
+    vault_unlock:
+      display: "Private Vault"
+      page: 1
+      slot: "3,5"
+      icon: ENDER_CHEST
+      cost-money: 5360
+      requires: "speed_skill"
+      effect: UNLOCK_PRIVATE_VAULT
+      value: 0
+
+    auto_convert:
+      display: "Auto Convert"
+      page: 1
+      slot: "7,5"
+      icon: HOPPER
+      cost-money: 5360
+      requires: "convert_unlock"
       effect: UNLOCK_AUTO_CONVERT
       value: 0
 
-    # Turns on the equipped tag's index Luck multiplier. Until this is
-    # bought the multiplier reads 1.00x no matter what's equipped, so the
-    # whole index chase has a gate in front of it.
-    index_luck:                # (7,5)
+    farming_unlock:
+      display: "Farming"
+      page: 1
+      slot: "5,3"
+      icon: WHEAT
+      cost-money: 5360
+      requires: "coins_1"
+      effect: UNLOCK_FARMING
+      value: 0
+
+    pass_unlock:
+      display: "Battle Pass"
+      page: 1
+      slot: "2,5"
+      icon: WRITABLE_BOOK
+      cost-money: 9380
+      requires: "vault_unlock"
+      effect: UNLOCK_PASS
+      value: 0
+
+    index_luck:
       display: "Index Luck"
-      slot: "7,5"
+      page: 1
+      slot: "8,5"
       icon: KNOWLEDGE_BOOK
-      cost-money: 15000
+      cost-money: 9380
       requires: "auto_convert"
       effect: UNLOCK_INDEX_LUCK
       value: 0
 
-    # Sits at the far end of the right-hand branch, so Luck alone doesn't
-    # expose it — the whole right branch has to be bought first.
-    shiny_unlock:              # (8,5)
+    armor_unlock:
+      display: "Armor"
+      page: 1
+      slot: "5,2"
+      icon: IRON_CHESTPLATE
+      cost-money: 9380
+      requires: "farming_unlock"
+      effect: UNLOCK_ARMOR
+      value: 0
+
+    bonus_roll_1:
+      display: "Double Roll I"
+      page: 1
+      slot: "2,4"
+      icon: ECHO_SHARD
+      cost-money: 16400
+      cost-growth: 1.3
+      requires: "pass_unlock"
+      effect: BONUS_ROLL_CHANCE
+      value: 0.01
+      max-level: 10
+
+    shiny_unlock:
       display: "Shiny Unlocked"
-      slot: "8,5"
+      page: 1
+      slot: "8,4"
       icon: AMETHYST_SHARD
-      cost-money: 25000
+      cost-money: 16400
       requires: "index_luck"
       effect: UNLOCK_SHINY
       value: 0
 
-    farming_unlock:            # (5,4)
-      display: "Farming Unlocked"
-      slot: "5,4"
-      icon: WHEAT
-      cost-money: 10000
-      requires: "luck_skill"
-      effect: UNLOCK_FARMING
-      value: 0
+    tokens_1:
+      display: "Tokens I"
+      page: 1
+      slot: "2,3"
+      icon: SUNFLOWER
+      cost-money: 28700
+      cost-growth: 1.25
+      requires: "bonus_roll_1"
+      effect: TOKEN_GAIN
+      value: 0.1
+      max-level: 10
 
-    # Armor and Potion have no requested position yet - parked in the
-    # middle column above Farming until you pick their slots.
-    armor_unlock:              # (5,3)
-      display: "Armor Unlocked"
-      slot: "5,3"
-      icon: IRON_CHESTPLATE
-      cost-money: 25000
-      requires: "farming_unlock"
-      effect: UNLOCK_ARMOR
+    curator_1:
+      display: "Curator"
+      page: 1
+      slot: "8,3"
+      icon: BOOKSHELF
+      cost-money: 28700
+      cost-growth: 1.3
+      requires: "shiny_unlock"
+      effect: LUCK_PER_DISCOVERY
+      value: 0.004
+      max-level: 10
+
+    luck_2:
+      display: "Luck II"
+      page: 1
+      slot: "2,2"
+      icon: RABBIT_FOOT
+      cost-money: 50300
+      cost-growth: 1.24
+      requires: "tokens_1"
+      effect: LUCK
+      value: 0.08
+      max-level: 10
+
+    shiny_chance_1:
+      display: "Shiny Chance"
+      page: 1
+      slot: "8,2"
+      icon: PRISMARINE_CRYSTALS
+      cost-money: 50300
+      cost-growth: 1.3
+      requires: "curator_1"
+      effect: SHINY_CHANCE
+      value: 0.1
+      max-level: 10
+
+    pity_1:
+      display: "Pity Timer I"
+      page: 1
+      slot: "2,1"
+      icon: COMPASS
+      cost-money: 88000
+      requires: "luck_2"
+      effect: PITY
       value: 0
-    potion_unlock:             # (5,2)
-      display: "Potion Unlocked"
-      slot: "5,2"
-      icon: BREWING_STAND
+      target: "RARE"
+      interval: 250
+
+    dupe_1:
+      display: "Duplicate Value"
+      page: 1
+      slot: "8,1"
+      icon: GOLD_NUGGET
+      cost-money: 88000
+      cost-growth: 1.25
+      requires: "shiny_chance_1"
+      effect: DUPLICATE_BONUS
+      value: 0.15
+      max-level: 10
+
+    instant_roll_1:
+      display: "Instant Roll I"
+      page: 1
+      slot: "3,1"
+      icon: FIREWORK_ROCKET
+      cost-money: 154000
+      cost-growth: 1.35
+      requires: "pity_1"
+      effect: INSTANT_ROLL
+      value: 0.01
+      max-level: 10
+
+    daily_1:
+      display: "Daily Devotion I"
+      page: 1
+      slot: "7,1"
+      icon: CAKE
+      cost-money: 154000
+      cost-growth: 1.4
+      requires: "dupe_1"
+      effect: DAILY_BONUS
+      value: 0.1
+      max-level: 5
+
+    speed_2:
+      display: "Speed II"
+      page: 1
+      slot: "4,1"
+      icon: SUGAR
+      cost-money: 269000
+      cost-growth: 1.24
+      requires: "instant_roll_1"
+      effect: ROLL_SPEED
+      value: 0.03
+      max-level: 10
+
+    refine_1:
+      display: "Refinery I"
+      page: 1
+      slot: "6,1"
+      icon: BLAST_FURNACE
+      cost-money: 269000
+      cost-growth: 1.3
+      requires: "daily_1"
+      effect: CONVERT_BONUS
+      value: 0.05
+      max-level: 10
+
+    supercharge_1:
+      display: "Supercharge I"
+      page: 1
+      slot: "5,1"
+      icon: NETHER_STAR
+      cost-money: 471000
+      requires: "speed_2"
+      effect: SUPERCHARGE
+      value: 10.0
+      interval: 100
+
+    # ====================================================================
+    #  PAGE 2 - ASCENSION
+    # ====================================================================
+
+    ascension:
+      display: "Ascension"
+      page: 2
+      slot: "5,6"
+      icon: END_CRYSTAL
       cost-money: 100000
-      requires: "armor_unlock"
+      requires: "supercharge_1"
+      effect: LUCK
+      value: 0.25
+
+    luck_3:
+      display: "Luck III"
+      page: 2
+      slot: "5,5"
+      icon: RABBIT_FOOT
+      cost-money: 175000
+      cost-growth: 1.26
+      requires: "ascension"
+      effect: LUCK
+      value: 0.12
+      max-level: 10
+
+    coins_2:
+      display: "Coins II"
+      page: 2
+      slot: "4,5"
+      icon: GOLD_INGOT
+      cost-money: 306000
+      cost-growth: 1.28
+      requires: "luck_3"
+      effect: MONEY_MULTIPLIER
+      value: 0.2
+      max-level: 10
+
+    gems_1:
+      display: "Gems I"
+      page: 2
+      slot: "6,5"
+      icon: DIAMOND
+      cost-money: 306000
+      cost-growth: 1.28
+      requires: "luck_3"
+      effect: GEM_MULTIPLIER
+      value: 0.15
+      max-level: 10
+
+    potion_unlock:
+      display: "Potions"
+      page: 2
+      slot: "5,4"
+      icon: BREWING_STAND
+      cost-money: 306000
+      requires: "luck_3"
       effect: UNLOCK_POTION
       value: 0
 
+    speed_3:
+      display: "Speed III"
+      page: 2
+      slot: "3,5"
+      icon: SUGAR
+      cost-money: 536000
+      cost-growth: 1.26
+      requires: "coins_2"
+      effect: ROLL_SPEED
+      value: 0.04
+      max-level: 10
+
+    shiny_chance_2:
+      display: "Prism Focus"
+      page: 2
+      slot: "7,5"
+      icon: AMETHYST_CLUSTER
+      cost-money: 536000
+      cost-growth: 1.3
+      requires: "gems_1"
+      effect: SHINY_CHANCE
+      value: 0.15
+      max-level: 10
+
+    artifact_unlock:
+      display: "Artifacts"
+      page: 2
+      slot: "5,3"
+      icon: HEART_OF_THE_SEA
+      cost-money: 536000
+      requires: "potion_unlock"
+      effect: UNLOCK_ARTIFACT
+      value: 0
+
+    pass_xp_1:
+      display: "Pass Momentum"
+      page: 2
+      slot: "2,5"
+      icon: EXPERIENCE_BOTTLE
+      cost-money: 938000
+      cost-growth: 1.28
+      requires: "speed_3"
+      effect: PASS_XP
+      value: 0.1
+      max-level: 10
+
+    curator_2:
+      display: "Index Resonance"
+      page: 2
+      slot: "8,5"
+      icon: ENCHANTED_BOOK
+      cost-money: 938000
+      cost-growth: 1.3
+      requires: "shiny_chance_2"
+      effect: LUCK_PER_DISCOVERY
+      value: 0.006
+      max-level: 10
+
+    coins_per_level:
+      display: "Coins Per Level"
+      page: 2
+      slot: "5,2"
+      icon: GOLDEN_APPLE
+      cost-money: 938000
+      requires: "artifact_unlock"
+      effect: MONEY_PER_LEVEL
+      value: 0.05
+
+    bonus_roll_2:
+      display: "Double Roll II"
+      page: 2
+      slot: "2,4"
+      icon: ECHO_SHARD
+      cost-money: 1640000
+      cost-growth: 1.32
+      requires: "pass_xp_1"
+      effect: BONUS_ROLL_CHANCE
+      value: 0.015
+      max-level: 10
+
+    nova_cost_1:
+      display: "Core Efficiency I"
+      page: 2
+      slot: "8,4"
+      icon: REDSTONE_TORCH
+      cost-money: 1640000
+      cost-growth: 1.3
+      requires: "curator_2"
+      effect: NOVA_DISCOUNT
+      value: 0.03
+      max-level: 10
+
+    tokens_2:
+      display: "Tokens II"
+      page: 2
+      slot: "2,3"
+      icon: HAY_BLOCK
+      cost-money: 2870000
+      cost-growth: 1.28
+      requires: "bonus_roll_2"
+      effect: TOKEN_GAIN
+      value: 0.2
+      max-level: 10
+
+    nova_safe_1:
+      display: "Core Anchor I"
+      page: 2
+      slot: "8,3"
+      icon: ANVIL
+      cost-money: 2870000
+      cost-growth: 1.32
+      requires: "nova_cost_1"
+      effect: NOVA_SAFETY
+      value: 0.03
+      max-level: 10
+
+    luck_4:
+      display: "Luck IV"
+      page: 2
+      slot: "2,2"
+      icon: RABBIT_FOOT
+      cost-money: 5030000
+      cost-growth: 1.28
+      requires: "tokens_2"
+      effect: LUCK
+      value: 0.18
+      max-level: 10
+
+    forge_power_1:
+      display: "Forge Attunement"
+      page: 2
+      slot: "8,2"
+      icon: SMITHING_TABLE
+      cost-money: 5030000
+      cost-growth: 1.3
+      requires: "nova_safe_1"
+      effect: STARFORGE_POWER
+      value: 0.05
+      max-level: 10
+
+    milestone_1:
+      display: "Trophy Hunter I"
+      page: 2
+      slot: "2,1"
+      icon: NETHERITE_SCRAP
+      cost-money: 8800000
+      cost-growth: 1.4
+      requires: "luck_4"
+      effect: MILESTONE_BONUS
+      value: 0.15
+      max-level: 5
+
+    armor_power_1:
+      display: "Quartermaster"
+      page: 2
+      slot: "8,1"
+      icon: IRON_INGOT
+      cost-money: 8800000
+      cost-growth: 1.3
+      requires: "forge_power_1"
+      effect: ARMOR_POWER
+      value: 0.05
+      max-level: 10
+
+    instant_roll_2:
+      display: "Instant Roll II"
+      page: 2
+      slot: "3,1"
+      icon: FIREWORK_STAR
+      cost-money: 15400000
+      cost-growth: 1.36
+      requires: "milestone_1"
+      effect: INSTANT_ROLL
+      value: 0.015
+      max-level: 10
+
+    prestige_luck_1:
+      display: "Prestige Affinity"
+      page: 2
+      slot: "7,1"
+      icon: TOTEM_OF_UNDYING
+      cost-money: 15400000
+      cost-growth: 1.32
+      requires: "armor_power_1"
+      effect: LUCK_PER_PRESTIGE
+      value: 0.02
+      max-level: 10
+
+    coins_3:
+      display: "Coins III"
+      page: 2
+      slot: "4,1"
+      icon: GOLD_BLOCK
+      cost-money: 26900000
+      cost-growth: 1.3
+      requires: "instant_roll_2"
+      effect: MONEY_MULTIPLIER
+      value: 0.35
+      max-level: 10
+
+    pity_2:
+      display: "Pity Timer II"
+      page: 2
+      slot: "6,1"
+      icon: RECOVERY_COMPASS
+      cost-money: 26900000
+      requires: "prestige_luck_1"
+      effect: PITY
+      value: 0
+      target: "EPIC"
+      interval: 500
+
+    supercharge_2:
+      display: "Supercharge II"
+      page: 2
+      slot: "5,1"
+      icon: BEACON
+      cost-money: 47100000
+      requires: "coins_3"
+      effect: SUPERCHARGE
+      value: 100.0
+      interval: 1000
+
+    # ====================================================================
+    #  PAGE 3 - CONVERGENCE
+    # ====================================================================
+
+    convergence:
+      display: "Convergence"
+      page: 3
+      slot: "5,6"
+      icon: ECHO_SHARD
+      cost-money: 10000000
+      requires: "supercharge_2"
+      effect: LUCK
+      value: 0.5
+
+    luck_5:
+      display: "Luck V"
+      page: 3
+      slot: "5,5"
+      icon: RABBIT_FOOT
+      cost-money: 17500000
+      cost-growth: 1.3
+      requires: "convergence"
+      effect: LUCK
+      value: 0.25
+      max-level: 10
+
+    speed_4:
+      display: "Speed IV"
+      page: 3
+      slot: "4,5"
+      icon: SUGAR
+      cost-money: 30600000
+      cost-growth: 1.28
+      requires: "luck_5"
+      effect: ROLL_SPEED
+      value: 0.05
+      max-level: 10
+
+    gems_2:
+      display: "Gems II"
+      page: 3
+      slot: "6,5"
+      icon: DIAMOND_BLOCK
+      cost-money: 30600000
+      cost-growth: 1.3
+      requires: "luck_5"
+      effect: GEM_MULTIPLIER
+      value: 0.3
+      max-level: 10
+
+    coins_4:
+      display: "Coins IV"
+      page: 3
+      slot: "5,4"
+      icon: RAW_GOLD_BLOCK
+      cost-money: 30600000
+      cost-growth: 1.32
+      requires: "luck_5"
+      effect: MONEY_MULTIPLIER
+      value: 0.5
+      max-level: 10
+
+    bonus_roll_3:
+      display: "Double Roll III"
+      page: 3
+      slot: "3,5"
+      icon: ECHO_SHARD
+      cost-money: 53600000
+      cost-growth: 1.34
+      requires: "speed_4"
+      effect: BONUS_ROLL_CHANCE
+      value: 0.02
+      max-level: 10
+
+    shiny_chance_3:
+      display: "Prism Cascade"
+      page: 3
+      slot: "7,5"
+      icon: AMETHYST_BLOCK
+      cost-money: 53600000
+      cost-growth: 1.32
+      requires: "gems_2"
+      effect: SHINY_CHANCE
+      value: 0.2
+      max-level: 10
+
+    tokens_3:
+      display: "Tokens III"
+      page: 3
+      slot: "5,3"
+      icon: HAY_BLOCK
+      cost-money: 53600000
+      cost-growth: 1.3
+      requires: "coins_4"
+      effect: TOKEN_GAIN
+      value: 0.35
+      max-level: 10
+
+    pass_xp_2:
+      display: "Pass Mastery"
+      page: 3
+      slot: "2,5"
+      icon: EXPERIENCE_BOTTLE
+      cost-money: 93800000
+      cost-growth: 1.3
+      requires: "bonus_roll_3"
+      effect: PASS_XP
+      value: 0.2
+      max-level: 10
+
+    curator_3:
+      display: "Index Mastery"
+      page: 3
+      slot: "8,5"
+      icon: ENCHANTED_BOOK
+      cost-money: 93800000
+      cost-growth: 1.32
+      requires: "shiny_chance_3"
+      effect: LUCK_PER_DISCOVERY
+      value: 0.01
+      max-level: 10
+
+    instant_roll_3:
+      display: "Instant Roll III"
+      page: 3
+      slot: "5,2"
+      icon: FIREWORK_ROCKET
+      cost-money: 93800000
+      cost-growth: 1.38
+      requires: "tokens_3"
+      effect: INSTANT_ROLL
+      value: 0.02
+      max-level: 10
+
+    dupe_2:
+      display: "Duplicate Mastery"
+      page: 3
+      slot: "2,4"
+      icon: GOLD_INGOT
+      cost-money: 164000000
+      cost-growth: 1.3
+      requires: "pass_xp_2"
+      effect: DUPLICATE_BONUS
+      value: 0.3
+      max-level: 10
+
+    nova_cost_2:
+      display: "Core Efficiency II"
+      page: 3
+      slot: "8,4"
+      icon: REDSTONE_BLOCK
+      cost-money: 164000000
+      cost-growth: 1.34
+      requires: "curator_3"
+      effect: NOVA_DISCOUNT
+      value: 0.02
+      max-level: 10
+
+    daily_2:
+      display: "Daily Devotion II"
+      page: 3
+      slot: "2,3"
+      icon: CAKE
+      cost-money: 287000000
+      cost-growth: 1.45
+      requires: "dupe_2"
+      effect: DAILY_BONUS
+      value: 0.2
+      max-level: 5
+
+    nova_safe_2:
+      display: "Core Anchor II"
+      page: 3
+      slot: "8,3"
+      icon: NETHERITE_INGOT
+      cost-money: 287000000
+      cost-growth: 1.36
+      requires: "nova_cost_2"
+      effect: NOVA_SAFETY
+      value: 0.025
+      max-level: 10
+
+    luck_6:
+      display: "Luck VI"
+      page: 3
+      slot: "2,2"
+      icon: RABBIT_FOOT
+      cost-money: 503000000
+      cost-growth: 1.32
+      requires: "daily_2"
+      effect: LUCK
+      value: 0.35
+      max-level: 10
+
+    refine_2:
+      display: "Refinery II"
+      page: 3
+      slot: "8,2"
+      icon: BLAST_FURNACE
+      cost-money: 503000000
+      cost-growth: 1.32
+      requires: "nova_safe_2"
+      effect: CONVERT_BONUS
+      value: 0.08
+      max-level: 10
+
+    milestone_2:
+      display: "Trophy Hunter II"
+      page: 3
+      slot: "2,1"
+      icon: NETHERITE_SCRAP
+      cost-money: 880000000
+      cost-growth: 1.45
+      requires: "luck_6"
+      effect: MILESTONE_BONUS
+      value: 0.25
+      max-level: 5
+
+    forge_power_2:
+      display: "Forge Attunement II"
+      page: 3
+      slot: "8,1"
+      icon: SMITHING_TABLE
+      cost-money: 880000000
+      cost-growth: 1.32
+      requires: "refine_2"
+      effect: STARFORGE_POWER
+      value: 0.08
+      max-level: 10
+
+    speed_5:
+      display: "Speed V"
+      page: 3
+      slot: "3,1"
+      icon: SUGAR
+      cost-money: 1540000000
+      cost-growth: 1.3
+      requires: "milestone_2"
+      effect: ROLL_SPEED
+      value: 0.07
+      max-level: 10
+
+    prestige_luck_2:
+      display: "Prestige Affinity II"
+      page: 3
+      slot: "7,1"
+      icon: TOTEM_OF_UNDYING
+      cost-money: 1540000000
+      cost-growth: 1.34
+      requires: "forge_power_2"
+      effect: LUCK_PER_PRESTIGE
+      value: 0.04
+      max-level: 10
+
+    pity_3:
+      display: "Pity Timer III"
+      page: 3
+      slot: "4,1"
+      icon: RECOVERY_COMPASS
+      cost-money: 2690000000
+      requires: "speed_5"
+      effect: PITY
+      value: 0
+      target: "LEGENDARY"
+      interval: 2500
+
+    gems_3:
+      display: "Gems III"
+      page: 3
+      slot: "6,1"
+      icon: HEART_OF_THE_SEA
+      cost-money: 2690000000
+      cost-growth: 1.32
+      requires: "prestige_luck_2"
+      effect: GEM_MULTIPLIER
+      value: 0.5
+      max-level: 10
+
+    supercharge_3:
+      display: "Supercharge III"
+      page: 3
+      slot: "5,1"
+      icon: NETHER_STAR
+      cost-money: 4710000000
+      requires: "pity_3"
+      effect: SUPERCHARGE
+      value: 1000.0
+      interval: 5000
+
+    # ====================================================================
+    #  PAGE 4 - SINGULARITY
+    # ====================================================================
+
+    singularity:
+      display: "Singularity"
+      page: 4
+      slot: "5,6"
+      icon: CRYING_OBSIDIAN
+      cost-money: 1000000000
+      requires: "supercharge_3"
+      effect: LUCK
+      value: 1.0
+
+    luck_7:
+      display: "Luck VII"
+      page: 4
+      slot: "5,5"
+      icon: RABBIT_FOOT
+      cost-money: 1750000000
+      cost-growth: 1.32
+      requires: "singularity"
+      effect: LUCK
+      value: 0.5
+      max-level: 10
+
+    speed_6:
+      display: "Speed VI"
+      page: 4
+      slot: "4,5"
+      icon: SUGAR
+      cost-money: 3060000000
+      cost-growth: 1.32
+      requires: "luck_7"
+      effect: ROLL_SPEED
+      value: 0.1
+      max-level: 10
+
+    coins_5:
+      display: "Coins V"
+      page: 4
+      slot: "6,5"
+      icon: GOLD_BLOCK
+      cost-money: 3060000000
+      cost-growth: 1.34
+      requires: "luck_7"
+      effect: MONEY_MULTIPLIER
+      value: 0.75
+      max-level: 10
+
+    tokens_4:
+      display: "Tokens IV"
+      page: 4
+      slot: "5,4"
+      icon: HAY_BLOCK
+      cost-money: 3060000000
+      cost-growth: 1.32
+      requires: "luck_7"
+      effect: TOKEN_GAIN
+      value: 0.5
+      max-level: 10
+
+    gems_4:
+      display: "Gems IV"
+      page: 4
+      slot: "3,5"
+      icon: DIAMOND_BLOCK
+      cost-money: 5360000000
+      cost-growth: 1.34
+      requires: "speed_6"
+      effect: GEM_MULTIPLIER
+      value: 0.75
+      max-level: 10
+
+    shiny_chance_4:
+      display: "Prism Singularity"
+      page: 4
+      slot: "7,5"
+      icon: AMETHYST_BLOCK
+      cost-money: 5360000000
+      cost-growth: 1.34
+      requires: "coins_5"
+      effect: SHINY_CHANCE
+      value: 0.25
+      max-level: 10
+
+    bonus_roll_4:
+      display: "Double Roll IV"
+      page: 4
+      slot: "5,3"
+      icon: ECHO_SHARD
+      cost-money: 5360000000
+      cost-growth: 1.36
+      requires: "tokens_4"
+      effect: BONUS_ROLL_CHANCE
+      value: 0.025
+      max-level: 10
+
+    pass_xp_3:
+      display: "Pass Ascendancy"
+      page: 4
+      slot: "2,5"
+      icon: EXPERIENCE_BOTTLE
+      cost-money: 9380000000
+      cost-growth: 1.32
+      requires: "gems_4"
+      effect: PASS_XP
+      value: 0.3
+      max-level: 10
+
+    curator_4:
+      display: "Index Ascendancy"
+      page: 4
+      slot: "8,5"
+      icon: ENCHANTED_BOOK
+      cost-money: 9380000000
+      cost-growth: 1.34
+      requires: "shiny_chance_4"
+      effect: LUCK_PER_DISCOVERY
+      value: 0.015
+      max-level: 10
+
+    instant_roll_4:
+      display: "Instant Roll IV"
+      page: 4
+      slot: "5,2"
+      icon: FIREWORK_STAR
+      cost-money: 9380000000
+      cost-growth: 1.4
+      requires: "bonus_roll_4"
+      effect: INSTANT_ROLL
+      value: 0.025
+      max-level: 10
+
+    dupe_3:
+      display: "Duplicate Ascendancy"
+      page: 4
+      slot: "2,4"
+      icon: GOLD_BLOCK
+      cost-money: 16400000000
+      cost-growth: 1.32
+      requires: "pass_xp_3"
+      effect: DUPLICATE_BONUS
+      value: 0.5
+      max-level: 10
+
+    nova_safe_3:
+      display: "Core Anchor III"
+      page: 4
+      slot: "8,4"
+      icon: NETHERITE_BLOCK
+      cost-money: 16400000000
+      cost-growth: 1.38
+      requires: "curator_4"
+      effect: NOVA_SAFETY
+      value: 0.02
+      max-level: 10
+
+    daily_3:
+      display: "Daily Devotion III"
+      page: 4
+      slot: "2,3"
+      icon: CAKE
+      cost-money: 28700000000
+      cost-growth: 1.5
+      requires: "dupe_3"
+      effect: DAILY_BONUS
+      value: 0.3
+      max-level: 5
+
+    nova_cost_3:
+      display: "Core Efficiency III"
+      page: 4
+      slot: "8,3"
+      icon: REDSTONE_BLOCK
+      cost-money: 28700000000
+      cost-growth: 1.36
+      requires: "nova_safe_3"
+      effect: NOVA_DISCOUNT
+      value: 0.015
+      max-level: 10
+
+    luck_8:
+      display: "Luck VIII"
+      page: 4
+      slot: "2,2"
+      icon: RABBIT_FOOT
+      cost-money: 50300000000
+      cost-growth: 1.34
+      requires: "daily_3"
+      effect: LUCK
+      value: 0.75
+      max-level: 10
+
+    armor_power_2:
+      display: "Quartermaster II"
+      page: 4
+      slot: "8,2"
+      icon: NETHERITE_INGOT
+      cost-money: 50300000000
+      cost-growth: 1.34
+      requires: "nova_cost_3"
+      effect: ARMOR_POWER
+      value: 0.08
+      max-level: 10
+
+    milestone_3:
+      display: "Trophy Ascendancy"
+      page: 4
+      slot: "2,1"
+      icon: NETHERITE_SCRAP
+      cost-money: 88000000000
+      cost-growth: 1.5
+      requires: "luck_8"
+      effect: MILESTONE_BONUS
+      value: 0.4
+      max-level: 5
+
+    refine_3:
+      display: "Refinery III"
+      page: 4
+      slot: "8,1"
+      icon: BLAST_FURNACE
+      cost-money: 88000000000
+      cost-growth: 1.34
+      requires: "armor_power_2"
+      effect: CONVERT_BONUS
+      value: 0.1
+      max-level: 10
+
+    speed_7:
+      display: "Speed VII"
+      page: 4
+      slot: "3,1"
+      icon: SUGAR
+      cost-money: 154000000000
+      cost-growth: 1.34
+      requires: "milestone_3"
+      effect: ROLL_SPEED
+      value: 0.15
+      max-level: 10
+
+    prestige_luck_3:
+      display: "Prestige Ascendancy"
+      page: 4
+      slot: "7,1"
+      icon: TOTEM_OF_UNDYING
+      cost-money: 154000000000
+      cost-growth: 1.36
+      requires: "refine_3"
+      effect: LUCK_PER_PRESTIGE
+      value: 0.06
+      max-level: 10
+
+    coins_6:
+      display: "Coins VI"
+      page: 4
+      slot: "4,1"
+      icon: RAW_GOLD_BLOCK
+      cost-money: 269000000000
+      cost-growth: 1.36
+      requires: "speed_7"
+      effect: MONEY_MULTIPLIER
+      value: 1.0
+      max-level: 10
+
+    pity_4:
+      display: "Pity Timer IV"
+      page: 4
+      slot: "6,1"
+      icon: RECOVERY_COMPASS
+      cost-money: 269000000000
+      requires: "prestige_luck_3"
+      effect: PITY
+      value: 0
+      target: "MYTHICAL"
+      interval: 10000
+
+    supercharge_4:
+      display: "Supercharge IV"
+      page: 4
+      slot: "5,1"
+      icon: BEACON
+      cost-money: 471000000000
+      requires: "coins_6"
+      effect: SUPERCHARGE
+      value: 10000.0
+      interval: 10000
 # Long-run goals, shown in /milestones. Each track is one ladder of
 # thresholds against a single number; tiers MUST be listed in ascending
 # order. Rewards are optional per tier (tokens / shards / money) - the
@@ -1282,14 +2350,19 @@ announcements:
       - "&3\u258e &e\u25b8 &7Put spare drops in &e/convert&7 to buy armor and Starforges."
     - - "&3\u258e &e\u25b8 &7Every drop has its own &bIndex Luck&7 \u2014 equip the best in &e/index&7."
       - "&3\u258e &e\u25b8 &7Unlock &fIndex Luck&7 in &e/skilltree&7 before you can wear one."
-    - - "&3\u258e &e\u25b8 &d/novacore&7 is a push-your-luck ladder. Every tier multiplies &feverything&7."
-      - "&3\u258e &e\u25b8 &7Checkpoints at &f5&7, &f11&7 and &f18&7 catch a bad run."
+    - - "&3\u258e &e\u25b8 &d/novacore&7 is the fourth way to raise your Luck \u2014 after skills, armor and prestige."
+      - "&3\u258e &e\u25b8 &7Farm with &a/crops&7 for &eTokens&7, spend them climbing tiers. Every tier multiplies &fLuck, Coins and Tokens&7 at once."
+      - "&3\u258e &e\u25b8 &7A failed climb drops you to the last checkpoint \u2014 &f5&7, &f11&7, &f18&7."
     - - "&3\u258e &e\u25b8 &a/farmtree&7 has crops, hoe enchants and Token multipliers."
       - "&3\u258e &e\u25b8 &7Pick what grows for you with &e/crops&7 \u2014 the field is yours alone."
     - - "&3\u258e &e\u25b8 &7Long-run goals live in &e/milestones&7. Rewards wait there to be claimed."
       - "&3\u258e &e\u25b8 &7New here? &e/guide&7 walks you through everything."
     - - "&3\u258e &e\u25b8 &7Claim your streak every day with &e/daily&7 \u2014 miss one and it resets."
       - "&3\u258e &e\u25b8 &d/buy&7 has a &5Global Luck Boost&7 that helps the whole server."
+    - - "&3\u258e &e\u25b8 &6/pass&7 pays out for every roll and every harvest \u2014 rarer rolls are worth more XP."
+      - "&3\u258e &e\u25b8 &7The &5premium track&7 back-pays every level you already cleared."
+    - - "&3\u258e &e\u25b8 &d/skilltree&7 is four pages deep. &aLuck&7, &eSpeed&7 and &6Coins&7 all come back stronger further in."
+      - "&3\u258e &e\u25b8 &7Each page's top skill unlocks the next page."
 
 # The daily streak (/daily). No checkpoints on purpose: the whole tension
 # of a streak is that there's no safety net.
@@ -1465,16 +2538,26 @@ guide:
 #
 # Effects available here:
 #   UNLOCK_CROP      target = a crop-types id
-#   UNLOCK_SHARDS    farm crops start paying Shards
+#   UNLOCK_SHARDS    farm crops start paying Gems
 #   UNLOCK_ENCHANT   target = an enchants id; grants level 1
 #   ENCHANT_POWER    target = an enchants id; +1 level per rank
 #   TOKEN_MULTIPLIER +value to the farm Token multiplier per level
 #   FARM_SPEED       reserved for a global regrow cut
 #
-# Farm skills are bought with TOKENS, not Money — the currency the farm
+# Farm skills are bought with TOKENS, not Coins — the currency the farm
 # itself produces. "cost-money" is still the key name, it's just spent as
 # Tokens for nodes in this tree.
 farmtree:
+  # Same silhouette as the general tree, so the two menus read as the same
+  # kind of map. Slots with no node in them draw as "???".
+  reserved: ["2,1", "3,1", "4,1", "5,1", "6,1", "7,1", "8,1",
+             "2,2", "5,2", "8,2",
+             "2,3", "5,3", "8,3",
+             "2,4", "5,4", "8,4",
+             "2,5", "3,5", "4,5", "5,5", "6,5", "7,5", "8,5",
+             "5,6"]
+  pages: 2
+  page-names: ["Cultivation", "Uncharted"]
   nodes:
     farm_root:                 # (5,6) — the root, mirrors Auto Roll
       display: "Cultivation"
@@ -1570,7 +2653,7 @@ farmtree:
       value: 0
 
     farming_shards:            # (4,3) — the id farming.shards-node points at
-      display: "Shard Harvest"
+      display: "Gem Harvest"
       slot: "2,4"
       icon: PRISMARINE_CRYSTALS
       cost-money: 150000
@@ -1579,7 +2662,7 @@ farmtree:
       value: 0
 
     shard_greed:               # (6,3)
-      display: "Shard Greed"
+      display: "Gem Greed"
       slot: "2,3"
       icon: PRISMARINE_SHARD
       cost-money: 200000
@@ -1668,7 +2751,7 @@ novacore:
   min-chance: 0.02
   max-chance: 0.95
   # One entry per tier. This is a UNIVERSAL multiplier: it scales Luck,
-  # the Money a roll pays and farm Tokens together, so the ladder is worth
+  # the Coins a roll pays and farm Tokens together, so the ladder is worth
   # climbing whatever you're grinding. Gentle at the bottom, steep at the
   # very top.
   multipliers: [1.02, 1.05, 1.10, 1.15, 1.25, 1.40, 1.55, 1.75, 2.00, 2.25,
@@ -1685,6 +2768,450 @@ novacore:
 #
 # Shinies are NEVER auto-converted by the normal per-rarity toggles —
 # only by their own switch in /convert — and they bank separately.
+# The Battle Pass (/pass). One XP bar, two reward tracks.
+#
+# XP comes from rolling and from farming, and a rarer roll is worth
+# more, so the pass tracks how well you're playing rather than just how
+# long — which is the point of tying it to this gamemode at all.
+#
+# Bump `season` to start a new one: every player's XP, premium status
+# and claims reset the next time they open the menu. Nothing else is
+# touched, so a season change is one number and a /rngadmin reload.
+#
+# Credits are the paid-store currency, so the FREE track never pays
+# them. The premium track does — it was bought with Credits, and the
+# five milestone payouts add back up to exactly the premium price, so
+# finishing a season earns the next one.
+pass:
+  season: 1
+  season-name: "Season I"
+  premium-cost-credits: 1000
+  # The skill that unlocks the menu at all.
+  node: "pass_unlock"
+  xp:
+    # XP per roll, by what the roll landed on.
+    per-roll:
+      COMMON: 1
+      UNCOMMON: 3
+      RARE: 12
+      EPIC: 50
+      LEGENDARY: 200
+      MYTHICAL: 750
+    per-harvest: 2
+  # One entry per level, in order. `xp` is what THAT level costs, not a
+  # running total. Both tracks are optional per level.
+  levels:
+    # ---- level 1
+    - xp: 50
+      free:
+        tokens: 250
+      premium:
+        tokens: 750
+    # ---- level 2
+    - xp: 60
+      free:
+        tokens: 500
+      premium:
+        tokens: 1500
+        coins: 200000
+    # ---- level 3
+    - xp: 60
+      free:
+        tokens: 750
+      premium:
+        tokens: 2250
+        gems: 3
+    # ---- level 4
+    - xp: 70
+      free:
+        tokens: 1000
+        coins: 100000
+      premium:
+        tokens: 3000
+        coins: 400000
+    # ---- level 5
+    - xp: 70
+      free:
+        tokens: 1250
+        gems: 2
+      premium:
+        tokens: 3750
+        drop-rarity: UNCOMMON
+        drops: 18
+    # ---- level 6
+    - xp: 80
+      free:
+        tokens: 1500
+      premium:
+        tokens: 4500
+        gems: 6
+        coins: 600000
+    # ---- level 7
+    - xp: 90
+      free:
+        tokens: 1750
+      premium:
+        tokens: 5250
+    # ---- level 8
+    - xp: 100
+      free:
+        tokens: 2000
+        coins: 200000
+      premium:
+        tokens: 6000
+        coins: 800000
+    # ---- level 9
+    - xp: 110
+      free:
+        tokens: 2250
+      premium:
+        tokens: 6750
+        gems: 9
+    # ---- level 10
+    - xp: 120
+      free:
+        tokens: 2500
+        gems: 4
+        drop-rarity: COMMON
+        drops: 22
+      premium:
+        tokens: 7500
+        coins: 1000000
+        credits: 100
+        drop-rarity: RARE
+        drops: 16
+    # ---- level 11
+    - xp: 130
+      free:
+        tokens: 2750
+      premium:
+        tokens: 8250
+    # ---- level 12
+    - xp: 140
+      free:
+        tokens: 3000
+        coins: 300000
+      premium:
+        tokens: 9000
+        gems: 12
+        coins: 1200000
+    # ---- level 13
+    - xp: 160
+      free:
+        tokens: 3250
+      premium:
+        tokens: 9750
+    # ---- level 14
+    - xp: 170
+      free:
+        tokens: 3500
+      premium:
+        tokens: 10500
+        coins: 1400000
+    # ---- level 15
+    - xp: 190
+      free:
+        tokens: 3750
+        gems: 6
+      premium:
+        tokens: 11250
+        gems: 15
+        drop-rarity: RARE
+        drops: 14
+    # ---- level 16
+    - xp: 210
+      free:
+        tokens: 4000
+        coins: 400000
+      premium:
+        tokens: 12000
+        coins: 1600000
+    # ---- level 17
+    - xp: 230
+      free:
+        tokens: 4250
+      premium:
+        tokens: 12750
+    # ---- level 18
+    - xp: 250
+      free:
+        tokens: 4500
+      premium:
+        tokens: 13500
+        gems: 18
+        coins: 1800000
+    # ---- level 19
+    - xp: 280
+      free:
+        tokens: 4750
+      premium:
+        tokens: 14250
+    # ---- level 20
+    - xp: 310
+      free:
+        tokens: 5000
+        gems: 8
+        coins: 500000
+        drop-rarity: UNCOMMON
+        drops: 19
+      premium:
+        tokens: 15000
+        coins: 2000000
+        credits: 150
+        drop-rarity: EPIC
+        drops: 12
+    # ---- level 21
+    - xp: 340
+      free:
+        tokens: 5250
+      premium:
+        tokens: 15750
+        gems: 21
+    # ---- level 22
+    - xp: 370
+      free:
+        tokens: 5500
+      premium:
+        tokens: 16500
+        coins: 2200000
+    # ---- level 23
+    - xp: 410
+      free:
+        tokens: 5750
+      premium:
+        tokens: 17250
+    # ---- level 24
+    - xp: 450
+      free:
+        tokens: 6000
+        coins: 600000
+      premium:
+        tokens: 18000
+        gems: 24
+        coins: 2400000
+    # ---- level 25
+    - xp: 490
+      free:
+        tokens: 6250
+        gems: 10
+      premium:
+        tokens: 18750
+        drop-rarity: EPIC
+        drops: 10
+    # ---- level 26
+    - xp: 550
+      free:
+        tokens: 6500
+      premium:
+        tokens: 19500
+        coins: 2600000
+    # ---- level 27
+    - xp: 600
+      free:
+        tokens: 6750
+      premium:
+        tokens: 20250
+        gems: 27
+    # ---- level 28
+    - xp: 650
+      free:
+        tokens: 7000
+        coins: 700000
+      premium:
+        tokens: 21000
+        coins: 2800000
+    # ---- level 29
+    - xp: 700
+      free:
+        tokens: 7250
+      premium:
+        tokens: 21750
+    # ---- level 30
+    - xp: 800
+      free:
+        tokens: 7500
+        gems: 12
+        drop-rarity: RARE
+        drops: 16
+      premium:
+        tokens: 22500
+        gems: 30
+        coins: 3000000
+        credits: 200
+        drop-rarity: LEGENDARY
+        drops: 8
+    # ---- level 31
+    - xp: 850
+      free:
+        tokens: 7750
+      premium:
+        tokens: 23250
+    # ---- level 32
+    - xp: 950
+      free:
+        tokens: 8000
+        coins: 800000
+      premium:
+        tokens: 24000
+        coins: 3200000
+    # ---- level 33
+    - xp: 1050
+      free:
+        tokens: 8250
+      premium:
+        tokens: 24750
+        gems: 33
+    # ---- level 34
+    - xp: 1150
+      free:
+        tokens: 8500
+      premium:
+        tokens: 25500
+        coins: 3400000
+    # ---- level 35
+    - xp: 1300
+      free:
+        tokens: 8750
+        gems: 14
+      premium:
+        tokens: 26250
+        drop-rarity: LEGENDARY
+        drops: 6
+    # ---- level 36
+    - xp: 1400
+      free:
+        tokens: 9000
+        coins: 900000
+      premium:
+        tokens: 27000
+        gems: 36
+        coins: 3600000
+    # ---- level 37
+    - xp: 1550
+      free:
+        tokens: 9250
+      premium:
+        tokens: 27750
+    # ---- level 38
+    - xp: 1700
+      free:
+        tokens: 9500
+      premium:
+        tokens: 28500
+        coins: 3800000
+    # ---- level 39
+    - xp: 1850
+      free:
+        tokens: 9750
+      premium:
+        tokens: 29250
+        gems: 39
+    # ---- level 40
+    - xp: 2100
+      free:
+        tokens: 10000
+        gems: 16
+        coins: 1000000
+        drop-rarity: EPIC
+        drops: 13
+      premium:
+        tokens: 30000
+        coins: 4000000
+        credits: 250
+        drop-rarity: MYTHICAL
+        drops: 4
+    # ---- level 41
+    - xp: 2300
+      free:
+        tokens: 10250
+      premium:
+        tokens: 30750
+    # ---- level 42
+    - xp: 2500
+      free:
+        tokens: 10500
+      premium:
+        tokens: 31500
+        gems: 42
+        coins: 4200000
+    # ---- level 43
+    - xp: 2700
+      free:
+        tokens: 10750
+      premium:
+        tokens: 32250
+    # ---- level 44
+    - xp: 3000
+      free:
+        tokens: 11000
+        coins: 1100000
+      premium:
+        tokens: 33000
+        coins: 4400000
+    # ---- level 45
+    - xp: 3300
+      free:
+        tokens: 11250
+        gems: 18
+      premium:
+        tokens: 33750
+        gems: 45
+        drop-rarity: MYTHICAL
+        drops: 2
+    # ---- level 46
+    - xp: 3600
+      free:
+        tokens: 11500
+      premium:
+        tokens: 34500
+        coins: 4600000
+    # ---- level 47
+    - xp: 4000
+      free:
+        tokens: 11750
+      premium:
+        tokens: 35250
+    # ---- level 48
+    - xp: 4400
+      free:
+        tokens: 12000
+        coins: 1200000
+      premium:
+        tokens: 36000
+        gems: 48
+        coins: 4800000
+    # ---- level 49
+    - xp: 4900
+      free:
+        tokens: 12250
+      premium:
+        tokens: 36750
+    # ---- level 50
+    - xp: 5300
+      free:
+        tokens: 12500
+        gems: 20
+        drop-rarity: LEGENDARY
+        drops: 10
+      premium:
+        tokens: 37500
+        coins: 5000000
+        credits: 300
+        drop-rarity: MYTHICAL
+        drops: 1
+
+# Commands the console runs when a gate skill is bought. Left blank the
+# skill still unlocks, it just doesn't hand out a permission — which is
+# what you want while the matching plugin isn't installed yet.
+#
+# {player} is replaced with the player's name. The Private Vault skill
+# expects a /pv-style plugin to be present; PlayerVaults X (with LuckPerms
+# for the permission) is the usual pairing on Paper 1.21.
+unlock-commands:
+  private-vault:
+    - "lp user {player} permission set playervaults.amount.1 true"
+    - "lp user {player} permission set playervaults.use true"
+
 shiny:
   chance: 0.01
   node: "shiny_unlock"

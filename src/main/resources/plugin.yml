@@ -66,6 +66,10 @@ commands:
     description: Spend store Credits
     usage: /buy
     aliases: [store, shop]
+  pass:
+    description: Open the Battle Pass
+    usage: /pass
+    aliases: [battlepass, bp]
   rngadmin:
     description: Admin tools for SolRNG
     usage: /rngadmin <reload|setspawn|starforge|reset|give|drops|bank|aura|roll|unlock|odds|farmblock|farmfill|crops|milestones|boost|nova|payout>

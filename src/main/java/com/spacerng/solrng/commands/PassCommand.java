@@ -1,18 +1,19 @@
 package com.spacerng.solrng.commands;
 
 import com.spacerng.solrng.SolRNGPlugin;
-import com.spacerng.solrng.gui.ConvertGui;
+import com.spacerng.solrng.gui.PassGui;
+import com.spacerng.solrng.player.PlayerData;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-public class ConvertCommand implements CommandExecutor {
+public class PassCommand implements CommandExecutor {
 
     private final SolRNGPlugin plugin;
 
-    public ConvertCommand(SolRNGPlugin plugin) {
+    public PassCommand(SolRNGPlugin plugin) {
         this.plugin = plugin;
     }
 
@@ -22,14 +23,15 @@ public class ConvertCommand implements CommandExecutor {
             sender.sendMessage(ChatColor.RED + "Only players can use this command.");
             return true;
         }
-        com.spacerng.solrng.player.PlayerData data =
-                plugin.getPlayerDataManager().get(player.getUniqueId());
-        if (!data.hasUnlocked("convert_unlock")) {
-            player.sendMessage(ChatColor.RED + "Unlock " + ChatColor.YELLOW + "Convert"
+
+        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+        if (!plugin.getPassManager().isUnlocked(data)) {
+            player.sendMessage(ChatColor.RED + "Unlock " + ChatColor.YELLOW + "Battle Pass"
                     + ChatColor.RED + " in " + ChatColor.YELLOW + "/skilltree" + ChatColor.RED + " first.");
             return true;
         }
-        player.openInventory(ConvertGui.build(plugin, player));
+
+        player.openInventory(PassGui.build(plugin, player, 0));
         return true;
     }
 }
