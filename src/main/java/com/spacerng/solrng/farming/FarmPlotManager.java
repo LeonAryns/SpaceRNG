@@ -51,13 +51,28 @@ import java.util.concurrent.ThreadLocalRandom;
 public class FarmPlotManager {
 
     /**
-     * What the plot actually is server-side. Wheat is deliberate: it's
-     * non-solid, so players walk through the field the way they expect,
-     * and it's breakable, so BlockBreakEvent fires and can be intercepted.
-     * A solid marker would block movement; a barrier can't be broken at
-     * all, so no harvest event would ever arrive.
+     * What the plot actually is server-side.
+     *
+     * It has to be non-solid, so players walk through the field the way
+     * they expect, and breakable, so BlockBreakEvent fires and can be
+     * intercepted. A solid marker would block movement; a barrier can't be
+     * broken at all, so no harvest event would ever arrive.
+     *
+     * Torchflower crop on top of that because it is a block nobody builds
+     * with. That matters for one reason: it makes the WORLD a usable
+     * record of where the farm is. farmplots.yml is only a cache, and
+     * /rngadmin farmscan can rebuild it by looking for this block — so
+     * losing the plugin's data folder costs one command, not the field.
+     * Wheat could never work that way; every wheat block on the server
+     * would look like a plot.
      */
-    private static final Material MARKER = Material.WHEAT;
+    private static final Material MARKER = Material.TORCHFLOWER_CROP;
+
+    /**
+     * What plots used to be. A scan accepts these too, on request, so a
+     * field built before the marker changed can still be recovered.
+     */
+    private static final Material LEGACY_MARKER = Material.WHEAT;
 
     /** Momentum stops compounding here, so a long session can't run away. */
     private static final long MOMENTUM_CAP = 50L;
@@ -157,6 +172,49 @@ public class FarmPlotManager {
 
     public int plotCount() {
         return plots.size();
+    }
+
+    public Material markerMaterial() {
+        return MARKER;
+    }
+
+    /**
+     * Rebuilds the registry from the world: every marker block inside the
+     * radius becomes a plot again.
+     *
+     * `includeLegacy` also picks up the old wheat marker, which is how a
+     * field built before the marker changed gets recovered — at the cost
+     * of catching any real wheat inside the box, so it's opt-in.
+     *
+     * Returns how many plots were newly registered.
+     */
+    public int scan(Location centre, int radius, boolean includeLegacy) {
+        World world = centre.getWorld();
+        if (world == null) return 0;
+
+        int found = 0;
+        int cx = centre.getBlockX();
+        int cy = centre.getBlockY();
+        int cz = centre.getBlockZ();
+        int minY = Math.max(world.getMinHeight(), cy - radius);
+        int maxY = Math.min(world.getMaxHeight() - 1, cy + radius);
+
+        for (int x = cx - radius; x <= cx + radius; x++) {
+            for (int z = cz - radius; z <= cz + radius; z++) {
+                if (!world.isChunkLoaded(x >> 4, z >> 4)) continue;
+                for (int y = minY; y <= maxY; y++) {
+                    Block block = world.getBlockAt(x, y, z);
+                    Material type = block.getType();
+                    if (type != MARKER && !(includeLegacy && type == LEGACY_MARKER)) continue;
+                    Location key = normalise(block.getLocation());
+                    if (!plots.add(key)) continue;
+                    if (type != MARKER) block.setType(MARKER, false);
+                    found++;
+                }
+            }
+        }
+        if (found > 0) savePlots();
+        return found;
     }
 
     /** Registers a block as part of the farm and makes it the marker crop. */

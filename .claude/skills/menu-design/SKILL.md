@@ -32,8 +32,8 @@ Lore.upgrade(ChatColor.GOLD, "Luck", "1.75x", "2x")
 Lore.bar(0.62)                              // hue-ramping progress bar
 Lore.shorten(12400)                         // "12.4K"
 
-Currency.COINS.amount(717_000_000L)         // ● 717M Coins
-Currency.TOKENS.price(5000L, affordable)    // ✿ 5K Tokens, red if not
+Currency.COINS.amount(717_000_000L)         // 717M Coins ●
+Currency.TOKENS.price(5000L, affordable)    // 5K Tokens ■, red if not
 ```
 
 If a new menu needs a text shape that isn't in `Lore`, add it to `Lore`.
@@ -117,10 +117,17 @@ assumed. These are proven in this plugin:
 ▎ bullet     ✔ yes        ✘ no         ➜ becomes
 ★ level      ✦ shiny      ◇ hollow     ⚡ event
 ◀ ▶ pages    「 」 title    ⎯ rule       ▬ bar segment
-● Coins      ✿ Tokens     ◆ Gems       ✪ Credits
+● Coins      ■ Tokens     ◆ Gems       ✪ Credits
 ```
 
-Currency glyphs come from `Currency`, never typed inline.
+Currency glyphs come from `Currency`, never typed inline. They are four
+different **shapes**, not four decorations — colour alone stops working
+the moment two currencies sit on adjacent lines.
+
+The glyph **trails** the amount (`717M Coins ●`, not `● 717M Coins`).
+Minecraft's font is proportional, so four different leading glyphs are
+four different widths and every amount starts in a slightly different
+column. Trailing it, a stacked list lines up.
 
 ## Menu layout
 

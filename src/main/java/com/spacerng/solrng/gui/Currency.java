@@ -15,14 +15,18 @@ import org.bukkit.ChatColor;
  *
  * The colours are deliberately spread across the wheel rather than chosen
  * for realism: Coins gold, Tokens green (they come from the farm), Gems
- * aqua, Credits purple (the store colour). All four glyphs live in
- * Minecraft's built-in unicode font, so none of this needs a resource
- * pack.
+ * aqua, Credits purple (the store colour).
+ *
+ * The glyphs are four different SHAPES, not four decorations — circle,
+ * square, diamond, star. Colour alone stops working the moment two
+ * currencies sit on adjacent sidebar lines, and a shape is still legible
+ * at one pixel of contrast. All four live in Minecraft's built-in unicode
+ * font, so none of this needs a resource pack.
  */
 public enum Currency {
 
     COINS("Coins", "●", ChatColor.GOLD, false),
-    TOKENS("Tokens", "✿", ChatColor.GREEN, false),
+    TOKENS("Tokens", "■", ChatColor.GREEN, false),
     GEMS("Gems", "◆", ChatColor.AQUA, false),
     // Credits are the one currency real money buys, so they get the one
     // treatment nothing else in the plugin uses. colour() stays purple for
@@ -63,23 +67,31 @@ public enum Currency {
         return paint(icon);
     }
 
-    /** "● 1.2M Coins" — the full readout, all in the currency's colour. */
+    /**
+     * "1.2M Coins ●" — the full readout, all in the currency's colour.
+     *
+     * The glyph trails rather than leads because Minecraft's font is
+     * proportional: four different leading glyphs are four different
+     * widths, so a leading icon pushes every amount to a slightly
+     * different column and the sidebar looks ragged. Trailing it, every
+     * amount starts at the same x.
+     */
     public String amount(long value) {
-        return paint(icon + " " + RollFormat.abbreviate(value) + " " + label);
+        return paint(RollFormat.abbreviate(value) + " " + label + " " + icon);
     }
 
     /**
-     * "● 1.2M Coins" with the amount tinted separately — for prices, where
-     * red has to be able to mean "you can't afford this" without the icon
-     * changing colour and looking like a different currency.
+     * The same readout, turned red when it's a price the player can't
+     * meet — red has to be able to mean "you can't afford this" without
+     * the currency becoming unrecognisable.
      */
     public String price(long value, boolean affordable) {
-        String text = icon + " " + RollFormat.abbreviate(value) + " " + label;
+        String text = RollFormat.abbreviate(value) + " " + label + " " + icon;
         return affordable ? paint(text) : ChatColor.RED + text;
     }
 
-    /** "● 1,200,000 Coins" — unabbreviated, for when the exact figure matters. */
+    /** "1,200,000 Coins ●" — unabbreviated, for when the exact figure matters. */
     public String exact(long value) {
-        return paint(icon + " " + String.format("%,d", value) + " " + label);
+        return paint(String.format("%,d", value) + " " + label + " " + icon);
     }
 }

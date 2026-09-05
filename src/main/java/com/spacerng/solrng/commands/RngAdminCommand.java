@@ -35,7 +35,8 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
 
     private static final List<String> SUBCOMMANDS = List.of(
             "reload", "setspawn", "starforge", "reset", "give", "drops",
-            "bank", "aura", "roll", "unlock", "unlockall", "lockall", "odds", "farmblock", "crops",
+            "bank", "aura", "roll", "unlock", "unlockall", "lockall", "odds", "farmblock", "farmscan",
+            "hoe", "crops",
             "milestones", "farmfill", "boost", "nova", "placeholders", "payout", "help");
     private static final List<String> CURRENCIES = List.of("coins", "tokens", "gems", "credits");
 
@@ -69,6 +70,8 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             case "roll" -> doRoll(sender, args);
             case "unlock" -> doUnlock(sender, args);
             case "unlockall" -> doUnlockAll(sender, args);
+            case "hoe" -> doHoe(sender, args);
+            case "farmscan" -> doFarmScan(sender, args);
             case "lockall" -> doLockAll(sender, args);
             case "odds" -> doOdds(sender, args);
             case "farmblock" -> doFarmBlock(sender, args);
@@ -101,6 +104,8 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         line(sender, "roll", "<rarity> [player]", "Force a real roll result of that rarity");
         line(sender, "unlock", "<node|all> [player]", "Grant one skill tree node");
         line(sender, "unlockall", "[player]", "Max out every skill in every tree");
+        line(sender, "hoe", "[player]", "Hand out a bound Farmer's Hoe");
+        line(sender, "farmscan", "[radius] [legacy]", "Re-register farm plots by scanning the world");
         line(sender, "lockall", "[player]", "Wipe every skill, to test the tree from scratch");
         line(sender, "odds", "[rarity]", "Label vs. true odds, and each tier's real share");
         line(sender, "farmblock", "[amount]", "Farm Plot blocks - place to build the shared farm");
@@ -411,6 +416,58 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
 
         plugin.getScoreboardManager().update(target);
         sender.sendMessage(ChatColor.GREEN + "Unlocked " + granted + " node(s) for " + target.getName() + ".");
+        return true;
+    }
+
+    /**
+     * A replacement Farmer's Hoe. The hoe is bound and undroppable and
+     * holds no state of its own, so handing out another one costs nothing
+     * — which is exactly why losing one shouldn't be a problem worth
+     * solving any other way.
+     */
+    private boolean doHoe(CommandSender sender, String[] args) {
+        Player target = resolve(sender, args.length >= 2 ? args[1] : null);
+        if (target == null) return true;
+
+        PlayerData data = plugin.getPlayerDataManager().get(target.getUniqueId());
+        target.getInventory().addItem(plugin.getFarmingManager().createBoundHoe(data));
+        target.sendMessage(ChatColor.GREEN + "Here's a Farmer's Hoe \u2014 bound to you.");
+        sender.sendMessage(ChatColor.GREEN + "Gave " + target.getName() + " a Farmer's Hoe.");
+        return true;
+    }
+
+    /**
+     * Rebuilds the farm plot registry from the blocks actually in the
+     * world. farmplots.yml is a cache; the field itself is the record, so
+     * a lost data folder costs this one command.
+     */
+    private boolean doFarmScan(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(ChatColor.RED + "Run this in-game, standing near the farm.");
+            return true;
+        }
+        int radius = 48;
+        if (args.length >= 2) {
+            try {
+                radius = Math.max(1, Math.min(128, Integer.parseInt(args[1])));
+            } catch (NumberFormatException ex) {
+                sender.sendMessage(ChatColor.RED + "Radius must be a number.");
+                return true;
+            }
+        }
+        boolean legacy = args.length >= 3 && args[2].equalsIgnoreCase("legacy");
+
+        int before = plugin.getFarmPlotManager().plotCount();
+        int found = plugin.getFarmPlotManager().scan(player.getLocation(), radius, legacy);
+        plugin.getFarmPlotManager().renderAll();
+
+        sender.sendMessage(ChatColor.GREEN + "Scanned " + radius + " blocks around you: "
+                + ChatColor.WHITE + found + ChatColor.GREEN + " new plot(s), "
+                + ChatColor.WHITE + (before + found) + ChatColor.GREEN + " total.");
+        if (!legacy) {
+            sender.sendMessage(ChatColor.DARK_GRAY + "Add \"legacy\" to also pick up old wheat plots "
+                    + "(and any real wheat in range).");
+        }
         return true;
     }
 
@@ -838,8 +895,14 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
 
         if (args.length == 1) return partial(args[0], SUBCOMMANDS);
         if (args.length == 2 && (args[0].equalsIgnoreCase("unlockall")
-                || args[0].equalsIgnoreCase("lockall"))) {
+                || args[0].equalsIgnoreCase("lockall") || args[0].equalsIgnoreCase("hoe"))) {
             return partial(args[1], playerNames());
+        }
+        if (args.length == 2 && args[0].equalsIgnoreCase("farmscan")) {
+            return partial(args[1], List.of("16", "48", "96"));
+        }
+        if (args.length == 3 && args[0].equalsIgnoreCase("farmscan")) {
+            return partial(args[2], List.of("legacy"));
         }
 
         String sub = args[0].toLowerCase(Locale.ROOT);

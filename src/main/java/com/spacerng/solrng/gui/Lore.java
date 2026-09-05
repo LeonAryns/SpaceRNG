@@ -31,7 +31,7 @@ public final class Lore {
 
     // The plugin's headline gradient — light lilac into deep violet. Used
     // for sidebar section headers so the two of them read as one voice.
-    private static final String[] HEADER_STOPS = {"#E9BBFF", "#C07BFF", "#8B3FE0", "#6A21C4"};
+    private static final String[] HEADER_STOPS = {"#F6D6FF", "#DFA6FF", "#C77DFF", "#B15CFF"};
     // A full loop of the spectrum, ending where it started so a long
     // string doesn't finish on a jarringly different colour from its start.
     private static final String[] RAINBOW_STOPS = {
@@ -87,6 +87,15 @@ public final class Lore {
     /** A bold sidebar/menu section header in the house purple. */
     public static String header(String text) {
         return gradient(text, true, HEADER_STOPS);
+    }
+
+    /**
+     * The same purple, mirrored so it runs light-dark-light. A sidebar
+     * title is short and centred; a one-way ramp on a short centred string
+     * just reads as "the right-hand side is dimmer".
+     */
+    public static String banner(String text) {
+        return gradient(text, true, "#F6D6FF", "#C77DFF", "#A855F7", "#C77DFF", "#F6D6FF");
     }
 
     /** Full-spectrum text — the Credits treatment. */

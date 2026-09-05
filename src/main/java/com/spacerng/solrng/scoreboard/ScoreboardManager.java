@@ -72,15 +72,42 @@ public class ScoreboardManager {
 
     public void setup(Player player) {
         Scoreboard board = Bukkit.getScoreboardManager().getNewScoreboard();
-        Objective objective = board.registerNewObjective(OBJECTIVE_ID, "dummy",
-                ChatColor.translateAlternateColorCodes('&',
-                        plugin.getConfig().getString("scoreboard.title", "&5&l✦ SPACERNG ✦")));
+        Objective objective = board.registerNewObjective(OBJECTIVE_ID, "dummy", "");
+        objective.displayName(LEGACY.deserialize(title()));
         objective.setDisplaySlot(DisplaySlot.SIDEBAR);
         player.setScoreboard(board);
         // A fresh personal Scoreboard has none of the tag teams other
         // players' boards already have — backfill them all now.
         plugin.getTagManager().syncAllTeamsTo(player);
         update(player);
+    }
+
+    /**
+     * The sidebar's own title. Set as a Component rather than through the
+     * legacy String constructor so it can carry a gradient — an objective
+     * display name is one of the few places a per-character colour is
+     * worth the bytes, because everyone sees it every second.
+     *
+     * scoreboard.title keeps its "&" codes for anyone who'd rather have a
+     * flat colour; the gradient only takes over when title-gradient is on.
+     */
+    private String title() {
+        String raw = plugin.getConfig().getString("scoreboard.title", "&5&l✦ SPACERNG ✦");
+        if (!plugin.getConfig().getBoolean("scoreboard.title-gradient", true)) {
+            return ChatColor.translateAlternateColorCodes('&', raw);
+        }
+        // Strip the "&" codes first: a gradient sets a colour per
+        // character, so a leftover colour code would just fight it.
+        String plain = ChatColor.stripColor(ChatColor.translateAlternateColorCodes('&', raw));
+        return Lore.banner(plain);
+    }
+
+    /** Repaints every online player's title, for a /rngadmin reload. */
+    public void refreshTitles() {
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            Objective objective = player.getScoreboard().getObjective(OBJECTIVE_ID);
+            if (objective != null) objective.displayName(LEGACY.deserialize(title()));
+        }
     }
 
     public void update(Player player) {
