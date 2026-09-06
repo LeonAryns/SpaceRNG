@@ -61,7 +61,7 @@ public class FarmingListener implements Listener {
         long reward = Math.round(farming.tokensFor(material) * data.getFarmTokenMultiplier());
         if (reward > 0) {
             data.addTokens(reward);
-            sendActionBar(player, ChatColor.AQUA + "+" + reward + " Tokens");
+            sendActionBar(player, ChatColor.AQUA + "+" + reward + " Coins");
             player.playSound(player.getLocation(), Sound.ENTITY_ITEM_PICKUP, 0.5f, 1.5f);
         }
 

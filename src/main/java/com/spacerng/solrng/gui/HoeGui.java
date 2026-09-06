@@ -103,14 +103,14 @@ public class HoeGui {
         List<String> lore = new ArrayList<>();
         lore.add(Lore.section(ChatColor.GOLD, "The tool"));
         lore.add(Lore.stat(ChatColor.YELLOW, "Tier", (index + 1) + " / " + tiers.size()));
-        lore.add(Lore.stat(ChatColor.GREEN, "Tokens", HoeEnchantManager.format(tier.tokenBonus())));
+        lore.add(Lore.stat(Currency.COINS.colour(), "Coins", HoeEnchantManager.format(tier.tokenBonus())));
         lore.add(Lore.stat(ChatColor.AQUA, "Speed", HoeEnchantManager.format(tier.speedBonus())));
         lore.add(Lore.bar(tiers.size() <= 1 ? 1.0 : index / (double) (tiers.size() - 1)));
         lore.add("");
         if (index + 1 < tiers.size()) {
             FarmingManager.HoeTier next = tiers.get(index + 1);
             lore.add(Lore.section(ChatColor.AQUA, "Next tier"));
-            lore.add(Lore.upgrade(ChatColor.GREEN, "Tokens",
+            lore.add(Lore.upgrade(Currency.COINS.colour(), "Coins",
                     HoeEnchantManager.format(tier.tokenBonus()), HoeEnchantManager.format(next.tokenBonus())));
             lore.add(Lore.upgrade(ChatColor.AQUA, "Speed",
                     HoeEnchantManager.format(tier.speedBonus()), HoeEnchantManager.format(next.speedBonus())));
@@ -157,7 +157,7 @@ public class HoeGui {
         }
         if (unlocked && !maxed) {
             lore.add((affordable ? ChatColor.YELLOW : ChatColor.RED) + Lore.BULLET + " "
-                    + ChatColor.GRAY + "Cost: " + Currency.TOKENS.price(cost, affordable));
+                    + ChatColor.GRAY + "Cost: " + Currency.COINS.price(cost, affordable));
         }
         lore.add("");
 
@@ -175,7 +175,7 @@ public class HoeGui {
             lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO UPGRADE");
             lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " Shift-click buys ten.");
         } else {
-            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "NOT ENOUGH TOKENS");
+            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "NOT ENOUGH COINS");
         }
 
         meta.setLore(lore);
@@ -188,12 +188,12 @@ public class HoeGui {
     private static ItemStack buildTokens(PlayerData data) {
         ItemStack item = new ItemStack(Material.HAY_BLOCK);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(Lore.title(Currency.TOKENS.colour(), "Your Tokens"));
+        meta.setDisplayName(Lore.title(Currency.COINS.colour(), "Your Coins"));
         meta.setLore(List.of(
-                Currency.TOKENS.colour() + Lore.BULLET + " " + Currency.TOKENS.exact(data.getTokens()),
+                Currency.COINS.colour() + Lore.BULLET + " " + Currency.COINS.exact(data.getTokens()),
                 "",
                 ChatColor.DARK_GRAY + Lore.BULLET + " Enchants are unlocked in /farmtree",
-                ChatColor.DARK_GRAY + Lore.BULLET + " and levelled here with Tokens."));
+                ChatColor.DARK_GRAY + Lore.BULLET + " and levelled here with Coins."));
         item.setItemMeta(meta);
         return item;
     }

@@ -1,6 +1,7 @@
 package com.spacerng.solrng.farming;
 
 import com.spacerng.solrng.SolRNGPlugin;
+import com.spacerng.solrng.gui.Currency;
 import com.spacerng.solrng.player.PlayerData;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -605,7 +606,7 @@ public class FarmPlotManager {
         // Sound is handled by playHarvest/playProc so the two can be
         // switched off independently; this line is text only.
         StringBuilder reward = new StringBuilder();
-        reward.append(ChatColor.YELLOW).append("+").append(String.format("%,d", tokens)).append(" Tokens");
+        reward.append(Currency.COINS.numberColour()).append("+").append(String.format("%,d", tokens)).append(" Coins");
         if (shards > 0) {
             reward.append(ChatColor.GRAY).append("  ").append(ChatColor.AQUA)
                     .append("+").append(String.format("%,d", shards)).append(" Gems");

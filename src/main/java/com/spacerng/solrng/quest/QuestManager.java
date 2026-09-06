@@ -156,7 +156,7 @@ public class QuestManager {
                 + ChatColor.RESET + ChatColor.WHITE + quest.getDisplay());
         StringBuilder reward = new StringBuilder();
         if (quest.getRewardTokens() > 0) {
-            reward.append(ChatColor.YELLOW).append(String.format("%,d", quest.getRewardTokens())).append(" Tokens");
+            reward.append(ChatColor.YELLOW).append(String.format("%,d", quest.getRewardTokens())).append(" Coins");
         }
         if (quest.getRewardMoney() > 0) {
             if (reward.length() > 0) reward.append(ChatColor.GRAY).append(", ");

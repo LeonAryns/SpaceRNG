@@ -38,7 +38,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             "bank", "aura", "roll", "unlock", "unlockall", "lockall", "odds", "farmblock", "farmscan",
             "hoe", "consumable", "crops",
             "milestones", "farmfill", "boost", "nova", "placeholders", "payout", "help");
-    private static final List<String> CURRENCIES = List.of("coins", "tokens", "gems", "credits");
+    private static final List<String> CURRENCIES = List.of("money", "coins", "gems", "credits");
 
     private final SolRNGPlugin plugin;
     private final Random random = new Random();
@@ -98,7 +98,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         line(sender, "setspawn", "", "Set the join/spawn point to where you stand");
         line(sender, "starforge", "[tier] [player]", "Give a Starforge (defaults to the tier they own)");
         line(sender, "reset", "<player> confirm", "Wipe a player back to a brand-new account");
-        line(sender, "give", "<coins|tokens|gems|credits> <amount> [player]", "Top up a currency");
+        line(sender, "give", "<money|coins|gems|credits> <amount> [player]", "Top up a currency");
         line(sender, "drops", "<rarity|all> <amount> [player]", "Physical rolled drops in the inventory");
         line(sender, "bank", "<rarity|all> <amount> [player]", "Stored drops (the /convert bank)");
         line(sender, "aura", "<epic|legendary|mythical|divine> [player]", "Replay the full reveal build-up + burst");
@@ -225,7 +225,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
     /** /rngadmin give &lt;currency&gt; &lt;amount&gt; [player] */
     private boolean doGive(CommandSender sender, String[] args) {
         if (args.length < 3) {
-            sender.sendMessage(ChatColor.RED + "Usage: /rngadmin give <coins|tokens|gems|credits> <amount> [player]");
+            sender.sendMessage(ChatColor.RED + "Usage: /rngadmin give <money|coins|gems|credits> <amount> [player]");
             return true;
         }
         Long amount = parseAmount(sender, args[2]);
@@ -239,19 +239,19 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         switch (currency) {
             // The old names still work, so anything scripted against them
               // (a web store callback, a console macro) keeps running.
-            case "coins", "money" -> {
+            case "money" -> {
                 var registration = Bukkit.getServicesManager().getRegistration(Economy.class);
                 if (registration == null) {
-                    sender.sendMessage(ChatColor.RED + "No Vault economy is installed, so Coins can't be given.");
+                    sender.sendMessage(ChatColor.RED + "No Vault economy is installed, so Money can't be given.");
                     return true;
                 }
                 registration.getProvider().depositPlayer(target, amount);
             }
-            case "tokens" -> data.addTokens(amount);
+            case "coins", "tokens" -> data.addTokens(amount);
             case "gems", "shards" -> data.addShards(amount);
             case "credits" -> data.addPoints(amount);
             default -> {
-                sender.sendMessage(ChatColor.RED + "Unknown currency. Use coins, tokens, gems or credits.");
+                sender.sendMessage(ChatColor.RED + "Unknown currency. Use money, coins, gems or credits.");
                 return true;
             }
         }
@@ -333,7 +333,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
      */
     private boolean doAura(CommandSender sender, String[] args) {
         if (args.length < 2) {
-            sender.sendMessage(ChatColor.RED + "Usage: /rngadmin aura <epic|legendary|mythical> [player]");
+            sender.sendMessage(ChatColor.RED + "Usage: /rngadmin aura <epic|legendary|mythical|divine> [player]");
             return true;
         }
         Rarity rarity = parseRarity(sender, args[1]);

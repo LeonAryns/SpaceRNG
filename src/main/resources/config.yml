@@ -172,11 +172,11 @@ farming:
   # hundred levels of an enchant cost more than the first nine hundred.
   enchants:
     TOKEN_GREED:
-      display: "Token Greed"
+      display: "Coin Greed"
       icon: GOLD_NUGGET
       base-cost: 2500
       cost-growth: 1.007
-      description: "More Tokens from every crop."
+      description: "More Coins from every crop."
       color: "&e"
       # The hard ceiling. base-cap is what you START with; Enchant
       # Mastery in /farmtree is what closes the gap between them.
@@ -390,7 +390,7 @@ prestige:
       max-level: 50
       cost-points: 1
     token_master:
-      display: "Token Master"
+      display: "Coin Master"
       icon: RAW_GOLD
       slot: "5,2"
       effect: TOKEN_BONUS
@@ -1194,8 +1194,8 @@ conversion:
     MYTHICAL: 10000
     DIVINE: 250000
 
-# Every roll also pays out real Coins (the Vault economy), on top of the
-# item itself - coins = odds x this multiplier, so a 1-in-30 item pays 300
+# Every roll also pays out real Money (the Vault economy), on top of the
+# item itself - money = odds x this multiplier, so a 1-in-30 item pays 300
 # at the default 10x. Requires Vault + an economy plugin to be installed.
 economy:
   money-per-odds-multiplier: 10.0
@@ -1225,7 +1225,7 @@ economy:
 # (column, row), both 1-indexed, in the 6x9 grid.
 #
 # Prices are a first pass: page base x 1.75 per step of depth, each page
-# starting 100x above the last. Paid in Coins.
+# starting 100x above the last. Paid in Money.
 skilltree:
   # Slots that belong to the tree's silhouette on every page even when no
   # node sits there. Drawn as "???" so the shape of what's still to come
@@ -1291,7 +1291,7 @@ skilltree:
       value: 0
 
     coins_1:
-      display: "Coins I"
+      display: "Money I"
       page: 1
       slot: "5,4"
       icon: GOLD_INGOT
@@ -1493,7 +1493,7 @@ skilltree:
       max-level: 10
 
     coins_2:
-      display: "Coins II"
+      display: "Money II"
       page: 1
       slot: "6,1"
       icon: GOLD_INGOT
@@ -1543,7 +1543,7 @@ skilltree:
       max-level: 10
 
     coins_3:
-      display: "Coins III"
+      display: "Money III"
       page: 2
       slot: "4,5"
       icon: GOLD_INGOT
@@ -1623,7 +1623,7 @@ skilltree:
       max-level: 10
 
     coins_per_level:
-      display: "Coins Per Level"
+      display: "Money Per Level"
       page: 2
       slot: "8,5"
       icon: GOLDEN_APPLE
@@ -1741,7 +1741,7 @@ skilltree:
       max-level: 10
 
     coins_4:
-      display: "Coins IV"
+      display: "Money IV"
       page: 2
       slot: "3,1"
       icon: GOLD_INGOT
@@ -1839,7 +1839,7 @@ skilltree:
       max-level: 10
 
     coins_5:
-      display: "Coins V"
+      display: "Money V"
       page: 3
       slot: "6,5"
       icon: GOLD_INGOT
@@ -1983,7 +1983,7 @@ skilltree:
       max-level: 10
 
     coins_6:
-      display: "Coins VI"
+      display: "Money VI"
       page: 3
       slot: "2,2"
       icon: GOLD_INGOT
@@ -2209,8 +2209,8 @@ announcements:
     - - "&3\u258e &e\u25b8 &7Every drop has its own &bIndex Luck&7 \u2014 equip the best in &e/index&7."
       - "&3\u258e &e\u25b8 &7Unlock &fIndex Luck&7 in &e/skilltree&7 before you can wear one."
     - - "&3\u258e &e\u25b8 &d/novacore&7 is the fourth way to raise your Luck \u2014 after skills, armor and prestige."
-      - "&3\u258e &e\u25b8 &7Forge it a tier at a time with &eTokens&7. Every tier you hold is a permanent multiplier on &fLuck&7, &6Coins&7 and &eTokens&7 alike."
-    - - "&3\u258e &e\u25b8 &a/farmtree&7 has crops, hoe enchants and Token multipliers."
+      - "&3\u258e &e\u25b8 &7Forge it a tier at a time with &6Coins&7. Every tier you hold is a permanent multiplier on &fLuck&7, &aMoney&7 and &6Coins&7 alike."
+    - - "&3\u258e &e\u25b8 &a/farmtree&7 has crops, hoe enchants and Coin multipliers."
       - "&3\u258e &e\u25b8 &7Pick what grows for you with &e/crops&7 \u2014 the field is yours alone."
     - - "&3\u258e &e\u25b8 &7Long-run goals live in &e/milestones&7. Rewards wait there to be claimed."
       - "&3\u258e &e\u25b8 &7New here? &e/guide&7 walks you through everything."
@@ -2218,7 +2218,7 @@ announcements:
       - "&3\u258e &e\u25b8 &d/buy&7 has a &5Global Luck Boost&7 that helps the whole server."
     - - "&3\u258e &e\u25b8 &6/pass&7 pays out for every roll and every harvest \u2014 rarer rolls are worth more XP."
       - "&3\u258e &e\u25b8 &7The &5premium track&7 back-pays every level you already cleared."
-    - - "&3\u258e &e\u25b8 &d/skilltree&7 is four pages deep. &aLuck&7, &eSpeed&7 and &6Coins&7 all come back stronger further in."
+    - - "&3\u258e &e\u25b8 &d/skilltree&7 is four pages deep. &aLuck&7, &eSpeed&7 and &aMoney&7 all come back stronger further in."
       - "&3\u258e &e\u25b8 &7Each page's top skill unlocks the next page."
 
 # The daily streak (/daily). No checkpoints on purpose: the whole tension
@@ -2410,6 +2410,9 @@ guide:
 # strength and replaces it if it's stronger — two never multiply together.
 consumables:
   luck_potion:
+    costs:
+      RARE: 12
+      EPIC: 3
     display: "Luck Potion"
     material: POTION
     colors: ["#8AFF8A", "#00C853"]
@@ -2418,6 +2421,9 @@ consumables:
     duration-seconds: 1800
     description: "Everything you roll, twice as lucky."
   speed_potion:
+    costs:
+      UNCOMMON: 40
+      RARE: 8
     display: "Speed Potion"
     material: POTION
     colors: ["#FFF176", "#FFB300"]
@@ -2426,7 +2432,10 @@ consumables:
     duration-seconds: 1800
     description: "Rolls resolve in half the time."
   token_potion:
-    display: "Token Potion"
+    costs:
+      UNCOMMON: 30
+      RARE: 6
+    display: "Coin Potion"
     material: POTION
     colors: ["#A5FF7A", "#2E7D32"]
     effect: TOKENS
@@ -2434,6 +2443,9 @@ consumables:
     duration-seconds: 1800
     description: "Every crop pays double."
   enchant_potion:
+    costs:
+      RARE: 15
+      EPIC: 2
     display: "Enchant Potion"
     material: POTION
     colors: ["#E1BEE7", "#8E24AA"]
@@ -2442,6 +2454,9 @@ consumables:
     duration-seconds: 1800
     description: "Every hoe enchant fires half again as often."
   roll_10x:
+    costs:
+      EPIC: 8
+      LEGENDARY: 2
     display: "10x Roll"
     material: NETHER_STAR
     colors: ["#FFF9C4", "#FFD54F", "#FF8F00"]
@@ -2480,13 +2495,13 @@ consumables:
 # somewhere to explore rather than a list you've already read.
 #
 # New enchants sit at the ends of the branches, where finding one is a
-# reward for going out of your way. Token Greed is the exception: it's
+# reward for going out of your way. Coin Greed is the exception: it's
 # the enchant you want on day one, so it sits right next to the wheat.
 #
-# Paid in Tokens. The farm owns Tokens and Gems outright.
+# Paid in Coins. The farm owns Coins and Gems outright.
 #
 # Families worth knowing:
-#   CROP_YIELD    more Tokens and Gems from ONE crop (target)
+#   CROP_YIELD    more Coins and Gems from ONE crop (target)
 #   ENCHANT_PROC  raises every hoe enchant's chance at once
 #   ENCHANT_CAP   raises the level ceiling on every hoe enchant, from
 #                 the base-cap of 100 toward the hard 1000
@@ -2579,7 +2594,7 @@ farmtree:
       target: "POTATOES"
 
     enchant_token_greed:
-      display: "Token Greed"
+      display: "Coin Greed"
       page: 1
       slot: "4,6"
       icon: GOLD_NUGGET
@@ -2590,7 +2605,7 @@ farmtree:
       target: "TOKEN_GREED"
 
     tokens_1:
-      display: "Tokens I"
+      display: "Coins I"
       page: 1
       slot: "6,6"
       icon: HAY_BLOCK
@@ -2602,7 +2617,7 @@ farmtree:
       max-level: 10
 
     token_greed_power:
-      display: "Token Greed Ranks"
+      display: "Coin Greed Ranks"
       page: 1
       slot: "3,6"
       icon: GOLD_NUGGET
@@ -2650,7 +2665,7 @@ farmtree:
       max-level: 5
 
     tokens_2:
-      display: "Tokens II"
+      display: "Coins II"
       page: 1
       slot: "4,4"
       icon: HAY_BLOCK
@@ -2718,7 +2733,7 @@ farmtree:
       value: 0
 
     tokens_3:
-      display: "Tokens III"
+      display: "Coins III"
       page: 1
       slot: "4,2"
       icon: HAY_BLOCK
@@ -2866,7 +2881,7 @@ farmtree:
       target: "SWEET_BERRIES"
 
     tokens_4:
-      display: "Tokens IV"
+      display: "Coins IV"
       page: 2
       slot: "4,6"
       icon: HAY_BLOCK
@@ -2936,7 +2951,7 @@ farmtree:
       value: 0.1
 
     tokens_5:
-      display: "Tokens V"
+      display: "Coins V"
       page: 2
       slot: "4,4"
       icon: HAY_BLOCK
@@ -3008,7 +3023,7 @@ farmtree:
       max-level: 5
 
     tokens_6:
-      display: "Tokens VI"
+      display: "Coins VI"
       page: 2
       slot: "4,2"
       icon: HAY_BLOCK
@@ -3110,7 +3125,7 @@ novacore:
   min-chance: 0.02
   max-chance: 0.95
   # One entry per tier. This is a UNIVERSAL multiplier: it scales Luck,
-  # the Coins a roll pays and farm Tokens together, so the ladder is worth
+  # the Money a roll pays and farm Coins together, so the ladder is worth
   # climbing whatever you're grinding. Gentle at the bottom, steep at the
   # very top.
   multipliers: [1.02, 1.05, 1.10, 1.15, 1.25, 1.40, 1.55, 1.75, 2.00, 2.25,

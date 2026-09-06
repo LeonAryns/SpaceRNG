@@ -82,6 +82,8 @@ public class GuiListener implements Listener {
             handleBuyClick(event);
         } else if (topInventory.getHolder() instanceof DailyHolder) {
             handleDailyClick(event);
+        } else if (topInventory.getHolder() instanceof com.spacerng.solrng.gui.PotionHolder) {
+            handlePotionClick(event);
         } else if (topInventory.getHolder() instanceof HoeHolder) {
             handleHoeClick(event);
         }
@@ -292,6 +294,35 @@ public class GuiListener implements Listener {
     }
 
     /** Buys enchant levels with Tokens; shift-click buys ten. */
+    private void handlePotionClick(InventoryClickEvent event) {
+        event.setCancelled(true);
+        if (event.getClickedInventory() == null
+                || !(event.getClickedInventory().getHolder()
+                        instanceof com.spacerng.solrng.gui.PotionHolder)) return;
+
+        ItemStack clicked = event.getCurrentItem();
+        if (clicked == null || clicked.getItemMeta() == null) return;
+        String id = clicked.getItemMeta().getPersistentDataContainer()
+                .get(com.spacerng.solrng.gui.PotionGui.potionKey(plugin), PersistentDataType.STRING);
+        if (id == null) return;
+
+        Player player = (Player) event.getWhoClicked();
+        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+        var consumable = plugin.getConsumableManager().get(id);
+        int amount = event.isShiftClick() ? 5 : 1;
+
+        if (!plugin.getConsumableManager().purchase(player, data, consumable, amount)) {
+            player.sendMessage(ChatColor.RED + "You don't have the drops for that.");
+            player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
+            return;
+        }
+
+        player.sendMessage(ChatColor.GREEN + "Brewed " + ChatColor.WHITE + amount + "x "
+                + ChatColor.LIGHT_PURPLE + consumable.display() + ChatColor.GREEN + ".");
+        player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_BREWING_STAND_BREW, 0.9f, 1.4f);
+        player.openInventory(com.spacerng.solrng.gui.PotionGui.build(plugin, player));
+    }
+
     private void handleHoeClick(InventoryClickEvent event) {
         event.setCancelled(true);
         if (event.getClickedInventory() == null

@@ -67,12 +67,52 @@ public class ConsumableManager {
                         c.getDouble("magnitude", 1.0),
                         c.getLong("duration-seconds", 0L),
                         c.getLong("charges", 1L),
+                        parseCosts(c.getConfigurationSection("costs")),
                         c.getString("description", "")));
             } catch (Exception ex) {
                 plugin.getLogger().warning("[SolRNG] Skipped malformed consumable '" + id + "': " + ex.getMessage());
             }
         }
         plugin.getLogger().info("[SolRNG] Loaded " + consumables.size() + " consumables.");
+    }
+
+    /**
+     * A potion's price in rolled drops. An empty map means it isn't for
+     * sale at all — some of these are only ever handed out.
+     */
+    private Map<com.spacerng.solrng.rarity.Rarity, Long> parseCosts(ConfigurationSection section) {
+        Map<com.spacerng.solrng.rarity.Rarity, Long> costs =
+                new java.util.EnumMap<>(com.spacerng.solrng.rarity.Rarity.class);
+        if (section == null) return costs;
+        for (String key : section.getKeys(false)) {
+            try {
+                costs.put(com.spacerng.solrng.rarity.Rarity.valueOf(key.toUpperCase()), section.getLong(key));
+            } catch (IllegalArgumentException ignored) {
+            }
+        }
+        return costs;
+    }
+
+    /**
+     * Buys one, spending the drops. All-or-nothing: the affordability
+     * check runs over every rarity before a single drop is taken, so a
+     * half-paid purchase can't leave somebody short and empty-handed.
+     */
+    public boolean purchase(Player player, PlayerData data, Consumable consumable, int amount) {
+        if (consumable == null || consumable.costs().isEmpty() || amount <= 0) return false;
+
+        for (Map.Entry<com.spacerng.solrng.rarity.Rarity, Long> cost : consumable.costs().entrySet()) {
+            long needed = cost.getValue() * amount;
+            if (com.spacerng.solrng.player.DropWallet.total(plugin, player, data, cost.getKey()) < needed) {
+                return false;
+            }
+        }
+        for (Map.Entry<com.spacerng.solrng.rarity.Rarity, Long> cost : consumable.costs().entrySet()) {
+            com.spacerng.solrng.player.DropWallet.spend(plugin, player, data,
+                    cost.getKey(), cost.getValue() * amount);
+        }
+        give(player, consumable, amount);
+        return true;
     }
 
     public Map<String, Consumable> getAll() {
@@ -122,7 +162,7 @@ public class ConsumableManager {
                     trim(consumable.magnitude()) + "x for " + consumable.durationText());
             case SPEED -> Lore.stat(ChatColor.YELLOW, "Speed",
                     trim(consumable.magnitude()) + "x for " + consumable.durationText());
-            case TOKENS -> Lore.stat(ChatColor.GREEN, "Tokens",
+            case TOKENS -> Lore.stat(ChatColor.GOLD, "Coins",
                     trim(consumable.magnitude()) + "x for " + consumable.durationText());
             case ENCHANT_PROC -> Lore.stat(ChatColor.LIGHT_PURPLE, "Enchant chance",
                     trim(consumable.magnitude()) + "x for " + consumable.durationText());

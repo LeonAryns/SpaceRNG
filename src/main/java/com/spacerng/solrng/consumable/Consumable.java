@@ -12,6 +12,7 @@ import org.bukkit.Material;
  */
 public record Consumable(String id, String display, Material material, java.util.List<String> colors,
                          Effect effect, double magnitude, long durationSeconds, long charges,
+                         java.util.Map<com.spacerng.solrng.rarity.Rarity, Long> costs,
                          String description) {
 
     public enum Effect {

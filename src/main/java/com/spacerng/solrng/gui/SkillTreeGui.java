@@ -138,7 +138,7 @@ public class SkillTreeGui {
         boolean complete = leveled ? maxed : started;
         ChatColor accent = complete ? ChatColor.GREEN : started ? ChatColor.YELLOW : ChatColor.AQUA;
 
-        Currency wallet = node.usesTokens() ? Currency.TOKENS : Currency.COINS;
+        Currency wallet = node.usesTokens() ? Currency.COINS : Currency.MONEY;
         long price = Math.round(plugin.getSkillTreeManager().priceFor(data, node));
         long balance = node.usesTokens() ? data.getTokens() : balanceOf(player);
         boolean affordable = plugin.getSkillTreeManager().canAfford(player, data, node);
@@ -234,7 +234,7 @@ public class SkillTreeGui {
     }
 
     private static ItemStack buildWalletPanel(SolRNGPlugin plugin, Player player, PlayerData data, boolean farming) {
-        Currency wallet = farming ? Currency.TOKENS : Currency.COINS;
+        Currency wallet = farming ? Currency.COINS : Currency.MONEY;
         long balance = farming ? data.getTokens() : balanceOf(player);
 
         ItemStack stats = new ItemStack(farming ? Material.WHEAT : Material.GOLD_INGOT);
@@ -252,8 +252,8 @@ public class SkillTreeGui {
         lore.add(Lore.stat(ChatColor.AQUA, "Skills owned", String.valueOf(ownedCount(plugin, data))));
         lore.add("");
         lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " "
-                + (farming ? "Farm skills are bought with Tokens."
-                           : "Skills are bought with Coins."));
+                + (farming ? "Farm skills are bought with Coins."
+                           : "Skills are bought with Money."));
         meta.setLore(lore);
         stats.setItemMeta(meta);
         return stats;
@@ -307,16 +307,16 @@ public class SkillTreeGui {
                     "+" + pct(value * level) + "%", leveled);
 
             case MONEY_MULTIPLIER -> scaled(ChatColor.GOLD,
-                    "+" + pct(value) + "% Coins per roll", "+" + pct(value * level) + "%", leveled);
+                    "+" + pct(value) + "% Money per roll", "+" + pct(value * level) + "%", leveled);
             case MONEY_PER_LEVEL -> List.of(
-                    ChatColor.GOLD + "▎ +" + pct(value) + "% Coins per /prestige level",
+                    ChatColor.GOLD + "▎ +" + pct(value) + "% Money per /prestige level",
                     ChatColor.DARK_GRAY + "▎ Grows every time you level up.");
             case TOKEN_GAIN -> scaled(ChatColor.YELLOW,
-                    "+" + pct(value) + "% Tokens from farming", "+" + pct(value * level) + "%", leveled);
+                    "+" + pct(value) + "% Coins from farming", "+" + pct(value * level) + "%", leveled);
             case GEM_MULTIPLIER -> scaled(ChatColor.AQUA,
                     "+" + pct(value) + "% Gems from farming", "+" + pct(value * level) + "%", leveled);
             case DUPLICATE_BONUS -> scaled(ChatColor.GOLD,
-                    "+" + pct(value) + "% Coins on a drop you already own",
+                    "+" + pct(value) + "% Money on a drop you already own",
                     "+" + pct(value * level) + "%", leveled);
             case CONVERT_BONUS -> scaled(ChatColor.AQUA,
                     "+" + pct(value) + "% chance a converted drop banks twice",
@@ -360,13 +360,13 @@ public class SkillTreeGui {
                     "+" + trim(value) + " max level on every hoe enchant",
                     "+" + trim(value * level), leveled);
             case CROP_YIELD -> scaled(ChatColor.GREEN,
-                    "+" + pct(value) + "% Tokens and Gems from " + target,
+                    "+" + pct(value) + "% Coins and Gems from " + target,
                     "+" + pct(value * level) + "%", leveled);
             case HOE_TIER -> scaled(ChatColor.GOLD,
                     "Upgrades the Farmer's Hoe itself",
                     trim(value * level) + " tier" + (value * level == 1 ? "" : "s") + " up", leveled);
             case TOKEN_MULTIPLIER -> scaled(ChatColor.YELLOW,
-                    "+" + trim(value) + "x farm Tokens", "+" + trim(value * level) + "x", leveled);
+                    "+" + trim(value) + "x farm Coins", "+" + trim(value * level) + "x", leveled);
             case FARM_SPEED -> scaled(ChatColor.GREEN,
                     pct(value) + "% faster regrow", pct(value * level) + "%", leveled);
         };

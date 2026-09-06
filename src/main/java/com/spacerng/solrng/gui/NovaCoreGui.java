@@ -90,7 +90,7 @@ public class NovaCoreGui {
         List<String> lore = new ArrayList<>();
         lore.add(Lore.section(ChatColor.LIGHT_PURPLE, "Holding this tier"));
         lore.add(Lore.line(ChatColor.LIGHT_PURPLE,
-                String.format("%.2f", nova.multiplierAt(tier)) + "x Luck, Coins and Tokens"));
+                String.format("%.2f", nova.multiplierAt(tier)) + "x Luck, Money and Coins"));
         if (checkpoint) {
             lore.add(Lore.line(ChatColor.AQUA, "Checkpoint — a shatter never"));
             lore.add(Lore.line(ChatColor.AQUA, "drops you below here."));
@@ -121,7 +121,7 @@ public class NovaCoreGui {
         lore.add(Lore.line(ChatColor.LIGHT_PURPLE, "Every forge climbs a tier, or"));
         lore.add(Lore.line(ChatColor.LIGHT_PURPLE, "drops you to the last checkpoint."));
         lore.add(Lore.line(ChatColor.LIGHT_PURPLE, "Every tier held multiplies Luck,"));
-        lore.add(Lore.line(ChatColor.LIGHT_PURPLE, "Coins and Tokens at once."));
+        lore.add(Lore.line(ChatColor.LIGHT_PURPLE, "Money and Coins at once."));
         lore.add("");
         lore.add(Lore.section(ChatColor.AQUA, "Information"));
         lore.add(Lore.stat(ChatColor.AQUA, "Tier", tier + " / " + nova.getMaxTier()));
@@ -159,7 +159,7 @@ public class NovaCoreGui {
             lore.add(Lore.section(ChatColor.AQUA, "This attempt"));
             lore.add(Lore.stat(odds, "Success", String.format("%.1f%%", chance * 100.0)));
             lore.add((affordable ? ChatColor.YELLOW : ChatColor.RED) + Lore.BULLET + " "
-                    + ChatColor.GRAY + "Cost: " + Currency.TOKENS.price(cost, affordable));
+                    + ChatColor.GRAY + "Cost: " + Currency.COINS.price(cost, affordable));
             lore.add(Lore.stat(ChatColor.RED, "On fail", "back to tier " + nova.checkpointBelow(tier)));
             lore.add("");
             lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " Your Luck raises the odds. The Core's");

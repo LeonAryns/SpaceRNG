@@ -190,14 +190,14 @@ public class MilestoneGui {
         if (tier.tokens() > 0 || tier.shards() > 0 || tier.money() > 0) {
             lore.add(Lore.section(ChatColor.GOLD, "Reward"));
             if (tier.tokens() > 0) {
-                lore.add(Currency.TOKENS.colour() + Lore.BULLET + " " + Currency.TOKENS.amount(tier.tokens()));
+                lore.add(Currency.COINS.colour() + Lore.BULLET + " " + Currency.COINS.amount(tier.tokens()));
             }
             if (tier.shards() > 0) {
                 lore.add(Currency.GEMS.colour() + Lore.BULLET + " " + Currency.GEMS.amount(tier.shards()));
             }
             if (tier.money() > 0) {
-                lore.add(Currency.COINS.colour() + Lore.BULLET + " "
-                        + Currency.COINS.amount(Math.round(tier.money())));
+                lore.add(Currency.MONEY.colour() + Lore.BULLET + " "
+                        + Currency.MONEY.amount(Math.round(tier.money())));
             }
             lore.add("");
         }

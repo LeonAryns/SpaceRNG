@@ -67,7 +67,7 @@ public class CropsGui {
 
         List<String> lore = new ArrayList<>();
         lore.add(Lore.section(ChatColor.GREEN, "Per harvest"));
-        lore.add(Currency.TOKENS.colour() + Lore.BULLET + " " + Currency.TOKENS.exact(crop.getTokens()));
+        lore.add(Currency.COINS.colour() + Lore.BULLET + " " + Currency.COINS.exact(crop.getTokens()));
         if (crop.getShards() > 0) {
             boolean gems = farm.shardsUnlocked(data);
             lore.add((gems ? Currency.GEMS.colour() : ChatColor.DARK_GRAY) + Lore.BULLET + " "

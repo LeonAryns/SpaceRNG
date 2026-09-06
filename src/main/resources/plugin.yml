@@ -70,6 +70,10 @@ commands:
     description: Open the Battle Pass
     usage: /pass
     aliases: [battlepass, bp]
+  potion:
+    description: Brew potions with rolled drops
+    usage: /potion
+    aliases: [potions, brew]
   boosts:
     description: See every boost currently running on you
     usage: /boosts

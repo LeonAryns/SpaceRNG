@@ -322,13 +322,13 @@ public class PassManager {
     public String describe(Reward reward) {
         List<String> parts = new ArrayList<>();
         if (reward.tokens() > 0) {
-            parts.add(com.spacerng.solrng.gui.Currency.TOKENS.amount(reward.tokens()));
+            parts.add(com.spacerng.solrng.gui.Currency.COINS.amount(reward.tokens()));
         }
         if (reward.gems() > 0) {
             parts.add(com.spacerng.solrng.gui.Currency.GEMS.amount(reward.gems()));
         }
         if (reward.coins() > 0) {
-            parts.add(com.spacerng.solrng.gui.Currency.COINS.amount(Math.round(reward.coins())));
+            parts.add(com.spacerng.solrng.gui.Currency.MONEY.amount(Math.round(reward.coins())));
         }
         if (reward.credits() > 0) {
             parts.add(com.spacerng.solrng.gui.Currency.CREDITS.amount(reward.credits()));
@@ -352,9 +352,9 @@ public class PassManager {
     public List<String> describeLines(Reward reward) {
         List<String> lines = new ArrayList<>();
         if (reward.tokens() > 0) {
-            lines.add(com.spacerng.solrng.gui.Currency.TOKENS.colour()
+            lines.add(com.spacerng.solrng.gui.Currency.COINS.colour()
                     + com.spacerng.solrng.gui.Lore.BULLET + " "
-                    + com.spacerng.solrng.gui.Currency.TOKENS.amount(reward.tokens()));
+                    + com.spacerng.solrng.gui.Currency.COINS.amount(reward.tokens()));
         }
         if (reward.gems() > 0) {
             lines.add(com.spacerng.solrng.gui.Currency.GEMS.colour()
@@ -362,9 +362,9 @@ public class PassManager {
                     + com.spacerng.solrng.gui.Currency.GEMS.amount(reward.gems()));
         }
         if (reward.coins() > 0) {
-            lines.add(com.spacerng.solrng.gui.Currency.COINS.colour()
+            lines.add(com.spacerng.solrng.gui.Currency.MONEY.colour()
                     + com.spacerng.solrng.gui.Lore.BULLET + " "
-                    + com.spacerng.solrng.gui.Currency.COINS.amount(Math.round(reward.coins())));
+                    + com.spacerng.solrng.gui.Currency.MONEY.amount(Math.round(reward.coins())));
         }
         if (reward.credits() > 0) {
             lines.add(com.spacerng.solrng.gui.Currency.CREDITS.colour()

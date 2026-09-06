@@ -145,11 +145,11 @@ public class DailyManager {
         return true;
     }
 
-    /** "5,000 Tokens, 2 Gems" — blank when a day pays nothing. */
+    /** "5,000 Coins, 2 Gems" — blank when a day pays nothing. */
     public String rewardText(Day day) {
         List<String> parts = new ArrayList<>();
         if (day.tokens() > 0) {
-            parts.add(ChatColor.YELLOW + String.format("%,d", day.tokens()) + " Tokens");
+            parts.add(ChatColor.YELLOW + String.format("%,d", day.tokens()) + " Coins");
         }
         if (day.shards() > 0) {
             parts.add(ChatColor.AQUA + String.format("%,d", day.shards()) + " Gems");

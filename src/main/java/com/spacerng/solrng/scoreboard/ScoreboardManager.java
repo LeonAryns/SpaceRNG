@@ -66,7 +66,7 @@ public class ScoreboardManager {
         var registration = plugin.getServer().getServicesManager().getRegistration(Economy.class);
         if (registration != null) {
             this.economy = registration.getProvider();
-            plugin.getLogger().info("[SolRNG] Hooked into Vault economy for the Coins scoreboard stat.");
+            plugin.getLogger().info("[SolRNG] Hooked into Vault economy for the Money scoreboard stat.");
         }
     }
 
@@ -156,7 +156,7 @@ public class ScoreboardManager {
         lines.add(""); // blank spacer
         lines.add(Lore.header("Your Wallet"));
         lines.add(balanceLine(player));
-        lines.add(walletLine(Currency.TOKENS, data.getTokens()));
+        lines.add(walletLine(Currency.COINS, data.getTokens()));
         lines.add(walletLine(Currency.GEMS, data.getShards()));
         lines.add(walletLine(Currency.CREDITS, data.getPoints()));
 
@@ -205,9 +205,9 @@ public class ScoreboardManager {
 
     private String balanceLine(Player player) {
         if (economy == null) {
-            return Currency.COINS.mark() + " N/A";
+            return Currency.MONEY.mark() + " N/A";
         }
-        return walletLine(Currency.COINS, Math.round(economy.getBalance(player)));
+        return walletLine(Currency.MONEY, Math.round(economy.getBalance(player)));
     }
 
     /**

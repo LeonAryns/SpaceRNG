@@ -191,7 +191,7 @@ public class NovaCoreManager {
 
         long cost = costFor(data, tier);
         if (charge && !data.spendTokens(cost)) {
-            player.sendMessage(ChatColor.RED + "You need " + String.format("%,d", cost) + " Tokens for that.");
+            player.sendMessage(ChatColor.RED + "You need " + String.format("%,d", cost) + " Coins for that.");
             player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
             return false;
         }

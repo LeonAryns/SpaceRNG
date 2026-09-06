@@ -77,7 +77,7 @@ public class BoostsCommand implements CommandExecutor {
         return switch (effect) {
             case LUCK -> "Luck";
             case SPEED -> "Speed";
-            case TOKENS -> "Tokens";
+            case TOKENS -> "Coins";
             case ENCHANT_PROC -> "Enchant chance";
             default -> effect.name();
         };
@@ -87,7 +87,7 @@ public class BoostsCommand implements CommandExecutor {
         return switch (effect) {
             case LUCK -> ChatColor.GREEN;
             case SPEED -> ChatColor.YELLOW;
-            case TOKENS -> ChatColor.GREEN;
+            case TOKENS -> ChatColor.GOLD;
             case ENCHANT_PROC -> ChatColor.LIGHT_PURPLE;
             default -> ChatColor.AQUA;
         };

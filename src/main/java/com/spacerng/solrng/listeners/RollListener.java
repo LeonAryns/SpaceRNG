@@ -495,7 +495,7 @@ public class RollListener implements Listener {
 
         if (!silent) {
             String moneyText = moneyEarned > 0
-                    ? ChatColor.GOLD + "  +" + RollFormat.abbreviate(Math.round(moneyEarned)) + " Coins"
+                    ? ChatColor.GOLD + "  +" + RollFormat.abbreviate(Math.round(moneyEarned)) + " Money"
                     : "";
             sendActionBar(player, RollFormat.displayName(plugin, result, shiny)
                     + ChatColor.GRAY + "  " + RollFormat.compactOdds(result.getOdds()) + moneyText);

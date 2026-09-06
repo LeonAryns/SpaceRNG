@@ -227,11 +227,11 @@ public class MilestoneManager {
         player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0f, 1.0f);
     }
 
-    /** "1,000 Tokens, 5 Gems" — blank when a tier pays nothing. */
+    /** "1,000 Coins, 5 Gems" — blank when a tier pays nothing. */
     public String rewardText(MilestoneTrack.Tier tier) {
         List<String> parts = new ArrayList<>();
         if (tier.tokens() > 0) {
-            parts.add(ChatColor.YELLOW + String.format("%,d", tier.tokens()) + " Tokens");
+            parts.add(ChatColor.YELLOW + String.format("%,d", tier.tokens()) + " Coins");
         }
         if (!tier.consumable().isEmpty()) {
             var consumable = plugin.getConsumableManager().get(tier.consumable());
