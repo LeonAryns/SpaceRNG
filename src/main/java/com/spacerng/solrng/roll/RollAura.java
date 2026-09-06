@@ -69,8 +69,8 @@ public final class RollAura {
     public static long finaleTicks(Rarity rarity) {
         if (!isBigDrop(rarity)) return 0L;
         return switch (rarity) {
-            case DIVINE -> 60L;    // 3s
-            case MYTHICAL -> 46L;  // 2.3s - ends just after the last bolt
+            case DIVINE -> 60L;    // 3s, the sphere and the pillar both need it
+            case MYTHICAL -> 46L;  // 2.3s, enough for the burst to settle
             case LEGENDARY -> 28L; // 1.4s
             default -> 20L;        // 1s, Epic
         };
@@ -106,12 +106,13 @@ public final class RollAura {
 
     private static Color colorFor(Rarity rarity) {
         return switch (rarity) {
-            // The red belongs to the rarest drop: it's the strongest look
-            // in the plugin, so it goes on the thing you'll see least.
-            // Mythical takes the warm near-white in exchange - never pure
-            // white, because a 255,255,255 dust cloud reads as a glitch.
-            case DIVINE -> Color.fromRGB(255, 60, 60);
-            case MYTHICAL -> Color.fromRGB(255, 252, 224);
+            // Divine is the warm near-white, never pure white: a
+            // 255,255,255 dust cloud reads as a rendering glitch rather
+            // than as light. Mythical takes the red, which is the most
+            // aggressive colour in the plugin and belongs to the drop that
+            // sounds like something breaking.
+            case DIVINE -> Color.fromRGB(255, 252, 224);
+            case MYTHICAL -> Color.fromRGB(255, 60, 60);
             case LEGENDARY -> Color.fromRGB(255, 170, 0);
             default -> Color.fromRGB(168, 85, 247); // Epic
         };
@@ -119,8 +120,8 @@ public final class RollAura {
 
     private static Particle accentFor(Rarity rarity) {
         return switch (rarity) {
-            case DIVINE -> Particle.DRAGON_BREATH;
-            case MYTHICAL -> Particle.END_ROD;
+            case DIVINE -> Particle.END_ROD;
+            case MYTHICAL -> Particle.DRAGON_BREATH;
             case LEGENDARY -> Particle.FLAME;
             default -> Particle.END_ROD; // Epic
         };
@@ -135,25 +136,30 @@ public final class RollAura {
         List<Cue> cues = new ArrayList<>();
         switch (rarity) {
             case DIVINE -> {
-                // Choral and vast rather than violent - a Divine should
-                // sound like something arriving, not something breaking.
-                cues.add(new Cue(0.00, Sound.BLOCK_BEACON_ACTIVATE, 4.0f, 0.5f));
-                cues.add(new Cue(0.10, Sound.ENTITY_ENDER_DRAGON_GROWL, 3.0f, 1.6f));
-                cues.add(new Cue(0.24, Sound.BLOCK_CONDUIT_ACTIVATE, 4.0f, 0.7f));
-                cues.add(new Cue(0.38, Sound.BLOCK_AMETHYST_BLOCK_CHIME, 4.0f, 0.6f));
-                cues.add(new Cue(0.52, Sound.BLOCK_BEACON_POWER_SELECT, 4.0f, 0.5f));
-                cues.add(new Cue(0.64, Sound.BLOCK_CONDUIT_AMBIENT_SHORT, 4.0f, 1.4f));
-                cues.add(new Cue(0.72, Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 4.0f, 1.4f));
-                cues.add(new Cue(0.80, Sound.ENTITY_ELDER_GUARDIAN_CURSE, 3.0f, 1.8f));
-                cues.add(new Cue(0.86, Sound.ENTITY_WARDEN_SONIC_BOOM, 3.0f, 1.6f));
+                // The heavy one. Cue positions are fractions of the run,
+                // so the same shape stretched over 15 seconds instead of
+                // 10 lands with more air between the hits, not faster.
+                cues.add(new Cue(0.00, Sound.ENTITY_ENDER_DRAGON_GROWL, 4.0f, 0.6f));
+                cues.add(new Cue(0.10, Sound.BLOCK_PORTAL_TRIGGER, 2.0f, 0.5f));
+                cues.add(new Cue(0.22, Sound.ENTITY_WITHER_SPAWN, 3.0f, 0.7f));
+                cues.add(new Cue(0.34, Sound.BLOCK_CONDUIT_ACTIVATE, 4.0f, 0.6f));
+                cues.add(new Cue(0.45, Sound.ENTITY_ENDER_DRAGON_GROWL, 4.0f, 0.8f));
+                cues.add(new Cue(0.58, Sound.ENTITY_ELDER_GUARDIAN_CURSE, 2.5f, 1.2f));
+                cues.add(new Cue(0.68, Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 4.0f, 1.4f));
+                cues.add(new Cue(0.78, Sound.ENTITY_WITHER_SPAWN, 3.0f, 1.0f));
+                cues.add(new Cue(0.86, Sound.ENTITY_WARDEN_SONIC_BOOM, 3.0f, 1.0f));
             }
             case MYTHICAL -> {
-                cues.add(new Cue(0.00, Sound.ENTITY_ENDER_DRAGON_GROWL, 4.0f, 0.6f));
-                cues.add(new Cue(0.12, Sound.BLOCK_PORTAL_TRIGGER, 2.0f, 0.5f));
-                cues.add(new Cue(0.28, Sound.ENTITY_WITHER_SPAWN, 3.0f, 0.7f));
-                cues.add(new Cue(0.45, Sound.ENTITY_ENDER_DRAGON_GROWL, 4.0f, 0.8f));
-                cues.add(new Cue(0.60, Sound.ENTITY_ELDER_GUARDIAN_CURSE, 2.5f, 1.2f));
-                cues.add(new Cue(0.82, Sound.ENTITY_WARDEN_SONIC_BOOM, 3.0f, 1.0f));
+                // Choral rather than violent: this one sounds like
+                // something arriving. The thunder and the sonic boom stay
+                // out of it so the Divine keeps the heaviest hits to
+                // itself.
+                cues.add(new Cue(0.00, Sound.BLOCK_BEACON_ACTIVATE, 4.0f, 0.5f));
+                cues.add(new Cue(0.14, Sound.BLOCK_CONDUIT_ACTIVATE, 4.0f, 0.7f));
+                cues.add(new Cue(0.30, Sound.BLOCK_AMETHYST_BLOCK_CHIME, 4.0f, 0.6f));
+                cues.add(new Cue(0.48, Sound.BLOCK_BEACON_POWER_SELECT, 4.0f, 0.5f));
+                cues.add(new Cue(0.64, Sound.BLOCK_CONDUIT_AMBIENT_SHORT, 4.0f, 1.4f));
+                cues.add(new Cue(0.82, Sound.ENTITY_ELDER_GUARDIAN_CURSE, 3.0f, 1.8f));
             }
             case LEGENDARY -> {
                 cues.add(new Cue(0.00, Sound.BLOCK_BEACON_ACTIVATE, 2.5f, 0.8f));
@@ -203,7 +209,9 @@ public final class RollAura {
         this.score = scoreFor(rarity);
         // Matches the loudest cue's reach (16 blocks per 1.0 volume), so
         // anyone who can hear it can also see it.
-        this.viewRange = rarity == Rarity.MYTHICAL ? 64.0 : rarity == Rarity.LEGENDARY ? 48.0 : 32.0;
+        this.viewRange = rarity == Rarity.DIVINE ? 72.0
+                : rarity == Rarity.MYTHICAL ? 64.0
+                : rarity == Rarity.LEGENDARY ? 48.0 : 32.0;
     }
 
     // ------------------------------------------------------------- lifecycle
@@ -298,7 +306,7 @@ public final class RollAura {
             drawBuildUp(progress);
             // A rising note ladder under the score, so something is always
             // climbing even between cues.
-            int noteEvery = rarity == Rarity.MYTHICAL ? 10 : 6;
+            int noteEvery = rarity == Rarity.DIVINE ? 10 : 6;
             if (elapsed % noteEvery == 0) {
                 sound(rarity == Rarity.EPIC ? Sound.BLOCK_NOTE_BLOCK_PLING : Sound.BLOCK_NOTE_BLOCK_BELL,
                         1.2f, (float) Math.min(2.0, 0.5 + progress * 1.5));
@@ -355,9 +363,9 @@ public final class RollAura {
             ring(base, maxRadius, (int) (maxRadius * 6), dust, 0.05);
         }
 
-        // Mythical adds a shockwave that resets every 40 ticks and a column
+        // Divine adds a shockwave that resets every 40 ticks and a column
         // of light straight up.
-        if (rarity == Rarity.MYTHICAL) {
+        if (rarity == Rarity.DIVINE) {
             double wave = (elapsed % 40) / 40.0;
             ring(base, 1.0 + wave * (maxRadius + 2.0), 40, dustBright, 0.02);
 
@@ -388,7 +396,7 @@ public final class RollAura {
 
         // The core tightens and brightens as everything falls into it.
         dustAt(core, 6, 0.12 * (1.0 - p), dustBright);
-        if (rarity == Rarity.MYTHICAL) {
+        if (rarity == Rarity.DIVINE) {
             puff(Particle.ELECTRIC_SPARK, core, 4, 0.15, 0.15, 0.15, 0.02);
         }
     }
@@ -438,8 +446,8 @@ public final class RollAura {
             }
             safely("finale frame " + frame[0], () -> {
                 refreshAudience();
-                if (rarity == Rarity.MYTHICAL) {
-                    mythicalBeat(frame[0], length);
+                if (rarity == Rarity.DIVINE) {
+                    beatFinale(frame[0], length);
                 } else {
                     if (frame[0] == 1) detonate();
                     aftermath(frame[0], length);
@@ -472,7 +480,12 @@ public final class RollAura {
      *   f50      the aftershock
      *   f78      the settle
      */
-    private void mythicalBeat(long frame, long length) {
+    /**
+     * The big finale: a real sphere, a pillar, and the strike. Divine's
+     * alone now - Mythical takes the detonate-and-settle ending, which is
+     * the quieter of the two and belongs on the commoner drop.
+     */
+    private void beatFinale(long frame, long length) {
         Location base = player.getLocation();
         Location core = base.clone().add(0, 1.6, 0);
 
@@ -480,9 +493,9 @@ public final class RollAura {
             puff(Particle.FLASH, core, 3, 0.0, 0.0, 0.0, 0.0);
             puff(Particle.EXPLOSION_EMITTER, core, 4, 1.6, 0.8, 1.6, 0.0);
             puff(Particle.SONIC_BOOM, core, 1, 0.0, 0.0, 0.0, 0.0);
-            puff(Particle.DRAGON_BREATH, core, 300, 2.6, 1.6, 2.6, 0.45);
-            dustAt(core, 260, 2.4, dustBright);
-            lightningRing(6.0, 8);
+            puff(accent, core, 340, 3.0, 1.8, 3.0, 0.45);
+            dustAt(core, 300, 2.8, dustBright);
+            lightningRing(8.0, 10);
 
             sound(Sound.ENTITY_LIGHTNING_BOLT_IMPACT, 4.0f, 0.6f);
             sound(Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 4.0f, 0.8f);
@@ -494,7 +507,7 @@ public final class RollAura {
         // the part that makes the burst visible from inside it.
         if (frame <= 26) {
             double p = frame / 26.0;
-            double radius = 1.0 + ease(p) * 17.0;
+            double radius = 1.0 + ease(p) * 22.0;
             // Thins out as it grows so the far edge doesn't turn into a wall.
             int rings = p < 0.5 ? 7 : 5;
             int points = p < 0.5 ? 18 : 12;
@@ -504,7 +517,7 @@ public final class RollAura {
         // The pillar: straight up, so it's the landmark everyone turns to.
         double pillarLife = 1.0 - ((double) frame / length);
         double pillarWidth = 0.4 + 1.6 * Math.sin(Math.min(1.0, frame / 14.0) * Math.PI * 0.5) * pillarLife;
-        for (double y = 0.0; y < 30.0; y += 1.0) {
+        for (double y = 0.0; y < 40.0; y += 1.0) {
             double sway = Math.sin((y * 0.4) + (frame * 0.25)) * pillarWidth;
             dustAt(base.clone().add(sway, y, Math.cos((y * 0.4) + (frame * 0.25)) * pillarWidth),
                     1, 0.05, y < 6 ? dustBright : dust);
