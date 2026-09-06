@@ -64,9 +64,9 @@ public class RollListener implements Listener {
 
     public RollListener(SolRNGPlugin plugin) {
         this.plugin = plugin;
-        this.rarityKey = new NamespacedKey(plugin, "solrng_rarity");
-        this.rollNameKey = new NamespacedKey(plugin, "solrng_roll_name");
-        this.shinyKey = new NamespacedKey(plugin, "solrng_shiny");
+        this.rarityKey = SolRNGPlugin.key( "solrng_rarity");
+        this.rollNameKey = SolRNGPlugin.key( "solrng_roll_name");
+        this.shinyKey = SolRNGPlugin.key( "solrng_shiny");
     }
 
     public NamespacedKey getRarityKey() {

@@ -33,7 +33,7 @@ public class StarforgeGui {
     private static final int BALANCE_SLOT = 40; // bottom row, centred
 
     public static NamespacedKey tierIdKey(SolRNGPlugin plugin) {
-        return new NamespacedKey(plugin, "solrng_starforge_tier_id");
+        return SolRNGPlugin.key( "solrng_starforge_tier_id");
     }
 
     public static Inventory build(SolRNGPlugin plugin, Player player) {

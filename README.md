@@ -1,4 +1,4 @@
-# SolRNG — SpaceRNG plugin (v1)
+# SpaceRNG plugin (v1)
 
 A Paper plugin implementing the core roll → item → skill tree loop.
 
@@ -17,7 +17,7 @@ A Paper plugin implementing the core roll → item → skill tree loop.
 - **`/tag equip`** (while holding a rolled item) sets that item as your name tag — shows above
   your head, in the tab list, and before your name in chat. `/tag clear` removes it.
 - **Server-wide broadcast** when someone rolls Epic or better (configurable).
-- Per-player data is saved to `plugins/SolRNG/playerdata/<uuid>.yml` automatically.
+- Per-player data is saved to `plugins/SpaceRNG/playerdata/<uuid>.yml` automatically.
 
 ## Building the jar
 
@@ -28,15 +28,15 @@ cd sol-rng
 mvn clean package
 ```
 
-This produces `target/Sol RNG V<version>.jar` (version bumps each release, e.g. `Sol RNG V4.jar`). That's the file you upload.
+This produces `target/Space RNG V<version>.jar` (version bumps each release, e.g. `Space RNG V4.jar`). That's the file you upload.
 
 ## Installing on Minehut
 
 1. Open your server dashboard → **File Manager**
 2. Navigate to the `plugins` folder
-3. Upload the `Sol RNG V<version>.jar` file
+3. Upload the `Space RNG V<version>.jar` file
 4. Restart the server from the panel
-5. Config generates at `plugins/SolRNG/config.yml` — edit it there and run `/rngadmin reload`
+5. Config generates at `plugins/SpaceRNG/config.yml` — edit it there and run `/rngadmin reload`
    to apply changes without restarting
 
 ## Quick test

@@ -54,7 +54,7 @@ public class HoeEnchantManager {
         enchants.clear();
         ConfigurationSection section = config.getConfigurationSection("farming.enchants");
         if (section == null) {
-            plugin.getLogger().info("[SolRNG] No hoe enchants configured.");
+            plugin.getLogger().info("No hoe enchants configured.");
             return;
         }
 
@@ -73,7 +73,7 @@ public class HoeEnchantManager {
                     e.getLong("base-cost", 25000L),
                     e.getDouble("cost-growth", 1.12)));
         }
-        plugin.getLogger().info("[SolRNG] Loaded " + enchants.size() + " hoe enchants.");
+        plugin.getLogger().info("Loaded " + enchants.size() + " hoe enchants.");
     }
 
     private String colourOf(String raw) {

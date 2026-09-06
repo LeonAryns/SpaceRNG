@@ -120,7 +120,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         line(sender, "farmfill", "<radius> [confirm]", "Fill a square of farm plots around you");
         line(sender, "boost", "<level> [minutes]", "Force the global Luck boost on");
         line(sender, "nova", "<tier> [player]", "Set a Nova Core tier");
-        line(sender, "placeholders", "", "What every %solrng_% placeholder resolves to right now");
+        line(sender, "placeholders", "", "What every %spacerng_% placeholder resolves to right now");
         line(sender, "payout", "", "Run the farming payout now and reset the period");
     }
 
@@ -931,9 +931,9 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         for (String key : List.of("tag", "tag_plain", "tag_name", "tag_odds", "tag_multiplier",
                 "prestige", "prestige_roman", "prestige_badge", "level", "level_number",
                 "potion_rolls", "potion_luck", "potion_speed", "potion_active", "roll_charges")) {
-            String value = me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(player, "%solrng_" + key + "%");
-            boolean unresolved = value.equals("%solrng_" + key + "%");
-            sender.sendMessage(ChatColor.YELLOW + "%solrng_" + key + "%" + ChatColor.DARK_GRAY + " -> "
+            String value = me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(player, "%spacerng_" + key + "%");
+            boolean unresolved = value.equals("%spacerng_" + key + "%");
+            sender.sendMessage(ChatColor.YELLOW + "%spacerng_" + key + "%" + ChatColor.DARK_GRAY + " -> "
                     + (unresolved ? ChatColor.RED + "UNRESOLVED" : ChatColor.WHITE + "[" + value + ChatColor.WHITE + "]"));
         }
         sender.sendMessage(ChatColor.GRAY + "Empty is normal for tag placeholders with no tag equipped.");

@@ -61,7 +61,7 @@ public class LeaderboardManager {
         try {
             zone = ZoneId.of(config.getString("leaderboard.timezone", "UTC"));
         } catch (RuntimeException ex) {
-            plugin.getLogger().warning("[SolRNG] Bad leaderboard.timezone, using UTC.");
+            plugin.getLogger().warning("Bad leaderboard.timezone, using UTC.");
             zone = ZoneId.of("UTC");
         }
         resetHour = Math.max(0, Math.min(23, config.getInt("leaderboard.farming.reset-hour", 0)));
@@ -268,7 +268,7 @@ public class LeaderboardManager {
             } catch (IllegalArgumentException ignored) {
             }
         }
-        plugin.getLogger().info("[SolRNG] Leaderboard index holds " + index.size() + " player(s).");
+        plugin.getLogger().info("Leaderboard index holds " + index.size() + " player(s).");
     }
 
     public void saveIndex() {
@@ -286,7 +286,7 @@ public class LeaderboardManager {
         try {
             yml.save(file);
         } catch (IOException ex) {
-            plugin.getLogger().warning("[SolRNG] Couldn't save the leaderboard index: " + ex.getMessage());
+            plugin.getLogger().warning("Couldn't save the leaderboard index: " + ex.getMessage());
         }
     }
 }

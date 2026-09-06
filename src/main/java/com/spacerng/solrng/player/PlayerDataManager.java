@@ -37,7 +37,7 @@ public class PlayerDataManager {
         cache.remove(uuid);
         File file = fileFor(uuid);
         if (file.exists() && !file.delete()) {
-            plugin.getLogger().warning("[SolRNG] Couldn't delete player data file for " + uuid);
+            plugin.getLogger().warning("Couldn't delete player data file for " + uuid);
         }
         PlayerData fresh = new PlayerData(uuid);
         cache.put(uuid, fresh);
@@ -225,7 +225,7 @@ public class PlayerDataManager {
         try {
             yml.save(file);
         } catch (IOException e) {
-            plugin.getLogger().warning("[SolRNG] Couldn't pay offline player " + uuid + ": " + e.getMessage());
+            plugin.getLogger().warning("Couldn't pay offline player " + uuid + ": " + e.getMessage());
         }
     }
 
@@ -342,7 +342,7 @@ public class PlayerDataManager {
         try {
             yml.save(fileFor(data.getUuid()));
         } catch (IOException e) {
-            plugin.getLogger().warning("[SolRNG] Failed to save player data for " + data.getUuid() + ": " + e.getMessage());
+            plugin.getLogger().warning("Failed to save player data for " + data.getUuid() + ": " + e.getMessage());
         }
     }
 }

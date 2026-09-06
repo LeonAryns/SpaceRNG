@@ -6,7 +6,7 @@
 
     <groupId>com.spacerng</groupId>
     <artifactId>sol-rng</artifactId>
-    <version>56</version>
+    <version>57</version>
     <packaging>jar</packaging>
 
     <properties>
@@ -58,7 +58,7 @@
     </dependencies>
 
     <build>
-        <finalName>Sol RNG V${project.version}</finalName>
+        <finalName>Space RNG V${project.version}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

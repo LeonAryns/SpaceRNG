@@ -1,4 +1,4 @@
-name: SolRNG
+name: SpaceRNG
 version: '1.0.0'
 main: com.spacerng.solrng.SolRNGPlugin
 api-version: '1.21'
@@ -83,7 +83,7 @@ commands:
     usage: /boosts
     aliases: [effects, potions]
   rngadmin:
-    description: Admin tools for SolRNG
+    description: Admin tools for SpaceRNG
     usage: /rngadmin <reload|setspawn|starforge|reset|give|drops|bank|aura|roll|unlock|odds|farmblock|farmfill|crops|milestones|boost|nova|payout>
     permission: solrng.admin
     aliases: [solrngadmin]

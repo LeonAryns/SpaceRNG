@@ -56,7 +56,7 @@ public class SkillTreeManager {
         for (String tree : TREES) {
             loadTree(config, tree);
         }
-        logger.info("[SolRNG] Loaded " + nodes.size() + " skill nodes across " + TREES.size() + " trees.");
+        logger.info("Loaded " + nodes.size() + " skill nodes across " + TREES.size() + " trees.");
     }
 
     private void loadTree(FileConfiguration config, String tree) {
@@ -95,7 +95,7 @@ public class SkillTreeManager {
                         maxLevel, costGrowth, tree, parseSlot(n.getString("slot", "")), page,
                         icon, target, interval, n.getStringList("requires-all")));
             } catch (Exception ex) {
-                logger.warning("[SolRNG] Skipped malformed skill node '" + id + "': " + ex.getMessage());
+                logger.warning("Skipped malformed skill node '" + id + "': " + ex.getMessage());
             }
         }
     }

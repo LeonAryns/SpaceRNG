@@ -41,7 +41,7 @@ public class StarforgeManager {
 
     public StarforgeManager(SolRNGPlugin plugin) {
         this.plugin = plugin;
-        this.itemKey = new NamespacedKey(plugin, "solrng_starforge");
+        this.itemKey = SolRNGPlugin.key( "solrng_starforge");
     }
 
     public NamespacedKey getItemKey() {
@@ -52,7 +52,7 @@ public class StarforgeManager {
         tiers.clear();
         ConfigurationSection section = config.getConfigurationSection("starforge.tiers");
         if (section == null) {
-            plugin.getLogger().warning("[SolRNG] No starforge.tiers configured.");
+            plugin.getLogger().warning("No starforge.tiers configured.");
             return;
         }
 
@@ -68,7 +68,7 @@ public class StarforgeManager {
                     try {
                         costs.put(Rarity.valueOf(rarityKey.toUpperCase()), costsSection.getLong(rarityKey));
                     } catch (IllegalArgumentException ex) {
-                        plugin.getLogger().warning("[SolRNG] Unknown rarity '" + rarityKey + "' in starforge tier " + id);
+                        plugin.getLogger().warning("Unknown rarity '" + rarityKey + "' in starforge tier " + id);
                     }
                 }
             }
@@ -85,7 +85,7 @@ public class StarforgeManager {
                             t.getBoolean("underline", false),
                             t.getBoolean("strikethrough", false))));
         }
-        plugin.getLogger().info("[SolRNG] Loaded " + tiers.size() + " Starforge tiers.");
+        plugin.getLogger().info("Loaded " + tiers.size() + " Starforge tiers.");
     }
 
     public Map<String, StarforgeTier> getTiers() {

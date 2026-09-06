@@ -43,7 +43,27 @@ public class SolRNGExpansion extends PlaceholderExpansion {
 
     @Override
     public @NotNull String getIdentifier() {
-        return "solrng";
+        return "spacerng";
+    }
+
+    /**
+     * The old %solrng_% identifier, kept alive so every TAB format,
+     * hologram and sign written before the rename keeps resolving.
+     *
+     * PlaceholderAPI keys expansions by identifier, so a second name has
+     * to be a second registration - there is no alias field. Same
+     * expansion, same answers, two spellings.
+     */
+    public static class Legacy extends SolRNGExpansion {
+
+        public Legacy(SolRNGPlugin plugin) {
+            super(plugin);
+        }
+
+        @Override
+        public @NotNull String getIdentifier() {
+            return "solrng";
+        }
     }
 
     @Override

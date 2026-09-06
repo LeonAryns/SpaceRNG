@@ -45,7 +45,7 @@ public class DailyManager {
         try {
             zone = ZoneId.of(config.getString("daily.timezone", "UTC"));
         } catch (RuntimeException ex) {
-            plugin.getLogger().warning("[SolRNG] Bad daily.timezone, falling back to UTC.");
+            plugin.getLogger().warning("Bad daily.timezone, falling back to UTC.");
             zone = ZoneId.of("UTC");
         }
 
@@ -59,10 +59,10 @@ public class DailyManager {
                         entry.get("credits") == null ? 0L : Long.parseLong(String.valueOf(entry.get("credits"))),
                         entry.get("note") == null ? "" : String.valueOf(entry.get("note"))));
             } catch (RuntimeException ex) {
-                plugin.getLogger().warning("[SolRNG] Skipped a malformed daily reward: " + entry);
+                plugin.getLogger().warning("Skipped a malformed daily reward: " + entry);
             }
         }
-        plugin.getLogger().info("[SolRNG] Loaded a " + days.size() + "-day daily streak.");
+        plugin.getLogger().info("Loaded a " + days.size() + "-day daily streak.");
     }
 
     public List<Day> getDays() {

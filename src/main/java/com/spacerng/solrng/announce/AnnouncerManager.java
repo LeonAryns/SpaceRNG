@@ -56,7 +56,7 @@ public class AnnouncerManager {
                 if (!block.isEmpty()) messages.add(block);
             }
         }
-        plugin.getLogger().info("[SolRNG] Loaded " + messages.size() + " announcement blocks.");
+        plugin.getLogger().info("Loaded " + messages.size() + " announcement blocks.");
     }
 
     private String colour(String raw) {

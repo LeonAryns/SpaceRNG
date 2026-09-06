@@ -26,7 +26,7 @@ public class CropsGui {
     private static final int[] SLOTS = {10, 11, 12, 13, 14, 15, 16, 19, 20, 21, 22, 23, 24, 25};
 
     public static NamespacedKey cropKey(SolRNGPlugin plugin) {
-        return new NamespacedKey(plugin, "solrng_crop_id");
+        return SolRNGPlugin.key( "solrng_crop_id");
     }
 
     public static Inventory build(SolRNGPlugin plugin, Player player) {

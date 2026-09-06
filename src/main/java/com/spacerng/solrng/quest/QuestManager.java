@@ -57,10 +57,10 @@ public class QuestManager {
                         entry.get("tokens") == null ? 0L : Long.parseLong(String.valueOf(entry.get("tokens"))),
                         entry.get("money") == null ? 0.0 : Double.parseDouble(String.valueOf(entry.get("money")))));
             } catch (RuntimeException ex) {
-                plugin.getLogger().warning("[SolRNG] Skipped a malformed guide quest: " + entry);
+                plugin.getLogger().warning("Skipped a malformed guide quest: " + entry);
             }
         }
-        plugin.getLogger().info("[SolRNG] Loaded " + quests.size() + " starting-guide quests.");
+        plugin.getLogger().info("Loaded " + quests.size() + " starting-guide quests.");
     }
 
     public List<Quest> getQuests() {

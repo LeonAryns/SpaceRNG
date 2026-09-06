@@ -41,14 +41,14 @@ public class ConsumableManager {
 
     public ConsumableManager(SolRNGPlugin plugin) {
         this.plugin = plugin;
-        this.idKey = new NamespacedKey(plugin, "solrng_consumable");
+        this.idKey = SolRNGPlugin.key( "solrng_consumable");
     }
 
     public void load(FileConfiguration config) {
         consumables.clear();
         ConfigurationSection section = config.getConfigurationSection("consumables");
         if (section == null) {
-            plugin.getLogger().info("[SolRNG] No consumables configured.");
+            plugin.getLogger().info("No consumables configured.");
             return;
         }
 
@@ -75,10 +75,10 @@ public class ConsumableManager {
                         parseCosts(c.getConfigurationSection("costs")),
                         c.getString("description", "")));
             } catch (Exception ex) {
-                plugin.getLogger().warning("[SolRNG] Skipped malformed consumable '" + id + "': " + ex.getMessage());
+                plugin.getLogger().warning("Skipped malformed consumable '" + id + "': " + ex.getMessage());
             }
         }
-        plugin.getLogger().info("[SolRNG] Loaded " + consumables.size() + " consumables.");
+        plugin.getLogger().info("Loaded " + consumables.size() + " consumables.");
     }
 
     /**

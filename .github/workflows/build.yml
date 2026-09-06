@@ -1,4 +1,4 @@
-name: Build SolRNG
+name: Build SpaceRNG
 
 on:
   push:
@@ -27,5 +27,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: sol-rng-jar
-          path: target/Sol RNG V*.jar
+          path: target/Space RNG V*.jar
           if-no-files-found: error

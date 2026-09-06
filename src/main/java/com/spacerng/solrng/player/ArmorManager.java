@@ -36,7 +36,7 @@ public class ArmorManager {
 
     public ArmorManager(SolRNGPlugin plugin) {
         this.plugin = plugin;
-        this.tierKey = new NamespacedKey(plugin, "solrng_armor_tier");
+        this.tierKey = SolRNGPlugin.key( "solrng_armor_tier");
         this.logger = plugin.getLogger();
     }
 
@@ -65,10 +65,10 @@ public class ArmorManager {
                 }
                 tiers.put(id, new ArmorTier(id, display, costs, luckBonus, speedBonus));
             } catch (Exception ex) {
-                logger.warning("[SolRNG] Skipped malformed armor tier '" + id + "': " + ex.getMessage());
+                logger.warning("Skipped malformed armor tier '" + id + "': " + ex.getMessage());
             }
         }
-        logger.info("[SolRNG] Loaded " + tiers.size() + " armor tiers.");
+        logger.info("Loaded " + tiers.size() + " armor tiers.");
     }
 
     public Map<String, ArmorTier> getTiers() {

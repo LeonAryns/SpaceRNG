@@ -66,7 +66,7 @@ public class ScoreboardManager {
         var registration = plugin.getServer().getServicesManager().getRegistration(Economy.class);
         if (registration != null) {
             this.economy = registration.getProvider();
-            plugin.getLogger().info("[SolRNG] Hooked into Vault economy for the Money scoreboard stat.");
+            plugin.getLogger().info("Hooked into Vault economy for the Money scoreboard stat.");
         }
     }
 
@@ -200,15 +200,16 @@ public class ScoreboardManager {
     }
 
     /**
-     * "● 216M Coins" — the currency's own glyph IS the gutter mark.
+     * "| 216M Coins" — the same yellow gutter pipe the stat block above
+     * uses.
      *
-     * The stat block above uses a yellow pipe in the same position, so
-     * every line in the sidebar starts with exactly one glyph and a space
-     * and the whole column lines up. Keeping the pipe as well pushed the
-     * wallet text one glyph right of everything else.
+     * The glyphs used to carry that job, but they were dropped from the
+     * readouts, which left the wallet flush against the edge while every
+     * stat line above it sat two characters in. One mark, one space, one
+     * column, all the way down.
      */
     private String walletLine(Currency currency, long amount) {
-        return currency.amount(amount);
+        return ChatColor.YELLOW + "| " + currency.amount(amount);
     }
 
     /**
@@ -225,7 +226,8 @@ public class ScoreboardManager {
 
     private String balanceLine(Player player) {
         if (economy == null) {
-            return Currency.MONEY.mark() + " N/A";
+            return ChatColor.YELLOW + "| " + ChatColor.GRAY + "N/A "
+                    + Currency.MONEY.colour() + Currency.MONEY.label();
         }
         return walletLine(Currency.MONEY, Math.round(economy.getBalance(player)));
     }

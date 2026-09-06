@@ -45,12 +45,12 @@ public class MilestoneGui {
     private static final int BAR_LENGTH = 20;
 
     public static NamespacedKey trackKey(SolRNGPlugin plugin) {
-        return new NamespacedKey(plugin, "solrng_milestone_track");
+        return SolRNGPlugin.key( "solrng_milestone_track");
     }
 
     /** Identifies a claimable rung, stored as "track:index". */
     public static NamespacedKey tierKey(SolRNGPlugin plugin) {
-        return new NamespacedKey(plugin, "solrng_milestone_tier");
+        return SolRNGPlugin.key( "solrng_milestone_tier");
     }
 
     /** Opens on the first track, or on whichever one was asked for. */

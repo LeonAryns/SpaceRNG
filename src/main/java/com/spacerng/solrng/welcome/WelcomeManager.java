@@ -129,7 +129,7 @@ public class WelcomeManager {
             }
             return rows;
         } catch (Exception ex) {
-            plugin.getLogger().warning("[SolRNG] Couldn't render a join face: " + ex.getMessage());
+            plugin.getLogger().warning("Couldn't render a join face: " + ex.getMessage());
             return blankFace();
         }
     }

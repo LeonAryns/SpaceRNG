@@ -40,12 +40,12 @@ public class ArmorGui {
     private static final int STATS_SLOT = 44;
 
     public static NamespacedKey tierIdKey(SolRNGPlugin plugin) {
-        return new NamespacedKey(plugin, "solrng_armor_tier_id");
+        return SolRNGPlugin.key( "solrng_armor_tier_id");
     }
 
     /** Which slot's piece this icon sells — pieces are bought one at a time. */
     public static NamespacedKey pieceKey(SolRNGPlugin plugin) {
-        return new NamespacedKey(plugin, "solrng_armor_piece");
+        return SolRNGPlugin.key( "solrng_armor_piece");
     }
 
     public static Inventory build(SolRNGPlugin plugin, Player player) {

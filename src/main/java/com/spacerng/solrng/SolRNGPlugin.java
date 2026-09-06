@@ -67,8 +67,59 @@ public final class SolRNGPlugin extends JavaPlugin {
     private com.spacerng.solrng.consumable.ConsumableManager consumableManager;
     private com.spacerng.solrng.welcome.WelcomeManager welcomeManager;
 
+    /** The namespace every PersistentDataContainer tag is written under. */
+    private static final String TAG_NAMESPACE = "solrng";
+
+    /**
+     * Set when the SolRNG -> SpaceRNG folder move fails, so onEnable can
+     * refuse to start rather than quietly rebuild every player's save
+     * from scratch in an empty new folder.
+     */
+    private boolean folderMoveFailed;
+
+    /**
+     * A key in the plugin's tag namespace.
+     *
+     * Pinned to the old id on purpose. NamespacedKey(plugin, key) derives
+     * its namespace from the plugin's name, so renaming the plugin would
+     * have silently orphaned the tags on every rolled item, hoe, armor
+     * piece and plot already sitting in somebody's inventory. The name on
+     * the tin changed; the name in the NBT can't.
+     */
+    public static org.bukkit.NamespacedKey key(String name) {
+        return java.util.Objects.requireNonNull(
+                org.bukkit.NamespacedKey.fromString(TAG_NAMESPACE + ":" + name));
+    }
+
+    /**
+     * Moves plugins/SolRNG to plugins/SpaceRNG the first time the renamed
+     * build starts.
+     *
+     * onLoad, not onEnable: the data folder is created the moment
+     * saveDefaultConfig() runs, and a folder that already exists is the
+     * signal that there is nothing to migrate.
+     */
+    @Override
+    public void onLoad() {
+        java.io.File current = getDataFolder();
+        java.io.File legacy = new java.io.File(current.getParentFile(), "SolRNG");
+        if (current.exists() || !legacy.isDirectory()) return;
+        if (legacy.renameTo(current)) {
+            getLogger().info("Moved plugins/SolRNG to plugins/SpaceRNG.");
+        } else {
+            folderMoveFailed = true;
+        }
+    }
+
     @Override
     public void onEnable() {
+        if (folderMoveFailed) {
+            getLogger().severe("Couldn't move plugins/SolRNG to plugins/SpaceRNG. Rename that "
+                    + "folder by hand and restart - refusing to start on an empty data folder "
+                    + "and lose everyone's progress.");
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
         saveDefaultConfig();
 
         this.rarityManager = new RarityManager(getLogger());
@@ -338,7 +389,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         getServer().getScheduler().runTaskLater(this, () -> {
             int healed = farmPlotManager.healAll();
             if (healed > 0) {
-                getLogger().info("[SolRNG] Restored " + healed + " missing farm plot block(s).");
+                getLogger().info("Restored " + healed + " missing farm plot block(s).");
             }
         }, 100L);
 
@@ -381,7 +432,9 @@ public final class SolRNGPlugin extends JavaPlugin {
             return;
         }
         new SolRNGExpansion(this).register();
-        getLogger().info("[SolRNG] Registered PlaceholderAPI expansion: %solrng_tag%, %solrng_tag_plain%, "
-                + "%solrng_prestige%, %solrng_prestige_roman%, %solrng_prestige_badge%, %solrng_level% (and more - see config.yml).");
+        new SolRNGExpansion.Legacy(this).register();
+        getLogger().info("Registered PlaceholderAPI expansion: %spacerng_tag%, %spacerng_tag_plain%, "
+                + "%spacerng_prestige%, %spacerng_prestige_roman%, %spacerng_prestige_badge%, "
+                + "%spacerng_level% (and more - see config.yml). The old %solrng_ spelling still works.");
     }
 }

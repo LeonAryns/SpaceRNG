@@ -452,7 +452,7 @@ public final class RollAura {
         try {
             action.run();
         } catch (RuntimeException ex) {
-            plugin.getLogger().warning("[SolRNG] Reveal aura (" + rarity + ") failed at " + what
+            plugin.getLogger().warning("Reveal aura (" + rarity + ") failed at " + what
                     + ": " + ex);
         }
     }

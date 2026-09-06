@@ -50,7 +50,7 @@ public class MilestoneManager {
         tracks.clear();
         ConfigurationSection section = config.getConfigurationSection("milestones.tracks");
         if (section == null) {
-            plugin.getLogger().warning("[SolRNG] No milestones.tracks configured.");
+            plugin.getLogger().warning("No milestones.tracks configured.");
             return;
         }
 
@@ -77,7 +77,7 @@ public class MilestoneManager {
                     tiers.add(new MilestoneTrack.Tier(index++, threshold, tokens, shards, money,
                             consumable, consumableAmount));
                 } catch (RuntimeException ex) {
-                    plugin.getLogger().warning("[SolRNG] Skipped a malformed milestone tier in '" + id + "': " + entry);
+                    plugin.getLogger().warning("Skipped a malformed milestone tier in '" + id + "': " + entry);
                 }
             }
 
@@ -89,7 +89,7 @@ public class MilestoneManager {
                     t.getString("description", ""),
                     tiers));
         }
-        plugin.getLogger().info("[SolRNG] Loaded " + tracks.size() + " milestone tracks.");
+        plugin.getLogger().info("Loaded " + tracks.size() + " milestone tracks.");
     }
 
     public Map<String, MilestoneTrack> getTracks() {

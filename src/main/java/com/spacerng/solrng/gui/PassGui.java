@@ -45,11 +45,11 @@ public class PassGui {
     private static final int PER_PAGE = 9;
 
     public static NamespacedKey levelKey(SolRNGPlugin plugin) {
-        return new NamespacedKey(plugin, "solrng_pass_level");
+        return SolRNGPlugin.key( "solrng_pass_level");
     }
 
     public static NamespacedKey trackKey(SolRNGPlugin plugin) {
-        return new NamespacedKey(plugin, "solrng_pass_track");
+        return SolRNGPlugin.key( "solrng_pass_track");
     }
 
     public static int prevSlot() {

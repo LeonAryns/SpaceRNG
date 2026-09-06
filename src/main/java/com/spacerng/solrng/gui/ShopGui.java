@@ -68,7 +68,7 @@ public class ShopGui {
     private static final int SELF_SLOT = 49;
 
     public static NamespacedKey commandKey(SolRNGPlugin plugin) {
-        return new NamespacedKey(plugin, "solrng_shop_command");
+        return SolRNGPlugin.key( "solrng_shop_command");
     }
 
     public static Inventory build(SolRNGPlugin plugin, Player player) {

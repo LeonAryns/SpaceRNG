@@ -38,7 +38,7 @@ public class SpawnManager {
         String worldName = yml.getString("world");
         World world = worldName != null ? Bukkit.getWorld(worldName) : null;
         if (world == null) {
-            plugin.getLogger().warning("[SolRNG] Saved spawn world '" + worldName + "' isn't loaded — ignoring spawn.yml until it is.");
+            plugin.getLogger().warning("Saved spawn world '" + worldName + "' isn't loaded — ignoring spawn.yml until it is.");
             spawn = null;
             return;
         }
@@ -58,7 +58,7 @@ public class SpawnManager {
         try {
             yml.save(file);
         } catch (IOException e) {
-            plugin.getLogger().warning("[SolRNG] Failed to save spawn location: " + e.getMessage());
+            plugin.getLogger().warning("Failed to save spawn location: " + e.getMessage());
         }
     }
 

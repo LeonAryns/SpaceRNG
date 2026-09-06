@@ -46,7 +46,7 @@ public class HoeGui {
     private static final int ENCHANT_SOUND_SLOT = 51;
 
     public static NamespacedKey enchantKey(SolRNGPlugin plugin) {
-        return new NamespacedKey(plugin, "solrng_hoe_enchant");
+        return SolRNGPlugin.key( "solrng_hoe_enchant");
     }
 
     public static int farmSoundSlot() {

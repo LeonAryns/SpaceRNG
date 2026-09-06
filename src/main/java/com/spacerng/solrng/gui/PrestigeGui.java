@@ -33,7 +33,7 @@ public class PrestigeGui {
     public static final int BACK_SLOT = 45;
 
     public static NamespacedKey upgradeKey(SolRNGPlugin plugin) {
-        return new NamespacedKey(plugin, "solrng_prestige_upgrade");
+        return SolRNGPlugin.key( "solrng_prestige_upgrade");
     }
 
     // ------------------------------------------------------------- main

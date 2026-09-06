@@ -109,7 +109,7 @@ public class FarmPlotManager {
 
     public FarmPlotManager(SolRNGPlugin plugin) {
         this.plugin = plugin;
-        this.plotItemKey = new NamespacedKey(plugin, "solrng_farm_plot");
+        this.plotItemKey = SolRNGPlugin.key( "solrng_farm_plot");
         this.plotFile = new File(plugin.getDataFolder(), "farmplots.yml");
     }
 
@@ -139,7 +139,7 @@ public class FarmPlotManager {
                 if (c == null) continue;
                 Material material = Material.matchMaterial(c.getString("material", id));
                 if (material == null) {
-                    plugin.getLogger().warning("[SolRNG] Unknown crop material for '" + id + "'.");
+                    plugin.getLogger().warning("Unknown crop material for '" + id + "'.");
                     continue;
                 }
                 crops.put(id.toUpperCase(), new CropType(id.toUpperCase(),
@@ -151,7 +151,7 @@ public class FarmPlotManager {
                         order++));
             }
         }
-        plugin.getLogger().info("[SolRNG] Loaded " + crops.size() + " farm crop types.");
+        plugin.getLogger().info("Loaded " + crops.size() + " farm crop types.");
         loadPlots();
     }
 
@@ -161,7 +161,7 @@ public class FarmPlotManager {
         try {
             return org.bukkit.Sound.valueOf(name.toUpperCase());
         } catch (IllegalArgumentException ex) {
-            plugin.getLogger().warning("[SolRNG] Unknown farming sound '" + name + "', using "
+            plugin.getLogger().warning("Unknown farming sound '" + name + "', using "
                     + fallback.name() + ".");
             return fallback;
         }
@@ -676,7 +676,7 @@ public class FarmPlotManager {
             } catch (NumberFormatException ignored) {
             }
         }
-        plugin.getLogger().info("[SolRNG] Loaded " + plots.size() + " farm plots.");
+        plugin.getLogger().info("Loaded " + plots.size() + " farm plots.");
     }
 
     public void savePlots() {
@@ -690,7 +690,7 @@ public class FarmPlotManager {
         try {
             yml.save(plotFile);
         } catch (IOException ex) {
-            plugin.getLogger().warning("[SolRNG] Couldn't save farm plots: " + ex.getMessage());
+            plugin.getLogger().warning("Couldn't save farm plots: " + ex.getMessage());
         }
     }
 }

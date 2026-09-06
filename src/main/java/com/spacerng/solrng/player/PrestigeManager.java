@@ -59,7 +59,7 @@ public class PrestigeManager {
                             u.getInt("cost-points", 1),
                             u.getString("unit", "%")));
                 } catch (Exception ex) {
-                    plugin.getLogger().warning("[SolRNG] Skipped malformed prestige upgrade '" + id + "'.");
+                    plugin.getLogger().warning("Skipped malformed prestige upgrade '" + id + "'.");
                 }
             }
         }

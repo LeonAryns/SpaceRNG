@@ -81,7 +81,7 @@ public class RarityManager {
                 if (rarity == null) continue;
                 items.add(new RollableItem(material, name, rarity, odds, parseItemStyle(raw)));
             } catch (Exception ex) {
-                logger.warning("[SolRNG] Skipped a malformed item entry in config.yml: " + raw);
+                logger.warning("Skipped a malformed item entry in config.yml: " + raw);
             }
         }
 
@@ -92,7 +92,7 @@ public class RarityManager {
             byName.put(item.getDisplayName(), item);
         }
 
-        logger.info("[SolRNG] Loaded " + items.size() + " rollable items across " + luckFactors.size() + " rarities.");
+        logger.info("Loaded " + items.size() + " rollable items across " + luckFactors.size() + " rarities.");
     }
 
     /**
@@ -252,7 +252,7 @@ public class RarityManager {
                         Integer.parseInt(s.substring(5, 7), 16)
                 };
             } catch (NumberFormatException ex) {
-                logger.warning("[SolRNG] Bad hex color in config: " + raw);
+                logger.warning("Bad hex color in config: " + raw);
                 return null;
             }
         }
@@ -260,7 +260,7 @@ public class RarityManager {
             int[] rgb = LEGACY_RGB.get(Character.toLowerCase(s.charAt(1)));
             if (rgb != null) return rgb;
         }
-        logger.warning("[SolRNG] Unrecognized color in config: " + raw);
+        logger.warning("Unrecognized color in config: " + raw);
         return null;
     }
 
@@ -268,7 +268,7 @@ public class RarityManager {
         try {
             return Rarity.valueOf(key.toUpperCase());
         } catch (IllegalArgumentException ex) {
-            logger.warning("[SolRNG] Unknown rarity in config: " + key);
+            logger.warning("Unknown rarity in config: " + key);
             return null;
         }
     }

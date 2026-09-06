@@ -35,7 +35,7 @@ public class PotionGui {
     private static final int DROPS_SLOT = 49;
 
     public static NamespacedKey potionKey(SolRNGPlugin plugin) {
-        return new NamespacedKey(plugin, "solrng_potion_id");
+        return SolRNGPlugin.key( "solrng_potion_id");
     }
 
     public static Inventory build(SolRNGPlugin plugin, Player player) {

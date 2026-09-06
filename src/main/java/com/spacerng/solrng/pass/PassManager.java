@@ -91,10 +91,10 @@ public class PassManager {
                         parseReward(entry.get("premium"))));
                 index++;
             } catch (Exception ex) {
-                plugin.getLogger().warning("[SolRNG] Skipped a malformed pass level: " + entry);
+                plugin.getLogger().warning("Skipped a malformed pass level: " + entry);
             }
         }
-        plugin.getLogger().info("[SolRNG] Loaded Battle Pass " + seasonName + " with " + levels.size() + " levels.");
+        plugin.getLogger().info("Loaded Battle Pass " + seasonName + " with " + levels.size() + " levels.");
     }
 
     private Reward parseReward(Object raw) {

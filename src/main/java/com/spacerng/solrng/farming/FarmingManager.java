@@ -41,7 +41,7 @@ public class FarmingManager {
 
     public FarmingManager(SolRNGPlugin plugin) {
         this.plugin = plugin;
-        this.boundKey = new NamespacedKey(plugin, "solrng_bound_hoe");
+        this.boundKey = SolRNGPlugin.key( "solrng_bound_hoe");
     }
 
     public void load(FileConfiguration config) {
@@ -64,7 +64,7 @@ public class FarmingManager {
 
         ConfigurationSection section = config.getConfigurationSection("farming.crops");
         if (section == null) {
-            plugin.getLogger().info("[SolRNG] Loaded 0 farming crop types.");
+            plugin.getLogger().info("Loaded 0 farming crop types.");
             return;
         }
 
@@ -73,10 +73,10 @@ public class FarmingManager {
                 Material material = Material.valueOf(key.toUpperCase());
                 cropTokens.put(material, section.getLong(key + ".tokens", 1L));
             } catch (IllegalArgumentException ex) {
-                plugin.getLogger().warning("[SolRNG] Skipped unknown farming crop material '" + key + "'.");
+                plugin.getLogger().warning("Skipped unknown farming crop material '" + key + "'.");
             }
         }
-        plugin.getLogger().info("[SolRNG] Loaded " + cropTokens.size() + " farming crop types.");
+        plugin.getLogger().info("Loaded " + cropTokens.size() + " farming crop types.");
     }
 
     public boolean isCrop(Material material) {

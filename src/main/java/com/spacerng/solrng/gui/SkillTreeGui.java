@@ -38,7 +38,7 @@ public class SkillTreeGui {
     private static final int NEXT_SLOT = 8;
 
     public static NamespacedKey nodeIdKey(SolRNGPlugin plugin) {
-        return new NamespacedKey(plugin, "solrng_node_id");
+        return SolRNGPlugin.key( "solrng_node_id");
     }
 
     public static int prevSlot() {
