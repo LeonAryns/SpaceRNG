@@ -434,6 +434,7 @@ public class FarmPlotManager {
         // has to be earned live rather than bought, so it should be worth
         // more the better everything else already is.
         multiplier *= momentumMultiplier(player, hoe, data, chain);
+        multiplier *= data.boostMultiplier("TOKENS");
 
         // Same universal multiplier the Nova Core gives Luck and Money.
         multiplier *= plugin.getNovaCoreManager().multiplierAt(data.getNovaTier());

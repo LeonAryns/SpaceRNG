@@ -184,7 +184,8 @@ public class PrestigeManager {
         // Prestige Points spent on Luck ride along with everything else the
         // player has bought, before the global boost scales the total.
         luck += upgradeTotal(data, PrestigeUpgrade.Effect.LUCK_BONUS);
-        return luck * plugin.getBoostManager().multiplier();
+        // The global boost everyone shares, then this player's own potion.
+        return luck * plugin.getBoostManager().multiplier() * data.boostMultiplier("LUCK");
     }
 
     /** The Luck multiplier earned by finishing whole rarities in /index. */

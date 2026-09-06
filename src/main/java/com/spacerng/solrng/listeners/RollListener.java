@@ -245,9 +245,21 @@ public class RollListener implements Listener {
         // that just did — grantRoll is what increments the counter.
         long rollNumber = data.getTotalRolls() + 1;
         double supercharge = plugin.getSkillTreeManager().superchargeFor(data, rollNumber);
-        double luck = plugin.getPrestigeManager().effectiveLuck(data) * supercharge;
+        // A banked charge is spent here rather than at the end, so it can't
+        // be lost to a disconnect mid-roll without having done anything.
+        double charge = data.consumeRollCharge();
+        double luck = plugin.getPrestigeManager().effectiveLuck(data) * supercharge * charge;
         if (supercharge > 1.0) {
             announceSupercharge(player, supercharge);
+        }
+        if (charge > 1.0) {
+            player.sendMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "\u26a1 CHARGED ROLL \u26a1"
+                    + ChatColor.RESET + ChatColor.GRAY + "  this one rolls at "
+                    + ChatColor.LIGHT_PURPLE + com.spacerng.solrng.consumable.ConsumableManager.trim(charge)
+                    + "x" + ChatColor.GRAY + " Luck."
+                    + (data.getRollCharges() > 0
+                            ? ChatColor.DARK_GRAY + "  (" + data.getRollCharges() + " left)" : ""));
+            player.playSound(player.getLocation(), Sound.BLOCK_BEACON_POWER_SELECT, 1.0f, 1.8f);
         }
 
         // The result is decided up front rather than when the timer ends,

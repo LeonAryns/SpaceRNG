@@ -2106,18 +2106,18 @@ milestones:
       unit: "prestiges"
       description: "Reset your level for permanent Luck."
       tiers:
-        - { at: 1, tokens: 1000 }
-        - { at: 2, tokens: 2500 }
-        - { at: 3, tokens: 5000 }
-        - { at: 5, tokens: 10000 }
-        - { at: 10, tokens: 25000 }
-        - { at: 15, tokens: 50000 }
-        - { at: 20, tokens: 100000 }
-        - { at: 25, tokens: 200000 }
-        - { at: 35, tokens: 400000 }
-        - { at: 50, tokens: 750000 }
-        - { at: 75, tokens: 1500000 }
-        - { at: 100, tokens: 3000000 }
+        - { at: 1, money: 250000 }
+        - { at: 2, money: 750000, consumable: luck_potion }
+        - { at: 3, money: 2000000 }
+        - { at: 5, money: 6000000, consumable: roll_10x }
+        - { at: 10, money: 25000000, consumable: luck_potion, consumable-amount: 2 }
+        - { at: 15, money: 75000000, consumable: speed_potion, consumable-amount: 2 }
+        - { at: 20, money: 200000000, consumable: roll_10x, consumable-amount: 3 }
+        - { at: 25, money: 500000000, consumable: luck_potion, consumable-amount: 3 }
+        - { at: 35, money: 1500000000, consumable: roll_10x, consumable-amount: 5 }
+        - { at: 50, money: 5000000000, consumable: speed_potion, consumable-amount: 5 }
+        - { at: 75, money: 20000000000, consumable: roll_10x, consumable-amount: 10 }
+        - { at: 100, money: 100000000000, consumable: luck_potion, consumable-amount: 10 }
     rarity:
       verb: "Discover"
       display: "Collection"
@@ -2125,18 +2125,18 @@ milestones:
       unit: "drops found"
       description: "Unique drops discovered in your /index."
       tiers:
-        - { at: 5, tokens: 500 }
-        - { at: 10, tokens: 1000 }
-        - { at: 20, tokens: 2500 }
-        - { at: 30, tokens: 5000 }
-        - { at: 45, tokens: 10000 }
-        - { at: 60, tokens: 20000 }
-        - { at: 80, tokens: 40000 }
-        - { at: 100, tokens: 80000 }
-        - { at: 115, tokens: 150000 }
-        - { at: 130, tokens: 300000 }
-        - { at: 140, tokens: 600000 }
-        - { at: 143, tokens: 1500000 }
+        - { at: 5, money: 50000 }
+        - { at: 10, money: 150000, consumable: roll_10x }
+        - { at: 20, money: 500000 }
+        - { at: 30, money: 1500000, consumable: luck_potion }
+        - { at: 45, money: 5000000, consumable: roll_10x, consumable-amount: 2 }
+        - { at: 60, money: 15000000, consumable: speed_potion }
+        - { at: 80, money: 50000000, consumable: roll_10x, consumable-amount: 3 }
+        - { at: 100, money: 150000000, consumable: luck_potion, consumable-amount: 3 }
+        - { at: 115, money: 500000000, consumable: roll_10x, consumable-amount: 5 }
+        - { at: 130, money: 2000000000, consumable: luck_250 }
+        - { at: 140, money: 10000000000, consumable: roll_10x, consumable-amount: 10 }
+        - { at: 144, money: 50000000000, consumable: luck_potion, consumable-amount: 10 }
     farming:
       verb: "Farm"
       display: "Farming"
@@ -2145,17 +2145,17 @@ milestones:
       description: "Crops harvested on the shared farm."
       tiers:
         - { at: 100, tokens: 500 }
-        - { at: 500, tokens: 1500 }
+        - { at: 500, tokens: 1500, consumable: token_potion }
         - { at: 1000, tokens: 3000 }
-        - { at: 2500, tokens: 7500 }
-        - { at: 5000, tokens: 15000 }
-        - { at: 10000, tokens: 30000 }
-        - { at: 25000, tokens: 75000 }
-        - { at: 50000, tokens: 150000 }
-        - { at: 100000, tokens: 300000 }
-        - { at: 250000, tokens: 750000 }
-        - { at: 500000, tokens: 1500000 }
-        - { at: 1000000, tokens: 3000000 }
+        - { at: 2500, tokens: 7500, consumable: enchant_potion }
+        - { at: 5000, tokens: 15000, consumable: token_potion, consumable-amount: 2 }
+        - { at: 10000, tokens: 30000, shards: 25 }
+        - { at: 25000, tokens: 75000, consumable: enchant_potion, consumable-amount: 2 }
+        - { at: 50000, tokens: 150000, shards: 100 }
+        - { at: 100000, tokens: 300000, consumable: token_potion, consumable-amount: 5 }
+        - { at: 250000, tokens: 750000, shards: 500 }
+        - { at: 500000, tokens: 1500000, consumable: enchant_potion, consumable-amount: 5 }
+        - { at: 1000000, tokens: 3000000, shards: 2500, consumable: token_potion, consumable-amount: 10 }
     playtime:
       verb: "Play"
       display: "Playtime"
@@ -2163,16 +2163,16 @@ milestones:
       unit: "hours"
       description: "Hours spent on SpaceRNG."
       tiers:
-        - { at: 1, tokens: 500 }
-        - { at: 3, tokens: 1500 }
-        - { at: 6, tokens: 3000 }
-        - { at: 12, tokens: 6000 }
-        - { at: 24, tokens: 15000 }
-        - { at: 48, tokens: 30000 }
-        - { at: 96, tokens: 60000 }
-        - { at: 168, tokens: 120000 }
-        - { at: 336, tokens: 250000 }
-        - { at: 720, tokens: 600000 }
+        - { at: 1, money: 100000 }
+        - { at: 2, money: 250000, consumable: luck_50 }
+        - { at: 6, money: 1000000, consumable: luck_potion }
+        - { at: 12, money: 4000000, consumable: speed_potion }
+        - { at: 24, money: 15000000, consumable: roll_10x, consumable-amount: 2 }
+        - { at: 48, money: 50000000, consumable: luck_potion, consumable-amount: 3 }
+        - { at: 96, money: 200000000, consumable: token_potion, consumable-amount: 3 }
+        - { at: 168, money: 750000000, consumable: roll_10x, consumable-amount: 5 }
+        - { at: 336, money: 3000000000, consumable: luck_potion, consumable-amount: 5 }
+        - { at: 720, money: 15000000000, consumable: roll_10x, consumable-amount: 10 }
 
 # Leaderboards and the daily farming payout.
 #
@@ -2385,6 +2385,84 @@ guide:
       amount: 1
       tokens: 100000
       money: 50000
+
+# ============================================
+# Consumables (potions, charges, permanent grants)
+# ============================================
+# Redeemable items handed out by /milestones, the Battle Pass, crates and
+# /rngadmin. They're real items rather than an invisible balance on
+# purpose: a reward you can hold and choose when to use is worth more than
+# the same number applied silently, and it means a crate plugin can hand
+# out the same thing this plugin does without knowing anything about it.
+#
+# Give one from anywhere with:
+#   /rngadmin consumable <id> [amount] [player]
+#
+# effect:
+#   LUCK            multiplies all Luck for duration-seconds
+#   SPEED           multiplies roll Speed
+#   TOKENS          multiplies Tokens from the farm
+#   ENCHANT_PROC    multiplies every hoe enchant's chance
+#   ROLL_CHARGE     banks `charges` rolls that fire at `magnitude` x Luck
+#   PERMANENT_LUCK  adds `magnitude` Luck on the spot, forever
+#
+# Drinking a second potion of the same kind extends it if it's the same
+# strength and replaces it if it's stronger — two never multiply together.
+consumables:
+  luck_potion:
+    display: "Luck Potion"
+    material: POTION
+    colors: ["#8AFF8A", "#00C853"]
+    effect: LUCK
+    magnitude: 2.0
+    duration-seconds: 1800
+    description: "Everything you roll, twice as lucky."
+  speed_potion:
+    display: "Speed Potion"
+    material: POTION
+    colors: ["#FFF176", "#FFB300"]
+    effect: SPEED
+    magnitude: 2.0
+    duration-seconds: 1800
+    description: "Rolls resolve in half the time."
+  token_potion:
+    display: "Token Potion"
+    material: POTION
+    colors: ["#A5FF7A", "#2E7D32"]
+    effect: TOKENS
+    magnitude: 2.0
+    duration-seconds: 1800
+    description: "Every crop pays double."
+  enchant_potion:
+    display: "Enchant Potion"
+    material: POTION
+    colors: ["#E1BEE7", "#8E24AA"]
+    effect: ENCHANT_PROC
+    magnitude: 1.5
+    duration-seconds: 1800
+    description: "Every hoe enchant fires half again as often."
+  roll_10x:
+    display: "10x Roll"
+    material: NETHER_STAR
+    colors: ["#FFF9C4", "#FFD54F", "#FF8F00"]
+    effect: ROLL_CHARGE
+    magnitude: 10.0
+    charges: 1
+    description: "Banks one roll at ten times your Luck."
+  luck_50:
+    display: "Fragment of Fortune"
+    material: RABBIT_FOOT
+    colors: ["#B9F6CA", "#00C853"]
+    effect: PERMANENT_LUCK
+    magnitude: 0.5
+    description: "A permanent 50% Luck. It never runs out."
+  luck_250:
+    display: "Heart of Fortune"
+    material: RABBIT_FOOT
+    colors: ["#FFF59D", "#00E676", "#00B0FF"]
+    effect: PERMANENT_LUCK
+    magnitude: 2.5
+    description: "A permanent 250% Luck. It never runs out."
 
 # ============================================
 # Farming skill tree (/farmtree)
@@ -3081,6 +3159,10 @@ pass:
     per-harvest: 2
   # One entry per level, in order. `xp` is what THAT level costs, not a
   # running total. Both tracks are optional per level.
+  #
+  # Potions land every five levels on the free track so there's always
+  # one in sight, and every three on premium — which is most of what the
+  # premium track is actually selling.
   levels:
     # ---- level 1
     - xp: 50
@@ -3102,6 +3184,7 @@ pass:
       premium:
         tokens: 2250
         gems: 3
+        consumable: roll_10x
     # ---- level 4
     - xp: 70
       free:
@@ -3115,6 +3198,7 @@ pass:
       free:
         tokens: 1250
         gems: 2
+        consumable: token_potion
       premium:
         tokens: 3750
         drop-rarity: UNCOMMON
@@ -3127,6 +3211,7 @@ pass:
         tokens: 4500
         gems: 6
         coins: 600000
+        consumable: luck_potion
     # ---- level 7
     - xp: 90
       free:
@@ -3148,6 +3233,7 @@ pass:
       premium:
         tokens: 6750
         gems: 9
+        consumable: token_potion
     # ---- level 10
     - xp: 120
       free:
@@ -3155,6 +3241,7 @@ pass:
         gems: 4
         drop-rarity: COMMON
         drops: 22
+        consumable: luck_potion
       premium:
         tokens: 7500
         coins: 1000000
@@ -3176,6 +3263,8 @@ pass:
         tokens: 9000
         gems: 12
         coins: 1200000
+        consumable: roll_10x
+        consumable-amount: 2
     # ---- level 13
     - xp: 160
       free:
@@ -3194,11 +3283,14 @@ pass:
       free:
         tokens: 3750
         gems: 6
+        consumable: speed_potion
       premium:
         tokens: 11250
         gems: 15
         drop-rarity: RARE
         drops: 14
+        consumable: speed_potion
+        consumable-amount: 2
     # ---- level 16
     - xp: 210
       free:
@@ -3221,6 +3313,8 @@ pass:
         tokens: 13500
         gems: 18
         coins: 1800000
+        consumable: enchant_potion
+        consumable-amount: 2
     # ---- level 19
     - xp: 280
       free:
@@ -3235,6 +3329,7 @@ pass:
         coins: 500000
         drop-rarity: UNCOMMON
         drops: 19
+        consumable: enchant_potion
       premium:
         tokens: 15000
         coins: 2000000
@@ -3248,6 +3343,8 @@ pass:
       premium:
         tokens: 15750
         gems: 21
+        consumable: luck_potion
+        consumable-amount: 2
     # ---- level 22
     - xp: 370
       free:
@@ -3270,11 +3367,14 @@ pass:
         tokens: 18000
         gems: 24
         coins: 2400000
+        consumable: roll_10x
+        consumable-amount: 3
     # ---- level 25
     - xp: 490
       free:
         tokens: 6250
         gems: 10
+        consumable: luck_potion
       premium:
         tokens: 18750
         drop-rarity: EPIC
@@ -3293,6 +3393,8 @@ pass:
       premium:
         tokens: 20250
         gems: 27
+        consumable: token_potion
+        consumable-amount: 3
     # ---- level 28
     - xp: 650
       free:
@@ -3314,6 +3416,8 @@ pass:
         gems: 12
         drop-rarity: RARE
         drops: 16
+        consumable: token_potion
+        consumable-amount: 2
       premium:
         tokens: 22500
         gems: 30
@@ -3321,6 +3425,8 @@ pass:
         credits: 200
         drop-rarity: LEGENDARY
         drops: 8
+        consumable: speed_potion
+        consumable-amount: 3
     # ---- level 31
     - xp: 850
       free:
@@ -3342,6 +3448,8 @@ pass:
       premium:
         tokens: 24750
         gems: 33
+        consumable: enchant_potion
+        consumable-amount: 3
     # ---- level 34
     - xp: 1150
       free:
@@ -3354,6 +3462,8 @@ pass:
       free:
         tokens: 8750
         gems: 14
+        consumable: speed_potion
+        consumable-amount: 2
       premium:
         tokens: 26250
         drop-rarity: LEGENDARY
@@ -3367,6 +3477,8 @@ pass:
         tokens: 27000
         gems: 36
         coins: 3600000
+        consumable: luck_potion
+        consumable-amount: 3
     # ---- level 37
     - xp: 1550
       free:
@@ -3387,6 +3499,8 @@ pass:
       premium:
         tokens: 29250
         gems: 39
+        consumable: roll_10x
+        consumable-amount: 5
     # ---- level 40
     - xp: 2100
       free:
@@ -3395,6 +3509,8 @@ pass:
         coins: 1000000
         drop-rarity: EPIC
         drops: 13
+        consumable: enchant_potion
+        consumable-amount: 2
       premium:
         tokens: 30000
         coins: 4000000
@@ -3415,6 +3531,8 @@ pass:
         tokens: 31500
         gems: 42
         coins: 4200000
+        consumable: token_potion
+        consumable-amount: 5
     # ---- level 43
     - xp: 2700
       free:
@@ -3434,11 +3552,15 @@ pass:
       free:
         tokens: 11250
         gems: 18
+        consumable: luck_potion
+        consumable-amount: 2
       premium:
         tokens: 33750
         gems: 45
         drop-rarity: MYTHICAL
         drops: 2
+        consumable: enchant_potion
+        consumable-amount: 5
     # ---- level 46
     - xp: 3600
       free:
@@ -3461,6 +3583,8 @@ pass:
         tokens: 36000
         gems: 48
         coins: 4800000
+        consumable: luck_potion
+        consumable-amount: 5
     # ---- level 49
     - xp: 4900
       free:
@@ -3474,12 +3598,15 @@ pass:
         gems: 20
         drop-rarity: LEGENDARY
         drops: 10
+        consumable: roll_10x
       premium:
         tokens: 37500
         coins: 5000000
         credits: 300
-        drop-rarity: MYTHICAL
+        drop-rarity: DIVINE
         drops: 1
+        consumable: roll_10x
+        consumable-amount: 10
 
 # Commands the console runs when a gate skill is bought. Left blank the
 # skill still unlocks, it just doesn't hand out a permission — which is

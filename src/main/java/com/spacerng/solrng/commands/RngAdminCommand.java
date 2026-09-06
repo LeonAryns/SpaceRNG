@@ -36,7 +36,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
     private static final List<String> SUBCOMMANDS = List.of(
             "reload", "setspawn", "starforge", "reset", "give", "drops",
             "bank", "aura", "roll", "unlock", "unlockall", "lockall", "odds", "farmblock", "farmscan",
-            "hoe", "crops",
+            "hoe", "consumable", "crops",
             "milestones", "farmfill", "boost", "nova", "placeholders", "payout", "help");
     private static final List<String> CURRENCIES = List.of("coins", "tokens", "gems", "credits");
 
@@ -71,6 +71,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             case "unlock" -> doUnlock(sender, args);
             case "unlockall" -> doUnlockAll(sender, args);
             case "hoe" -> doHoe(sender, args);
+            case "consumable" -> doConsumable(sender, args);
             case "farmscan" -> doFarmScan(sender, args);
             case "lockall" -> doLockAll(sender, args);
             case "odds" -> doOdds(sender, args);
@@ -105,6 +106,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         line(sender, "unlock", "<node|all> [player]", "Grant one skill tree node");
         line(sender, "unlockall", "[player]", "Max out every skill in every tree");
         line(sender, "hoe", "[player]", "Hand out a bound Farmer's Hoe");
+        line(sender, "consumable", "<id> [amount] [player]", "Hand out a potion, charge or grant");
         line(sender, "farmscan", "[radius] [legacy]", "Re-register farm plots by scanning the world");
         line(sender, "lockall", "[player]", "Wipe every skill, to test the tree from scratch");
         line(sender, "odds", "[rarity]", "Label vs. true odds, and each tier's real share");
@@ -416,6 +418,45 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
 
         plugin.getScoreboardManager().update(target);
         sender.sendMessage(ChatColor.GREEN + "Unlocked " + granted + " node(s) for " + target.getName() + ".");
+        return true;
+    }
+
+    /**
+     * Hands out a redeemable. This is also the hook a crate plugin uses —
+     * a crate reward is just this command with the winner's name on it.
+     */
+    private boolean doConsumable(CommandSender sender, String[] args) {
+        if (args.length < 2) {
+            sender.sendMessage(ChatColor.RED + "Usage: /rngadmin consumable <id> [amount] [player]");
+            sender.sendMessage(ChatColor.DARK_GRAY + "Ids: "
+                    + String.join(", ", plugin.getConsumableManager().getAll().keySet()));
+            return true;
+        }
+        var consumable = plugin.getConsumableManager().get(args[1]);
+        if (consumable == null) {
+            sender.sendMessage(ChatColor.RED + "No consumable with that id. Known: "
+                    + String.join(", ", plugin.getConsumableManager().getAll().keySet()));
+            return true;
+        }
+
+        int amount = 1;
+        if (args.length >= 3) {
+            try {
+                amount = Math.max(1, Math.min(64, Integer.parseInt(args[2])));
+            } catch (NumberFormatException ex) {
+                sender.sendMessage(ChatColor.RED + "Amount must be a number.");
+                return true;
+            }
+        }
+
+        Player target = resolve(sender, args.length >= 4 ? args[3] : null);
+        if (target == null) return true;
+
+        plugin.getConsumableManager().give(target, consumable, amount);
+        target.sendMessage(ChatColor.GREEN + "You received " + ChatColor.WHITE + amount + "x "
+                + ChatColor.LIGHT_PURPLE + consumable.display() + ChatColor.GREEN + ".");
+        sender.sendMessage(ChatColor.GREEN + "Gave " + target.getName() + " " + amount + "x "
+                + consumable.display() + ".");
         return true;
     }
 
@@ -913,6 +954,8 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
                 case "aura" -> partial(args[1], List.of("epic", "legendary", "mythical", "divine"));
                 case "roll", "odds" -> partial(args[1], rarityNames());
                 case "unlock" -> partial(args[1], withAll(nodeIds()));
+                case "consumable" -> partial(args[1],
+                        new ArrayList<>(plugin.getConsumableManager().getAll().keySet()));
                 case "starforge" -> partial(args[1], tierIds());
                 case "reset" -> partial(args[1], playerNames());
                 case "crops" -> partial(args[1], List.of("unlock", "lock"));
@@ -932,9 +975,13 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
                 case "give", "drops", "bank" -> partial(args[2], List.of("1", "10", "100", "1000"));
                 case "aura", "roll", "unlock", "starforge", "milestones", "farmblock" ->
                         partial(args[2], playerNames());
+                case "consumable" -> partial(args[2], List.of("1", "3", "5"));
                 case "crops" -> partial(args[2], cropOptions());
                 default -> List.of();
             };
+        }
+        if (args.length == 4 && sub.equals("consumable")) {
+            return partial(args[3], playerNames());
         }
         if (args.length == 4 && (sub.equals("give") || sub.equals("drops") || sub.equals("bank")
                 || sub.equals("crops"))) {

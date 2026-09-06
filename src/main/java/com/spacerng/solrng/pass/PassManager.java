@@ -37,10 +37,12 @@ public class PassManager {
      * drops of a rarity, the same currency /armor and /starforge spend.
      */
     public record Reward(long tokens, long gems, double coins, long credits,
-                         Rarity dropRarity, long dropAmount, String note) {
+                         Rarity dropRarity, long dropAmount, String consumable, int consumableAmount,
+                         String note) {
 
         public boolean isEmpty() {
-            return tokens <= 0 && gems <= 0 && coins <= 0 && credits <= 0 && dropAmount <= 0;
+            return tokens <= 0 && gems <= 0 && coins <= 0 && credits <= 0 && dropAmount <= 0
+                    && consumable.isEmpty();
         }
     }
 
@@ -97,7 +99,7 @@ public class PassManager {
 
     private Reward parseReward(Object raw) {
         if (!(raw instanceof Map<?, ?> map)) {
-            return new Reward(0, 0, 0, 0, null, 0, "");
+            return new Reward(0, 0, 0, 0, null, 0, "", 1, "");
         }
         Rarity rarity = null;
         Object dropRarity = map.get("drop-rarity");
@@ -114,6 +116,8 @@ public class PassManager {
                 asLong(map.get("credits"), 0L),
                 rarity,
                 asLong(map.get("drops"), 0L),
+                map.get("consumable") == null ? "" : String.valueOf(map.get("consumable")),
+                (int) asLong(map.get("consumable-amount"), 1L),
                 map.get("note") == null ? "" : String.valueOf(map.get("note")));
     }
 
@@ -308,6 +312,10 @@ public class PassManager {
         if (reward.dropRarity() != null && reward.dropAmount() > 0) {
             data.addBankedDrops(reward.dropRarity(), reward.dropAmount());
         }
+        if (!reward.consumable().isEmpty()) {
+            plugin.getConsumableManager().give(player,
+                    plugin.getConsumableManager().get(reward.consumable()), reward.consumableAmount());
+        }
     }
 
     /** "✿ 5K Tokens, ◆ 2 Gems" — blank when a rung pays nothing. */
@@ -329,6 +337,13 @@ public class PassManager {
             parts.add(plugin.getRarityManager().style(reward.dropRarity(),
                     "\u2726 " + String.format("%,d", reward.dropAmount()) + " "
                             + reward.dropRarity().displayName()));
+        }
+        if (!reward.consumable().isEmpty()) {
+            var consumable = plugin.getConsumableManager().get(reward.consumable());
+            if (consumable != null) {
+                parts.add(ChatColor.LIGHT_PURPLE + (reward.consumableAmount() > 1
+                        ? reward.consumableAmount() + "x " : "") + consumable.display());
+            }
         }
         return String.join(ChatColor.GRAY + ", ", parts);
     }
@@ -361,6 +376,14 @@ public class PassManager {
                     com.spacerng.solrng.gui.Lore.BULLET + " \u2726 "
                             + String.format("%,d", reward.dropAmount()) + " "
                             + reward.dropRarity().displayName() + " drops"));
+        }
+        if (!reward.consumable().isEmpty()) {
+            var consumable = plugin.getConsumableManager().get(reward.consumable());
+            if (consumable != null) {
+                lines.add(ChatColor.LIGHT_PURPLE + com.spacerng.solrng.gui.Lore.BULLET + " "
+                        + (reward.consumableAmount() > 1 ? reward.consumableAmount() + "x " : "")
+                        + consumable.display());
+            }
         }
         return lines;
     }

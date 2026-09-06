@@ -94,6 +94,15 @@ public class PlayerDataManager {
         data.setRollAnimationEnabled(yml.getBoolean("roll-animation-enabled", true));
         data.setFarmSoundEnabled(yml.getBoolean("farm-sound-enabled", true));
         data.setEnchantSoundEnabled(yml.getBoolean("enchant-sound-enabled", true));
+        data.setRollCharges(yml.getLong("roll-charges", 0L), yml.getDouble("roll-charge-multiplier", 1.0));
+        org.bukkit.configuration.ConfigurationSection boosts = yml.getConfigurationSection("boosts");
+        if (boosts != null) {
+            for (String effect : boosts.getKeys(false)) {
+                data.setBoost(effect,
+                        boosts.getDouble(effect + ".multiplier", 1.0),
+                        boosts.getLong(effect + ".expires", 0L));
+            }
+        }
         data.setAutoConvertShiny(yml.getBoolean("auto-convert-shiny", false));
         data.getDiscoveredShiny().addAll(yml.getStringList("discovered-shiny"));
         for (String rarityName : yml.getStringList("disabled-auras")) {
@@ -260,6 +269,12 @@ public class PlayerDataManager {
         yml.set("roll-animation-enabled", data.isRollAnimationEnabled());
         yml.set("farm-sound-enabled", data.isFarmSoundEnabled());
         yml.set("enchant-sound-enabled", data.isEnchantSoundEnabled());
+        yml.set("roll-charges", data.getRollCharges());
+        yml.set("roll-charge-multiplier", data.getRollChargeMultiplier());
+        for (Map.Entry<String, double[]> entry : data.getBoosts().entrySet()) {
+            yml.set("boosts." + entry.getKey() + ".multiplier", entry.getValue()[0]);
+            yml.set("boosts." + entry.getKey() + ".expires", (long) entry.getValue()[1]);
+        }
         yml.set("auto-convert-shiny", data.isAutoConvertShiny());
         yml.set("discovered-shiny", new java.util.ArrayList<>(data.getDiscoveredShiny()));
         java.util.List<String> disabledAuras = new java.util.ArrayList<>();

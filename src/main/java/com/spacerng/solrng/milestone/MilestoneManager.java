@@ -70,7 +70,12 @@ public class MilestoneManager {
                     long tokens = entry.get("tokens") == null ? 0L : Long.parseLong(String.valueOf(entry.get("tokens")));
                     long shards = entry.get("shards") == null ? 0L : Long.parseLong(String.valueOf(entry.get("shards")));
                     double money = entry.get("money") == null ? 0.0 : Double.parseDouble(String.valueOf(entry.get("money")));
-                    tiers.add(new MilestoneTrack.Tier(index++, threshold, tokens, shards, money));
+                    String consumable = entry.get("consumable") == null
+                            ? "" : String.valueOf(entry.get("consumable"));
+                    int consumableAmount = entry.get("consumable-amount") == null
+                            ? 1 : Integer.parseInt(String.valueOf(entry.get("consumable-amount")));
+                    tiers.add(new MilestoneTrack.Tier(index++, threshold, tokens, shards, money,
+                            consumable, consumableAmount));
                 } catch (RuntimeException ex) {
                     plugin.getLogger().warning("[SolRNG] Skipped a malformed milestone tier in '" + id + "': " + entry);
                 }
@@ -189,6 +194,10 @@ public class MilestoneManager {
                 registration.getProvider().depositPlayer(player, tier.money());
             }
         }
+        if (!tier.consumable().isEmpty()) {
+            plugin.getConsumableManager().give(player,
+                    plugin.getConsumableManager().get(tier.consumable()), tier.consumableAmount());
+        }
         plugin.getScoreboardManager().update(player);
     }
 
@@ -223,6 +232,13 @@ public class MilestoneManager {
         List<String> parts = new ArrayList<>();
         if (tier.tokens() > 0) {
             parts.add(ChatColor.YELLOW + String.format("%,d", tier.tokens()) + " Tokens");
+        }
+        if (!tier.consumable().isEmpty()) {
+            var consumable = plugin.getConsumableManager().get(tier.consumable());
+            if (consumable != null) {
+                parts.add(ChatColor.LIGHT_PURPLE + (tier.consumableAmount() > 1
+                        ? tier.consumableAmount() + "x " : "") + consumable.display());
+            }
         }
         if (tier.shards() > 0) {
             parts.add(ChatColor.AQUA + String.format("%,d", tier.shards()) + " Gems");

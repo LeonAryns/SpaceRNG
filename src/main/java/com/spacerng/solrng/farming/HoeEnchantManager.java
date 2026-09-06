@@ -187,7 +187,8 @@ public class HoeEnchantManager {
         // worth wildly different amounts to a 0.02/level enchant and a
         // 0.00004/level one.
         double proc = plugin.getSkillTreeManager()
-                .multiplierOf(data, SkillNode.Effect.ENCHANT_PROC);
+                .multiplierOf(data, SkillNode.Effect.ENCHANT_PROC)
+                * data.boostMultiplier("ENCHANT_PROC");
         return enchant.perLevel() * levelOf(data, enchantId) * proc;
     }
 

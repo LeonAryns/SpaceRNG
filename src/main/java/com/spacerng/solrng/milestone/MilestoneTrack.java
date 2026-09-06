@@ -15,7 +15,8 @@ import java.util.List;
 public class MilestoneTrack {
 
     /** One rung of the ladder. */
-    public record Tier(int index, long threshold, long tokens, long shards, double money) {
+    public record Tier(int index, long threshold, long tokens, long shards, double money,
+                       String consumable, int consumableAmount) {
     }
 
     private final String id;

@@ -79,6 +79,14 @@ public class PlayerData {
     // they belong next to the thing that makes the noise.
     private boolean farmSoundEnabled = true;
     private boolean enchantSoundEnabled = true;
+    // Timed boosts from potions, keyed by effect: {multiplier, expiry millis}.
+    // One entry per effect rather than a list, so drinking a second potion
+    // of the same kind extends or upgrades what's running instead of
+    // stacking into something absurd.
+    private final Map<String, double[]> boosts = new HashMap<>();
+    // Banked rolls that fire at a multiplied Luck — the "10x Roll" reward.
+    private long rollCharges = 0L;
+    private double rollChargeMultiplier = 1.0;
     // Multiplies Tokens earned from harvesting farm crops. 1.0 = base
     // reward. Nothing raises this yet — reserved for future farming
     // upgrades (hoe enchants, prestige tie-in, etc.).
@@ -230,7 +238,8 @@ public class PlayerData {
      * shown on the scoreboard (Speed = this x 100, rounded).
      */
     public double getEffectiveRollSpeedMultiplier() {
-        return Math.max(0.1, rollSpeedMultiplier + skillSpeedBonus + armorSpeedBonus);
+        return Math.max(0.1, (rollSpeedMultiplier + skillSpeedBonus + armorSpeedBonus)
+                * boostMultiplier("SPEED"));
     }
 
     public Set<String> getUnlockedNodes() {
@@ -702,6 +711,86 @@ public class PlayerData {
 
     public void setEnchantSoundEnabled(boolean enchantSoundEnabled) {
         this.enchantSoundEnabled = enchantSoundEnabled;
+    }
+
+    // ------------------------------------------------------------- boosts
+
+    public Map<String, double[]> getBoosts() {
+        return boosts;
+    }
+
+    /**
+     * The live multiplier for one boost, or 1.0 when nothing is running.
+     * Expiry is checked on read rather than swept on a timer: a boost
+     * nobody is reading doesn't need to have ended yet.
+     */
+    public double boostMultiplier(String effect) {
+        double[] state = boosts.get(effect);
+        if (state == null) return 1.0;
+        if (System.currentTimeMillis() >= state[1]) {
+            boosts.remove(effect);
+            return 1.0;
+        }
+        return state[0];
+    }
+
+    public long boostRemainingMillis(String effect) {
+        double[] state = boosts.get(effect);
+        if (state == null) return 0L;
+        return Math.max(0L, (long) state[1] - System.currentTimeMillis());
+    }
+
+    /**
+     * Starts or refreshes a boost. A stronger one replaces a weaker one
+     * outright; an equal one adds its time on. Neither case can multiply
+     * two potions together, which is the failure mode worth designing out.
+     */
+    public void applyBoost(String effect, double multiplier, long durationMillis) {
+        double[] state = boosts.get(effect);
+        long now = System.currentTimeMillis();
+        if (state == null || now >= state[1] || multiplier > state[0]) {
+            boosts.put(effect, new double[]{multiplier, now + durationMillis});
+            return;
+        }
+        state[1] += durationMillis;
+    }
+
+    public void setBoost(String effect, double multiplier, long expiryMillis) {
+        if (multiplier <= 1.0 || expiryMillis <= System.currentTimeMillis()) return;
+        boosts.put(effect, new double[]{multiplier, expiryMillis});
+    }
+
+    public long getRollCharges() {
+        return rollCharges;
+    }
+
+    public double getRollChargeMultiplier() {
+        return rollChargeMultiplier;
+    }
+
+    public void setRollCharges(long charges, double multiplier) {
+        this.rollCharges = Math.max(0L, charges);
+        this.rollChargeMultiplier = Math.max(1.0, multiplier);
+    }
+
+    /** A stronger charge replaces a weaker one rather than averaging with it. */
+    public void addRollCharges(long charges, double multiplier) {
+        if (charges <= 0) return;
+        if (multiplier > rollChargeMultiplier || rollCharges <= 0) {
+            rollChargeMultiplier = Math.max(1.0, multiplier);
+            rollCharges = charges;
+            return;
+        }
+        rollCharges += charges;
+    }
+
+    /** Spends one charge, returning the multiplier it was worth (1.0 if none). */
+    public double consumeRollCharge() {
+        if (rollCharges <= 0) return 1.0;
+        rollCharges--;
+        double multiplier = rollChargeMultiplier;
+        if (rollCharges <= 0) rollChargeMultiplier = 1.0;
+        return multiplier;
     }
 
     public boolean isRollAnimationEnabled() {
