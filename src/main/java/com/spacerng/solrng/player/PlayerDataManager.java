@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 public class PlayerDataManager {
 
@@ -211,17 +212,31 @@ public class PlayerDataManager {
      * anybody would accept.
      */
     public void awardOffline(UUID uuid, long credits) {
-        if (credits <= 0) return;
+        awardOffline(uuid, credits, "points", data -> data.addPoints(credits));
+    }
+
+    /** The same, in Coins — what the daily farming payout pays. */
+    public void awardOfflineCoins(UUID uuid, long coins) {
+        awardOffline(uuid, coins, "tokens", data -> data.addTokens(coins));
+    }
+
+    /**
+     * A cached player is paid on the object, because the file underneath
+     * them is about to be overwritten by their own save and would throw
+     * the edit away.
+     */
+    private void awardOffline(UUID uuid, long amount, String key, Consumer<PlayerData> live) {
+        if (amount <= 0) return;
 
         PlayerData cached = cache.get(uuid);
         if (cached != null) {
-            cached.addPoints(credits);
+            live.accept(cached);
             return;
         }
 
         File file = fileFor(uuid);
         YamlConfiguration yml = file.exists() ? YamlConfiguration.loadConfiguration(file) : new YamlConfiguration();
-        yml.set("points", yml.getLong("points", 0L) + credits);
+        yml.set(key, yml.getLong(key, 0L) + amount);
         try {
             yml.save(file);
         } catch (IOException e) {

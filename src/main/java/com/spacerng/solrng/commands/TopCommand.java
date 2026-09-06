@@ -65,7 +65,8 @@ public class TopCommand implements CommandExecutor, TabCompleter {
                     : i == 2 ? ChatColor.GOLD : ChatColor.DARK_GRAY;
 
             String reward = board.equals("farming") && boards.payoutFor(i + 1) > 0
-                    ? ChatColor.LIGHT_PURPLE + "  +" + boards.payoutFor(i + 1) + " Credits"
+                    ? ChatColor.GRAY + "  +"
+                            + com.spacerng.solrng.gui.Currency.COINS.amount(boards.payoutFor(i + 1))
                     : "";
 
             sender.sendMessage(place + "#" + (i + 1) + " " + ChatColor.WHITE + entry.name()

@@ -1,6 +1,7 @@
 package com.spacerng.solrng.leaderboard;
 
 import com.spacerng.solrng.SolRNGPlugin;
+import com.spacerng.solrng.gui.Currency;
 import com.spacerng.solrng.player.PlayerData;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -47,7 +48,7 @@ public class LeaderboardManager {
 
     private ZoneId zone = ZoneId.of("UTC");
     private int resetHour = 0;
-    private List<Long> payouts = List.of(150L, 75L, 25L);
+    private List<Long> payouts = List.of(250_000L, 100_000L, 50_000L);
     private long lastPayoutDay = 0L;
 
     public LeaderboardManager(SolRNGPlugin plugin) {
@@ -67,7 +68,8 @@ public class LeaderboardManager {
         resetHour = Math.max(0, Math.min(23, config.getInt("leaderboard.farming.reset-hour", 0)));
 
         List<Long> configured = new ArrayList<>();
-        for (Object value : config.getList("leaderboard.farming.credit-payouts", List.of(150, 75, 25))) {
+        for (Object value : config.getList("leaderboard.farming.coin-payouts",
+                List.of(250000, 100000, 50000))) {
             try {
                 configured.add(Long.parseLong(String.valueOf(value)));
             } catch (NumberFormatException ignored) {
@@ -197,8 +199,8 @@ public class LeaderboardManager {
             any = true;
             banner.add(ChatColor.YELLOW + "#" + (i + 1) + " " + ChatColor.WHITE + entry.name()
                     + ChatColor.GRAY + "  " + String.format("%,d", entry.farmedPeriod()) + " farmed"
-                    + ChatColor.GRAY + "  " + ChatColor.LIGHT_PURPLE + "+" + reward + " Credits");
-            award(entry.uuid(), reward);
+                    + ChatColor.GRAY + "  +" + Currency.COINS.amount(reward));
+            awardCoins(entry.uuid(), reward);
         }
         if (!any) {
             banner.add(ChatColor.GRAY + "Nobody farmed anything this period.");
@@ -214,21 +216,27 @@ public class LeaderboardManager {
     }
 
     /**
-     * Credits go onto the live object for anyone online, and straight into
-     * their save file otherwise — a winner who logged off before the hour
-     * still gets paid.
+     * The prize goes onto the live object for anyone online, and straight
+     * into their save file otherwise — a winner who logged off before the
+     * hour still gets paid.
+     *
+     * Coins, not Credits. Credits are the store's currency and nothing
+     * free is allowed to mint them, or the store stops meaning anything.
+     * Coins are what farming pays anyway, so the prize is simply more of
+     * what the winner spent the day chasing.
      */
-    private void award(UUID uuid, long credits) {
-        if (credits <= 0) return;
+    private void awardCoins(UUID uuid, long coins) {
+        if (coins <= 0) return;
 
         Player online = Bukkit.getPlayer(uuid);
         if (online != null) {
-            plugin.getPlayerDataManager().get(uuid).addPoints(credits);
-            online.sendMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "+" + credits + " Credits "
-                    + ChatColor.RESET + ChatColor.GRAY + "from the farming payout.");
+            plugin.getPlayerDataManager().get(uuid).addTokens(coins);
+            online.sendMessage(Currency.COINS.colour() + "" + ChatColor.BOLD + "+"
+                    + Currency.COINS.amount(coins)
+                    + ChatColor.RESET + ChatColor.GRAY + " from the farming payout.");
             return;
         }
-        plugin.getPlayerDataManager().awardOffline(uuid, credits);
+        plugin.getPlayerDataManager().awardOfflineCoins(uuid, coins);
     }
 
     private void resetPeriod() {
