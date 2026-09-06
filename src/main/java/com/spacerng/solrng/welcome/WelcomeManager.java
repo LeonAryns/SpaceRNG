@@ -35,7 +35,12 @@ public class WelcomeManager {
     private static final int FACE_Y = 8;
     private static final int HAT_X = 40;
     private static final int FACE_SIZE = 8;
-    private static final String PIXEL = "██";
+    // One block per skin pixel, not two. A chat line is about as tall as
+    // a full block glyph is wide, so doubling the glyph made the face
+    // twice as wide as it was tall - and it ate half the chat line, which
+    // pushed the text beside it onto its own wrapped rows and broke the
+    // face apart.
+    private static final String PIXEL = "█";
 
     private static final LegacyComponentSerializer LEGACY = LegacyComponentSerializer.builder()
             .character(LegacyComponentSerializer.SECTION_CHAR)
@@ -45,6 +50,14 @@ public class WelcomeManager {
 
     private final SolRNGPlugin plugin;
     private final Map<UUID, List<String>> faces = new HashMap<>();
+    /**
+     * Who already has a banner in flight.
+     *
+     * The render is asynchronous, so two sends a tick apart would both
+     * miss the cache, both fetch, and both print. One banner per arrival,
+     * however many things ask for one.
+     */
+    private final java.util.Set<UUID> pending = new java.util.HashSet<>();
 
     private boolean enabled = true;
     private long delayTicks = 20L;
@@ -62,6 +75,7 @@ public class WelcomeManager {
 
     public void forget(UUID uuid) {
         faces.remove(uuid);
+        pending.remove(uuid);
     }
 
     /**
@@ -75,10 +89,14 @@ public class WelcomeManager {
     public void send(Player player) {
         if (!enabled || lines.isEmpty()) return;
 
+        if (!pending.add(player.getUniqueId())) return;
+
         List<String> cached = faces.get(player.getUniqueId());
         if (cached != null) {
-            plugin.getServer().getScheduler().runTaskLater(plugin,
-                    () -> print(player, cached), delayTicks);
+            plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+                pending.remove(player.getUniqueId());
+                print(player, cached);
+            }, delayTicks);
             return;
         }
 
@@ -87,6 +105,7 @@ public class WelcomeManager {
             List<String> face = url == null ? blankFace() : renderFace(url);
             plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
                 faces.put(player.getUniqueId(), face);
+                pending.remove(player.getUniqueId());
                 if (player.isOnline()) print(player, face);
             }, delayTicks);
         });
@@ -164,7 +183,7 @@ public class WelcomeManager {
         player.sendMessage("");
         int rows = Math.max(face.size(), text.size());
         for (int i = 0; i < rows; i++) {
-            String left = i < face.size() ? face.get(i) : ChatColor.RESET + "                ";
+            String left = i < face.size() ? face.get(i) : ChatColor.RESET + "        ";
             String right = i < text.size() ? text.get(i) : "";
             player.sendMessage(LEGACY.deserialize(left + ChatColor.RESET + "  " + right));
         }

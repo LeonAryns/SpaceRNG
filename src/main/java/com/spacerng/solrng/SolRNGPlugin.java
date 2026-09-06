@@ -184,6 +184,8 @@ public final class SolRNGPlugin extends JavaPlugin {
         getCommand("boosts").setExecutor(new com.spacerng.solrng.commands.BoostsCommand(this));
         getCommand("potion").setExecutor(new com.spacerng.solrng.commands.PotionCommand(this));
         getCommand("shop").setExecutor(new com.spacerng.solrng.commands.ShopCommand(this));
+        getCommand("leaderboards").setExecutor(
+                new com.spacerng.solrng.commands.LeaderboardsCommand(this));
         getCommand("rngadmin").setExecutor(adminCommand);
         getCommand("rngadmin").setTabCompleter(adminCommand);
 

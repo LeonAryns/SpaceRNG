@@ -70,6 +70,10 @@ commands:
     description: Open the Battle Pass
     usage: /pass
     aliases: [battlepass, bp]
+  leaderboards:
+    description: Every standing in one place
+    usage: /leaderboards
+    aliases: [leaderboard, lb]
   shop:
     description: Every shop in one place
     usage: /shop

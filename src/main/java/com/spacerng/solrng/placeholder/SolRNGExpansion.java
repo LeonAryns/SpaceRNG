@@ -206,13 +206,7 @@ public class SolRNGExpansion extends PlaceholderExpansion {
         if (rows.size() < place) return ""; // podium slot nobody has filled
 
         var entry = rows.get(place - 1);
-        long value = switch (board) {
-            case "farming" -> entry.farmedPeriod();
-            case "farming_total" -> entry.farmedTotal();
-            case "rolls" -> entry.rolls();
-            case "prestige" -> entry.prestige();
-            default -> entry.discoveries();
-        };
+        long value = com.spacerng.solrng.leaderboard.LeaderboardManager.valueOf(board, entry);
 
         return switch (field) {
             case "name" -> entry.name();

@@ -39,11 +39,68 @@ public class LeaderboardManager {
 
     /** One player's row in the index. */
     public record Entry(UUID uuid, String name, long farmedTotal, long farmedPeriod,
-                        long rolls, int prestige, int discoveries) {
+                        long rolls, int prestige, int discoveries,
+                        int shinies, long coins, long money) {
+
+        /** The same row with the daily counter zeroed. */
+        Entry cleared() {
+            return new Entry(uuid, name, farmedTotal, 0L, rolls, prestige, discoveries,
+                    shinies, coins, money);
+        }
+    }
+
+    /** Every board, in the order a menu should show them. */
+    public static final List<String> BOARDS = List.of(
+            "farming", "farming_total", "index", "shiny", "coins", "money", "rolls", "prestige");
+
+    /**
+     * The one place a board id turns into a number.
+     *
+     * This used to be written out three times — in /top, in the
+     * placeholders and in the sort — which is three chances for a new
+     * board to sort by one thing and display another.
+     */
+    public static long valueOf(String board, Entry entry) {
+        return switch (board) {
+            case "farming" -> entry.farmedPeriod();
+            case "farming_total" -> entry.farmedTotal();
+            case "rolls" -> entry.rolls();
+            case "prestige" -> entry.prestige();
+            case "shiny" -> entry.shinies();
+            case "coins" -> entry.coins();
+            case "money" -> entry.money();
+            default -> entry.discoveries();
+        };
+    }
+
+    public static String titleOf(String board) {
+        return switch (board) {
+            case "farming" -> "Farmers";
+            case "farming_total" -> "Farmers (all time)";
+            case "rolls" -> "Rollers";
+            case "prestige" -> "Prestige";
+            case "shiny" -> "Shiny Index";
+            case "coins" -> "Coins";
+            case "money" -> "Money";
+            default -> "Total Index";
+        };
+    }
+
+    public static String unitOf(String board) {
+        return switch (board) {
+            case "farming", "farming_total" -> "farmed";
+            case "rolls" -> "rolls";
+            case "prestige" -> "prestige";
+            case "shiny" -> "shinies";
+            case "coins" -> "Coins";
+            case "money" -> "Money";
+            default -> "drops";
+        };
     }
 
     private final SolRNGPlugin plugin;
     private final File file;
+    private net.milkbowl.vault.economy.Economy economy;
     private final Map<UUID, Entry> index = new HashMap<>();
 
     private ZoneId zone = ZoneId.of("UTC");
@@ -99,18 +156,44 @@ public class LeaderboardManager {
         }
         index.put(data.getUuid(), new Entry(data.getUuid(), name,
                 data.getCropsHarvested(), data.getCropsThisPeriod(),
-                data.getTotalRolls(), data.getPrestige(), data.getDiscoveredItems().size()));
+                data.getTotalRolls(), data.getPrestige(), data.getDiscoveredItems().size(),
+                data.getDiscoveredShiny().size(), data.getTokens(), balanceOf(data.getUuid())));
+    }
+
+    /**
+     * The Vault balance, snapshotted whenever the player's data is
+     * written.
+     *
+     * The board can't ask Vault while sorting — that would be an economy
+     * lookup per player every time a menu redraws — so it reads the number
+     * that was true at the last save, which for an online player is never
+     * more than a couple of minutes old. With no economy installed the
+     * previous figure is kept rather than zeroed, so the board degrades to
+     * stale rather than to empty.
+     */
+    private long balanceOf(UUID uuid) {
+        if (economy == null) {
+            var registration = Bukkit.getServicesManager()
+                    .getRegistration(net.milkbowl.vault.economy.Economy.class);
+            if (registration == null) {
+                Entry previous = index.get(uuid);
+                return previous == null ? 0L : previous.money();
+            }
+            economy = registration.getProvider();
+        }
+        try {
+            return Math.round(economy.getBalance(Bukkit.getOfflinePlayer(uuid)));
+        } catch (Exception ignored) {
+            Entry previous = index.get(uuid);
+            return previous == null ? 0L : previous.money();
+        }
     }
 
     /** Top rows on a board, highest first. */
     public List<Entry> top(String board, int limit) {
-        Comparator<Entry> order = switch (board.toLowerCase()) {
-            case "farming" -> Comparator.comparingLong(Entry::farmedPeriod).reversed();
-            case "farming_total" -> Comparator.comparingLong(Entry::farmedTotal).reversed();
-            case "rolls" -> Comparator.comparingLong(Entry::rolls).reversed();
-            case "prestige" -> Comparator.comparingInt(Entry::prestige).reversed();
-            default -> Comparator.comparingInt(Entry::discoveries).reversed();
-        };
+        String id = board.toLowerCase();
+        Comparator<Entry> order =
+                Comparator.comparingLong((Entry entry) -> valueOf(id, entry)).reversed();
 
         List<Entry> rows = new ArrayList<>(index.values());
         rows.sort(order);
@@ -246,9 +329,7 @@ public class LeaderboardManager {
         plugin.getPlayerDataManager().clearOfflinePeriods();
 
         for (Map.Entry<UUID, Entry> row : new HashMap<>(index).entrySet()) {
-            Entry old = row.getValue();
-            index.put(row.getKey(), new Entry(old.uuid(), old.name(), old.farmedTotal(), 0L,
-                    old.rolls(), old.prestige(), old.discoveries()));
+            index.put(row.getKey(), row.getValue().cleared());
         }
     }
 
@@ -272,7 +353,10 @@ public class LeaderboardManager {
                         section.getLong(raw + ".farmed-period", 0L),
                         section.getLong(raw + ".rolls", 0L),
                         section.getInt(raw + ".prestige", 0),
-                        section.getInt(raw + ".discoveries", 0)));
+                        section.getInt(raw + ".discoveries", 0),
+                        section.getInt(raw + ".shinies", 0),
+                        section.getLong(raw + ".coins", 0L),
+                        section.getLong(raw + ".money", 0L)));
             } catch (IllegalArgumentException ignored) {
             }
         }
@@ -290,6 +374,9 @@ public class LeaderboardManager {
             yml.set(path + ".rolls", entry.rolls());
             yml.set(path + ".prestige", entry.prestige());
             yml.set(path + ".discoveries", entry.discoveries());
+            yml.set(path + ".shinies", entry.shinies());
+            yml.set(path + ".coins", entry.coins());
+            yml.set(path + ".money", entry.money());
         }
         try {
             yml.save(file);

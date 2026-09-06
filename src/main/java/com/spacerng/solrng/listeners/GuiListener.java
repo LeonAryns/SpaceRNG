@@ -82,6 +82,11 @@ public class GuiListener implements Listener {
             handleBuyClick(event);
         } else if (topInventory.getHolder() instanceof DailyHolder) {
             handleDailyClick(event);
+        } else if (topInventory.getHolder() instanceof com.spacerng.solrng.gui.LeaderboardHolder) {
+            // Nothing to click - the menu is purely something to read, but
+            // an uncancelled click would let a player walk off with the
+            // panes.
+            event.setCancelled(true);
         } else if (topInventory.getHolder() instanceof com.spacerng.solrng.gui.ShopHolder) {
             handleShopClick(event);
         } else if (topInventory.getHolder() instanceof com.spacerng.solrng.gui.PotionHolder) {

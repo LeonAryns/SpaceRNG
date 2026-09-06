@@ -20,8 +20,7 @@ import java.util.Locale;
  */
 public class TopCommand implements CommandExecutor, TabCompleter {
 
-    private static final List<String> BOARDS =
-            List.of("farming", "farming_total", "rolls", "prestige", "index");
+    private static final List<String> BOARDS = LeaderboardManager.BOARDS;
 
     private final SolRNGPlugin plugin;
 
@@ -88,32 +87,15 @@ public class TopCommand implements CommandExecutor, TabCompleter {
     }
 
     private long valueOf(String board, LeaderboardManager.Entry entry) {
-        return switch (board) {
-            case "farming" -> entry.farmedPeriod();
-            case "farming_total" -> entry.farmedTotal();
-            case "rolls" -> entry.rolls();
-            case "prestige" -> entry.prestige();
-            default -> entry.discoveries();
-        };
+        return LeaderboardManager.valueOf(board, entry);
     }
 
     private String title(String board) {
-        return switch (board) {
-            case "farming" -> "Farmers";
-            case "farming_total" -> "Farmers (all time)";
-            case "rolls" -> "Rollers";
-            case "prestige" -> "Prestige";
-            default -> "Collectors";
-        };
+        return LeaderboardManager.titleOf(board);
     }
 
     private String unit(String board) {
-        return switch (board) {
-            case "farming", "farming_total" -> "farmed";
-            case "rolls" -> "rolls";
-            case "prestige" -> "prestige";
-            default -> "drops";
-        };
+        return LeaderboardManager.unitOf(board);
     }
 
     @Override
