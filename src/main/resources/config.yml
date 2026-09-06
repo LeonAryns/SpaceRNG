@@ -2387,6 +2387,34 @@ guide:
       money: 50000
 
 # ============================================
+# The join banner
+# ============================================
+# The player's own face, drawn in chat from their real skin, with these
+# lines beside it. Paper hands the skin URL straight off the profile, so
+# there's no Mojang API call to rate-limit; the PNG is fetched off the
+# main thread once per session and cached.
+#
+# Eight lines sit level with the face. A ninth and beyond continue
+# underneath it, and fewer than eight is fine.
+#
+# {player} and {online} are replaced. Colour codes use "&".
+# /rngadmin welcome replays it without rejoining.
+welcome:
+  enabled: true
+  # A moment after joining, so it lands under the join spam rather than
+  # above it where it scrolls away unread.
+  delay-ticks: 20
+  lines:
+    - "&d&l✦ WELCOME BACK &d&l✦"
+    - "&8&lSEASON I"
+    - ""
+    - "&d| &fType &d/shop &fto see every shop."
+    - "&d| &fType &d/guide &fif you're new."
+    - "&d| &fType &d/buy &fto support us."
+    - ""
+    - "&8&nSPACERNG.MINEHUT.GG"
+
+# ============================================
 # Consumables (potions, charges, permanent grants)
 # ============================================
 # Redeemable items handed out by /milestones, the Battle Pass, crates and

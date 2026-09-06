@@ -65,6 +65,7 @@ public final class SolRNGPlugin extends JavaPlugin {
     private com.spacerng.solrng.pass.PassManager passManager;
     private com.spacerng.solrng.farming.MomentumBar momentumBar;
     private com.spacerng.solrng.consumable.ConsumableManager consumableManager;
+    private com.spacerng.solrng.welcome.WelcomeManager welcomeManager;
 
     @Override
     public void onEnable() {
@@ -93,6 +94,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         this.passManager = new com.spacerng.solrng.pass.PassManager(this);
         this.momentumBar = new com.spacerng.solrng.farming.MomentumBar();
         this.consumableManager = new com.spacerng.solrng.consumable.ConsumableManager(this);
+        this.welcomeManager = new com.spacerng.solrng.welcome.WelcomeManager(this);
 
         reloadAll();
 
@@ -129,6 +131,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         getCommand("pass").setExecutor(new PassCommand(this));
         getCommand("boosts").setExecutor(new com.spacerng.solrng.commands.BoostsCommand(this));
         getCommand("potion").setExecutor(new com.spacerng.solrng.commands.PotionCommand(this));
+        getCommand("shop").setExecutor(new com.spacerng.solrng.commands.ShopCommand(this));
         getCommand("rngadmin").setExecutor(adminCommand);
         getCommand("rngadmin").setTabCompleter(adminCommand);
 
@@ -173,6 +176,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         leaderboardManager.load(getConfig());
         passManager.load(getConfig());
         consumableManager.load(getConfig());
+        welcomeManager.load(getConfig());
     }
 
     /**
@@ -269,6 +273,10 @@ public final class SolRNGPlugin extends JavaPlugin {
 
     public com.spacerng.solrng.consumable.ConsumableManager getConsumableManager() {
         return consumableManager;
+    }
+
+    public com.spacerng.solrng.welcome.WelcomeManager getWelcomeManager() {
+        return welcomeManager;
     }
 
     public com.spacerng.solrng.daily.DailyManager getDailyManager() {

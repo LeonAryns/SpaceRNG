@@ -23,6 +23,7 @@ public class JoinQuitListener implements Listener {
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
+        plugin.getWelcomeManager().send(event.getPlayer());
         // Vanilla /setworldspawn only actually relocates brand new players
         // and no-bed death respawns — everyone else just resumes wherever
         // they last logged off. Force every join to the configured spawn
@@ -64,6 +65,7 @@ public class JoinQuitListener implements Listener {
         plugin.getTagManager().hideHologram(event.getPlayer().getUniqueId());
         plugin.getTagManager().forgetPrefix(event.getPlayer().getUniqueId());
         plugin.getFarmPlotManager().forget(event.getPlayer().getUniqueId());
+        plugin.getWelcomeManager().forget(event.getPlayer().getUniqueId());
         plugin.getLuckBarManager().hide(event.getPlayer().getUniqueId());
         plugin.getQuestManager().hide(event.getPlayer().getUniqueId());
         plugin.getPlayerDataManager().unload(event.getPlayer().getUniqueId());

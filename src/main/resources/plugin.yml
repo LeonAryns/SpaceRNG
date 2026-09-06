@@ -70,6 +70,10 @@ commands:
     description: Open the Battle Pass
     usage: /pass
     aliases: [battlepass, bp]
+  shop:
+    description: Every shop in one place
+    usage: /shop
+    aliases: [shops, menu]
   potion:
     description: Brew potions with rolled drops
     usage: /potion

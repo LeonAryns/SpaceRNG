@@ -82,6 +82,8 @@ public class GuiListener implements Listener {
             handleBuyClick(event);
         } else if (topInventory.getHolder() instanceof DailyHolder) {
             handleDailyClick(event);
+        } else if (topInventory.getHolder() instanceof com.spacerng.solrng.gui.ShopHolder) {
+            handleShopClick(event);
         } else if (topInventory.getHolder() instanceof com.spacerng.solrng.gui.PotionHolder) {
             handlePotionClick(event);
         } else if (topInventory.getHolder() instanceof HoeHolder) {
@@ -294,6 +296,29 @@ public class GuiListener implements Listener {
     }
 
     /** Buys enchant levels with Tokens; shift-click buys ten. */
+    /**
+     * The hub just runs the shop's own command. Going through the command
+     * rather than opening the menu directly means every gate, message and
+     * future change lives in exactly one place — the hub can't drift out
+     * of step with what /armor itself does.
+     */
+    private void handleShopClick(InventoryClickEvent event) {
+        event.setCancelled(true);
+        if (event.getClickedInventory() == null
+                || !(event.getClickedInventory().getHolder()
+                        instanceof com.spacerng.solrng.gui.ShopHolder)) return;
+
+        ItemStack clicked = event.getCurrentItem();
+        if (clicked == null || clicked.getItemMeta() == null) return;
+        String command = clicked.getItemMeta().getPersistentDataContainer()
+                .get(com.spacerng.solrng.gui.ShopGui.commandKey(plugin), PersistentDataType.STRING);
+        if (command == null) return;
+
+        Player player = (Player) event.getWhoClicked();
+        player.closeInventory();
+        player.performCommand(command);
+    }
+
     private void handlePotionClick(InventoryClickEvent event) {
         event.setCancelled(true);
         if (event.getClickedInventory() == null

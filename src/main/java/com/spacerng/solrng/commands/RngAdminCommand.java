@@ -36,7 +36,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
     private static final List<String> SUBCOMMANDS = List.of(
             "reload", "setspawn", "starforge", "reset", "give", "drops",
             "bank", "aura", "roll", "unlock", "unlockall", "lockall", "odds", "farmblock", "farmscan",
-            "hoe", "consumable", "gradient", "crops",
+            "hoe", "consumable", "gradient", "welcome", "crops",
             "milestones", "farmfill", "boost", "nova", "placeholders", "payout", "help");
     private static final List<String> CURRENCIES = List.of("money", "coins", "gems", "credits");
 
@@ -73,6 +73,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             case "hoe" -> doHoe(sender, args);
             case "consumable" -> doConsumable(sender, args);
             case "gradient" -> doGradient(sender, args);
+            case "welcome" -> doWelcome(sender, args);
             case "farmscan" -> doFarmScan(sender, args);
             case "lockall" -> doLockAll(sender, args);
             case "odds" -> doOdds(sender, args);
@@ -109,6 +110,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         line(sender, "hoe", "[player]", "Hand out a bound Farmer's Hoe");
         line(sender, "consumable", "<id> [amount] [player]", "Hand out a potion, charge or grant");
         line(sender, "gradient", "<#hex,#hex,...> <text>", "Build a gradient for Citizens / DecentHolograms");
+        line(sender, "welcome", "[player]", "Replay the join banner");
         line(sender, "farmscan", "[radius] [legacy]", "Re-register farm plots by scanning the world");
         line(sender, "lockall", "[player]", "Wipe every skill, to test the tree from scratch");
         line(sender, "odds", "[rarity]", "Label vs. true odds, and each tier's real share");
@@ -420,6 +422,15 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
 
         plugin.getScoreboardManager().update(target);
         sender.sendMessage(ChatColor.GREEN + "Unlocked " + granted + " node(s) for " + target.getName() + ".");
+        return true;
+    }
+
+    /** Replays the join banner, for tuning it without rejoining. */
+    private boolean doWelcome(CommandSender sender, String[] args) {
+        Player target = resolve(sender, args.length >= 2 ? args[1] : null);
+        if (target == null) return true;
+        plugin.getWelcomeManager().send(target);
+        sender.sendMessage(ChatColor.GREEN + "Replayed the welcome for " + target.getName() + ".");
         return true;
     }
 
