@@ -245,6 +245,57 @@ cost a thousandth as much.
 give completely different signatures. Good for making two auras that use
 the same colour still feel unmistakably different.
 
+## Phases and the frame loop
+
+Every effect runs on a **tick counter**, never on a pile of scheduled
+one-shot tasks. In a datapack this would be a scoreboard timer; in a
+plugin it is one `runTaskTimer` at period 1 with an `elapsed` counter,
+which is cheaper, cancellable, and cannot desync from itself.
+
+The three-phase shape every ability should follow:
+
+| Phase | What it is for | Rule |
+|---|---|---|
+| **Charge** | telling everyone something is coming | must escalate, and must be cancellable |
+| **Cast / impact** | one frame, everything at once | the loudest and brightest frame by far |
+| **Settle / cleanup** | letting it breathe, then releasing state | must always run, even when cancelled |
+
+```java
+public abstract class TickedEffect {
+    protected long elapsed;
+    private BukkitTask task;
+
+    public void start(SolRNGPlugin plugin) {
+        task = plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
+            if (!owner.isOnline()) { stop(); return; }
+            safely("frame " + elapsed, () -> {
+                refreshAudience();
+                double p = (double) elapsed / duration;      // 0.0 to 1.0
+                if (p < CAST_AT)               charge(p / CAST_AT);
+                else if (elapsed == castFrame) cast();
+                else                           settle((p - CAST_AT) / (1 - CAST_AT));
+            });
+            if (++elapsed > duration + finaleTicks) stop();
+        }, 0L, 1L);
+    }
+
+    public void stop() {           // idempotent, and ALWAYS releases state
+        if (task != null) task.cancel();
+        cleanup();
+    }
+}
+```
+
+Two rules learned the hard way:
+
+- **Normalise to `0.0 - 1.0` immediately.** Write every phase against a
+  fraction, never against a raw tick number. That is what lets the same
+  choreography stretch from a 3 second Epic to a 15 second Divine without
+  touching a single number inside the phase.
+- **Wrap every frame in a try/catch that cancels on failure.** One bad
+  frame otherwise throws sixty times a second into the console forever,
+  and the effect never ends. `RollAura.safely()` is the pattern.
+
 ## Choreography
 
 An aura is a piece of music with pictures. The structure that works here,
@@ -280,6 +331,91 @@ Rules that came out of tuning these:
   A shared generic ending is the fastest way to make a rare drop feel
   cheap, and it is exactly the complaint that produced this skill.
 
+### Pitch is the tension dial
+
+Volume says how far away it is. **Pitch says how close it is to
+happening.** The valid range is `0.5` to `2.0`, and one sound at both ends
+is two different instruments.
+
+- **Ramp pitch up through the charge.** `RollAura` does this with its
+  note ladder: `0.5 + progress * 1.5`. Something is always climbing even
+  between scored cues, which is what stops a long build-up going dead in
+  the gaps.
+- **Drop pitch for weight at the impact.** `0.6` on a heavy sound reads
+  as bigger, `1.4` on the same sound reads as sharper. Pick one per
+  rarity and stay consistent.
+- **Layer three at once, spread across the range.** Impact low, body mid,
+  sparkle high. Three sounds on one frame read as one large sound as long
+  as their pitches are far enough apart to stay distinct; stacked at the
+  same pitch they just read as clipping.
+- **Randomise anything repeated.** A sound firing more than twice a
+  second wants `pitch + (random * 0.2 - 0.1)`, or it sounds like a
+  machine. Farm procs especially.
+- **A phase change should be audible with your eyes shut.** If you cannot
+  tell charge from cast from the audio alone, the score is not working.
+
+Worth reaching for on the Starforge abilities and farm enchants:
+`ENTITY_ILLUSIONER_PREPARE_BLINDNESS` and `ENTITY_ILLUSIONER_CAST_SPELL`
+for a charge, `ITEM_FIRECHARGE_USE` and `ENTITY_BLAZE_SHOOT` for a
+release, `BLOCK_BEACON_POWER_SELECT` for a confirm, `ITEM_TRIDENT_THUNDER`
+and `ENTITY_LIGHTNING_BOLT_IMPACT` for a heavy hit,
+`BLOCK_RESPAWN_ANCHOR_CHARGE` for a stacking meter, and
+`BLOCK_CONDUIT_DEACTIVATE` for something ending. Verify each against the
+jar before using it.
+
+## Hitting things
+
+Particles are cosmetic. The moment an effect is supposed to *do*
+something, it needs a real target query, and there are exactly two.
+
+**A volume,** for anything centred on the caster: nukes, shockwaves,
+ground slams.
+
+```java
+// Prefer the typed form: the server filters before your predicate runs.
+Collection<LivingEntity> hit = player.getWorld().getNearbyEntitiesByType(
+        LivingEntity.class, centre, radius,
+        e -> !e.equals(player) && !e.isInvulnerable());
+```
+
+**A ray,** for anything that points: beams, bolts, and the Starforge
+abilities that fire where you look.
+
+```java
+Location eye = player.getEyeLocation();
+RayTraceResult hit = player.getWorld().rayTraceEntities(
+        eye, eye.getDirection(), range,
+        1.0,                                    // hitbox padding, in blocks
+        e -> e instanceof LivingEntity && !e.equals(player));
+if (hit != null) { /* hit.getHitEntity(), hit.getHitPosition() */ }
+```
+
+That padding argument is what makes an ability feel fair. `0.0` demands
+pixel accuracy against a hitbox that is already a few ticks behind and
+feels broken; `1.0` feels generous and correct. Past about `2.0` it starts
+hitting things the player never aimed at.
+
+Rules:
+
+- **Deal damage through `entity.damage(amount, player)`,** never by
+  setting health. The two-argument form fires `EntityDamageByEntityEvent`
+  with an attributed source, which is what lets WorldGuard, the Minehut
+  filter and every other protection plugin veto it. Setting health
+  directly bypasses all of them and turns a cosmetic server into a
+  griefing tool.
+- **Never hit the caster.** Filter the owner out inside the predicate,
+  not afterwards.
+- **Status effects are `addPotionEffect(new PotionEffect(type, ticks,
+  amplifier, ambient, particles))`.** Pass `false` for the particles flag
+  when the effect already has its own visuals, or the vanilla swirls
+  fight with your dust.
+- **Query once per impact, not once per frame.** Entity lookups are the
+  expensive half of an ability, not the particles. A beam that ray-traces
+  every tick for two seconds is forty ray traces to land one hit.
+- **Match the visual to the query.** If the particles reach 8 blocks and
+  the damage reaches 12, players will call it broken and they will be
+  right. Draw the ring at exactly `radius`.
+
 ## Performance budget
 
 Particles are packets. Every one is sent to every viewer.
@@ -296,6 +432,41 @@ Particles are packets. Every one is sent to every viewer.
 - Particle calls must be on the **main thread**. Anything computed
   asynchronously has to hop back with `runTask` before it emits.
 - Cull by distance every frame, not once at the start. People walk away.
+
+### It is per viewer, and it multiplies
+
+The real number is **particles x viewers x effects running at once**. A
+300-particle frame looks free in a test world and is not:
+
+| Situation | Packets per frame |
+|---|---|
+| 1 caster, alone | 300 |
+| 1 caster, 8 people watching | 2,400 |
+| 5 casters, 8 people in range of each | 12,000 |
+
+That last row is a busy spawn when a Divine lands during a farm rush, and
+it is where MSPT goes. Levers, in the order to reach for them:
+
+1. **Step size in the loop.** Drawing a ring every 2 ticks instead of
+   every tick halves the cost and is invisible, because a particle stays
+   on screen far longer than a tick anyway. Biggest and cheapest win by a
+   distance.
+2. **Fewer, larger particles.** `new DustOptions(colour, 2.4f)` is one
+   packet that reads as bright. Ten size-0.6 particles in the same place
+   is ten packets that read as mush. Size is free; count is not.
+3. **Thin as the shape grows.** Points needed scales with radius, but
+   perceived density does not: a 20 block sphere at close-range density
+   is an opaque wall that hides its own contents.
+4. **Shorten the view range** before you shorten the effect. Someone 70
+   blocks away contributing nothing to the moment still costs full price.
+5. **Cap concurrency.** Keep a static count of running spectacle effects
+   and degrade past a threshold: drop to the short finale, or skip the
+   build-up and play only the cast. A slightly smaller effect for
+   everyone beats a server sitting at 60 MSPT.
+
+Measure rather than reason about it. `/spark profiler` or watching MSPT
+while a few people deliberately trigger effects at once tells you the
+truth in a minute.
 
 ## House rules for SpaceRNG
 
