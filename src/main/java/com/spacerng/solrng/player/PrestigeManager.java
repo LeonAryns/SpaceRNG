@@ -162,32 +162,11 @@ public class PrestigeManager {
      * who owns it — nothing is frozen into a save file.
      */
     public double baseLuck(PlayerData data) {
-        SkillTreeManager skills = plugin.getSkillTreeManager();
+        return com.spacerng.solrng.stats.StatSources.luck(plugin, data, false).total();
+    }
 
-        double starforge = data.getStarforgeLuckBonus()
-                * skills.multiplierOf(data, SkillNode.Effect.STARFORGE_POWER);
-        double armor = data.getArmorLuckBonus()
-                * skills.multiplierOf(data, SkillNode.Effect.ARMOR_POWER);
-        double curator = skills.totalOf(data, SkillNode.Effect.LUCK_PER_DISCOVERY)
-                * data.getDiscoveredItems().size();
-        double affinity = skills.totalOf(data, SkillNode.Effect.LUCK_PER_PRESTIGE)
-                * data.getPrestige();
-
-        // A draught's Luck joins the flat pile too, so "+50%" means the same
-        // thing to everyone rather than scaling with what they already have.
-        double flat = starforge + armor + skills.skillLuck(data)
-                + curator + affinity + data.getFlatLuck() + data.getPotionLuck();
-
-        double luck = flat
-                * plugin.getRarityManager().tagMultiplierFor(data)
-                * indexCompletion(data)
-                * (1.0 + data.getPrestige() * luckMultiplierPerPrestige);
-
-        // Prestige Points spent on Luck ride along with everything else the
-        // player has bought, before the global boost scales the total.
-        luck += upgradeTotal(data, PrestigeUpgrade.Effect.LUCK_BONUS);
-        // The global boost everyone shares, then this player's own potion.
-        return luck * plugin.getBoostManager().multiplier() * data.boostMultiplier("LUCK");
+    public double getLuckMultiplierPerPrestige() {
+        return luckMultiplierPerPrestige;
     }
 
     /** The Luck multiplier earned by finishing whole rarities in /index. */
@@ -206,6 +185,6 @@ public class PrestigeManager {
 
     /** Everything: base Luck, the global boost, and the Nova Core tier. */
     public double effectiveLuck(PlayerData data) {
-        return baseLuck(data) * plugin.getNovaCoreManager().multiplierAt(data.getNovaTier());
+        return com.spacerng.solrng.stats.StatSources.luck(plugin, data, true).total();
     }
 }

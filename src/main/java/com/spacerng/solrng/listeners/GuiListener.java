@@ -82,6 +82,8 @@ public class GuiListener implements Listener {
             handleBuyClick(event);
         } else if (topInventory.getHolder() instanceof DailyHolder) {
             handleDailyClick(event);
+        } else if (topInventory.getHolder() instanceof com.spacerng.solrng.gui.StatsHolder) {
+            handleStatsClick(event);
         } else if (topInventory.getHolder() instanceof com.spacerng.solrng.gui.LeaderboardHolder) {
             // Nothing to click - the menu is purely something to read, but
             // an uncancelled click would let a player walk off with the
@@ -146,6 +148,51 @@ public class GuiListener implements Listener {
             toggleAura(player, data, com.spacerng.solrng.rarity.Rarity.MYTHICAL);
         } else if (rawSlot == OptionsHolder.AURA_DIVINE_SLOT) {
             toggleAura(player, data, com.spacerng.solrng.rarity.Rarity.DIVINE);
+        } else if (rawSlot == OptionsHolder.SHOUT_EPIC_SLOT) {
+            toggleShout(player, data, com.spacerng.solrng.rarity.Rarity.EPIC);
+        } else if (rawSlot == OptionsHolder.SHOUT_LEGENDARY_SLOT) {
+            toggleShout(player, data, com.spacerng.solrng.rarity.Rarity.LEGENDARY);
+        } else if (rawSlot == OptionsHolder.SHOUT_MYTHICAL_SLOT) {
+            toggleShout(player, data, com.spacerng.solrng.rarity.Rarity.MYTHICAL);
+        } else if (rawSlot == OptionsHolder.SHOUT_DIVINE_SLOT) {
+            toggleShout(player, data, com.spacerng.solrng.rarity.Rarity.DIVINE);
+        }
+    }
+
+    private void toggleShout(Player player, PlayerData data,
+                             com.spacerng.solrng.rarity.Rarity rarity) {
+        data.setBroadcastEnabled(rarity, !data.isBroadcastEnabled(rarity));
+        player.openInventory(OptionsGui.build(plugin, player));
+    }
+
+    /** Read-only: open one stat's breakdown, or come back from it. */
+    private void handleStatsClick(InventoryClickEvent event) {
+        event.setCancelled(true);
+        if (event.getClickedInventory() == null
+                || !(event.getClickedInventory().getHolder()
+                        instanceof com.spacerng.solrng.gui.StatsHolder holder)) return;
+
+        Player player = (Player) event.getWhoClicked();
+        ItemStack clicked = event.getCurrentItem();
+        if (clicked == null || clicked.getItemMeta() == null) return;
+
+        if (holder.getOpen() != null) {
+            if (clicked.getType() == org.bukkit.Material.ARROW) {
+                player.openInventory(com.spacerng.solrng.gui.StatsGui.overview(
+                        plugin, holder.getTarget(), holder.getTargetName()));
+            }
+            return;
+        }
+
+        String id = clicked.getItemMeta().getPersistentDataContainer()
+                .get(com.spacerng.solrng.gui.StatsGui.statKey(plugin), PersistentDataType.STRING);
+        if (id == null) return;
+        try {
+            player.openInventory(com.spacerng.solrng.gui.StatsGui.breakdown(plugin,
+                    holder.getTarget(), holder.getTargetName(),
+                    com.spacerng.solrng.stats.StatSources.Id.valueOf(id)));
+        } catch (IllegalArgumentException ignored) {
+            // A stat that no longer exists - the menu is stale, not broken.
         }
     }
 

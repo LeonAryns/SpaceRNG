@@ -2102,17 +2102,17 @@ milestones:
       description: "Reset your level for permanent Luck."
       tiers:
         - { at: 1, money: 250000 }
-        - { at: 2, money: 750000, consumable: draught_deep }
+        - { at: 2, consumable: luck_potion }
         - { at: 3, money: 2000000 }
-        - { at: 5, money: 6000000, consumable: roll_10x }
-        - { at: 10, money: 25000000, consumable: draught_deep, consumable-amount: 2 }
-        - { at: 15, money: 75000000, consumable: draught_swift, consumable-amount: 2 }
-        - { at: 20, money: 200000000, consumable: roll_10x, consumable-amount: 3 }
-        - { at: 25, money: 500000000, consumable: draught_deep, consumable-amount: 3 }
-        - { at: 35, money: 1500000000, consumable: roll_10x, consumable-amount: 5 }
-        - { at: 50, money: 5000000000, consumable: draught_swift, consumable-amount: 5 }
-        - { at: 75, money: 20000000000, consumable: roll_10x, consumable-amount: 10 }
-        - { at: 100, money: 100000000000, consumable: draught_deep, consumable-amount: 10 }
+        - { at: 5, consumable: roll_10x }
+        - { at: 10, consumable: luck_potion, consumable-amount: 2 }
+        - { at: 15, consumable: speed_potion, consumable-amount: 2 }
+        - { at: 20, consumable: roll_10x, consumable-amount: 3 }
+        - { at: 25, consumable: luck_potion, consumable-amount: 3 }
+        - { at: 35, consumable: roll_10x, consumable-amount: 5 }
+        - { at: 50, consumable: speed_potion, consumable-amount: 5 }
+        - { at: 75, consumable: roll_10x, consumable-amount: 10 }
+        - { at: 100, consumable: luck_potion, consumable-amount: 10 }
     rarity:
       verb: "Discover"
       display: "Collection"
@@ -2121,17 +2121,17 @@ milestones:
       description: "Unique drops discovered in your /index."
       tiers:
         - { at: 5, money: 50000 }
-        - { at: 10, money: 150000, consumable: roll_10x }
+        - { at: 10, consumable: roll_10x }
         - { at: 20, money: 500000 }
-        - { at: 30, money: 1500000, consumable: draught_deep }
-        - { at: 45, money: 5000000, consumable: roll_10x, consumable-amount: 2 }
-        - { at: 60, money: 15000000, consumable: draught_swift }
-        - { at: 80, money: 50000000, consumable: roll_10x, consumable-amount: 3 }
-        - { at: 100, money: 150000000, consumable: draught_deep, consumable-amount: 3 }
-        - { at: 115, money: 500000000, consumable: roll_10x, consumable-amount: 5 }
-        - { at: 130, money: 2000000000, consumable: luck_250 }
-        - { at: 140, money: 10000000000, consumable: roll_10x, consumable-amount: 10 }
-        - { at: 144, money: 50000000000, consumable: draught_deep, consumable-amount: 10 }
+        - { at: 30, consumable: luck_potion }
+        - { at: 45, consumable: roll_10x, consumable-amount: 2 }
+        - { at: 60, consumable: speed_potion }
+        - { at: 80, consumable: roll_10x, consumable-amount: 3 }
+        - { at: 100, consumable: luck_potion, consumable-amount: 3 }
+        - { at: 115, consumable: roll_10x, consumable-amount: 5 }
+        - { at: 130, consumable: luck_250 }
+        - { at: 140, consumable: roll_10x, consumable-amount: 10 }
+        - { at: 144, consumable: luck_potion, consumable-amount: 10 }
     farming:
       verb: "Farm"
       display: "Farming"
@@ -2140,17 +2140,17 @@ milestones:
       description: "Crops harvested on the shared farm."
       tiers:
         - { at: 100, tokens: 500 }
-        - { at: 500, tokens: 1500, consumable: coin_potion }
+        - { at: 500, consumable: coin_potion }
         - { at: 1000, tokens: 3000 }
-        - { at: 2500, tokens: 7500, consumable: enchant_potion }
-        - { at: 5000, tokens: 15000, consumable: coin_potion, consumable-amount: 2 }
+        - { at: 2500, consumable: enchant_potion }
+        - { at: 5000, consumable: coin_potion, consumable-amount: 2 }
         - { at: 10000, tokens: 30000, shards: 25 }
-        - { at: 25000, tokens: 75000, consumable: enchant_potion, consumable-amount: 2 }
+        - { at: 25000, consumable: enchant_potion, consumable-amount: 2 }
         - { at: 50000, tokens: 150000, shards: 100 }
-        - { at: 100000, tokens: 300000, consumable: coin_potion, consumable-amount: 5 }
+        - { at: 100000, consumable: coin_potion, consumable-amount: 5 }
         - { at: 250000, tokens: 750000, shards: 500 }
-        - { at: 500000, tokens: 1500000, consumable: enchant_potion, consumable-amount: 5 }
-        - { at: 1000000, tokens: 3000000, shards: 2500, consumable: coin_potion, consumable-amount: 10 }
+        - { at: 500000, consumable: enchant_potion, consumable-amount: 5 }
+        - { at: 1000000, consumable: coin_potion, consumable-amount: 10 }
     playtime:
       verb: "Play"
       display: "Playtime"
@@ -2159,15 +2159,15 @@ milestones:
       description: "Hours spent on SpaceRNG."
       tiers:
         - { at: 1, money: 100000 }
-        - { at: 2, money: 250000, consumable: luck_50 }
-        - { at: 6, money: 1000000, consumable: draught_deep }
-        - { at: 12, money: 4000000, consumable: draught_swift }
-        - { at: 24, money: 15000000, consumable: roll_10x, consumable-amount: 2 }
-        - { at: 48, money: 50000000, consumable: draught_deep, consumable-amount: 3 }
-        - { at: 96, money: 200000000, consumable: coin_potion, consumable-amount: 3 }
-        - { at: 168, money: 750000000, consumable: roll_10x, consumable-amount: 5 }
-        - { at: 336, money: 3000000000, consumable: draught_deep, consumable-amount: 5 }
-        - { at: 720, money: 15000000000, consumable: roll_10x, consumable-amount: 10 }
+        - { at: 2, consumable: luck_50 }
+        - { at: 6, consumable: luck_potion }
+        - { at: 12, consumable: speed_potion }
+        - { at: 24, consumable: roll_10x, consumable-amount: 2 }
+        - { at: 48, consumable: luck_potion, consumable-amount: 3 }
+        - { at: 96, consumable: coin_potion, consumable-amount: 3 }
+        - { at: 168, consumable: roll_10x, consumable-amount: 5 }
+        - { at: 336, consumable: luck_potion, consumable-amount: 5 }
+        - { at: 720, consumable: roll_10x, consumable-amount: 10 }
 
 # Leaderboards and the daily farming payout.
 #
@@ -2542,6 +2542,26 @@ consumables:
       RARE: 15
       EPIC: 2
 
+  # ---- Milestone rewards ----
+  # Plainly named on purpose. A milestone tells you what you're getting
+  # before you've ever opened /potion, so "Luck Potion" has to mean what
+  # it says. The shop's own draughts get the interesting names, because
+  # by the time you're buying one you already know what a draught is.
+  luck_potion:
+    display: "Luck Potion"
+    material: POTION
+    colors: ["#B39DDB", "#5E35B1"]
+    luck: 1.00
+    rolls: 50
+    description: "+100% Luck for your next 50 rolls."
+  speed_potion:
+    display: "Speed Potion"
+    material: POTION
+    colors: ["#FFF59D", "#FFB300"]
+    speed: 50
+    rolls: 60
+    description: "+50% Speed for your next 60 rolls."
+
   # ---- Charges and grants ----
   roll_10x:
     display: "10x Roll"
@@ -2554,13 +2574,13 @@ consumables:
       EPIC: 8
       LEGENDARY: 2
   luck_50:
-    display: "Fragment of Fortune"
+    display: "Permanent Luck +50%"
     material: RABBIT_FOOT
     colors: ["#B9F6CA", "#00C853"]
     permanent-luck: 0.5
     description: "A permanent 50% Luck. It never runs out."
   luck_250:
-    display: "Heart of Fortune"
+    display: "Permanent Luck +250%"
     material: RABBIT_FOOT
     colors: ["#FFF59D", "#00E676", "#00B0FF"]
     permanent-luck: 2.5

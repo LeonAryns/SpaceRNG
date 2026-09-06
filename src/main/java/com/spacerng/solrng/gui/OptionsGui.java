@@ -24,11 +24,11 @@ public class OptionsGui {
 
     public static Inventory build(SolRNGPlugin plugin, Player player) {
         OptionsHolder holder = new OptionsHolder();
-        Inventory inv = Bukkit.createInventory(holder, 27, ChatColor.DARK_GRAY + "" + ChatColor.BOLD + "Options");
+        Inventory inv = Bukkit.createInventory(holder, 36, ChatColor.DARK_GRAY + "" + ChatColor.BOLD + "Options");
         holder.setInventory(inv);
 
         ItemStack filler = pane();
-        for (int slot = 0; slot < 27; slot++) {
+        for (int slot = 0; slot < 36; slot++) {
             inv.setItem(slot, filler);
         }
 
@@ -46,7 +46,39 @@ public class OptionsGui {
         inv.setItem(OptionsHolder.AURA_MYTHICAL_SLOT, auraToggle(plugin, data, Rarity.MYTHICAL, Material.FIRE_CHARGE));
         inv.setItem(OptionsHolder.AURA_DIVINE_SLOT, auraToggle(plugin, data, Rarity.DIVINE, Material.CONDUIT));
 
+        inv.setItem(OptionsHolder.SHOUT_EPIC_SLOT, shoutToggle(plugin, data, Rarity.EPIC));
+        inv.setItem(OptionsHolder.SHOUT_LEGENDARY_SLOT, shoutToggle(plugin, data, Rarity.LEGENDARY));
+        inv.setItem(OptionsHolder.SHOUT_MYTHICAL_SLOT, shoutToggle(plugin, data, Rarity.MYTHICAL));
+        inv.setItem(OptionsHolder.SHOUT_DIVINE_SLOT, shoutToggle(plugin, data, Rarity.DIVINE));
+
         return inv;
+    }
+
+    /**
+     * Whether other people's drops at this rarity reach your chat.
+     *
+     * Deliberately a separate switch from the aura: somebody who wants the
+     * fireworks when a Divine lands doesn't necessarily want a line of
+     * chat every time an Epic does, and one toggle can't say both.
+     */
+    private static ItemStack shoutToggle(SolRNGPlugin plugin, PlayerData data, Rarity rarity) {
+        boolean on = data.isBroadcastEnabled(rarity);
+        String name = plugin.getRarityManager().style(rarity, rarity.displayName());
+
+        ItemStack item = new ItemStack(on ? Material.BELL : Material.BARRIER);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(name + ChatColor.DARK_GRAY + " \u2014 "
+                + (on ? ChatColor.GREEN.toString() + ChatColor.BOLD + "Announced"
+                      : ChatColor.RED.toString() + ChatColor.BOLD + "Muted"));
+        meta.setLore(java.util.List.of(
+                Lore.line(ChatColor.AQUA, "Other players' " + rarity.displayName() + " drops"),
+                Lore.line(ChatColor.AQUA, "announced in chat."),
+                "",
+                ChatColor.DARK_GRAY + Lore.BULLET + " Your own drops are always shown.",
+                "",
+                ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to toggle"));
+        item.setItemMeta(meta);
+        return item;
     }
 
     private static ItemStack auraToggle(SolRNGPlugin plugin, PlayerData data, Rarity rarity, Material material) {

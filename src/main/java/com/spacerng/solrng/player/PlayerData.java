@@ -40,6 +40,9 @@ public class PlayerData {
     // Rarities whose reveal aura this player has switched off. Stored as
     // the exceptions so a new rarity is visible by default.
     private final Set<Rarity> disabledAuras = EnumSet.noneOf(Rarity.class);
+    // Rarities whose global announcement this player has switched off.
+    // Their own drops are never muted - this is for everyone else's.
+    private final Set<Rarity> mutedBroadcasts = EnumSet.noneOf(Rarity.class);
     // Auto-roll always fires at the player's own current roll speed — no
     // separate fixed interval.
     private boolean autoRollEnabled = false;
@@ -866,6 +869,24 @@ public class PlayerData {
 
     public Set<Rarity> getDisabledAuras() {
         return disabledAuras;
+    }
+
+    /** Whether this player wants to see other people's drops at a rarity. */
+    public boolean isBroadcastEnabled(Rarity rarity) {
+        return rarity != null && !mutedBroadcasts.contains(rarity);
+    }
+
+    public void setBroadcastEnabled(Rarity rarity, boolean enabled) {
+        if (rarity == null) return;
+        if (enabled) {
+            mutedBroadcasts.remove(rarity);
+        } else {
+            mutedBroadcasts.add(rarity);
+        }
+    }
+
+    public Set<Rarity> getMutedBroadcasts() {
+        return mutedBroadcasts;
     }
 
     public double getFarmTokenMultiplier() {

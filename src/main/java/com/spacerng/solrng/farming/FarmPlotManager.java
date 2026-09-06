@@ -426,28 +426,12 @@ public class FarmPlotManager {
         int regrow = regrowTicksFor(data);
         mine.put(plot, now + regrow);
 
-        // The tool itself and Token Greed add to the base payout; Fortune
-        // doubles whatever comes out of that.
-        double multiplier = data.getFarmTokenMultiplier()
-                + plugin.getFarmingManager().tierOf(data).tokenBonus()
-                + hoe.powerOf(data, "TOKEN_GREED");
-        // Momentum MULTIPLIES instead of adding. It's the one bonus that
-        // has to be earned live rather than bought, so it should be worth
-        // more the better everything else already is.
-        multiplier *= momentumMultiplier(player, hoe, data, chain);
-        multiplier *= data.boostMultiplier("TOKENS");
-
-        // Same universal multiplier the Nova Core gives Luck and Money.
-        multiplier *= plugin.getNovaCoreManager().multiplierAt(data.getNovaTier());
-        // Token Master from the prestige upgrades rides on top.
-        multiplier += plugin.getPrestigeManager().upgradeTotal(data,
-                com.spacerng.solrng.player.PrestigeUpgrade.Effect.TOKEN_BONUS);
-        // The general tree's Tokens skills multiply on top of everything
-        // the farm tree already stacked, rather than adding into the same
-        // pile — two trees feeding one number additively would make the
-        // later, far more expensive nodes feel like nothing.
-        multiplier *= plugin.getSkillTreeManager()
-                .multiplierOf(data, com.spacerng.solrng.player.SkillNode.Effect.TOKEN_GAIN);
+        // The whole payout - tool, Coin Greed, boosts, Nova Core, prestige
+        // and the general tree - is defined once in StatSources, so /stats
+        // quotes the same number this pays. Momentum is handed in rather
+        // than read there: it's earned live and resets when you stop.
+        double multiplier = com.spacerng.solrng.stats.StatSources
+                .coins(plugin, data, momentumMultiplier(player, hoe, data, chain)).total();
         // Per-crop yield skills stack on top, so specialising in one crop
         // is a real choice against raising every crop a little.
         double cropYield = plugin.getSkillTreeManager()

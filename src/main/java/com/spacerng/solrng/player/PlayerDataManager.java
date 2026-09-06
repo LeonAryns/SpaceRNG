@@ -114,6 +114,12 @@ public class PlayerDataManager {
             } catch (IllegalArgumentException ignored) {
             }
         }
+        for (String rarityName : yml.getStringList("muted-broadcasts")) {
+            try {
+                data.setBroadcastEnabled(Rarity.valueOf(rarityName), false);
+            } catch (IllegalArgumentException ignored) {
+            }
+        }
         org.bukkit.configuration.ConfigurationSection shiny = yml.getConfigurationSection("shiny-bank");
         if (shiny != null) {
             for (String rarityName : shiny.getKeys(false)) {
@@ -300,6 +306,7 @@ public class PlayerDataManager {
         java.util.List<String> disabledAuras = new java.util.ArrayList<>();
         for (Rarity r : data.getDisabledAuras()) disabledAuras.add(r.name());
         yml.set("disabled-auras", disabledAuras);
+        yml.set("muted-broadcasts", data.getMutedBroadcasts().stream().map(Enum::name).toList());
         for (Map.Entry<Rarity, Long> entry : data.getShinyBank().entrySet()) {
             yml.set("shiny-bank." + entry.getKey().name(), entry.getValue());
         }

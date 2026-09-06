@@ -104,9 +104,7 @@ public class RollListener implements Listener {
      * retuning shiny.chance doesn't silently retune the skills too.
      */
     public double shinyChance(PlayerData data) {
-        double base = plugin.getConfig().getDouble("shiny.chance", 0.01);
-        return Math.min(1.0, base * plugin.getSkillTreeManager()
-                .multiplierOf(data, SkillNode.Effect.SHINY_CHANCE));
+        return com.spacerng.solrng.stats.StatSources.shiny(plugin, data).total();
     }
 
     public boolean isRolling(UUID uuid) {
@@ -520,20 +518,14 @@ public class RollListener implements Listener {
         var registration = Bukkit.getServicesManager().getRegistration(Economy.class);
         if (registration == null) return 0.0;
 
-        SkillTreeManager skills = plugin.getSkillTreeManager();
-        double multiplier = plugin.getConfig().getDouble("economy.money-per-odds-multiplier", 10.0);
-        // The Nova Core lifts Coins as well as Luck — it's a universal
-        // multiplier, not a Luck-only one.
-        double nova = plugin.getNovaCoreManager().multiplierAt(data.getNovaTier());
-        double upgrade = 1.0 + plugin.getPrestigeManager().upgradeTotal(data,
-                com.spacerng.solrng.player.PrestigeUpgrade.Effect.MONEY_BONUS);
-        // Coins skills, plus Coins Per Level which scales off the /prestige
-        // level rather than off a level of its own.
-        double skill = 1.0 + skills.totalOf(data, SkillNode.Effect.MONEY_MULTIPLIER)
-                + skills.totalOf(data, SkillNode.Effect.MONEY_PER_LEVEL) * data.getLevel();
-        double dupe = duplicate ? skills.multiplierOf(data, SkillNode.Effect.DUPLICATE_BONUS) : 1.0;
+        // Base rate, Nova Core, prestige upgrades and Money skills all
+        // live in StatSources so /stats can show the same figure this pays.
+        double multiplier = com.spacerng.solrng.stats.StatSources.money(plugin, data).total();
+        double dupe = duplicate
+                ? plugin.getSkillTreeManager().multiplierOf(data, SkillNode.Effect.DUPLICATE_BONUS)
+                : 1.0;
 
-        double money = result.getOdds() * multiplier * nova * upgrade * skill * dupe;
+        double money = result.getOdds() * multiplier * dupe;
         registration.getProvider().depositPlayer(player, money);
         return money;
     }
@@ -617,6 +609,18 @@ public class RollListener implements Listener {
         Component banner = LegacyComponentSerializer.legacySection()
                 .deserialize(RollFormat.broadcastBanner(plugin, player.getName(), result, shiny))
                 .hoverEvent(previewItem.asHoverEvent());
-        Bukkit.broadcast(banner);
+
+        // Announced one player at a time rather than server-wide, because
+        // muting a rarity is a per-player setting. The person who rolled it
+        // always sees their own - the mute is for other people's noise.
+        for (Player online : Bukkit.getOnlinePlayers()) {
+            if (!online.equals(player)
+                    && !plugin.getPlayerDataManager().get(online.getUniqueId())
+                            .isBroadcastEnabled(result.getRarity())) {
+                continue;
+            }
+            online.sendMessage(banner);
+        }
+        Bukkit.getConsoleSender().sendMessage(banner);
     }
 }
