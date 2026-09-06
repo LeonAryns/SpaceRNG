@@ -120,6 +120,35 @@ public final class Lore {
                 Integer.parseInt(clean.substring(4, 6), 16)};
     }
 
+    /**
+     * The same gradient written as "&#RRGGBB" codes instead of rendered.
+     *
+     * Citizens and DecentHolograms both take that form in their own
+     * configs, and neither has a gradient tag of its own — so the only way
+     * to get one into an NPC name or a hologram line is a colour code per
+     * character, which is not something anybody should be typing by hand.
+     */
+    public static String gradientCodes(String text, String... hexStops) {
+        if (hexStops.length == 0) return text;
+        if (hexStops.length == 1) return "&" + hexStops[0] + text;
+
+        StringBuilder out = new StringBuilder();
+        int length = text.length();
+        int segments = hexStops.length - 1;
+        for (int i = 0; i < length; i++) {
+            char c = text.charAt(i);
+            if (c == ' ') {
+                out.append(' ');
+                continue;
+            }
+            double t = length <= 1 ? 0.0 : (double) i / (length - 1);
+            int segment = Math.min((int) (t * segments), segments - 1);
+            double local = (t * segments) - segment;
+            out.append('&').append(blend(hexStops[segment], hexStops[segment + 1], local)).append(c);
+        }
+        return out.toString();
+    }
+
     private static String of(String hex) {
         int[] c = rgb(hex);
         return net.md_5.bungee.api.ChatColor.of(new java.awt.Color(c[0], c[1], c[2])).toString();

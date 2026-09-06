@@ -36,7 +36,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
     private static final List<String> SUBCOMMANDS = List.of(
             "reload", "setspawn", "starforge", "reset", "give", "drops",
             "bank", "aura", "roll", "unlock", "unlockall", "lockall", "odds", "farmblock", "farmscan",
-            "hoe", "consumable", "crops",
+            "hoe", "consumable", "gradient", "crops",
             "milestones", "farmfill", "boost", "nova", "placeholders", "payout", "help");
     private static final List<String> CURRENCIES = List.of("money", "coins", "gems", "credits");
 
@@ -72,6 +72,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             case "unlockall" -> doUnlockAll(sender, args);
             case "hoe" -> doHoe(sender, args);
             case "consumable" -> doConsumable(sender, args);
+            case "gradient" -> doGradient(sender, args);
             case "farmscan" -> doFarmScan(sender, args);
             case "lockall" -> doLockAll(sender, args);
             case "odds" -> doOdds(sender, args);
@@ -107,6 +108,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         line(sender, "unlockall", "[player]", "Max out every skill in every tree");
         line(sender, "hoe", "[player]", "Hand out a bound Farmer's Hoe");
         line(sender, "consumable", "<id> [amount] [player]", "Hand out a potion, charge or grant");
+        line(sender, "gradient", "<#hex,#hex,...> <text>", "Build a gradient for Citizens / DecentHolograms");
         line(sender, "farmscan", "[radius] [legacy]", "Re-register farm plots by scanning the world");
         line(sender, "lockall", "[player]", "Wipe every skill, to test the tree from scratch");
         line(sender, "odds", "[rarity]", "Label vs. true odds, and each tier's real share");
@@ -418,6 +420,59 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
 
         plugin.getScoreboardManager().update(target);
         sender.sendMessage(ChatColor.GREEN + "Unlocked " + granted + " node(s) for " + target.getName() + ".");
+        return true;
+    }
+
+    /**
+     * Prints a gradient as colour codes, ready to paste into another
+     * plugin.
+     *
+     * Citizens and DecentHolograms both accept "&#RRGGBB" and neither has
+     * a gradient tag, so the only way to get one into an NPC name or a
+     * hologram line is a code per character. This writes it, shows what it
+     * will look like, and puts it in the chat box to copy — which beats
+     * counting characters by hand.
+     */
+    private boolean doGradient(CommandSender sender, String[] args) {
+        if (args.length < 3) {
+            sender.sendMessage(ChatColor.RED + "Usage: /rngadmin gradient <#hex,#hex,...> <text>");
+            sender.sendMessage(ChatColor.DARK_GRAY + "e.g. /rngadmin gradient #FFD54F,#FF8F00 Armorer");
+            return true;
+        }
+
+        String[] stops = args[1].split(",");
+        for (int i = 0; i < stops.length; i++) {
+            String stop = stops[i].trim();
+            if (!stop.startsWith("#")) stop = "#" + stop;
+            if (!stop.matches("#[0-9A-Fa-f]{6}")) {
+                sender.sendMessage(ChatColor.RED + "'" + stops[i] + "' isn't a #RRGGBB colour.");
+                return true;
+            }
+            stops[i] = stop.toUpperCase(Locale.ROOT);
+        }
+
+        String text = String.join(" ", java.util.Arrays.copyOfRange(args, 2, args.length));
+        String codes = com.spacerng.solrng.gui.Lore.gradientCodes(text, stops);
+
+        sender.sendMessage("");
+        sender.sendMessage(com.spacerng.solrng.gui.Lore.header("Gradient"));
+        sender.sendMessage(ChatColor.GRAY + "Preview: "
+                + com.spacerng.solrng.gui.Lore.gradient(text, stops));
+        sender.sendMessage(ChatColor.GRAY + "Stops:   " + ChatColor.WHITE + String.join(" -> ", stops));
+
+        if (sender instanceof Player player) {
+            net.kyori.adventure.text.Component line = net.kyori.adventure.text.Component
+                    .text(codes, net.kyori.adventure.text.format.NamedTextColor.WHITE)
+                    .hoverEvent(net.kyori.adventure.text.Component
+                            .text("Click to put it in your chat box, then copy it."))
+                    .clickEvent(net.kyori.adventure.text.event.ClickEvent.suggestCommand(codes));
+            player.sendMessage(ChatColor.GRAY + "Click to copy:");
+            player.sendMessage(line);
+        } else {
+            sender.sendMessage(codes);
+        }
+        sender.sendMessage(ChatColor.DARK_GRAY + "Paste into /npc rename, a DecentHolograms line, or TAB.");
+        sender.sendMessage("");
         return true;
     }
 
@@ -957,6 +1012,9 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
                 case "unlock" -> partial(args[1], withAll(nodeIds()));
                 case "consumable" -> partial(args[1],
                         new ArrayList<>(plugin.getConsumableManager().getAll().keySet()));
+                case "gradient" -> partial(args[1], List.of(
+                        "#F6D6FF,#B15CFF", "#FFD54F,#FF8F00", "#B0BEC5,#78909C",
+                        "#B9F6CA,#00C853", "#E1BEE7,#8E24AA"));
                 case "starforge" -> partial(args[1], tierIds());
                 case "reset" -> partial(args[1], playerNames());
                 case "crops" -> partial(args[1], List.of("unlock", "lock"));
