@@ -153,6 +153,62 @@ public class RarityManager {
         return item == null ? 1.0 : item.getLuckMultiplier();
     }
 
+    /** How many rollable items a rarity has, for completion counting. */
+    public int countIn(Rarity rarity) {
+        int total = 0;
+        for (RollableItem item : items) {
+            if (item.getRarity() == rarity) total++;
+        }
+        return total;
+    }
+
+    /** How many of a rarity this player has found, normal and shiny. */
+    public int foundIn(com.spacerng.solrng.player.PlayerData data, Rarity rarity, boolean shiny) {
+        int found = 0;
+        for (RollableItem item : items) {
+            if (item.getRarity() != rarity) continue;
+            if (shiny ? data.hasDiscoveredShiny(item.getDisplayName())
+                      : data.hasDiscovered(item.getDisplayName())) {
+                found++;
+            }
+        }
+        return found;
+    }
+
+    public boolean isComplete(com.spacerng.solrng.player.PlayerData data, Rarity rarity, boolean shiny) {
+        int total = countIn(rarity);
+        return total > 0 && foundIn(data, rarity, shiny) >= total;
+    }
+
+    /**
+     * What one finished rarity is worth: the shiny figure INSTEAD of the
+     * plain one, never both. 1.0 means nothing has been finished.
+     */
+    public double completionMultiplierFor(com.spacerng.solrng.player.PlayerData data, Rarity rarity,
+                                          double perRarity, double perShiny) {
+        if (!isComplete(data, rarity, false)) return 1.0;
+        return isComplete(data, rarity, true) ? perShiny : perRarity;
+    }
+
+    /**
+     * Every finished rarity multiplied together. Finishing a whole tier is
+     * the end of the collection game rather than a step in it, so the
+     * tiers multiply rather than add — and completing all of them in shiny
+     * is meant to be the largest number in the plugin.
+     *
+     * Gated behind the same Index Luck skill the equipped tag is: until
+     * that's bought, the index is a collection log and nothing more.
+     */
+    public double completionMultiplier(com.spacerng.solrng.player.PlayerData data,
+                                       double perRarity, double perShiny) {
+        if (!data.hasUnlocked("index_luck")) return 1.0;
+        double total = 1.0;
+        for (Rarity rarity : Rarity.values()) {
+            total *= completionMultiplierFor(data, rarity, perRarity, perShiny);
+        }
+        return total;
+    }
+
     /** An item's own "colors"/bold/underline/strikethrough, or null if it doesn't define any. */
     private RarityStyle parseItemStyle(Map<?, ?> raw) {
         Object colorsRaw = raw.get("colors");

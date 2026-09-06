@@ -135,6 +135,8 @@ public class GuiListener implements Listener {
             toggleAura(player, data, com.spacerng.solrng.rarity.Rarity.LEGENDARY);
         } else if (rawSlot == OptionsHolder.AURA_MYTHICAL_SLOT) {
             toggleAura(player, data, com.spacerng.solrng.rarity.Rarity.MYTHICAL);
+        } else if (rawSlot == OptionsHolder.AURA_DIVINE_SLOT) {
+            toggleAura(player, data, com.spacerng.solrng.rarity.Rarity.DIVINE);
         }
     }
 

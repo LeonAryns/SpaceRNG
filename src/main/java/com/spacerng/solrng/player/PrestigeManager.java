@@ -18,6 +18,8 @@ public class PrestigeManager {
     private int firstPrestigeLevels;
     private int levelsIncrementPerPrestige;
     private double luckMultiplierPerPrestige;
+    private double indexCompletionPerRarity = 2.0;
+    private double indexCompletionPerShiny = 5.0;
     private int pointsPerPrestige = 1;
     private final java.util.Map<String, PrestigeUpgrade> upgrades = new java.util.LinkedHashMap<>();
 
@@ -30,6 +32,8 @@ public class PrestigeManager {
         firstPrestigeLevels = config.getInt("prestige.first-prestige-levels", 10);
         levelsIncrementPerPrestige = config.getInt("prestige.levels-increment-per-prestige", 5);
         luckMultiplierPerPrestige = config.getDouble("prestige.luck-multiplier-per-prestige", 0.10);
+        indexCompletionPerRarity = config.getDouble("index.completion.per-rarity", 2.0);
+        indexCompletionPerShiny = config.getDouble("index.completion.per-shiny-rarity", 5.0);
         pointsPerPrestige = config.getInt("prestige.points-per-prestige", 1);
 
         upgrades.clear();
@@ -174,12 +178,27 @@ public class PrestigeManager {
 
         double luck = flat
                 * plugin.getRarityManager().tagMultiplierFor(data)
+                * indexCompletion(data)
                 * (1.0 + data.getPrestige() * luckMultiplierPerPrestige);
 
         // Prestige Points spent on Luck ride along with everything else the
         // player has bought, before the global boost scales the total.
         luck += upgradeTotal(data, PrestigeUpgrade.Effect.LUCK_BONUS);
         return luck * plugin.getBoostManager().multiplier();
+    }
+
+    /** The Luck multiplier earned by finishing whole rarities in /index. */
+    public double indexCompletion(PlayerData data) {
+        return plugin.getRarityManager().completionMultiplier(data,
+                indexCompletionPerRarity, indexCompletionPerShiny);
+    }
+
+    public double getIndexCompletionPerRarity() {
+        return indexCompletionPerRarity;
+    }
+
+    public double getIndexCompletionPerShiny() {
+        return indexCompletionPerShiny;
     }
 
     /** Everything: base Luck, the global boost, and the Nova Core tier. */

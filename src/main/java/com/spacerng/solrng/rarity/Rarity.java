@@ -10,7 +10,8 @@ public enum Rarity {
     RARE,
     EPIC,
     LEGENDARY,
-    MYTHICAL;
+    MYTHICAL,
+    DIVINE;
 
     /**
      * Proper-case name for display, e.g. "Common" instead of "COMMON".

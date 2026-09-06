@@ -58,6 +58,7 @@ public final class RollAura {
 
     private static long durationFor(Rarity rarity) {
         return switch (rarity) {
+            case DIVINE -> 300L;   // 15s — the longest thing in the plugin
             case MYTHICAL -> 200L; // 10s
             case LEGENDARY -> 100L; // 5s
             default -> 60L;         // 3s, Epic
@@ -68,6 +69,7 @@ public final class RollAura {
     public static long finaleTicks(Rarity rarity) {
         if (!isBigDrop(rarity)) return 0L;
         return switch (rarity) {
+            case DIVINE -> 60L;    // 3s
             case MYTHICAL -> 46L;  // 2.3s — ends just after the last bolt
             case LEGENDARY -> 28L; // 1.4s
             default -> 20L;        // 1s, Epic
@@ -81,11 +83,12 @@ public final class RollAura {
      */
     public static long titleDelayTicks(Rarity rarity) {
         if (!isBigDrop(rarity)) return 0L;
-        return rarity == Rarity.MYTHICAL ? 18L : 6L;
+        return rarity == Rarity.MYTHICAL || rarity == Rarity.DIVINE ? 18L : 6L;
     }
 
     private static double maxRadiusFor(Rarity rarity) {
         return switch (rarity) {
+            case DIVINE -> 9.0;
             case MYTHICAL -> 7.0;
             case LEGENDARY -> 4.5;
             default -> 2.5; // Epic
@@ -94,6 +97,7 @@ public final class RollAura {
 
     private static int strandsFor(Rarity rarity) {
         return switch (rarity) {
+            case DIVINE -> 9;
             case MYTHICAL -> 7;
             case LEGENDARY -> 5;
             default -> 3; // Epic
@@ -102,6 +106,9 @@ public final class RollAura {
 
     private static Color colorFor(Rarity rarity) {
         return switch (rarity) {
+            // Warm near-white rather than pure white: at full brightness a
+            // 255,255,255 dust cloud reads as a rendering glitch.
+            case DIVINE -> Color.fromRGB(255, 252, 224);
             case MYTHICAL -> Color.fromRGB(255, 60, 60);
             case LEGENDARY -> Color.fromRGB(255, 170, 0);
             default -> Color.fromRGB(168, 85, 247); // Epic
@@ -110,6 +117,7 @@ public final class RollAura {
 
     private static Particle accentFor(Rarity rarity) {
         return switch (rarity) {
+            case DIVINE -> Particle.END_ROD;
             case MYTHICAL -> Particle.DRAGON_BREATH;
             case LEGENDARY -> Particle.FLAME;
             default -> Particle.END_ROD; // Epic
@@ -124,6 +132,18 @@ public final class RollAura {
     private static List<Cue> scoreFor(Rarity rarity) {
         List<Cue> cues = new ArrayList<>();
         switch (rarity) {
+            case DIVINE -> {
+                // Choral and vast rather than violent — a Divine should
+                // sound like something arriving, not something breaking.
+                cues.add(new Cue(0.00, Sound.BLOCK_BEACON_ACTIVATE, 4.0f, 0.5f));
+                cues.add(new Cue(0.10, Sound.ENTITY_ENDER_DRAGON_GROWL, 3.0f, 1.6f));
+                cues.add(new Cue(0.24, Sound.BLOCK_CONDUIT_ACTIVATE, 4.0f, 0.7f));
+                cues.add(new Cue(0.38, Sound.BLOCK_AMETHYST_BLOCK_CHIME, 4.0f, 0.6f));
+                cues.add(new Cue(0.52, Sound.BLOCK_BEACON_POWER_SELECT, 4.0f, 0.5f));
+                cues.add(new Cue(0.64, Sound.BLOCK_CONDUIT_AMBIENT_SHORT, 4.0f, 1.4f));
+                cues.add(new Cue(0.76, Sound.ENTITY_ELDER_GUARDIAN_CURSE, 3.0f, 1.8f));
+                cues.add(new Cue(0.84, Sound.ENTITY_WARDEN_SONIC_BOOM, 3.0f, 1.6f));
+            }
             case MYTHICAL -> {
                 cues.add(new Cue(0.00, Sound.ENTITY_ENDER_DRAGON_GROWL, 4.0f, 0.6f));
                 cues.add(new Cue(0.12, Sound.BLOCK_PORTAL_TRIGGER, 2.0f, 0.5f));

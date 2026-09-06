@@ -44,6 +44,7 @@ public class OptionsGui {
         inv.setItem(OptionsHolder.AURA_EPIC_SLOT, auraToggle(plugin, data, Rarity.EPIC, Material.WITHER_ROSE));
         inv.setItem(OptionsHolder.AURA_LEGENDARY_SLOT, auraToggle(plugin, data, Rarity.LEGENDARY, Material.BLAZE_POWDER));
         inv.setItem(OptionsHolder.AURA_MYTHICAL_SLOT, auraToggle(plugin, data, Rarity.MYTHICAL, Material.FIRE_CHARGE));
+        inv.setItem(OptionsHolder.AURA_DIVINE_SLOT, auraToggle(plugin, data, Rarity.DIVINE, Material.CONDUIT));
 
         return inv;
     }

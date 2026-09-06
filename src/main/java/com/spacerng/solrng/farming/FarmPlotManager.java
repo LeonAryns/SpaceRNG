@@ -99,6 +99,9 @@ public class FarmPlotManager {
     private float harvestPitch = 1.4f;
     private org.bukkit.Sound procSound = org.bukkit.Sound.BLOCK_AMETHYST_BLOCK_CHIME;
     private float procPitch = 1.7f;
+    private int blastBaseRadius = 1;
+    private int blastLevelsPerRadius = 150;
+    private int blastMaxRadius = 7;
     private double momentumPerThousand = 0.01;
     private double momentumPerLevelCap = 0.05;
     private long momentumIdleMillis = 30_000L;
@@ -120,6 +123,9 @@ public class FarmPlotManager {
         procSound = soundOf(config.getString("farming.sounds.enchant-proc"),
                 org.bukkit.Sound.BLOCK_AMETHYST_BLOCK_CHIME);
         procPitch = (float) config.getDouble("farming.sounds.enchant-proc-pitch", 1.7);
+        blastBaseRadius = Math.max(1, config.getInt("farming.blast.base-radius", 1));
+        blastLevelsPerRadius = Math.max(1, config.getInt("farming.blast.levels-per-radius", 150));
+        blastMaxRadius = Math.max(1, config.getInt("farming.blast.max-radius", 7));
         momentumPerThousand = config.getDouble("farming.momentum.per-thousand-crops", 0.01);
         momentumPerLevelCap = config.getDouble("farming.momentum.per-level-cap", 0.05);
         momentumIdleMillis = Math.max(1L, config.getLong("farming.momentum.idle-seconds", 30L)) * 1000L;
@@ -552,7 +558,11 @@ public class FarmPlotManager {
     private void rollBonusEnchants(Player player, PlayerData data, HoeEnchantManager hoe, Location plot) {
         double blast = hoe.powerOf(data, "BLAST_HARVEST");
         if (blast > 0 && ThreadLocalRandom.current().nextDouble() < blast) {
-            int radius = 1 + hoe.levelOf(data, "BLAST_HARVEST") / 3;
+            // One radius step per 150 levels, hard-capped. The old rate was
+            // one per three, which at a maxed 1000 levels would have swept
+            // a 669-block-wide square out of a single click.
+            int radius = Math.min(blastMaxRadius,
+                    blastBaseRadius + hoe.levelOf(data, "BLAST_HARVEST") / blastLevelsPerRadius);
             int swept = 0;
             for (int dx = -radius; dx <= radius; dx++) {
                 for (int dz = -radius; dz <= radius; dz++) {

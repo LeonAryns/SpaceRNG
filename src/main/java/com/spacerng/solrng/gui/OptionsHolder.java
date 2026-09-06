@@ -18,7 +18,8 @@ public class OptionsHolder implements InventoryHolder {
     // Row 1: the two rolling toggles. Row 2: one aura toggle per tier.
     public static final int SOUND_SLOT = 11;
     public static final int ANIMATION_SLOT = 15;
-    public static final int AURA_EPIC_SLOT = 20;
-    public static final int AURA_LEGENDARY_SLOT = 22;
-    public static final int AURA_MYTHICAL_SLOT = 24;
+    public static final int AURA_EPIC_SLOT = 19;
+    public static final int AURA_LEGENDARY_SLOT = 21;
+    public static final int AURA_MYTHICAL_SLOT = 23;
+    public static final int AURA_DIVINE_SLOT = 25;
 }

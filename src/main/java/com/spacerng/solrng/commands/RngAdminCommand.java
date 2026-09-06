@@ -100,7 +100,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         line(sender, "give", "<coins|tokens|gems|credits> <amount> [player]", "Top up a currency");
         line(sender, "drops", "<rarity|all> <amount> [player]", "Physical rolled drops in the inventory");
         line(sender, "bank", "<rarity|all> <amount> [player]", "Stored drops (the /convert bank)");
-        line(sender, "aura", "<epic|legendary|mythical> [player]", "Replay the full reveal build-up + burst");
+        line(sender, "aura", "<epic|legendary|mythical|divine> [player]", "Replay the full reveal build-up + burst");
         line(sender, "roll", "<rarity> [player]", "Force a real roll result of that rarity");
         line(sender, "unlock", "<node|all> [player]", "Grant one skill tree node");
         line(sender, "unlockall", "[player]", "Max out every skill in every tree");
@@ -910,7 +910,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             return switch (sub) {
                 case "give" -> partial(args[1], CURRENCIES);
                 case "drops", "bank" -> partial(args[1], withAll(rarityNames()));
-                case "aura" -> partial(args[1], List.of("epic", "legendary", "mythical"));
+                case "aura" -> partial(args[1], List.of("epic", "legendary", "mythical", "divine"));
                 case "roll", "odds" -> partial(args[1], rarityNames());
                 case "unlock" -> partial(args[1], withAll(nodeIds()));
                 case "starforge" -> partial(args[1], tierIds());

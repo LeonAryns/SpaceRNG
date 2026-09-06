@@ -303,6 +303,15 @@ farming:
       shards: 30
       requires-node: "crop_berries"
 
+  # ---- Blast Harvest ----
+  # The radius one detonation sweeps. It has to scale far more slowly than
+  # the enchant's level does: at the old one-per-three-levels, a maxed hoe
+  # would clear a 669-block-wide square in a single click.
+  blast:
+    base-radius: 1
+    levels-per-radius: 150
+    max-radius: 7
+
   # ---- Momentum ----
   # A farming RUN. Every crop you take adds to it, and the whole thing is
   # gone if you stop for longer than idle-seconds — the boss bar across the
@@ -505,6 +514,14 @@ rarities:
     colors: ["&c"]
     symbol: true
     luck-factor: 1.6
+  # Divine sits above everything. Its label is the palest thing in the
+  # plugin without ever being pure #FFFFFF — a drop name renders beside a
+  # player name in the tab list, and white-on-white is unreadable.
+  DIVINE:
+    colors: ["#FFFDF7", "#FFF0B8", "#FFFFFA", "#DCEFFF", "#FFFDF7"]
+    symbol: true
+    bold: true
+    luck-factor: 2.5
 
 # Every rollable item. "odds" = 1-in-X chance at 0 luck.
 # Add as many items per rarity as you want.
@@ -1119,6 +1136,17 @@ items:
     colors: ["#FF6EC7", "#7B2CBF", "#10002B"]
     bold: true
 
+  # --- Divine ---
+  # One drop, ten million to one. Near-white all the way through with a
+  # gold breath in the middle and a cold blue on the far side, so it reads
+  # as lit rather than as flat white.
+  - material: CONDUIT
+    name: "Halo of the First Star"
+    rarity: DIVINE
+    odds: 10000000
+    colors: ["#FFFDF7", "#FFF6D8", "#FFE9A3", "#FFFFFA", "#D8EEFF", "#FFFDF7"]
+    bold: true
+
 # /index — every unique item a player has ever rolled gets logged here.
 # Each item carries its own Luck MULTIPLIER, derived automatically from
 # its odds within its rarity: the rarest item in a tier gets the top of
@@ -1136,6 +1164,20 @@ index:
     EPIC: [1.5, 2.0]
     LEGENDARY: [2.0, 3.0]
     MYTHICAL: [3.0, 5.0]
+    DIVINE: [8.0, 8.0]
+
+  # Finishing a whole rarity is worth a Luck multiplier on its own, and
+  # they MULTIPLY with each other — completing every tier is the end of
+  # the collection game, so it should feel like it.
+  #
+  # A rarity you've completed in shiny pays the bigger number INSTEAD of
+  # the smaller one, not on top of it.
+  #
+  # Gated behind the same Index Luck skill the tag multiplier is: until
+  # that's bought, the index is a collection log and nothing more.
+  completion:
+    per-rarity: 2.0
+    per-shiny-rarity: 5.0
 
 # How many points ("Credits") a single item of each rarity is worth
 # when converted via /convert.
@@ -1150,6 +1192,7 @@ conversion:
     EPIC: 150
     LEGENDARY: 1000
     MYTHICAL: 10000
+    DIVINE: 250000
 
 # Every roll also pays out real Coins (the Vault economy), on top of the
 # item itself - coins = odds x this multiplier, so a 1-in-30 item pays 300

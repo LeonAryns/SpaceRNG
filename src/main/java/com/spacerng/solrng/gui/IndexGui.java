@@ -63,7 +63,7 @@ public class IndexGui {
         }
 
         for (Rarity rarity : Rarity.values()) {
-            inv.setItem(rarity.ordinal(), buildTab(plugin, rarity, filter == rarity));
+            inv.setItem(rarity.ordinal(), buildTab(plugin, data, rarity, filter == rarity));
         }
 
         inv.setItem(PROGRESS_SLOT, buildProfile(plugin, player, data, filter, shown.size()));
@@ -85,23 +85,72 @@ public class IndexGui {
         return inv;
     }
 
-    private static ItemStack buildTab(SolRNGPlugin plugin, Rarity rarity, boolean selected) {
+    /**
+     * A rarity's tab. It carries the completion reward as well as the
+     * filter, because "finish this tier for 2x Luck" is the reason to care
+     * about a tier at all and it has to be readable from the tier itself.
+     */
+    private static ItemStack buildTab(SolRNGPlugin plugin, PlayerData data, Rarity rarity, boolean selected) {
         Material material = switch (rarity) {
-            case COMMON -> Material.WHITE_DYE;
+            // Common moved off white when its label went grey; white is
+            // Divine's now, and nothing else in the menu is that bright.
+            case COMMON -> Material.LIGHT_GRAY_DYE;
             case UNCOMMON -> Material.LIME_DYE;
             case RARE -> Material.LIGHT_BLUE_DYE;
             case EPIC -> Material.PURPLE_DYE;
             case LEGENDARY -> Material.ORANGE_DYE;
             case MYTHICAL -> Material.RED_DYE;
+            case DIVINE -> Material.WHITE_DYE;
         };
+
+        var rarities = plugin.getRarityManager();
+        var prestige = plugin.getPrestigeManager();
+        int total = rarities.countIn(rarity);
+        int found = rarities.foundIn(data, rarity, false);
+        int shiny = rarities.foundIn(data, rarity, true);
+        boolean done = total > 0 && found >= total;
+        boolean shinyDone = total > 0 && shiny >= total;
+
+        double perRarity = prestige.getIndexCompletionPerRarity();
+        double perShiny = prestige.getIndexCompletionPerShiny();
+
         ItemStack tab = new ItemStack(material);
         ItemMeta meta = tab.getItemMeta();
-        meta.setDisplayName(plugin.getRarityManager().style(rarity, rarity.displayName()));
-        meta.setLore(List.of(selected
+        meta.setDisplayName(rarities.style(rarity, rarity.displayName()));
+
+        List<String> lore = new ArrayList<>();
+        lore.add(Lore.section(ChatColor.AQUA, "Collected"));
+        lore.add(Lore.requirement("Found", String.valueOf(found), String.valueOf(total), done));
+        lore.add(Lore.requirement("Shiny", String.valueOf(shiny), String.valueOf(total), shinyDone));
+        lore.add(Lore.bar(total <= 0 ? 0.0 : (double) found / total));
+        lore.add("");
+        lore.add(Lore.section(ChatColor.GREEN, "Completion reward"));
+        lore.add((done ? ChatColor.GREEN : ChatColor.DARK_GRAY) + Lore.BULLET + " "
+                + ChatColor.GRAY + "Every " + rarity.displayName() + " found: "
+                + (done ? ChatColor.GREEN : ChatColor.WHITE) + trim(perRarity) + "x Luck"
+                + (done ? "  " + ChatColor.GREEN + Lore.TICK : ""));
+        lore.add((shinyDone ? ChatColor.GREEN : ChatColor.DARK_GRAY) + Lore.BULLET + " "
+                + ChatColor.GRAY + "Every one shiny: "
+                + (shinyDone ? ChatColor.GREEN : ChatColor.WHITE) + trim(perShiny) + "x Luck"
+                + (shinyDone ? "  " + ChatColor.GREEN + Lore.TICK : ""));
+        lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " The shiny reward replaces the other,");
+        lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " and finished tiers multiply together.");
+        lore.add("");
+        lore.add(selected
                 ? ChatColor.GREEN + "" + ChatColor.BOLD + "SHOWING THIS TIER"
-                : ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO FILTER"));
+                : ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO FILTER");
+
+        meta.setLore(lore);
+        meta.setEnchantmentGlintOverride(done ? Boolean.TRUE : null);
         tab.setItemMeta(meta);
         return tab;
+    }
+
+    /** "2x" rather than "2.00x" when the number is whole. */
+    private static String trim(double value) {
+        return value == Math.rint(value)
+                ? String.valueOf((long) value)
+                : String.format("%.2f", value);
     }
 
     /**
@@ -135,6 +184,11 @@ public class IndexGui {
                 + data.getDiscoveredShiny().size() + ChatColor.DARK_GRAY + "/" + ChatColor.AQUA + total);
         lore.add(ChatColor.GREEN + "▎ " + ChatColor.GRAY + "Index Luck: " + ChatColor.GREEN
                 + String.format("%.2f", plugin.getRarityManager().tagMultiplierFor(data)) + "x");
+        double completion = plugin.getPrestigeManager().indexCompletion(data);
+        lore.add((completion > 1.0 ? ChatColor.GREEN : ChatColor.DARK_GRAY) + "▎ "
+                + ChatColor.GRAY + "Completion: "
+                + (completion > 1.0 ? ChatColor.GREEN : ChatColor.GRAY)
+                + trim(completion) + "x");
 
         lore.add("");
         lore.add(ChatColor.DARK_GRAY + "BY RARITY");
