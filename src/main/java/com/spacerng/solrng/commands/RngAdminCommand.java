@@ -863,7 +863,8 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
 
         sender.sendMessage(ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + "SolRNG placeholders");
         for (String key : List.of("tag", "tag_plain", "tag_name", "tag_odds", "tag_multiplier",
-                "prestige", "prestige_roman", "prestige_badge", "level", "level_number")) {
+                "prestige", "prestige_roman", "prestige_badge", "level", "level_number",
+                "potion_rolls", "potion_luck", "potion_speed", "potion_active", "roll_charges")) {
             String value = me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(player, "%solrng_" + key + "%");
             boolean unresolved = value.equals("%solrng_" + key + "%");
             sender.sendMessage(ChatColor.YELLOW + "%solrng_" + key + "%" + ChatColor.DARK_GRAY + " -> "

@@ -28,14 +28,22 @@ import java.util.List;
  */
 public class HoeGui {
 
-    // Eight enchants, four to a row, spaced two columns apart so the board
-    // reads as a rack of tools rather than a wall of icons.
-    private static final int[] SLOTS = {10, 12, 14, 16, 19, 21, 23, 25};
+    /**
+     * Every interior slot of the top three rows, left to right. Enchants
+     * fill them in order and anything left over is drawn as an empty
+     * socket rather than as nothing — the rack should look like it has
+     * room, not like it stopped early.
+     */
+    private static final int[] SLOTS = {
+            10, 11, 12, 13, 14, 15, 16,
+            19, 20, 21, 22, 23, 24, 25,
+            28, 29, 30, 31, 32, 33, 34
+    };
 
     private static final int HOE_SLOT = 4;
-    private static final int TOKENS_SLOT = 40;
-    private static final int FARM_SOUND_SLOT = 38;
-    private static final int ENCHANT_SOUND_SLOT = 42;
+    private static final int COINS_SLOT = 49;
+    private static final int FARM_SOUND_SLOT = 47;
+    private static final int ENCHANT_SOUND_SLOT = 51;
 
     public static NamespacedKey enchantKey(SolRNGPlugin plugin) {
         return new NamespacedKey(plugin, "solrng_hoe_enchant");
@@ -56,21 +64,23 @@ public class HoeGui {
 
         Inventory inv = Bukkit.createInventory(holder, 54,
                 ChatColor.DARK_GREEN + "" + ChatColor.BOLD + "Farmer's Hoe"
-                        + ChatColor.GRAY + " — " + tier.display());
+                        + ChatColor.GRAY + " \u2014 " + tier.display());
         holder.setInventory(inv);
 
-        // A green frame around a dark field: the menu is about the farm,
-        // and a board that is only black glass looks unfinished.
+        // Green rim, one row of glass above the controls, everything else
+        // is rack. Nothing is spaced out for the sake of it.
         ItemStack frame = pane(Material.GREEN_STAINED_GLASS_PANE, " ");
-        ItemStack fill = pane(Material.BLACK_STAINED_GLASS_PANE, " ");
+        ItemStack divider = pane(Material.LIME_STAINED_GLASS_PANE, " ");
         for (int slot = 0; slot < 54; slot++) {
             int column = slot % 9;
             int row = slot / 9;
-            boolean edge = row == 0 || row == 5 || column == 0 || column == 8;
-            inv.setItem(slot, edge ? frame : fill);
-        }
-        for (int slot = 27; slot < 36; slot++) {
-            inv.setItem(slot, pane(Material.LIME_STAINED_GLASS_PANE, " "));
+            if (row == 4) {
+                inv.setItem(slot, divider);
+            } else if (row == 0 || row == 5 || column == 0 || column == 8) {
+                inv.setItem(slot, frame);
+            } else {
+                inv.setItem(slot, pane(Material.BLACK_STAINED_GLASS_PANE, " "));
+            }
         }
 
         HoeEnchantManager hoe = plugin.getHoeEnchantManager();
@@ -80,14 +90,30 @@ public class HoeGui {
             inv.setItem(SLOTS[i], buildEnchant(plugin, data, hoe, enchant));
             i++;
         }
+        for (; i < SLOTS.length; i++) {
+            inv.setItem(SLOTS[i], emptySocket());
+        }
 
         inv.setItem(HOE_SLOT, buildHoeCard(plugin, data, tier));
-        inv.setItem(TOKENS_SLOT, buildTokens(data));
+        inv.setItem(COINS_SLOT, buildCoins(data));
         inv.setItem(FARM_SOUND_SLOT, buildToggle(Material.NOTE_BLOCK, "Farming Sounds",
                 data.isFarmSoundEnabled(), "The click of a crop coming up."));
         inv.setItem(ENCHANT_SOUND_SLOT, buildToggle(Material.BELL, "Enchant Sounds",
                 data.isEnchantSoundEnabled(), "The chime when an enchant fires."));
         return inv;
+    }
+
+    /** A slot with no enchant in it yet. Room, not a gap. */
+    private static ItemStack emptySocket() {
+        ItemStack item = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(Lore.title(ChatColor.DARK_GRAY, "Empty Socket"));
+        meta.setLore(java.util.List.of(
+                ChatColor.DARK_GRAY + Lore.BULLET + " An enchant will live here.",
+                "",
+                ChatColor.DARK_GRAY + "" + ChatColor.BOLD + "COMING SOON"));
+        item.setItemMeta(meta);
+        return item;
     }
 
     /** The tool itself: what it is now, and what the next rung would make it. */
@@ -137,7 +163,9 @@ public class HoeGui {
         Material material = Material.matchMaterial(enchant.icon());
         if (material == null) material = Material.ENCHANTED_BOOK;
 
-        ItemStack item = new ItemStack(unlocked ? material : Material.GRAY_DYE);
+        // The real icon even while locked: a wall of grey dye tells you
+        // nothing about what you're working toward.
+        ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(Lore.title(unlocked ? ChatColor.YELLOW : ChatColor.DARK_GRAY, enchant.display()));
 
@@ -185,7 +213,7 @@ public class HoeGui {
         return item;
     }
 
-    private static ItemStack buildTokens(PlayerData data) {
+    private static ItemStack buildCoins(PlayerData data) {
         ItemStack item = new ItemStack(Material.HAY_BLOCK);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(Lore.title(Currency.COINS.colour(), "Your Coins"));

@@ -95,6 +95,8 @@ public class PlayerDataManager {
         data.setFarmSoundEnabled(yml.getBoolean("farm-sound-enabled", true));
         data.setEnchantSoundEnabled(yml.getBoolean("enchant-sound-enabled", true));
         data.setRollCharges(yml.getLong("roll-charges", 0L), yml.getDouble("roll-charge-multiplier", 1.0));
+        data.setPotion(yml.getDouble("potion-luck", 0.0), yml.getDouble("potion-speed", 0.0),
+                yml.getLong("potion-rolls", 0L));
         org.bukkit.configuration.ConfigurationSection boosts = yml.getConfigurationSection("boosts");
         if (boosts != null) {
             for (String effect : boosts.getKeys(false)) {
@@ -270,6 +272,9 @@ public class PlayerDataManager {
         yml.set("farm-sound-enabled", data.isFarmSoundEnabled());
         yml.set("enchant-sound-enabled", data.isEnchantSoundEnabled());
         yml.set("roll-charges", data.getRollCharges());
+        yml.set("potion-luck", data.getPotionLuck());
+        yml.set("potion-speed", data.getPotionSpeed());
+        yml.set("potion-rolls", data.getPotionRolls());
         yml.set("roll-charge-multiplier", data.getRollChargeMultiplier());
         for (Map.Entry<String, double[]> entry : data.getBoosts().entrySet()) {
             yml.set("boosts." + entry.getKey() + ".multiplier", entry.getValue()[0]);

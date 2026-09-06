@@ -2,50 +2,59 @@ package com.spacerng.solrng.consumable;
 
 import org.bukkit.Material;
 
+import java.util.List;
+import java.util.Map;
+
 /**
- * One redeemable item: a potion, a charge, or a permanent grant.
+ * One redeemable item.
  *
- * The distinction that matters is {@link Effect#instant()}. A timed boost
- * starts a clock; an instant one changes something once and is gone. They
- * live in the same table because to a player they're the same kind of
- * thing — something you were given, that you use.
+ * A draught is a BUNDLE of stats measured in rolls, not a single
+ * multiplier measured in minutes. That's the whole design: 50% Luck and
+ * +10 Speed for a hundred rolls is a different decision from 250% Luck
+ * and -25 Speed for ten, and being able to put a minus in one column is
+ * what makes them worth choosing between.
+ *
+ * Luck and Speed are ADDITIVE — they join the flat pile the skill tree
+ * and armor feed, rather than multiplying the total. A potion that
+ * multiplied everything would be worth wildly different amounts to a new
+ * player and a maxed one.
+ *
+ * Farm boosts stay on a clock instead, because a farm run isn't measured
+ * in rolls.
  */
-public record Consumable(String id, String display, Material material, java.util.List<String> colors,
-                         Effect effect, double magnitude, long durationSeconds, long charges,
-                         java.util.Map<com.spacerng.solrng.rarity.Rarity, Long> costs,
+public record Consumable(String id, String display, Material material, List<String> colors,
+                         double luck, double speed, long rolls,
+                         double coinMultiplier, double enchantMultiplier, long durationSeconds,
+                         double rollLuckMultiplier, long charges,
+                         double permanentLuck,
+                         Map<com.spacerng.solrng.rarity.Rarity, Long> costs,
                          String description) {
 
-    public enum Effect {
-        /** Multiplies all Luck while it runs. */
-        LUCK,
-        /** Multiplies roll Speed while it runs. */
-        SPEED,
-        /** Multiplies Tokens from the farm while it runs. */
-        TOKENS,
-        /** Multiplies every hoe enchant's chance while it runs. */
-        ENCHANT_PROC,
-        /** Banks N rolls that fire at a multiplied Luck, used one at a time. */
-        ROLL_CHARGE,
-        /** Adds Luck permanently, on the spot. */
-        PERMANENT_LUCK;
-
-        /** Whether this happens once rather than running on a clock. */
-        public boolean instant() {
-            return this == PERMANENT_LUCK;
-        }
-
-        /** Whether this stores charges rather than a duration. */
-        public boolean charged() {
-            return this == ROLL_CHARGE;
-        }
-
-        /** The key a timed boost is stored under on the player. */
-        public String key() {
-            return name();
-        }
+    /** A draught: additive Luck and/or Speed, counted down in rolls. */
+    public boolean isDraught() {
+        return rolls > 0 && (luck != 0.0 || speed != 0.0);
     }
 
-    /** "30m", "1h 30m" — how long the boost runs, for lore. */
+    /** A farm boost: a multiplier on a clock. */
+    public boolean isTimed() {
+        return durationSeconds > 0 && (coinMultiplier > 1.0 || enchantMultiplier > 1.0);
+    }
+
+    /** Banked rolls that fire at a multiplied Luck. */
+    public boolean isCharge() {
+        return charges > 0 && rollLuckMultiplier > 1.0;
+    }
+
+    /** A one-shot permanent grant. */
+    public boolean isPermanent() {
+        return permanentLuck != 0.0;
+    }
+
+    public boolean isForSale() {
+        return !costs.isEmpty();
+    }
+
+    /** "30m", "1h 30m" — how long a timed boost runs, for lore. */
     public String durationText() {
         long seconds = durationSeconds;
         long hours = seconds / 3600;

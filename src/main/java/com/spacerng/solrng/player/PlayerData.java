@@ -87,6 +87,13 @@ public class PlayerData {
     // Banked rolls that fire at a multiplied Luck — the "10x Roll" reward.
     private long rollCharges = 0L;
     private double rollChargeMultiplier = 1.0;
+    // The draught currently running: flat Luck and Speed, and how many
+    // rolls are left of it. One at a time on purpose — drinking a second
+    // replaces the first, so two can never be stacked into something the
+    // numbers were never balanced for.
+    private double potionLuck = 0.0;
+    private double potionSpeed = 0.0;
+    private long potionRolls = 0L;
     // Multiplies Tokens earned from harvesting farm crops. 1.0 = base
     // reward. Nothing raises this yet — reserved for future farming
     // upgrades (hoe enchants, prestige tie-in, etc.).
@@ -238,8 +245,12 @@ public class PlayerData {
      * shown on the scoreboard (Speed = this x 100, rounded).
      */
     public double getEffectiveRollSpeedMultiplier() {
-        return Math.max(0.1, (rollSpeedMultiplier + skillSpeedBonus + armorSpeedBonus)
-                * boostMultiplier("SPEED"));
+        // A draught's Speed joins the flat pile rather than multiplying it,
+        // which is what lets a potion carry a MINUS without wiping somebody
+        // out — a 0.75x multiplier on a maxed player is brutal, -25 flat is
+        // a trade.
+        return Math.max(0.1, rollSpeedMultiplier + skillSpeedBonus + armorSpeedBonus
+                + getPotionSpeed());
     }
 
     public Set<String> getUnlockedNodes() {
@@ -758,6 +769,39 @@ public class PlayerData {
     public void setBoost(String effect, double multiplier, long expiryMillis) {
         if (multiplier <= 1.0 || expiryMillis <= System.currentTimeMillis()) return;
         boosts.put(effect, new double[]{multiplier, expiryMillis});
+    }
+
+    // ------------------------------------------------------------ draughts
+
+    public double getPotionLuck() {
+        return potionRolls > 0 ? potionLuck : 0.0;
+    }
+
+    public double getPotionSpeed() {
+        return potionRolls > 0 ? potionSpeed : 0.0;
+    }
+
+    public long getPotionRolls() {
+        return Math.max(0L, potionRolls);
+    }
+
+    public void setPotion(double luck, double speed, long rolls) {
+        this.potionLuck = luck;
+        this.potionSpeed = speed;
+        this.potionRolls = Math.max(0L, rolls);
+    }
+
+    /** Spends one roll of the draught, clearing it when it runs out. */
+    public boolean tickPotion() {
+        if (potionRolls <= 0) return false;
+        potionRolls--;
+        if (potionRolls <= 0) {
+            potionLuck = 0.0;
+            potionSpeed = 0.0;
+            potionRolls = 0L;
+            return true;
+        }
+        return false;
     }
 
     public long getRollCharges() {

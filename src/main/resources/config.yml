@@ -2107,17 +2107,17 @@ milestones:
       description: "Reset your level for permanent Luck."
       tiers:
         - { at: 1, money: 250000 }
-        - { at: 2, money: 750000, consumable: luck_potion }
+        - { at: 2, money: 750000, consumable: draught_deep }
         - { at: 3, money: 2000000 }
         - { at: 5, money: 6000000, consumable: roll_10x }
-        - { at: 10, money: 25000000, consumable: luck_potion, consumable-amount: 2 }
-        - { at: 15, money: 75000000, consumable: speed_potion, consumable-amount: 2 }
+        - { at: 10, money: 25000000, consumable: draught_deep, consumable-amount: 2 }
+        - { at: 15, money: 75000000, consumable: draught_swift, consumable-amount: 2 }
         - { at: 20, money: 200000000, consumable: roll_10x, consumable-amount: 3 }
-        - { at: 25, money: 500000000, consumable: luck_potion, consumable-amount: 3 }
+        - { at: 25, money: 500000000, consumable: draught_deep, consumable-amount: 3 }
         - { at: 35, money: 1500000000, consumable: roll_10x, consumable-amount: 5 }
-        - { at: 50, money: 5000000000, consumable: speed_potion, consumable-amount: 5 }
+        - { at: 50, money: 5000000000, consumable: draught_swift, consumable-amount: 5 }
         - { at: 75, money: 20000000000, consumable: roll_10x, consumable-amount: 10 }
-        - { at: 100, money: 100000000000, consumable: luck_potion, consumable-amount: 10 }
+        - { at: 100, money: 100000000000, consumable: draught_deep, consumable-amount: 10 }
     rarity:
       verb: "Discover"
       display: "Collection"
@@ -2128,15 +2128,15 @@ milestones:
         - { at: 5, money: 50000 }
         - { at: 10, money: 150000, consumable: roll_10x }
         - { at: 20, money: 500000 }
-        - { at: 30, money: 1500000, consumable: luck_potion }
+        - { at: 30, money: 1500000, consumable: draught_deep }
         - { at: 45, money: 5000000, consumable: roll_10x, consumable-amount: 2 }
-        - { at: 60, money: 15000000, consumable: speed_potion }
+        - { at: 60, money: 15000000, consumable: draught_swift }
         - { at: 80, money: 50000000, consumable: roll_10x, consumable-amount: 3 }
-        - { at: 100, money: 150000000, consumable: luck_potion, consumable-amount: 3 }
+        - { at: 100, money: 150000000, consumable: draught_deep, consumable-amount: 3 }
         - { at: 115, money: 500000000, consumable: roll_10x, consumable-amount: 5 }
         - { at: 130, money: 2000000000, consumable: luck_250 }
         - { at: 140, money: 10000000000, consumable: roll_10x, consumable-amount: 10 }
-        - { at: 144, money: 50000000000, consumable: luck_potion, consumable-amount: 10 }
+        - { at: 144, money: 50000000000, consumable: draught_deep, consumable-amount: 10 }
     farming:
       verb: "Farm"
       display: "Farming"
@@ -2145,17 +2145,17 @@ milestones:
       description: "Crops harvested on the shared farm."
       tiers:
         - { at: 100, tokens: 500 }
-        - { at: 500, tokens: 1500, consumable: token_potion }
+        - { at: 500, tokens: 1500, consumable: coin_potion }
         - { at: 1000, tokens: 3000 }
         - { at: 2500, tokens: 7500, consumable: enchant_potion }
-        - { at: 5000, tokens: 15000, consumable: token_potion, consumable-amount: 2 }
+        - { at: 5000, tokens: 15000, consumable: coin_potion, consumable-amount: 2 }
         - { at: 10000, tokens: 30000, shards: 25 }
         - { at: 25000, tokens: 75000, consumable: enchant_potion, consumable-amount: 2 }
         - { at: 50000, tokens: 150000, shards: 100 }
-        - { at: 100000, tokens: 300000, consumable: token_potion, consumable-amount: 5 }
+        - { at: 100000, tokens: 300000, consumable: coin_potion, consumable-amount: 5 }
         - { at: 250000, tokens: 750000, shards: 500 }
         - { at: 500000, tokens: 1500000, consumable: enchant_potion, consumable-amount: 5 }
-        - { at: 1000000, tokens: 3000000, shards: 2500, consumable: token_potion, consumable-amount: 10 }
+        - { at: 1000000, tokens: 3000000, shards: 2500, consumable: coin_potion, consumable-amount: 10 }
     playtime:
       verb: "Play"
       display: "Playtime"
@@ -2165,13 +2165,13 @@ milestones:
       tiers:
         - { at: 1, money: 100000 }
         - { at: 2, money: 250000, consumable: luck_50 }
-        - { at: 6, money: 1000000, consumable: luck_potion }
-        - { at: 12, money: 4000000, consumable: speed_potion }
+        - { at: 6, money: 1000000, consumable: draught_deep }
+        - { at: 12, money: 4000000, consumable: draught_swift }
         - { at: 24, money: 15000000, consumable: roll_10x, consumable-amount: 2 }
-        - { at: 48, money: 50000000, consumable: luck_potion, consumable-amount: 3 }
-        - { at: 96, money: 200000000, consumable: token_potion, consumable-amount: 3 }
+        - { at: 48, money: 50000000, consumable: draught_deep, consumable-amount: 3 }
+        - { at: 96, money: 200000000, consumable: coin_potion, consumable-amount: 3 }
         - { at: 168, money: 750000000, consumable: roll_10x, consumable-amount: 5 }
-        - { at: 336, money: 3000000000, consumable: luck_potion, consumable-amount: 5 }
+        - { at: 336, money: 3000000000, consumable: draught_deep, consumable-amount: 5 }
         - { at: 720, money: 15000000000, consumable: roll_10x, consumable-amount: 10 }
 
 # Leaderboards and the daily farming payout.
@@ -2409,74 +2409,115 @@ guide:
 # Drinking a second potion of the same kind extends it if it's the same
 # strength and replaces it if it's stronger — two never multiply together.
 consumables:
-  luck_potion:
-    costs:
-      RARE: 12
-      EPIC: 3
-    display: "Luck Potion"
+  # ---- Draughts ----
+  # Additive Luck and Speed, counted down in ROLLS rather than minutes.
+  # `luck: 0.5` is +50% flat, joining the same pile the skill tree and
+  # armor feed; `speed: 10` is +10 on the 100 scale. Both can go negative,
+  # and the ones that do are the interesting ones: the trade IS the item.
+  #
+  # Only one draught runs at a time. A second replaces the first, so a
+  # minus column can't be dodged by drinking something else on top of it.
+  draught_steady:
+    display: "Steady Draught"
     material: POTION
-    colors: ["#8AFF8A", "#00C853"]
-    effect: LUCK
-    magnitude: 2.0
-    duration-seconds: 1800
-    description: "Everything you roll, twice as lucky."
-  speed_potion:
-    costs:
-      UNCOMMON: 40
-      RARE: 8
-    display: "Speed Potion"
-    material: POTION
-    colors: ["#FFF176", "#FFB300"]
-    effect: SPEED
-    magnitude: 2.0
-    duration-seconds: 1800
-    description: "Rolls resolve in half the time."
-  token_potion:
+    colors: ["#B9F6CA", "#00C853"]
+    luck: 0.50
+    speed: 10
+    rolls: 100
+    description: "The long-haul option. Nothing spectacular, nothing lost."
     costs:
       UNCOMMON: 30
       RARE: 6
+  draught_swift:
+    display: "Swift Draught"
+    material: POTION
+    colors: ["#FFF59D", "#FFB300"]
+    luck: 0.10
+    speed: 50
+    rolls: 60
+    description: "Half again as many rolls an hour. Barely luckier."
+    costs:
+      UNCOMMON: 45
+      RARE: 8
+  draught_deep:
+    display: "Deep Draught"
+    material: POTION
+    colors: ["#B39DDB", "#5E35B1"]
+    luck: 1.00
+    speed: -10
+    rolls: 50
+    description: "Slower, and much luckier for it."
+    costs:
+      RARE: 14
+      EPIC: 2
+  draught_surge:
+    display: "Surge Draught"
+    material: POTION
+    colors: ["#FF8A80", "#D50000"]
+    luck: 2.50
+    speed: -25
+    rolls: 10
+    description: "Ten rolls that matter. You will feel every second of them."
+    costs:
+      RARE: 20
+      EPIC: 5
+  draught_greater:
+    display: "Greater Draught"
+    material: POTION
+    colors: ["#A7FFEB", "#00BFA5", "#1DE9B6"]
+    luck: 1.50
+    speed: 25
+    rolls: 25
+    description: "No downside, and priced like it."
+    costs:
+      EPIC: 10
+      LEGENDARY: 2
+
+  # ---- Farm boosts ----
+  # These stay on a clock, because a farm run isn't measured in rolls.
+  coin_potion:
     display: "Coin Potion"
     material: POTION
-    colors: ["#A5FF7A", "#2E7D32"]
-    effect: TOKENS
-    magnitude: 2.0
+    colors: ["#FFE082", "#FF8F00"]
+    coin-multiplier: 2.0
     duration-seconds: 1800
     description: "Every crop pays double."
-  enchant_potion:
     costs:
-      RARE: 15
-      EPIC: 2
+      UNCOMMON: 30
+      RARE: 6
+  enchant_potion:
     display: "Enchant Potion"
     material: POTION
     colors: ["#E1BEE7", "#8E24AA"]
-    effect: ENCHANT_PROC
-    magnitude: 1.5
+    enchant-multiplier: 1.5
     duration-seconds: 1800
     description: "Every hoe enchant fires half again as often."
-  roll_10x:
     costs:
-      EPIC: 8
-      LEGENDARY: 2
+      RARE: 15
+      EPIC: 2
+
+  # ---- Charges and grants ----
+  roll_10x:
     display: "10x Roll"
     material: NETHER_STAR
     colors: ["#FFF9C4", "#FFD54F", "#FF8F00"]
-    effect: ROLL_CHARGE
-    magnitude: 10.0
+    roll-luck-multiplier: 10.0
     charges: 1
     description: "Banks one roll at ten times your Luck."
+    costs:
+      EPIC: 8
+      LEGENDARY: 2
   luck_50:
     display: "Fragment of Fortune"
     material: RABBIT_FOOT
     colors: ["#B9F6CA", "#00C853"]
-    effect: PERMANENT_LUCK
-    magnitude: 0.5
+    permanent-luck: 0.5
     description: "A permanent 50% Luck. It never runs out."
   luck_250:
     display: "Heart of Fortune"
     material: RABBIT_FOOT
     colors: ["#FFF59D", "#00E676", "#00B0FF"]
-    effect: PERMANENT_LUCK
-    magnitude: 2.5
+    permanent-luck: 2.5
     description: "A permanent 250% Luck. It never runs out."
 
 # ============================================
@@ -3213,7 +3254,7 @@ pass:
       free:
         tokens: 1250
         gems: 2
-        consumable: token_potion
+        consumable: coin_potion
       premium:
         tokens: 3750
         drop-rarity: UNCOMMON
@@ -3226,7 +3267,7 @@ pass:
         tokens: 4500
         gems: 6
         coins: 600000
-        consumable: luck_potion
+        consumable: draught_deep
     # ---- level 7
     - xp: 90
       free:
@@ -3248,7 +3289,7 @@ pass:
       premium:
         tokens: 6750
         gems: 9
-        consumable: token_potion
+        consumable: coin_potion
     # ---- level 10
     - xp: 120
       free:
@@ -3256,7 +3297,7 @@ pass:
         gems: 4
         drop-rarity: COMMON
         drops: 22
-        consumable: luck_potion
+        consumable: draught_deep
       premium:
         tokens: 7500
         coins: 1000000
@@ -3298,13 +3339,13 @@ pass:
       free:
         tokens: 3750
         gems: 6
-        consumable: speed_potion
+        consumable: draught_swift
       premium:
         tokens: 11250
         gems: 15
         drop-rarity: RARE
         drops: 14
-        consumable: speed_potion
+        consumable: draught_swift
         consumable-amount: 2
     # ---- level 16
     - xp: 210
@@ -3358,7 +3399,7 @@ pass:
       premium:
         tokens: 15750
         gems: 21
-        consumable: luck_potion
+        consumable: draught_deep
         consumable-amount: 2
     # ---- level 22
     - xp: 370
@@ -3389,7 +3430,7 @@ pass:
       free:
         tokens: 6250
         gems: 10
-        consumable: luck_potion
+        consumable: draught_deep
       premium:
         tokens: 18750
         drop-rarity: EPIC
@@ -3408,7 +3449,7 @@ pass:
       premium:
         tokens: 20250
         gems: 27
-        consumable: token_potion
+        consumable: coin_potion
         consumable-amount: 3
     # ---- level 28
     - xp: 650
@@ -3431,7 +3472,7 @@ pass:
         gems: 12
         drop-rarity: RARE
         drops: 16
-        consumable: token_potion
+        consumable: coin_potion
         consumable-amount: 2
       premium:
         tokens: 22500
@@ -3440,7 +3481,7 @@ pass:
         credits: 200
         drop-rarity: LEGENDARY
         drops: 8
-        consumable: speed_potion
+        consumable: draught_swift
         consumable-amount: 3
     # ---- level 31
     - xp: 850
@@ -3477,7 +3518,7 @@ pass:
       free:
         tokens: 8750
         gems: 14
-        consumable: speed_potion
+        consumable: draught_swift
         consumable-amount: 2
       premium:
         tokens: 26250
@@ -3492,7 +3533,7 @@ pass:
         tokens: 27000
         gems: 36
         coins: 3600000
-        consumable: luck_potion
+        consumable: draught_deep
         consumable-amount: 3
     # ---- level 37
     - xp: 1550
@@ -3546,7 +3587,7 @@ pass:
         tokens: 31500
         gems: 42
         coins: 4200000
-        consumable: token_potion
+        consumable: coin_potion
         consumable-amount: 5
     # ---- level 43
     - xp: 2700
@@ -3567,7 +3608,7 @@ pass:
       free:
         tokens: 11250
         gems: 18
-        consumable: luck_potion
+        consumable: draught_deep
         consumable-amount: 2
       premium:
         tokens: 33750
@@ -3598,7 +3639,7 @@ pass:
         tokens: 36000
         gems: 48
         coins: 4800000
-        consumable: luck_potion
+        consumable: draught_deep
         consumable-amount: 5
     # ---- level 49
     - xp: 4900

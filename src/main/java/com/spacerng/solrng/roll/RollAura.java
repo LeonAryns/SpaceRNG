@@ -141,8 +141,9 @@ public final class RollAura {
                 cues.add(new Cue(0.38, Sound.BLOCK_AMETHYST_BLOCK_CHIME, 4.0f, 0.6f));
                 cues.add(new Cue(0.52, Sound.BLOCK_BEACON_POWER_SELECT, 4.0f, 0.5f));
                 cues.add(new Cue(0.64, Sound.BLOCK_CONDUIT_AMBIENT_SHORT, 4.0f, 1.4f));
-                cues.add(new Cue(0.76, Sound.ENTITY_ELDER_GUARDIAN_CURSE, 3.0f, 1.8f));
-                cues.add(new Cue(0.84, Sound.ENTITY_WARDEN_SONIC_BOOM, 3.0f, 1.6f));
+                cues.add(new Cue(0.72, Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 4.0f, 1.4f));
+                cues.add(new Cue(0.80, Sound.ENTITY_ELDER_GUARDIAN_CURSE, 3.0f, 1.8f));
+                cues.add(new Cue(0.86, Sound.ENTITY_WARDEN_SONIC_BOOM, 3.0f, 1.6f));
             }
             case MYTHICAL -> {
                 cues.add(new Cue(0.00, Sound.ENTITY_ENDER_DRAGON_GROWL, 4.0f, 0.6f));
@@ -150,7 +151,6 @@ public final class RollAura {
                 cues.add(new Cue(0.28, Sound.ENTITY_WITHER_SPAWN, 3.0f, 0.7f));
                 cues.add(new Cue(0.45, Sound.ENTITY_ENDER_DRAGON_GROWL, 4.0f, 0.8f));
                 cues.add(new Cue(0.60, Sound.ENTITY_ELDER_GUARDIAN_CURSE, 2.5f, 1.2f));
-                cues.add(new Cue(0.72, Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 4.0f, 0.7f));
                 cues.add(new Cue(0.82, Sound.ENTITY_WARDEN_SONIC_BOOM, 3.0f, 1.0f));
             }
             case LEGENDARY -> {

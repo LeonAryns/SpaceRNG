@@ -502,6 +502,10 @@ public class RollListener implements Listener {
         }
 
         plugin.getPassManager().awardRoll(player, data, rarity);
+        if (data.tickPotion()) {
+            player.sendMessage(ChatColor.DARK_GRAY + "Your draught has run out.");
+            player.playSound(player.getLocation(), Sound.BLOCK_BREWING_STAND_BREW, 0.6f, 0.7f);
+        }
 
         maybeRegisterDiscovery(player, data, result, silent, shiny);
         maybeBroadcast(player, result, previewItem, shiny);

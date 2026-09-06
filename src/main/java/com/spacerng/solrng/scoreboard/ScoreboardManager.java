@@ -160,6 +160,26 @@ public class ScoreboardManager {
         lines.add(walletLine(Currency.GEMS, data.getShards()));
         lines.add(walletLine(Currency.CREDITS, data.getPoints()));
 
+        // A draught only exists while it's running, so its line does too.
+        if (data.getPotionRolls() > 0) {
+            lines.add("");
+            lines.add(Lore.header("Draught"));
+            if (data.getPotionLuck() != 0.0) {
+                lines.add(ChatColor.YELLOW + "| "
+                        + (data.getPotionLuck() > 0 ? ChatColor.GREEN : ChatColor.RED)
+                        + com.spacerng.solrng.consumable.ConsumableManager.signed(data.getPotionLuck() * 100)
+                        + "% " + ChatColor.WHITE + "Luck");
+            }
+            if (data.getPotionSpeed() != 0.0) {
+                lines.add(ChatColor.YELLOW + "| "
+                        + (data.getPotionSpeed() > 0 ? ChatColor.YELLOW : ChatColor.RED)
+                        + com.spacerng.solrng.consumable.ConsumableManager.signed(data.getPotionSpeed() * 100)
+                        + " " + ChatColor.WHITE + "Speed");
+            }
+            lines.add(ChatColor.YELLOW + "| " + ChatColor.AQUA
+                    + String.format("%,d", data.getPotionRolls()) + ChatColor.WHITE + " rolls left");
+        }
+
         String rollStatus = rollStatusLine(player);
         if (rollStatus != null) {
             lines.add(""); // blank spacer

@@ -58,7 +58,7 @@ public class PotionGui {
         for (Consumable consumable : plugin.getConsumableManager().getAll().values()) {
             // Only what's for sale: a reward with no price is something you
             // earn, and putting it on a shelf you can't buy from is noise.
-            if (consumable.costs().isEmpty()) continue;
+            if (!consumable.isForSale()) continue;
             if (i >= SLOTS.length) break;
             inv.setItem(SLOTS[i], buildEntry(plugin, player, data, consumable));
             i++;
@@ -93,7 +93,7 @@ public class PotionGui {
         if (!consumable.description().isEmpty()) {
             lore.add(Lore.line(ChatColor.AQUA, consumable.description()));
         }
-        lore.add(plugin.getConsumableManager().describe(consumable));
+        lore.addAll(plugin.getConsumableManager().describe(consumable));
         lore.add("");
         lore.add(Lore.section(ChatColor.YELLOW, "Price"));
         lore.addAll(price);

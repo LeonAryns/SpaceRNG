@@ -173,8 +173,10 @@ public class PrestigeManager {
         double affinity = skills.totalOf(data, SkillNode.Effect.LUCK_PER_PRESTIGE)
                 * data.getPrestige();
 
+        // A draught's Luck joins the flat pile too, so "+50%" means the same
+        // thing to everyone rather than scaling with what they already have.
         double flat = starforge + armor + skills.skillLuck(data)
-                + curator + affinity + data.getFlatLuck();
+                + curator + affinity + data.getFlatLuck() + data.getPotionLuck();
 
         double luck = flat
                 * plugin.getRarityManager().tagMultiplierFor(data)

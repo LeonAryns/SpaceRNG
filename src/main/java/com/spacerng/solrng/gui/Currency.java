@@ -11,11 +11,10 @@ import org.bukkit.ChatColor;
  * price in a menu, and a chat message \u2014 three places that were each
  * picking their own colour before this existed.
  *
- * The glyphs are four different SHAPES, not four decorations: a note, a
- * coin, a gem, a star. Colour alone stops working the moment two
- * currencies sit on adjacent sidebar lines, and a shape stays legible at
- * one pixel of contrast. All four live in Minecraft's built-in unicode
- * font, so none of this needs a resource pack.
+ * Each one keeps a glyph for the places a bare mark is useful, but the
+ * readouts don't carry it: four currencies stacked with a symbol on the
+ * end of each read as clutter, and the colour plus the word already say
+ * which is which.
  *
  * Money carries two colours rather than one: the amount is the part
  * you're actually reading, so it takes the brighter green and the label
@@ -71,13 +70,12 @@ public enum Currency {
     }
 
     /**
-     * "1.2M Money \u25a0" \u2014 the amount in its own colour, then the label
-     * and glyph in the currency's.
+     * "1.2M Money" \u2014 the amount in its own colour, the label in the
+     * currency's.
      *
-     * The glyph trails rather than leads because Minecraft's font is
-     * proportional: four different leading glyphs are four different
-     * widths, so a leading icon pushes every amount into a slightly
-     * different column and a stacked list looks ragged.
+     * No glyph: Minecraft's font is proportional, so a leading icon pushes
+     * every amount into a slightly different column, and a trailing one on
+     * four stacked lines is just noise. Colour and word are enough.
      */
     public String amount(long value) {
         return paint(RollFormat.abbreviate(value));
@@ -90,17 +88,16 @@ public enum Currency {
      */
     public String price(long value, boolean affordable) {
         if (affordable) return amount(value);
-        return ChatColor.RED + RollFormat.abbreviate(value) + " " + label + " " + icon;
+        return ChatColor.RED + RollFormat.abbreviate(value) + " " + label;
     }
 
-    /** "1,200,000 Money \u25a0" \u2014 unabbreviated, when the exact figure matters. */
+    /** "1,200,000 Money" \u2014 unabbreviated, when the exact figure matters. */
     public String exact(long value) {
         return paint(String.format("%,d", value));
     }
 
     private String paint(String number) {
-        String tail = label + " " + icon;
-        if (rainbow) return Lore.rainbow(number + " " + tail);
-        return numberColour + number + " " + colour + tail;
+        if (rainbow) return Lore.rainbow(number + " " + label);
+        return numberColour + number + " " + colour + label;
     }
 }

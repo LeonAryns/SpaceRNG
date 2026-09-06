@@ -63,10 +63,15 @@ public class ConsumableManager {
                         c.getString("display", id),
                         material,
                         c.getStringList("colors"),
-                        Consumable.Effect.valueOf(c.getString("effect", "LUCK").toUpperCase()),
-                        c.getDouble("magnitude", 1.0),
+                        c.getDouble("luck", 0.0),
+                        c.getDouble("speed", 0.0) / 100.0,
+                        c.getLong("rolls", 0L),
+                        c.getDouble("coin-multiplier", 1.0),
+                        c.getDouble("enchant-multiplier", 1.0),
                         c.getLong("duration-seconds", 0L),
-                        c.getLong("charges", 1L),
+                        c.getDouble("roll-luck-multiplier", 1.0),
+                        c.getLong("charges", 0L),
+                        c.getDouble("permanent-luck", 0.0),
                         parseCosts(c.getConfigurationSection("costs")),
                         c.getString("description", "")));
             } catch (Exception ex) {
@@ -144,7 +149,7 @@ public class ConsumableManager {
         if (!consumable.description().isEmpty()) {
             lore.add(Lore.line(ChatColor.AQUA, consumable.description()));
         }
-        lore.add(describe(consumable));
+        lore.addAll(describe(consumable));
         lore.add("");
         lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "RIGHT CLICK TO USE");
 
@@ -155,23 +160,49 @@ public class ConsumableManager {
         return item;
     }
 
-    /** The one line that says what the magnitude actually is. */
-    public String describe(Consumable consumable) {
-        return switch (consumable.effect()) {
-            case LUCK -> Lore.stat(ChatColor.GREEN, "Luck",
-                    trim(consumable.magnitude()) + "x for " + consumable.durationText());
-            case SPEED -> Lore.stat(ChatColor.YELLOW, "Speed",
-                    trim(consumable.magnitude()) + "x for " + consumable.durationText());
-            case TOKENS -> Lore.stat(ChatColor.GOLD, "Coins",
-                    trim(consumable.magnitude()) + "x for " + consumable.durationText());
-            case ENCHANT_PROC -> Lore.stat(ChatColor.LIGHT_PURPLE, "Enchant chance",
-                    trim(consumable.magnitude()) + "x for " + consumable.durationText());
-            case ROLL_CHARGE -> Lore.stat(ChatColor.LIGHT_PURPLE, "Next roll",
-                    trim(consumable.magnitude()) + "x Luck"
-                            + (consumable.charges() > 1 ? " x" + consumable.charges() : ""));
-            case PERMANENT_LUCK -> Lore.stat(ChatColor.GREEN, "Luck",
-                    "+" + Math.round(consumable.magnitude() * 100) + "% permanently");
-        };
+    /**
+     * The stat block. A draught can carry several lines at once, and a
+     * minus is written as a minus rather than hidden — the trade IS the
+     * item.
+     */
+    public java.util.List<String> describe(Consumable consumable) {
+        java.util.List<String> lines = new ArrayList<>();
+        if (consumable.luck() != 0.0) {
+            lines.add(Lore.stat(consumable.luck() > 0 ? ChatColor.GREEN : ChatColor.RED,
+                    "Luck", signed(consumable.luck() * 100) + "%"));
+        }
+        if (consumable.speed() != 0.0) {
+            lines.add(Lore.stat(consumable.speed() > 0 ? ChatColor.YELLOW : ChatColor.RED,
+                    "Speed", signed(consumable.speed() * 100)));
+        }
+        if (consumable.rolls() > 0) {
+            lines.add(Lore.stat(ChatColor.AQUA, "Lasts", String.format("%,d", consumable.rolls()) + " rolls"));
+        }
+        if (consumable.coinMultiplier() > 1.0) {
+            lines.add(Lore.stat(ChatColor.GOLD, "Coins",
+                    trim(consumable.coinMultiplier()) + "x for " + consumable.durationText()));
+        }
+        if (consumable.enchantMultiplier() > 1.0) {
+            lines.add(Lore.stat(ChatColor.LIGHT_PURPLE, "Enchant chance",
+                    trim(consumable.enchantMultiplier()) + "x for " + consumable.durationText()));
+        }
+        if (consumable.isCharge()) {
+            lines.add(Lore.stat(ChatColor.LIGHT_PURPLE, "Next roll",
+                    trim(consumable.rollLuckMultiplier()) + "x Luck"
+                            + (consumable.charges() > 1 ? " x" + consumable.charges() : "")));
+        }
+        if (consumable.isPermanent()) {
+            lines.add(Lore.stat(ChatColor.GREEN, "Luck",
+                    signed(consumable.permanentLuck() * 100) + "% permanently"));
+        }
+        return lines;
+    }
+
+    /** "+50" / "-25" — the sign is the point, so it's never dropped. */
+    public static String signed(double value) {
+        String number = value == Math.rint(value)
+                ? String.valueOf((long) value) : String.format("%.1f", value);
+        return value > 0 ? "+" + number : number;
     }
 
     public boolean isConsumable(ItemStack item) {
@@ -190,28 +221,47 @@ public class ConsumableManager {
     public boolean redeem(Player player, PlayerData data, Consumable consumable) {
         if (consumable == null) return false;
 
-        switch (consumable.effect()) {
-            case PERMANENT_LUCK -> {
-                data.addBonusLuck(consumable.magnitude());
-                player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "PERMANENT LUCK "
-                        + ChatColor.RESET + ChatColor.GRAY + "+"
-                        + Math.round(consumable.magnitude() * 100) + "% — that one never runs out.");
+        if (consumable.isPermanent()) {
+            data.addBonusLuck(consumable.permanentLuck());
+            player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "PERMANENT LUCK "
+                    + ChatColor.RESET + ChatColor.GRAY + signed(consumable.permanentLuck() * 100)
+                    + "% \u2014 that one never runs out.");
+        }
+        if (consumable.isCharge()) {
+            data.addRollCharges(consumable.charges(), consumable.rollLuckMultiplier());
+            player.sendMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "CHARGED "
+                    + ChatColor.RESET + ChatColor.GRAY + "your next "
+                    + (data.getRollCharges() == 1 ? "roll rolls" : data.getRollCharges() + " rolls roll")
+                    + " at " + ChatColor.LIGHT_PURPLE + trim(data.getRollChargeMultiplier()) + "x"
+                    + ChatColor.GRAY + " Luck.");
+        }
+        if (consumable.isDraught()) {
+            // One draught at a time: a second replaces the first outright
+            // rather than stacking, so a minus column can't be dodged by
+            // drinking something else on top of it.
+            data.setPotion(consumable.luck(), consumable.speed(), consumable.rolls());
+            player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + consumable.display().toUpperCase()
+                    + ChatColor.RESET + ChatColor.GRAY + "  "
+                    + (consumable.luck() != 0
+                            ? (consumable.luck() > 0 ? ChatColor.GREEN : ChatColor.RED)
+                                    + signed(consumable.luck() * 100) + "% Luck" + ChatColor.GRAY + "  "
+                            : "")
+                    + (consumable.speed() != 0
+                            ? (consumable.speed() > 0 ? ChatColor.YELLOW : ChatColor.RED)
+                                    + signed(consumable.speed() * 100) + " Speed" + ChatColor.GRAY + "  "
+                            : "")
+                    + ChatColor.AQUA + String.format("%,d", consumable.rolls()) + " rolls");
+        }
+        if (consumable.isTimed()) {
+            if (consumable.coinMultiplier() > 1.0) {
+                data.applyBoost("TOKENS", consumable.coinMultiplier(), consumable.durationSeconds() * 1000L);
             }
-            case ROLL_CHARGE -> {
-                data.addRollCharges(consumable.charges(), consumable.magnitude());
-                player.sendMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "CHARGED "
-                        + ChatColor.RESET + ChatColor.GRAY + "your next "
-                        + (data.getRollCharges() == 1 ? "roll rolls" : data.getRollCharges() + " rolls roll")
-                        + " at " + ChatColor.LIGHT_PURPLE + trim(data.getRollChargeMultiplier()) + "x"
-                        + ChatColor.GRAY + " Luck.");
-            }
-            default -> {
-                data.applyBoost(consumable.effect().key(), consumable.magnitude(),
+            if (consumable.enchantMultiplier() > 1.0) {
+                data.applyBoost("ENCHANT_PROC", consumable.enchantMultiplier(),
                         consumable.durationSeconds() * 1000L);
-                player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + consumable.display().toUpperCase()
-                        + ChatColor.RESET + ChatColor.GRAY + " — "
-                        + trim(consumable.magnitude()) + "x for " + consumable.durationText() + ".");
             }
+            player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + consumable.display().toUpperCase()
+                    + ChatColor.RESET + ChatColor.GRAY + " \u2014 " + consumable.durationText() + ".");
         }
 
         player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.8f, 1.6f);

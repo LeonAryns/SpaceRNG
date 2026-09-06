@@ -104,6 +104,26 @@ public class SolRNGExpansion extends PlaceholderExpansion {
             case "level_number":
                 return String.valueOf(data.getLevel());
 
+            // --- the active draught, for the tab list ---
+            // Blank rather than "0" when nothing is running: a tab entry
+            // that reads "0 rolls left" forever is worse than no entry.
+            case "potion_rolls":
+                return data.getPotionRolls() > 0 ? String.format("%,d", data.getPotionRolls()) : "";
+            case "potion_rolls_raw":
+                return String.valueOf(data.getPotionRolls());
+            case "potion_luck":
+                return data.getPotionRolls() > 0
+                        ? com.spacerng.solrng.consumable.ConsumableManager.signed(data.getPotionLuck() * 100) + "%"
+                        : "";
+            case "potion_speed":
+                return data.getPotionRolls() > 0 && data.getPotionSpeed() != 0.0
+                        ? com.spacerng.solrng.consumable.ConsumableManager.signed(data.getPotionSpeed() * 100)
+                        : "";
+            case "potion_active":
+                return data.getPotionRolls() > 0 ? "true" : "false";
+            case "roll_charges":
+                return data.getRollCharges() > 0 ? String.valueOf(data.getRollCharges()) : "";
+
             default:
                 // Leaderboard keys are dynamic (top_farming_1_name and so
                 // on), so they're matched by prefix rather than listed.
