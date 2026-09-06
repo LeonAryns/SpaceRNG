@@ -159,9 +159,11 @@ public class SolRNGExpansion extends PlaceholderExpansion {
      *   %solrng_top_<board>_<place>_name%     the player's name
      *   %solrng_top_<board>_<place>_value%    their number, short form
      *   %spacerng_top_<board>_<place>_reward% Coins that place pays
-     *   %solrng_farm_reset%                   "9h 15m 10s"
-     *   %solrng_farm_place%                   the VIEWER's place
-     *   %solrng_farm_value%                   the viewer's own total
+     *   %spacerng_place_<board>%              the VIEWER's place on it
+     *   %spacerng_value_<board>%              the viewer's own number
+     *   %spacerng_farm_reset%                 "9h 15m 10s"
+     *   %spacerng_farm_place%                 the viewer's DAILY place
+     *   %spacerng_farm_value%                 the viewer's daily total
      *
      * Names come back bare so a hologram can feed one straight into a
      * head line, and empty rather than "null" so an unfilled podium slot
@@ -180,6 +182,20 @@ public class SolRNGExpansion extends PlaceholderExpansion {
         if (params.equals("farm_value")) {
             var entry = boards.entryOf(player.getUniqueId());
             return entry == null ? "0" : String.format("%,d", entry.farmedPeriod());
+        }
+
+        // The viewer's own standing, on any board. farm_place and
+        // farm_value predate this and stay: they're hardwired to the daily
+        // board, which is the one with a reset to count down to.
+        if (params.startsWith("place_")) {
+            int place = boards.positionOf(params.substring(6), player.getUniqueId());
+            return place > 0 ? String.valueOf(place) : "-";
+        }
+        if (params.startsWith("value_")) {
+            var mine = boards.entryOf(player.getUniqueId());
+            return mine == null ? "0" : String.format("%,d",
+                    com.spacerng.solrng.leaderboard.LeaderboardManager
+                            .valueOf(params.substring(6), mine));
         }
 
         if (!params.startsWith("top_")) return null;
