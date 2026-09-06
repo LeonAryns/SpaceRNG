@@ -616,7 +616,27 @@ public final class RollAura {
         dustAt(core, 220, maxRadius * 0.3, dustBright);
         puff(accent, core, 90, maxRadius * 0.22, 0.9, maxRadius * 0.22, 0.35);
 
-        if (rarity == Rarity.LEGENDARY) {
+        if (rarity == Rarity.MYTHICAL) {
+            // Mythical ran the beat finale until the two swapped, and it
+            // landed on the shared ending underneath, which finished the
+            // second longest build-up in the plugin on an XP pickup noise.
+            // It gets its own arrival now.
+            puff(Particle.FLASH, core, 1, 0.0, 0.0, 0.0, 0.0);
+            puff(Particle.EXPLOSION_EMITTER, core, 2, 1.1, 0.6, 1.1, 0.0);
+            puff(Particle.SONIC_BOOM, core, 1, 0.0, 0.0, 0.0, 0.0);
+            puff(Particle.TOTEM_OF_UNDYING, core, 170, 1.5, 1.2, 1.5, 0.5);
+            puff(accent, core, 120, maxRadius * 0.3, 1.0, maxRadius * 0.3, 0.4);
+            dustAt(core, 200, 1.8, dustBright);
+            ring(base, maxRadius * 1.5, 70, dustBright, 0.1);
+            lightningRing(maxRadius * 0.8, 6);
+
+            // Impact first, then the portal, then the shriek on top. Three
+            // sounds on one frame read as one big one as long as their
+            // pitches are far enough apart to stay distinct.
+            sound(Sound.ENTITY_LIGHTNING_BOLT_IMPACT, 4.0f, 0.9f);
+            sound(Sound.BLOCK_END_PORTAL_SPAWN, 3.5f, 1.3f);
+            sound(Sound.ENTITY_WITHER_SPAWN, 3.0f, 1.5f);
+        } else if (rarity == Rarity.LEGENDARY) {
             puff(Particle.TOTEM_OF_UNDYING, core, 140, 1.3, 1.0, 1.3, 0.45);
             puff(Particle.FIREWORK, core, 90, 1.1, 0.9, 1.1, 0.35);
             puff(Particle.FLASH, core, 1, 0.0, 0.0, 0.0, 0.0);
@@ -652,11 +672,11 @@ public final class RollAura {
             puff(accent, base.clone().add(0, 2.6, 0), 6, maxRadius * 0.35, 0.5, maxRadius * 0.35, 0.02);
         }
 
-        // Legendary's burst is on frame 1, so the ding belongs right
-        // behind it - at frame 26 it was landing well after the visual had
-        // already finished.
-        if (rarity == Rarity.LEGENDARY && frame == 5) {
-            dingChord(3.0f);
+        // The burst is on frame 1, so the ding belongs right behind it. At
+        // frame 26 it was landing well after the visual had already
+        // finished, which read as an afterthought rather than a payoff.
+        if (frame == 5 && (rarity == Rarity.LEGENDARY || rarity == Rarity.MYTHICAL)) {
+            dingChord(rarity == Rarity.MYTHICAL ? 4.0f : 3.0f);
         }
     }
 }
