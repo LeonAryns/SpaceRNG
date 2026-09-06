@@ -121,8 +121,8 @@ public class LeaderboardGui {
     }
 
     /**
-     * The player's own card, carrying all four placings at once — the
-     * answer to "where am I" without reading four tooltips.
+     * The player's own card, carrying all six placings at once — the
+     * answer to "where am I" without reading six tooltips.
      */
     private static ItemStack buildSelf(LeaderboardManager boards, Player player) {
         ItemStack item = new ItemStack(Material.PLAYER_HEAD);
@@ -150,14 +150,17 @@ public class LeaderboardGui {
         return item;
     }
 
-    /** Gold, silver, bronze, then quiet — so the podium reads at a glance. */
+    /**
+     * Gold on first place, white on everyone else.
+     *
+     * A three-tone podium sounds right and reads badly: silver and bronze
+     * are close enough to each other and to the grey body text that the
+     * eye has to stop and work out which is which. One colour marking one
+     * player is legible at a glance, and the rank number already says the
+     * rest.
+     */
     private static ChatColor placeColour(int index) {
-        return switch (index) {
-            case 0 -> ChatColor.GOLD;
-            case 1 -> ChatColor.WHITE;
-            case 2 -> ChatColor.YELLOW;
-            default -> ChatColor.DARK_GRAY;
-        };
+        return index == 0 ? ChatColor.GOLD : ChatColor.WHITE;
     }
 
     private static ItemStack pane(Material material) {
