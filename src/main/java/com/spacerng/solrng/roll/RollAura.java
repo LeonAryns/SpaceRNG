@@ -106,10 +106,12 @@ public final class RollAura {
 
     private static Color colorFor(Rarity rarity) {
         return switch (rarity) {
-            // Warm near-white rather than pure white: at full brightness a
-            // 255,255,255 dust cloud reads as a rendering glitch.
-            case DIVINE -> Color.fromRGB(255, 252, 224);
-            case MYTHICAL -> Color.fromRGB(255, 60, 60);
+            // The red belongs to the rarest drop: it's the strongest look
+            // in the plugin, so it goes on the thing you'll see least.
+            // Mythical takes the warm near-white in exchange — never pure
+            // white, because a 255,255,255 dust cloud reads as a glitch.
+            case DIVINE -> Color.fromRGB(255, 60, 60);
+            case MYTHICAL -> Color.fromRGB(255, 252, 224);
             case LEGENDARY -> Color.fromRGB(255, 170, 0);
             default -> Color.fromRGB(168, 85, 247); // Epic
         };
@@ -117,8 +119,8 @@ public final class RollAura {
 
     private static Particle accentFor(Rarity rarity) {
         return switch (rarity) {
-            case DIVINE -> Particle.END_ROD;
-            case MYTHICAL -> Particle.DRAGON_BREATH;
+            case DIVINE -> Particle.DRAGON_BREATH;
+            case MYTHICAL -> Particle.END_ROD;
             case LEGENDARY -> Particle.FLAME;
             default -> Particle.END_ROD; // Epic
         };
