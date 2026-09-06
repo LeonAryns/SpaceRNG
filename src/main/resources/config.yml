@@ -8,7 +8,7 @@ scoreboard:
   # Paints the title as a per-character purple gradient instead of the
   # flat colour above. Turn it off to go back to the "&" codes in `title`.
   title-gradient: true
-  season: "SEASON I"
+  season: "BETA"
   footer: "SPACERNG.MINEHUT.GG"
 
 roll-item:
@@ -2410,13 +2410,25 @@ welcome:
   # A moment after joining, so it lands under the join spam rather than
   # above it where it scrolls away unread.
   delay-ticks: 20
+  # Shown to somebody who has played here before.
   lines:
     - "&d&l✦ WELCOME BACK &d&l✦"
-    - "&8&lSEASON I"
+    - "&8&lBETA"
     - ""
     - "&d| &fType &d/shop &fto see every shop."
     - "&d| &fType &d/guide &fif you're new."
     - "&d| &fType &d/buy &fto support us."
+    - ""
+    - "&8&nSPACERNG.MINEHUT.GG"
+  # Shown on somebody's very first join instead. Leave the list empty to
+  # give everyone the same banner.
+  first-join-lines:
+    - "&d&l✦ WELCOME &d&l✦"
+    - "&8&lBETA"
+    - ""
+    - "&d| &fRight-click your &dRoll &fitem to start."
+    - "&d| &fType &d/guide &fand it'll walk you through."
+    - "&d| &fType &d/shop &fwhen you've got something to spend."
     - ""
     - "&8&nSPACERNG.MINEHUT.GG"
 

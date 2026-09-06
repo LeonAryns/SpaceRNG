@@ -66,7 +66,7 @@ public class OptionsGui {
                 "",
                 ChatColor.DARK_GRAY + Lore.BULLET + " Off only affects what you see.",
                 "",
-                ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO TOGGLE"));
+                ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to toggle"));
         meta.setEnchantmentGlintOverride(on ? Boolean.TRUE : null);
         item.setItemMeta(meta);
         return item;
@@ -85,7 +85,7 @@ public class OptionsGui {
             lore.add(Lore.line(ChatColor.AQUA, line));
         }
         lore.add("");
-        lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO TOGGLE");
+        lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to toggle");
         meta.setLore(lore);
         meta.setEnchantmentGlintOverride(on ? Boolean.TRUE : null);
         item.setItemMeta(meta);

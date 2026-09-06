@@ -93,7 +93,7 @@ public class PrestigeGui {
         lore.add(Lore.bar(needed <= 0 ? 1.0 : (double) data.getTotalRolls() / needed));
         lore.add("");
         lore.add(can
-                ? ChatColor.GREEN + "" + ChatColor.BOLD + "CLICK TO LEVEL UP"
+                ? ChatColor.GREEN + "" + ChatColor.BOLD + "Click to level up"
                 : ChatColor.RED + Lore.BULLET + " Keep rolling.");
         meta.setLore(lore);
         meta.setEnchantmentGlintOverride(can ? Boolean.TRUE : null);
@@ -134,7 +134,7 @@ public class PrestigeGui {
         lore.add(Lore.line(ChatColor.RED, data.getLevel() + " levels"));
         lore.add("");
         lore.add(can
-                ? ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "CLICK TO ASCEND"
+                ? ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "Click to ascend"
                 : ChatColor.RED + Lore.BULLET + " Complete all requirements first");
         meta.setLore(lore);
         meta.setEnchantmentGlintOverride(can ? Boolean.TRUE : null);
@@ -156,7 +156,7 @@ public class PrestigeGui {
         lore.add(Lore.stat(ChatColor.LIGHT_PURPLE, "Points", String.valueOf(data.getPrestigePoints())));
         lore.add(Lore.stat(ChatColor.AQUA, "Upgrades", String.valueOf(prestige.getUpgrades().size())));
         lore.add("");
-        lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO OPEN");
+        lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to open");
         meta.setLore(lore);
         item.setItemMeta(meta);
         return item;
@@ -214,7 +214,7 @@ public class PrestigeGui {
         lore.add(Lore.bar((double) level / upgrade.getMaxLevel()));
         lore.add("");
         if (maxed) {
-            lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "FULLY UPGRADED");
+            lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "Fully upgraded");
         } else {
             lore.add(Lore.section(ChatColor.YELLOW, "Cost"));
             lore.add((affordable ? ChatColor.LIGHT_PURPLE : ChatColor.RED) + Lore.BULLET + " "
@@ -222,8 +222,8 @@ public class PrestigeGui {
                     + ChatColor.GRAY + " Point" + (upgrade.getCostPoints() == 1 ? "" : "s"));
             lore.add("");
             lore.add(affordable
-                    ? ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO UPGRADE"
-                    : ChatColor.RED + "" + ChatColor.BOLD + "NOT ENOUGH POINTS");
+                    ? ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to upgrade"
+                    : ChatColor.RED + "" + ChatColor.BOLD + "Not enough Credits");
             if (affordable) {
                 lore.add(ChatColor.DARK_GRAY + "SHIFT CLICK TO MAX");
             }

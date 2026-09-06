@@ -91,7 +91,7 @@ public class DailyGui {
         if (claimed) {
             lore.add(ChatColor.GREEN + Lore.TICK + " Already claimed");
         } else if (claimable) {
-            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK THE CHEST TO CLAIM");
+            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click the chest to claim");
         } else {
             lore.add(ChatColor.DARK_GRAY + "Keep your streak alive to reach it.");
         }
@@ -137,7 +137,7 @@ public class DailyGui {
                 lore.add(ChatColor.GREEN + Lore.BULLET + " " + ChatColor.GRAY + "You get: " + reward);
                 lore.add("");
             }
-            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO CLAIM");
+            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to claim");
         } else {
             lore.add(Lore.stat(ChatColor.YELLOW, "Back in", daily.timeUntilNext(data)));
             lore.add("");

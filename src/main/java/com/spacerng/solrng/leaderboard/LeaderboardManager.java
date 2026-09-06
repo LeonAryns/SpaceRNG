@@ -250,7 +250,24 @@ public class LeaderboardManager {
      * Pays out and rolls the period over if one is due. Runs on a timer,
      * so it fires whether or not anyone happens to be online at the hour.
      */
+    /**
+     * Re-reads every player who is online.
+     *
+     * The index used to be written only when somebody's data was saved,
+     * which meant a board sat frozen for as long as they stayed connected
+     * - you could farm for an hour and watch the hologram not move.
+     * Thirty seconds of lag on a leaderboard is invisible; an hour of it
+     * is a broken feature.
+     */
+    private void refreshOnline() {
+        for (Player online : Bukkit.getOnlinePlayers()) {
+            record(plugin.getPlayerDataManager().get(online.getUniqueId()));
+        }
+    }
+
     public void tick() {
+        refreshOnline();
+
         long today = todayEpochDay();
         if (lastPayoutDay == 0L) {
             // First run on a fresh install: start the clock rather than

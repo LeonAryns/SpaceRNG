@@ -99,8 +99,8 @@ public class PotionGui {
         lore.addAll(price);
         lore.add("");
         lore.add(affordable
-                ? ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO BREW"
-                : ChatColor.RED + "" + ChatColor.BOLD + "NOT ENOUGH DROPS");
+                ? ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to brew"
+                : ChatColor.RED + "" + ChatColor.BOLD + "Not enough drops");
         if (affordable) {
             lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " Shift-click brews five.");
         }

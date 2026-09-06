@@ -77,11 +77,11 @@ public class CropsGui {
         }
         lore.add("");
         if (selected) {
-            lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "GROWING NOW");
+            lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "Growing now");
         } else if (unlocked) {
-            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO PLANT");
+            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to plant");
         } else {
-            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "LOCKED");
+            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Locked");
             lore.add(ChatColor.RED + Lore.BULLET + " " + ChatColor.GRAY + "Unlock it in "
                     + ChatColor.YELLOW + "/farmtree");
         }

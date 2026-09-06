@@ -104,7 +104,7 @@ public class ArmorGui {
         lore.addAll(armor.statLines(tier));
         lore.add("");
         if (owned) {
-            lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "OWNED");
+            lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "Owned");
         } else {
             boolean affordable = true;
             lore.add(Lore.section(ChatColor.YELLOW, "Price"));
@@ -118,8 +118,8 @@ public class ArmorGui {
             }
             lore.add("");
             lore.add(affordable
-                    ? ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO BUY THIS PIECE"
-                    : ChatColor.RED + "" + ChatColor.BOLD + "NOT ENOUGH DROPS");
+                    ? ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to buy this piece"
+                    : ChatColor.RED + "" + ChatColor.BOLD + "Not enough drops");
         }
         meta.setLore(lore);
         meta.getPersistentDataContainer().set(tierIdKey, PersistentDataType.STRING, tier.getId());

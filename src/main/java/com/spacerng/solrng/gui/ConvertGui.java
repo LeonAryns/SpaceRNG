@@ -43,7 +43,7 @@ public class ConvertGui {
                 "",
                 ChatColor.DARK_GRAY + Lore.BULLET + " Spend them in /armor and /starforge.",
                 "",
-                ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO CONVERT"));
+                ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to convert"));
         confirm.setItemMeta(confirmMeta);
         inv.setItem(ConvertHolder.CONFIRM_SLOT, confirm);
 
@@ -64,9 +64,9 @@ public class ConvertGui {
                             Lore.line(ChatColor.AQUA, "Every " + rarity.displayName() + " you roll goes"),
                             Lore.line(ChatColor.AQUA, "straight to your bank."),
                             "",
-                            ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO TOGGLE")
+                            ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to toggle")
                     : List.of(
-                            ChatColor.RED + "" + ChatColor.BOLD + "LOCKED",
+                            ChatColor.RED + "" + ChatColor.BOLD + "Locked",
                             ChatColor.RED + Lore.BULLET + " " + ChatColor.GRAY + "Unlock "
                                     + ChatColor.YELLOW + "Auto Convert" + ChatColor.GRAY + " in "
                                     + ChatColor.YELLOW + "/skilltree"));
@@ -106,7 +106,7 @@ public class ConvertGui {
                 Lore.line(ChatColor.AQUA, "a shiny. Only this one does."),
                 Lore.line(ChatColor.AQUA, "They bank separately too."),
                 "",
-                ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO TOGGLE"));
+                ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to toggle"));
         meta.setEnchantmentGlintOverride(on ? Boolean.TRUE : null);
         item.setItemMeta(meta);
         return item;

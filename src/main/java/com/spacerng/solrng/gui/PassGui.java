@@ -206,16 +206,16 @@ public class PassGui {
         }
         lore.add("");
         if (claimed) {
-            lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "CLAIMED");
+            lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "Claimed");
         } else if (locked) {
-            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "LOCKED");
+            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Locked");
             lore.add(ChatColor.RED + Lore.BULLET + " " + ChatColor.GRAY + "Unlock the premium track below.");
         } else if (!earned) {
-            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "LOCKED");
+            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Locked");
             lore.add(ChatColor.RED + Lore.BULLET + " " + ChatColor.GRAY + "Reach level "
                     + ChatColor.YELLOW + rung.level());
         } else {
-            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO CLAIM");
+            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to claim");
         }
         meta.setLore(lore);
         meta.setEnchantmentGlintOverride(!claimed && earned && !locked ? Boolean.TRUE : null);
@@ -273,7 +273,7 @@ public class PassGui {
         lore.add(Lore.line(ChatColor.LIGHT_PURPLE, "have already cleared."));
         lore.add("");
         if (owned) {
-            lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "UNLOCKED");
+            lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "Unlocked");
         } else {
             boolean affordable = data.getPoints() >= pass.getPremiumCost();
             lore.add(Lore.section(ChatColor.LIGHT_PURPLE, "Information"));
@@ -283,8 +283,8 @@ public class PassGui {
                     + Currency.CREDITS.amount(data.getPoints()));
             lore.add("");
             lore.add(affordable
-                    ? ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO UNLOCK"
-                    : ChatColor.RED + "" + ChatColor.BOLD + "NOT ENOUGH CREDITS");
+                    ? ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to unlock"
+                    : ChatColor.RED + "" + ChatColor.BOLD + "Not enough Credits");
         }
         meta.setLore(lore);
         meta.setEnchantmentGlintOverride(owned ? Boolean.TRUE : null);
@@ -308,7 +308,7 @@ public class PassGui {
             lore.add(Lore.stat(ChatColor.YELLOW, "Waiting",
                     waiting + " reward" + (waiting == 1 ? "" : "s")));
             lore.add("");
-            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO COLLECT");
+            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to collect");
         } else {
             lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " Nothing to collect right now.");
         }

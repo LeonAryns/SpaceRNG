@@ -97,11 +97,11 @@ public class NovaCoreGui {
         }
         lore.add("");
         if (cleared) {
-            lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "FORGED");
+            lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "Forged");
         } else if (next) {
-            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "NEXT UP");
+            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Next up");
         } else {
-            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "LOCKED");
+            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Locked");
         }
 
         meta.setLore(lore);
@@ -153,7 +153,7 @@ public class NovaCoreGui {
         if (maxed) {
             lore.add(Lore.line(ChatColor.GREEN, "There's nothing left to climb."));
             lore.add("");
-            lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "MAXED");
+            lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "Maxed");
         } else {
             ChatColor odds = chance >= 0.5 ? ChatColor.GREEN : chance >= 0.2 ? ChatColor.YELLOW : ChatColor.RED;
             lore.add(Lore.section(ChatColor.AQUA, "This attempt"));
@@ -166,8 +166,8 @@ public class NovaCoreGui {
             lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " own multiplier does not.");
             lore.add("");
             lore.add(affordable
-                    ? ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO FORGE"
-                    : ChatColor.RED + "" + ChatColor.BOLD + "NOT ENOUGH TOKENS");
+                    ? ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to forge"
+                    : ChatColor.RED + "" + ChatColor.BOLD + "Not enough Coins");
         }
         meta.setLore(lore);
         meta.setEnchantmentGlintOverride(maxed ? Boolean.TRUE : null);

@@ -15,13 +15,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * /leaderboards — the four standings that aren't the farming one.
+ * /leaderboards — the six standings that never reset.
  *
- * The farming board has its own life: it resets daily and pays out, so it
- * lives in /top and on the hologram at spawn. These four never reset.
- * They're the long game — what you've collected, what you've hoarded —
- * and they belong somewhere you can read all of them at once rather than
- * one chat command at a time.
+ * The DAILY farming board is deliberately not here. It resets every
+ * night and pays out, which makes it a race rather than a standing, so it
+ * keeps /top and the hologram at spawn. What's here is the long game —
+ * what you've found, what you've earned — and it belongs somewhere you
+ * can read all of it at once rather than one chat command at a time.
  */
 public class LeaderboardGui {
 
@@ -33,32 +33,41 @@ public class LeaderboardGui {
                         String unit, String blurb) {
     }
 
+    // Top row: what you've found. Bottom row: what you've earned. The
+    // player's own head sits between them.
     private static final Card[] CARDS = {
-            new Card(19, Material.ENCHANTED_BOOK, ChatColor.AQUA, "Total Index", "index", "drops",
+            new Card(11, Material.ENCHANTED_BOOK, ChatColor.AQUA, "Total Index", "index", "drops",
                     "Every drop you've discovered."),
-            new Card(21, Material.AMETHYST_SHARD, ChatColor.LIGHT_PURPLE, "Shiny Index", "shiny", "shinies",
+            new Card(13, Material.AMETHYST_SHARD, ChatColor.LIGHT_PURPLE, "Shiny Index", "shiny", "shinies",
                     "Shiny drops you've discovered."),
-            new Card(23, Material.GOLD_INGOT, ChatColor.GOLD, "Coins", "coins", "Coins",
+            new Card(15, Material.NETHER_STAR, ChatColor.YELLOW, "Rolls", "rolls", "rolls",
+                    "Every roll you've ever made."),
+            new Card(29, Material.GOLD_INGOT, ChatColor.GOLD, "Coins", "coins", "Coins",
                     "Coins in hand, from farming."),
-            new Card(25, Material.EMERALD, ChatColor.GREEN, "Money", "money", "Money",
+            new Card(31, Material.EMERALD, ChatColor.GREEN, "Money", "money", "Money",
                     "Money in hand, from rolling."),
+            new Card(33, Material.WHEAT, ChatColor.DARK_GREEN, "Crops", "farming_total", "crops",
+                    "Crops broken, all time."),
     };
 
-    private static final int SELF_SLOT = 49;
+    private static final int ROWS = 5;
+    private static final int SIZE = ROWS * 9;
+    private static final int SELF_SLOT = 22;
     private static final int SHOWN = 5;
 
     public static Inventory build(SolRNGPlugin plugin, Player player) {
         LeaderboardHolder holder = new LeaderboardHolder();
-        Inventory inv = Bukkit.createInventory(holder, 54,
+        Inventory inv = Bukkit.createInventory(holder, SIZE,
                 ChatColor.GOLD + "" + ChatColor.BOLD + "Leaderboards");
         holder.setInventory(inv);
 
         ItemStack frame = pane(Material.YELLOW_STAINED_GLASS_PANE);
         ItemStack fill = pane(Material.BLACK_STAINED_GLASS_PANE);
-        for (int slot = 0; slot < 54; slot++) {
+        for (int slot = 0; slot < SIZE; slot++) {
             int column = slot % 9;
             int row = slot / 9;
-            inv.setItem(slot, row == 0 || row == 5 || column == 0 || column == 8 ? frame : fill);
+            inv.setItem(slot,
+                    row == 0 || row == ROWS - 1 || column == 0 || column == 8 ? frame : fill);
         }
 
         LeaderboardManager boards = plugin.getLeaderboardManager();

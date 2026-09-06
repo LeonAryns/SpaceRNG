@@ -160,11 +160,11 @@ public class SkillTreeGui {
         }
         lore.add("");
         if (complete) {
-            lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + (leveled ? "MAXED" : "UNLOCKED"));
+            lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + (leveled ? "Maxed" : "Unlocked"));
         } else if (affordable) {
-            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + (leveled ? "CLICK TO UPGRADE" : "CLICK TO UNLOCK"));
+            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + (leveled ? "Click to upgrade" : "Click to unlock"));
         } else {
-            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "NOT ENOUGH " + wallet.label().toUpperCase());
+            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Not enough " + wallet.label());
         }
 
         Material material = Material.matchMaterial(node.getIcon());
@@ -205,7 +205,7 @@ public class SkillTreeGui {
                     + "  " + ChatColor.RED + Lore.CROSS);
         }
         lore.add("");
-        lore.add(ChatColor.RED + "" + ChatColor.BOLD + "LOCKED");
+        lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Locked");
         meta.setLore(lore);
         icon.setItemMeta(meta);
         return icon;

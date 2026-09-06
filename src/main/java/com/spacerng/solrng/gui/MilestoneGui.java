@@ -148,8 +148,8 @@ public class MilestoneGui {
         }
         lore.add("");
         lore.add(active
-                ? ChatColor.GREEN + "" + ChatColor.BOLD + "VIEWING"
-                : ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO VIEW");
+                ? ChatColor.GREEN + "" + ChatColor.BOLD + "Viewing"
+                : ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to view");
 
         meta.setLore(lore);
         // Glint marks the open tab without changing its icon, so the row
@@ -208,11 +208,11 @@ public class MilestoneGui {
         lore.add(Lore.bar(tier.threshold() <= 0 ? 1.0 : (double) progress / tier.threshold()));
         lore.add("");
         if (claimed) {
-            lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "CLAIMED");
+            lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "Claimed");
         } else if (claimable) {
-            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO CLAIM");
+            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to claim");
         } else {
-            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "LOCKED");
+            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Locked");
             lore.add(ChatColor.RED + Lore.BULLET + " " + ChatColor.GRAY
                     + String.format("%,d", tier.threshold() - progress) + " " + track.getUnit() + " to go");
         }
@@ -251,7 +251,7 @@ public class MilestoneGui {
         MilestoneTrack.Tier next = track.nextTier(progress);
         lore.add("");
         if (next == null) {
-            lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "TRACK COMPLETE");
+            lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "Track complete");
         } else {
             lore.add(ChatColor.YELLOW + BULLET + " " + ChatColor.GRAY + "Next: " + ChatColor.WHITE
                     + String.format("%,d", next.threshold()) + ChatColor.GRAY + " " + track.getUnit());

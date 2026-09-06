@@ -111,7 +111,7 @@ public class HoeGui {
         meta.setLore(java.util.List.of(
                 ChatColor.DARK_GRAY + Lore.BULLET + " An enchant will live here.",
                 "",
-                ChatColor.DARK_GRAY + "" + ChatColor.BOLD + "COMING SOON"));
+                ChatColor.DARK_GRAY + "" + ChatColor.BOLD + "Coming soon"));
         item.setItemMeta(meta);
         return item;
     }
@@ -141,9 +141,9 @@ public class HoeGui {
             lore.add(Lore.upgrade(ChatColor.AQUA, "Speed",
                     HoeEnchantManager.format(tier.speedBonus()), HoeEnchantManager.format(next.speedBonus())));
             lore.add("");
-            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "TOOL UPGRADE IS IN /FARMTREE");
+            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Tool upgrade is in /farmtree");
         } else {
-            lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "FULLY UPGRADED");
+            lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "Fully upgraded");
         }
         meta.setLore(lore);
         meta.setEnchantmentGlintOverride(Boolean.TRUE);
@@ -190,20 +190,20 @@ public class HoeGui {
         lore.add("");
 
         if (!unlocked) {
-            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "LOCKED");
+            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Locked");
             lore.add(ChatColor.RED + Lore.BULLET + " " + ChatColor.GRAY + "Unlock it in "
                     + ChatColor.YELLOW + "/farmtree");
         } else if (maxed) {
-            lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + (cap >= enchant.maxLevel() ? "MAXED" : "AT THE CAP"));
+            lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + (cap >= enchant.maxLevel() ? "Maxed" : "At the cap"));
             if (cap < enchant.maxLevel()) {
                 lore.add(ChatColor.GREEN + Lore.BULLET + " " + ChatColor.GRAY + "Buy Enchant Mastery in "
                         + ChatColor.YELLOW + "/farmtree");
             }
         } else if (affordable) {
-            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO UPGRADE");
+            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to upgrade");
             lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " Shift-click buys ten.");
         } else {
-            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "NOT ENOUGH COINS");
+            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Not enough Coins");
         }
 
         meta.setLore(lore);
@@ -239,7 +239,7 @@ public class HoeGui {
                 "",
                 ChatColor.DARK_GRAY + Lore.BULLET + " Only affects what you hear.",
                 "",
-                ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO TOGGLE"));
+                ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to toggle"));
         meta.setEnchantmentGlintOverride(on ? Boolean.TRUE : null);
         item.setItemMeta(meta);
         return item;

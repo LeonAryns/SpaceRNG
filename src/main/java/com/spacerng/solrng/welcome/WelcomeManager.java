@@ -62,6 +62,7 @@ public class WelcomeManager {
     private boolean enabled = true;
     private long delayTicks = 20L;
     private List<String> lines = List.of();
+    private List<String> firstJoinLines = List.of();
 
     public WelcomeManager(SolRNGPlugin plugin) {
         this.plugin = plugin;
@@ -71,6 +72,7 @@ public class WelcomeManager {
         enabled = config.getBoolean("welcome.enabled", true);
         delayTicks = Math.max(0L, config.getLong("welcome.delay-ticks", 20L));
         lines = config.getStringList("welcome.lines");
+        firstJoinLines = config.getStringList("welcome.first-join-lines");
     }
 
     public void forget(UUID uuid) {
@@ -87,7 +89,7 @@ public class WelcomeManager {
      * anyone reads it.
      */
     public void send(Player player) {
-        if (!enabled || lines.isEmpty()) return;
+        if (!enabled || linesFor(player).isEmpty()) return;
 
         if (!pending.add(player.getUniqueId())) return;
 
@@ -171,9 +173,18 @@ public class WelcomeManager {
      * out to the height of the face so the block never comes apart, and
      * anything past eight lines simply continues underneath it.
      */
+    /**
+     * "Welcome back" is a lie the first time somebody arrives. A server
+     * with nothing written for a first join falls back to the returning
+     * banner rather than showing nothing at all.
+     */
+    private List<String> linesFor(Player player) {
+        return !player.hasPlayedBefore() && !firstJoinLines.isEmpty() ? firstJoinLines : lines;
+    }
+
     private void print(Player player, List<String> face) {
         List<String> text = new ArrayList<>();
-        for (String line : lines) {
+        for (String line : linesFor(player)) {
             text.add(ChatColor.translateAlternateColorCodes('&',
                     line.replace("{player}", player.getName())
                         .replace("{online}", String.valueOf(

@@ -64,17 +64,23 @@ lives.
 
 ### The action footer, verbatim
 
-Only these five. They are bold, and their colour is the whole message:
+Only these five. They are bold and **sentence case, never caps** — the
+bold and the colour already carry the emphasis, and shouting on top of
+both reads as noise. The colour is the whole message:
 
 | Footer | Colour | Means |
 |---|---|---|
-| `CLICK TO BUY` / `CLICK TO CLAIM` / `CLICK TO UPGRADE` | YELLOW | you can do it now |
-| `NOT ENOUGH COINS` (or TOKENS/GEMS/CREDITS) | RED | you'll be able to |
-| `LOCKED` | RED, plus a grey line naming the way in | something else first |
-| `MAXED` / `UNLOCKED` / `CLAIMED` | GREEN | done, nothing to do |
-| `SOLD OUT` / `COMING SOON` | DARK_GRAY | not a thing yet |
+| `Click to buy` / `Click to claim` / `Click to upgrade` | YELLOW | you can do it now |
+| `Not enough Coins` (or Gems/Credits) | RED | you'll be able to |
+| `Locked` | RED, plus a grey line naming the way in | something else first |
+| `Maxed` / `Unlocked` / `Claimed` | GREEN | done, nothing to do |
+| `Sold out` / `Coming soon` | DARK_GRAY | not a thing yet |
 
-A `LOCKED` footer must always be followed by where to go:
+A currency's name keeps its capital — Coins, Gems, Credits, Money are
+proper nouns here. Everything else in a footer is lower case after the
+first word.
+
+A `Locked` footer must always be followed by where to go:
 `▎ Unlock it in /farmtree`. Telling someone no without telling them how
 is the single most common way a menu becomes frustrating.
 
@@ -100,8 +106,10 @@ can read its state without reading the words.
 - **Pure white on a drop name.** Drop names render next to player names
   in the tab list, where white-on-white is unreadable. `RollFormat`
   enforces this; don't reintroduce it.
-- **ALL CAPS on an item's own name**, except deliberate headers and the
-  action footer. The user has rejected this twice.
+- **ALL CAPS anywhere inside a menu item** — not the name, not the
+  footer, not a state tag. The user has rejected caps three times now.
+  Caps survive only as deliberate headers in *chat* output (the guide
+  banner, the `/top` header) and on the sidebar title.
 - Gold for anything that isn't Coins, on the sidebar.
 - A **different icon for the same family of skill**. Luck I through Luck
   VIII are all a rabbit's foot; if Curator I is a bookshelf then Curator

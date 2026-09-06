@@ -85,7 +85,7 @@ public class StarforgeGui {
         lore.addAll(starforge.statLines(tier));
         lore.add("");
         if (owned) {
-            lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "OWNED");
+            lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "Owned");
         } else if (isNext) {
             lore.add(Lore.section(ChatColor.YELLOW, "Price"));
             for (Map.Entry<Rarity, Long> cost : tier.getCosts().entrySet()) {
@@ -97,10 +97,10 @@ public class StarforgeGui {
             }
             lore.add("");
             lore.add(affordable
-                    ? ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO BUY"
-                    : ChatColor.RED + "" + ChatColor.BOLD + "NOT ENOUGH DROPS");
+                    ? ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to buy"
+                    : ChatColor.RED + "" + ChatColor.BOLD + "Not enough drops");
         } else {
-            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "LOCKED");
+            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Locked");
             lore.add(ChatColor.RED + Lore.BULLET + " " + ChatColor.GRAY + "Forge the tiers before it first.");
         }
 

@@ -109,15 +109,15 @@ public class ShopGui {
         lore.add("");
 
         if (!built) {
-            lore.add(ChatColor.DARK_GRAY + "" + ChatColor.BOLD + "COMING SOON");
+            lore.add(ChatColor.DARK_GRAY + "" + ChatColor.BOLD + "Coming soon");
         } else if (!unlocked) {
             var node = plugin.getSkillTreeManager().get(shop.node());
-            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "LOCKED");
+            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Locked");
             lore.add(ChatColor.RED + Lore.BULLET + " " + ChatColor.GRAY + "Buy " + ChatColor.YELLOW
                     + (node == null ? shop.node() : node.getDisplay())
                     + ChatColor.GRAY + " in " + ChatColor.YELLOW + "/skilltree");
         } else {
-            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO OPEN");
+            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to open");
             lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " /" + shop.command());
         }
 

@@ -84,7 +84,7 @@ public class BuyGui {
         }
         lore.add("");
         if (maxed) {
-            lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "MAXED FOR THIS BOOST");
+            lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "Maxed for this boost");
             lore.add(ChatColor.GREEN + Lore.BULLET + " " + ChatColor.GRAY + "Buyable again once it expires.");
         } else {
             lore.add(Lore.stat(ChatColor.LIGHT_PURPLE, "Next",
@@ -94,8 +94,8 @@ public class BuyGui {
             lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " Buying while it's live doubles it.");
             lore.add("");
             lore.add(affordable
-                    ? ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO BUY"
-                    : ChatColor.RED + "" + ChatColor.BOLD + "NOT ENOUGH CREDITS");
+                    ? ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to buy"
+                    : ChatColor.RED + "" + ChatColor.BOLD + "Not enough Credits");
         }
 
         meta.setLore(lore);
@@ -124,7 +124,7 @@ public class BuyGui {
         lore.add(Lore.line(ChatColor.LIGHT_PURPLE, "level you have already cleared."));
         lore.add("");
         if (owned) {
-            lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "UNLOCKED");
+            lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "Unlocked");
             lore.add(ChatColor.GREEN + Lore.BULLET + " " + ChatColor.GRAY + "Claim it in "
                     + ChatColor.YELLOW + "/pass");
         } else {
@@ -136,8 +136,8 @@ public class BuyGui {
                     + Currency.CREDITS.amount(data.getPoints()));
             lore.add("");
             lore.add(affordable
-                    ? ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO UNLOCK"
-                    : ChatColor.RED + "" + ChatColor.BOLD + "NOT ENOUGH CREDITS");
+                    ? ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to unlock"
+                    : ChatColor.RED + "" + ChatColor.BOLD + "Not enough Credits");
         }
         meta.setLore(lore);
         meta.setEnchantmentGlintOverride(owned ? Boolean.TRUE : null);
@@ -155,7 +155,7 @@ public class BuyGui {
             lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " " + line);
         }
         lore.add("");
-        lore.add(ChatColor.DARK_GRAY + "" + ChatColor.BOLD + "COMING SOON");
+        lore.add(ChatColor.DARK_GRAY + "" + ChatColor.BOLD + "Coming soon");
         meta.setLore(lore);
         item.setItemMeta(meta);
         return item;

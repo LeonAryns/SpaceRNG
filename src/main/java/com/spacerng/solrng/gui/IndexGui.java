@@ -137,8 +137,8 @@ public class IndexGui {
         lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " and finished tiers multiply together.");
         lore.add("");
         lore.add(selected
-                ? ChatColor.GREEN + "" + ChatColor.BOLD + "SHOWING THIS TIER"
-                : ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO FILTER");
+                ? ChatColor.GREEN + "" + ChatColor.BOLD + "Showing this tier"
+                : ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to filter");
 
         meta.setLore(lore);
         meta.setEnchantmentGlintOverride(done ? Boolean.TRUE : null);
@@ -283,7 +283,7 @@ public class IndexGui {
                             + ChatColor.AQUA + Lore.SPARK
                     : ChatColor.DARK_GRAY + Lore.BULLET + " Shiny not found");
             lore.add("");
-            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK TO EQUIP AS YOUR TAG");
+            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to equip as your tag");
 
             meta.getPersistentDataContainer().set(plugin.getRollListener().getRarityKey(),
                     PersistentDataType.STRING, item.getRarity().name());
@@ -300,7 +300,7 @@ public class IndexGui {
             lore.add(Lore.stat(ChatColor.AQUA, "Index Luck",
                     String.format("%.2f", item.getLuckMultiplier()) + "x"));
             lore.add("");
-            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "NOT YET DISCOVERED");
+            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Not yet discovered");
             lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " Shiny not found");
         }
         meta.setLore(lore);
