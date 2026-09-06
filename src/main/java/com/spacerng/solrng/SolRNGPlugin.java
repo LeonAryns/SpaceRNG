@@ -121,6 +121,7 @@ public final class SolRNGPlugin extends JavaPlugin {
             return;
         }
         saveDefaultConfig();
+        sweepBossBars();
 
         this.rarityManager = new RarityManager(getLogger());
         this.skillTreeManager = new SkillTreeManager(getLogger());
@@ -191,7 +192,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         startArmorRefreshTask();
         registerPlaceholderExpansion();
 
-        getLogger().info("SolRNG enabled.");
+        getLogger().info("SpaceRNG enabled.");
     }
 
     @Override
@@ -205,7 +206,35 @@ public final class SolRNGPlugin extends JavaPlugin {
         if (leaderboardManager != null) {
             leaderboardManager.saveIndex();
         }
-        getLogger().info("SolRNG disabled, player data saved.");
+        getLogger().info("SpaceRNG disabled, player data saved.");
+    }
+
+    /**
+     * Clears every boss bar this plugin left on screen last time.
+     *
+     * onDisable removes them, but it only runs on a clean stop - a crash,
+     * a kill, or a hot plugin reload skips it and leaves the bars behind.
+     * The player keeps seeing them, the new instance draws its own beside
+     * them, and you end up with two of everything. Keyed bars survive in
+     * the server's registry, so a fresh start can find the old ones and
+     * take them down before drawing anything.
+     */
+    private void sweepBossBars() {
+        java.util.List<org.bukkit.NamespacedKey> stale = new java.util.ArrayList<>();
+        java.util.Iterator<org.bukkit.boss.KeyedBossBar> bars = getServer().getBossBars();
+        while (bars.hasNext()) {
+            org.bukkit.boss.KeyedBossBar bar = bars.next();
+            if (bar.getKey().getNamespace().equals(TAG_NAMESPACE)) {
+                bar.removeAll();
+                stale.add(bar.getKey());
+            }
+        }
+        for (org.bukkit.NamespacedKey key : stale) {
+            getServer().removeBossBar(key);
+        }
+        if (!stale.isEmpty()) {
+            getLogger().info("Cleared " + stale.size() + " boss bar(s) left over from the last run.");
+        }
     }
 
     public void reloadAll() {

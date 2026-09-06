@@ -29,6 +29,7 @@ public class FarmingManager {
     private final NamespacedKey boundKey;
     private final Map<Material, Long> cropTokens = new EnumMap<>(Material.class);
     private final java.util.List<HoeTier> hoeTiers = new java.util.ArrayList<>();
+    private String hoeName = "Farmer's Hoe";
     private int regrowTicks = 60;
 
     /**
@@ -36,7 +37,16 @@ public class FarmingManager {
      * rather than an enchant, which is why it shows in the Information
      * block: it's what the tool IS, not something bolted onto it.
      */
-    public record HoeTier(String display, Material material, double tokenBonus, double speedBonus) {
+    /**
+     * A tier is its position and its two bonuses, nothing else.
+     *
+     * The material used to walk wood -> stone -> iron and so on, and the
+     * display name came from config. Both are gone: the hoe is always a
+     * wooden hoe and its tier is the Roman numeral of where it sits in
+     * this list, so a tier can never be renamed into disagreeing with its
+     * own number and an old config can't reintroduce a stone one.
+     */
+    public record HoeTier(String display, double tokenBonus, double speedBonus) {
     }
 
     public FarmingManager(SolRNGPlugin plugin) {
@@ -48,18 +58,17 @@ public class FarmingManager {
         cropTokens.clear();
         regrowTicks = config.getInt("farming.regrow-seconds", 3) * 20;
 
+        hoeName = config.getString("farming.hoe-name", "Farmer's Hoe");
+
         hoeTiers.clear();
         for (Map<?, ?> raw : config.getMapList("farming.hoe-tiers")) {
-            Material material = Material.matchMaterial(String.valueOf(raw.get("material")));
-            if (material == null) continue;
             hoeTiers.add(new HoeTier(
-                    raw.get("display") == null ? "Hoe" : String.valueOf(raw.get("display")),
-                    material,
+                    roman(hoeTiers.size() + 1),
                     asDouble(raw.get("token-bonus")),
                     asDouble(raw.get("speed-bonus"))));
         }
         if (hoeTiers.isEmpty()) {
-            hoeTiers.add(new HoeTier("Wooden", Material.WOODEN_HOE, 0.0, 0.0));
+            hoeTiers.add(new HoeTier("I", 0.0, 0.0));
         }
 
         ConfigurationSection section = config.getConfigurationSection("farming.crops");
@@ -100,6 +109,10 @@ public class FarmingManager {
         }
     }
 
+    public String getHoeName() {
+        return hoeName;
+    }
+
     public java.util.List<HoeTier> getHoeTiers() {
         return hoeTiers;
     }
@@ -129,12 +142,11 @@ public class FarmingManager {
      */
     public ItemStack createBoundHoe(com.spacerng.solrng.player.PlayerData data) {
         HoeTier tier = tierOf(data);
-        int tierIndex = tierIndexOf(data);
 
-        ItemStack hoe = new ItemStack(tier.material());
+        ItemStack hoe = new ItemStack(Material.WOODEN_HOE);
         ItemMeta meta = hoe.getItemMeta();
-        meta.setDisplayName(ChatColor.GOLD + tier.display() + " Hoe " + ChatColor.DARK_GRAY + "["
-                + ChatColor.YELLOW + roman(tierIndex + 1) + ChatColor.DARK_GRAY + "]");
+        meta.setDisplayName(ChatColor.GOLD + hoeName + " " + ChatColor.DARK_GRAY + "["
+                + ChatColor.YELLOW + tier.display() + ChatColor.DARK_GRAY + "]");
 
         java.util.List<String> lore = new java.util.ArrayList<>();
         lore.add(ChatColor.DARK_GRAY + "Farming Tool");

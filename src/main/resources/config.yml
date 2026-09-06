@@ -337,30 +337,25 @@ farming:
   # is a flat bonus on the hoe itself rather than an enchant: it shows in
   # the Information block, not the Enchants one, because it's what the tool
   # IS rather than something bolted onto it.
+  #
+  # The hoe is always a wooden hoe. A tier has no name and no material of
+  # its own - it is simply the Roman numeral of its position in this list,
+  # so "Farmer's Hoe [IV]" is the fourth entry below and adding a seventh
+  # entry gives you a [VII] with no other change. Order matters; nothing
+  # else about an entry does.
+  hoe-name: "Farmer's Hoe"
   hoe-tiers:
-    - display: "Wooden"
-      material: WOODEN_HOE
-      token-bonus: 0.0
+    - token-bonus: 0.0
       speed-bonus: 0.0
-    - display: "Stone"
-      material: STONE_HOE
-      token-bonus: 0.25
+    - token-bonus: 0.25
       speed-bonus: 0.03
-    - display: "Iron"
-      material: IRON_HOE
-      token-bonus: 0.60
+    - token-bonus: 0.60
       speed-bonus: 0.06
-    - display: "Golden"
-      material: GOLDEN_HOE
-      token-bonus: 1.10
+    - token-bonus: 1.10
       speed-bonus: 0.10
-    - display: "Diamond"
-      material: DIAMOND_HOE
-      token-bonus: 1.80
+    - token-bonus: 1.80
       speed-bonus: 0.15
-    - display: "Netherite"
-      material: NETHERITE_HOE
-      token-bonus: 3.00
+    - token-bonus: 3.00
       speed-bonus: 0.22
 
   # ---- Sounds ----

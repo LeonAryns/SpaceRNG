@@ -199,7 +199,7 @@ public class QuestManager {
         }
 
         BossBar bar = bars.computeIfAbsent(player.getUniqueId(),
-                uuid -> Bukkit.createBossBar("", BarColor.YELLOW, BarStyle.SEGMENTED_10));
+                uuid -> Bukkit.createBossBar(barKey(uuid), "", BarColor.YELLOW, BarStyle.SEGMENTED_10));
         if (!bar.getPlayers().contains(player)) {
             bar.addPlayer(player);
         }
@@ -242,17 +242,31 @@ public class QuestManager {
         }
     }
 
+    /**
+     * The bar's key.
+     *
+     * Keyed rather than anonymous on purpose. Bukkit.createBossBar(String,
+     * ...) makes a bar the server never records, so once the plugin
+     * instance that made it is gone the bar is unreachable - it stays on
+     * everyone's screen until they relog, and the next instance cheerfully
+     * draws a second one beside it. A keyed bar can be found again from a
+     * cold start and cleared.
+     */
+    private static org.bukkit.NamespacedKey barKey(UUID uuid) {
+        return com.spacerng.solrng.SolRNGPlugin.key("bar_guide_" + uuid);
+    }
+
     public void hide(UUID uuid) {
         BossBar bar = bars.remove(uuid);
         if (bar != null) {
             bar.removeAll();
         }
+        Bukkit.removeBossBar(barKey(uuid));
     }
 
     public void removeAll() {
-        for (BossBar bar : bars.values()) {
-            bar.removeAll();
+        for (UUID uuid : java.util.List.copyOf(bars.keySet())) {
+            hide(uuid);
         }
-        bars.clear();
     }
 }

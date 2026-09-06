@@ -33,11 +33,25 @@ public class LuckBarManager {
 
     public void show(Player player) {
         BossBar bar = bars.computeIfAbsent(player.getUniqueId(),
-                uuid -> Bukkit.createBossBar("", BarColor.PURPLE, BarStyle.SOLID));
+                uuid -> Bukkit.createBossBar(barKey(uuid), "", BarColor.PURPLE, BarStyle.SOLID));
         if (!bar.getPlayers().contains(player)) {
             bar.addPlayer(player);
         }
         update(player);
+    }
+
+    /**
+     * The bar's key.
+     *
+     * Keyed rather than anonymous on purpose. Bukkit.createBossBar(String,
+     * ...) makes a bar the server never records, so once the plugin
+     * instance that made it is gone the bar is unreachable - it stays on
+     * everyone's screen until they relog, and the next instance cheerfully
+     * draws a second one beside it. A keyed bar can be found again from a
+     * cold start and cleared.
+     */
+    private static org.bukkit.NamespacedKey barKey(UUID uuid) {
+        return SolRNGPlugin.key("bar_luck_" + uuid);
     }
 
     public void hide(UUID uuid) {
@@ -45,13 +59,13 @@ public class LuckBarManager {
         if (bar != null) {
             bar.removeAll();
         }
+        Bukkit.removeBossBar(barKey(uuid));
     }
 
     public void removeAll() {
-        for (BossBar bar : bars.values()) {
-            bar.removeAll();
+        for (UUID uuid : java.util.List.copyOf(bars.keySet())) {
+            hide(uuid);
         }
-        bars.clear();
     }
 
     public void update(Player player) {

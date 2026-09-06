@@ -122,9 +122,9 @@ public class HoeGui {
         int index = farming.tierIndexOf(data);
         List<FarmingManager.HoeTier> tiers = farming.getHoeTiers();
 
-        ItemStack item = new ItemStack(tier.material());
+        ItemStack item = new ItemStack(Material.WOODEN_HOE);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(Lore.title(ChatColor.GOLD, tier.display() + " Hoe"));
+        meta.setDisplayName(Lore.title(ChatColor.GOLD, farming.getHoeName() + " " + tier.display()));
 
         List<String> lore = new ArrayList<>();
         lore.add(Lore.section(ChatColor.GOLD, "The tool"));
