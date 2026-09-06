@@ -158,7 +158,7 @@ public class SolRNGExpansion extends PlaceholderExpansion {
      *
      *   %solrng_top_<board>_<place>_name%     the player's name
      *   %solrng_top_<board>_<place>_value%    their number, short form
-     *   %spacerng_top_<board>_<place>_reward% Coins that place pays
+     *   %spacerng_top_<board>_<place>_reward% Credits that place pays
      *   %spacerng_place_<board>%              the VIEWER's place on it
      *   %spacerng_value_<board>%              the viewer's own number
      *   %spacerng_farm_reset%                 "9h 15m 10s"

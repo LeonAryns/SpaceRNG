@@ -105,7 +105,7 @@ public class LeaderboardManager {
 
     private ZoneId zone = ZoneId.of("UTC");
     private int resetHour = 0;
-    private List<Long> payouts = List.of(250_000L, 100_000L, 50_000L);
+    private List<Long> payouts = List.of(150L, 75L, 25L);
     private long lastPayoutDay = 0L;
 
     public LeaderboardManager(SolRNGPlugin plugin) {
@@ -125,8 +125,8 @@ public class LeaderboardManager {
         resetHour = Math.max(0, Math.min(23, config.getInt("leaderboard.farming.reset-hour", 0)));
 
         List<Long> configured = new ArrayList<>();
-        for (Object value : config.getList("leaderboard.farming.coin-payouts",
-                List.of(250000, 100000, 50000))) {
+        for (Object value : config.getList("leaderboard.farming.credit-payouts",
+                List.of(150, 75, 25))) {
             try {
                 configured.add(Long.parseLong(String.valueOf(value)));
             } catch (NumberFormatException ignored) {
@@ -299,8 +299,9 @@ public class LeaderboardManager {
             any = true;
             banner.add(ChatColor.YELLOW + "#" + (i + 1) + " " + ChatColor.WHITE + entry.name()
                     + ChatColor.GRAY + "  " + String.format("%,d", entry.farmedPeriod()) + " farmed"
-                    + ChatColor.GRAY + "  +" + Currency.COINS.amount(reward));
-            awardCoins(entry.uuid(), reward);
+                    + ChatColor.GRAY + "  " + Currency.CREDITS.colour() + "+"
+                    + Currency.CREDITS.amount(reward));
+            awardCredits(entry.uuid(), reward);
         }
         if (!any) {
             banner.add(ChatColor.GRAY + "Nobody farmed anything this period.");
@@ -320,23 +321,23 @@ public class LeaderboardManager {
      * into their save file otherwise — a winner who logged off before the
      * hour still gets paid.
      *
-     * Coins, not Credits. Credits are the store's currency and nothing
-     * free is allowed to mint them, or the store stops meaning anything.
-     * Coins are what farming pays anyway, so the prize is simply more of
-     * what the winner spent the day chasing.
+     * Credits, deliberately. They're the store's currency everywhere
+     * else, and this is the one place free play mints them - a daily
+     * board worth real money is the reason to come back tomorrow, and
+     * that's worth more than keeping the currency pure.
      */
-    private void awardCoins(UUID uuid, long coins) {
-        if (coins <= 0) return;
+    private void awardCredits(UUID uuid, long credits) {
+        if (credits <= 0) return;
 
         Player online = Bukkit.getPlayer(uuid);
         if (online != null) {
-            plugin.getPlayerDataManager().get(uuid).addTokens(coins);
-            online.sendMessage(Currency.COINS.colour() + "" + ChatColor.BOLD + "+"
-                    + Currency.COINS.amount(coins)
+            plugin.getPlayerDataManager().get(uuid).addPoints(credits);
+            online.sendMessage(Currency.CREDITS.colour() + "" + ChatColor.BOLD + "+"
+                    + Currency.CREDITS.amount(credits)
                     + ChatColor.RESET + ChatColor.GRAY + " from the farming payout.");
             return;
         }
-        plugin.getPlayerDataManager().awardOfflineCoins(uuid, coins);
+        plugin.getPlayerDataManager().awardOffline(uuid, credits);
     }
 
     private void resetPeriod() {

@@ -2191,15 +2191,11 @@ leaderboard:
     # 0 = midnight. Every player's crop count for the period zeroes and
     # the top three are paid on the way out.
     reset-hour: 0
-    # Paid in Coins, not Credits. Credits are the store's currency and
-    # nothing free is allowed to mint them, or the store stops meaning
-    # anything. Coins are what farming pays anyway, so the prize is more
-    # of what the winner already spent the day chasing.
-    #
-    # For scale: crops pay 100-150 Coins each and the cheapest farm tree
-    # node is 2,500, so first place is worth roughly a solid mid-tree
-    # upgrade - a real prize that still isn't worth more than farming.
-    coin-payouts: [250000, 100000, 50000]
+    # Paid in Credits - the one place free play mints them. Everywhere
+    # else Credits come from the store, but a daily board worth real
+    # money is the reason to come back tomorrow, and that's worth more
+    # than keeping the currency pure.
+    credit-payouts: [150, 75, 25]
 
 # Rotating server tips. These rotate in ORDER, not at random: random
 # repeats itself and leaves some tips unseen for ages, which is exactly
