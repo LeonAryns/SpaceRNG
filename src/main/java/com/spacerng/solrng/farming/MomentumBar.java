@@ -15,7 +15,7 @@ import java.util.UUID;
  * The Momentum readout across the top of the screen while a farming run
  * is alive.
  *
- * Momentum is the one farm bonus that can't be bought outright — the
+ * Momentum is the one farm bonus that can't be bought outright - the
  * enchant only raises the ceiling, and the field is what fills it. That
  * makes it the one number a farmer needs in front of them: a multiplier
  * that quietly builds and then vanishes the moment you stop is cruel if

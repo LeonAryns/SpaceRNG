@@ -8,7 +8,7 @@ import java.util.UUID;
 
 /**
  * Marks the stats menu, and remembers who it's about and which stat is
- * open — a breakdown of somebody else's Luck has to keep being about them
+ * open - a breakdown of somebody else's Luck has to keep being about them
  * when the back button is pressed.
  */
 public class StatsHolder implements InventoryHolder {

@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * /buy — the Credits store. Credits are the one currency gameplay can't
+ * /buy - the Credits store. Credits are the one currency gameplay can't
  * produce, so everything in here is genuinely bought.
  *
  * The luck boost is deliberately server-wide: a store item that helps
@@ -168,7 +168,7 @@ public class BuyGui {
         meta.setLore(List.of(
                 Currency.CREDITS.colour() + Lore.BULLET + " " + Currency.CREDITS.amount(data.getPoints()),
                 "",
-                ChatColor.DARK_GRAY + Lore.BULLET + " Credits can't be earned in game —",
+                ChatColor.DARK_GRAY + Lore.BULLET + " Credits can't be earned in game -",
                 ChatColor.DARK_GRAY + Lore.BULLET + " they only come from the web store."));
         item.setItemMeta(meta);
         return item;

@@ -16,7 +16,7 @@ import java.util.List;
  * The "something big is coming" effect for Epic-and-up rolls.
  *
  * It runs on its own 1-tick task rather than piggybacking on the roll
- * timer — the roll ticks every 2 ticks, which is too coarse for the
+ * timer - the roll ticks every 2 ticks, which is too coarse for the
  * strands to read as continuous trails instead of dotted arcs.
  *
  * Four phases, sized and timed by rarity:
@@ -42,11 +42,11 @@ public final class RollAura {
     private record Cue(double at, Sound sound, float volume, float pitch) {
     }
 
-    // Everything from this progress point on is the implosion — the strands
+    // Everything from this progress point on is the implosion - the strands
     // stop orbiting and collapse into the point the drop bursts out of.
     private static final double IMPLODE_FROM = 0.88;
 
-    // The frame Mythical's last bolt falls on. The ding fires here too —
+    // The frame Mythical's last bolt falls on. The ding fires here too -
     // the sound IS the lightning, not a follow-up to it.
     private static final long FINAL_STRIKE = 16L;
 
@@ -58,7 +58,7 @@ public final class RollAura {
 
     private static long durationFor(Rarity rarity) {
         return switch (rarity) {
-            case DIVINE -> 300L;   // 15s — the longest thing in the plugin
+            case DIVINE -> 300L;   // 15s - the longest thing in the plugin
             case MYTHICAL -> 200L; // 10s
             case LEGENDARY -> 100L; // 5s
             default -> 60L;         // 3s, Epic
@@ -70,7 +70,7 @@ public final class RollAura {
         if (!isBigDrop(rarity)) return 0L;
         return switch (rarity) {
             case DIVINE -> 60L;    // 3s
-            case MYTHICAL -> 46L;  // 2.3s — ends just after the last bolt
+            case MYTHICAL -> 46L;  // 2.3s - ends just after the last bolt
             case LEGENDARY -> 28L; // 1.4s
             default -> 20L;        // 1s, Epic
         };
@@ -108,7 +108,7 @@ public final class RollAura {
         return switch (rarity) {
             // The red belongs to the rarest drop: it's the strongest look
             // in the plugin, so it goes on the thing you'll see least.
-            // Mythical takes the warm near-white in exchange — never pure
+            // Mythical takes the warm near-white in exchange - never pure
             // white, because a 255,255,255 dust cloud reads as a glitch.
             case DIVINE -> Color.fromRGB(255, 60, 60);
             case MYTHICAL -> Color.fromRGB(255, 252, 224);
@@ -128,14 +128,14 @@ public final class RollAura {
 
     /**
      * The audio score for the build-up. Nothing is scheduled past
-     * IMPLODE_FROM on purpose — the silence there is what makes the
+     * IMPLODE_FROM on purpose - the silence there is what makes the
      * detonation land.
      */
     private static List<Cue> scoreFor(Rarity rarity) {
         List<Cue> cues = new ArrayList<>();
         switch (rarity) {
             case DIVINE -> {
-                // Choral and vast rather than violent — a Divine should
+                // Choral and vast rather than violent - a Divine should
                 // sound like something arriving, not something breaking.
                 cues.add(new Cue(0.00, Sound.BLOCK_BEACON_ACTIVATE, 4.0f, 0.5f));
                 cues.add(new Cue(0.10, Sound.ENTITY_ENDER_DRAGON_GROWL, 3.0f, 1.6f));
@@ -233,7 +233,7 @@ public final class RollAura {
         return aura;
     }
 
-    /** Stops the build-up without a payoff — used when a roll is abandoned. */
+    /** Stops the build-up without a payoff - used when a roll is abandoned. */
     public void cancel() {
         finished = true;
         if (task != null) task.cancel();
@@ -243,7 +243,7 @@ public final class RollAura {
 
     /**
      * Everyone in range who hasn't switched the aura off. Recomputed once
-     * per frame — a Mythical frame makes dozens of particle calls, and
+     * per frame - a Mythical frame makes dozens of particle calls, and
      * rescanning the world for each one would be wasteful.
      *
      * The roller is included on the same terms as anybody else: if they
@@ -371,7 +371,7 @@ public final class RollAura {
 
     /**
      * IMPLODE. Everything the build-up threw outward is dragged into one
-     * point above the player's head, and the score goes silent — this is
+     * point above the player's head, and the score goes silent - this is
      * the inhale before the detonation.
      */
     private void drawImplosion(double p) {
@@ -412,14 +412,14 @@ public final class RollAura {
      * The payoff. Runs as a scripted timeline rather than one burst.
      *
      * The first version drew everything at the player's own head, which is
-     * exactly where a first-person camera can't see it — you end up
+     * exactly where a first-person camera can't see it - you end up
      * standing inside a two-block cloud while a full-screen title covers
      * it. The build-up read well for the opposite reason: it was seven
      * blocks out in front of you. So the finale now travels OUTWARD and
      * UPWARD, through and past the viewer.
      *
      * Every beat is wrapped so one bad call can't silently kill the rest
-     * of the sequence — a thrown particle used to take the remaining
+     * of the sequence - a thrown particle used to take the remaining
      * sounds and visuals down with it, with nothing in the log to say so.
      */
     public void reveal() {
@@ -463,7 +463,7 @@ public final class RollAura {
      * Five seconds, built so it's readable from inside the effect and from
      * across the map:
      *
-     *   f1       the crack — flash, explosion, eight bolts at 6 blocks
+     *   f1       the crack - flash, explosion, eight bolts at 6 blocks
      *   f1-45    a shell expanding from 1 to 18 blocks, sweeping past you
      *   f1-100   a pillar of light 30 blocks into the sky
      *   f6/16/28 three widening lightning rings, thunder dropping in pitch
@@ -513,7 +513,7 @@ public final class RollAura {
             puff(Particle.ELECTRIC_SPARK, base.clone().add(0, 4.0 + (frame % 20), 0), 4, 0.6, 0.6, 0.6, 0.04);
         }
 
-        // Two widening rings, then THE strike — the last bolt and the ding
+        // Two widening rings, then THE strike - the last bolt and the ding
         // land on the same frame, so the sound is the lightning rather than
         // an afterthought several seconds behind it.
         if (frame == 8) {
@@ -528,14 +528,14 @@ public final class RollAura {
         } else if (frame == FINAL_STRIKE + DING_OFFSET) {
             // The ding gets its own frame. On the strike tick it was
             // competing with a thunder crack, an impact and a growl, all at
-            // volume 4 — Minecraft drops samples when too many play at once,
+            // volume 4 - Minecraft drops samples when too many play at once,
             // and the quiet bells are the first to go. Five ticks later the
             // bolt is still on screen but the channel is clear.
             dingChord(4.0f);
         }
 
         // Ground shockwaves rolling out past the aura. Drawn every other
-        // frame and at moderate density — at full rate these rings alone
+        // frame and at moderate density - at full rate these rings alone
         // were most of the packets in the scene.
         if (frame % 2 == 0) {
             for (int wave = 0; wave < 3; wave++) {
@@ -546,7 +546,7 @@ public final class RollAura {
             }
         }
 
-        // Embers falling back down through the whole area — this is the
+        // Embers falling back down through the whole area - this is the
         // only thing that runs past the strike, so the scene settles rather
         // than cutting out.
         if (frame >= 10 && frame % 2 == 0) {
@@ -580,7 +580,7 @@ public final class RollAura {
         }
     }
 
-    /** A hollow sphere drawn as latitude rings — the expanding shell. */
+    /** A hollow sphere drawn as latitude rings - the expanding shell. */
     private void sphere(Location centre, double radius, int rings, int pointsPerRing,
                         Particle.DustOptions options) {
         for (int i = 1; i < rings; i++) {
@@ -640,7 +640,7 @@ public final class RollAura {
         }
 
         // Legendary's burst is on frame 1, so the ding belongs right
-        // behind it — at frame 26 it was landing well after the visual had
+        // behind it - at frame 26 it was landing well after the visual had
         // already finished.
         if (rarity == Rarity.LEGENDARY && frame == 5) {
             dingChord(3.0f);

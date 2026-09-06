@@ -106,7 +106,7 @@ public class HoeEnchantManager {
     /**
      * A player's level: what they've bought on the hoe, plus any rank of an
      * ENCHANT_POWER node pointing at the same enchant. Zero while it's
-     * still locked, whatever has been bought — so re-locking an enchant
+     * still locked, whatever has been bought - so re-locking an enchant
      * can never leave a hoe carrying power it isn't entitled to.
      */
     public int levelOf(PlayerData data, String enchantId) {
@@ -131,8 +131,8 @@ public class HoeEnchantManager {
                 .totalOf(data, SkillNode.Effect.ENCHANT_CAP));
         // base-cap is where an enchant starts, max-level is where it can
         // ever finish, and Enchant Mastery is the whole distance between
-        // them. Adding the bonus to max-level instead — which is what this
-        // used to do — meant the ceiling was never reachable and mastery
+        // them. Adding the bonus to max-level instead - which is what this
+        // used to do - meant the ceiling was never reachable and mastery
         // bought nothing you could see.
         return Math.min(enchant.maxLevel(), enchant.baseCap() + Math.max(0, bonus));
     }
@@ -146,14 +146,14 @@ public class HoeEnchantManager {
         return Math.round(enchant.baseCost() * Math.pow(enchant.costGrowth(), currentLevel));
     }
 
-    /** "12.5%" or "+1.80x" — how an enchant's power reads in its tooltip. */
+    /** "12.5%" or "+1.80x" - how an enchant's power reads in its tooltip. */
     public String describePower(Enchant enchant, int level) {
         // Every enchant is a percentage now, so "level 400 of 1000" means
         // the same thing whichever one you're reading.
         return format(enchant.perLevel() * level);
     }
 
-    /** "+12.5%" — one shape for every enchant's magnitude. */
+    /** "+12.5%" - one shape for every enchant's magnitude. */
     public static String format(double power) {
         double percent = power * 100.0;
         String number = percent >= 100 || percent == Math.rint(percent)
@@ -164,7 +164,7 @@ public class HoeEnchantManager {
 
     /**
      * Buys one level with Tokens. Returns false when it's locked, maxed or
-     * unaffordable — the menu already knows which, so it reports it.
+     * unaffordable - the menu already knows which, so it reports it.
      */
     public boolean buy(PlayerData data, String enchantId) {
         Enchant enchant = get(enchantId);
@@ -178,12 +178,12 @@ public class HoeEnchantManager {
         return true;
     }
 
-    /** The enchant's total effect at the player's level — 0 if not unlocked. */
+    /** The enchant's total effect at the player's level - 0 if not unlocked. */
     public double powerOf(PlayerData data, String enchantId) {
         Enchant enchant = get(enchantId);
         if (enchant == null) return 0.0;
         // Proc Chance lifts every enchant at once, so it multiplies the
-        // total rather than adding levels — a flat level bonus would be
+        // total rather than adding levels - a flat level bonus would be
         // worth wildly different amounts to a 0.02/level enchant and a
         // 0.00004/level one.
         double proc = plugin.getSkillTreeManager()

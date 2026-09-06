@@ -5,7 +5,7 @@ import com.spacerng.solrng.rarity.RarityStyle;
 
 import java.util.Map;
 
-/** One Starforge tier — its display name, base Luck bonus, and drop cost. */
+/** One Starforge tier - its display name, base Luck bonus, and drop cost. */
 public class StarforgeTier {
 
     private final String id;
@@ -14,7 +14,7 @@ public class StarforgeTier {
     // Paid in rolled drops, same as /armor.
     private final Map<Rarity, Long> costs;
     private final int order; // position in the ladder, 0 = Basic
-    // The tier's own look — same per-character gradient engine the Epic+
+    // The tier's own look - same per-character gradient engine the Epic+
     // item names use. Null falls back to plain white.
     private final RarityStyle style;
 

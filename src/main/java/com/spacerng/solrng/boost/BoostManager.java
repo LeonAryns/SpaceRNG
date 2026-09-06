@@ -11,7 +11,7 @@ import org.bukkit.entity.Player;
 /**
  * The global Luck boost. One boost exists for the whole server at a time,
  * bought with store Credits: the first purchase turns it on at 2x, and
- * buying again while it's live doubles it — 2x, 4x, 8x — each step costing
+ * buying again while it's live doubles it - 2x, 4x, 8x - each step costing
  * more than the last and refreshing the clock.
  *
  * Global on purpose: it's the difference between a store item that helps
@@ -109,7 +109,7 @@ public class BoostManager {
 
     /**
      * Buys the next step. Fails (returning false) if the ladder is maxed
-     * or the buyer can't cover it — the caller reports why.
+     * or the buyer can't cover it - the caller reports why.
      */
     public boolean purchase(Player buyer, PlayerData data) {
         expireIfDue();
@@ -139,7 +139,7 @@ public class BoostManager {
         return true;
     }
 
-    /** Admin override — sets the boost directly, no Credits, no broadcast. */
+    /** Admin override - sets the boost directly, no Credits, no broadcast. */
     public void force(int level, int minutes, String by) {
         this.level = Math.max(0, Math.min(maxLevel, level));
         this.expiresAtMillis = this.level <= 0 ? 0L : System.currentTimeMillis() + minutes * 60_000L;

@@ -14,7 +14,7 @@ import java.util.List;
  *
  * This is the only place each formula is written down. The roll payout,
  * the farm payout and /stats all read it, so the number a player is shown
- * is the number they are actually getting — a screen that explains a
+ * is the number they are actually getting - a screen that explains a
  * formula it doesn't share is worse than no screen at all, because it
  * lies with authority.
  *
@@ -31,9 +31,9 @@ public final class StatSources {
 
     /** How the finished number should be read. */
     public enum Format {
-        /** 1.5 reads as "+150%" — a bonus on top of nothing. */
+        /** 1.5 reads as "+150%" - a bonus on top of nothing. */
         PERCENT,
-        /** 1.5 reads as "1.50x" — a scale on something that already exists. */
+        /** 1.5 reads as "1.50x" - a scale on something that already exists. */
         MULTIPLIER,
         /** 0.01 reads as "1 in 100". */
         CHANCE
@@ -112,7 +112,7 @@ public final class StatSources {
         parts.add(new Part("Your boost", "Bought with Credits in /buy",
                 data.boostMultiplier("LUCK"), Op.MULTIPLY));
         if (includeNova) {
-            parts.add(new Part("Nova Core", "Hold Nova Cores — see /nova",
+            parts.add(new Part("Nova Core", "Hold Nova Cores - see /nova",
                     plugin.getNovaCoreManager().multiplierAt(data.getNovaTier()), Op.MULTIPLY));
         }
 
@@ -154,7 +154,7 @@ public final class StatSources {
 
         parts.add(new Part("Base rate", "Every roll pays odds x this",
                 plugin.getConfig().getDouble("economy.money-per-odds-multiplier", 10.0), Op.ADD));
-        parts.add(new Part("Nova Core", "Hold Nova Cores — see /nova",
+        parts.add(new Part("Nova Core", "Hold Nova Cores - see /nova",
                 plugin.getNovaCoreManager().multiplierAt(data.getNovaTier()), Op.MULTIPLY));
         parts.add(new Part("Prestige upgrades", "Spend Prestige Points in /prestige",
                 1.0 + plugin.getPrestigeManager().upgradeTotal(data, PrestigeUpgrade.Effect.MONEY_BONUS),
@@ -180,7 +180,7 @@ public final class StatSources {
      * The farm payout for one crop, before that crop's own yield skills.
      *
      * `momentum` is passed in rather than read, because it's earned live
-     * and resets the moment you stop swinging — the farm hands us the real
+     * and resets the moment you stop swinging - the farm hands us the real
      * one mid-chain, and /stats asks for 1.0 and shows the part idle. It
      * lands where it does in the order on purpose: ahead of the prestige
      * upgrade, which ADDS, so moving it would quietly change the payout.
@@ -198,11 +198,11 @@ public final class StatSources {
                 plugin.getFarmingManager().tierOf(data).tokenBonus(), Op.ADD));
         parts.add(new Part("Coin Greed", "Level the enchant on your hoe",
                 plugin.getHoeEnchantManager().powerOf(data, "TOKEN_GREED"), Op.ADD));
-        parts.add(new Part("Momentum", "Earned live — keep the chain going",
+        parts.add(new Part("Momentum", "Earned live - keep the chain going",
                 momentum, Op.MULTIPLY));
         parts.add(new Part("Your boost", "Coin Potions, and Credit boosts",
                 data.boostMultiplier("TOKENS"), Op.MULTIPLY));
-        parts.add(new Part("Nova Core", "Hold Nova Cores — see /nova",
+        parts.add(new Part("Nova Core", "Hold Nova Cores - see /nova",
                 plugin.getNovaCoreManager().multiplierAt(data.getNovaTier()), Op.MULTIPLY));
         parts.add(new Part("Prestige upgrades", "Spend Prestige Points in /prestige",
                 plugin.getPrestigeManager().upgradeTotal(data, PrestigeUpgrade.Effect.TOKEN_BONUS),

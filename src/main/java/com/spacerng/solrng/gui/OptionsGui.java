@@ -16,7 +16,7 @@ import java.util.List;
 
 /**
  * /options. Reveal auras get one switch per rarity rather than a single
- * on/off, because the tiers are wildly different events — a Mythical once
+ * on/off, because the tiers are wildly different events - a Mythical once
  * a month is a spectacle, an Epic several times an hour can be a nuisance,
  * and one toggle can't express that.
  */
@@ -87,13 +87,13 @@ public class OptionsGui {
 
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(name + ChatColor.DARK_GRAY + " — "
+        meta.setDisplayName(name + ChatColor.DARK_GRAY + " - "
                 + (on ? ChatColor.GREEN.toString() + ChatColor.BOLD + "On"
                       : ChatColor.RED.toString() + ChatColor.BOLD + "Off"));
         meta.setLore(List.of(
                 Lore.section(ChatColor.AQUA, "What it hides"),
                 Lore.line(ChatColor.AQUA, "The build-up and burst for"),
-                Lore.line(ChatColor.AQUA, rarity.displayName() + " drops — yours and"),
+                Lore.line(ChatColor.AQUA, rarity.displayName() + " drops - yours and"),
                 Lore.line(ChatColor.AQUA, "everyone else's."),
                 "",
                 ChatColor.DARK_GRAY + Lore.BULLET + " Off only affects what you see.",
@@ -107,7 +107,7 @@ public class OptionsGui {
     private static ItemStack toggleItem(Material material, String label, boolean on, String... description) {
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(Lore.title(ChatColor.YELLOW, label) + ChatColor.DARK_GRAY + " — "
+        meta.setDisplayName(Lore.title(ChatColor.YELLOW, label) + ChatColor.DARK_GRAY + " - "
                 + (on ? ChatColor.GREEN.toString() + ChatColor.BOLD + "On"
                       : ChatColor.RED.toString() + ChatColor.BOLD + "Off"));
 

@@ -97,7 +97,7 @@ public class RarityManager {
 
     /**
      * Gives every item its index Luck multiplier, scaled across its
-     * rarity's configured band by how rare it is WITHIN that rarity — the
+     * rarity's configured band by how rare it is WITHIN that rarity - the
      * longest-odds item in a tier lands on the band's ceiling, the
      * shortest-odds one on its floor, everything else linearly between.
      * Derived rather than hand-written so the 143-item table stays
@@ -143,7 +143,7 @@ public class RarityManager {
      * you a rarer drop to equip, and equipping it is what cashes it in.
      */
     public double tagMultiplierFor(com.spacerng.solrng.player.PlayerData data) {
-        // Gated behind the Index Luck skill — until that's bought the
+        // Gated behind the Index Luck skill - until that's bought the
         // equipped tag is cosmetic and the multiplier reads a flat 1.00x.
         if (!data.hasUnlocked("index_luck")) return 1.0;
 
@@ -193,7 +193,7 @@ public class RarityManager {
     /**
      * Every finished rarity multiplied together. Finishing a whole tier is
      * the end of the collection game rather than a step in it, so the
-     * tiers multiply rather than add — and completing all of them in shiny
+     * tiers multiply rather than add - and completing all of them in shiny
      * is meant to be the largest number in the plugin.
      *
      * Gated behind the same Index Luck skill the equipped tag is: until
@@ -223,7 +223,7 @@ public class RarityManager {
     }
 
     /**
-     * Builds a style from raw config values — used by anything outside the
+     * Builds a style from raw config values - used by anything outside the
      * item table that wants the same gradient look (the Starforge tiers).
      */
     public RarityStyle buildStyle(List<String> colors, boolean bold, boolean underline, boolean strikethrough) {
@@ -273,13 +273,13 @@ public class RarityManager {
         }
     }
 
-    /** The rarity's plain label color — used for the word "Legendary" etc, not for item names. */
+    /** The rarity's plain label color - used for the word "Legendary" etc, not for item names. */
     public String style(Rarity rarity, String text) {
         RarityStyle style = styles.get(rarity);
         return style == null ? text : style.apply(text);
     }
 
-    /** Same, forced bold — used by the shop price lines. */
+    /** Same, forced bold - used by the shop price lines. */
     public String styleBold(Rarity rarity, String text) {
         RarityStyle style = styles.get(rarity);
         return style == null ? text : style.apply(text, true);
@@ -298,7 +298,7 @@ public class RarityManager {
     /**
      * Same, but the flair can be suppressed. The flair is an obfuscated
      * character, which is fine on a nametag but reads as flickering noise
-     * in a tab list — so %solrng_tag_plain% asks for it without.
+     * in a tab list - so %solrng_tag_plain% asks for it without.
      */
     public String styleItemName(RollableItem item, boolean withFlair) {
         String colored = item.getStyle() != null
@@ -321,7 +321,7 @@ public class RarityManager {
     }
 
     /**
-     * Looks up a rollable item by its display name — used to recover the
+     * Looks up a rollable item by its display name - used to recover the
      * odds of a player's currently-equipped tag, which is only stored as
      * a name + rarity string in PlayerData.
      */
@@ -348,7 +348,7 @@ public class RarityManager {
      * A roll restricted to a floor rarity, for the Pity Timer skills.
      * Weights inside the surviving band keep their normal proportions, so
      * a forced Rare+ is still much more likely to be a Rare than a
-     * Mythical — pity guarantees you something good, not something absurd.
+     * Mythical - pity guarantees you something good, not something absurd.
      */
     public RollableItem rollAtLeast(double luck, Rarity minimum) {
         return roll(luck, minimum);
@@ -356,7 +356,7 @@ public class RarityManager {
 
     private RollableItem roll(double luck, Rarity minimum) {
         if (items.isEmpty()) {
-            throw new IllegalStateException("No rollable items configured — check config.yml");
+            throw new IllegalStateException("No rollable items configured - check config.yml");
         }
 
         double totalWeight = 0.0;

@@ -11,7 +11,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 /**
- * /boosts — everything currently running on you, and how much is left.
+ * /boosts - everything currently running on you, and how much is left.
  *
  * A draught the player can't check is one they can't plan around, which
  * is most of what a potion is for. Rolls and minutes are both shown in
@@ -89,7 +89,7 @@ public class BoostsCommand implements CommandExecutor {
         return true;
     }
 
-    /** "24m 10s" — seconds only matter once it's nearly gone. */
+    /** "24m 10s" - seconds only matter once it's nearly gone. */
     private String timeLeft(long millis) {
         long seconds = millis / 1000L;
         long hours = seconds / 3600L;

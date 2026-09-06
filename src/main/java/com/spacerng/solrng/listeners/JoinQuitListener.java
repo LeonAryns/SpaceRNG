@@ -25,7 +25,7 @@ public class JoinQuitListener implements Listener {
     public void onJoin(PlayerJoinEvent event) {
         plugin.getWelcomeManager().send(event.getPlayer());
         // Vanilla /setworldspawn only actually relocates brand new players
-        // and no-bed death respawns — everyone else just resumes wherever
+        // and no-bed death respawns - everyone else just resumes wherever
         // they last logged off. Force every join to the configured spawn
         // (see /rngadmin setspawn) instead, if one's been set.
         if (plugin.getSpawnManager().hasSpawn()) {
@@ -34,7 +34,7 @@ public class JoinQuitListener implements Listener {
 
         PlayerData data = plugin.getPlayerDataManager().get(event.getPlayer().getUniqueId());
 
-        // Level/Prestige is intentionally NOT part of this — it's
+        // Level/Prestige is intentionally NOT part of this - it's
         // tab-list-only via %solrng_level%, never the join broadcast.
         event.setJoinMessage(ChatColor.YELLOW + event.getPlayer().getName() + " joined the game");
 

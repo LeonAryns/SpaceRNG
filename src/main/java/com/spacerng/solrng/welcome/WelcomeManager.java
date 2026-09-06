@@ -22,7 +22,7 @@ import java.util.UUID;
  *
  * The face is real pixels. Paper hands us the skin's texture URL straight
  * off the player's profile, so there's no Mojang API call to rate-limit
- * and no session-server lookup — we download the PNG once, read the 8x8
+ * and no session-server lookup - we download the PNG once, read the 8x8
  * face out of it, and print each pixel as a coloured block character.
  *
  * The download happens off the main thread and the result is cached for

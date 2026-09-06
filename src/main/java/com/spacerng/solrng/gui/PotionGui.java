@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * /potion — the brewing shelf.
+ * /potion - the brewing shelf.
  *
  * Potions are bought with rolled drops rather than with any currency, so
  * the thing you spend to get luckier is the thing rolling produces. That

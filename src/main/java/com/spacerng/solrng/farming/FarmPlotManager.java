@@ -37,8 +37,8 @@ import java.util.concurrent.ThreadLocalRandom;
  *
  * A "farm plot" is a real block in the world that every player is shown a
  * DIFFERENT crop at, using per-player block changes. The world block never
- * changes — it stays the marker crop forever, breaks against it are
- * cancelled, and block physics on it are suppressed — so the field can't
+ * changes - it stays the marker crop forever, breaks against it are
+ * cancelled, and block physics on it are suppressed - so the field can't
  * drift out of sync, can't be griefed into a hole, and doesn't need a
  * schematic paste to reset.
  *
@@ -62,7 +62,7 @@ public class FarmPlotManager {
      * Torchflower crop on top of that because it is a block nobody builds
      * with. That matters for one reason: it makes the WORLD a usable
      * record of where the farm is. farmplots.yml is only a cache, and
-     * /rngadmin farmscan can rebuild it by looking for this block — so
+     * /rngadmin farmscan can rebuild it by looking for this block - so
      * losing the plugin's data folder costs one command, not the field.
      * Wheat could never work that way; every wheat block on the server
      * would look like a plot.
@@ -75,7 +75,7 @@ public class FarmPlotManager {
      */
     private static final Material LEGACY_MARKER = Material.WHEAT;
 
-    // Momentum has no stack cap any more — the ceiling is the Momentum
+    // Momentum has no stack cap any more - the ceiling is the Momentum
     // enchant's level, which is a thing you buy rather than a constant
     // nobody could see.
 
@@ -88,13 +88,13 @@ public class FarmPlotManager {
     // Per player, the plots they've harvested and the tick they come back.
     private final Map<UUID, Map<Location, Long>> harvested = new HashMap<>();
     // Momentum: how many harvests in the current unbroken run, and when the
-    // last one landed. Kept in memory only — a streak is a session thing.
+    // last one landed. Kept in memory only - a streak is a session thing.
     private final Map<UUID, long[]> momentum = new HashMap<>(); // {streak, lastMillis}
 
     private int regrowTicks = 60;
     private String shardsNode = "";
     // Both sounds are configured rather than hard-coded, and both can be
-    // switched off per player from the hoe menu — a farm is the one place
+    // switched off per player from the hoe menu - a farm is the one place
     // in this plugin somebody might sit for an hour straight.
     private org.bukkit.Sound harvestSound = org.bukkit.Sound.BLOCK_CROP_BREAK;
     private float harvestPitch = 1.4f;
@@ -167,7 +167,7 @@ public class FarmPlotManager {
         }
     }
 
-    /** The crop coming up. Quiet on purpose — it fires several times a second. */
+    /** The crop coming up. Quiet on purpose - it fires several times a second. */
     private void playHarvest(Player player, PlayerData data) {
         if (!data.isFarmSoundEnabled()) return;
         player.playSound(player.getLocation(), harvestSound, 0.35f, harvestPitch);
@@ -237,7 +237,7 @@ public class FarmPlotManager {
      * radius becomes a plot again.
      *
      * `includeLegacy` also picks up the old wheat marker, which is how a
-     * field built before the marker changed gets recovered — at the cost
+     * field built before the marker changed gets recovered - at the cost
      * of catching any real wheat inside the box, so it's opt-in.
      *
      * Returns how many plots were newly registered.
@@ -328,7 +328,7 @@ public class FarmPlotManager {
             // block is gone paints a ghost the client believes in but the
             // server doesn't: it looks farmable and produces no break event
             // at all, so it can't be harvested OR removed. That's what made
-            // plots "disappear" — they were still listed, still drawn, and
+            // plots "disappear" - they were still listed, still drawn, and
             // completely inert.
             if (!restore(plot)) continue;
 
@@ -343,7 +343,7 @@ public class FarmPlotManager {
      * fix yet and nothing to draw either.
      *
      * Plots are a list of coordinates, not blocks, so the two can drift
-     * apart — a piston, an explosion, world edit, a rollback, or the world
+     * apart - a piston, an explosion, world edit, a rollback, or the world
      * simply not having been saved. Re-asserting is cheaper and far more
      * robust than trying to intercept every way a block can die.
      */
@@ -527,7 +527,7 @@ public class FarmPlotManager {
     /**
      * Ends any run that has gone quiet and takes its bar down. Run on a
      * timer rather than from a "stopped farming" event, because there
-     * isn't one — you stop by simply not doing anything.
+     * isn't one - you stop by simply not doing anything.
      */
     public void expireMomentum() {
         long now = System.currentTimeMillis();

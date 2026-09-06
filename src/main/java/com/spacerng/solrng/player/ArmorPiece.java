@@ -2,7 +2,7 @@ package com.spacerng.solrng.player;
 
 /**
  * One armor slot. Pieces are bought individually, so a tier is no longer
- * a single purchase — ownership is tracked per (tier, piece) pair.
+ * a single purchase - ownership is tracked per (tier, piece) pair.
  */
 public enum ArmorPiece {
     HELMET,

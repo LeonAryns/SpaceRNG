@@ -15,7 +15,7 @@ public class RollableItem {
     private final long odds;
     private final long baseWeight;
     // This item's own look (gradient/bold/etc). Null = fall back to the
-    // material's natural color — styling lives per item, not per rarity.
+    // material's natural color - styling lives per item, not per rarity.
     private final RarityStyle style;
     // Index Luck multiplier, filled in by RarityManager once every item
     // is loaded (it's relative to the other items in the same rarity).
@@ -39,7 +39,7 @@ public class RollableItem {
     }
 
     /**
-     * This item's index Luck multiplier — derived from its odds within
+     * This item's index Luck multiplier - derived from its odds within
      * its rarity's configured band, so the rarest item in a tier is worth
      * the most. Set by RarityManager after all items are loaded, since it
      * depends on the other items in the same rarity.

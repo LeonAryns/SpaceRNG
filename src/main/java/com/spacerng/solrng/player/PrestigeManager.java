@@ -4,7 +4,7 @@ import com.spacerng.solrng.SolRNGPlugin;
 import org.bukkit.configuration.file.FileConfiguration;
 
 /**
- * Levels are earned purely by rolling — reaching level*rolls-per-level
+ * Levels are earned purely by rolling - reaching level*rolls-per-level
  * total rolls lets you level up. Prestiging resets your level back to 1
  * in exchange for a permanent Luck *multiplier* (unlike every other Luck
  * source, which is additive), and needs progressively more levels each
@@ -89,7 +89,7 @@ public class PrestigeManager {
     }
 
     /**
-     * Buys one level. Returns false when it's maxed or unaffordable — the
+     * Buys one level. Returns false when it's maxed or unaffordable - the
      * caller reports which, since the menu already knows both.
      */
     public boolean buyUpgrade(PlayerData data, String id) {
@@ -159,7 +159,7 @@ public class PrestigeManager {
      *
      * Every skill contribution here is read live from node levels, so
      * retuning a value in config.yml immediately retunes it for everyone
-     * who owns it — nothing is frozen into a save file.
+     * who owns it - nothing is frozen into a save file.
      */
     public double baseLuck(PlayerData data) {
         return com.spacerng.solrng.stats.StatSources.luck(plugin, data, false).total();

@@ -18,7 +18,7 @@ import java.util.Map;
 
 /**
  * The daily streak: a ladder of days you climb by logging in, with no
- * checkpoints — miss a day and you start again from day one.
+ * checkpoints - miss a day and you start again from day one.
  *
  * Days are counted as calendar days in a configured timezone, not as
  * 24-hour windows since the last claim. A rolling window punishes people
@@ -145,7 +145,7 @@ public class DailyManager {
         return true;
     }
 
-    /** "5,000 Coins, 2 Gems" — blank when a day pays nothing. */
+    /** "5,000 Coins, 2 Gems" - blank when a day pays nothing. */
     public String rewardText(Day day) {
         List<String> parts = new ArrayList<>();
         if (day.tokens() > 0) {

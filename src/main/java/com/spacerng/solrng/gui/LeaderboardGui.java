@@ -15,12 +15,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * /leaderboards — the six standings that never reset.
+ * /leaderboards - the six standings that never reset.
  *
  * The DAILY farming board is deliberately not here. It resets every
  * night and pays out, which makes it a race rather than a standing, so it
- * keeps /top and the hologram at spawn. What's here is the long game —
- * what you've found, what you've earned — and it belongs somewhere you
+ * keeps /top and the hologram at spawn. What's here is the long game -
+ * what you've found, what you've earned - and it belongs somewhere you
  * can read all of it at once rather than one chat command at a time.
  */
 public class LeaderboardGui {
@@ -121,7 +121,7 @@ public class LeaderboardGui {
     }
 
     /**
-     * The player's own card, carrying all six placings at once — the
+     * The player's own card, carrying all six placings at once - the
      * answer to "where am I" without reading six tooltips.
      */
     private static ItemStack buildSelf(LeaderboardManager boards, Player player) {

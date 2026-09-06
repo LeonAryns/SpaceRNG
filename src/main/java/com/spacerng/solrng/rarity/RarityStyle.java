@@ -7,7 +7,7 @@ import java.util.List;
 
 /**
  * A visual identity: one flat color, or a real per-character gradient
- * across 2+ color stops (computed here, not via a static prefix — a fixed
+ * across 2+ color stops (computed here, not via a static prefix - a fixed
  * prefix string can't represent a gradient since the same prefix would
  * need to stretch across whatever text follows it, of whatever length),
  * plus optional bold/underline/strikethrough.
@@ -35,7 +35,7 @@ public class RarityStyle {
     }
 
     /**
-     * Same, but bold can be forced on regardless of the style's own flag —
+     * Same, but bold can be forced on regardless of the style's own flag -
      * used for price lines, where the rarity name should stand out without
      * every rarity label everywhere else turning bold.
      */

@@ -11,7 +11,7 @@ import java.io.IOException;
 
 /**
  * Persists a single server spawn location (spawn.yml), separate from
- * Minecraft's own world spawn — vanilla /setworldspawn only actually
+ * Minecraft's own world spawn - vanilla /setworldspawn only actually
  * relocates BRAND NEW players and death respawns with no bed/anchor;
  * everyone else just resumes wherever they last logged off. This instead
  * teleports every player here on every join (see JoinQuitListener), so
@@ -38,7 +38,7 @@ public class SpawnManager {
         String worldName = yml.getString("world");
         World world = worldName != null ? Bukkit.getWorld(worldName) : null;
         if (world == null) {
-            plugin.getLogger().warning("Saved spawn world '" + worldName + "' isn't loaded — ignoring spawn.yml until it is.");
+            plugin.getLogger().warning("Saved spawn world '" + worldName + "' isn't loaded - ignoring spawn.yml until it is.");
             spawn = null;
             return;
         }

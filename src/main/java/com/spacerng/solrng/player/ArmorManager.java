@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 /**
- * /armor — pieces bought ONE AT A TIME with rolled drops. Each piece
+ * /armor - pieces bought ONE AT A TIME with rolled drops. Each piece
  * grants its tier's Luck and Speed independently while worn (checked live
  * from equipped armor, not just "do you own it"), so a lone pair of boots
  * still pays out and mixing tiers across slots is fine.
@@ -109,7 +109,7 @@ public class ArmorManager {
 
     /**
      * Builds and hands over one piece. The Luck/Speed it grants is written
-     * into the item's own lore — the bonus is invisible otherwise, since
+     * into the item's own lore - the bonus is invisible otherwise, since
      * it's applied by this plugin rather than by vanilla attributes.
      */
     private void givePiece(Player player, ArmorTier tier, ArmorPiece piece) {
@@ -124,7 +124,7 @@ public class ArmorManager {
         overflow.values().forEach(leftover -> player.getWorld().dropItemNaturally(player.getLocation(), leftover));
     }
 
-    /** The "When Worn" block — shared by the shop icon and the real item. */
+    /** The "When Worn" block - shared by the shop icon and the real item. */
     public List<String> statLines(ArmorTier tier) {
         List<String> lore = new ArrayList<>();
         lore.add("");
@@ -138,7 +138,7 @@ public class ArmorManager {
 
     /**
      * Recomputes every online player's armor Luck bonus from what they're
-     * actually wearing right now — each worn piece contributes its own
+     * actually wearing right now - each worn piece contributes its own
      * tier's Luck bonus independently (no need to match a full set, and
      * mixing tiers across slots is fine).
      */

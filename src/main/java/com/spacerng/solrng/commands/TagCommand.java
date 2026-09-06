@@ -59,7 +59,7 @@ public class TagCommand implements CommandExecutor {
             String rollName = meta.getPersistentDataContainer().get(nameKey, PersistentDataType.STRING);
 
             if (rarityName == null || rollName == null) {
-                player.sendMessage(ChatColor.RED + "That's not a rolled item — hold one of your RNG rolls and try again.");
+                player.sendMessage(ChatColor.RED + "That's not a rolled item - hold one of your RNG rolls and try again.");
                 return true;
             }
 

@@ -21,14 +21,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A fully custom sidebar in the "gen server" style — a bold header, grouped
+ * A fully custom sidebar in the "gen server" style - a bold header, grouped
  * stats, and a wallet section. Every line is written to the same fixed slot
  * each refresh (rather than being removed/re-added), so nothing duplicates
  * or lingers on screen when a value changes.
  *
  * Each line's real content is set via customName (the left-aligned "name"
  * part of a scoreboard row), with the number hidden via NumberFormat.blank()
- * — the entry itself is just an invisible unique placeholder used only to
+ * - the entry itself is just an invisible unique placeholder used only to
  * key which row is being written to.
  */
 public class ScoreboardManager {
@@ -44,8 +44,8 @@ public class ScoreboardManager {
             .useUnusualXRepeatedCharacterHexFormat()
             .build();
     // Generous upper bound on possible line count (currently maxes out
-    // around 13) so leftover entries from a longer previous frame — e.g.
-    // the "Rolling... Ns" lines once a roll finishes — always get cleared.
+    // around 13) so leftover entries from a longer previous frame - e.g.
+    // the "Rolling... Ns" lines once a roll finishes - always get cleared.
     private static final int MAX_LINES = 20;
     private static final String[] ROMAN_NUMERALS = {
             "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"
@@ -77,14 +77,14 @@ public class ScoreboardManager {
         objective.setDisplaySlot(DisplaySlot.SIDEBAR);
         player.setScoreboard(board);
         // A fresh personal Scoreboard has none of the tag teams other
-        // players' boards already have — backfill them all now.
+        // players' boards already have - backfill them all now.
         plugin.getTagManager().syncAllTeamsTo(player);
         update(player);
     }
 
     /**
      * The sidebar's own title. Set as a Component rather than through the
-     * legacy String constructor so it can carry a gradient — an objective
+     * legacy String constructor so it can carry a gradient - an objective
      * display name is one of the few places a per-character colour is
      * worth the bytes, because everyone sees it every second.
      *
@@ -120,7 +120,7 @@ public class ScoreboardManager {
         for (int i = 0; i < total; i++) {
             setLine(objective, i, total - i, lines.get(i));
         }
-        // Line count varies (rolling adds 2 lines) — clear anything left
+        // Line count varies (rolling adds 2 lines) - clear anything left
         // over from a longer previous frame so old lines don't linger.
         for (int i = total; i < MAX_LINES; i++) {
             board.resetScores(ChatColor.RESET.toString().repeat(i + 1));
@@ -190,7 +190,7 @@ public class ScoreboardManager {
         return lines;
     }
 
-    /** Just Prestige with a star icon — Level is no longer shown on the sidebar. */
+    /** Just Prestige with a star icon - Level is no longer shown on the sidebar. */
     private String prestigeLine(PlayerData data) {
         String numeral = data.getPrestige() <= 0 ? "0"
                 : data.getPrestige() <= ROMAN_NUMERALS.length
@@ -200,7 +200,7 @@ public class ScoreboardManager {
     }
 
     /**
-     * "| 216M Coins" — the same yellow gutter pipe the stat block above
+     * "| 216M Coins" - the same yellow gutter pipe the stat block above
      * uses.
      *
      * The glyphs used to carry that job, but they were dropped from the
@@ -213,7 +213,7 @@ public class ScoreboardManager {
     }
 
     /**
-     * Null when the player isn't mid-roll — the idle "Ready to roll!"
+     * Null when the player isn't mid-roll - the idle "Ready to roll!"
      * line was removed, so this line is skipped entirely while idle.
      */
     private String rollStatusLine(Player player) {

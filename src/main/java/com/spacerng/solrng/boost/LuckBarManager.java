@@ -19,7 +19,7 @@ import java.util.UUID;
  *
  * Luck has no ceiling, so the bar can't represent it as a fraction of
  * anything. Instead the fill tracks the global boost's remaining time when
- * one is running — the only part of Luck that's actually a countdown — and
+ * one is running - the only part of Luck that's actually a countdown - and
  * sits full otherwise. The number itself lives in the title.
  */
 public class LuckBarManager {
@@ -79,7 +79,7 @@ public class LuckBarManager {
         StringBuilder title = new StringBuilder();
 
         if (boost.isActive()) {
-            // A live boost is the headline — it's the thing that's temporary
+            // A live boost is the headline - it's the thing that's temporary
             // and the thing somebody paid for, so it leads and the personal
             // Luck number follows it.
             title.append(ChatColor.LIGHT_PURPLE).append(ChatColor.BOLD)

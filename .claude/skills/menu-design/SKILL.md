@@ -10,11 +10,11 @@ This file is the house style. Follow it rather than inventing a new
 layout, and extend `Lore` / `Currency` rather than hand-rolling colour
 codes in a new class.
 
-**Reference implementations** — read one before writing a new menu:
-- `gui/PrestigeGui.java` — the card layout (title, state, sections, footer)
-- `gui/HoeGui.java` — the grid-of-upgrades layout with a level badge
-- `gui/Lore.java` — the shared text vocabulary
-- `gui/Currency.java` — currency icons and colours
+**Reference implementations** - read one before writing a new menu:
+- `gui/PrestigeGui.java` - the card layout (title, state, sections, footer)
+- `gui/HoeGui.java` - the grid-of-upgrades layout with a level badge
+- `gui/Lore.java` - the shared text vocabulary
+- `gui/Currency.java` - currency icons and colours
 
 ## The two shared vocabularies
 
@@ -58,13 +58,13 @@ as a wall and people stop reading it.
 **No category tag under the name.** `Lore.state("upgrade")` under an item
 called "Luck I", or `[FREE TRACK]` under one called "Free 12", is a line
 that costs a row and says nothing. Use `Lore.state` only when it carries
-something the title genuinely doesn't — a season name, a mode. The
+something the title genuinely doesn't - a season name, a mode. The
 locked/ready/claimed distinction belongs in the footer, where it already
 lives.
 
 ### The action footer, verbatim
 
-Only these five. They are bold and **sentence case, never caps** — the
+Only these five. They are bold and **sentence case, never caps** - the
 bold and the colour already carry the emphasis, and shouting on top of
 both reads as noise. The colour is the whole message:
 
@@ -76,7 +76,7 @@ both reads as noise. The colour is the whole message:
 | `Maxed` / `Unlocked` / `Claimed` | GREEN | done, nothing to do |
 | `Sold out` / `Coming soon` | DARK_GRAY | not a thing yet |
 
-A currency's name keeps its capital — Coins, Gems, Credits, Money are
+A currency's name keeps its capital - Coins, Gems, Credits, Money are
 proper nouns here. Everything else in a footer is lower case after the
 first word.
 
@@ -88,13 +88,13 @@ is the single most common way a menu becomes frustrating.
 
 Colour carries the state. It is never decoration:
 
-- **GREEN** — done, owned, met, good
-- **YELLOW** — actionable right now, a price you can pay
-- **RED** — blocked, unaffordable, unmet
-- **GRAY** — ordinary body text
-- **DARK_GRAY** — labels, tags, footnotes, "not found" placeholders
-- **AQUA** — informational, counts, secondary stats
-- **WHITE** — a value inside a `Lore.stat` line, and section headers on
+- **GREEN** - done, owned, met, good
+- **YELLOW** - actionable right now, a price you can pay
+- **RED** - blocked, unaffordable, unmet
+- **GRAY** - ordinary body text
+- **DARK_GRAY** - labels, tags, footnotes, "not found" placeholders
+- **AQUA** - informational, counts, secondary stats
+- **WHITE** - a value inside a `Lore.stat` line, and section headers on
   the sidebar
 
 The `▎` bullet carries the line's colour and the text after it stays
@@ -106,7 +106,7 @@ can read its state without reading the words.
 - **Pure white on a drop name.** Drop names render next to player names
   in the tab list, where white-on-white is unreadable. `RollFormat`
   enforces this; don't reintroduce it.
-- **ALL CAPS anywhere inside a menu item** — not the name, not the
+- **ALL CAPS anywhere inside a menu item** - not the name, not the
   footer, not a state tag. The user has rejected caps three times now.
   Caps survive only as deliberate headers in *chat* output (the guide
   banner, the `/top` header) and on the sidebar title.
@@ -118,7 +118,7 @@ can read its state without reading the words.
 
 ## Icons
 
-Only glyphs from Minecraft's built-in unicode font — no resource pack is
+Only glyphs from Minecraft's built-in unicode font - no resource pack is
 assumed. These are proven in this plugin:
 
 ```
@@ -129,7 +129,7 @@ assumed. These are proven in this plugin:
 ```
 
 Currency glyphs come from `Currency`, never typed inline. They are four
-different **shapes**, not four decorations — colour alone stops working
+different **shapes**, not four decorations - colour alone stops working
 the moment two currencies sit on adjacent lines.
 
 The glyph **trails** the amount (`717M Coins ●`, not `● 717M Coins`).
@@ -140,30 +140,30 @@ column. Trailing it, a stacked list lines up.
 ## Menu layout
 
 - **54 slots** for a grid or a tree; **45** for a card layout. Don't use
-  a size the content doesn't fill — empty rows read as unfinished.
+  a size the content doesn't fill - empty rows read as unfinished.
 - **Filler** is `BLACK_STAINED_GLASS_PANE` with a single-space name.
   Section breaks use the same pane so the eye reads them as structure.
 - **Locked / undefined slots** are `GRAY_DYE` named `???` with a
   dark-grey reason. Showing a locked thing exists beats hiding it.
 - **Navigation**: `SPECTRAL_ARROW` = back, `ARROW` = forward, and both
   say `Page N/M`. Keep them in the same slots across menus. In a menu
-  that is climbed from a root at the bottom — the skill trees — they read
+  that is climbed from a root at the bottom - the skill trees - they read
   **▲ Page Up** and **▼ Page Down**, not next/previous: calling a higher
   page "next" fights what the layout is saying.
 - **The player's own panel** goes top-right or bottom-right and uses
   their head (`PLAYER_HEAD` + `SkullMeta.setOwningPlayer`).
 - **Glint** (`meta.setEnchantmentGlintOverride`) marks *done* or
-  *claimable*. Never use a colour-coded dye to say "done" — that throws
+  *claimable*. Never use a colour-coded dye to say "done" - that throws
   away the icon, and the icon is what makes the slot recognisable.
 
 ## Titles
 
 `ChatColor.<accent> + ChatColor.BOLD + "Name"`, optionally
-`+ ChatColor.GRAY + " — " + subtitle`. Each menu keeps one accent for
+`+ ChatColor.GRAY + " - " + subtitle`. Each menu keeps one accent for
 life: Skill Tree DARK_PURPLE, Farming DARK_GREEN, Index DARK_AQUA,
 Prestige DARK_PURPLE, Battle Pass GOLD, Nova Core LIGHT_PURPLE.
 
-Inventory titles can't take hex colours — legacy codes only.
+Inventory titles can't take hex colours - legacy codes only.
 
 ## Writing the words
 

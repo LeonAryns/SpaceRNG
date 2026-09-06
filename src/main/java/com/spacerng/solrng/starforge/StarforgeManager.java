@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * The Starforge — the item players right-click to roll and left-click to
+ * The Starforge - the item players right-click to roll and left-click to
  * toggle Auto Roll. It can't be dropped. Its tier is what sets
  * a player's BASE Luck; the skill tree and armor add on top, and the
  * index multiplier scales the whole thing.
@@ -111,7 +111,7 @@ public class StarforgeManager {
         return tier == null ? 0.0 : tier.getLuckBonus();
     }
 
-    /** True while a Starforge is in either hand — main or off, both count. */
+    /** True while a Starforge is in either hand - main or off, both count. */
     public boolean isHolding(Player player) {
         return isStarforge(player.getInventory().getItemInMainHand())
                 || isStarforge(player.getInventory().getItemInOffHand());
@@ -155,7 +155,7 @@ public class StarforgeManager {
     }
 
     /**
-     * Buys a tier with rolled drops. Only upgrades — you can't buy a tier
+     * Buys a tier with rolled drops. Only upgrades - you can't buy a tier
      * at or below the one you already own. Hands over the new item on
      * success.
      */
@@ -216,7 +216,7 @@ public class StarforgeManager {
     }
 
     /**
-     * The shared top half of the tooltip — stats and controls. The shop
+     * The shared top half of the tooltip - stats and controls. The shop
      * icon appends a price block below this; the held item stops here.
      */
     public List<String> statLines(StarforgeTier tier) {

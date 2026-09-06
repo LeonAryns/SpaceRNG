@@ -11,7 +11,7 @@ import org.bukkit.ChatColor;
  *   「 Name 」   framed titles for headline items
  *   [STATE]     a dark-grey tag saying what state a thing is in
  *   ▎ line      a coloured bar prefixes every fact, and the colour IS the
- *               meaning — green good, red blocked, yellow actionable
+ *               meaning - green good, red blocked, yellow actionable
  *   Section:    a coloured label above a group of related facts
  *
  * All of the glyphs live in Minecraft's unicode font pages, so none of it
@@ -29,7 +29,7 @@ public final class Lore {
     private static final String BAR_FULL = "▬";
     private static final int BAR_LENGTH = 20;
 
-    // The plugin's headline gradient — light lilac into deep violet. Used
+    // The plugin's headline gradient - light lilac into deep violet. Used
     // for sidebar section headers so the two of them read as one voice.
     private static final String[] HEADER_STOPS = {"#F6D6FF", "#DFA6FF", "#C77DFF", "#B15CFF"};
     // A full loop of the spectrum, ending where it started so a long
@@ -48,7 +48,7 @@ public final class Lore {
      * Written here rather than reusing RarityManager's engine because that
      * one is loaded from config and belongs to the item table; a header
      * colour shouldn't change because somebody retuned a rarity. Spaces
-     * are left uncoloured — colouring them wastes six characters a piece
+     * are left uncoloured - colouring them wastes six characters a piece
      * against Minecraft's line length limits and looks identical.
      */
     public static String gradient(String text, String... hexStops) {
@@ -98,7 +98,7 @@ public final class Lore {
         return gradient(text, true, "#F6D6FF", "#C77DFF", "#A855F7", "#C77DFF", "#F6D6FF");
     }
 
-    /** Full-spectrum text — the Credits treatment. */
+    /** Full-spectrum text - the Credits treatment. */
     public static String rainbow(String text) {
         return gradient(text, RAINBOW_STOPS);
     }
@@ -124,7 +124,7 @@ public final class Lore {
      * The same gradient written as "&#RRGGBB" codes instead of rendered.
      *
      * Citizens and DecentHolograms both take that form in their own
-     * configs, and neither has a gradient tag of its own — so the only way
+     * configs, and neither has a gradient tag of its own - so the only way
      * to get one into an NPC name or a hologram line is a colour code per
      * character, which is not something anybody should be typing by hand.
      */
@@ -154,13 +154,13 @@ public final class Lore {
         return net.md_5.bungee.api.ChatColor.of(new java.awt.Color(c[0], c[1], c[2])).toString();
     }
 
-    /** 「 Prestige 4 」 — the framed name a headline item carries. */
+    /** 「 Prestige 4 」 - the framed name a headline item carries. */
     public static String title(ChatColor colour, String text) {
         return ChatColor.DARK_GRAY + "「 " + colour + ChatColor.BOLD + text + ChatColor.RESET
                 + ChatColor.DARK_GRAY + " 」";
     }
 
-    /** [ASCEND] — the small state tag under a title. */
+    /** [ASCEND] - the small state tag under a title. */
     public static String state(String text) {
         return ChatColor.DARK_GRAY + "[" + text.toUpperCase() + "]";
     }
@@ -175,7 +175,7 @@ public final class Lore {
         return colour + BULLET + " " + ChatColor.GRAY + text;
     }
 
-    /** ▎ Label: value — the most common shape. */
+    /** ▎ Label: value - the most common shape. */
     public static String stat(ChatColor colour, String label, String value) {
         return colour + BULLET + " " + ChatColor.GRAY + label + ": " + ChatColor.WHITE + value;
     }
@@ -187,14 +187,14 @@ public final class Lore {
                 + ChatColor.WHITE + need + "  " + (met ? ChatColor.GREEN + TICK : ChatColor.RED + CROSS);
     }
 
-    /** "1.75x ➜ 2x" — what an upgrade turns a number into. */
+    /** "1.75x ➜ 2x" - what an upgrade turns a number into. */
     public static String upgrade(ChatColor colour, String label, String from, String to) {
         return colour + BULLET + " " + ChatColor.GRAY + label + " " + ChatColor.YELLOW + from
                 + ChatColor.DARK_GRAY + " " + ARROW + " " + ChatColor.GREEN + ChatColor.BOLD + to;
     }
 
     /**
-     * A filled bar that shifts hue as it fills — red when you've barely
+     * A filled bar that shifts hue as it fills - red when you've barely
      * started, green when you're done. The colour does the reading for you
      * before the numbers do.
      */
@@ -219,7 +219,7 @@ public final class Lore {
         return ChatColor.AQUA;
     }
 
-    /** "12.4K" — short numbers for tight lore lines. */
+    /** "12.4K" - short numbers for tight lore lines. */
     public static String shorten(double value) {
         if (value < 1_000) return String.format("%.0f", value);
         if (value < 1_000_000) return trim(value / 1_000.0) + "K";

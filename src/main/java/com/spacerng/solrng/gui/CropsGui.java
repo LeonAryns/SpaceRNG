@@ -18,7 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * /crops — pick what the shared farm looks like for you. Changing it
+ * /crops - pick what the shared farm looks like for you. Changing it
  * repaints every plot in range immediately; nobody else's field changes.
  */
 public class CropsGui {

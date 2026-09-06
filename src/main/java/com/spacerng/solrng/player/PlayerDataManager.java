@@ -75,7 +75,7 @@ public class PlayerDataManager {
         // purchase time; they're derived from node levels now. A save from
         // before that change would double-count, so the first load after the
         // upgrade drops the baked-in copies. The node levels are untouched,
-        // so nothing bought is actually lost — it just gets recomputed.
+        // so nothing bought is actually lost - it just gets recomputed.
         boolean derived = yml.getBoolean("derived-skills", false);
         if (derived) {
             data.addBonusLuck(yml.getDouble("luck", 0.0));
@@ -196,7 +196,7 @@ public class PlayerDataManager {
                 continue;
             }
             // Pre-V30 saves stored a bare tier id meaning "bought the whole
-            // set" — anyone who owned a set keeps all four pieces.
+            // set" - anyone who owned a set keeps all four pieces.
             for (ArmorPiece piece : ArmorPiece.values()) {
                 data.getPurchasedArmorTiers().add(ArmorPiece.key(entry, piece));
             }
@@ -221,7 +221,7 @@ public class PlayerDataManager {
         awardOffline(uuid, credits, "points", data -> data.addPoints(credits));
     }
 
-    /** The same, in Coins — what the daily farming payout pays. */
+    /** The same, in Coins - what the daily farming payout pays. */
     public void awardOfflineCoins(UUID uuid, long coins) {
         awardOffline(uuid, coins, "tokens", data -> data.addTokens(coins));
     }

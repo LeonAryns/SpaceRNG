@@ -10,7 +10,7 @@ import java.util.function.Supplier;
  * Opens a menu on the next tick rather than immediately.
  *
  * Every command in this plugin can be fired by something other than a
- * player typing it — a Citizens NPC's command trait is the one that
+ * player typing it - a Citizens NPC's command trait is the one that
  * matters. When a command runs inside an interact event, the client sends
  * its own follow-up packet in the same tick and the inventory that was
  * just opened is closed again before it ever draws. Nothing errors,

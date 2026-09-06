@@ -25,7 +25,7 @@ import java.util.Map;
  *
  * They're real items rather than an invisible balance on purpose. A
  * reward you can hold, look at and choose when to use is worth more than
- * the same number applied silently — and it means a crate plugin, a
+ * the same number applied silently - and it means a crate plugin, a
  * command block or a milestone can all deliver the same thing without
  * knowing anything about how it works.
  *
@@ -83,7 +83,7 @@ public class ConsumableManager {
 
     /**
      * A potion's price in rolled drops. An empty map means it isn't for
-     * sale at all — some of these are only ever handed out.
+     * sale at all - some of these are only ever handed out.
      */
     private Map<com.spacerng.solrng.rarity.Rarity, Long> parseCosts(ConfigurationSection section) {
         Map<com.spacerng.solrng.rarity.Rarity, Long> costs =
@@ -162,7 +162,7 @@ public class ConsumableManager {
 
     /**
      * The stat block. A draught can carry several lines at once, and a
-     * minus is written as a minus rather than hidden — the trade IS the
+     * minus is written as a minus rather than hidden - the trade IS the
      * item.
      */
     public java.util.List<String> describe(Consumable consumable) {
@@ -198,7 +198,7 @@ public class ConsumableManager {
         return lines;
     }
 
-    /** "+50" / "-25" — the sign is the point, so it's never dropped. */
+    /** "+50" / "-25" - the sign is the point, so it's never dropped. */
     public static String signed(double value) {
         String number = value == Math.rint(value)
                 ? String.valueOf((long) value) : String.format("%.1f", value);
@@ -277,7 +277,7 @@ public class ConsumableManager {
                 player.getWorld().dropItemNaturally(player.getLocation(), leftover));
     }
 
-    /** "2x", "1.5x" — whole numbers without a pointless ".00". */
+    /** "2x", "1.5x" - whole numbers without a pointless ".00". */
     public static String trim(double value) {
         return value == Math.rint(value) ? String.valueOf((long) value) : String.format("%.2f", value);
     }

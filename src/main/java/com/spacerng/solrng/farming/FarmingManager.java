@@ -18,7 +18,7 @@ import java.util.Map;
  * Fast-regrow farm crops: fully-grown crops harvested via FarmingListener
  * pay Tokens instead of just dropping their vanilla item, then snap
  * straight back to fully grown after a short delay (no waiting on random
- * tick growth). Everyone harvests the same field — reward is scaled per
+ * tick growth). Everyone harvests the same field - reward is scaled per
  * player by {@link com.spacerng.solrng.player.PlayerData#getFarmTokenMultiplier()}.
  * Harvesting requires the "farming_unlock" skill tree node, which also
  * grants the {@link #createBoundHoe()} item.
@@ -129,14 +129,14 @@ public class FarmingManager {
         return hoeTiers.get(tierIndexOf(data));
     }
 
-    /** Reward for unlocking "farming_unlock" — soulbound via {@link #isBoundHoe}. */
+    /** Reward for unlocking "farming_unlock" - soulbound via {@link #isBoundHoe}. */
     public ItemStack createBoundHoe() {
         return createBoundHoe(null);
     }
 
     /**
      * The hoe, with whatever enchants the owner's farming tree currently
-     * justifies written into its lore. Passing null gives the plain item —
+     * justifies written into its lore. Passing null gives the plain item -
      * the enchants are derived, never stored, so a fresh copy is always
      * accurate.
      */

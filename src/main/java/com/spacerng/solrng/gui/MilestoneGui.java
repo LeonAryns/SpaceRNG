@@ -18,7 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * /milestones — one screen, not two. The tracks live as tabs across the
+ * /milestones - one screen, not two. The tracks live as tabs across the
  * top row with a gap between each, so switching between them never leaves
  * the menu; the track you're looking at carries an enchant glint.
  *
@@ -28,7 +28,7 @@ import java.util.List;
  */
 public class MilestoneGui {
 
-    // Top row, one empty slot between each — four tracks land on 1/3/5/7.
+    // Top row, one empty slot between each - four tracks land on 1/3/5/7.
     private static final int[] TAB_SLOTS = {1, 3, 5, 7};
     private static final int TIER_START = 19;   // row 3, column 2
     private static final int TIERS_PER_ROW = 7;

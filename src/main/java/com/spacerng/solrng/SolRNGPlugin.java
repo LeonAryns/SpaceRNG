@@ -388,7 +388,7 @@ public final class SolRNGPlugin extends JavaPlugin {
 
     /**
      * Keeps every online player's Money / Tokens / Credits sidebar up to
-     * date — covers changes from converting items, admin commands, or
+     * date - covers changes from converting items, admin commands, or
      * another plugin (Vault economy) moving their Money balance.
      */
     private void startScoreboardRefreshTask() {
@@ -397,7 +397,7 @@ public final class SolRNGPlugin extends JavaPlugin {
 
     /**
      * Recomputes the bonuses that depend on what a player currently has
-     * equipped — worn armor and the held Starforge. Runs four times a
+     * equipped - worn armor and the held Starforge. Runs four times a
      * second so picking the Starforge up or putting it away shows on the
      * scoreboard more or less instantly.
      */
@@ -439,7 +439,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         getServer().getScheduler().runTaskTimer(this, () -> milestoneManager.checkAll(), 100L, 100L);
 
         // The guide's bar has to move as you play, so it ticks faster than
-        // the milestone sweep — a quest that says 7/10 while you're at 9 is
+        // the milestone sweep - a quest that says 7/10 while you're at 9 is
         // worse than no counter at all.
         getServer().getScheduler().runTaskTimer(this, () -> questManager.checkAll(), 40L, 40L);
 

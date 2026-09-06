@@ -5,7 +5,7 @@ import org.bukkit.Material;
 import java.util.List;
 
 /**
- * One milestone category — a single ladder of thresholds against one
+ * One milestone category - a single ladder of thresholds against one
  * tracked number (prestiges earned, items discovered, crops harvested,
  * hours played).
  *

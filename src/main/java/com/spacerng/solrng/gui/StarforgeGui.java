@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * /starforge — the upgrade shop, 5x9. The eight tiers run in ladder order
+ * /starforge - the upgrade shop, 5x9. The eight tiers run in ladder order
  * across two centred rows: five on row 2, the last three centred on row 3.
  * Owned tiers show as green dye, everything still to forge stays a Nether
  * Star.

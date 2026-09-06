@@ -10,7 +10,7 @@ import org.bukkit.entity.Player;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * The Nova Core ladder (/rngcookie) — a push-your-luck climb.
+ * The Nova Core ladder (/rngcookie) - a push-your-luck climb.
  *
  * Each attempt either moves you up one tier or drops you back to the last
  * checkpoint, and the odds get worse the higher you are. Your Luck stat
@@ -22,7 +22,7 @@ import java.util.concurrent.ThreadLocalRandom;
  *     base * decay^T * (1 + luck), clamped to [floor, ceiling]
  *
  * At 100% Luck that puts the first five tiers at ~95/95/95/92/78%, so
- * reaching the first checkpoint is around a 60% run — comfortable, which
+ * reaching the first checkpoint is around a 60% run - comfortable, which
  * is what a first checkpoint should be. By tier 20 the same player is at
  * ~6% a step, so the top of the ladder stays a genuine grind no matter
  * how much Luck is stacked.
@@ -77,7 +77,7 @@ public class NovaCoreManager {
     /**
      * Checkpoints widen as you climb: the first gap is
      * checkpoint-first-gap, and every gap after it is one longer. With the
-     * defaults that's 5, 11, 18, 26 — safe ground gets rarer exactly as the
+     * defaults that's 5, 11, 18, 26 - safe ground gets rarer exactly as the
      * odds get worse, so the back half of the ladder is where the risk
      * actually lives.
      */
@@ -107,7 +107,7 @@ public class NovaCoreManager {
         return best;
     }
 
-    /** "5, 11, 18" — for the menu's footnote. */
+    /** "5, 11, 18" - for the menu's footnote. */
     public String checkpointList() {
         java.util.List<String> parts = new java.util.ArrayList<>();
         for (int checkpoint : checkpoints()) parts.add(String.valueOf(checkpoint));
@@ -116,7 +116,7 @@ public class NovaCoreManager {
 
     /**
      * The Nova Core's name in a rainbow gradient, built with the same
-     * per-character engine the Epic+ item names use — it's the single
+     * per-character engine the Epic+ item names use - it's the single
      * flashiest thing in the plugin, so it gets the flashiest treatment.
      */
     public String styledName() {
@@ -132,7 +132,7 @@ public class NovaCoreManager {
     }
 
     /**
-     * The universal multiplier a tier is worth — it scales Luck, the Money
+     * The universal multiplier a tier is worth - it scales Luck, the Money
      * a roll pays, and farm Tokens alike. One number that lifts everything
      * is easier to reason about than three separate ladders, and it makes
      * the climb worth doing whatever a player is actually grinding.
@@ -174,7 +174,7 @@ public class NovaCoreManager {
     /**
      * One attempt. Returns true if the player advanced.
      *
-     * The Tokens are taken before the roll, so a failure still costs —
+     * The Tokens are taken before the roll, so a failure still costs -
      * that's the whole tension of the ladder.
      */
     public boolean attempt(Player player, PlayerData data) {
@@ -219,7 +219,7 @@ public class NovaCoreManager {
                     0.9f, isCheckpoint(next) ? 1.4f : 1.8f);
         } else if (holdsOnFailure(data)) {
             // Core Anchor: the attempt is still lost, and so are the Tokens.
-            // Only the fall is cancelled — otherwise the skill would remove
+            // Only the fall is cancelled - otherwise the skill would remove
             // the risk instead of softening it.
             player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "Anchored! "
                     + ChatColor.RESET + ChatColor.GRAY + "The climb failed but your Core held at tier "

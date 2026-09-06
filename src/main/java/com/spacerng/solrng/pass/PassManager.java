@@ -32,7 +32,7 @@ import java.util.Map;
 public class PassManager {
 
     /**
-     * One rung's payout. Every field is optional — a level that pays only
+     * One rung's payout. Every field is optional - a level that pays only
      * Tokens simply leaves the rest at zero, and `drops` banks virtual
      * drops of a rarity, the same currency /armor and /starforge spend.
      */
@@ -185,7 +185,7 @@ public class PassManager {
         return total;
     }
 
-    /** The level this player's XP currently buys — derived, never stored. */
+    /** The level this player's XP currently buys - derived, never stored. */
     public int levelOf(PlayerData data) {
         syncSeason(data);
         long xp = data.getPassXp();
@@ -218,7 +218,7 @@ public class PassManager {
 
     /**
      * XP from a roll. Rarer rolls are worth more, so the pass moves with
-     * your Luck rather than purely with your click count — which is the
+     * your Luck rather than purely with your click count - which is the
      * whole point of tying it to this gamemode instead of to playtime.
      */
     public void awardRoll(Player player, PlayerData data, Rarity rarity) {
@@ -245,7 +245,7 @@ public class PassManager {
         if (after > before && player != null && player.isOnline()) {
             player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "BATTLE PASS " + ChatColor.RESET
                     + ChatColor.GRAY + "reached level " + ChatColor.YELLOW + after
-                    + ChatColor.GRAY + " — claim it in " + ChatColor.YELLOW + "/pass");
+                    + ChatColor.GRAY + " - claim it in " + ChatColor.YELLOW + "/pass");
             player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.8f, 1.2f);
         }
     }
@@ -258,7 +258,7 @@ public class PassManager {
         if (!data.spendPoints(premiumCost)) return false;
         data.setPassPremium(true);
         player.sendMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "PREMIUM PASS UNLOCKED"
-                + ChatColor.RESET + ChatColor.GRAY + " — every premium reward you've already earned is"
+                + ChatColor.RESET + ChatColor.GRAY + " - every premium reward you've already earned is"
                 + " waiting in " + ChatColor.YELLOW + "/pass" + ChatColor.GRAY + ".");
         player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0f, 1.0f);
         return true;
@@ -318,7 +318,7 @@ public class PassManager {
         }
     }
 
-    /** "✿ 5K Tokens, ◆ 2 Gems" — blank when a rung pays nothing. */
+    /** "✿ 5K Tokens, ◆ 2 Gems" - blank when a rung pays nothing. */
     public String describe(Reward reward) {
         List<String> parts = new ArrayList<>();
         if (reward.tokens() > 0) {

@@ -31,7 +31,7 @@ import java.util.UUID;
  * player still holds their place and the board survives a restart.
  *
  * The farming board runs on a period that resets at a fixed hour. Two
- * numbers are tracked per player — lifetime and this-period — because a
+ * numbers are tracked per player - lifetime and this-period - because a
  * payout has to be about what you did TODAY, while the all-time board is
  * the one worth bragging about.
  */
@@ -56,8 +56,8 @@ public class LeaderboardManager {
     /**
      * The one place a board id turns into a number.
      *
-     * This used to be written out three times — in /top, in the
-     * placeholders and in the sort — which is three chances for a new
+     * This used to be written out three times - in /top, in the
+     * placeholders and in the sort - which is three chances for a new
      * board to sort by one thing and display another.
      */
     public static long valueOf(String board, Entry entry) {
@@ -164,8 +164,8 @@ public class LeaderboardManager {
      * The Vault balance, snapshotted whenever the player's data is
      * written.
      *
-     * The board can't ask Vault while sorting — that would be an economy
-     * lookup per player every time a menu redraws — so it reads the number
+     * The board can't ask Vault while sorting - that would be an economy
+     * lookup per player every time a menu redraws - so it reads the number
      * that was true at the last save, which for an online player is never
      * more than a couple of minutes old. With no economy installed the
      * previous figure is kept rather than zeroed, so the board degrades to
@@ -318,7 +318,7 @@ public class LeaderboardManager {
 
     /**
      * The prize goes onto the live object for anyone online, and straight
-     * into their save file otherwise — a winner who logged off before the
+     * into their save file otherwise - a winner who logged off before the
      * hour still gets paid.
      *
      * Credits, deliberately. They're the store's currency everywhere

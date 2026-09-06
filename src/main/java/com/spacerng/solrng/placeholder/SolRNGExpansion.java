@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Everything this plugin knows about a player, exposed to any plugin that
- * speaks PlaceholderAPI — in practice TAB, which takes over the tab list
+ * speaks PlaceholderAPI - in practice TAB, which takes over the tab list
  * and nametags entirely and can only see other plugins' data through
  * placeholders.
  *
@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
  *                        client tick and reads as noise, so this is the
  *                        one to use there.
  *
- * Placeholders never return null for a known key — an unset value comes
+ * Placeholders never return null for a known key - an unset value comes
  * back as an empty string, so a TAB format never renders the raw
  * "%solrng_x%" text at a player who hasn't got one yet.
  */
@@ -77,7 +77,7 @@ public class SolRNGExpansion extends PlaceholderExpansion {
     }
 
     /**
-     * Keeps the expansion registered across a PlaceholderAPI reload —
+     * Keeps the expansion registered across a PlaceholderAPI reload -
      * without this, /papi reload silently unregisters it and every
      * %solrng_% placeholder in TAB starts rendering as literal text.
      */
@@ -149,7 +149,7 @@ public class SolRNGExpansion extends PlaceholderExpansion {
                 // on), so they're matched by prefix rather than listed.
                 String board = leaderboard(player, params.toLowerCase());
                 if (board != null) return board;
-                return null; // unknown key — let PAPI report it as unrecognised
+                return null; // unknown key - let PAPI report it as unrecognised
         }
     }
 

@@ -22,8 +22,8 @@ import java.util.Set;
 
 /**
  * A 6x9 skill tree, drawn entirely from config. Every node declares its
- * own page, (column, row) and icon, so adding a skill — or a whole extra
- * page, or a whole second tree like the farming one — is a config change
+ * own page, (column, row) and icon, so adding a skill - or a whole extra
+ * page, or a whole second tree like the farming one - is a config change
  * rather than a code change.
  *
  * Slots in the tree's shape that no node has claimed render as "???"
@@ -67,7 +67,7 @@ public class SkillTreeGui {
         String title = (farming
                 ? ChatColor.DARK_GREEN + "" + ChatColor.BOLD + "Farming Skills"
                 : ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + "Skill Tree")
-                + ChatColor.GRAY + " — " + (pageName.isEmpty() ? "Page " + (page + 1) : pageName);
+                + ChatColor.GRAY + " - " + (pageName.isEmpty() ? "Page " + (page + 1) : pageName);
         Inventory inv = Bukkit.createInventory(holder, 54, title);
         holder.setInventory(inv);
 
@@ -187,7 +187,7 @@ public class SkillTreeGui {
 
     /**
      * A real node whose prerequisite isn't met yet. It names what's in the
-     * way rather than hiding the slot outright — knowing a skill exists and
+     * way rather than hiding the slot outright - knowing a skill exists and
      * what stands between you and it is most of what makes a tree readable.
      */
     private static ItemStack lockedNode(SolRNGPlugin plugin, PlayerData data, SkillNode node) {
@@ -212,7 +212,7 @@ public class SkillTreeGui {
     }
 
     /**
-     * Undefined, unclickable reserved slot — no PersistentData tag, so
+     * Undefined, unclickable reserved slot - no PersistentData tag, so
      * clicking it is a no-op in GuiListener.
      */
     private static ItemStack placeholderNode() {
@@ -259,7 +259,7 @@ public class SkillTreeGui {
         return stats;
     }
 
-    /** Levels bought across every tree — one number for "how far in am I". */
+    /** Levels bought across every tree - one number for "how far in am I". */
     private static int ownedCount(SolRNGPlugin plugin, PlayerData data) {
         int total = 0;
         for (SkillNode node : plugin.getSkillTreeManager().getNodes().values()) {
@@ -334,16 +334,16 @@ public class SkillTreeGui {
                     pct(value * level) + "%", leveled);
 
             case AUTO_ROLL -> gate("Rolls automatically at your own Speed");
-            case UNLOCK_CONVERT -> gate("Unlocks /convert — turn drops into stored ones");
+            case UNLOCK_CONVERT -> gate("Unlocks /convert - turn drops into stored ones");
             case UNLOCK_AUTO_CONVERT -> gate("Unlocks the auto-convert switches in /convert");
             case UNLOCK_FARMING -> gate("Unlocks the farm and the Farmer's Hoe");
             case UNLOCK_ARMOR -> gate("Unlocks the /armor shop");
             case UNLOCK_POTION -> gate("Unlocks the Potion system (coming soon)");
-            case UNLOCK_SHINY -> gate("Unlocks Shiny drops — 1 in 100 rolls");
+            case UNLOCK_SHINY -> gate("Unlocks Shiny drops - 1 in 100 rolls");
             case UNLOCK_INDEX_LUCK -> gate("Lets you equip a tag for its Index Luck");
             case UNLOCK_ARTIFACT -> gate("Unlocks the Artifact shop (coming soon)");
-            case UNLOCK_PRIVATE_VAULT -> gate("Unlocks your Private Vault — /pv");
-            case UNLOCK_PASS -> gate("Unlocks the Battle Pass — /pass");
+            case UNLOCK_PRIVATE_VAULT -> gate("Unlocks your Private Vault - /pv");
+            case UNLOCK_PASS -> gate("Unlocks the Battle Pass - /pass");
 
             case UNLOCK_CROP -> gate("Unlocks " + target + " on the farm");
             case UNLOCK_SHARDS -> gate("Farm crops start paying Gems");
@@ -372,7 +372,7 @@ public class SkillTreeGui {
         };
     }
 
-    /** "+5% Luck per level  (+20% now)" — one shape for every leveled stat. */
+    /** "+5% Luck per level  (+20% now)" - one shape for every leveled stat. */
     private static List<String> scaled(ChatColor colour, String per, String now, boolean leveled) {
         if (!leveled) {
             return List.of(colour + "▎ " + per);
@@ -400,7 +400,7 @@ public class SkillTreeGui {
         return (int) Math.round(fraction * 100);
     }
 
-    /** Keeps the decimals only when there are any — "0.4", not "0.40". */
+    /** Keeps the decimals only when there are any - "0.4", not "0.40". */
     private static String trim(double value) {
         if (Math.abs(value - Math.round(value)) < 0.001) return String.valueOf(Math.round(value));
         return String.format("%.2f", value).replaceAll("0+$", "").replaceAll("\\.$", "");

@@ -13,15 +13,15 @@ scoreboard:
 
 roll-item:
   material: NETHER_STAR
-  # No cooldown anymore — every roll takes this many seconds to resolve,
+  # No cooldown anymore - every roll takes this many seconds to resolve,
   # with an animation/progress bar while it's rolling. The Speed skill
   # tree branch and worn armor shorten this via the player's Speed stat.
   roll-duration-seconds: 5
 
-# The Starforge — right-click to roll, left-click to toggle Auto Roll
+# The Starforge - right-click to roll, left-click to toggle Auto Roll
 # (once the Auto Roll skill is unlocked). Everyone starts on BASIC;
 # better ones are bought in /starforge and give a bigger base Luck.
-# luck-bonus 0.25 = 25% Luck. This is a player's BASE luck — the skill
+# luck-bonus 0.25 = 25% Luck. This is a player's BASE luck - the skill
 # tree and armor add to it, and the index multiplier scales the total.
 # "colors" is the same per-character gradient engine the Epic+ item names
 # use: one entry = flat color, 2+ = a gradient across the name. Accepts
@@ -69,7 +69,7 @@ starforge:
         RARE: 150
         EPIC: 35
         LEGENDARY: 3
-    # Masterwork and up are placeholder prices — they're meant to need
+    # Masterwork and up are placeholder prices - they're meant to need
     # the rarer drops, so retune these once those feel right in-game.
     MASTERWORK:
       display: "Masterwork Starforge"
@@ -122,7 +122,7 @@ starforge:
 tag:
   manage-nametag: true
 
-# Farm crops (a shared field everyone harvests together) — breaking a
+# Farm crops (a shared field everyone harvests together) - breaking a
 # fully-grown crop listed here pays Tokens on top of its normal drop,
 # scaled per-player by their own farmTokenMultiplier, then replants
 # straight back to fully-grown after regrow-seconds instead of waiting
@@ -156,7 +156,7 @@ farming:
   # ---- Hoe enchants ----
   # An enchant is switched on by an UNLOCK_ENCHANT node in the farming tree
   # and levelled with Tokens by right-clicking the hoe. The hoe itself
-  # never holds any state — its power is a read of what's been bought.
+  # never holds any state - its power is a read of what's been bought.
   # Nothing to lose, trade or duplicate.
   #
   # Every enchant runs to 1000 levels and every one is a percentage, so
@@ -165,7 +165,7 @@ farming:
   #
   # You do NOT start with 1000 levels available: base-cap is the ceiling
   # you begin with, and the Enchant Mastery nodes in /farmtree raise it the
-  # rest of the way. That's the whole point of mastery — without it, a cap
+  # rest of the way. That's the whole point of mastery - without it, a cap
   # nobody could reach wasn't a cap at all.
   #
   # Costs are exponential (base-cost x cost-growth^level), so the last
@@ -314,7 +314,7 @@ farming:
 
   # ---- Momentum ----
   # A farming RUN. Every crop you take adds to it, and the whole thing is
-  # gone if you stop for longer than idle-seconds — the boss bar across the
+  # gone if you stop for longer than idle-seconds - the boss bar across the
   # top IS the run, so there's never any doubt what you're sitting on.
   #
   # It's the one farm bonus you can't buy outright: the enchant only raises
@@ -425,7 +425,7 @@ prestige:
   levels-increment-per-prestige: 5
   luck-multiplier-per-prestige: 0.10
 
-# /armor — sets bought with rolled drops. Each worn piece grants its
+# /armor - sets bought with rolled drops. Each worn piece grants its
 # tier's Luck bonus and a smaller Speed bonus (speed-bonus 0.01 = +1
 # Speed, where 100 Speed is the baseline roll speed).
 # /armor - pieces are bought ONE AT A TIME, not as a set. Each cost below
@@ -484,7 +484,7 @@ armor:
 # the Luck stat biases rolls toward this tier. 0 = luck has no effect.
 # Effective weight = base weight * (1 + luck * luck-factor)
 rarities:
-  # Rarities are just a plain label color now — the fancy gradients live
+  # Rarities are just a plain label color now - the fancy gradients live
   # on each individual item instead (see the per-item "colors" below).
   # "symbol: true" wraps that rarity's item names in an obfuscated flair
   # character on both sides (Epic and up).
@@ -510,7 +510,7 @@ rarities:
     symbol: true
     luck-factor: 1.6
   # Divine sits above everything. Its label is the palest thing in the
-  # plugin without ever being pure #FFFFFF — a drop name renders beside a
+  # plugin without ever being pure #FFFFFF - a drop name renders beside a
   # player name in the tab list, and white-on-white is unreadable.
   DIVINE:
     colors: ["#FFFDF7", "#FFF0B8", "#FFFFFA", "#DCEFFF", "#FFFDF7"]
@@ -1142,7 +1142,7 @@ items:
     colors: ["#FFFDF7", "#FFF6D8", "#FFE9A3", "#FFFFFA", "#D8EEFF", "#FFFDF7"]
     bold: true
 
-# /index — every unique item a player has ever rolled gets logged here.
+# /index - every unique item a player has ever rolled gets logged here.
 # Each item carries its own Luck MULTIPLIER, derived automatically from
 # its odds within its rarity: the rarest item in a tier gets the top of
 # that tier's band, the most common gets the bottom, everything else
@@ -1162,7 +1162,7 @@ index:
     DIVINE: [8.0, 8.0]
 
   # Finishing a whole rarity is worth a Luck multiplier on its own, and
-  # they MULTIPLY with each other — completing every tier is the end of
+  # they MULTIPLY with each other - completing every tier is the end of
   # the collection game, so it should feel like it.
   #
   # A rarity you've completed in shiny pays the bigger number INSTEAD of
@@ -1204,12 +1204,12 @@ economy:
 # climbed one branch and ignored the other two.
 #
 # Luck, Speed and Coins deliberately recur once or twice a page, and every
-# recurrence of a skill keeps the same icon — a skill you already
+# recurrence of a skill keeps the same icon - a skill you already
 # understand showing up again, stronger and further out, is what makes
 # depth in the tree worth paying for.
 #
 # Anything about farming lives in the farming tree instead, and nothing
-# here scales a fixed reward (daily streaks, milestones) — those pay the
+# here scales a fixed reward (daily streaks, milestones) - those pay the
 # same to everyone by design.
 #
 # "requires" is the id of the node that must be unlocked first (blank =
@@ -2172,7 +2172,7 @@ milestones:
 # Leaderboards and the daily farming payout.
 #
 # The plugin keeps its own player index (leaderboard.yml) because the live
-# cache only holds players who are ONLINE — a board built from that would
+# cache only holds players who are ONLINE - a board built from that would
 # quietly be a board of whoever happens to be connected.
 #
 # The period rolls over at reset-hour in this timezone. Winners are paid
@@ -2268,7 +2268,7 @@ daily:
 # objectives is a checklist, a queue of one thing is a tutorial.
 #
 # Progress is READ from live state, never counted here, so steps can be
-# reordered or rewritten without resetting anybody — and a player who
+# reordered or rewritten without resetting anybody - and a player who
 # already did something is credited for it the moment they log in.
 #
 # goal is one of:
@@ -2306,7 +2306,7 @@ guide:
       tokens: 1500
     - id: convert_drops
       display: "Store 25 drops in /convert"
-      hint: "Drop rolled items into /convert — stored drops buy armor and Starforges."
+      hint: "Drop rolled items into /convert - stored drops buy armor and Starforges."
       goal: BANKED_DROPS
       amount: 25
       tokens: 2000
@@ -2338,7 +2338,7 @@ guide:
       tokens: 6000
     - id: first_armor
       display: "Buy an armor piece"
-      hint: "/armor sells pieces one at a time — every worn piece adds Luck and Speed."
+      hint: "/armor sells pieces one at a time - every worn piece adds Luck and Speed."
       goal: ARMOR_PIECES
       amount: 1
       tokens: 8000
@@ -2357,7 +2357,7 @@ guide:
       tokens: 12000
     - id: farm_skills
       display: "Buy your first farming skill"
-      hint: "/farmtree is a whole second tree — crops, hoe enchants and Token multipliers."
+      hint: "/farmtree is a whole second tree - crops, hoe enchants and Token multipliers."
       goal: HAS_NODE
       target: crop_wheat
       amount: 1
@@ -2449,7 +2449,7 @@ welcome:
 #   PERMANENT_LUCK  adds `magnitude` Luck on the spot, forever
 #
 # Drinking a second potion of the same kind extends it if it's the same
-# strength and replaces it if it's stronger — two never multiply together.
+# strength and replaces it if it's stronger - two never multiply together.
 consumables:
   # ---- Draughts ----
   # Additive Luck and Speed, counted down in ROLLS rather than minutes.
@@ -2591,7 +2591,7 @@ consumables:
 # have no order. The farm's do: wheat before carrots before nether wart,
 # and a crop's yield skill is worthless before the crop. So the middle
 # column IS the route, and every crop on it opens a row of six optional
-# skills — three each side, getting better the further out they sit.
+# skills - three each side, getting better the further out they sit.
 #
 # The rows between crops carry nothing on purpose. Half the silhouette
 # stays "???" the whole way up, which is what makes the tree look like
@@ -3237,26 +3237,26 @@ novacore:
   cost-growth: 1.18
 
 # Shiny drops. A shiny is the same drop with a marker, an enchant glint
-# and its own entry in /index — 1 in 100 rolls by default, so roughly one
+# and its own entry in /index - 1 in 100 rolls by default, so roughly one
 # shiny per 100 of any given drop.
 #
 # It's gated on a skill node: until that's bought the chance simply
 # doesn't exist, so a player never rolls one or sees a near-miss.
 #
-# Shinies are NEVER auto-converted by the normal per-rarity toggles —
-# only by their own switch in /convert — and they bank separately.
+# Shinies are NEVER auto-converted by the normal per-rarity toggles -
+# only by their own switch in /convert - and they bank separately.
 # The Battle Pass (/pass). One XP bar, two reward tracks.
 #
 # XP comes from rolling and from farming, and a rarer roll is worth
 # more, so the pass tracks how well you're playing rather than just how
-# long — which is the point of tying it to this gamemode at all.
+# long - which is the point of tying it to this gamemode at all.
 #
 # Bump `season` to start a new one: every player's XP, premium status
 # and claims reset the next time they open the menu. Nothing else is
 # touched, so a season change is one number and a /rngadmin reload.
 #
 # Credits are the paid-store currency, so the FREE track never pays
-# them. The premium track does — it was bought with Credits, and the
+# them. The premium track does - it was bought with Credits, and the
 # five milestone payouts add back up to exactly the premium price, so
 # finishing a season earns the next one.
 pass:
@@ -3279,7 +3279,7 @@ pass:
   # running total. Both tracks are optional per level.
   #
   # Potions land every five levels on the free track so there's always
-  # one in sight, and every three on premium — which is most of what the
+  # one in sight, and every three on premium - which is most of what the
   # premium track is actually selling.
   levels:
     # ---- level 1
@@ -3727,7 +3727,7 @@ pass:
         consumable-amount: 10
 
 # Commands the console runs when a gate skill is bought. Left blank the
-# skill still unlocks, it just doesn't hand out a permission — which is
+# skill still unlocks, it just doesn't hand out a permission - which is
 # what you want while the matching plugin isn't installed yet.
 #
 # {player} is replaced with the player's name. The Private Vault skill

@@ -441,7 +441,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
      * Citizens and DecentHolograms both accept "&#RRGGBB" and neither has
      * a gradient tag, so the only way to get one into an NPC name or a
      * hologram line is a code per character. This writes it, shows what it
-     * will look like, and puts it in the chat box to copy — which beats
+     * will look like, and puts it in the chat box to copy - which beats
      * counting characters by hand.
      */
     private boolean doGradient(CommandSender sender, String[] args) {
@@ -488,7 +488,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
     }
 
     /**
-     * Hands out a redeemable. This is also the hook a crate plugin uses —
+     * Hands out a redeemable. This is also the hook a crate plugin uses -
      * a crate reward is just this command with the winner's name on it.
      */
     private boolean doConsumable(CommandSender sender, String[] args) {
@@ -529,7 +529,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
     /**
      * A replacement Farmer's Hoe. The hoe is bound and undroppable and
      * holds no state of its own, so handing out another one costs nothing
-     * — which is exactly why losing one shouldn't be a problem worth
+     * - which is exactly why losing one shouldn't be a problem worth
      * solving any other way.
      */
     private boolean doHoe(CommandSender sender, String[] args) {
@@ -608,7 +608,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
     /**
      * The other half of the pair: strips every node so the tree can be
      * walked from the root again. Stats are derived from node levels now,
-     * so clearing the levels IS clearing the stats — there's nothing left
+     * so clearing the levels IS clearing the stats - there's nothing left
      * behind to reset separately.
      */
     private boolean doLockAll(CommandSender sender, String[] args) {
@@ -634,7 +634,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
 
     /**
      * Marks a node owned without charging for it. Leveled nodes go straight
-     * to max — half a Luck skill isn't a useful thing to hand out for
+     * to max - half a Luck skill isn't a useful thing to hand out for
      * testing.
      */
     private void grantNode(PlayerData data, SkillNode node) {
@@ -785,7 +785,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
 
         PlayerData data = plugin.getPlayerDataManager().get(target.getUniqueId());
         if (args[1].equalsIgnoreCase("reset")) {
-            // Clears the claim ledger only — progress itself is derived, so
+            // Clears the claim ledger only - progress itself is derived, so
             // every already-earned tier re-announces on the next check.
             data.getClaimedMilestones().clear();
             sender.sendMessage(ChatColor.GREEN + "Cleared claimed milestones for " + target.getName() + ".");
@@ -844,7 +844,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
                     skipped++;
                     continue;
                 }
-                // Only claim empty space — never overwrite someone's build.
+                // Only claim empty space - never overwrite someone's build.
                 if (!block.getType().isAir() && !block.isReplaceable()) {
                     skipped++;
                     continue;
@@ -860,7 +860,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         return true;
     }
 
-    /** /rngadmin boost &lt;level&gt; [minutes] — force the global boost on for testing. */
+    /** /rngadmin boost &lt;level&gt; [minutes] - force the global boost on for testing. */
     private boolean doBoost(CommandSender sender, String[] args) {
         if (args.length < 2) {
             sender.sendMessage(ChatColor.GRAY + "Boost: " + ChatColor.LIGHT_PURPLE

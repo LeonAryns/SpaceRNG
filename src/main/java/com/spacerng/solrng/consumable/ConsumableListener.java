@@ -41,7 +41,7 @@ public class ConsumableListener implements Listener {
         if (consumable == null) {
             // The id was removed from config after the item was handed out.
             event.getPlayer().sendMessage(ChatColor.RED
-                    + "That reward isn't part of the game any more — hold onto it, or ask staff.");
+                    + "That reward isn't part of the game any more - hold onto it, or ask staff.");
             return;
         }
 

@@ -6,7 +6,7 @@ import com.spacerng.solrng.starforge.StarforgeTier;
 import org.bukkit.inventory.ItemStack;
 
 /**
- * Builds a player's Starforge — the item they right-click to roll and
+ * Builds a player's Starforge - the item they right-click to roll and
  * left-click to toggle Auto Roll. Shared by the /rngcore give command and
  * the first-join starter kit so both hand out the same thing.
  *

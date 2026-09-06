@@ -22,12 +22,12 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Manages the equipped-tag scoreboard team prefix (item tag only — no
+ * Manages the equipped-tag scoreboard team prefix (item tag only - no
  * level/prestige, see {@link #levelBadge}) and the floating item-name/odds
  * hologram above a player's head.
  *
  * Each player gets their own personal {@link Scoreboard} (see
- * ScoreboardManager, for the per-player sidebar) — a player can only be
+ * ScoreboardManager, for the per-player sidebar) - a player can only be
  * subscribed to ONE Scoreboard at a time, so a team registered only on
  * Bukkit's shared "main" scoreboard is invisible to every player once
  * they're switched onto their own board. That was the root cause of tags
@@ -39,20 +39,20 @@ import java.util.UUID;
  * handed a fresh personal board on join).
  *
  * Level/Prestige is intentionally NOT part of the team prefix (so it never
- * shows above a player's head, in chat, or in the vanilla tab list) — it's
+ * shows above a player's head, in chat, or in the vanilla tab list) - it's
  * exposed only via the %solrng_level% PlaceholderAPI placeholder, for TAB
  * (or similar) to place in its own tab-list-only format.
  *
- * The equipped tag also floats two extra lines above the player's head —
+ * The equipped tag also floats two extra lines above the player's head -
  * two TextDisplay entities mounted DIRECTLY on the player as separate
- * passengers (zero temporal lag — the client attaches passengers to their
- * vehicle every render frame, not tick-by-tick — unlike any teleport-
+ * passengers (zero temporal lag - the client attaches passengers to their
+ * vehicle every render frame, not tick-by-tick - unlike any teleport-
  * polling approach, which always trails by at least one tick). Each one's
  * own Transformation offset controls its height; a 2-level chain (one
  * display mounted on the other) was tried first but was visibly twitchy
  * while moving, since the second-level passenger's position depends on
  * the first's already-interpolated position, compounding a small extra
- * lag — mounting both directly on the player avoids that entirely.
+ * lag - mounting both directly on the player avoids that entirely.
  */
 public class TagManager {
 
@@ -62,12 +62,12 @@ public class TagManager {
     private static final float TOP_OFFSET = 0.82f;
     private static final float BOTTOM_OFFSET = 0.50f;
     // TextDisplay entities support a real render scale (unlike chat/scoreboard
-    // text, which has no font-size control at all) — this is what actually
+    // text, which has no font-size control at all) - this is what actually
     // makes the tag bigger above a player's head.
     private static final float TEXT_SCALE = 1.4f;
 
     private final SolRNGPlugin plugin;
-    // index 0 = item name (top), index 1 = odds (bottom) — both direct
+    // index 0 = item name (top), index 1 = odds (bottom) - both direct
     // passengers of the player.
     private final Map<UUID, TextDisplay[]> holograms = new HashMap<>();
     // Cached equipped-tag prefix text per player, so a newly-joined
@@ -86,7 +86,7 @@ public class TagManager {
      */
     public void refreshPrefix(Player player, PlayerData data) {
         String prefix = buildTagPrefix(data);
-        // Cached either way — %solrng_tag% reads from here, so the
+        // Cached either way - %solrng_tag% reads from here, so the
         // placeholder keeps working even when TAB owns the nametag.
         prefixCache.put(player.getUniqueId(), prefix);
 
@@ -149,11 +149,11 @@ public class TagManager {
     /**
      * Backfills a player's brand-new personal Scoreboard (just handed to
      * them via player.setScoreboard()) with every other online player's
-     * cached tag team — otherwise they'd see nobody's tag, including
+     * cached tag team - otherwise they'd see nobody's tag, including
      * their own, until someone re-equips.
      */
     public void syncAllTeamsTo(Player viewer) {
-        if (!managesNametag()) return; // TAB owns nametags — don't fight it
+        if (!managesNametag()) return; // TAB owns nametags - don't fight it
         Scoreboard board = viewer.getScoreboard();
         for (Player subject : Bukkit.getOnlinePlayers()) {
             String prefix = prefixCache.getOrDefault(subject.getUniqueId(), "");
@@ -172,14 +172,14 @@ public class TagManager {
         hideHologram(player);
     }
 
-    /** The equipped-tag prefix only — no level/prestige. Used in chat. */
+    /** The equipped-tag prefix only - no level/prestige. Used in chat. */
     public String getPrefix(Player player) {
         return prefixCache.getOrDefault(player.getUniqueId(), "");
     }
 
     /**
      * Compact Level/Prestige badge, e.g. "[P2] Lv23" or just "Lv5". Not
-     * part of the team prefix — exposed only via %solrng_level% for TAB's
+     * part of the team prefix - exposed only via %solrng_level% for TAB's
      * own tab-list-only format, so it never shows in chat, nametags, or
      * join/quit messages.
      */
@@ -194,12 +194,12 @@ public class TagManager {
 
     /**
      * (Re)builds the floating odds/item-name display above the player's
-     * head. Safe to call repeatedly (e.g. on join or respawn) — always
+     * head. Safe to call repeatedly (e.g. on join or respawn) - always
      * tears down any previous displays first. oddsText renders on TOP,
      * itemNameColored just below it.
      *
      * Both displays are mounted DIRECTLY on the player (not chained onto
-     * each other) — a 2-level mount chain (player -> A -> B) was visibly
+     * each other) - a 2-level mount chain (player -> A -> B) was visibly
      * twitchy while moving, since B's rendered position depends on A's own
      * already-interpolated position, compounding a tiny extra lag on top
      * of A. Two direct passengers each interpolate straight off the

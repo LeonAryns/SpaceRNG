@@ -20,7 +20,7 @@ public class ConvertHolder implements InventoryHolder {
     // Rows 0-2 (27 slots) are the "drop items here" input area.
     public static final int[] INPUT_SLOTS = IntStream.rangeClosed(0, 26).toArray();
     public static final int CONFIRM_SLOT = 31; // row 3, centered
-    public static final int AUTO_TOGGLE_ROW_START = 37; // row 4 — one button per rarity
+    public static final int AUTO_TOGGLE_ROW_START = 37; // row 4 - one button per rarity
     public static final int AUTO_TOGGLE_ROW_END = 42;
     // Shinies get their own switch, deliberately apart from the rarity row.
     public static final int SHINY_TOGGLE_SLOT = 44;

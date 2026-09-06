@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * /top — the leaderboards in chat. The hologram at spawn shows the top
+ * /top - the leaderboards in chat. The hologram at spawn shows the top
  * three; this is where you go to find yourself.
  */
 public class TopCommand implements CommandExecutor, TabCompleter {

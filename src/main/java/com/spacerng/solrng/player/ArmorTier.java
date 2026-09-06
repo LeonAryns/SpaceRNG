@@ -6,13 +6,13 @@ import org.bukkit.Material;
 import java.util.Map;
 
 /**
- * One /armor tier. The cost is the price of a SINGLE piece — pieces are
- * bought one at a time — and the Luck/Speed bonuses are what each worn
+ * One /armor tier. The cost is the price of a SINGLE piece - pieces are
+ * bought one at a time - and the Luck/Speed bonuses are what each worn
  * piece grants on its own.
  */
 public class ArmorTier {
 
-    private final String id; // e.g. "LEATHER" — also the Material prefix
+    private final String id; // e.g. "LEATHER" - also the Material prefix
     private final String display;
     private final Map<Rarity, Long> costs;
     private final double luckBonus;
@@ -46,7 +46,7 @@ public class ArmorTier {
         return speedBonus;
     }
 
-    // Gold armor is "GOLDEN_*" in the Material enum, not "GOLD_*" — every
+    // Gold armor is "GOLDEN_*" in the Material enum, not "GOLD_*" - every
     // other tier's id matches its Material prefix exactly.
     private String materialPrefix() {
         return id.equals("GOLD") ? "GOLDEN" : id;
@@ -57,7 +57,7 @@ public class ArmorTier {
         return Material.valueOf(materialPrefix() + "_" + piece.name());
     }
 
-    /** e.g. "Leather Boots" — the name the physical item carries. */
+    /** e.g. "Leather Boots" - the name the physical item carries. */
     public String pieceDisplay(ArmorPiece piece) {
         return display + " " + piece.displayName();
     }

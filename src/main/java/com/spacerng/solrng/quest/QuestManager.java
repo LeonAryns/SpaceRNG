@@ -26,7 +26,7 @@ import java.util.UUID;
  *
  * It's linear on purpose. A grid of optional objectives is a checklist; a
  * queue of one thing is a tutorial. Only the current step is shown, and it
- * advances the instant its condition is met — including retroactively, so
+ * advances the instant its condition is met - including retroactively, so
  * a player who already did something is never asked to do it twice.
  *
  * Progress is derived from live state rather than counted here, so the
@@ -191,7 +191,7 @@ public class QuestManager {
     private void updateBar(Player player, PlayerData data) {
         Quest quest = current(player, data);
 
-        // The guide's bar disappears the moment the guide is done — a
+        // The guide's bar disappears the moment the guide is done - a
         // permanent empty bar is just clutter for a veteran.
         if (quest == null) {
             hide(player.getUniqueId());
@@ -238,7 +238,7 @@ public class QuestManager {
             player.sendMessage(ChatColor.DARK_GRAY + "[" + ChatColor.GREEN + ChatColor.BOLD + "GUIDE"
                     + ChatColor.RESET + ChatColor.DARK_GRAY + "] " + ChatColor.GRAY + "Next: "
                     + ChatColor.WHITE + quest.getDisplay()
-                    + ChatColor.DARK_GRAY + "  —  " + ChatColor.GRAY + "see " + ChatColor.YELLOW + "/guide");
+                    + ChatColor.DARK_GRAY + "  -  " + ChatColor.GRAY + "see " + ChatColor.YELLOW + "/guide");
         }
     }
 

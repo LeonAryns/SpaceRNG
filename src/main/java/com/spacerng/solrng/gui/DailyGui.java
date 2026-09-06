@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * /daily — the streak as a run of days you can see all of at once.
+ * /daily - the streak as a run of days you can see all of at once.
  *
  * Same shape as the Nova Core board and deliberately without its
  * checkpoints: the whole tension of a streak is that there's no safety

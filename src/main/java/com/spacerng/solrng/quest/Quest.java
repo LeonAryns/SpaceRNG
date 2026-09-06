@@ -4,7 +4,7 @@ package com.spacerng.solrng.quest;
  * One step of the starting guide.
  *
  * A quest is deliberately just a threshold against a number the plugin
- * already tracks — same approach as milestones. Nothing here counts
+ * already tracks - same approach as milestones. Nothing here counts
  * anything itself, so a quest can't drift out of sync with the thing it's
  * describing, and a player who did the task before the guide existed is
  * already credited for it.
@@ -19,7 +19,7 @@ public class Quest {
         ROLLS,              // lifetime rolls
         DISCOVERIES,        // unique drops in the index
         SKILL_NODES,        // skill tree nodes owned, across both trees
-        HAS_NODE,           // a specific node — target is its id
+        HAS_NODE,           // a specific node - target is its id
         TAG_EQUIPPED,       // 1 once a tag is on
         BANKED_DROPS,       // drops stored via /convert
         STARFORGE_TIER,     // ladder position, 0 = Basic
@@ -35,7 +35,7 @@ public class Quest {
     private final String display;
     private final String hint;      // the one-line "how" shown under the goal
     private final Goal goal;
-    private final String target;    // node id, crop id — goal-dependent
+    private final String target;    // node id, crop id - goal-dependent
     private final long amount;
     private final long rewardTokens;
     private final double rewardMoney;

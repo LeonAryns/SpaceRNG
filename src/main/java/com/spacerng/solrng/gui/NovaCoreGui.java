@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * /novacore — the ladder drawn as a path you can actually trace.
+ * /novacore - the ladder drawn as a path you can actually trace.
  *
  * The tiers snake through the menu rather than filling rows left to right,
  * so the climb reads as a route with a start and an end instead of a
@@ -25,18 +25,18 @@ import java.util.List;
 public class NovaCoreGui {
 
     /**
-     * The route, in (column, row) order — 1-indexed, converted to slots as
+     * The route, in (column, row) order - 1-indexed, converted to slots as
      * (row-1)*9 + (column-1). Tier 1 is the first entry.
      */
     private static final int[] PATH_SLOTS = {
-            37, 28, 19, 10,   // (2,5) (2,4) (2,3) (2,2)  — up the left side
-            11, 12,           // (3,2) (4,2)              — across the top
-            21, 30, 39,       // (4,3) (4,4) (4,5)        — back down
-            40, 41,           // (5,5) (6,5)              — across the bottom
-            32, 23, 14,       // (6,4) (6,3) (6,2)        — up again
-            15, 16,           // (7,2) (8,2)              — across
-            25, 34, 43,       // (8,3) (8,4) (8,5)        — down the right
-            44                // (9,5)                    — the last rung
+            37, 28, 19, 10,   // (2,5) (2,4) (2,3) (2,2)  - up the left side
+            11, 12,           // (3,2) (4,2)              - across the top
+            21, 30, 39,       // (4,3) (4,4) (4,5)        - back down
+            40, 41,           // (5,5) (6,5)              - across the bottom
+            32, 23, 14,       // (6,4) (6,3) (6,2)        - up again
+            15, 16,           // (7,2) (8,2)              - across
+            25, 34, 43,       // (8,3) (8,4) (8,5)        - down the right
+            44                // (9,5)                    - the last rung
     };
 
     public static final int FORGE_SLOT = 49;
@@ -71,7 +71,7 @@ public class NovaCoreGui {
         boolean next = tier == current + 1;
         boolean checkpoint = nova.isCheckpoint(tier);
 
-        // Checkpoints keep their own icon at every state — they're the part
+        // Checkpoints keep their own icon at every state - they're the part
         // of the route worth planning around.
         Material material;
         if (checkpoint) {
@@ -92,7 +92,7 @@ public class NovaCoreGui {
         lore.add(Lore.line(ChatColor.LIGHT_PURPLE,
                 String.format("%.2f", nova.multiplierAt(tier)) + "x Luck, Money and Coins"));
         if (checkpoint) {
-            lore.add(Lore.line(ChatColor.AQUA, "Checkpoint — a shatter never"));
+            lore.add(Lore.line(ChatColor.AQUA, "Checkpoint - a shatter never"));
             lore.add(Lore.line(ChatColor.AQUA, "drops you below here."));
         }
         lore.add("");

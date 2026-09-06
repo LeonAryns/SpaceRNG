@@ -58,7 +58,7 @@ public class ConvertGui {
             ItemMeta meta = toggle.getItemMeta();
             String status = on ? ChatColor.GREEN + "" + ChatColor.BOLD + "On" : ChatColor.RED + "" + ChatColor.BOLD + "Off";
             meta.setDisplayName(plugin.getRarityManager().style(rarity, rarity.displayName())
-                    + ChatColor.DARK_GRAY + " — " + status);
+                    + ChatColor.DARK_GRAY + " - " + status);
             meta.setLore(autoConvertUnlocked
                     ? List.of(
                             Lore.line(ChatColor.AQUA, "Every " + rarity.displayName() + " you roll goes"),
@@ -83,7 +83,7 @@ public class ConvertGui {
 
     /**
      * What the player has banked. Converting doesn't destroy a drop, it
-     * just moves it out of the inventory — so this is a running total of
+     * just moves it out of the inventory - so this is a running total of
      * spendable Common/Uncommon/... rather than a separate currency.
      */
     /**
@@ -97,7 +97,7 @@ public class ConvertGui {
         ItemStack item = new ItemStack(on ? Material.LIME_CONCRETE : Material.RED_CONCRETE);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(Lore.title(ChatColor.AQUA, Lore.SPARK + " Shiny")
-                + ChatColor.DARK_GRAY + " — "
+                + ChatColor.DARK_GRAY + " - "
                 + (on ? ChatColor.GREEN.toString() + ChatColor.BOLD + "On"
                       : ChatColor.RED.toString() + ChatColor.BOLD + "Off"));
         meta.setLore(List.of(

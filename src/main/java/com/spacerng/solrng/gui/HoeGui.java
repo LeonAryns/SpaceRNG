@@ -31,7 +31,7 @@ public class HoeGui {
     /**
      * Every interior slot of the top three rows, left to right. Enchants
      * fill them in order and anything left over is drawn as an empty
-     * socket rather than as nothing — the rack should look like it has
+     * socket rather than as nothing - the rack should look like it has
      * room, not like it stopped early.
      */
     private static final int[] SLOTS = {
@@ -230,7 +230,7 @@ public class HoeGui {
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(Lore.title(on ? ChatColor.GREEN : ChatColor.RED, label)
-                + ChatColor.DARK_GRAY + " — "
+                + ChatColor.DARK_GRAY + " - "
                 + (on ? ChatColor.GREEN.toString() + ChatColor.BOLD + "On"
                       : ChatColor.RED.toString() + ChatColor.BOLD + "Off"));
         meta.setLore(List.of(

@@ -47,7 +47,7 @@ public class RollListener implements Listener {
     // can show a live countdown without duplicating the timing logic.
     private final Map<UUID, Long> remainingTicks = new HashMap<>();
     // Guards against a single physical right-click firing PlayerInteractEvent
-    // twice — Bukkit/Paper fires a second RIGHT_CLICK_AIR event right after
+    // twice - Bukkit/Paper fires a second RIGHT_CLICK_AIR event right after
     // RIGHT_CLICK_BLOCK for the same hand when the clicked block doesn't
     // consume the interaction (most blocks). EquipmentSlot filtering alone
     // doesn't catch this since both events are for the main hand.
@@ -88,7 +88,7 @@ public class RollListener implements Listener {
 
     /**
      * Whether this roll comes out shiny. Gated on the skill node, so the
-     * chance simply doesn't exist until it's bought — a player who hasn't
+     * chance simply doesn't exist until it's bought - a player who hasn't
      * unlocked it never rolls one and never sees a near-miss.
      */
     public boolean rollShiny(PlayerData data) {
@@ -100,7 +100,7 @@ public class RollListener implements Listener {
     /**
      * The base 1-in-100, scaled by the Shiny Chance skills. They add to a
      * multiplier rather than to the chance itself, so "+10% per level"
-     * means a tenth more shinies per level whatever the base is set to —
+     * means a tenth more shinies per level whatever the base is set to -
      * retuning shiny.chance doesn't silently retune the skills too.
      */
     public double shinyChance(PlayerData data) {
@@ -123,7 +123,7 @@ public class RollListener implements Listener {
     }
 
     /**
-     * Mid-roll or mid-reveal — either way, don't start another roll. This
+     * Mid-roll or mid-reveal - either way, don't start another roll. This
      * is what both the manual click and the auto-roll loop check.
      */
     public boolean isBusy(UUID uuid) {
@@ -141,7 +141,7 @@ public class RollListener implements Listener {
     }
 
     /**
-     * Cancels a player's in-progress roll task without granting anything —
+     * Cancels a player's in-progress roll task without granting anything -
      * used when they log out mid-roll so the task doesn't keep running
      * against an offline player.
      */
@@ -167,7 +167,7 @@ public class RollListener implements Listener {
         if (!rightClick && !leftClick) return;
         if (event.getHand() != EquipmentSlot.HAND) return; // ignore the duplicate off-hand firing
 
-        // Identified by its PersistentData tag, not its name — every
+        // Identified by its PersistentData tag, not its name - every
         // Starforge tier is a different display name but the same item.
         if (!plugin.getStarforgeManager().isStarforge(event.getItem())) return;
 
@@ -176,7 +176,7 @@ public class RollListener implements Listener {
         Player player = event.getPlayer();
 
         // Same physical click can still fire twice for the main hand alone
-        // (RIGHT_CLICK_BLOCK immediately followed by RIGHT_CLICK_AIR) — if
+        // (RIGHT_CLICK_BLOCK immediately followed by RIGHT_CLICK_AIR) - if
         // we just handled a click from this player within the last tick,
         // this is that duplicate, not a real second click.
         long now = System.currentTimeMillis();
@@ -199,7 +199,7 @@ public class RollListener implements Listener {
     }
 
     /**
-     * The Starforge can't be dropped — it's the one item a player can't
+     * The Starforge can't be dropped - it's the one item a player can't
      * afford to lose by fumbling the drop key.
      */
     @EventHandler
@@ -213,7 +213,7 @@ public class RollListener implements Listener {
 
     /**
      * Left-clicking the Starforge flips Auto Roll, but only once the Auto
-     * Roll skill is unlocked — otherwise it just points them at the tree.
+     * Roll skill is unlocked - otherwise it just points them at the tree.
      */
     private void toggleAutoRoll(Player player, PlayerData data) {
         if (!data.hasUnlocked("auto_roll_root")) {
@@ -240,7 +240,7 @@ public class RollListener implements Listener {
 
         // Supercharge fires on the roll NUMBER, so it has to be decided
         // against the roll that is about to happen rather than the one
-        // that just did — grantRoll is what increments the counter.
+        // that just did - grantRoll is what increments the counter.
         long rollNumber = data.getTotalRolls() + 1;
         double supercharge = plugin.getSkillTreeManager().superchargeFor(data, rollNumber);
         // A banked charge is spent here rather than at the end, so it can't
@@ -269,7 +269,7 @@ public class RollListener implements Listener {
         boolean shiny = rollShiny(data);
 
         // An Epic+ roll is stretched to at least the length of its own
-        // build-up, so the effect always gets to play out in full — a
+        // build-up, so the effect always gets to play out in full - a
         // 10-second Mythical reveal on a 2-second roll would just be a
         // flash. It also means a longer-than-usual roll is itself the
         // first hint that something good is coming.
@@ -349,7 +349,7 @@ public class RollListener implements Listener {
     }
 
     /**
-     * How long one roll takes for this player right now, in ticks —
+     * How long one roll takes for this player right now, in ticks -
      * base duration scaled by their current Speed (skill tree + worn
      * armor). Auto Roll fires on this same cadence, so upgrading Speed
      * speeds up manual and automatic rolls identically.
@@ -362,7 +362,7 @@ public class RollListener implements Listener {
 
     /**
      * Flashes a candidate item drawn from the same luck-weighted odds as
-     * the real roll — pulling a uniform-random item here made the teaser
+     * the real roll - pulling a uniform-random item here made the teaser
      * flash absurd combinations (a 1-in-10M item right before landing on
      * something 1-in-17), which didn't feel believable.
      */
@@ -387,7 +387,7 @@ public class RollListener implements Listener {
     private void finishRoll(Player player, PlayerData data, RollableItem result, boolean shiny) {
         clearActionBar(player);
         // The level-up chime would land on the same tick as a big drop's
-        // detonation and just clutter it — the aura brings its own.
+        // detonation and just clutter it - the aura brings its own.
         if (!RollAura.isBigDrop(result.getRarity())) {
             player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.8f, 1.2f);
         }
@@ -484,7 +484,7 @@ public class RollListener implements Listener {
             if (!overflow.isEmpty()) {
                 overflow.values().forEach(leftover ->
                         player.getWorld().dropItemNaturally(player.getLocation(), leftover));
-                player.sendMessage(ChatColor.RED + "Your inventory is full — the item dropped at your feet!");
+                player.sendMessage(ChatColor.RED + "Your inventory is full - the item dropped at your feet!");
             }
             if (!silent) {
                 sendHoverable(player, previewItem, RollFormat.personalRollLine(plugin, result, shiny));
@@ -510,7 +510,7 @@ public class RollListener implements Listener {
     }
 
     /**
-     * Every roll also pays real Money (Vault) on top of the item itself —
+     * Every roll also pays real Money (Vault) on top of the item itself -
      * money = odds x configured multiplier, so rarer items pay out more.
      * Returns 0 if Vault/an economy plugin isn't installed.
      */
@@ -532,7 +532,7 @@ public class RollListener implements Listener {
 
     /**
      * Sends a chat line where hovering over it shows the real item tooltip
-     * (name, lore — Rarity/Chance) via Minecraft's built-in hover-item
+     * (name, lore - Rarity/Chance) via Minecraft's built-in hover-item
      * component. No resource pack needed; this is the same mechanism as
      * shift-clicking an item into chat.
      */
@@ -544,7 +544,7 @@ public class RollListener implements Listener {
 
     /**
      * The first time a player rolls a given item, it's added to their
-     * /index and grants a small permanent luck bonus — collecting every
+     * /index and grants a small permanent luck bonus - collecting every
      * item is itself a form of progression.
      */
     private void maybeRegisterDiscovery(Player player, PlayerData data, RollableItem result, boolean silent,

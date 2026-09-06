@@ -21,7 +21,7 @@ import java.util.Map;
 
 /**
  * Long-run goals across four tracks. Progress is read from what the plugin
- * already knows rather than being counted separately wherever possible —
+ * already knows rather than being counted separately wherever possible -
  * prestige and index size are already on PlayerData, and playtime comes
  * straight from the vanilla statistic, so none of it can drift out of sync
  * with reality or be lost if a save is rolled back.
@@ -117,7 +117,7 @@ public class MilestoneManager {
     }
 
     /**
-     * Announces anything newly reached. Rewards are NOT handed over here —
+     * Announces anything newly reached. Rewards are NOT handed over here -
      * they wait in /milestones to be collected by hand, so the payout is a
      * deliberate click rather than a number that quietly moves while you're
      * doing something else.
@@ -137,7 +137,7 @@ public class MilestoneManager {
         }
     }
 
-    /** The 5s sweep — one pass covers every track for everyone online. */
+    /** The 5s sweep - one pass covers every track for everyone online. */
     public void checkAll() {
         for (Player player : Bukkit.getOnlinePlayers()) {
             check(player);
@@ -227,7 +227,7 @@ public class MilestoneManager {
         player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0f, 1.0f);
     }
 
-    /** "1,000 Coins, 5 Gems" — blank when a tier pays nothing. */
+    /** "1,000 Coins, 5 Gems" - blank when a tier pays nothing. */
     public String rewardText(MilestoneTrack.Tier tier) {
         List<String> parts = new ArrayList<>();
         if (tier.tokens() > 0) {

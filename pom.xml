@@ -6,7 +6,7 @@
 
     <groupId>com.spacerng</groupId>
     <artifactId>sol-rng</artifactId>
-    <version>66</version>
+    <version>67</version>
     <packaging>jar</packaging>
 
     <properties>
@@ -38,7 +38,7 @@
             <scope>provided</scope>
         </dependency>
         <!-- Vault: only used to read real Money balances for the scoreboard.
-             Soft-dependency at runtime — the plugin works fine without Vault
+             Soft-dependency at runtime - the plugin works fine without Vault
              installed, "Money" just shows as N/A. -->
         <dependency>
             <groupId>com.github.MilkBowl</groupId>
@@ -48,7 +48,7 @@
         </dependency>
         <!-- PlaceholderAPI: exposes %solrng_tag% so TAB (which overrides the
              vanilla tab list) can be configured to show the equipped tag
-             there. Soft-dependency — the plugin works fine without it. -->
+             there. Soft-dependency - the plugin works fine without it. -->
         <dependency>
             <groupId>me.clip</groupId>
             <artifactId>placeholderapi</artifactId>

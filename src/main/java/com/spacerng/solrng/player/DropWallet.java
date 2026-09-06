@@ -9,7 +9,7 @@ import org.bukkit.persistence.PersistentDataType;
 
 /**
  * One place that answers "how many drops of rarity X can this player
- * spend?" — physical rolled items sitting in their inventory plus the
+ * spend?" - physical rolled items sitting in their inventory plus the
  * virtual drops they've banked through /convert. Shops spend the physical
  * items first and only fall back to the bank, so converting is never a
  * downgrade: a banked Common is worth exactly the same as one in hand.

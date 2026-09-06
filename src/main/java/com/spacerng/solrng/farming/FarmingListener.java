@@ -19,10 +19,10 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 /**
  * Harvesting a fully-grown farm crop (config: farming.crops) pays Tokens
  * on top of the normal vanilla drop, scaled by the player's own
- * farmTokenMultiplier — everyone shares the same field, but payout is
+ * farmTokenMultiplier - everyone shares the same field, but payout is
  * personal. The crop is replanted straight to fully-grown a short delay
  * later instead of waiting on random tick growth. Requires the
- * "farming_unlock" skill tree node — breaking any listed crop material is
+ * "farming_unlock" skill tree node - breaking any listed crop material is
  * blocked entirely without it.
  */
 public class FarmingListener implements Listener {
@@ -42,7 +42,7 @@ public class FarmingListener implements Listener {
         FarmingManager farming = plugin.getFarmingManager();
         if (!farming.isCrop(material)) return;
         // Shared-farm plots are wheat too, but they're handled entirely by
-        // FarmPlotListener — paying out here as well would double-reward
+        // FarmPlotListener - paying out here as well would double-reward
         // and replant a block that's meant to never change.
         if (plugin.getFarmPlotManager().isPlot(block.getLocation())) return;
 
@@ -79,7 +79,7 @@ public class FarmingListener implements Listener {
     }
 
     private void replant(Block block, Material material) {
-        if (block.getType() != Material.AIR) return; // something else occupies it now — leave it alone
+        if (block.getType() != Material.AIR) return; // something else occupies it now - leave it alone
         block.setType(material);
         BlockData data = block.getBlockData();
         if (data instanceof Ageable ageable) {

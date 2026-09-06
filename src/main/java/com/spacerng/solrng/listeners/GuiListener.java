@@ -295,7 +295,7 @@ public class GuiListener implements Listener {
         Player player = (Player) event.getWhoClicked();
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         plugin.getNovaCoreManager().attempt(player, data);
-        // Reopened either way — the odds, the price and the board all moved.
+        // Reopened either way - the odds, the price and the board all moved.
         player.openInventory(NovaCoreGui.build(plugin, player));
         plugin.getLuckBarManager().update(player);
     }
@@ -351,7 +351,7 @@ public class GuiListener implements Listener {
     /**
      * The hub just runs the shop's own command. Going through the command
      * rather than opening the menu directly means every gate, message and
-     * future change lives in exactly one place — the hub can't drift out
+     * future change lives in exactly one place - the hub can't drift out
      * of step with what /armor itself does.
      */
     private void handleShopClick(InventoryClickEvent event) {
@@ -588,7 +588,7 @@ public class GuiListener implements Listener {
     }
 
     private void handleIndexClick(InventoryClickEvent event) {
-        event.setCancelled(true); // collection log — clicking equips a tag or navigates, never moves items
+        event.setCancelled(true); // collection log - clicking equips a tag or navigates, never moves items
         if (event.getClickedInventory() == null || !(event.getClickedInventory().getHolder() instanceof IndexHolder holder)) return;
 
         Player player = (Player) event.getWhoClicked();
@@ -624,7 +624,7 @@ public class GuiListener implements Listener {
         } else if (rawSlot == 8) {
             player.openInventory(IndexGui.build(plugin, player, holder.getFilter(), holder.getPage() + 1));
         }
-        // slot 7 is the Index Progress readout — no-op
+        // slot 7 is the Index Progress readout - no-op
     }
 
     private void handleSkillTreeClick(InventoryClickEvent event) {
@@ -674,7 +674,7 @@ public class GuiListener implements Listener {
 
             if (nodeId.equals("farming_unlock")) {
                 player.getInventory().addItem(plugin.getFarmingManager().createBoundHoe(data));
-                player.sendMessage(ChatColor.GREEN + "You received a Farmer's Hoe — bound to you!");
+                player.sendMessage(ChatColor.GREEN + "You received a Farmer's Hoe - bound to you!");
             }
 
             if (node != null) {
@@ -691,8 +691,8 @@ public class GuiListener implements Listener {
     }
 
     /**
-     * Only rolled drops may enter the input rows. Anything else — the
-     * Starforge, the Farmer's Hoe, armor, a stack of dirt — is bounced at
+     * Only rolled drops may enter the input rows. Anything else - the
+     * Starforge, the Farmer's Hoe, armor, a stack of dirt - is bounced at
      * the door rather than being silently accepted and then having to be
      * handled by the converter.
      *
@@ -785,7 +785,7 @@ public class GuiListener implements Listener {
         }
     }
 
-    /** Dragging spreads a stack across slots — same door, same lock. */
+    /** Dragging spreads a stack across slots - same door, same lock. */
     @EventHandler
     public void onDrag(InventoryDragEvent event) {
         Inventory top = event.getView().getTopInventory();
@@ -808,7 +808,7 @@ public class GuiListener implements Listener {
     }
 
     /**
-     * The input rows are a virtual inventory — anything still sitting in
+     * The input rows are a virtual inventory - anything still sitting in
      * them when the menu closes is destroyed with it. Hand it all back
      * instead; losing a Starforge to a stray Escape isn't acceptable.
      */
@@ -831,7 +831,7 @@ public class GuiListener implements Listener {
 
     /**
      * Converting banks each item as a stored drop of its own rarity
-     * rather than paying Credits — a Common in the bank buys exactly what
+     * rather than paying Credits - a Common in the bank buys exactly what
      * a Common in the inventory buys, so /armor and /starforge stay the
      * sinks for rolled loot and Credits stay reserved for the paid store.
      */
@@ -913,7 +913,7 @@ public class GuiListener implements Listener {
 
     /**
      * A gate skill that opens a whole menu deserves more than a one-line
-     * "unlocked" — the point of buying it is the thing it leads to, so the
+     * "unlocked" - the point of buying it is the thing it leads to, so the
      * message names the command to go and use.
      */
     private void announceUnlock(Player player, com.spacerng.solrng.player.SkillNode node) {
@@ -932,7 +932,7 @@ public class GuiListener implements Listener {
     }
 
     /**
-     * Some unlocks live outside this plugin — a Private Vault is another
+     * Some unlocks live outside this plugin - a Private Vault is another
      * plugin's permission. The commands are configured rather than
      * hard-coded so the skill still works whatever /pv plugin is installed,
      * and silently does nothing at all if none is.

@@ -61,7 +61,7 @@ public class SkillNode {
     private final String requires; // id of required node, or null
     private final Effect effect;
     private final double value;
-    // 1 = a normal one-time unlock. >1 = a leveled node — the same cost is
+    // 1 = a normal one-time unlock. >1 = a leveled node - the same cost is
     // paid repeatedly (once per level, up to maxLevel), each purchase
     // adding another `value` to the effect (e.g. maxLevel 10, value 0.05
     // LUCK = +5% Luck per level, up to +50% at level 10).
@@ -76,7 +76,7 @@ public class SkillNode {
     // Which page of the tree draws this node, 0-indexed.
     private final int page;
     private final String icon;
-    // Free-form pointer some effects need — a crop id, an enchant id.
+    // Free-form pointer some effects need - a crop id, an enchant id.
     private final String target;
     // How many rolls between triggers, for the effects that fire on a
     // count rather than continuously (SUPERCHARGE).

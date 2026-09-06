@@ -24,9 +24,9 @@ public class PlayerData {
     private final Set<String> unlockedNodes = new HashSet<>();
     // Current level (0 = not started) of leveled skill tree nodes, e.g.
     // "speed_skill" -> 4 out of a maxLevel of 10. One-time nodes never
-    // appear here — they live in unlockedNodes instead.
+    // appear here - they live in unlockedNodes instead.
     private final Map<String, Integer> nodeLevels = new HashMap<>();
-    // Item display names (e.g. "Fallen Star") the player has ever rolled —
+    // Item display names (e.g. "Fallen Star") the player has ever rolled -
     // backs /index and its per-discovery luck bonus.
     private final Set<String> discoveredItems = new HashSet<>();
     private final Set<Rarity> autoConvertRarities = EnumSet.noneOf(Rarity.class);
@@ -43,12 +43,12 @@ public class PlayerData {
     // Rarities whose global announcement this player has switched off.
     // Their own drops are never muted - this is for everyone else's.
     private final Set<Rarity> mutedBroadcasts = EnumSet.noneOf(Rarity.class);
-    // Auto-roll always fires at the player's own current roll speed — no
+    // Auto-roll always fires at the player's own current roll speed - no
     // separate fixed interval.
     private boolean autoRollEnabled = false;
     private String equippedTagItemKey = null; // e.g. "Fallen Star"
     private String equippedTagRarity = null;  // stored so we can re-color it on load
-    // Chance (0.0-1.0) of an extra free roll right after any roll finishes —
+    // Chance (0.0-1.0) of an extra free roll right after any roll finishes -
     // granted by the Bonus Roll skill tree branch.
     private double bonusRollChance = 0.0;
     // Virtual drop bank: /convert turns physical rolled items into stored
@@ -57,28 +57,28 @@ public class PlayerData {
     // Credits stay reserved for the paid store.
     private final Map<Rarity, Long> dropBank = new EnumMap<>(Rarity.class);
     // Lifetime count of Common/Uncommon items converted via /convert or
-    // auto-convert — shown on the skill tree screen alongside what's
+    // auto-convert - shown on the skill tree screen alongside what's
     // currently sitting unconverted in the player's inventory.
     private long convertedCommon = 0L;
     private long convertedUncommon = 0L;
-    // Lifetime roll count — levels up off of this via /prestige.
+    // Lifetime roll count - levels up off of this via /prestige.
     private long totalRolls = 0L;
     private int level = 1;
     private int prestige = 0;
-    // Flat Luck bonus from currently-worn /armor — recomputed live each
+    // Flat Luck bonus from currently-worn /armor - recomputed live each
     // tick from equipped armor, not persisted.
     private double armorLuckBonus = 0.0;
-    // Flat Speed bonus from currently-worn /armor — same live recompute
+    // Flat Speed bonus from currently-worn /armor - same live recompute
     // as armorLuckBonus, not persisted.
     private double armorSpeedBonus = 0.0;
     // /armor pieces ever bought, keyed "TIER:PIECE" (e.g.
-    // "LEATHER:BOOTS") — pieces are sold individually. Worn status is
+    // "LEATHER:BOOTS") - pieces are sold individually. Worn status is
     // checked separately for whether the Luck bonus applies.
     private final Set<String> purchasedArmorTiers = new HashSet<>();
     // /options toggles.
     private boolean rollSoundEnabled = true;
     private boolean rollAnimationEnabled = true;
-    // Farming's own two, toggled from the hoe menu rather than /options —
+    // Farming's own two, toggled from the hoe menu rather than /options -
     // they belong next to the thing that makes the noise.
     private boolean farmSoundEnabled = true;
     private boolean enchantSoundEnabled = true;
@@ -87,21 +87,21 @@ public class PlayerData {
     // of the same kind extends or upgrades what's running instead of
     // stacking into something absurd.
     private final Map<String, double[]> boosts = new HashMap<>();
-    // Banked rolls that fire at a multiplied Luck — the "10x Roll" reward.
+    // Banked rolls that fire at a multiplied Luck - the "10x Roll" reward.
     private long rollCharges = 0L;
     private double rollChargeMultiplier = 1.0;
     // The draught currently running: flat Luck and Speed, and how many
-    // rolls are left of it. One at a time on purpose — drinking a second
+    // rolls are left of it. One at a time on purpose - drinking a second
     // replaces the first, so two can never be stacked into something the
     // numbers were never balanced for.
     private double potionLuck = 0.0;
     private double potionSpeed = 0.0;
     private long potionRolls = 0L;
     // Multiplies Tokens earned from harvesting farm crops. 1.0 = base
-    // reward. Nothing raises this yet — reserved for future farming
+    // reward. Nothing raises this yet - reserved for future farming
     // upgrades (hoe enchants, prestige tie-in, etc.).
     private double farmTokenMultiplier = 1.0;
-    // Milestone tiers already awarded, keyed "track:index" — the ledger
+    // Milestone tiers already awarded, keyed "track:index" - the ledger
     // that stops a tier paying out twice.
     private final Set<String> claimedMilestones = new HashSet<>();
     // Tiers the player has been TOLD about. Separate from claimed so the
@@ -113,7 +113,7 @@ public class PlayerData {
     // changed later without resetting anyone.
     private final Set<String> completedQuests = new HashSet<>();
     // Daily streak: the run so far, and the epoch day it was last claimed.
-    // A calendar day, not a rolling 24h window — see DailyManager.
+    // A calendar day, not a rolling 24h window - see DailyManager.
     private int dailyStreak = 0;
     private long dailyLastClaimDay = 0L;
     private long dailyTotalClaims = 0L;
@@ -142,7 +142,7 @@ public class PlayerData {
     // checkpoint; the second is a record and never falls.
     private int novaTier = 0;
     private int novaBestTier = 0;
-    // Which Starforge the player owns — their BASE Luck comes from this.
+    // Which Starforge the player owns - their BASE Luck comes from this.
     private String starforgeTier = "BASIC";
     // Base Luck from the Starforge, but only while it's actually in a
     // hand. Recomputed live like armorLuckBonus, not persisted.
@@ -250,7 +250,7 @@ public class PlayerData {
     public double getEffectiveRollSpeedMultiplier() {
         // A draught's Speed joins the flat pile rather than multiplying it,
         // which is what lets a potion carry a MINUS without wiping somebody
-        // out — a 0.75x multiplier on a maxed player is brutal, -25 flat is
+        // out - a 0.75x multiplier on a maxed player is brutal, -25 flat is
         // a trade.
         return Math.max(0.1, rollSpeedMultiplier + skillSpeedBonus + armorSpeedBonus
                 + getPotionSpeed());
@@ -351,7 +351,7 @@ public class PlayerData {
 
     /**
      * Spends up to {@code amount} banked drops of a rarity, returning how
-     * many were actually taken — the caller covers any shortfall from the
+     * many were actually taken - the caller covers any shortfall from the
      * player's physical inventory.
      */
     public long takeBankedDrops(Rarity rarity, long amount) {
@@ -371,7 +371,7 @@ public class PlayerData {
     }
 
     /**
-     * Tracks a conversion for the skill tree's Common/Uncommon summary —
+     * Tracks a conversion for the skill tree's Common/Uncommon summary -
      * no-op for any other rarity.
      */
     public void addConverted(Rarity rarity, long amount) {
@@ -419,7 +419,7 @@ public class PlayerData {
     }
 
     /**
-     * The flat Luck that isn't tied to a skill node — admin grants, and
+     * The flat Luck that isn't tied to a skill node - admin grants, and
      * anything a future system hands out directly.
      *
      * The full Luck calculation deliberately does NOT live here: it needs

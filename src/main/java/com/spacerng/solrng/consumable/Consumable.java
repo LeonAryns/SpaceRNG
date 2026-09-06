@@ -14,7 +14,7 @@ import java.util.Map;
  * and -25 Speed for ten, and being able to put a minus in one column is
  * what makes them worth choosing between.
  *
- * Luck and Speed are ADDITIVE — they join the flat pile the skill tree
+ * Luck and Speed are ADDITIVE - they join the flat pile the skill tree
  * and armor feed, rather than multiplying the total. A potion that
  * multiplied everything would be worth wildly different amounts to a new
  * player and a maxed one.
@@ -54,7 +54,7 @@ public record Consumable(String id, String display, Material material, List<Stri
         return !costs.isEmpty();
     }
 
-    /** "30m", "1h 30m" — how long a timed boost runs, for lore. */
+    /** "30m", "1h 30m" - how long a timed boost runs, for lore. */
     public String durationText() {
         long seconds = durationSeconds;
         long hours = seconds / 3600;

@@ -19,7 +19,7 @@ public final class RollFormat {
     }
 
     /**
-     * The item's name in its OWN colors (per-item "colors" in config —
+     * The item's name in its OWN colors (per-item "colors" in config -
      * gradient/bold/etc), wrapped in the obfuscated flair for Epic-and-up
      * rarities. Falls back to the material's flat natural color for items
      * that don't define their own. Used everywhere the item is named.
@@ -206,7 +206,7 @@ public final class RollFormat {
     );
 
     /**
-     * Best-effort match to how the material actually looks — legacy chat
+     * Best-effort match to how the material actually looks - legacy chat
      * only has 16 colors, so this is an approximation, not exact.
      *
      * Nothing maps to pure white: a drop tag renders directly beside a
@@ -250,7 +250,7 @@ public final class RollFormat {
 
     /**
      * The floating tag's odds line: "★ 1 in 1,700 ★" in the item's flat
-     * rarity color. Uses ★ rather than a true emoji — Minecraft's default
+     * rarity color. Uses ★ rather than a true emoji - Minecraft's default
      * font has no emoji glyphs, so anything outside its character set
      * would render as a missing-glyph box without a resource pack.
      */
@@ -266,7 +266,7 @@ public final class RollFormat {
         return "1/" + abbreviate(odds);
     }
 
-    /** "1234" -> "1.2K", "5100000" -> "5.1M", etc. — also used for wallet balances. */
+    /** "1234" -> "1.2K", "5100000" -> "5.1M", etc. - also used for wallet balances. */
     public static String abbreviate(long n) {
         if (n < 0) return "-" + abbreviate(-n);
         if (n < 1_000) return String.valueOf(n);

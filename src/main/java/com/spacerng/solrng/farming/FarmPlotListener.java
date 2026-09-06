@@ -43,7 +43,7 @@ public class FarmPlotListener implements Listener {
             return;
         }
 
-        // Replace the placed block with the marker crop on the next tick —
+        // Replace the placed block with the marker crop on the next tick -
         // doing it inside the event fights the placement itself.
         var block = event.getBlockPlaced();
         plugin.getServer().getScheduler().runTask(plugin, () -> {
@@ -55,7 +55,7 @@ public class FarmPlotListener implements Listener {
     }
 
     /**
-     * Harvesting. The block break is always cancelled — what the player
+     * Harvesting. The block break is always cancelled - what the player
      * sees disappear is a per-player block change, not the real block.
      */
     @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
@@ -66,8 +66,8 @@ public class FarmPlotListener implements Listener {
         event.setCancelled(true);
         Player player = event.getPlayer();
 
-        // Sneaking in creative removes the real tile; anything else — any
-        // gamemode, any click — is just harvesting the crop on top of it.
+        // Sneaking in creative removes the real tile; anything else - any
+        // gamemode, any click - is just harvesting the crop on top of it.
         // Gating on creative means an admin can farm normally in survival
         // without accidentally deleting the field.
         if (player.getGameMode() == org.bukkit.GameMode.CREATIVE
@@ -91,7 +91,7 @@ public class FarmPlotListener implements Listener {
 
     /**
      * Wheat normally pops off when whatever it's standing on changes. A
-     * plot has to survive that — it's scenery, not a real crop.
+     * plot has to survive that - it's scenery, not a real crop.
      */
     @EventHandler(ignoreCancelled = true)
     public void onPhysics(BlockPhysicsEvent event) {

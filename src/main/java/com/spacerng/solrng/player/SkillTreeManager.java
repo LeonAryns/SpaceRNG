@@ -44,7 +44,7 @@ public class SkillTreeManager {
 
     /**
      * Loads every tree in the config. Nodes from all trees live in one flat
-     * map because a player's unlocks are one flat set — the tree id is just
+     * map because a player's unlocks are one flat set - the tree id is just
      * which menu draws it. That keeps purchase, requirements and saved data
      * identical no matter how many trees exist.
      */
@@ -170,7 +170,7 @@ public class SkillTreeManager {
     }
 
     /**
-     * The total magnitude of one effect across every node that grants it —
+     * The total magnitude of one effect across every node that grants it -
      * the single place any bonus is answered from. Because it reads live
      * node levels, changing a value in config.yml immediately changes what
      * everyone who bought it is getting.
@@ -190,7 +190,7 @@ public class SkillTreeManager {
         return 1.0 + totalOf(data, effect);
     }
 
-    /** Every owned node with a given effect — for the ones that aren't a simple sum. */
+    /** Every owned node with a given effect - for the ones that aren't a simple sum. */
     public List<SkillNode> owned(PlayerData data, SkillNode.Effect effect) {
         List<SkillNode> out = new ArrayList<>();
         for (SkillNode node : nodes.values()) {
@@ -203,7 +203,7 @@ public class SkillTreeManager {
      * The Luck multiplier a Supercharge node grants on this particular
      * roll, or 1.0 when none of them lands on it. Several can be owned at
      * once and the 1000th roll trips both the every-100 and the every-1000
-     * one, so the strongest wins rather than the two stacking — a
+     * one, so the strongest wins rather than the two stacking - a
      * 10x-times-100x roll would be a different order of event entirely.
      */
     public double superchargeFor(PlayerData data, long rollNumber) {
@@ -217,7 +217,7 @@ public class SkillTreeManager {
     }
 
     /**
-     * The same sum, but only across nodes pointing at one target — a crop
+     * The same sum, but only across nodes pointing at one target - a crop
      * id, an enchant id. Lets one effect be repeated per thing it acts on
      * without needing an effect per thing.
      */
@@ -256,7 +256,7 @@ public class SkillTreeManager {
         return node.costAtLevel(node.isLeveled() ? data.getNodeLevel(node.getId()) : 0);
     }
 
-    /** False when Vault/an economy plugin isn't installed — nothing is buyable then. */
+    /** False when Vault/an economy plugin isn't installed - nothing is buyable then. */
     public boolean canAfford(Player player, PlayerData data, SkillNode node) {
         if (node.usesTokens()) {
             return data.getTokens() >= Math.round(priceFor(data, node));
@@ -276,7 +276,7 @@ public class SkillTreeManager {
 
     /**
      * Which prerequisites this player still hasn't got. Returned rather
-     * than a bare boolean so a locked node can name what's in the way —
+     * than a bare boolean so a locked node can name what's in the way -
      * "you need something else first" is the least useful thing a tree can
      * say.
      */
@@ -352,7 +352,7 @@ public class SkillTreeManager {
                 if (node.getTarget() != null) data.getUnlockedCrops().add(node.getTarget().toUpperCase());
             }
             case UNLOCK_SHARDS -> data.setCropShardsUnlocked(true);
-            default -> { /* derived stats and gate flags — nothing to store */ }
+            default -> { /* derived stats and gate flags - nothing to store */ }
         }
     }
 }

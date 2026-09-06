@@ -26,7 +26,7 @@ import java.util.List;
  */
 public class PassGui {
 
-    // Free above, levels in the middle, premium below — so one level is a
+    // Free above, levels in the middle, premium below - so one level is a
     // vertical column of "what this rung is worth on each track", read
     // top to bottom, instead of two lists you have to line up by eye.
     private static final int TOP_ROW = 0;      // slots 0-8   banner
@@ -80,7 +80,7 @@ public class PassGui {
         holder.setPage(page);
         Inventory inv = Bukkit.createInventory(holder, 54,
                 ChatColor.GOLD + "" + ChatColor.BOLD + "Battle Pass"
-                        + ChatColor.GRAY + " — " + pass.getSeasonName());
+                        + ChatColor.GRAY + " - " + pass.getSeasonName());
         holder.setInventory(inv);
 
         ItemStack divider = pane(Material.BLACK_STAINED_GLASS_PANE, " ");
@@ -135,7 +135,7 @@ public class PassGui {
 
     /**
      * The level number itself. Green once cleared, yellow for the one
-     * being worked on, grey for everything still ahead — the same three
+     * being worked on, grey for everything still ahead - the same three
      * states the skill tree uses, so the colours mean the same thing
      * everywhere in the plugin.
      */
@@ -248,7 +248,7 @@ public class PassGui {
         }
         lore.add("");
         lore.add(Lore.section(ChatColor.AQUA, "Earning XP"));
-        lore.add(Lore.line(ChatColor.AQUA, "Every roll — rarer pays more."));
+        lore.add(Lore.line(ChatColor.AQUA, "Every roll - rarer pays more."));
         lore.add(Lore.line(ChatColor.AQUA, "Every crop you harvest."));
         double bonus = plugin.getSkillTreeManager()
                 .totalOf(data, com.spacerng.solrng.player.SkillNode.Effect.PASS_XP);

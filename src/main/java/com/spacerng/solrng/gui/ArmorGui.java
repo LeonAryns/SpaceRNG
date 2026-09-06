@@ -23,10 +23,10 @@ import java.util.Map;
 
 /**
  * /armor shop: each tier is its own column, pieces stacked top to bottom
- * (helmet, chestplate, leggings, boots) — all 6 tiers side by side, with
+ * (helmet, chestplate, leggings, boots) - all 6 tiers side by side, with
  * light stained glass dividing left / middle / right. Clicking any piece
  * buys the whole set. Each piece grants its own Luck bonus independently
- * while worn (see ArmorManager) — no need for the full set.
+ * while worn (see ArmorManager) - no need for the full set.
  */
 public class ArmorGui {
 
@@ -43,7 +43,7 @@ public class ArmorGui {
         return SolRNGPlugin.key( "solrng_armor_tier_id");
     }
 
-    /** Which slot's piece this icon sells — pieces are bought one at a time. */
+    /** Which slot's piece this icon sells - pieces are bought one at a time. */
     public static NamespacedKey pieceKey(SolRNGPlugin plugin) {
         return SolRNGPlugin.key( "solrng_armor_piece");
     }
@@ -143,7 +143,7 @@ public class ArmorGui {
 
         List<String> lore = new ArrayList<>();
         lore.add(Lore.section(ChatColor.GOLD, "Spendable here"));
-        // Inventory plus banked — armor spends from both, so both count.
+        // Inventory plus banked - armor spends from both, so both count.
         for (Rarity rarity : Rarity.values()) {
             long banked = data.getBankedDrops(rarity);
             lore.add(plugin.getRarityManager().style(rarity, Lore.BULLET + " " + rarity.displayName() + ": ")

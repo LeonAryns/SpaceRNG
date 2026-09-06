@@ -20,14 +20,14 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * /stats — every derived number, and where it came from.
+ * /stats - every derived number, and where it came from.
  *
  * The overview answers "what am I at"; one click answers "why". That
  * second question is the one a progression server never usually answers,
  * and not answering it is what makes an upgrade feel like it did nothing.
  *
  * Individual skills and enchants stay out of it deliberately. A player
- * doesn't need to know that Luck VII exists — they need to know that
+ * doesn't need to know that Luck VII exists - they need to know that
  * skills are worth +340% and armor is worth +60%, so they know which
  * menu to go and spend in next.
  */
@@ -65,7 +65,7 @@ public class StatsGui {
     public static Inventory overview(SolRNGPlugin plugin, UUID target, String targetName) {
         StatsHolder holder = new StatsHolder(target, targetName, null);
         Inventory inv = Bukkit.createInventory(holder, 54,
-                ChatColor.AQUA + "" + ChatColor.BOLD + "Stats" + ChatColor.DARK_GRAY + " — " + targetName);
+                ChatColor.AQUA + "" + ChatColor.BOLD + "Stats" + ChatColor.DARK_GRAY + " - " + targetName);
         holder.setInventory(inv);
         frame(inv);
 
@@ -127,7 +127,7 @@ public class StatsGui {
         StatSources.Stat stat = StatSources.of(plugin, data, id);
 
         Inventory inv = Bukkit.createInventory(holder, 54,
-                ChatColor.AQUA + "" + ChatColor.BOLD + stat.name() + ChatColor.DARK_GRAY + " — " + targetName);
+                ChatColor.AQUA + "" + ChatColor.BOLD + stat.name() + ChatColor.DARK_GRAY + " - " + targetName);
         holder.setInventory(inv);
         frame(inv);
 
@@ -172,7 +172,7 @@ public class StatsGui {
 
     /**
      * One source. It carries the running total after itself, which is what
-     * turns a list of numbers into an explanation — you can see the moment
+     * turns a list of numbers into an explanation - you can see the moment
      * a multiplier stops being worth less than the flat bonus below it.
      */
     private static ItemStack partCard(StatSources.Part part, StatSources.Stat stat,

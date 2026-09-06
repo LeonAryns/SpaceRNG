@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * /shop — one door to every shop in the plugin.
+ * /shop - one door to every shop in the plugin.
  *
  * Every shop already has its own command, but a player who hasn't found
  * them can't know that, and an NPC at spawn can only point at one thing.
@@ -29,8 +29,8 @@ import java.util.List;
 public class ShopGui {
 
     /**
-     * One shop. `node` is the skill that unlocks it — blank means always
-     * open — and `command` is what a click runs.
+     * One shop. `node` is the skill that unlocks it - blank means always
+     * open - and `command` is what a click runs.
      */
     private record Entry(int slot, Material icon, ChatColor accent, String name, String node,
                          String command, String[] blurb) {

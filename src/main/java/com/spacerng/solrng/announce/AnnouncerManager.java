@@ -14,7 +14,7 @@ import java.util.List;
  *
  * Kept in the plugin rather than handed to a generic announcer because
  * these lines are the one place a new player is told that /novacore,
- * /farmtree and /convert exist — they need to stay in step with the
+ * /farmtree and /convert exist - they need to stay in step with the
  * features as they change, and they can use the plugin's own colours and
  * placeholders without a bridge.
  *
@@ -81,7 +81,7 @@ public class AnnouncerManager {
         send(block);
     }
 
-    /** Sends a specific block by index — used by /rngadmin announce. */
+    /** Sends a specific block by index - used by /rngadmin announce. */
     public boolean broadcast(int index) {
         if (index < 0 || index >= messages.size()) return false;
         send(messages.get(index));

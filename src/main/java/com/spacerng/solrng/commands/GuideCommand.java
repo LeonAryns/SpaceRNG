@@ -10,7 +10,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 /**
- * /guide — the whole starting run in chat, so a player can see where the
+ * /guide - the whole starting run in chat, so a player can see where the
  * boss bar is taking them rather than only the next step.
  */
 public class GuideCommand implements CommandExecutor {
@@ -68,7 +68,7 @@ public class GuideCommand implements CommandExecutor {
 
         if (current == null) {
             player.sendMessage("");
-            player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "Guide complete — you've seen it all.");
+            player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "Guide complete - you've seen it all.");
         }
         player.sendMessage("");
         return true;

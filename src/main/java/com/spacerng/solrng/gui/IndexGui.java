@@ -24,7 +24,7 @@ import java.util.Map;
 
 /**
  * Collection log: every rollable item, greyed out until the player has
- * actually rolled it at least once. Top row is a tab bar — a button per
+ * actually rolled it at least once. Top row is a tab bar - a button per
  * rarity (left to right, click to filter, click again to clear it) plus
  * an Index Progress readout and page controls on the right. The 45 slots
  * below page through whatever's currently selected.
@@ -155,7 +155,7 @@ public class IndexGui {
 
     /**
      * The player's own card, top right. It's their head rather than a
-     * book because this panel is about them, not about the collection —
+     * book because this panel is about them, not about the collection -
      * and it carries the two numbers the sidebar doesn't already show
      * (rolls and playtime) plus the per-rarity breakdown, which is the
      * thing you actually want while staring at a wall of entries.
@@ -231,7 +231,7 @@ public class IndexGui {
         return info;
     }
 
-    /** PLAY_ONE_MINUTE is misnamed — it counts ticks, not minutes. */
+    /** PLAY_ONE_MINUTE is misnamed - it counts ticks, not minutes. */
     private static String playtime(Player player) {
         long ticks = player.getStatistic(Statistic.PLAY_ONE_MINUTE);
         long seconds = ticks / 20L;
@@ -294,7 +294,7 @@ public class IndexGui {
             lore.add(Lore.section(ChatColor.AQUA, "What's known"));
             lore.add(Lore.stat(ChatColor.AQUA, "Rarity",
                     ChatColor.stripColor(item.getRarity().displayName())));
-            // The odds show even before it's found — that's the hook that
+            // The odds show even before it's found - that's the hook that
             // makes an undiscovered slot worth chasing.
             lore.add(Lore.stat(ChatColor.AQUA, "Chance", RollFormat.chance(item.getOdds())));
             lore.add(Lore.stat(ChatColor.AQUA, "Index Luck",
@@ -304,7 +304,7 @@ public class IndexGui {
             lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " Shiny not found");
         }
         meta.setLore(lore);
-        // A glint on the entry marks the shiny as caught — the same signal
+        // A glint on the entry marks the shiny as caught - the same signal
         // the shiny item itself carries.
         meta.setEnchantmentGlintOverride(shiny ? Boolean.TRUE : null);
         icon.setItemMeta(meta);

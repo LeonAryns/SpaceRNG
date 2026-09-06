@@ -18,7 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * /prestige — two screens sharing one holder.
+ * /prestige - two screens sharing one holder.
  *
  * The main card answers the three questions a prestige actually raises,
  * in order: can I, what do I get, and what does it cost me. Requirements
