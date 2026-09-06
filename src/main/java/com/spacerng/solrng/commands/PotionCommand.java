@@ -31,7 +31,7 @@ public class PotionCommand implements CommandExecutor {
             return true;
         }
 
-        player.openInventory(PotionGui.build(plugin, player));
+        com.spacerng.solrng.gui.Menus.open(plugin, player, () -> PotionGui.build(plugin, player));
         return true;
     }
 }

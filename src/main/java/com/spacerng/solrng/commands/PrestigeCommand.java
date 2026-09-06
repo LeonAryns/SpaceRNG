@@ -22,7 +22,7 @@ public class PrestigeCommand implements CommandExecutor {
             sender.sendMessage(ChatColor.RED + "Only players can use this command.");
             return true;
         }
-        player.openInventory(PrestigeGui.build(plugin, player));
+        com.spacerng.solrng.gui.Menus.open(plugin, player, () -> PrestigeGui.build(plugin, player));
         return true;
     }
 }

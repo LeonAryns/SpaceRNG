@@ -22,7 +22,7 @@ public class NovaCoreCommand implements CommandExecutor {
             sender.sendMessage(ChatColor.RED + "Only players can forge a Nova Core.");
             return true;
         }
-        player.openInventory(NovaCoreGui.build(plugin, player));
+        com.spacerng.solrng.gui.Menus.open(plugin, player, () -> NovaCoreGui.build(plugin, player));
         return true;
     }
 }

@@ -22,7 +22,7 @@ public class SkillTreeCommand implements CommandExecutor {
             sender.sendMessage(ChatColor.RED + "Only players can use this command.");
             return true;
         }
-        player.openInventory(SkillTreeGui.build(plugin, player));
+        com.spacerng.solrng.gui.Menus.open(plugin, player, () -> SkillTreeGui.build(plugin, player));
         return true;
     }
 }

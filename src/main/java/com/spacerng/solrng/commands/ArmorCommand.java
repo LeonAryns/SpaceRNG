@@ -32,7 +32,7 @@ public class ArmorCommand implements CommandExecutor {
             return true;
         }
 
-        player.openInventory(ArmorGui.build(plugin, player));
+        com.spacerng.solrng.gui.Menus.open(plugin, player, () -> ArmorGui.build(plugin, player));
         return true;
     }
 }

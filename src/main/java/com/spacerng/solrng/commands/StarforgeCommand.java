@@ -22,7 +22,7 @@ public class StarforgeCommand implements CommandExecutor {
             sender.sendMessage(ChatColor.RED + "Only players can use this command.");
             return true;
         }
-        player.openInventory(StarforgeGui.build(plugin, player));
+        com.spacerng.solrng.gui.Menus.open(plugin, player, () -> StarforgeGui.build(plugin, player));
         return true;
     }
 }

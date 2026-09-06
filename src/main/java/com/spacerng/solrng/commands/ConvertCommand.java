@@ -29,7 +29,7 @@ public class ConvertCommand implements CommandExecutor {
                     + ChatColor.RED + " in " + ChatColor.YELLOW + "/skilltree" + ChatColor.RED + " first.");
             return true;
         }
-        player.openInventory(ConvertGui.build(plugin, player));
+        com.spacerng.solrng.gui.Menus.open(plugin, player, () -> ConvertGui.build(plugin, player));
         return true;
     }
 }

@@ -22,7 +22,7 @@ public class CropsCommand implements CommandExecutor {
             sender.sendMessage(ChatColor.RED + "Only players farm.");
             return true;
         }
-        player.openInventory(CropsGui.build(plugin, player));
+        com.spacerng.solrng.gui.Menus.open(plugin, player, () -> CropsGui.build(plugin, player));
         return true;
     }
 }

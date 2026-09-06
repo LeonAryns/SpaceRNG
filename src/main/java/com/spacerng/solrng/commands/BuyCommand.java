@@ -22,7 +22,7 @@ public class BuyCommand implements CommandExecutor {
             sender.sendMessage(ChatColor.RED + "Only players can shop.");
             return true;
         }
-        player.openInventory(BuyGui.build(plugin, player));
+        com.spacerng.solrng.gui.Menus.open(plugin, player, () -> BuyGui.build(plugin, player));
         return true;
     }
 }

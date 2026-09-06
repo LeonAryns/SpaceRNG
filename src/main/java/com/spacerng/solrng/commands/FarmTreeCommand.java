@@ -22,7 +22,7 @@ public class FarmTreeCommand implements CommandExecutor {
             sender.sendMessage(ChatColor.RED + "Only players have skills.");
             return true;
         }
-        player.openInventory(SkillTreeGui.build(plugin, player, "farmtree", 0));
+        com.spacerng.solrng.gui.Menus.open(plugin, player, () -> SkillTreeGui.build(plugin, player, "farmtree", 0));
         return true;
     }
 }

@@ -24,7 +24,7 @@ public class MilestonesCommand implements CommandExecutor {
         }
         // Catch anything reached while they were offline before showing it.
         plugin.getMilestoneManager().check(player);
-        player.openInventory(MilestoneGui.build(plugin, player, null, 0));
+        com.spacerng.solrng.gui.Menus.open(plugin, player, () -> MilestoneGui.build(plugin, player, null, 0));
         return true;
     }
 }

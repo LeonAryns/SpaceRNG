@@ -22,7 +22,7 @@ public class DailyCommand implements CommandExecutor {
             sender.sendMessage(ChatColor.RED + "Only players have a streak.");
             return true;
         }
-        player.openInventory(DailyGui.build(plugin, player));
+        com.spacerng.solrng.gui.Menus.open(plugin, player, () -> DailyGui.build(plugin, player));
         return true;
     }
 }

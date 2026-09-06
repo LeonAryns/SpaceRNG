@@ -31,7 +31,7 @@ public class PassCommand implements CommandExecutor {
             return true;
         }
 
-        player.openInventory(PassGui.build(plugin, player, 0));
+        com.spacerng.solrng.gui.Menus.open(plugin, player, () -> PassGui.build(plugin, player, 0));
         return true;
     }
 }
