@@ -256,7 +256,7 @@ public class FarmingManager {
         // the tooltip is answering "what is this hoe worth", not "where did
         // each percent come from".
         double tokenBonus = tier.tokenBonus() + (data == null ? 0.0 : enchants.powerOf(data, "TOKEN_GREED"));
-        double speedBonus = tier.speedBonus() + (data == null ? 0.0 : enchants.powerOf(data, "GREEN_THUMB"));
+        double speedBonus = tier.speedBonus() + (data == null ? 0.0 : enchants.powerOf(data, "SPEED"));
 
         lore.add(com.spacerng.solrng.gui.Lore.section(ChatColor.GOLD, "The tool"));
         lore.add(com.spacerng.solrng.gui.Lore.stat(ChatColor.YELLOW, "Tier",

@@ -47,6 +47,14 @@ public class PlayerData {
     private int freeSkills;
     private double starforgeSpeedBonus;
     private long abilityReadyAt;
+
+    // Coin Factory pays back the last minute of Coin income, so a minute
+    // of it has to be remembered. Sixty one-second buckets rather than a
+    // list of every payout: a fast farmer harvests several times a second
+    // and the memory has to be bounded by the WINDOW, not by their speed.
+    private final long[] coinBuckets = new long[60];
+    private long coinBucketSecond;
+    private int coinBucketIndex;
     // Auto-roll always fires at the player's own current roll speed - no
     // separate fixed interval.
     private boolean autoRollEnabled = false;
@@ -949,6 +957,30 @@ public class PlayerData {
 
     public void setStarforgeSpeedBonus(double starforgeSpeedBonus) {
         this.starforgeSpeedBonus = starforgeSpeedBonus;
+    }
+
+    /** Records Coins as they are earned, into the current second's bucket. */
+    public void trackCoins(long amount) {
+        long now = System.currentTimeMillis() / 1000L;
+        if (coinBucketSecond == 0L) coinBucketSecond = now;
+        long advance = now - coinBucketSecond;
+        if (advance > 0L) {
+            // Clearing at most sixty buckets: past a minute away, the whole
+            // window is stale anyway.
+            for (long i = 0; i < Math.min(advance, coinBuckets.length); i++) {
+                coinBucketIndex = (coinBucketIndex + 1) % coinBuckets.length;
+                coinBuckets[coinBucketIndex] = 0L;
+            }
+            coinBucketSecond = now;
+        }
+        coinBuckets[coinBucketIndex] += amount;
+    }
+
+    public long coinsInLastMinute() {
+        trackCoins(0L); // roll the window forward before reading it
+        long total = 0L;
+        for (long bucket : coinBuckets) total += bucket;
+        return total;
     }
 
     /** Epoch millis the Starforge ability can be fired again. */

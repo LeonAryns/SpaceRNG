@@ -220,209 +220,184 @@ farming:
   #
   # Costs are exponential (base-cost x cost-growth^level), so the last
   # hundred levels of an enchant cost more than the first nine hundred.
+  # Every enchant runs to 10,000 levels and every one is a percentage, so
+  # "level 4,000 of 10,000" means the same thing whichever you are looking
+  # at. per-level x max-level is the value at the ceiling, and it is
+  # written next to each one because that product IS the enchant.
+  #
+  # base-cap is what you START able to buy; the Enchant Mastery nodes in
+  # /farmtree close the gap to max-level. A cap nobody can reach is not a
+  # cap.
+  #
+  # cost-growth compounds, so it is 1.0007 and not 1.007: over ten
+  # thousand levels 1.007 reaches 2 x 10^30, which is more Coins than will
+  # ever exist. 1.0007 lands the last level at about 1,100x base, the same
+  # place the old thousand-level curve ended.
   enchants:
+    # ---- Always on ----
+    SPEED:
+      display: "Speed"
+      icon: SUGAR
+      base-cost: 2500
+      cost-growth: 1.0007
+      description: "Your crops regrow faster."
+      color: "&a"
+      max-level: 10000
+      base-cap: 1000
+      per-level: 0.00007
+      # +70% at the ceiling.
     TOKEN_GREED:
       display: "Coin Greed"
       icon: GOLD_NUGGET
-      base-cost: 2500
-      cost-growth: 1.007
+      base-cost: 3000
+      cost-growth: 1.0007
       description: "More Coins from every crop."
       color: "&e"
-      # The hard ceiling. base-cap is what you START with; Enchant
-      # Mastery in /farmtree is what closes the gap between them.
-      max-level: 1000
-      base-cap: 100
-      per-level: 0.01
+      max-level: 10000
+      base-cap: 1000
+      per-level: 0.001
       # +1000% at the ceiling.
-    GREEN_THUMB:
-      display: "Green Thumb"
-      icon: BONE_BLOCK
-      base-cost: 4000
-      cost-growth: 1.007
-      description: "Your crops regrow faster."
-      color: "&a"
-      # The hard ceiling. base-cap is what you START with; Enchant
-      # Mastery in /farmtree is what closes the gap between them.
-      max-level: 1000
-      base-cap: 100
-      per-level: 0.0007
-      # +70% at the ceiling.
+    MOMENTUM:
+      display: "Momentum"
+      icon: POWERED_RAIL
+      base-cost: 15000
+      cost-growth: 1.0007
+      description: "An unbroken run of harvests builds a multiplier."
+      color: "&2"
+      max-level: 10000
+      base-cap: 1000
+      per-level: 0.0004
+      # A ceiling of 5.00x at the top, filled by farming, not bought.
+
+    # ---- Procs ----
     SHARD_GREED:
       display: "Gem Greed"
       icon: PRISMARINE_CRYSTALS
       base-cost: 6000
-      cost-growth: 1.008
+      cost-growth: 1.0007
       description: "A chance at a bonus Gem."
       color: "&b"
-      # The hard ceiling. base-cap is what you START with; Enchant
-      # Mastery in /farmtree is what closes the gap between them.
-      max-level: 1000
-      base-cap: 100
-      per-level: 0.0008
-      # +80% at the ceiling.
-    FORTUNE:
-      display: "Fortune"
-      icon: EMERALD
+      max-level: 10000
+      base-cap: 1000
+      per-level: 0.00008
+      # 80% of crops at the ceiling.
+    KEY_FINDER:
+      display: "Key Finder"
+      icon: TRIPWIRE_HOOK
       base-cost: 9000
-      cost-growth: 1.008
-      description: "A chance to double a whole harvest."
+      cost-growth: 1.0007
+      description: "A chance to turn up a crate key."
       color: "&6"
-      # The hard ceiling. base-cap is what you START with; Enchant
-      # Mastery in /farmtree is what closes the gap between them.
-      max-level: 1000
-      base-cap: 100
-      per-level: 0.0005
-      # +50% at the ceiling.
-    MOMENTUM:
-      display: "Momentum"
-      icon: FEATHER
-      base-cost: 7500
-      cost-growth: 1.008
-      description: "Keep farming without stopping and your payout climbs."
-      color: "&d"
-      # The hard ceiling. base-cap is what you START with; Enchant
-      # Mastery in /farmtree is what closes the gap between them.
-      max-level: 1000
-      base-cap: 100
-      # Momentum's per-level is the CEILING it raises, not a payout of its
-      # own: each level adds this much to how far a farming run can climb.
-      # At the starting cap of 100 levels that's +5.00x.
-      per-level: 0.05
-      # +5000% at the ceiling.
+      max-level: 10000
+      base-cap: 1000
+      per-level: 0.000005
+      # 5% of crops at the ceiling.
     BLAST_HARVEST:
-      display: "Blast Harvest"
+      display: "TNT Blast"
       icon: TNT
-      base-cost: 15000
-      cost-growth: 1.009
-      description: "A chance to blow up the crops around you."
+      base-cost: 12000
+      cost-growth: 1.0007
+      description: "A chance to blow the neighbouring crops out too."
       color: "&c"
-      # The hard ceiling. base-cap is what you START with; Enchant
-      # Mastery in /farmtree is what closes the gap between them.
-      max-level: 1000
-      base-cap: 100
-      per-level: 0.0003
-      # +30% at the ceiling.
+      max-level: 10000
+      base-cap: 1000
+      per-level: 0.00002
+      # 20% of crops at the ceiling. Radius is capped separately.
+    POTION_FINDER:
+      display: "Potion Finder"
+      icon: BREWING_STAND
+      base-cost: 18000
+      cost-growth: 1.0007
+      description: "A chance to dig up a potion."
+      color: "&d"
+      max-level: 10000
+      base-cap: 1000
+      per-level: 0.000004
+      # 4% of crops at the ceiling.
+    LIGHTNING:
+      display: "Lightning"
+      icon: LIGHTNING_ROD
+      base-cost: 25000
+      cost-growth: 1.0007
+      description: "A chance to call bolts down on nearby crops."
+      color: "&e"
+      max-level: 10000
+      base-cap: 1000
+      per-level: 0.00001
+      # 10% of crops at the ceiling.
     NOVA_FINDER:
       display: "Nova Finder"
       icon: HEART_OF_THE_SEA
+      base-cost: 40000
+      cost-growth: 1.0007
+      description: "A chance at a free Nova Core forge."
+      color: "&b"
+      max-level: 10000
+      base-cap: 1000
+      per-level: 0.000001
+      # 1% of crops at the ceiling.
+
+    # ---- The late ones ----
+    NUKE:
+      display: "Nuke"
+      icon: FIRE_CHARGE
+      base-cost: 60000
+      cost-growth: 1.0007
+      description: "A rare chance to level the whole field at once."
+      color: "&4"
+      max-level: 10000
+      base-cap: 1000
+      per-level: 0.00000005
+      # 0.05% of crops at the ceiling, about one in two thousand.
+    COIN_FACTORY:
+      display: "Coin Factory"
+      icon: HOPPER
+      base-cost: 90000
+      cost-growth: 1.0007
+      description: "A chance to be paid your last minute of Coins again."
+      color: "&6"
+      max-level: 10000
+      base-cap: 1000
+      per-level: 0.0000015
+      # 1.5% of crops at the ceiling.
+    CREDIT_FINDER:
+      display: "Credit Finder"
+      icon: AMETHYST_SHARD
       base-cost: 150000
-      cost-growth: 1.01
-      description: "A tiny chance at a free Nova Core forge."
-      color: "&3"
-      # The hard ceiling. base-cap is what you START with; Enchant
-      # Mastery in /farmtree is what closes the gap between them.
-      max-level: 1000
-      base-cap: 100
-      per-level: 0.00001
-      # +1% at the ceiling.
-  crop-types:
-    WHEAT:
-      display: "Wheat"
-      material: WHEAT
-      tokens: 100
-      shards: 0
-      requires-node: ""
-    CARROTS:
-      display: "Carrots"
-      material: CARROTS
-      tokens: 250
-      shards: 1
-      requires-node: "crop_carrots"
-    POTATOES:
-      display: "Potatoes"
-      material: POTATOES
-      tokens: 600
-      shards: 2
-      requires-node: "crop_potatoes"
-    BEETROOTS:
-      display: "Beetroot"
-      material: BEETROOTS
-      tokens: 1500
-      shards: 5
-      requires-node: "crop_beetroot"
-    NETHER_WART:
-      display: "Nether Wart"
-      material: NETHER_WART
-      tokens: 4000
-      shards: 12
-      requires-node: "crop_netherwart"
-    SWEET_BERRIES:
-      display: "Sweet Berries"
-      material: SWEET_BERRY_BUSH
-      tokens: 10000
-      shards: 30
-      requires-node: "crop_berries"
+      cost-growth: 1.0007
+      description: "A very rare Credit, straight out of the soil."
+      color: "&d"
+      max-level: 10000
+      base-cap: 1000
+      per-level: 0.00000002
+      # 0.02% of crops at the ceiling, about one in five thousand.
+    GAMBA:
+      display: "Gamba"
+      icon: SUNFLOWER
+      base-cost: 200000
+      cost-growth: 1.0007
+      description: "A chance at 3x Coins, Gems or procs. You do not pick."
+      color: "&6"
+      max-level: 10000
+      base-cap: 1000
+      per-level: 0.0000008
+      # 0.8% of crops at the ceiling.
 
-  # ---- Blast Harvest ----
-  # The radius one detonation sweeps. It has to scale far more slowly than
-  # the enchant's level does: at the old one-per-three-levels, a maxed hoe
-  # would clear a 669-block-wide square in a single click.
-  blast:
-    base-radius: 1
-    levels-per-radius: 150
-    max-radius: 7
-
-  # ---- Momentum ----
-  # A farming RUN. Every crop you take adds to it, and the whole thing is
-  # gone if you stop for longer than idle-seconds - the boss bar across the
-  # top IS the run, so there's never any doubt what you're sitting on.
-  #
-  # It's the one farm bonus you can't buy outright: the enchant only raises
-  # the ceiling, and the field is what fills it.
-  momentum:
-    # Added to the multiplier for every 1,000 crops in the current run.
-    per-thousand-crops: 0.01
-    # The ceiling, per level of the Momentum enchant. At the starting cap
-    # of 100 levels that's a +5.00x ceiling.
-    #
-    # Reaching a +5.00x ceiling at 0.01 per thousand takes 500,000 crops in
-    # one run. Set per-thousand-crops to 0.10 if you want that to be
-    # 50,000 instead.
-    per-level-cap: 0.05
-    # Seconds without a harvest before the run ends.
-    idle-seconds: 30
-
-  # ---- Hoe tiers ----
-  # The Tool Upgrade nodes in /farmtree walk the hoe up this list. A tier
-  # is a flat bonus on the hoe itself rather than an enchant: it shows in
-  # the Information block, not the Enchants one, because it's what the tool
-  # IS rather than something bolted onto it.
-  #
-  # The hoe is always a wooden hoe. A tier has no name and no material of
-  # its own - it is simply the Roman numeral of its position in this list,
-  # so "Farmer's Hoe [IV]" is the fourth entry below and adding a seventh
-  # entry gives you a [VII] with no other change. Order matters; nothing
-  # else about an entry does.
-  hoe-name: "Farmer's Hoe"
-  # The tier ladder is generated from this shape rather than listed out.
-  # Seventy hand-written entries would be seventy chances to mistype one,
-  # and retuning the curve would mean editing every line.
-  #
-  # bands             how many rarities the ladder walks, from Common up.
-  #                   5 stops at Legendary, on purpose: nothing at the top
-  #                   of this ladder should need a drop nobody will see.
-  # tiers-per-band    tiers bought with each of those rarities
-  # cost-step         the first tier in a band costs this many drops, the
-  #                   second twice that, and so on: 2, 4, 6 ... 20
-  # blend-from        from this tier in a band, the price also asks for 1,
-  #                   2, 3 of the NEXT rarity, so moving up a band is a
-  #                   slope rather than a wall. The final band never
-  #                   blends.
-  # coin-bonus-step   a tier in band N is worth N times this. Common tiers
-  #                   are +1% Coins each, Legendary tiers +5%. Ten of each
-  #                   across five bands comes to +150% at the top.
-  # speed-share       Speed per tier, as a fraction of the Coin bonus. Set
-  #                   it to 0 to make the ladder purely about Coins.
-  #
-  # Tier I is the hoe you are handed and grants nothing, so the ladder is
-  # 50 bought tiers on top of it.
-  hoe-ladder:
-    bands: 5
-    tiers-per-band: 10
-    cost-step: 2
-    coin-bonus-step: 0.01
-    speed-share: 0.25
-    blend-from: 8
+  # ---- What the procs actually do ----
+  # Radii and counts are capped here rather than scaled off the level. A
+  # percentage survives ten thousand levels; a radius does not.
+  procs:
+    lightning-radius: 5
+    lightning-bolts: 5
+    nuke-crops: 10000
+    gamba-multiplier: 3.0
+    gamba-seconds: 60
+    key-finder-reward: crate_key
+    potion-finder-rewards:
+      - luck_potion
+      - speed_potion
+      - coin_potion
+      - enchant_potion
 
   # ---- Sounds ----
   # Both can be switched off per player in the hoe menu.
@@ -2639,6 +2614,11 @@ consumables:
     costs:
       EPIC: 8
       LEGENDARY: 2
+  crate_key:
+    display: "Crate Key"
+    material: TRIPWIRE_HOOK
+    colors: ["#FFE082", "#FF8F00"]
+    description: "Turned up by Key Finder. Crates open soon."
   free_skill:
     display: "Free Skill"
     material: KNOWLEDGE_BOOK
@@ -2821,7 +2801,7 @@ farmtree:
       max-level: 10
 
     enchant_green_thumb:
-      display: "Green Thumb"
+      display: "Speed"
       page: 1
       slot: "2,6"
       icon: BONE_BLOCK
@@ -2829,7 +2809,7 @@ farmtree:
       requires: "token_greed_power"
       effect: UNLOCK_ENCHANT
       value: 0
-      target: "GREEN_THUMB"
+      target: "SPEED"
 
     mastery_1:
       display: "Enchant Mastery I"
@@ -2891,7 +2871,7 @@ farmtree:
       value: 0.1
 
     enchant_fortune:
-      display: "Fortune"
+      display: "Key Finder"
       page: 1
       slot: "2,4"
       icon: EMERALD
@@ -2899,7 +2879,7 @@ farmtree:
       requires: "green_thumb_power"
       effect: UNLOCK_ENCHANT
       value: 0
-      target: "FORTUNE"
+      target: "KEY_FINDER"
 
     farming_shards:
       display: "Gem Harvest"
@@ -3188,6 +3168,72 @@ farmtree:
       effect: UNLOCK_ENCHANT
       value: 0
       target: "BLAST_HARVEST"
+
+    enchant_potion_finder:
+      display: "Potion Finder"
+      page: 2
+      slot: "9,6"
+      icon: BREWING_STAND
+      cost-money: 60000000
+      requires: "enchant_blast"
+      effect: UNLOCK_ENCHANT
+      value: 0
+      target: "POTION_FINDER"
+
+    enchant_lightning:
+      display: "Lightning"
+      page: 2
+      slot: "9,5"
+      icon: LIGHTNING_ROD
+      cost-money: 90000000
+      requires: "enchant_potion_finder"
+      effect: UNLOCK_ENCHANT
+      value: 0
+      target: "LIGHTNING"
+
+    enchant_nuke:
+      display: "Nuke"
+      page: 2
+      slot: "9,4"
+      icon: FIRE_CHARGE
+      cost-money: 140000000
+      requires: "enchant_lightning"
+      effect: UNLOCK_ENCHANT
+      value: 0
+      target: "NUKE"
+
+    enchant_coin_factory:
+      display: "Coin Factory"
+      page: 2
+      slot: "9,3"
+      icon: HOPPER
+      cost-money: 220000000
+      requires: "enchant_nuke"
+      effect: UNLOCK_ENCHANT
+      value: 0
+      target: "COIN_FACTORY"
+
+    enchant_credit_finder:
+      display: "Credit Finder"
+      page: 2
+      slot: "9,2"
+      icon: AMETHYST_SHARD
+      cost-money: 350000000
+      requires: "enchant_coin_factory"
+      effect: UNLOCK_ENCHANT
+      value: 0
+      target: "CREDIT_FINDER"
+
+    enchant_gamba:
+      display: "Gamba"
+      page: 2
+      slot: "9,1"
+      icon: SUNFLOWER
+      cost-money: 550000000
+      requires: "enchant_credit_finder"
+      effect: UNLOCK_ENCHANT
+      value: 0
+      target: "GAMBA"
 
     mastery_2:
       display: "Enchant Mastery II"

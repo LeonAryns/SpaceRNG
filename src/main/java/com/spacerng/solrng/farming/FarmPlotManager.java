@@ -75,6 +75,26 @@ public class FarmPlotManager {
      */
     private static final Material LEGACY_MARKER = Material.WHEAT;
 
+    // What the newest crop paid, so Nuke can price itself off a real
+    // harvest instead of guessing at the player's multipliers.
+    private long lastCropTokens = 1L;
+
+    // Proc tuning, all from config.
+    private int lightningRadius = 5;
+    private int lightningBolts = 5;
+    private long nukeCrops = 10_000L;
+    private double gambaMultiplier = 3.0;
+    private long gambaSeconds = 60L;
+    private String keyFinderReward = "crate_key";
+    private java.util.List<String> potionFinderRewards = java.util.List.of();
+
+    private static String trimTimes(double value) {
+        String text = String.format("%.2f", value);
+        if (text.endsWith(".00")) text = text.substring(0, text.length() - 3);
+        else if (text.endsWith("0")) text = text.substring(0, text.length() - 1);
+        return text + "x";
+    }
+
     // Momentum has no stack cap any more - the ceiling is the Momentum
     // enchant's level, which is a thing you buy rather than a constant
     // nobody could see.
@@ -116,6 +136,14 @@ public class FarmPlotManager {
     // ------------------------------------------------------------- config
 
     public void load(FileConfiguration config) {
+        lightningRadius = Math.max(1, config.getInt("farming.procs.lightning-radius", 5));
+        lightningBolts = Math.max(1, config.getInt("farming.procs.lightning-bolts", 5));
+        nukeCrops = Math.max(1L, config.getLong("farming.procs.nuke-crops", 10000L));
+        gambaMultiplier = Math.max(1.0, config.getDouble("farming.procs.gamba-multiplier", 3.0));
+        gambaSeconds = Math.max(1L, config.getLong("farming.procs.gamba-seconds", 60L));
+        keyFinderReward = config.getString("farming.procs.key-finder-reward", "crate_key");
+        potionFinderRewards = config.getStringList("farming.procs.potion-finder-rewards");
+
         crops.clear();
         regrowTicks = Math.max(1, config.getInt("farming.regrow-seconds", 3)) * 20;
         shardsNode = config.getString("farming.shards-node", "");
@@ -440,7 +468,8 @@ public class FarmPlotManager {
         long tokens = Math.round(crop.getTokens() * multiplier);
 
         double gemMultiplier = plugin.getSkillTreeManager()
-                .multiplierOf(data, com.spacerng.solrng.player.SkillNode.Effect.GEM_MULTIPLIER) * cropYield;
+                .multiplierOf(data, com.spacerng.solrng.player.SkillNode.Effect.GEM_MULTIPLIER)
+                * cropYield * data.boostMultiplier("GEMS");
         long shards = shardsUnlocked(data)
                 ? Math.round(crop.getShards() * gemMultiplier) : 0L;
 
@@ -453,16 +482,20 @@ public class FarmPlotManager {
             shards += 1;
         }
 
-        boolean fortune = ThreadLocalRandom.current().nextDouble() < hoe.powerOf(data, "FORTUNE");
-        if (fortune) {
-            tokens *= 2;
-            shards *= 2;
-        }
-        if (chain && (gemProc || fortune)) {
-            playProc(player, data, fortune ? 1.9f : procPitch);
+        // Fortune was removed. The flag survives only so the announce
+        // signature does not have to change in the same commit.
+        boolean fortune = false;
+        if (chain && gemProc) {
+            playProc(player, data, procPitch);
         }
 
-        if (tokens > 0) data.addTokens(tokens);
+        if (tokens > 0) {
+            data.addTokens(tokens);
+            // Coin Factory pays back a minute of earnings, so the earnings
+            // have to be remembered as they happen.
+            data.trackCoins(tokens);
+            lastCropTokens = tokens;
+        }
         if (shards > 0) data.addShards(shards);
         data.addCropsHarvested(1L);
         plugin.getPassManager().awardHarvest(player, data, 1L);
@@ -484,9 +517,9 @@ public class FarmPlotManager {
         return true;
     }
 
-    /** Green Thumb and the tool's own tier both shorten the regrow wait. */
+    /** Speed and the tool's own tier both shorten the regrow wait. */
     private int regrowTicksFor(PlayerData data) {
-        double faster = plugin.getHoeEnchantManager().powerOf(data, "GREEN_THUMB")
+        double faster = plugin.getHoeEnchantManager().powerOf(data, "SPEED")
                 + plugin.getFarmingManager().tierOf(data).speedBonus();
         return (int) Math.max(10, Math.round(regrowTicks * (1.0 - Math.min(0.85, faster))));
     }
@@ -540,7 +573,13 @@ public class FarmPlotManager {
         }
     }
 
-    /** Blast Harvest, Credit Finder and Nova Finder all roll here. */
+    /**
+     * Every proc rolls here, once per harvested plot.
+     *
+     * This is the hottest path in the plugin - it runs for every block a
+     * player breaks, and a blast sweep multiplies that - so the work per
+     * roll stays a comparison unless the roll actually lands.
+     */
     private void rollBonusEnchants(Player player, PlayerData data, HoeEnchantManager hoe, Location plot) {
         double blast = hoe.powerOf(data, "BLAST_HARVEST");
         if (blast > 0 && ThreadLocalRandom.current().nextDouble() < blast) {
@@ -564,22 +603,109 @@ public class FarmPlotManager {
                 if (data.isEnchantSoundEnabled()) {
                     player.playSound(plot, org.bukkit.Sound.ENTITY_GENERIC_EXPLODE, 0.5f, 1.6f);
                 }
-                sendActionBar(player, ChatColor.RED + "" + ChatColor.BOLD + "BLAST! "
+                sendActionBar(player, ChatColor.RED + "" + ChatColor.BOLD + "Blast  "
                         + ChatColor.RESET + ChatColor.GRAY + swept + " extra crops");
             }
+        }
+
+        double lightning = hoe.powerOf(data, "LIGHTNING");
+        if (lightning > 0 && ThreadLocalRandom.current().nextDouble() < lightning) {
+            int struck = 0;
+            for (int attempt = 0; attempt < lightningBolts; attempt++) {
+                int dx = ThreadLocalRandom.current().nextInt(-lightningRadius, lightningRadius + 1);
+                int dz = ThreadLocalRandom.current().nextInt(-lightningRadius, lightningRadius + 1);
+                Location near = normalise(plot.clone().add(dx, 0, dz));
+                if (!plots.contains(near)) continue;
+                // Effect lightning, never the real thing: the real one sets
+                // fires and kills whoever is standing in the field.
+                player.getWorld().strikeLightningEffect(near.clone().add(0.5, 0, 0.5));
+                if (harvest(player, near, false)) struck++;
+            }
+            if (struck > 0) {
+                sendActionBar(player, ChatColor.YELLOW + "" + ChatColor.BOLD + "Lightning  "
+                        + ChatColor.RESET + ChatColor.GRAY + struck + " crops struck");
+            }
+        }
+
+        double nuke = hoe.powerOf(data, "NUKE");
+        if (nuke > 0 && ThreadLocalRandom.current().nextDouble() < nuke) {
+            // Credited, not iterated. Ten thousand real block updates in one
+            // tick is a freeze; ten thousand crops of payout is a moment.
+            long paid = Math.max(1L, lastCropTokens) * nukeCrops;
+            data.addTokens(paid);
+            data.trackCoins(paid);
+            data.addCropsHarvested(nukeCrops);
+            plugin.getPassManager().awardHarvest(player, data, nukeCrops);
+            player.getWorld().createExplosion(plot.clone().add(0.5, 1.0, 0.5), 3.0f, false, false);
+            player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Nuke  "
+                    + ChatColor.RESET + ChatColor.GRAY + String.format("%,d", nukeCrops)
+                    + " crops vaporised for " + Currency.COINS.amount(paid) + ChatColor.GRAY + ".");
+            playProc(player, data, 0.5f);
+        }
+
+        double factory = hoe.powerOf(data, "COIN_FACTORY");
+        if (factory > 0 && ThreadLocalRandom.current().nextDouble() < factory) {
+            long minute = data.coinsInLastMinute();
+            if (minute > 0) {
+                data.addTokens(minute);
+                player.sendMessage(Currency.COINS.colour() + "" + ChatColor.BOLD + "Coin Factory  "
+                        + ChatColor.RESET + ChatColor.GRAY + "the last minute again: "
+                        + Currency.COINS.amount(minute));
+                playProc(player, data, 1.5f);
+            }
+        }
+
+        double key = hoe.powerOf(data, "KEY_FINDER");
+        if (key > 0 && ThreadLocalRandom.current().nextDouble() < key) {
+            var found = plugin.getConsumableManager().get(keyFinderReward);
+            if (found != null) {
+                plugin.getConsumableManager().give(player, found, 1);
+                player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "Key found  "
+                        + ChatColor.RESET + ChatColor.GRAY + "something was buried under that one.");
+                playProc(player, data, 1.7f);
+            }
+        }
+
+        double potion = hoe.powerOf(data, "POTION_FINDER");
+        if (potion > 0 && !potionFinderRewards.isEmpty()
+                && ThreadLocalRandom.current().nextDouble() < potion) {
+            String id = potionFinderRewards.get(
+                    ThreadLocalRandom.current().nextInt(potionFinderRewards.size()));
+            var found = plugin.getConsumableManager().get(id);
+            if (found != null) {
+                plugin.getConsumableManager().give(player, found, 1);
+                player.sendMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "Potion found  "
+                        + ChatColor.RESET + ChatColor.GRAY + found.display());
+                playProc(player, data, 1.4f);
+            }
+        }
+
+        double gamba = hoe.powerOf(data, "GAMBA");
+        if (gamba > 0 && ThreadLocalRandom.current().nextDouble() < gamba) {
+            // One of three, never all three: the roll IS the enchant.
+            String[] keys = {"TOKENS", "GEMS", "ENCHANT_PROC"};
+            String[] names = {"Coins", "Gems", "enchant procs"};
+            int pick = ThreadLocalRandom.current().nextInt(keys.length);
+            data.applyBoost(keys[pick], gambaMultiplier, gambaSeconds * 1000L);
+            player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "Gamba  "
+                    + ChatColor.RESET + ChatColor.GRAY + "it landed on "
+                    + ChatColor.WHITE + names[pick] + ChatColor.GRAY + ", "
+                    + ChatColor.GOLD + trimTimes(gambaMultiplier)
+                    + ChatColor.GRAY + " for " + gambaSeconds + "s.");
+            playProc(player, data, 2.0f);
         }
 
         double credit = hoe.powerOf(data, "CREDIT_FINDER");
         if (credit > 0 && ThreadLocalRandom.current().nextDouble() < credit) {
             data.addPoints(1L);
-            player.sendMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "CREDIT FOUND! "
+            player.sendMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "Credit found  "
                     + ChatColor.RESET + ChatColor.GRAY + "+1 Credit from the soil.");
             playProc(player, data, 1.2f);
         }
 
         double nova = hoe.powerOf(data, "NOVA_FINDER");
         if (nova > 0 && ThreadLocalRandom.current().nextDouble() < nova) {
-            player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "NOVA SPARK! "
+            player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "Nova spark  "
                     + ChatColor.RESET + ChatColor.GRAY + "A free Nova Core forge attempt.");
             playProc(player, data, 0.9f);
             plugin.getNovaCoreManager().attempt(player, data, false);
@@ -626,16 +752,19 @@ public class FarmPlotManager {
     /**
      * The admin's Farm Plot item.
      *
-     * Torchflower seeds, because the marker block they become IS the farm:
-     * one item, one block, one thing to recognise. It plants on farmland
-     * like any seed, so a field gets tilled first the way a field should.
+     * A hay block, because it has to go down ANYWHERE. Torchflower seeds
+     * were the obvious choice and the wrong one: seeds only plant on
+     * tilled farmland, so on any other block the click did nothing at all
+     * and the item looked broken. The hay is swapped for the marker crop
+     * a tick after it lands, so what you place is not what you get, but
+     * it always places.
      */
     public ItemStack createPlotItem(int amount) {
-        ItemStack item = new ItemStack(Material.TORCHFLOWER_SEEDS, Math.max(1, amount));
+        ItemStack item = new ItemStack(Material.HAY_BLOCK, Math.max(1, amount));
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(ChatColor.GREEN + "" + ChatColor.BOLD + "Farm Plot");
         meta.setLore(List.of(
-                ChatColor.GRAY + "Plant on farmland to add a tile to the",
+                ChatColor.GRAY + "Place anywhere to add a tile to the",
                 ChatColor.GRAY + "shared farm. Everyone sees their own crop.",
                 "",
                 ChatColor.DARK_GRAY + "Admin tool"));
