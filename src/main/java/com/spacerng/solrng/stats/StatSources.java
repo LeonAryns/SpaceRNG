@@ -124,9 +124,12 @@ public final class StatSources {
     // ------------------------------------------------------------ speed
 
     /**
-     * Speed is entirely flat, on purpose: a potion carrying a MINUS has to
-     * be a trade rather than a catastrophe, and a 0.75x multiplier on a
-     * maxed player is far more brutal than -25 flat.
+     * Every bought source of Speed is flat, on purpose: a potion carrying
+     * a MINUS has to be a trade rather than a catastrophe, and a 0.75x
+     * multiplier on a maxed player is far more brutal than -25 flat.
+     *
+     * The one multiplier is the Starforge ability, which is temporary and
+     * has to stay worth firing on a maxed player.
      */
     public static Stat speed(SolRNGPlugin plugin, PlayerData data) {
         List<Part> parts = new ArrayList<>();
@@ -136,8 +139,12 @@ public final class StatSources {
                 data.getSkillSpeedBonus(), Op.ADD));
         parts.add(new Part("Armor", "Buy and wear a set from /armor",
                 data.getArmorSpeedBonus(), Op.ADD));
+        parts.add(new Part("Starforge", "Some tiers trade Luck for Speed",
+                data.getStarforgeSpeedBonus(), Op.ADD));
         parts.add(new Part("Potions", "Draughts from /potion",
                 data.getPotionSpeed(), Op.ADD));
+        parts.add(new Part("Ability", "Shift-right-click a late Starforge",
+                data.boostMultiplier("SPEED"), Op.MULTIPLY));
 
         return new Stat(Id.SPEED, "Speed",
                 "How fast a roll resolves. Higher is more rolls an hour.",

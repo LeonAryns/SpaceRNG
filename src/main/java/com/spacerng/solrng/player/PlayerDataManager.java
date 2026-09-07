@@ -109,6 +109,7 @@ public class PlayerDataManager {
         data.setAutoConvertShiny(yml.getBoolean("auto-convert-shiny", false));
         data.setHoeTier(yml.getInt("hoe-tier", 0));
         data.addFreeSkills(yml.getInt("free-skills", 0));
+        data.setAbilityReadyAt(yml.getLong("ability-ready-at", 0L));
         data.getDiscoveredShiny().addAll(yml.getStringList("discovered-shiny"));
         for (String rarityName : yml.getStringList("disabled-auras")) {
             try {
@@ -283,6 +284,7 @@ public class PlayerDataManager {
         yml.set("tokens", data.getTokens());
         yml.set("hoe-tier", data.getHoeTier());
         yml.set("free-skills", data.getFreeSkills());
+        yml.set("ability-ready-at", data.getAbilityReadyAt());
         yml.set("shards", data.getShards());
         yml.set("roll-speed-multiplier", data.getRollSpeedMultiplier());
         yml.set("auto-roll-enabled", data.isAutoRollEnabled());

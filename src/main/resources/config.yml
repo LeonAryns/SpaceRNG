@@ -28,34 +28,61 @@ roll-item:
 # "#RRGGBB" hex or "&6"-style legacy codes, plus bold/underline/
 # strikethrough flags.
 starforge:
+  # Every tier is a trade, not just a bigger number.
+  #
+  # Two lines run up the ladder. The DEEP ones buy Luck and pay for it in
+  # Speed; the SWIFT ones roll far faster and shallower. Both are viable,
+  # because rolls per hour and Luck per roll are worth the same thing in
+  # the end, and picking between them is a decision rather than a queue.
+  #
+  # luck-bonus   base Luck, added flat before everything scales it
+  # speed-bonus  added to the Speed pile, and allowed to be negative
+  # ability      shift plus right-click, on the late tiers only
   tiers:
+    # What everybody is handed. It rolls, and that is all it does - the
+    # first real upgrade is a few minutes of Common drops away, which is
+    # also what makes the guide finishable in one sitting.
+    STARTER:
+      display: "Starter Starforge"
+      colors: ["#6B7280", "#9CA3AF"]
+      luck-bonus: 0.0
+      speed-bonus: 0.0
+      costs: {}
     BASIC:
       display: "Basic Starforge"
       colors: ["#9AA0A6", "#D8DEE4"]
       luck-bonus: 0.25
-      costs: {}
+      speed-bonus: 0.0
+      costs:
+        COMMON: 25
+        UNCOMMON: 1
     INTERMEDIATE:
       display: "Intermediate Starforge"
       colors: ["#2FBF4F", "#A6F26B"]
       luck-bonus: 0.50
+      speed-bonus: 0.05
       costs:
         COMMON: 75
         UNCOMMON: 25
         RARE: 5
+    # ---- The swift line ----
     ADVANCED:
       display: "Advanced Starforge"
       colors: ["#1FB6E8", "#5B8CFF"]
-      luck-bonus: 1.00
+      luck-bonus: 0.75
+      speed-bonus: 0.35
       costs:
         COMMON: 200
         UNCOMMON: 75
         RARE: 20
         EPIC: 3
+    # ---- The deep line ----
     REFINED:
       display: "Refined Starforge"
       colors: ["#8B5CF6", "#E879F9"]
       bold: true
-      luck-bonus: 1.75
+      luck-bonus: 2.25
+      speed-bonus: -0.15
       costs:
         UNCOMMON: 200
         RARE: 60
@@ -64,18 +91,26 @@ starforge:
       display: "Superior Starforge"
       colors: ["#FF9F1C", "#FFE066"]
       bold: true
-      luck-bonus: 3.00
+      luck-bonus: 2.00
+      speed-bonus: 0.70
       costs:
         RARE: 150
         EPIC: 35
         LEGENDARY: 3
-    # Masterwork and up are placeholder prices - they're meant to need
+    # Masterwork and up are placeholder prices - they are meant to need
     # the rarer drops, so retune these once those feel right in-game.
     MASTERWORK:
       display: "Masterwork Starforge"
       colors: ["#FF3D3D", "#FF9F1C", "#FFE066"]
       bold: true
-      luck-bonus: 5.00
+      luck-bonus: 6.00
+      speed-bonus: -0.25
+      ability:
+        display: "Deep Focus"
+        description: "Three times the Luck, while it lasts."
+        duration-seconds: 30
+        cooldown-seconds: 3600
+        luck-multiplier: 3.0
       costs:
         EPIC: 100
         LEGENDARY: 10
@@ -83,7 +118,14 @@ starforge:
       display: "Radiant Starforge"
       colors: ["#00E5FF", "#FFFFFF", "#FFD200"]
       bold: true
-      luck-bonus: 8.00
+      luck-bonus: 4.00
+      speed-bonus: 1.20
+      ability:
+        display: "Overcharge"
+        description: "Ten times the Speed, for half a minute."
+        duration-seconds: 30
+        cooldown-seconds: 3600
+        speed-multiplier: 10.0
       costs:
         EPIC: 250
         LEGENDARY: 30
@@ -93,6 +135,14 @@ starforge:
       colors: ["#7F00FF", "#E100FF", "#00E0FF"]
       bold: true
       luck-bonus: 12.50
+      speed-bonus: 0.50
+      ability:
+        display: "Convergence"
+        description: "Double Luck and triple Speed at once."
+        duration-seconds: 45
+        cooldown-seconds: 3600
+        luck-multiplier: 2.0
+        speed-multiplier: 3.0
       costs:
         LEGENDARY: 100
         MYTHICAL: 10
@@ -2108,7 +2158,7 @@ milestones:
       unit: "prestiges"
       description: "Reset your level for permanent Luck."
       tiers:
-        - { at: 1, money: 250000 }
+        - { at: 1, money: 100000 }
         - { at: 2, consumable: luck_potion }
         - { at: 3, consumable: free_skill }
         - { at: 5, consumable: roll_10x }
@@ -2122,20 +2172,20 @@ milestones:
         - { at: 100, consumable: luck_potion, consumable-amount: 10 }
     rarity:
       verb: "Discover"
-      display: "Collection"
+      display: "Index"
       icon: END_CRYSTAL
       unit: "drops found"
       description: "Unique drops discovered in your /index."
       tiers:
-        - { at: 5, money: 50000 }
-        - { at: 10, consumable: roll_10x }
-        - { at: 20, consumable: free_skill }
-        - { at: 30, consumable: luck_potion }
-        - { at: 45, consumable: roll_10x, consumable-amount: 2 }
-        - { at: 60, consumable: speed_potion }
-        - { at: 80, consumable: roll_10x, consumable-amount: 3 }
-        - { at: 100, consumable: luck_potion, consumable-amount: 3 }
-        - { at: 115, consumable: roll_10x, consumable-amount: 5 }
+        - { at: 25, money: 25000 }
+        - { at: 50, consumable: roll_10x }
+        - { at: 70, consumable: free_skill }
+        - { at: 85, consumable: luck_potion }
+        - { at: 95, consumable: roll_10x, consumable-amount: 2 }
+        - { at: 105, consumable: speed_potion }
+        - { at: 112, consumable: roll_10x, consumable-amount: 3 }
+        - { at: 118, consumable: luck_potion, consumable-amount: 3 }
+        - { at: 126, consumable: roll_10x, consumable-amount: 5 }
         - { at: 130, consumable: luck_250 }
         - { at: 140, consumable: roll_10x, consumable-amount: 10 }
         - { at: 144, consumable: luck_potion, consumable-amount: 10 }
@@ -2165,7 +2215,7 @@ milestones:
       unit: "hours"
       description: "Hours spent on SpaceRNG."
       tiers:
-        - { at: 1, money: 100000 }
+        - { at: 1, money: 25000 }
         - { at: 2, consumable: luck_50 }
         - { at: 6, consumable: luck_potion }
         - { at: 12, consumable: speed_potion }

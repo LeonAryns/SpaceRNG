@@ -210,6 +210,20 @@ public class RollListener implements Listener {
 
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
 
+        // Shift plus right-click is the ability. Right-click alone still
+        // rolls, so the muscle memory of every existing player is intact.
+        if (rightClick && player.isSneaking()) {
+            long wait = plugin.getStarforgeManager().activateAbility(player, data);
+            if (wait < 0) {
+                player.sendMessage(ChatColor.GRAY + "This Starforge has no ability. "
+                        + "The later tiers do.");
+            } else if (wait > 0) {
+                player.sendMessage(ChatColor.RED + "Not ready for another "
+                        + (wait >= 60 ? (wait / 60) + "m " + (wait % 60) + "s" : wait + "s") + ".");
+            }
+            return;
+        }
+
         if (leftClick) {
             toggleAutoRoll(player, data);
             return;
@@ -500,8 +514,10 @@ public class RollListener implements Listener {
                 data.addConverted(rarity, 1L);
             }
             if (!silent) {
-                sendHoverable(player, previewItem, RollFormat.personalRollLine(plugin, result, shiny)
-                        + ChatColor.YELLOW + " \u2192 stored (auto-converted)");
+                // Auto-convert is a bulk mode: the full name and the odds
+                // on every single roll is noise you asked for none of.
+                player.sendMessage(plugin.getRarityManager().style(rarity, rarity.displayName())
+                        + ChatColor.DARK_GRAY + " (auto converted)");
             }
         } else {
             Map<Integer, ItemStack> overflow = player.getInventory().addItem(previewItem.clone());

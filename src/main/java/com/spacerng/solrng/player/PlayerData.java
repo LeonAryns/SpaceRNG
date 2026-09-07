@@ -45,6 +45,8 @@ public class PlayerData {
     private final Set<Rarity> mutedBroadcasts = EnumSet.noneOf(Rarity.class);
     private int hoeTier;
     private int freeSkills;
+    private double starforgeSpeedBonus;
+    private long abilityReadyAt;
     // Auto-roll always fires at the player's own current roll speed - no
     // separate fixed interval.
     private boolean autoRollEnabled = false;
@@ -254,8 +256,11 @@ public class PlayerData {
         // which is what lets a potion carry a MINUS without wiping somebody
         // out - a 0.75x multiplier on a maxed player is brutal, -25 flat is
         // a trade.
-        return Math.max(0.1, rollSpeedMultiplier + skillSpeedBonus + armorSpeedBonus
-                + getPotionSpeed());
+        // The flat pile first, then anything multiplying it. An ability
+        // like Overcharge is a multiplier on purpose: doubling a maxed
+        // player's Speed has to stay worth something.
+        return Math.max(0.1, (rollSpeedMultiplier + skillSpeedBonus + armorSpeedBonus
+                + starforgeSpeedBonus + getPotionSpeed()) * boostMultiplier("SPEED"));
     }
 
     public Set<String> getUnlockedNodes() {
@@ -935,6 +940,24 @@ public class PlayerData {
 
     public void setStarforgeTier(String starforgeTier) {
         this.starforgeTier = starforgeTier;
+    }
+
+    /** The held Starforge's Speed, which some tiers make negative. */
+    public double getStarforgeSpeedBonus() {
+        return starforgeSpeedBonus;
+    }
+
+    public void setStarforgeSpeedBonus(double starforgeSpeedBonus) {
+        this.starforgeSpeedBonus = starforgeSpeedBonus;
+    }
+
+    /** Epoch millis the Starforge ability can be fired again. */
+    public long getAbilityReadyAt() {
+        return abilityReadyAt;
+    }
+
+    public void setAbilityReadyAt(long abilityReadyAt) {
+        this.abilityReadyAt = abilityReadyAt;
     }
 
     public double getStarforgeLuckBonus() {

@@ -73,10 +73,22 @@ public class StarforgeManager {
                 }
             }
 
+            ConfigurationSection a = t.getConfigurationSection("ability");
+            StarforgeTier.Ability ability = a == null ? null : new StarforgeTier.Ability(
+                    id.toLowerCase(),
+                    a.getString("display", "Ability"),
+                    a.getLong("duration-seconds", 30L),
+                    a.getLong("cooldown-seconds", 3600L),
+                    a.getDouble("speed-multiplier", 1.0),
+                    a.getDouble("luck-multiplier", 1.0),
+                    a.getString("description", ""));
+
             tiers.put(id, new StarforgeTier(
                     id,
                     t.getString("display", id),
                     t.getDouble("luck-bonus", 0.0),
+                    t.getDouble("speed-bonus", 0.0),
+                    ability,
                     costs,
                     order++,
                     plugin.getRarityManager().buildStyle(
@@ -127,6 +139,8 @@ public class StarforgeManager {
             PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
             boolean holding = isHolding(player);
             data.setStarforgeLuckBonus(holding ? luckBonusOf(data) : 0.0);
+            StarforgeTier held = tierOf(data);
+            data.setStarforgeSpeedBonus(holding && held != null ? held.getSpeedBonus() : 0.0);
 
             if (!holding && data.isAutoRollEnabled()) {
                 data.setAutoRollEnabled(false);
@@ -193,6 +207,45 @@ public class StarforgeManager {
         if (!replacedAny) {
             player.getInventory().addItem(create(tier));
         }
+    }
+
+    /**
+     * Fires the held Starforge's ability.
+     *
+     * Returns the seconds still to wait when it is on cooldown, 0 on a
+     * successful cast, and -1 when this tier has no ability at all, so the
+     * caller can say something useful for each case.
+     */
+    public long activateAbility(Player player, PlayerData data) {
+        StarforgeTier tier = tierOf(data);
+        if (tier == null || tier.getAbility() == null) return -1L;
+
+        StarforgeTier.Ability ability = tier.getAbility();
+        long now = System.currentTimeMillis();
+        long ready = data.getAbilityReadyAt();
+        if (ready > now) return (ready - now + 999L) / 1000L;
+
+        long millis = ability.durationSeconds() * 1000L;
+        if (ability.speedMultiplier() != 1.0) {
+            data.applyBoost("SPEED", ability.speedMultiplier(), millis);
+        }
+        if (ability.luckMultiplier() != 1.0) {
+            data.applyBoost("LUCK", ability.luckMultiplier(), millis);
+        }
+        data.setAbilityReadyAt(now + ability.cooldownSeconds() * 1000L);
+
+        player.sendMessage("");
+        player.sendMessage(tier.getStyle().apply(ability.display())
+                + ChatColor.RESET + ChatColor.GRAY + "  " + ability.description());
+        player.sendMessage(ChatColor.DARK_GRAY + com.spacerng.solrng.gui.Lore.BULLET + " "
+                + ChatColor.GRAY + "Runs for " + ChatColor.WHITE + ability.durationSeconds() + "s"
+                + ChatColor.GRAY + ", back in " + ChatColor.WHITE
+                + (ability.cooldownSeconds() / 60) + "m" + ChatColor.GRAY + ".");
+        player.sendMessage("");
+        player.playSound(player.getLocation(), org.bukkit.Sound.ITEM_TRIDENT_THUNDER, 1.0f, 1.4f);
+        player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_BEACON_POWER_SELECT, 1.0f, 1.8f);
+        plugin.getScoreboardManager().update(player);
+        return 0L;
     }
 
     public boolean isStarforge(ItemStack item) {
