@@ -247,354 +247,354 @@ farming:
       display: "Speed"
       icon: SUGAR
       base-cost: 500
-      cost-linear: 1
-      cost-step: 0.00019504425566
+      cost-linear: 84.08408408408408
+      cost-step: 0.23284915731139
       cost-power: 2.0
       description: "Your crops regrow faster."
       color: "&a"
-      max-level: 10000
-      base-cap: 1000
-      per-level: 0.00007
-      # +70% at the ceiling.
-      # Level 1 costs 501, level 10,000 costs 30,004. 120,000,000 Coins for the lot.
+      max-level: 1000
+      base-cap: 100
+      per-level: 0.0007
+      # 70% of crops at the ceiling. Level 1 costs 584, level 1,000 costs 317,433,
+      # 120,000,000 Coins for all of it.
 
     TOKEN_GREED:
       display: "Coin Greed"
       icon: GOLD_NUGGET
       base-cost: 608
-      cost-linear: 1.02070207020702
-      cost-step: 0.00026610991516
+      cost-linear: 102.16216216216216
+      cost-step: 0.28291022388071
       cost-power: 2.0
       description: "More Coins from every crop."
       color: "&e"
-      max-level: 10000
-      base-cap: 1000
-      per-level: 0.001
-      # +1000% at the ceiling.
-      # Level 1 costs 609, level 10,000 costs 37,426. 145,800,000 Coins for the lot.
+      max-level: 1000
+      base-cap: 100
+      per-level: 0.01
+      # +1000% at the ceiling. Level 1 costs 710, level 1,000 costs 385,680,
+      # 145,800,000 Coins for all of it.
 
     MOMENTUM:
       display: "Momentum"
       icon: POWERED_RAIL
       base-cost: 1324
-      cost-linear: 2.2243550352914
-      cost-step: 0.00057994678477
+      cost-linear: 222.63589587466222
+      cost-step: 0.61653228581778
       cost-power: 2.0
       description: "An unbroken run of harvests builds a multiplier."
       color: "&2"
-      max-level: 10000
-      base-cap: 1000
-      per-level: 0.0004
-      # A ceiling of 5.00x at the top, filled by farming, not bought.
+      max-level: 1000
+      base-cap: 100
+      per-level: 0.004
 
     # ---- Procs ----
-      # Level 1 costs 1,326, level 10,000 costs 81,562. 317,733,229 Coins for the lot.
+      # +400% at the ceiling. Level 1 costs 1,547, level 1,000 costs 840,492,
+      # 317,733,229 Coins for all of it.
 
     SHARD_GREED:
       display: "Gem Greed"
       icon: PRISMARINE_CRYSTALS
       base-cost: 738
-      cost-linear: 1.24015301530153
-      cost-step: 0.00032334515016
+      cost-linear: 124.12702702702701
+      cost-step: 0.34373808525885
       cost-power: 2.0
       description: "A chance at a bonus Gem."
       color: "&b"
-      max-level: 10000
-      base-cap: 1000
-      per-level: 0.00008
-      # 80% of crops at the ceiling.
-      # Level 1 costs 739, level 10,000 costs 45,474. 177,147,000 Coins for the lot.
+      max-level: 1000
+      base-cap: 100
+      per-level: 0.0008
+      # 80% of crops at the ceiling. Level 1 costs 862, level 1,000 costs 468,603,
+      # 177,147,000 Coins for all of it.
 
     KEY_FINDER:
       display: "Key Finder"
       icon: TRIPWIRE_HOOK
       base-cost: 897
-      cost-linear: 1.50678591359136
-      cost-step: 0.00039285445595
+      cost-linear: 150.81433783783783
+      cost-step: 0.41764078210276
       cost-power: 2.0
       description: "A chance to turn up a crate key."
       color: "&6"
-      max-level: 10000
-      base-cap: 1000
-      per-level: 0.000005
-      # 5% of crops at the ceiling.
-      # Level 1 costs 899, level 10,000 costs 55,250. 215,233,605 Coins for the lot.
+      max-level: 1000
+      base-cap: 100
+      per-level: 0.00005
+      # 5% of crops at the ceiling. Level 1 costs 1,048, level 1,000 costs 569,352,
+      # 215,233,605 Coins for all of it.
 
     BLAST_HARVEST:
       display: "TNT Blast"
       icon: TNT
       base-cost: 1090
-      cost-linear: 1.8307448850135
-      cost-step: 0.00047731381333
+      cost-linear: 183.23942047297299
+      cost-step: 0.5074331146016
       cost-power: 2.0
       description: "A chance to blow the neighbouring crops out too."
       color: "&c"
-      max-level: 10000
-      base-cap: 1000
-      per-level: 0.00002
-      # 20% of crops at the ceiling. Radius is capped separately.
-      # Level 1 costs 1,092, level 10,000 costs 67,129. 261,508,830 Coins for the lot.
+      max-level: 1000
+      base-cap: 100
+      per-level: 0.0002
+      # 20% of crops at the ceiling. Level 1 costs 1,274, level 1,000 costs 691,763,
+      # 261,508,830 Coins for all of it.
 
     POTION_FINDER:
       display: "Potion Finder"
       icon: BREWING_STAND
       base-cost: 1609
-      cost-linear: 2.70259136787906
-      cost-step: 0.00070462514197
+      cost-linear: 270.50261348771465
+      cost-step: 0.74908570573681
       cost-power: 2.0
       description: "A chance to dig up a potion."
       color: "&d"
-      max-level: 10000
-      base-cap: 1000
-      per-level: 0.000004
-      # 4% of crops at the ceiling.
-      # Level 1 costs 1,612, level 10,000 costs 99,097. 386,045,873 Coins for the lot.
+      max-level: 1000
+      base-cap: 100
+      per-level: 0.00004
+      # 4% of crops at the ceiling. Level 1 costs 1,880, level 1,000 costs 1,021,197,
+      # 386,045,873 Coins for all of it.
 
     LIGHTNING:
       display: "Lightning"
       icon: LIGHTNING_ROD
       base-cost: 1954
-      cost-linear: 3.28364851197305
-      cost-step: 0.0008561476017
+      cost-linear: 328.66067538757324
+      cost-step: 0.91014194168264
       cost-power: 2.0
       description: "A chance to call bolts down on nearby crops."
       color: "&e"
-      max-level: 10000
-      base-cap: 1000
-      per-level: 0.00001
-      # 10% of crops at the ceiling.
-      # Level 1 costs 1,957, level 10,000 costs 120,405. 469,045,735 Coins for the lot.
+      max-level: 1000
+      base-cap: 100
+      per-level: 0.0001
+      # 10% of crops at the ceiling. Level 1 costs 2,284, level 1,000 costs 1,240,757,
+      # 469,045,735 Coins for all of it.
 
     NOVA_FINDER:
       display: "Nova Finder"
       icon: HEART_OF_THE_SEA
       base-cost: 2375
-      cost-linear: 3.98963294204726
-      cost-step: 0.00104019263206
+      cost-linear: 399.3227205959015
+      cost-step: 1.10581978513473
       cost-power: 2.0
       description: "A chance at a free Nova Core forge."
       color: "&b"
-      max-level: 10000
-      base-cap: 1000
-      per-level: 0.000001
-      # 1% of crops at the ceiling.
+      max-level: 1000
+      base-cap: 100
+      per-level: 0.00001
 
     # ---- The late ones ----
-      # Level 1 costs 2,379, level 10,000 costs 146,291. 569,890,568 Coins for the lot.
+      # 1% of crops at the ceiling. Level 1 costs 2,775, level 1,000 costs 1,507,518,
+      # 569,890,568 Coins for all of it.
 
     NUKE:
       display: "Nuke"
       icon: FIRE_CHARGE
       base-cost: 29859
-      cost-linear: 50.16774199956193
-      cost-step: 0.01308009397576
+      cost-linear: 5021.29381635254958
+      cost-step: 13.90517583823455
       cost-power: 2.0
       description: "A rare chance to level the whole field at once."
       color: "&4"
-      max-level: 10000
-      base-cap: 1000
-      per-level: 0.00000005
-      # 0.05% of crops at the ceiling, about one in two thousand.
-      # Level 1 costs 29,909, level 10,000 costs 1,839,546. 7,166,103,604 Coins for the lot.
+      max-level: 1000
+      base-cap: 100
+      per-level: 0.0000005
+      # 0.05% of crops at the ceiling. Level 1 costs 34,894, level 1,000 costs 18,956,329,
+      # 7,166,103,604 Coins for all of it.
 
     COIN_FACTORY:
       display: "Coin Factory"
       icon: HOPPER
       base-cost: 2885
-      cost-linear: 4.84740402458742
-      cost-step: 0.00126385280077
+      cost-linear: 485.17710552402048
+      cost-step: 1.34357291675449
       cost-power: 2.0
       description: "A chance to be paid your last minute of Coins again."
       color: "&6"
-      max-level: 10000
-      base-cap: 1000
-      per-level: 0.0000015
-      # 1.5% of crops at the ceiling.
-      # Level 1 costs 2,890, level 10,000 costs 177,744. 692,417,041 Coins for the lot.
+      max-level: 1000
+      base-cap: 100
+      per-level: 0.000015
+      # 1.5% of crops at the ceiling. Level 1 costs 3,372, level 1,000 costs 1,831,635,
+      # 692,417,041 Coins for all of it.
 
     CREDIT_FINDER:
       display: "Credit Finder"
       icon: AMETHYST_SHARD
       base-cost: 16647
-      cost-linear: 27.97020957739117
-      cost-step: 0.00729260592372
+      cost-linear: 2799.54079643978321
+      cost-step: 7.75260610214234
       cost-power: 2.0
       description: "A very rare Credit, straight out of the soil."
       color: "&d"
-      max-level: 10000
-      base-cap: 1000
-      per-level: 0.00000002
-      # 0.02% of crops at the ceiling, about one in five thousand.
-      # Level 1 costs 16,675, level 10,000 costs 1,025,610. 3,995,344,651 Coins for the lot.
+      max-level: 1000
+      base-cap: 100
+      per-level: 0.0000002
+      # 0.02% of crops at the ceiling. Level 1 costs 19,454, level 1,000 costs 10,568,794,
+      # 3,995,344,651 Coins for all of it.
 
     GAMBA:
       display: "Gamba"
       icon: SUNFLOWER
       base-cost: 20226
-      cost-linear: 33.98380463653029
-      cost-step: 0.00886051934779
+      cost-linear: 3401.44206767433752
+      cost-step: 9.41941672957599
       cost-power: 2.0
       description: "A chance at 3x Coins, Gems or procs. You do not pick."
       color: "&6"
-      max-level: 10000
-      base-cap: 1000
-      per-level: 0.0000008
-      # 0.8% of crops at the ceiling.
+      max-level: 1000
+      base-cap: 100
+      per-level: 0.000008
 
     # ---- Wealth ----
     # Ten enchants about one thing: Coins and Gems. Every one of them
     # plays an animation only the player who earned it can see.
-      # Level 1 costs 20,260, level 10,000 costs 1,246,116. 4,854,343,751 Coins for the lot.
+      # 0.8% of crops at the ceiling. Level 1 costs 23,637, level 1,000 costs 12,841,085,
+      # 4,854,343,751 Coins for all of it.
 
     PROSPECTOR:
       display: "Prospector"
       icon: RAW_GOLD
       base-cost: 3505
-      cost-linear: 5.88959588987372
-      cost-step: 0.00153558940417
+      cost-linear: 589.49018321168489
+      cost-step: 1.63244192009564
       cost-power: 2.0
       description: "A chance at Gems worth a slice of the crop."
       color: "&b"
-      max-level: 10000
-      base-cap: 1000
-      per-level: 0.000003
-      # 3% of crops at the ceiling. Level 1 costs 5900, level 10,000 costs 417,262.
-      # Level 1 costs 3,511, level 10,000 costs 215,960. 841,286,704 Coins for the lot.
+      max-level: 1000
+      base-cap: 100
+      per-level: 0.00003
+      # 3% of crops at the ceiling. Level 1 costs 4,096, level 1,000 costs 2,225,437,
+      # 841,286,704 Coins for all of it.
 
     GOLDEN_TOUCH:
       display: "Golden Touch"
       icon: GOLDEN_HOE
       base-cost: 4259
-      cost-linear: 7.15585900619657
-      cost-step: 0.00186572837415
+      cost-linear: 716.23057260219707
+      cost-step: 1.98341565600147
       cost-power: 2.0
       description: "A chance to double every Coin for a while."
       color: "&6"
-      max-level: 10000
-      base-cap: 1000
-      per-level: 0.0000006
-      # 0.6% of crops at the ceiling. Level 1 costs 7100, level 10,000 costs 501,874.
-      # Level 1 costs 4,266, level 10,000 costs 262,390. 1,022,163,346 Coins for the lot.
+      max-level: 1000
+      base-cap: 100
+      per-level: 0.000006
+      # 0.6% of crops at the ceiling. Level 1 costs 4,977, level 1,000 costs 2,703,905,
+      # 1,022,163,346 Coins for all of it.
 
     GEM_RUSH:
       display: "Gem Rush"
       icon: AMETHYST_CLUSTER
       base-cost: 5175
-      cost-linear: 8.69436869252883
-      cost-step: 0.00226685052318
+      cost-linear: 870.2201457116696
+      cost-step: 2.40984907562264
       cost-power: 2.0
       description: "A chance to triple every Gem for a while."
       color: "&b"
-      max-level: 10000
-      base-cap: 1000
-      per-level: 0.0000005
-      # 0.5% of crops at the ceiling. Level 1 costs 8500, level 10,000 costs 601,089.
-      # Level 1 costs 5,184, level 10,000 costs 318,804. 1,241,928,465 Coins for the lot.
+      max-level: 1000
+      base-cap: 100
+      per-level: 0.000005
+      # 0.5% of crops at the ceiling. Level 1 costs 6,048, level 1,000 costs 3,285,244,
+      # 1,241,928,465 Coins for all of it.
 
     HARVEST_ECHO:
       display: "Harvest Echo"
       icon: SCULK_SENSOR
       base-cost: 6287
-      cost-linear: 10.56365796142253
-      cost-step: 0.00275424213847
+      cost-linear: 1057.31747703967858
+      cost-step: 2.92796850469729
       cost-power: 2.0
       description: "A chance for one crop to pay eight times over."
       color: "&6"
-      max-level: 10000
-      base-cap: 1000
-      per-level: 0.000001
-      # 1% of crops at the ceiling. Level 1 costs 10200, level 10,000 costs 720,707.
-      # Level 1 costs 6,298, level 10,000 costs 387,348. 1,508,943,085 Coins for the lot.
+      max-level: 1000
+      base-cap: 100
+      per-level: 0.00001
+      # 1% of crops at the ceiling. Level 1 costs 7,347, level 1,000 costs 3,991,573,
+      # 1,508,943,085 Coins for all of it.
 
     ALCHEMY:
       display: "Alchemy"
       icon: BREWING_STAND
       base-cost: 7639
-      cost-linear: 12.83484442312838
-      cost-step: 0.00334639534692
+      cost-linear: 1284.64073460320947
+      cost-step: 3.55748084687816
       cost-power: 2.0
       description: "A chance to melt Coins down into Gems."
       color: "&d"
-      max-level: 10000
-      base-cap: 1000
-      per-level: 0.0000004
-      # 0.4% of crops at the ceiling. Level 1 costs 12200, level 10,000 costs 866,728.
-      # Level 1 costs 7,652, level 10,000 costs 470,627. 1,833,365,848 Coins for the lot.
+      max-level: 1000
+      base-cap: 100
+      per-level: 0.000004
+      # 0.4% of crops at the ceiling. Level 1 costs 8,927, level 1,000 costs 4,849,761,
+      # 1,833,365,848 Coins for all of it.
 
     GEM_CASCADE:
       display: "Gem Cascade"
       icon: PRISMARINE_SHARD
       base-cost: 9281
-      cost-linear: 15.59433597410098
-      cost-step: 0.00406588189824
+      cost-linear: 1560.83849254289976
+      cost-step: 4.32234038569148
       cost-power: 2.0
       description: "A chance to chain Gems from crop to crop."
       color: "&b"
-      max-level: 10000
-      base-cap: 1000
-      per-level: 0.0000008
-      # 0.8% of crops at the ceiling. Level 1 costs 14700, level 10,000 costs 1,038,754.
-      # Level 1 costs 9,297, level 10,000 costs 571,813. 2,227,539,506 Coins for the lot.
+      max-level: 1000
+      base-cap: 100
+      per-level: 0.000008
+      # 0.8% of crops at the ceiling. Level 1 costs 10,846, level 1,000 costs 5,892,460,
+      # 2,227,539,506 Coins for all of it.
 
     COIN_STORM:
       display: "Coin Storm"
       icon: GOLD_BLOCK
       base-cost: 11277
-      cost-linear: 18.94711820853269
-      cost-step: 0.00494002895373
+      cost-linear: 1896.41876843962314
+      cost-step: 5.25164181097958
       cost-power: 2.0
       description: "A chance at a downpour of Coins."
       color: "&6"
-      max-level: 10000
-      base-cap: 1000
-      per-level: 0.0000003
-      # 0.3% of crops at the ceiling. Level 1 costs 17600, level 10,000 costs 1,245,984.
-      # Level 1 costs 11,296, level 10,000 costs 694,751. 2,706,460,500 Coins for the lot.
+      max-level: 1000
+      base-cap: 100
+      per-level: 0.000003
+      # 0.3% of crops at the ceiling. Level 1 costs 13,179, level 1,000 costs 7,159,338,
+      # 2,706,460,500 Coins for all of it.
 
     METEOR:
       display: "Meteor"
       icon: MAGMA_CREAM
       base-cost: 13701
-      cost-linear: 23.02074862336722
-      cost-step: 0.00600215183128
+      cost-linear: 2304.14880365414228
+      cost-step: 6.3807464678406
       cost-power: 2.0
       description: "A chance to call a meteor down on the field."
       color: "&c"
-      max-level: 10000
-      base-cap: 1000
-      per-level: 0.0000004
-      # 0.4% of crops at the ceiling. Level 1 costs 21100, level 10,000 costs 1,497,021.
-      # Level 1 costs 13,724, level 10,000 costs 844,124. 3,288,349,507 Coins for the lot.
+      max-level: 1000
+      base-cap: 100
+      per-level: 0.000004
+      # 0.4% of crops at the ceiling. Level 1 costs 16,012, level 1,000 costs 8,698,596,
+      # 3,288,349,507 Coins for all of it.
 
     BLACK_HOLE:
       display: "Black Hole"
       icon: ENDER_EYE
       base-cost: 24575
-      cost-linear: 41.29032263338429
-      cost-step: 0.01076551870572
+      cost-linear: 4132.75211222431972
+      cost-step: 11.44459009458767
       cost-power: 2.0
       description: "A chance to swallow the field whole."
       color: "&5"
-      max-level: 10000
-      base-cap: 1000
-      per-level: 0.00000015
-      # 0.15% of crops at the ceiling. Level 1 costs 25300, level 10,000 costs 1,794,665.
-      # Level 1 costs 24,616, level 10,000 costs 1,514,030. 5,898,027,657 Coins for the lot.
+      max-level: 1000
+      base-cap: 100
+      per-level: 0.0000015
+      # 0.15% of crops at the ceiling. Level 1 costs 28,719, level 1,000 costs 15,601,917,
+      # 5,898,027,657 Coins for all of it.
 
     SUPERNOVA:
       display: "Supernova"
       icon: NETHER_STAR
       base-cost: 36278
-      cost-linear: 60.95380652946773
-      cost-step: 0.01589233473363
+      cost-linear: 6100.87198686834654
+      cost-step: 16.89479070154108
       cost-power: 2.0
       description: "Nova Finder, several times over, and a fortune with it."
       color: "&6"
-      max-level: 10000
-      base-cap: 1000
-      per-level: 0.00000003
-      # 0.03% of crops at the ceiling. Level 1 costs 30400, level 10,000 costs 2,153,518.
-      # Level 1 costs 36,339, level 10,000 costs 2,235,050. 8,706,815,878 Coins for the lot.
+      max-level: 1000
+      base-cap: 100
+      per-level: 0.0000003
+      # 0.03% of crops at the ceiling. Level 1 costs 42,396, level 1,000 costs 23,031,941,
+      # 8,706,815,878 Coins for all of it.
 
   # ---- The golden crop ----
   # Exactly one plot in the field is worth many times the others, per
@@ -3672,7 +3672,7 @@ farmtree:
       cost-growth: 1.6
       requires: "mastery_1"
       effect: "ENCHANT_CAP"
-      value: 90
+      value: 90.0
       max-level: 5
 
     mastery_1:
@@ -3684,7 +3684,7 @@ farmtree:
       cost-growth: 1.55
       requires: "enchant_supernova"
       effect: "ENCHANT_CAP"
-      value: 90
+      value: 90.0
       max-level: 5
 
 boost:

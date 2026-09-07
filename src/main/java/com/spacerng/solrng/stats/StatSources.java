@@ -99,8 +99,14 @@ public final class StatSources {
                 plugin.getRarityManager().tagMultiplierFor(data), Op.MULTIPLY));
         parts.add(new Part("Index completion", "Finish whole rarities in /index",
                 plugin.getPrestigeManager().indexCompletion(data), Op.MULTIPLY));
+        // COMPOUNDING, not linear. Each prestige is worth 1.1x on top of
+        // the last, so the tenth is worth more than the first: prestige 10
+        // is 2.59x rather than 2.00x, and prestige 30 is 17.4x rather than
+        // 4.00x. Resetting has to get better the more often you have done
+        // it, or nobody does it twice.
         parts.add(new Part("Prestige", "Prestige again in /prestige",
-                1.0 + data.getPrestige() * plugin.getPrestigeManager().getLuckMultiplierPerPrestige(),
+                Math.pow(1.0 + plugin.getPrestigeManager().getLuckMultiplierPerPrestige(),
+                        data.getPrestige()),
                 Op.MULTIPLY));
 
         parts.add(new Part("Prestige upgrades", "Spend Prestige Points in /prestige",
