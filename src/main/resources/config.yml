@@ -247,7 +247,7 @@ farming:
       display: "Speed"
       icon: SUGAR
       base-cost: 200
-      cost-step: 6.901035e-05
+      cost-step: 0.00006901035
       cost-power: 2.0
       description: "Your crops regrow faster."
       color: "&a"
@@ -261,7 +261,7 @@ farming:
       display: "Coin Greed"
       icon: GOLD_NUGGET
       base-cost: 250
-      cost-step: 9.60144e-05
+      cost-step: 0.0000960144
       cost-power: 2.0
       description: "More Coins from every crop."
       color: "&e"
@@ -429,10 +429,148 @@ farming:
       # 0.8% of crops at the ceiling.
       # Level 1 costs 4900, level 10,000 costs 347,851. 1,192,000,000 Coins for the lot.
 
+    # ---- Wealth ----
+    # Ten enchants about one thing: Coins and Gems. Every one of them
+    # plays an animation only the player who earned it can see.
+    PROSPECTOR:
+      display: "Prospector"
+      icon: RAW_GOLD
+      base-cost: 5900
+      cost-step: 0.00411361702199
+      cost-power: 2.0
+      description: "A chance at Gems worth a slice of the crop."
+      color: "&b"
+      max-level: 10000
+      base-cap: 1000
+      per-level: 0.000003
+      # 3% of crops at the ceiling. Level 1 costs 5900, level 10,000 costs 417,262.
+    GOLDEN_TOUCH:
+      display: "Golden Touch"
+      icon: GOLDEN_HOE
+      base-cost: 7100
+      cost-step: 0.00494774213658
+      cost-power: 2.0
+      description: "A chance to double every Coin for a while."
+      color: "&6"
+      max-level: 10000
+      base-cap: 1000
+      per-level: 0.0000006
+      # 0.6% of crops at the ceiling. Level 1 costs 7100, level 10,000 costs 501,874.
+    GEM_RUSH:
+      display: "Gem Rush"
+      icon: AMETHYST_CLUSTER
+      base-cost: 8500
+      cost-step: 0.0059258888537
+      cost-power: 2.0
+      description: "A chance to triple every Gem for a while."
+      color: "&b"
+      max-level: 10000
+      base-cap: 1000
+      per-level: 0.0000005
+      # 0.5% of crops at the ceiling. Level 1 costs 8500, level 10,000 costs 601,089.
+    HARVEST_ECHO:
+      display: "Harvest Echo"
+      icon: SCULK_SENSOR
+      base-cost: 10200
+      cost-step: 0.00710506572433
+      cost-power: 2.0
+      description: "A chance for one crop to pay eight times over."
+      color: "&6"
+      max-level: 10000
+      base-cap: 1000
+      per-level: 0.000001
+      # 1% of crops at the ceiling. Level 1 costs 10200, level 10,000 costs 720,707.
+    ALCHEMY:
+      display: "Alchemy"
+      icon: BREWING_STAND
+      base-cost: 12200
+      cost-step: 0.00854528174954
+      cost-power: 2.0
+      description: "A chance to melt Coins down into Gems."
+      color: "&d"
+      max-level: 10000
+      base-cap: 1000
+      per-level: 0.0000004
+      # 0.4% of crops at the ceiling. Level 1 costs 12200, level 10,000 costs 866,728.
+    GEM_CASCADE:
+      display: "Gem Cascade"
+      icon: PRISMARINE_SHARD
+      base-cost: 14700
+      cost-step: 0.0102405360292
+      cost-power: 2.0
+      description: "A chance to chain Gems from crop to crop."
+      color: "&b"
+      max-level: 10000
+      base-cap: 1000
+      per-level: 0.0000008
+      # 0.8% of crops at the ceiling. Level 1 costs 14700, level 10,000 costs 1,038,754.
+    COIN_STORM:
+      display: "Coin Storm"
+      icon: GOLD_BLOCK
+      base-cost: 17600
+      cost-step: 0.01228384251496
+      cost-power: 2.0
+      description: "A chance at a downpour of Coins."
+      color: "&6"
+      max-level: 10000
+      base-cap: 1000
+      per-level: 0.0000003
+      # 0.3% of crops at the ceiling. Level 1 costs 17600, level 10,000 costs 1,245,984.
+    METEOR:
+      display: "Meteor"
+      icon: MAGMA_CREAM
+      base-cost: 21100
+      cost-step: 0.01475921380828
+      cost-power: 2.0
+      description: "A chance to call a meteor down on the field."
+      color: "&c"
+      max-level: 10000
+      base-cap: 1000
+      per-level: 0.0000004
+      # 0.4% of crops at the ceiling. Level 1 costs 21100, level 10,000 costs 1,497,021.
+    BLACK_HOLE:
+      display: "Black Hole"
+      icon: ENDER_EYE
+      base-cost: 25300
+      cost-step: 0.01769365395963
+      cost-power: 2.0
+      description: "A chance to swallow the field whole."
+      color: "&5"
+      max-level: 10000
+      base-cap: 1000
+      per-level: 0.00000015
+      # 0.15% of crops at the ceiling. Level 1 costs 25300, level 10,000 costs 1,794,665.
+    SUPERNOVA:
+      display: "Supernova"
+      icon: NETHER_STAR
+      base-cost: 30400
+      cost-step: 0.02123118457153
+      cost-power: 2.0
+      description: "The rarest thing a hoe can do."
+      color: "&6"
+      max-level: 10000
+      base-cap: 1000
+      per-level: 0.00000003
+      # 0.03% of crops at the ceiling. Level 1 costs 30400, level 10,000 costs 2,153,518.
+
   # ---- What the procs actually do ----
   # Radii and counts are capped here rather than scaled off the level. A
   # percentage survives ten thousand levels; a radius does not.
   procs:
+    prospector-share: 0.02
+    golden-touch-multiplier: 2.0
+    golden-touch-seconds: 15
+    gem-rush-multiplier: 3.0
+    gem-rush-seconds: 15
+    echo-repeats: 8
+    alchemy-share: 0.15
+    alchemy-rate: 0.001
+    cascade-radius: 4
+    cascade-gems: 2
+    storm-payout: 25
+    meteor-radius: 3
+    supernova-coins: 250
+    supernova-gems: 40
     lightning-radius: 5
     lightning-bolts: 5
     nuke-crops: 10000
@@ -3311,8 +3449,8 @@ farmtree:
 
     enchant_potion_finder:
       display: "Potion Finder"
-      page: 2
-      slot: "9,6"
+      page: 3
+      slot: "2,6"
       icon: BREWING_STAND
       cost-money: 60000000
       requires: "enchant_blast"
@@ -3322,10 +3460,10 @@ farmtree:
 
     enchant_lightning:
       display: "Lightning"
-      page: 2
-      slot: "9,5"
+      page: 3
+      slot: "3,6"
       icon: LIGHTNING_ROD
-      cost-money: 90000000
+      cost-money: 87000000
       requires: "enchant_potion_finder"
       effect: UNLOCK_ENCHANT
       value: 0
@@ -3333,10 +3471,10 @@ farmtree:
 
     enchant_nuke:
       display: "Nuke"
-      page: 2
-      slot: "9,4"
+      page: 3
+      slot: "4,6"
       icon: FIRE_CHARGE
-      cost-money: 140000000
+      cost-money: 126000000
       requires: "enchant_lightning"
       effect: UNLOCK_ENCHANT
       value: 0
@@ -3344,10 +3482,10 @@ farmtree:
 
     enchant_coin_factory:
       display: "Coin Factory"
-      page: 2
-      slot: "9,3"
+      page: 3
+      slot: "5,6"
       icon: HOPPER
-      cost-money: 220000000
+      cost-money: 182000000
       requires: "enchant_nuke"
       effect: UNLOCK_ENCHANT
       value: 0
@@ -3355,10 +3493,10 @@ farmtree:
 
     enchant_credit_finder:
       display: "Credit Finder"
-      page: 2
-      slot: "9,2"
+      page: 3
+      slot: "6,6"
       icon: AMETHYST_SHARD
-      cost-money: 350000000
+      cost-money: 263000000
       requires: "enchant_coin_factory"
       effect: UNLOCK_ENCHANT
       value: 0
@@ -3366,14 +3504,124 @@ farmtree:
 
     enchant_gamba:
       display: "Gamba"
-      page: 2
-      slot: "9,1"
+      page: 3
+      slot: "7,6"
       icon: SUNFLOWER
-      cost-money: 550000000
+      cost-money: 381000000
       requires: "enchant_credit_finder"
       effect: UNLOCK_ENCHANT
       value: 0
       target: "GAMBA"
+
+    enchant_prospector:
+      display: "Prospector"
+      page: 3
+      slot: "8,6"
+      icon: RAW_GOLD
+      cost-money: 552000000
+      requires: "enchant_gamba"
+      effect: UNLOCK_ENCHANT
+      value: 0
+      target: "PROSPECTOR"
+
+    enchant_golden_touch:
+      display: "Golden Touch"
+      page: 3
+      slot: "8,5"
+      icon: GOLDEN_HOE
+      cost-money: 800000000
+      requires: "enchant_prospector"
+      effect: UNLOCK_ENCHANT
+      value: 0
+      target: "GOLDEN_TOUCH"
+
+    enchant_gem_rush:
+      display: "Gem Rush"
+      page: 3
+      slot: "7,5"
+      icon: AMETHYST_CLUSTER
+      cost-money: 1160000000
+      requires: "enchant_golden_touch"
+      effect: UNLOCK_ENCHANT
+      value: 0
+      target: "GEM_RUSH"
+
+    enchant_harvest_echo:
+      display: "Harvest Echo"
+      page: 3
+      slot: "6,5"
+      icon: SCULK_SENSOR
+      cost-money: 1682000000
+      requires: "enchant_gem_rush"
+      effect: UNLOCK_ENCHANT
+      value: 0
+      target: "HARVEST_ECHO"
+
+    enchant_alchemy:
+      display: "Alchemy"
+      page: 3
+      slot: "5,5"
+      icon: BREWING_STAND
+      cost-money: 2438000000
+      requires: "enchant_harvest_echo"
+      effect: UNLOCK_ENCHANT
+      value: 0
+      target: "ALCHEMY"
+
+    enchant_gem_cascade:
+      display: "Gem Cascade"
+      page: 3
+      slot: "4,5"
+      icon: PRISMARINE_SHARD
+      cost-money: 3535000000
+      requires: "enchant_alchemy"
+      effect: UNLOCK_ENCHANT
+      value: 0
+      target: "GEM_CASCADE"
+
+    enchant_coin_storm:
+      display: "Coin Storm"
+      page: 3
+      slot: "3,5"
+      icon: GOLD_BLOCK
+      cost-money: 5125000000
+      requires: "enchant_gem_cascade"
+      effect: UNLOCK_ENCHANT
+      value: 0
+      target: "COIN_STORM"
+
+    enchant_meteor:
+      display: "Meteor"
+      page: 3
+      slot: "2,5"
+      icon: MAGMA_CREAM
+      cost-money: 7431000000
+      requires: "enchant_coin_storm"
+      effect: UNLOCK_ENCHANT
+      value: 0
+      target: "METEOR"
+
+    enchant_black_hole:
+      display: "Black Hole"
+      page: 3
+      slot: "2,4"
+      icon: ENDER_EYE
+      cost-money: 10774000000
+      requires: "enchant_meteor"
+      effect: UNLOCK_ENCHANT
+      value: 0
+      target: "BLACK_HOLE"
+
+    enchant_supernova:
+      display: "Supernova"
+      page: 3
+      slot: "3,4"
+      icon: NETHER_STAR
+      cost-money: 15622000000
+      requires: "enchant_black_hole"
+      effect: UNLOCK_ENCHANT
+      value: 0
+      target: "SUPERNOVA"
 
     mastery_2:
       display: "Enchant Mastery II"

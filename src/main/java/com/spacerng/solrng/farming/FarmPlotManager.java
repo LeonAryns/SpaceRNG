@@ -86,6 +86,20 @@ public class FarmPlotManager {
     private double gambaMultiplier = 3.0;
     private long gambaSeconds = 60L;
     private String keyFinderReward = "crate_key";
+    private double prospectorShare = 0.02;
+    private double goldenTouchMultiplier = 2.0;
+    private long goldenTouchSeconds = 15L;
+    private double gemRushMultiplier = 3.0;
+    private long gemRushSeconds = 15L;
+    private long echoRepeats = 8L;
+    private double alchemyShare = 0.15;
+    private double alchemyRate = 0.001;
+    private int cascadeRadius = 4;
+    private long cascadeGems = 2L;
+    private long stormPayout = 25L;
+    private int meteorRadius = 3;
+    private long supernovaCoins = 250L;
+    private long supernovaGems = 40L;
     private java.util.List<String> potionFinderRewards = java.util.List.of();
 
     private static String trimTimes(double value) {
@@ -136,6 +150,20 @@ public class FarmPlotManager {
     // ------------------------------------------------------------- config
 
     public void load(FileConfiguration config) {
+        prospectorShare = config.getDouble("farming.procs.prospector-share", 0.02);
+        goldenTouchMultiplier = config.getDouble("farming.procs.golden-touch-multiplier", 2.0);
+        goldenTouchSeconds = config.getLong("farming.procs.golden-touch-seconds", 15L);
+        gemRushMultiplier = config.getDouble("farming.procs.gem-rush-multiplier", 3.0);
+        gemRushSeconds = config.getLong("farming.procs.gem-rush-seconds", 15L);
+        echoRepeats = config.getLong("farming.procs.echo-repeats", 8L);
+        alchemyShare = config.getDouble("farming.procs.alchemy-share", 0.15);
+        alchemyRate = config.getDouble("farming.procs.alchemy-rate", 0.001);
+        cascadeRadius = config.getInt("farming.procs.cascade-radius", 4);
+        cascadeGems = config.getLong("farming.procs.cascade-gems", 2L);
+        stormPayout = config.getLong("farming.procs.storm-payout", 25L);
+        meteorRadius = config.getInt("farming.procs.meteor-radius", 3);
+        supernovaCoins = config.getLong("farming.procs.supernova-coins", 250L);
+        supernovaGems = config.getLong("farming.procs.supernova-gems", 40L);
         lightningRadius = Math.max(1, config.getInt("farming.procs.lightning-radius", 5));
         lightningBolts = Math.max(1, config.getInt("farming.procs.lightning-bolts", 5));
         nukeCrops = Math.max(1L, config.getLong("farming.procs.nuke-crops", 10000L));
@@ -695,6 +723,8 @@ public class FarmPlotManager {
             playProc(player, data, 2.0f);
         }
 
+        rollWealthEnchants(player, data, hoe, plot);
+
         double credit = hoe.powerOf(data, "CREDIT_FINDER");
         if (credit > 0 && ThreadLocalRandom.current().nextDouble() < credit) {
             data.addPoints(1L);
@@ -710,6 +740,161 @@ public class FarmPlotManager {
             playProc(player, data, 0.9f);
             plugin.getNovaCoreManager().attempt(player, data, false);
         }
+    }
+
+    /**
+     * The ten wealth enchants.
+     *
+     * All of them are about Coins or Gems, and all of them are seen only
+     * by the player who earned it. Twenty farmers on one field would
+     * otherwise be twenty overlapping effects in everyone else's face.
+     *
+     * Payouts are priced off lastCropTokens rather than a flat number, so
+     * they respect every multiplier the player has and never go stale when
+     * something is retuned.
+     */
+    private void rollWealthEnchants(Player player, PlayerData data, HoeEnchantManager hoe, Location plot) {
+        long base = Math.max(1L, lastCropTokens);
+
+        double prospector = hoe.powerOf(data, "PROSPECTOR");
+        if (prospector > 0 && ThreadLocalRandom.current().nextDouble() < prospector) {
+            long gems = Math.max(1L, Math.round(base * prospectorShare));
+            data.addShards(gems);
+            EnchantFx.pulse(plugin, player, plot, true);
+            sendActionBar(player, ChatColor.AQUA + "" + ChatColor.BOLD + "Prospector  "
+                    + ChatColor.RESET + ChatColor.GRAY + "+" + gems + " Gems");
+        }
+
+        double golden = hoe.powerOf(data, "GOLDEN_TOUCH");
+        if (golden > 0 && ThreadLocalRandom.current().nextDouble() < golden) {
+            data.applyBoost("TOKENS", goldenTouchMultiplier, goldenTouchSeconds * 1000L);
+            EnchantFx.coinStorm(plugin, player, (int) (goldenTouchSeconds * 20L));
+            player.sendMessage(Currency.COINS.colour() + "" + ChatColor.BOLD + "Golden Touch  "
+                    + ChatColor.RESET + ChatColor.GRAY + "Coins x" + trimTimes(goldenTouchMultiplier)
+                    + " for " + goldenTouchSeconds + "s.");
+        }
+
+        double rush = hoe.powerOf(data, "GEM_RUSH");
+        if (rush > 0 && ThreadLocalRandom.current().nextDouble() < rush) {
+            data.applyBoost("GEMS", gemRushMultiplier, gemRushSeconds * 1000L);
+            EnchantFx.gemRush(plugin, player, (int) (gemRushSeconds * 20L));
+            player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "Gem Rush  "
+                    + ChatColor.RESET + ChatColor.GRAY + "Gems x" + trimTimes(gemRushMultiplier)
+                    + " for " + gemRushSeconds + "s.");
+        }
+
+        double echo = hoe.powerOf(data, "HARVEST_ECHO");
+        if (echo > 0 && ThreadLocalRandom.current().nextDouble() < echo) {
+            long paid = base * echoRepeats;
+            data.addTokens(paid);
+            data.trackCoins(paid);
+            EnchantFx.pulse(plugin, player, plot, false);
+            sendActionBar(player, ChatColor.GOLD + "" + ChatColor.BOLD + "Echo x" + echoRepeats
+                    + "  " + ChatColor.RESET + ChatColor.GRAY + Currency.COINS.amount(paid));
+        }
+
+        double alchemy = hoe.powerOf(data, "ALCHEMY");
+        if (alchemy > 0 && ThreadLocalRandom.current().nextDouble() < alchemy) {
+            long spent = Math.round(data.getTokens() * alchemyShare);
+            long gems = Math.round(spent * alchemyRate);
+            if (gems > 0 && data.spendTokens(spent)) {
+                data.addShards(gems);
+                EnchantFx.transmute(plugin, player, plot);
+                player.sendMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "Alchemy  "
+                        + ChatColor.RESET + ChatColor.GRAY + Currency.COINS.amount(spent)
+                        + ChatColor.GRAY + " into " + ChatColor.AQUA + gems + " Gems"
+                        + ChatColor.GRAY + ".");
+            }
+        }
+
+        double cascade = hoe.powerOf(data, "GEM_CASCADE");
+        if (cascade > 0 && ThreadLocalRandom.current().nextDouble() < cascade) {
+            Location from = plot;
+            long gems = 0L;
+            for (int hop = 0; hop < 6; hop++) {
+                int dx = ThreadLocalRandom.current().nextInt(-cascadeRadius, cascadeRadius + 1);
+                int dz = ThreadLocalRandom.current().nextInt(-cascadeRadius, cascadeRadius + 1);
+                Location next = normalise(from.clone().add(dx, 0, dz));
+                if (!plots.contains(next)) continue;
+                EnchantFx.arc(player, from, next, true);
+                gems += cascadeGems;
+                from = next;
+            }
+            if (gems > 0) {
+                data.addShards(gems);
+                sendActionBar(player, ChatColor.AQUA + "" + ChatColor.BOLD + "Cascade  "
+                        + ChatColor.RESET + ChatColor.GRAY + "+" + gems + " Gems");
+            }
+        }
+
+        double storm = hoe.powerOf(data, "COIN_STORM");
+        if (storm > 0 && ThreadLocalRandom.current().nextDouble() < storm) {
+            long paid = base * stormPayout;
+            data.addTokens(paid);
+            data.trackCoins(paid);
+            EnchantFx.coinStorm(plugin, player, 40);
+            player.sendMessage(Currency.COINS.colour() + "" + ChatColor.BOLD + "Coin Storm  "
+                    + ChatColor.RESET + ChatColor.GRAY + Currency.COINS.amount(paid)
+                    + ChatColor.GRAY + " out of the sky.");
+        }
+
+        double meteor = hoe.powerOf(data, "METEOR");
+        if (meteor > 0 && ThreadLocalRandom.current().nextDouble() < meteor) {
+            EnchantFx.meteor(plugin, player, plot, meteorRadius);
+            int hit = sweep(player, plot, meteorRadius);
+            if (hit > 0) {
+                long paid = base * hit;
+                data.addTokens(paid);
+                data.trackCoins(paid);
+                sendActionBar(player, ChatColor.RED + "" + ChatColor.BOLD + "Meteor  "
+                        + ChatColor.RESET + ChatColor.GRAY + hit + " crops, paid twice");
+            }
+        }
+
+        double hole = hoe.powerOf(data, "BLACK_HOLE");
+        if (hole > 0 && ThreadLocalRandom.current().nextDouble() < hole) {
+            EnchantFx.blackHole(plugin, player, plot, blastMaxRadius);
+            int pulled = sweep(player, plot, blastMaxRadius);
+            if (pulled > 0) {
+                long paid = base * pulled * 2L;
+                data.addTokens(paid);
+                data.trackCoins(paid);
+                data.addShards(pulled);
+                player.sendMessage(ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + "Black Hole  "
+                        + ChatColor.RESET + ChatColor.GRAY + pulled + " crops swallowed for "
+                        + Currency.COINS.amount(paid) + ChatColor.GRAY + " and " + ChatColor.AQUA
+                        + pulled + " Gems" + ChatColor.GRAY + ".");
+            }
+        }
+
+        double nova = hoe.powerOf(data, "SUPERNOVA");
+        if (nova > 0 && ThreadLocalRandom.current().nextDouble() < nova) {
+            long coins = base * supernovaCoins;
+            data.addTokens(coins);
+            data.trackCoins(coins);
+            data.addShards(supernovaGems);
+            EnchantFx.supernova(plugin, player, plot);
+            player.sendMessage("");
+            player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "Supernova");
+            player.sendMessage(ChatColor.GRAY + "  " + Currency.COINS.amount(coins)
+                    + ChatColor.GRAY + " and " + ChatColor.AQUA + supernovaGems + " Gems"
+                    + ChatColor.GRAY + " out of a single crop.");
+            player.sendMessage("");
+        }
+    }
+
+    /** Harvests every plot inside a radius. Returns how many landed. */
+    private int sweep(Player player, Location centre, int radius) {
+        int swept = 0;
+        for (int dx = -radius; dx <= radius; dx++) {
+            for (int dz = -radius; dz <= radius; dz++) {
+                if (dx == 0 && dz == 0) continue;
+                Location near = normalise(centre.clone().add(dx, 0, dz));
+                if (!plots.contains(near)) continue;
+                if (harvest(player, near, false)) swept++;
+            }
+        }
+        return swept;
     }
 
     private void announce(Player player, long tokens, long shards, boolean fortune) {

@@ -143,25 +143,18 @@ public class QuestManager {
     }
 
     /**
-     * One voucher a step, and nothing else.
+     * A step pays nothing at all. The whole guide pays one voucher.
      *
-     * The guide teaches the game. Paying it in Coins turned it into a
-     * farming route people rushed for the money, which is the opposite of
-     * what a tutorial is for.
+     * Paying per step turned a tutorial into a farming route people
+     * rushed for the reward; paying only at the end makes finishing it
+     * the point.
      */
     private void reward(Player player, PlayerData data, Quest quest) {
-        int vouchers = plugin.getConfig().getInt("guide.free-skills-per-step", 1);
-        if (vouchers > 0) data.addFreeSkills(vouchers);
 
         player.sendMessage("");
         player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "✔ Guide step done  "
                 + ChatColor.RESET + ChatColor.WHITE + quest.getDisplay());
-        if (vouchers > 0) {
-            player.sendMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD
-                    + "+" + vouchers + " Skilltree Unlock Voucher"
-                    + (vouchers == 1 ? "" : "s")
-                    + ChatColor.RESET + ChatColor.GRAY + "  Spend it on anything in /skilltree.");
-        }
+
 
         Quest next = current(player, data);
         if (next == null) {
@@ -171,9 +164,9 @@ public class QuestManager {
             if (free > 0) {
                 data.addFreeSkills(free);
                 player.sendMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD
-                        + "+" + free + " free skill" + (free == 1 ? "" : "s")
+                        + "+" + free + " Skilltree Unlock Voucher" + (free == 1 ? "" : "s")
                         + ChatColor.RESET + ChatColor.GRAY
-                        + "  Your next purchase in /skilltree costs nothing.");
+                        + "  Spend it on anything in /skilltree, whatever it costs.");
             }
             player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "You've finished the starting guide!");
             player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0f, 1.0f);
