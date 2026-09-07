@@ -26,7 +26,7 @@ public record Consumable(String id, String display, Material material, List<Stri
                          double luck, double speed, long rolls,
                          double coinMultiplier, double enchantMultiplier, long durationSeconds,
                          double rollLuckMultiplier, long charges,
-                         double permanentLuck,
+                         double permanentLuck, long freeSkills,
                          Map<com.spacerng.solrng.rarity.Rarity, Long> costs,
                          String description) {
 
@@ -48,6 +48,11 @@ public record Consumable(String id, String display, Material material, List<Stri
     /** A one-shot permanent grant. */
     public boolean isPermanent() {
         return permanentLuck != 0.0;
+    }
+
+    /** A voucher for one free skill node. */
+    public boolean isFreeSkill() {
+        return freeSkills > 0;
     }
 
     public boolean isForSale() {

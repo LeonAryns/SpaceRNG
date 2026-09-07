@@ -344,19 +344,26 @@ farming:
   # entry gives you a [VII] with no other change. Order matters; nothing
   # else about an entry does.
   hoe-name: "Farmer's Hoe"
-  hoe-tiers:
-    - token-bonus: 0.0
-      speed-bonus: 0.0
-    - token-bonus: 0.25
-      speed-bonus: 0.03
-    - token-bonus: 0.60
-      speed-bonus: 0.06
-    - token-bonus: 1.10
-      speed-bonus: 0.10
-    - token-bonus: 1.80
-      speed-bonus: 0.15
-    - token-bonus: 3.00
-      speed-bonus: 0.22
+  # The tier ladder is generated from this shape rather than listed out.
+  # Seventy hand-written entries would be seventy chances to mistype one,
+  # and retuning the curve would mean editing every line.
+  #
+  # tiers-per-rarity  how many tiers each rarity's drops buy
+  # cost-step         the first tier in a band costs this many drops, the
+  #                   second twice that, and so on: 2, 4, 6 ... 20
+  # coin-bonus-step   a tier in band N is worth N times this. Common tiers
+  #                   are +1% Coins each, Divine tiers +7%. Ten of each
+  #                   across seven rarities comes to +280% at the top.
+  # speed-share       Speed per tier, as a fraction of the Coin bonus. Set
+  #                   it to 0 to make the ladder purely about Coins.
+  #
+  # Tier I is the hoe you are handed and grants nothing, so the ladder is
+  # 70 bought tiers on top of it.
+  hoe-ladder:
+    tiers-per-rarity: 10
+    cost-step: 2
+    coin-bonus-step: 0.01
+    speed-share: 0.25
 
   # ---- Sounds ----
   # Both can be switched off per player in the hoe menu.
@@ -1320,10 +1327,10 @@ skilltree:
     farming_unlock:
       display: "Farming"
       page: 1
-      slot: "5,3"
+      slot: "5,2"
       icon: WHEAT
-      cost-money: 5360
-      requires: "coins_1"
+      cost-money: 9380
+      requires: "armor_unlock"
       effect: UNLOCK_FARMING
       value: 0
 
@@ -1350,10 +1357,10 @@ skilltree:
     armor_unlock:
       display: "Armor"
       page: 1
-      slot: "5,2"
+      slot: "5,3"
       icon: IRON_CHESTPLATE
-      cost-money: 9380
-      requires: "farming_unlock"
+      cost-money: 5360
+      requires: "coins_1"
       effect: UNLOCK_ARMOR
       value: 0
 
@@ -2103,7 +2110,7 @@ milestones:
       tiers:
         - { at: 1, money: 250000 }
         - { at: 2, consumable: luck_potion }
-        - { at: 3, money: 2000000 }
+        - { at: 3, consumable: free_skill }
         - { at: 5, consumable: roll_10x }
         - { at: 10, consumable: luck_potion, consumable-amount: 2 }
         - { at: 15, consumable: speed_potion, consumable-amount: 2 }
@@ -2122,7 +2129,7 @@ milestones:
       tiers:
         - { at: 5, money: 50000 }
         - { at: 10, consumable: roll_10x }
-        - { at: 20, money: 500000 }
+        - { at: 20, consumable: free_skill }
         - { at: 30, consumable: luck_potion }
         - { at: 45, consumable: roll_10x, consumable-amount: 2 }
         - { at: 60, consumable: speed_potion }
@@ -2277,6 +2284,10 @@ daily:
 #   MILESTONES_CLAIMED LEVEL PRESTIGE
 # HAS_NODE uses "target" for the node id.
 guide:
+  # Handed over when the last guide step is done. A free skill node is
+  # worth most to somebody who saves it for something they cannot afford,
+  # so it is deliberately not tied to a particular node.
+  completion-free-skills: 1
   quests:
     - id: first_rolls
       display: "Roll 10 times"
@@ -2569,6 +2580,12 @@ consumables:
     costs:
       EPIC: 8
       LEGENDARY: 2
+  free_skill:
+    display: "Free Skill"
+    material: KNOWLEDGE_BOOK
+    colors: ["#E1BEE7", "#8E24AA"]
+    free-skills: 1
+    description: "Your next skill purchase costs nothing, whatever it costs."
   luck_50:
     display: "Permanent Luck +50%"
     material: RABBIT_FOOT

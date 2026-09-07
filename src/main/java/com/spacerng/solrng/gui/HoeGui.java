@@ -94,7 +94,7 @@ public class HoeGui {
             inv.setItem(SLOTS[i], emptySocket());
         }
 
-        inv.setItem(HOE_SLOT, buildHoeCard(plugin, data, tier));
+        inv.setItem(HOE_SLOT, buildHoeCard(plugin, player, data, tier));
         inv.setItem(COINS_SLOT, buildCoins(data));
         inv.setItem(FARM_SOUND_SLOT, buildToggle(Material.NOTE_BLOCK, "Farming Sounds",
                 data.isFarmSoundEnabled(), "The click of a crop coming up."));
@@ -117,7 +117,8 @@ public class HoeGui {
     }
 
     /** The tool itself: what it is now, and what the next rung would make it. */
-    private static ItemStack buildHoeCard(SolRNGPlugin plugin, PlayerData data, FarmingManager.HoeTier tier) {
+    private static ItemStack buildHoeCard(SolRNGPlugin plugin, Player player, PlayerData data,
+                                          FarmingManager.HoeTier tier) {
         FarmingManager farming = plugin.getFarmingManager();
         int index = farming.tierIndexOf(data);
         List<FarmingManager.HoeTier> tiers = farming.getHoeTiers();
@@ -140,8 +141,19 @@ public class HoeGui {
                     HoeEnchantManager.format(tier.tokenBonus()), HoeEnchantManager.format(next.tokenBonus())));
             lore.add(Lore.upgrade(ChatColor.AQUA, "Speed",
                     HoeEnchantManager.format(tier.speedBonus()), HoeEnchantManager.format(next.speedBonus())));
+
+            long held = next.costRarity() == null ? 0L
+                    : com.spacerng.solrng.player.DropWallet.total(plugin, player, data, next.costRarity());
+            boolean afford = next.costRarity() != null && held >= next.costAmount();
+            lore.add((afford ? ChatColor.GREEN : ChatColor.RED) + Lore.BULLET + " "
+                    + ChatColor.GRAY + "Cost: " + ChatColor.WHITE + next.costAmount() + " "
+                    + plugin.getRarityManager().style(next.costRarity(), next.costRarity().displayName())
+                    + ChatColor.DARK_GRAY + "  (" + (afford ? ChatColor.GREEN : ChatColor.RED)
+                    + held + ChatColor.DARK_GRAY + " held)");
             lore.add("");
-            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Tool upgrade is in /farmtree");
+            lore.add(afford
+                    ? ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to upgrade"
+                    : ChatColor.RED + "" + ChatColor.BOLD + "Not enough drops");
         } else {
             lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "Fully upgraded");
         }

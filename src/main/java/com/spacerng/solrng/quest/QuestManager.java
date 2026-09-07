@@ -152,7 +152,7 @@ public class QuestManager {
         }
 
         player.sendMessage("");
-        player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "✔ GUIDE COMPLETE "
+        player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "✔ Guide step done  "
                 + ChatColor.RESET + ChatColor.WHITE + quest.getDisplay());
         StringBuilder reward = new StringBuilder();
         if (quest.getRewardTokens() > 0) {
@@ -168,6 +168,16 @@ public class QuestManager {
 
         Quest next = current(player, data);
         if (next == null) {
+            // The whole guide is done. One free skill node, which is worth
+            // most if the player saves it for something expensive.
+            int free = plugin.getConfig().getInt("guide.completion-free-skills", 1);
+            if (free > 0) {
+                data.addFreeSkills(free);
+                player.sendMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD
+                        + "+" + free + " free skill" + (free == 1 ? "" : "s")
+                        + ChatColor.RESET + ChatColor.GRAY
+                        + "  Your next purchase in /skilltree costs nothing.");
+            }
             player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "You've finished the starting guide!");
             player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0f, 1.0f);
         } else {

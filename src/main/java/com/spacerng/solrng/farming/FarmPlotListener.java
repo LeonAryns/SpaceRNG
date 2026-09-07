@@ -32,11 +32,21 @@ public class FarmPlotListener implements Listener {
         this.plugin = plugin;
     }
 
-    /** Placing the admin Farm Plot item registers the tile. */
+    /**
+     * Placing the admin Farm Plot item registers the tile, and so does
+     * placing the marker crop by hand.
+     *
+     * The second one because the marker IS the farm as far as the world is
+     * concerned: an admin who puts a torchflower down reasonably expects a
+     * plot, and having it silently do nothing was the confusing half of
+     * the design.
+     */
     @EventHandler(ignoreCancelled = true)
     public void onPlace(BlockPlaceEvent event) {
         FarmPlotManager farm = plugin.getFarmPlotManager();
-        if (!farm.isPlotItem(event.getItemInHand())) return;
+        boolean marker = event.getBlockPlaced().getType() == farm.markerMaterial();
+        if (!farm.isPlotItem(event.getItemInHand()) && !marker) return;
+        if (marker && !event.getPlayer().hasPermission("solrng.admin")) return;
 
         if (!event.getPlayer().hasPermission("solrng.admin")) {
             event.setCancelled(true);

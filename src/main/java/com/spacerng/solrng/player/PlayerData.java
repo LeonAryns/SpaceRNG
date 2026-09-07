@@ -43,6 +43,8 @@ public class PlayerData {
     // Rarities whose global announcement this player has switched off.
     // Their own drops are never muted - this is for everyone else's.
     private final Set<Rarity> mutedBroadcasts = EnumSet.noneOf(Rarity.class);
+    private int hoeTier;
+    private int freeSkills;
     // Auto-roll always fires at the player's own current roll speed - no
     // separate fixed interval.
     private boolean autoRollEnabled = false;
@@ -887,6 +889,36 @@ public class PlayerData {
 
     public Set<Rarity> getMutedBroadcasts() {
         return mutedBroadcasts;
+    }
+
+    /**
+     * Skill nodes this player can buy for nothing.
+     *
+     * Spent automatically by the next purchase, whatever it costs, so the
+     * reward is worth most to somebody who saves it for a node they could
+     * not otherwise afford.
+     */
+    public int getFreeSkills() {
+        return freeSkills;
+    }
+
+    public void addFreeSkills(int amount) {
+        this.freeSkills = Math.max(0, this.freeSkills + amount);
+    }
+
+    public boolean useFreeSkill() {
+        if (freeSkills <= 0) return false;
+        freeSkills--;
+        return true;
+    }
+
+    /** Hoe tiers bought with drops. Skill-node tiers are counted separately. */
+    public int getHoeTier() {
+        return hoeTier;
+    }
+
+    public void setHoeTier(int hoeTier) {
+        this.hoeTier = Math.max(0, hoeTier);
     }
 
     public double getFarmTokenMultiplier() {

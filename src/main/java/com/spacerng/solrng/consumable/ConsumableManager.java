@@ -72,6 +72,7 @@ public class ConsumableManager {
                         c.getDouble("roll-luck-multiplier", 1.0),
                         c.getLong("charges", 0L),
                         c.getDouble("permanent-luck", 0.0),
+                        c.getLong("free-skills", 0L),
                         parseCosts(c.getConfigurationSection("costs")),
                         c.getString("description", "")));
             } catch (Exception ex) {
@@ -223,13 +224,21 @@ public class ConsumableManager {
 
         if (consumable.isPermanent()) {
             data.addBonusLuck(consumable.permanentLuck());
-            player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "PERMANENT LUCK "
+            player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "Permanent Luck "
                     + ChatColor.RESET + ChatColor.GRAY + signed(consumable.permanentLuck() * 100)
-                    + "% \u2014 that one never runs out.");
+                    + "%, and that one never runs out.");
+        }
+        if (consumable.isFreeSkill()) {
+            data.addFreeSkills((int) consumable.freeSkills());
+            player.sendMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD
+                    + "+" + consumable.freeSkills() + " free skill"
+                    + (consumable.freeSkills() == 1 ? "" : "s")
+                    + ChatColor.RESET + ChatColor.GRAY
+                    + "  Your next purchase in /skilltree costs nothing.");
         }
         if (consumable.isCharge()) {
             data.addRollCharges(consumable.charges(), consumable.rollLuckMultiplier());
-            player.sendMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "CHARGED "
+            player.sendMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "Charged "
                     + ChatColor.RESET + ChatColor.GRAY + "your next "
                     + (data.getRollCharges() == 1 ? "roll rolls" : data.getRollCharges() + " rolls roll")
                     + " at " + ChatColor.LIGHT_PURPLE + trim(data.getRollChargeMultiplier()) + "x"
@@ -240,7 +249,7 @@ public class ConsumableManager {
             // rather than stacking, so a minus column can't be dodged by
             // drinking something else on top of it.
             data.setPotion(consumable.luck(), consumable.speed(), consumable.rolls());
-            player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + consumable.display().toUpperCase()
+            player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + consumable.display()
                     + ChatColor.RESET + ChatColor.GRAY + "  "
                     + (consumable.luck() != 0
                             ? (consumable.luck() > 0 ? ChatColor.GREEN : ChatColor.RED)
@@ -260,8 +269,8 @@ public class ConsumableManager {
                 data.applyBoost("ENCHANT_PROC", consumable.enchantMultiplier(),
                         consumable.durationSeconds() * 1000L);
             }
-            player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + consumable.display().toUpperCase()
-                    + ChatColor.RESET + ChatColor.GRAY + " \u2014 " + consumable.durationText() + ".");
+            player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + consumable.display()
+                    + ChatColor.RESET + ChatColor.GRAY + " for " + consumable.durationText() + ".");
         }
 
         player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.8f, 1.6f);

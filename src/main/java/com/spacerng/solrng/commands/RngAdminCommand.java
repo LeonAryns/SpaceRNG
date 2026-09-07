@@ -201,7 +201,8 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         // Destructive and unrecoverable, so it takes an explicit second step.
         if (args.length < 3 || !args[2].equalsIgnoreCase("confirm")) {
             sender.sendMessage(ChatColor.RED + "This wipes " + target.getName()
-                    + "'s levels, prestige, index, skills, armor, drops and Starforge.");
+                    + "'s levels, prestige, index, skills, armor, drops, Starforge,"
+                    + " Coins, Gems, Credits and Money.");
             sender.sendMessage(ChatColor.RED + "Run " + ChatColor.YELLOW + "/rngadmin reset "
                     + target.getName() + " confirm" + ChatColor.RED + " if you're sure.");
             return true;
@@ -211,6 +212,18 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         plugin.getRollListener().cancelRoll(uuid);
         PlayerData fresh = plugin.getPlayerDataManager().reset(uuid);
 
+        // Coins, Gems and Credits live on PlayerData and go with it. Money
+        // does not: it lives in the economy plugin, so a reset that only
+        // touched the save file left the richest thing about the account
+        // untouched.
+        var economyReg = Bukkit.getServicesManager()
+                .getRegistration(net.milkbowl.vault.economy.Economy.class);
+        if (economyReg != null) {
+            var economy = economyReg.getProvider();
+            double balance = economy.getBalance(target);
+            if (balance > 0) economy.withdrawPlayer(target, balance);
+        }
+
         // Put the live state back in sync with the wiped data.
         plugin.getTagManager().clearTag(target, fresh);
         StarforgeTier basic = plugin.getStarforgeManager().tierOf(fresh);
@@ -219,7 +232,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         }
         plugin.getScoreboardManager().update(target);
 
-        target.sendMessage(ChatColor.RED + "Your SolRNG progress has been reset.");
+        target.sendMessage(ChatColor.RED + "Your SpaceRNG progress has been reset.");
         sender.sendMessage(ChatColor.GREEN + "Reset " + target.getName() + " to a new account.");
         return true;
     }

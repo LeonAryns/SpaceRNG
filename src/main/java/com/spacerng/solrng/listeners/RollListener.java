@@ -103,6 +103,30 @@ public class RollListener implements Listener {
      * means a tenth more shinies per level whatever the base is set to -
      * retuning shiny.chance doesn't silently retune the skills too.
      */
+    private final Map<java.util.UUID, Long> inventoryWarned = new java.util.HashMap<>();
+
+    /**
+     * Says the drop was lost, at most once a minute.
+     *
+     * Auto Roll would otherwise print this every few seconds forever,
+     * which teaches the player to ignore the one line they most need to
+     * read.
+     */
+    private void warnInventoryFull(Player player) {
+        long now = System.currentTimeMillis();
+        Long last = inventoryWarned.get(player.getUniqueId());
+        if (last != null && now - last < 60_000L) return;
+        inventoryWarned.put(player.getUniqueId(), now);
+
+        player.sendMessage("");
+        player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Your inventory is full.");
+        player.sendMessage(ChatColor.GRAY + "Drops are being lost. Free a slot, or turn on "
+                + ChatColor.YELLOW + "auto-convert" + ChatColor.GRAY + " in "
+                + ChatColor.YELLOW + "/convert" + ChatColor.GRAY + " to bank them instead.");
+        player.sendMessage("");
+        player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_NOTE_BLOCK_BASS, 1.0f, 0.6f);
+    }
+
     public double shinyChance(PlayerData data) {
         return com.spacerng.solrng.stats.StatSources.shiny(plugin, data).total();
     }
@@ -482,9 +506,11 @@ public class RollListener implements Listener {
         } else {
             Map<Integer, ItemStack> overflow = player.getInventory().addItem(previewItem.clone());
             if (!overflow.isEmpty()) {
-                overflow.values().forEach(leftover ->
-                        player.getWorld().dropItemNaturally(player.getLocation(), leftover));
-                player.sendMessage(ChatColor.RED + "Your inventory is full - the item dropped at your feet!");
+                // Nothing goes on the floor. A pile of loose drops under an
+                // auto-rolling player is an entity leak and a free-for-all
+                // for whoever walks past. Losing them is the honest
+                // outcome, as long as we say so clearly.
+                warnInventoryFull(player);
             }
             if (!silent) {
                 sendHoverable(player, previewItem, RollFormat.personalRollLine(plugin, result, shiny));

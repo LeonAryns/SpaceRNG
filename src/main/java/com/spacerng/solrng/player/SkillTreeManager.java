@@ -4,6 +4,7 @@ import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
@@ -321,6 +322,20 @@ public class SkillTreeManager {
         if (!requirementMet(data, node)) return false;
 
         double price = priceFor(data, node);
+        // A free purchase is spent before any currency is looked at, so it
+        // covers a node the player could not otherwise afford. That is the
+        // whole point of saving one.
+        if (data.getFreeSkills() > 0 && data.useFreeSkill()) {
+            if (node.isLeveled()) {
+                data.setNodeLevel(nodeId, data.getNodeLevel(nodeId) + 1);
+            } else {
+                data.getUnlockedNodes().add(nodeId);
+            }
+            applySideEffects(data, node);
+            player.sendMessage(ChatColor.LIGHT_PURPLE + "Free skill spent. "
+                    + ChatColor.GRAY + data.getFreeSkills() + " left.");
+            return true;
+        }
         if (node.usesTokens()) {
             if (!data.spendTokens(Math.round(price))) return false;
         } else {

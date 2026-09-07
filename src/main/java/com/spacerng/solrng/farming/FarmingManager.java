@@ -46,7 +46,8 @@ public class FarmingManager {
      * this list, so a tier can never be renamed into disagreeing with its
      * own number and an old config can't reintroduce a stone one.
      */
-    public record HoeTier(String display, double tokenBonus, double speedBonus) {
+    public record HoeTier(String display, double tokenBonus, double speedBonus,
+                          com.spacerng.solrng.rarity.Rarity costRarity, long costAmount) {
     }
 
     public FarmingManager(SolRNGPlugin plugin) {
@@ -59,17 +60,7 @@ public class FarmingManager {
         regrowTicks = config.getInt("farming.regrow-seconds", 3) * 20;
 
         hoeName = config.getString("farming.hoe-name", "Farmer's Hoe");
-
-        hoeTiers.clear();
-        for (Map<?, ?> raw : config.getMapList("farming.hoe-tiers")) {
-            hoeTiers.add(new HoeTier(
-                    roman(hoeTiers.size() + 1),
-                    asDouble(raw.get("token-bonus")),
-                    asDouble(raw.get("speed-bonus"))));
-        }
-        if (hoeTiers.isEmpty()) {
-            hoeTiers.add(new HoeTier("I", 0.0, 0.0));
-        }
+        buildLadder(config);
 
         ConfigurationSection section = config.getConfigurationSection("farming.crops");
         if (section == null) {
@@ -109,8 +100,80 @@ public class FarmingManager {
         }
     }
 
+    /**
+     * Builds the tier ladder from a pattern rather than a list.
+     *
+     * Seventy entries written out by hand would be seventy chances to
+     * mistype one, and retuning the curve would mean editing every line.
+     * The shape is the config: ten tiers per rarity, the cost inside a
+     * band walking 2, 4, 6 ... 20 of that rarity's drops, and each tier in
+     * band N worth N times the base bonus. So a Common tier is +1% Coins
+     * and a Divine tier is +7%, and the full ladder comes to +280%.
+     */
+    private void buildLadder(FileConfiguration config) {
+        int perRarity = Math.max(1, config.getInt("farming.hoe-ladder.tiers-per-rarity", 10));
+        long costStep = Math.max(1L, config.getLong("farming.hoe-ladder.cost-step", 2L));
+        double coinStep = config.getDouble("farming.hoe-ladder.coin-bonus-step", 0.01);
+        double speedShare = config.getDouble("farming.hoe-ladder.speed-share", 0.25);
+
+        hoeTiers.clear();
+        // Tier I is the hoe you are handed. Nothing was paid for it, so it
+        // grants nothing, and the ladder is what you buy on top.
+        hoeTiers.add(new HoeTier(roman(1), 0.0, 0.0, null, 0L));
+
+        double coins = 0.0;
+        double speed = 0.0;
+        for (com.spacerng.solrng.rarity.Rarity rarity : com.spacerng.solrng.rarity.Rarity.values()) {
+            double perTier = coinStep * (rarity.ordinal() + 1);
+            for (int step = 1; step <= perRarity; step++) {
+                coins += perTier;
+                speed += perTier * speedShare;
+                hoeTiers.add(new HoeTier(roman(hoeTiers.size() + 1), coins, speed,
+                        rarity, costStep * step));
+            }
+        }
+    }
+
     public String getHoeName() {
         return hoeName;
+    }
+
+    /** The tier a player would buy next, or null at the top of the ladder. */
+    public HoeTier nextTier(com.spacerng.solrng.player.PlayerData data) {
+        int index = tierIndexOf(data);
+        return index + 1 < hoeTiers.size() ? hoeTiers.get(index + 1) : null;
+    }
+
+    /**
+     * Buys the next tier with rolled drops.
+     *
+     * All or nothing: the cost is checked in full before anything is spent,
+     * so a player is never left having paid for half a tier.
+     */
+    public boolean purchaseTier(org.bukkit.entity.Player player,
+                                com.spacerng.solrng.player.PlayerData data) {
+        HoeTier next = nextTier(data);
+        if (next == null || next.costRarity() == null) return false;
+
+        long held = com.spacerng.solrng.player.DropWallet
+                .total(plugin, player, data, next.costRarity());
+        if (held < next.costAmount()) return false;
+
+        com.spacerng.solrng.player.DropWallet
+                .spend(plugin, player, data, next.costRarity(), next.costAmount());
+        data.setHoeTier(data.getHoeTier() + 1);
+        refreshHeldHoe(player, data);
+        return true;
+    }
+
+    /** Rewrites every bound hoe the player is carrying, so the lore is true. */
+    public void refreshHeldHoe(org.bukkit.entity.Player player,
+                               com.spacerng.solrng.player.PlayerData data) {
+        ItemStack[] contents = player.getInventory().getContents();
+        for (int i = 0; i < contents.length; i++) {
+            if (isBoundHoe(contents[i])) contents[i] = createBoundHoe(data);
+        }
+        player.getInventory().setContents(contents);
     }
 
     public java.util.List<HoeTier> getHoeTiers() {
@@ -118,11 +181,19 @@ public class FarmingManager {
     }
 
     /** Which rung of the tool ladder this player has bought up to. */
+    /**
+     * Tiers bought with drops, plus any the old HOE_TIER skill nodes
+     * granted.
+     *
+     * The ladder moved off the skill tree and onto drops, but anybody who
+     * already paid Coins for those nodes keeps what they paid for rather
+     * than being quietly demoted.
+     */
     public int tierIndexOf(com.spacerng.solrng.player.PlayerData data) {
         if (data == null) return 0;
-        int bought = (int) Math.round(plugin.getSkillTreeManager()
+        int legacy = (int) Math.round(plugin.getSkillTreeManager()
                 .totalOf(data, com.spacerng.solrng.player.SkillNode.Effect.HOE_TIER));
-        return Math.max(0, Math.min(hoeTiers.size() - 1, bought));
+        return Math.max(0, Math.min(hoeTiers.size() - 1, data.getHoeTier() + legacy));
     }
 
     public HoeTier tierOf(com.spacerng.solrng.player.PlayerData data) {
@@ -160,37 +231,43 @@ public class FarmingManager {
         double tokenBonus = tier.tokenBonus() + (data == null ? 0.0 : enchants.powerOf(data, "TOKEN_GREED"));
         double speedBonus = tier.speedBonus() + (data == null ? 0.0 : enchants.powerOf(data, "GREEN_THUMB"));
 
-        lore.add(ChatColor.GOLD + "Information");
-        lore.add(ChatColor.DARK_GRAY + "\u251c " + ChatColor.YELLOW + "TIER: "
-                + ChatColor.WHITE + tier.display());
-        lore.add(ChatColor.DARK_GRAY + "\u251c " + ChatColor.GREEN + "TOKENS: "
-                + ChatColor.WHITE + "+" + String.format("%,.0f", tokenBonus * 100.0) + "%");
-        lore.add(ChatColor.DARK_GRAY + "\u251c " + ChatColor.AQUA + "SPEED: "
-                + ChatColor.WHITE + "+" + String.format("%,.0f", speedBonus * 100.0) + "%");
+        lore.add(com.spacerng.solrng.gui.Lore.section(ChatColor.GOLD, "The tool"));
+        lore.add(com.spacerng.solrng.gui.Lore.stat(ChatColor.YELLOW, "Tier",
+                tier.display() + ChatColor.DARK_GRAY + " / " + roman(hoeTiers.size())));
+        lore.add(com.spacerng.solrng.gui.Lore.stat(ChatColor.GOLD, "Coins",
+                "+" + String.format("%,.0f", tokenBonus * 100.0) + "%"));
+        lore.add(com.spacerng.solrng.gui.Lore.stat(ChatColor.AQUA, "Speed",
+                "+" + String.format("%,.0f", speedBonus * 100.0) + "%"));
         lore.add("");
 
-        lore.add(ChatColor.GOLD + "Enchants");
+        lore.add(com.spacerng.solrng.gui.Lore.section(ChatColor.GOLD, "Enchants"));
         boolean any = false;
         if (data != null) {
             for (var enchant : enchants.getEnchants().values()) {
                 int level = enchants.levelOf(data, enchant.id());
                 if (level <= 0) continue;
-                lore.add(ChatColor.DARK_GRAY + "\u251c " + enchant.colour() + enchant.display()
-                        + ChatColor.DARK_GRAY + " " + level
-                        + ChatColor.DARK_GRAY + "/" + enchants.maxLevelFor(data, enchant));
+                lore.add(enchant.colour() + com.spacerng.solrng.gui.Lore.BULLET + " "
+                        + ChatColor.GRAY + enchant.display() + ": "
+                        + ChatColor.WHITE + level
+                        + ChatColor.DARK_GRAY + " / " + enchants.maxLevelFor(data, enchant));
                 any = true;
             }
         }
         if (!any) {
-            lore.add(ChatColor.DARK_GRAY + "\u251c " + ChatColor.RED + "No Enchants");
+            lore.add(ChatColor.DARK_GRAY + com.spacerng.solrng.gui.Lore.BULLET + " None yet");
         }
         lore.add("");
 
-        lore.add(ChatColor.GOLD + "Attachments");
-        lore.add(ChatColor.DARK_GRAY + "\u251c " + ChatColor.RED + "No Attachments");
-        lore.add("");
-        lore.add(ChatColor.DARK_GRAY + "[" + ChatColor.YELLOW + "RIGHT CLICK TO UPGRADE"
-                + ChatColor.DARK_GRAY + "]");
+        HoeTier next = data == null ? null : nextTier(data);
+        if (next != null && next.costRarity() != null) {
+            lore.add(com.spacerng.solrng.gui.Lore.section(ChatColor.AQUA, "Next tier"));
+            lore.add(ChatColor.AQUA + com.spacerng.solrng.gui.Lore.BULLET + " " + ChatColor.GRAY
+                    + "Costs " + ChatColor.WHITE + next.costAmount() + " "
+                    + plugin.getRarityManager().style(next.costRarity(),
+                            next.costRarity().displayName()) + ChatColor.GRAY + " drops");
+            lore.add("");
+        }
+        lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Right-click to upgrade");
 
         meta.setLore(lore);
         meta.setUnbreakable(true);
@@ -210,9 +287,19 @@ public class FarmingManager {
         player.getInventory().setContents(contents);
     }
 
+    /** A real converter, because the ladder runs well past X. */
     private static String roman(int value) {
-        String[] numerals = {"I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"};
-        return value >= 1 && value <= numerals.length ? numerals[value - 1] : String.valueOf(value);
+        if (value < 1) return String.valueOf(value);
+        int[] steps = {1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1};
+        String[] marks = {"M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I"};
+        StringBuilder out = new StringBuilder();
+        for (int i = 0; i < steps.length && value > 0; i++) {
+            while (value >= steps[i]) {
+                out.append(marks[i]);
+                value -= steps[i];
+            }
+        }
+        return out.toString();
     }
 
     public boolean isBoundHoe(ItemStack item) {

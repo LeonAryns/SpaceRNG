@@ -408,6 +408,24 @@ public class GuiListener implements Listener {
         Player player = (Player) event.getWhoClicked();
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
 
+        // The tool card at the top is the tier button.
+        if (event.getRawSlot() == 4) {
+            var farming = plugin.getFarmingManager();
+            var next = farming.nextTier(data);
+            if (next == null) {
+                player.sendMessage(ChatColor.GRAY + "Your hoe is at the top of the ladder.");
+            } else if (farming.purchaseTier(player, data)) {
+                player.sendMessage(ChatColor.GREEN + "Hoe upgraded to "
+                        + ChatColor.YELLOW + farming.tierOf(data).display() + ChatColor.GREEN + ".");
+                player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_ANVIL_USE, 0.7f, 1.4f);
+            } else {
+                player.sendMessage(ChatColor.RED + "You need " + next.costAmount() + " "
+                        + next.costRarity().displayName() + " drops for the next tier.");
+            }
+            player.openInventory(com.spacerng.solrng.gui.HoeGui.build(plugin, player));
+            return;
+        }
+
         if (event.getRawSlot() == HoeGui.farmSoundSlot()) {
             data.setFarmSoundEnabled(!data.isFarmSoundEnabled());
             player.openInventory(HoeGui.build(plugin, player));
