@@ -107,6 +107,7 @@ public class FarmPlotManager {
     private long stormPayout = 25L;
     private int meteorRadius = 3;
     private long supernovaCoins = 250L;
+    private int supernovaAttempts = 3;
     private long supernovaGems = 40L;
     private java.util.List<String> potionFinderRewards = java.util.List.of();
 
@@ -173,6 +174,7 @@ public class FarmPlotManager {
         stormPayout = config.getLong("farming.procs.storm-payout", 25L);
         meteorRadius = config.getInt("farming.procs.meteor-radius", 3);
         supernovaCoins = config.getLong("farming.procs.supernova-coins", 250L);
+        supernovaAttempts = config.getInt("farming.procs.supernova-nova-attempts", 3);
         supernovaGems = config.getLong("farming.procs.supernova-gems", 40L);
         lightningRadius = Math.max(1, config.getInt("farming.procs.lightning-radius", 5));
         lightningBolts = Math.max(1, config.getInt("farming.procs.lightning-bolts", 5));
@@ -590,10 +592,14 @@ public class FarmPlotManager {
         return true;
     }
 
-    /** Speed and the tool's own tier both shorten the regrow wait. */
+    /**
+     * Speed shortens the regrow wait. The tool tier no longer does: a
+     * tier is two multipliers now, Coins and enchant proc, and adding a
+     * third thing it quietly did was how nobody could tell what a tier
+     * was worth.
+     */
     private int regrowTicksFor(PlayerData data) {
-        double faster = plugin.getHoeEnchantManager().powerOf(data, "SPEED")
-                + plugin.getFarmingManager().tierOf(data).speedBonus();
+        double faster = plugin.getHoeEnchantManager().powerOf(data, "SPEED");
         return (int) Math.max(10, Math.round(regrowTicks * (1.0 - Math.min(0.85, faster))));
     }
 
@@ -924,6 +930,14 @@ public class FarmPlotManager {
             player.sendMessage(ChatColor.GRAY + "  " + Currency.COINS.amount(coins)
                     + ChatColor.GRAY + " and " + ChatColor.AQUA + supernovaGems + " Gems"
                     + ChatColor.GRAY + " out of a single crop.");
+            // Nova Finder gives you one free climb. Supernova is the same
+            // idea several times over, which is what makes it the thing
+            // you graduate to rather than a separate lottery.
+            for (int i = 0; i < supernovaAttempts; i++) {
+                plugin.getNovaCoreManager().attempt(player, data, false);
+            }
+            player.sendMessage(ChatColor.AQUA + "  " + supernovaAttempts
+                    + " free Nova Core climbs on top.");
             player.sendMessage("");
         }
     }

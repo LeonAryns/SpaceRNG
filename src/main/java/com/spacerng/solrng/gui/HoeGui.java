@@ -37,7 +37,8 @@ public class HoeGui {
     private static final int[] SLOTS = {
             10, 11, 12, 13, 14, 15, 16,
             19, 20, 21, 22, 23, 24, 25,
-            28, 29, 30, 31, 32, 33, 34
+            28, 29, 30, 31, 32, 33, 34,
+            37, 38, 39, 40, 41, 42, 43
     };
 
     private static final int HOE_SLOT = 4;
@@ -130,17 +131,21 @@ public class HoeGui {
         List<String> lore = new ArrayList<>();
         lore.add(Lore.section(ChatColor.GOLD, "The tool"));
         lore.add(Lore.stat(ChatColor.YELLOW, "Tier", (index + 1) + " / " + tiers.size()));
-        lore.add(Lore.stat(Currency.COINS.colour(), "Coins", HoeEnchantManager.format(tier.tokenBonus())));
-        lore.add(Lore.stat(ChatColor.AQUA, "Speed", HoeEnchantManager.format(tier.speedBonus())));
+        lore.add(Lore.stat(Currency.COINS.colour(), "Coins",
+                String.format("%.2f", tier.coinMultiplier()) + "x"));
+        lore.add(Lore.stat(ChatColor.LIGHT_PURPLE, "Enchant proc",
+                String.format("%.2f", tier.procMultiplier()) + "x"));
         lore.add(Lore.bar(tiers.size() <= 1 ? 1.0 : index / (double) (tiers.size() - 1)));
         lore.add("");
         if (index + 1 < tiers.size()) {
             FarmingManager.HoeTier next = tiers.get(index + 1);
             lore.add(Lore.section(ChatColor.AQUA, "Next tier"));
             lore.add(Lore.upgrade(Currency.COINS.colour(), "Coins",
-                    HoeEnchantManager.format(tier.tokenBonus()), HoeEnchantManager.format(next.tokenBonus())));
-            lore.add(Lore.upgrade(ChatColor.AQUA, "Speed",
-                    HoeEnchantManager.format(tier.speedBonus()), HoeEnchantManager.format(next.speedBonus())));
+                    String.format("%.2f", tier.coinMultiplier()) + "x",
+                    String.format("%.2f", next.coinMultiplier()) + "x"));
+            lore.add(Lore.upgrade(ChatColor.LIGHT_PURPLE, "Enchant proc",
+                    String.format("%.2f", tier.procMultiplier()) + "x",
+                    String.format("%.2f", next.procMultiplier()) + "x"));
 
             lore.add("");
             lore.add(Lore.section(ChatColor.YELLOW, "Price"));

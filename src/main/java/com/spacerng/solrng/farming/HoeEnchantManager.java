@@ -31,7 +31,7 @@ public class HoeEnchantManager {
     /** One enchant definition. Level comes from the player's skill nodes. */
     public record Enchant(String id, String display, String description, String icon, int maxLevel,
                           int baseCap, double perLevel, String colour, long baseCost,
-                          double costStep, double costPower) {
+                          double costLinear, double costStep, double costPower) {
 
         /** e.g. "Token Greed III" in the enchant's own colour. */
         public String styled(int level) {
@@ -72,6 +72,7 @@ public class HoeEnchantManager {
                     e.getDouble("per-level", 0.0),
                     colourOf(e.getString("color", "&d")),
                     e.getLong("base-cost", 25000L),
+                    e.getDouble("cost-linear", 1.0),
                     e.getDouble("cost-step", 0.0001),
                     e.getDouble("cost-power", 2.0)));
         }
@@ -145,7 +146,14 @@ public class HoeEnchantManager {
 
     /** Tokens for the next level. Grows so late levels are a real sink. */
     /**
-     * Polynomial, not exponential.
+     * base + linear x level + step x level^power.
+     *
+     * The linear term exists so the number MOVES. A purely squared curve
+     * over ten thousand levels rises by a fraction of a Coin per level for
+     * the first several thousand, so the price looks frozen even though it
+     * is climbing; the linear term is set so every single level costs at
+     * least one Coin more than the last, from level one.
+     *
      *
      * base + step x level^power. Compounding growth cannot survive ten
      * thousand levels: even 1.0007 reaches 1,100x by the end and 1.007
@@ -156,6 +164,7 @@ public class HoeEnchantManager {
      */
     public long costFor(Enchant enchant, int currentLevel) {
         return Math.round(enchant.baseCost()
+                + enchant.costLinear() * currentLevel
                 + enchant.costStep() * Math.pow(currentLevel, enchant.costPower()));
     }
 
@@ -217,7 +226,8 @@ public class HoeEnchantManager {
         // 0.00004/level one.
         double proc = plugin.getSkillTreeManager()
                 .multiplierOf(data, SkillNode.Effect.ENCHANT_PROC)
-                * data.boostMultiplier("ENCHANT_PROC");
+                * data.boostMultiplier("ENCHANT_PROC")
+                * plugin.getFarmingManager().tierOf(data).procMultiplier();
         return enchant.perLevel() * levelOf(data, enchantId) * proc;
     }
 

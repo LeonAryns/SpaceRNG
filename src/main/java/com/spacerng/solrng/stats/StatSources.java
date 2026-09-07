@@ -201,8 +201,8 @@ public final class StatSources {
 
         parts.add(new Part("Farm skills", "Coin nodes in /farmtree",
                 data.getFarmTokenMultiplier(), Op.ADD));
-        parts.add(new Part("Hoe tier", "Tool Upgrade nodes in /farmtree",
-                plugin.getFarmingManager().tierOf(data).tokenBonus(), Op.ADD));
+        parts.add(new Part("Hoe tier", "Upgrade the hoe in /crops",
+                plugin.getFarmingManager().tierOf(data).coinMultiplier(), Op.MULTIPLY));
         parts.add(new Part("Coin Greed", "Level the enchant on your hoe",
                 plugin.getHoeEnchantManager().powerOf(data, "TOKEN_GREED"), Op.ADD));
         parts.add(new Part("Momentum", "Earned live - keep the chain going",
@@ -232,6 +232,8 @@ public final class StatSources {
         parts.add(new Part("Skills", "Proc Chance nodes in /farmtree",
                 plugin.getSkillTreeManager().multiplierOf(data, SkillNode.Effect.ENCHANT_PROC),
                 Op.MULTIPLY));
+        parts.add(new Part("Hoe tier", "Upgrade the hoe in /crops",
+                plugin.getFarmingManager().tierOf(data).procMultiplier(), Op.MULTIPLY));
         parts.add(new Part("Potions", "Enchant Potions",
                 data.boostMultiplier("ENCHANT_PROC"), Op.MULTIPLY));
 

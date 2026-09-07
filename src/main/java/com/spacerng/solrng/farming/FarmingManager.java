@@ -46,7 +46,14 @@ public class FarmingManager {
      * this list, so a tier can never be renamed into disagreeing with its
      * own number and an old config can't reintroduce a stone one.
      */
-    public record HoeTier(String display, double tokenBonus, double speedBonus,
+    /**
+     * A tier multiplies, it does not add.
+     *
+     * "1.14x Coins" is a number a player can reason about against every
+     * other multiplier they own; "+14% Coins" disappears into a pile of
+     * additive percentages where nobody can tell what it did.
+     */
+    public record HoeTier(String display, double coinMultiplier, double procMultiplier,
                           Map<com.spacerng.solrng.rarity.Rarity, Long> costs) {
     }
 
@@ -117,16 +124,19 @@ public class FarmingManager {
                 config.getInt("farming.hoe-ladder.bands", 5)));
         long costStep = Math.max(1L, config.getLong("farming.hoe-ladder.cost-step", 2L));
         double coinStep = config.getDouble("farming.hoe-ladder.coin-bonus-step", 0.01);
-        double speedShare = config.getDouble("farming.hoe-ladder.speed-share", 0.25);
+        // Enchant proc climbs far slower than Coins on purpose: it lifts
+        // every enchant at once, so the same step would be worth many
+        // times more.
+        double procShare = config.getDouble("farming.hoe-ladder.proc-share", 0.04);
         int blendFrom = config.getInt("farming.hoe-ladder.blend-from", 8);
 
         hoeTiers.clear();
         // Tier I is the hoe you are handed. Nothing was paid for it, so it
         // grants nothing, and the ladder is what you buy on top.
-        hoeTiers.add(new HoeTier(roman(1), 0.0, 0.0, Map.of()));
+        hoeTiers.add(new HoeTier(roman(1), 1.0, 1.0, Map.of()));
 
         double coins = 0.0;
-        double speed = 0.0;
+        double proc = 0.0;
         for (int band = 0; band < bands; band++) {
             var rarity = rarities[band];
             var next = band + 1 < rarities.length ? rarities[band + 1] : null;
@@ -137,7 +147,7 @@ public class FarmingManager {
             // than fifty one.
             for (int step = band == 0 ? 2 : 1; step <= perBand; step++) {
                 coins += perTier;
-                speed += perTier * speedShare;
+                proc += perTier * procShare;
 
                 Map<com.spacerng.solrng.rarity.Rarity, Long> costs =
                         new java.util.EnumMap<>(com.spacerng.solrng.rarity.Rarity.class);
@@ -149,7 +159,8 @@ public class FarmingManager {
                 if (next != null && band + 1 < bands && step >= blendFrom) {
                     costs.put(next, (long) (step - blendFrom + 1));
                 }
-                hoeTiers.add(new HoeTier(roman(hoeTiers.size() + 1), coins, speed, costs));
+                hoeTiers.add(new HoeTier(roman(hoeTiers.size() + 1),
+                        1.0 + coins, 1.0 + proc, costs));
             }
         }
     }
@@ -258,14 +269,18 @@ public class FarmingManager {
         // Thumb and the tier both raise Speed. They're summed here because
         // the tooltip is answering "what is this hoe worth", not "where did
         // each percent come from".
-        double tokenBonus = tier.tokenBonus() + (data == null ? 0.0 : enchants.powerOf(data, "TOKEN_GREED"));
-        double speedBonus = tier.speedBonus() + (data == null ? 0.0 : enchants.powerOf(data, "SPEED"));
+        double tokenBonus = data == null ? 0.0 : enchants.powerOf(data, "TOKEN_GREED");
+        double speedBonus = data == null ? 0.0 : enchants.powerOf(data, "SPEED");
 
         lore.add(com.spacerng.solrng.gui.Lore.section(ChatColor.GOLD, "The tool"));
         lore.add(com.spacerng.solrng.gui.Lore.stat(ChatColor.YELLOW, "Tier",
                 tier.display() + ChatColor.DARK_GRAY + " / " + roman(hoeTiers.size())));
         lore.add(com.spacerng.solrng.gui.Lore.stat(ChatColor.GOLD, "Coins",
-                "+" + String.format("%,.0f", tokenBonus * 100.0) + "%"));
+                String.format("%.2f", tier.coinMultiplier()) + "x"
+                        + ChatColor.DARK_GRAY + "  +" + String.format("%,.0f", tokenBonus * 100.0)
+                        + "% from enchants"));
+        lore.add(com.spacerng.solrng.gui.Lore.stat(ChatColor.LIGHT_PURPLE, "Enchant proc",
+                String.format("%.2f", tier.procMultiplier()) + "x"));
         lore.add(com.spacerng.solrng.gui.Lore.stat(ChatColor.AQUA, "Speed",
                 "+" + String.format("%,.0f", speedBonus * 100.0) + "%"));
         lore.add("");
