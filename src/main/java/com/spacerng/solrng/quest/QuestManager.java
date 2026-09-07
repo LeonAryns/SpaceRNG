@@ -142,28 +142,25 @@ public class QuestManager {
         }
     }
 
+    /**
+     * One voucher a step, and nothing else.
+     *
+     * The guide teaches the game. Paying it in Coins turned it into a
+     * farming route people rushed for the money, which is the opposite of
+     * what a tutorial is for.
+     */
     private void reward(Player player, PlayerData data, Quest quest) {
-        if (quest.getRewardTokens() > 0) data.addTokens(quest.getRewardTokens());
-        if (quest.getRewardMoney() > 0) {
-            var registration = Bukkit.getServicesManager().getRegistration(Economy.class);
-            if (registration != null) {
-                registration.getProvider().depositPlayer(player, quest.getRewardMoney());
-            }
-        }
+        int vouchers = plugin.getConfig().getInt("guide.free-skills-per-step", 1);
+        if (vouchers > 0) data.addFreeSkills(vouchers);
 
         player.sendMessage("");
         player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "✔ Guide step done  "
                 + ChatColor.RESET + ChatColor.WHITE + quest.getDisplay());
-        StringBuilder reward = new StringBuilder();
-        if (quest.getRewardTokens() > 0) {
-            reward.append(ChatColor.YELLOW).append(String.format("%,d", quest.getRewardTokens())).append(" Coins");
-        }
-        if (quest.getRewardMoney() > 0) {
-            if (reward.length() > 0) reward.append(ChatColor.GRAY).append(", ");
-            reward.append(ChatColor.DARK_GREEN).append("$").append(String.format("%,.0f", quest.getRewardMoney()));
-        }
-        if (reward.length() > 0) {
-            player.sendMessage(ChatColor.GRAY + "Reward: " + reward);
+        if (vouchers > 0) {
+            player.sendMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD
+                    + "+" + vouchers + " Skilltree Unlock Voucher"
+                    + (vouchers == 1 ? "" : "s")
+                    + ChatColor.RESET + ChatColor.GRAY + "  Spend it on anything in /skilltree.");
         }
 
         Quest next = current(player, data);

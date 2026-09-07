@@ -155,7 +155,10 @@ public class PlayerData {
     private int novaTier = 0;
     private int novaBestTier = 0;
     // Which Starforge the player owns - their BASE Luck comes from this.
-    private String starforgeTier = "BASIC";
+    // Blank, not "BASIC". A fresh account starts on whatever the config
+    // calls the first tier, and hardcoding one here is what made a reset
+    // hand back a Basic Starforge somebody had not earned.
+    private String starforgeTier = "";
     // Base Luck from the Starforge, but only while it's actually in a
     // hand. Recomputed live like armorLuckBonus, not persisted.
     private double starforgeLuckBonus = 0.0;

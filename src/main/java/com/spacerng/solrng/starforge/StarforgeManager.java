@@ -33,7 +33,7 @@ import java.util.Map;
  */
 public class StarforgeManager {
 
-    public static final String DEFAULT_TIER = "BASIC";
+    public static final String DEFAULT_TIER = "STARTER";
 
     private final SolRNGPlugin plugin;
     private final NamespacedKey itemKey;
@@ -113,9 +113,17 @@ public class StarforgeManager {
     }
 
     /** The player's current tier, falling back to Basic if theirs is unknown. */
+    /**
+     * Falls back to whatever the config lists FIRST, not to a hardcoded
+     * name. The default tier moved when Starter was added in front of
+     * Basic, and a constant would have kept handing out the wrong one.
+     */
     public StarforgeTier tierOf(PlayerData data) {
         StarforgeTier tier = tiers.get(data.getStarforgeTier());
-        return tier != null ? tier : tiers.get(DEFAULT_TIER);
+        if (tier != null) return tier;
+        StarforgeTier named = tiers.get(DEFAULT_TIER);
+        if (named != null) return named;
+        return tiers.values().stream().findFirst().orElse(null);
     }
 
     public double luckBonusOf(PlayerData data) {

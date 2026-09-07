@@ -235,11 +235,18 @@ public final class Lore {
     }
 
     /** "12.4K" - short numbers for tight lore lines. */
+    /**
+     * Whole units, not decimals.
+     *
+     * "4.89K" makes the eye stop and parse; "5K" is read at a glance, and
+     * a shortened number exists to be glanced at. Anywhere the exact
+     * figure matters, print the exact figure instead of shortening it.
+     */
     public static String shorten(double value) {
         if (value < 1_000) return String.format("%.0f", value);
-        if (value < 1_000_000) return trim(value / 1_000.0) + "K";
-        if (value < 1_000_000_000L) return trim(value / 1_000_000.0) + "M";
-        return trim(value / 1_000_000_000.0) + "B";
+        if (value < 1_000_000) return Math.round(value / 1_000.0) + "K";
+        if (value < 1_000_000_000L) return Math.round(value / 1_000_000.0) + "M";
+        return Math.round(value / 1_000_000_000.0) + "B";
     }
 
     private static String trim(double value) {

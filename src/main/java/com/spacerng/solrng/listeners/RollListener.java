@@ -348,7 +348,9 @@ public class RollListener implements Listener {
             // aura's score, so a big roll goes quiet and lets the build-up
             // carry the audio instead.
             if (data.isRollSoundEnabled() && aura == null) {
-                player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1.0f);
+                player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK,
+                        (float) plugin.getConfig().getDouble("roll-item.roll-sound-volume", 0.12),
+                        1.0f);
             }
 
             // Case-opening-style teaser: every 5% of the roll, flash a

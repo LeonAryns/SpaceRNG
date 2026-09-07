@@ -132,7 +132,10 @@ public class FarmingManager {
             var next = band + 1 < rarities.length ? rarities[band + 1] : null;
             double perTier = coinStep * (band + 1);
 
-            for (int step = 1; step <= perBand; step++) {
+            // The free base hoe IS the first tier of the first band, so
+            // that band sells nine and the ladder comes to fifty rather
+            // than fifty one.
+            for (int step = band == 0 ? 2 : 1; step <= perBand; step++) {
                 coins += perTier;
                 speed += perTier * speedShare;
 
