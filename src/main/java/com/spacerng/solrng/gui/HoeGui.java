@@ -218,6 +218,7 @@ public class HoeGui {
             }
         } else if (affordable) {
             lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to upgrade");
+            lore.add(Lore.footnote("Shift for 100, right-click for all you can afford"));
             lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " Shift-click buys ten.");
         } else {
             lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Not enough Coins");

@@ -454,10 +454,10 @@ public class GuiListener implements Listener {
         var hoe = plugin.getHoeEnchantManager();
 
         int bought = 0;
-        int attempts = event.isShiftClick() ? 10 : 1;
-        for (int i = 0; i < attempts && hoe.buy(data, id); i++) {
-            bought++;
-        }
+        // Ten thousand levels is unclickable one at a time. Left is one,
+        // shift is a hundred, right buys everything the wallet covers.
+        int attempts = event.isRightClick() ? 10_000 : event.isShiftClick() ? 100 : 1;
+        bought = hoe.buyMany(data, id, attempts);
 
         if (bought == 0) {
             var enchant = hoe.get(id);

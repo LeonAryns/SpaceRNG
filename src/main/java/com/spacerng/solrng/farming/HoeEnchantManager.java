@@ -30,7 +30,8 @@ public class HoeEnchantManager {
 
     /** One enchant definition. Level comes from the player's skill nodes. */
     public record Enchant(String id, String display, String description, String icon, int maxLevel,
-                          int baseCap, double perLevel, String colour, long baseCost, double costGrowth) {
+                          int baseCap, double perLevel, String colour, long baseCost,
+                          double costStep, double costPower) {
 
         /** e.g. "Token Greed III" in the enchant's own colour. */
         public String styled(int level) {
@@ -71,7 +72,8 @@ public class HoeEnchantManager {
                     e.getDouble("per-level", 0.0),
                     colourOf(e.getString("color", "&d")),
                     e.getLong("base-cost", 25000L),
-                    e.getDouble("cost-growth", 1.12)));
+                    e.getDouble("cost-step", 0.0001),
+                    e.getDouble("cost-power", 2.0)));
         }
         plugin.getLogger().info("Loaded " + enchants.size() + " hoe enchants.");
     }
@@ -142,8 +144,35 @@ public class HoeEnchantManager {
     }
 
     /** Tokens for the next level. Grows so late levels are a real sink. */
+    /**
+     * Polynomial, not exponential.
+     *
+     * base + step x level^power. Compounding growth cannot survive ten
+     * thousand levels: even 1.0007 reaches 1,100x by the end and 1.007
+     * reaches 2 x 10^30, which is more Coins than will ever exist. A
+     * squared curve climbs the whole way and still lands somewhere a
+     * player can actually pay, which is what makes a 10,000 level enchant
+     * a long grind rather than a wall with a sign on it.
+     */
     public long costFor(Enchant enchant, int currentLevel) {
-        return Math.round(enchant.baseCost() * Math.pow(enchant.costGrowth(), currentLevel));
+        return Math.round(enchant.baseCost()
+                + enchant.costStep() * Math.pow(currentLevel, enchant.costPower()));
+    }
+
+    /**
+     * Buys as many levels as the player can pay for, up to `limit`.
+     *
+     * Ten thousand levels is unclickable one at a time, so the menu offers
+     * this on a shift-click. It walks level by level rather than solving
+     * the sum, because the cap and the wallet both have to be rechecked
+     * every step anyway.
+     */
+    public int buyMany(PlayerData data, String enchantId, int limit) {
+        int bought = 0;
+        while (bought < limit && buy(data, enchantId)) {
+            bought++;
+        }
+        return bought;
     }
 
     /** "12.5%" or "+1.80x" - how an enchant's power reads in its tooltip. */
