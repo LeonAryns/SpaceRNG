@@ -65,6 +65,7 @@ public class JoinQuitListener implements Listener {
         plugin.getTagManager().hideHologram(event.getPlayer().getUniqueId());
         plugin.getTagManager().forgetPrefix(event.getPlayer().getUniqueId());
         plugin.getFarmPlotManager().forget(event.getPlayer().getUniqueId());
+        plugin.getFarmPlotManager().forgetGolden(event.getPlayer().getUniqueId());
         plugin.getWelcomeManager().forget(event.getPlayer().getUniqueId());
         plugin.getLuckBarManager().hide(event.getPlayer().getUniqueId());
         plugin.getQuestManager().hide(event.getPlayer().getUniqueId());

@@ -86,6 +86,14 @@ public class FarmPlotManager {
     private double gambaMultiplier = 3.0;
     private long gambaSeconds = 60L;
     private String keyFinderReward = "crate_key";
+
+    // One plot per player is worth many times the others. Per player,
+    // because every farmer already sees their own crop on every tile - a
+    // shared golden plot would be a race, and this is meant to be a reason
+    // to keep looking around your own field.
+    private final Map<UUID, Location> golden = new HashMap<>();
+    private double goldenMultiplier = 10.0;
+    private boolean goldenEnabled = true;
     private double prospectorShare = 0.02;
     private double goldenTouchMultiplier = 2.0;
     private long goldenTouchSeconds = 15L;
@@ -150,6 +158,8 @@ public class FarmPlotManager {
     // ------------------------------------------------------------- config
 
     public void load(FileConfiguration config) {
+        goldenEnabled = config.getBoolean("farming.golden-crop.enabled", true);
+        goldenMultiplier = config.getDouble("farming.golden-crop.multiplier", 10.0);
         prospectorShare = config.getDouble("farming.procs.prospector-share", 0.02);
         goldenTouchMultiplier = config.getDouble("farming.procs.golden-touch-multiplier", 2.0);
         goldenTouchSeconds = config.getLong("farming.procs.golden-touch-seconds", 15L);
@@ -372,7 +382,12 @@ public class FarmPlotManager {
         BlockData grown = grownData(crop.getMaterial());
         BlockData air = Bukkit.createBlockData(Material.AIR);
         Map<Location, Long> mine = harvested.get(player.getUniqueId());
-        long now = player.getWorld().getFullTime();
+        // Wall clock, not world time. The regrow is scheduled in ticks and
+        // the render used to test against getFullTime(), so any moment the
+        // two drifted apart - lag, a frozen world, a reload - the crop was
+        // drawn back by the scheduler and then wiped again by the next
+        // render two seconds later. Both ends read the same clock now.
+        long now = System.currentTimeMillis();
         World world = player.getWorld();
         double rangeSq = 64 * 64;
 
@@ -475,12 +490,12 @@ public class FarmPlotManager {
         if (crop == null) return false;
 
         Map<Location, Long> mine = harvested.computeIfAbsent(player.getUniqueId(), k -> new HashMap<>());
-        long now = player.getWorld().getFullTime();
+        long now = System.currentTimeMillis();
         if (mine.getOrDefault(plot, 0L) > now) return false; // still regrowing for them
 
         HoeEnchantManager hoe = plugin.getHoeEnchantManager();
         int regrow = regrowTicksFor(data);
-        mine.put(plot, now + regrow);
+        mine.put(plot, now + regrow * 50L); // ticks to milliseconds
 
         // The whole payout - tool, Coin Greed, boosts, Nova Core, prestige
         // and the general tree - is defined once in StatSources, so /stats
@@ -494,6 +509,13 @@ public class FarmPlotManager {
                 .multiplierOf(data, com.spacerng.solrng.player.SkillNode.Effect.CROP_YIELD, crop.getId());
         multiplier *= cropYield;
         long tokens = Math.round(crop.getTokens() * multiplier);
+
+        // The golden crop pays many times over and then moves somewhere
+        // else in the field, so there is always exactly one to look for.
+        boolean wasGolden = goldenEnabled && plot.equals(golden.get(player.getUniqueId()));
+        if (wasGolden) {
+            tokens = Math.round(tokens * goldenMultiplierFor(data));
+        }
 
         double gemMultiplier = plugin.getSkillTreeManager()
                 .multiplierOf(data, com.spacerng.solrng.player.SkillNode.Effect.GEM_MULTIPLIER)
@@ -528,13 +550,36 @@ public class FarmPlotManager {
         data.addCropsHarvested(1L);
         plugin.getPassManager().awardHarvest(player, data, 1L);
 
-        player.sendBlockChange(plot, Bukkit.createBlockData(Material.AIR));
+        // ONE TICK LATER, not now.
+        //
+        // The break event was cancelled, and a cancelled BlockBreakEvent
+        // makes the server re-send the real block to the client at the end
+        // of the tick. Sending AIR inside the event means the resync lands
+        // on top of it and the player watches the crop turn into the bare
+        // torchflower marker instead of vanishing. A tick later, the
+        // resync has already happened and the AIR is what sticks.
         final CropType regrown = crop;
+        plugin.getServer().getScheduler().runTask(plugin, () -> {
+            if (player.isOnline()) {
+                player.sendBlockChange(plot, Bukkit.createBlockData(Material.AIR));
+            }
+        });
         plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
             if (player.isOnline() && plots.contains(plot)) {
                 player.sendBlockChange(plot, grownData(regrown.getMaterial()));
             }
         }, regrow);
+
+        if (wasGolden) {
+            Location next = moveGolden(player.getUniqueId());
+            EnchantFx.pulse(plugin, player, plot, false);
+            player.playSound(plot, org.bukkit.Sound.BLOCK_AMETHYST_BLOCK_CHIME, 0.9f, 1.6f);
+            player.playSound(plot, org.bukkit.Sound.ENTITY_PLAYER_LEVELUP, 0.6f, 1.8f);
+            sendActionBar(player, ChatColor.GOLD + "" + ChatColor.BOLD + "Golden crop  "
+                    + ChatColor.RESET + ChatColor.GRAY + trimTimes(goldenMultiplierFor(data))
+                    + " for " + Currency.COINS.amount(tokens)
+                    + (next == null ? "" : ChatColor.DARK_GRAY + "  a new one is out there"));
+        }
 
         if (chain) {
             playHarvest(player, data);
@@ -880,6 +925,66 @@ public class FarmPlotManager {
                     + ChatColor.GRAY + " and " + ChatColor.AQUA + supernovaGems + " Gems"
                     + ChatColor.GRAY + " out of a single crop.");
             player.sendMessage("");
+        }
+    }
+
+    // ------------------------------------------------------- golden crop
+
+    /**
+     * The golden plot for one player, chosen at random and moved every
+     * time it is harvested.
+     *
+     * Picked lazily rather than assigned on join, so it costs nothing
+     * until somebody actually farms, and it re-picks itself if the plot it
+     * was sitting on is removed.
+     */
+    public Location goldenPlot(UUID uuid) {
+        if (!goldenEnabled || plots.isEmpty()) return null;
+        Location current = golden.get(uuid);
+        if (current != null && plots.contains(current)) return current;
+        return moveGolden(uuid);
+    }
+
+    private Location moveGolden(UUID uuid) {
+        if (plots.isEmpty()) {
+            golden.remove(uuid);
+            return null;
+        }
+        List<Location> pool = new ArrayList<>(plots);
+        Location picked = pool.get(ThreadLocalRandom.current().nextInt(pool.size()));
+        golden.put(uuid, picked);
+        return picked;
+    }
+
+    /** What a golden crop is worth, skills included. */
+    public double goldenMultiplierFor(PlayerData data) {
+        return goldenMultiplier + plugin.getSkillTreeManager()
+                .totalOf(data, com.spacerng.solrng.player.SkillNode.Effect.GOLDEN_CROP);
+    }
+
+    public void forgetGolden(UUID uuid) {
+        golden.remove(uuid);
+    }
+
+    /**
+     * The shimmer over a player's golden crop.
+     *
+     * Player-sided, like every other effect on the farm: it is only their
+     * golden plot, and twenty farmers would otherwise light up twenty
+     * tiles for everybody.
+     */
+    public void tickGolden() {
+        if (!goldenEnabled) return;
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            Location plot = golden.get(player.getUniqueId());
+            if (plot == null || !plots.contains(plot)) continue;
+            if (plot.getWorld() == null || !plot.getWorld().equals(player.getWorld())) continue;
+            if (plot.distanceSquared(player.getLocation()) > 64 * 64) continue;
+
+            Location at = plot.clone().add(0.5, 0.6, 0.5);
+            player.spawnParticle(org.bukkit.Particle.DUST, at, 4, 0.22, 0.35, 0.22, 0.0,
+                    new org.bukkit.Particle.DustOptions(org.bukkit.Color.fromRGB(255, 199, 44), 1.1f));
+            player.spawnParticle(org.bukkit.Particle.END_ROD, at, 1, 0.1, 0.2, 0.1, 0.0);
         }
     }
 

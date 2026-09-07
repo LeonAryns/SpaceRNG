@@ -285,6 +285,9 @@ public class SkillTreeGui {
         double value = node.getValue();
 
         return switch (node.getEffect()) {
+            case GOLDEN_CROP -> scaled(ChatColor.GOLD,
+                    "+" + trim(value) + "x on the golden crop",
+                    "+" + trim(value * level) + "x", leveled);
             case LUCK -> scaled(ChatColor.GREEN, "+" + pct(value) + "% Luck", pct(value * level) + "%", leveled);
             case ROLL_SPEED -> scaled(ChatColor.YELLOW, "+" + pct(value) + " Speed", "+" + pct(value * level), leveled);
             case BONUS_ROLL_CHANCE -> scaled(ChatColor.LIGHT_PURPLE,

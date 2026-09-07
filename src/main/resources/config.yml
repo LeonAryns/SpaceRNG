@@ -553,6 +553,19 @@ farming:
       per-level: 0.00000003
       # 0.03% of crops at the ceiling. Level 1 costs 30400, level 10,000 costs 2,153,518.
 
+  # ---- The golden crop ----
+  # Exactly one plot in the field is worth many times the others, per
+  # player, and it moves the moment it is harvested. Per player because
+  # everyone already sees their own crop on every tile: a shared golden
+  # plot would be a race between farmers rather than a reason to keep
+  # looking around your own field.
+  #
+  # multiplier is the base. The Golden Harvest node in /farmtree adds to
+  # it, so a maxed farmer is finding something worth 30x.
+  golden-crop:
+    enabled: true
+    multiplier: 10.0
+
   # ---- What the procs actually do ----
   # Radii and counts are capped here rather than scaled off the level. A
   # percentage survives ten thousand levels; a radius does not.
@@ -3622,6 +3635,18 @@ farmtree:
       effect: UNLOCK_ENCHANT
       value: 0
       target: "SUPERNOVA"
+
+    golden_crop:
+      display: "Golden Harvest"
+      page: 2
+      slot: "4,3"
+      icon: GOLD_NUGGET
+      cost-money: 18000000
+      cost-growth: 1.55
+      requires: "tokens_5"
+      effect: GOLDEN_CROP
+      value: 2.0
+      max-level: 10
 
     mastery_2:
       display: "Enchant Mastery II"

@@ -414,6 +414,9 @@ public final class SolRNGPlugin extends JavaPlugin {
         // Repaints the shared farm so plots appear as players walk into
         // range, and picks up anyone who logged in near one.
         getServer().getScheduler().runTaskTimer(this, () -> farmPlotManager.renderAll(), 40L, 40L);
+        // The golden crop shimmers on its own clock: often enough to catch
+        // the eye across a field, rarely enough to cost nothing.
+        getServer().getScheduler().runTaskTimer(this, () -> farmPlotManager.tickGolden(), 10L, 10L);
 
         // Once, a few seconds in: put back any farm plot whose block went
         // missing while the server was down. Chunks need to be loaded for
