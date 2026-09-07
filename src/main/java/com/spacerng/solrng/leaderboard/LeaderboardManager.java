@@ -209,6 +209,11 @@ public class LeaderboardManager {
         return 0;
     }
 
+    /** Drops a player's row, for a reset. */
+    public void forget(UUID uuid) {
+        index.remove(uuid);
+    }
+
     public Entry entryOf(UUID uuid) {
         return index.get(uuid);
     }

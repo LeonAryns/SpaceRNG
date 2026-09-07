@@ -202,7 +202,8 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         if (args.length < 3 || !args[2].equalsIgnoreCase("confirm")) {
             sender.sendMessage(ChatColor.RED + "This wipes " + target.getName()
                     + "'s levels, prestige, index, skills, armor, drops, Starforge,"
-                    + " Coins, Gems, Credits and Money.");
+                    + " Coins, Gems, Credits, Money, playtime, crops farmed"
+                    + " and their whole inventory.");
             sender.sendMessage(ChatColor.RED + "Run " + ChatColor.YELLOW + "/rngadmin reset "
                     + target.getName() + " confirm" + ChatColor.RED + " if you're sure.");
             return true;
@@ -224,12 +225,29 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             if (balance > 0) economy.withdrawPlayer(target, balance);
         }
 
+        // Playtime is a vanilla statistic, so it lives on the player and
+        // not in the save file the reset just deleted.
+        try {
+            target.setStatistic(org.bukkit.Statistic.PLAY_ONE_MINUTE, 0);
+        } catch (Exception ignored) {
+            // Some server setups refuse statistic writes. Not worth failing
+            // the whole reset over.
+        }
+        // The leaderboard keeps its own copy of the numbers, and a wiped
+        // account still sitting at the top of a board is worse than useless.
+        plugin.getLeaderboardManager().forget(uuid);
+
+        target.getInventory().clear();
+        target.getEnderChest().clear();
+
         // Put the live state back in sync with the wiped data.
         plugin.getTagManager().clearTag(target, fresh);
         StarforgeTier basic = plugin.getStarforgeManager().tierOf(fresh);
         if (basic != null) {
             plugin.getStarforgeManager().replaceHeldStarforge(target, basic);
         }
+        target.getInventory().addItem(
+                com.spacerng.solrng.item.RollItemFactory.create(plugin, 1));
         plugin.getScoreboardManager().update(target);
 
         target.sendMessage(ChatColor.RED + "Your SpaceRNG progress has been reset.");

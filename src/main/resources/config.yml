@@ -69,7 +69,7 @@ starforge:
     ADVANCED:
       display: "Advanced Starforge"
       colors: ["#1FB6E8", "#5B8CFF"]
-      luck-bonus: 0.75
+      luck-bonus: 1.00
       speed-bonus: 0.35
       costs:
         COMMON: 200
@@ -81,7 +81,7 @@ starforge:
       display: "Refined Starforge"
       colors: ["#8B5CF6", "#E879F9"]
       bold: true
-      luck-bonus: 2.25
+      luck-bonus: 1.50
       speed-bonus: -0.15
       costs:
         UNCOMMON: 200
@@ -398,22 +398,31 @@ farming:
   # Seventy hand-written entries would be seventy chances to mistype one,
   # and retuning the curve would mean editing every line.
   #
-  # tiers-per-rarity  how many tiers each rarity's drops buy
+  # bands             how many rarities the ladder walks, from Common up.
+  #                   5 stops at Legendary, on purpose: nothing at the top
+  #                   of this ladder should need a drop nobody will see.
+  # tiers-per-band    tiers bought with each of those rarities
   # cost-step         the first tier in a band costs this many drops, the
   #                   second twice that, and so on: 2, 4, 6 ... 20
+  # blend-from        from this tier in a band, the price also asks for 1,
+  #                   2, 3 of the NEXT rarity, so moving up a band is a
+  #                   slope rather than a wall. The final band never
+  #                   blends.
   # coin-bonus-step   a tier in band N is worth N times this. Common tiers
-  #                   are +1% Coins each, Divine tiers +7%. Ten of each
-  #                   across seven rarities comes to +280% at the top.
+  #                   are +1% Coins each, Legendary tiers +5%. Ten of each
+  #                   across five bands comes to +150% at the top.
   # speed-share       Speed per tier, as a fraction of the Coin bonus. Set
   #                   it to 0 to make the ladder purely about Coins.
   #
   # Tier I is the hoe you are handed and grants nothing, so the ladder is
-  # 70 bought tiers on top of it.
+  # 50 bought tiers on top of it.
   hoe-ladder:
-    tiers-per-rarity: 10
+    bands: 5
+    tiers-per-band: 10
     cost-step: 2
     coin-bonus-step: 0.01
     speed-share: 0.25
+    blend-from: 8
 
   # ---- Sounds ----
   # Both can be switched off per player in the hoe menu.

@@ -142,14 +142,19 @@ public class HoeGui {
             lore.add(Lore.upgrade(ChatColor.AQUA, "Speed",
                     HoeEnchantManager.format(tier.speedBonus()), HoeEnchantManager.format(next.speedBonus())));
 
-            long held = next.costRarity() == null ? 0L
-                    : com.spacerng.solrng.player.DropWallet.total(plugin, player, data, next.costRarity());
-            boolean afford = next.costRarity() != null && held >= next.costAmount();
-            lore.add((afford ? ChatColor.GREEN : ChatColor.RED) + Lore.BULLET + " "
-                    + ChatColor.GRAY + "Cost: " + ChatColor.WHITE + next.costAmount() + " "
-                    + plugin.getRarityManager().style(next.costRarity(), next.costRarity().displayName())
-                    + ChatColor.DARK_GRAY + "  (" + (afford ? ChatColor.GREEN : ChatColor.RED)
-                    + held + ChatColor.DARK_GRAY + " held)");
+            lore.add("");
+            lore.add(Lore.section(ChatColor.YELLOW, "Price"));
+            boolean afford = true;
+            for (var cost : next.costs().entrySet()) {
+                long held = com.spacerng.solrng.player.DropWallet
+                        .total(plugin, player, data, cost.getKey());
+                boolean met = held >= cost.getValue();
+                afford &= met;
+                lore.add((met ? ChatColor.GREEN : ChatColor.RED) + Lore.BULLET + " "
+                        + plugin.getRarityManager().style(cost.getKey(), cost.getKey().displayName())
+                        + ChatColor.GRAY + ": " + (met ? ChatColor.GREEN : ChatColor.RED) + held
+                        + ChatColor.DARK_GRAY + " / " + ChatColor.WHITE + cost.getValue());
+            }
             lore.add("");
             lore.add(afford
                     ? ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to upgrade"

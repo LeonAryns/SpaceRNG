@@ -623,13 +623,20 @@ public class FarmPlotManager {
     // ----------------------------------------------------------- the item
 
     /** The placeable block an admin puts down to build the farm. */
+    /**
+     * The admin's Farm Plot item.
+     *
+     * Torchflower seeds, because the marker block they become IS the farm:
+     * one item, one block, one thing to recognise. It plants on farmland
+     * like any seed, so a field gets tilled first the way a field should.
+     */
     public ItemStack createPlotItem(int amount) {
-        ItemStack item = new ItemStack(Material.HAY_BLOCK, Math.max(1, amount));
+        ItemStack item = new ItemStack(Material.TORCHFLOWER_SEEDS, Math.max(1, amount));
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(ChatColor.GREEN + "" + ChatColor.BOLD + "Farm Plot");
         meta.setLore(List.of(
-                ChatColor.GRAY + "Place to add a tile to the shared farm.",
-                ChatColor.GRAY + "Every player sees their own crop here.",
+                ChatColor.GRAY + "Plant on farmland to add a tile to the",
+                ChatColor.GRAY + "shared farm. Everyone sees their own crop.",
                 "",
                 ChatColor.DARK_GRAY + "Admin tool"));
         meta.getPersistentDataContainer().set(plotItemKey, PersistentDataType.BYTE, (byte) 1);

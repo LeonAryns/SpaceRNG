@@ -251,7 +251,7 @@ public class SkillTreeGui {
                 String.valueOf(Math.round(data.getEffectiveRollSpeedMultiplier() * 100))));
         lore.add(Lore.stat(ChatColor.AQUA, "Skills owned", String.valueOf(ownedCount(plugin, data))));
         lore.add("");
-        lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " "
+        lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " " + Lore.FOOT
                 + (farming ? "Farm skills are bought with Coins."
                            : "Skills are bought with Money."));
         meta.setLore(lore);

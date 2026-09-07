@@ -20,6 +20,21 @@ import org.bukkit.ChatColor;
 public final class Lore {
 
     public static final String BULLET = "▎";
+
+    /**
+     * The closing-note grey.
+     *
+     * Not a third brightness of grey but a different hue: a slate that
+     * reads as a separate voice from the body text rather than as the same
+     * sentence turned down. Body text and footnotes sharing one grey was
+     * making the last line of a tooltip look like more description.
+     */
+    public static final String FOOT = net.md_5.bungee.api.ChatColor.of("#6B7A8F").toString();
+
+    /** A closing note: a dim bullet and the slate. */
+    public static String footnote(String text) {
+        return ChatColor.DARK_GRAY + BULLET + " " + FOOT + text;
+    }
     public static final String ARROW = "➜";
     public static final String TICK = "✔";
     public static final String CROSS = "✘";

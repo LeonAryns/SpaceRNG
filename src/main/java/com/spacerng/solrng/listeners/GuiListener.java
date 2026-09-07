@@ -419,8 +419,12 @@ public class GuiListener implements Listener {
                         + ChatColor.YELLOW + farming.tierOf(data).display() + ChatColor.GREEN + ".");
                 player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_ANVIL_USE, 0.7f, 1.4f);
             } else {
-                player.sendMessage(ChatColor.RED + "You need " + next.costAmount() + " "
-                        + next.costRarity().displayName() + " drops for the next tier.");
+                StringBuilder price = new StringBuilder();
+                for (var cost : next.costs().entrySet()) {
+                    if (price.length() > 0) price.append(", ");
+                    price.append(cost.getValue()).append(" ").append(cost.getKey().displayName());
+                }
+                player.sendMessage(ChatColor.RED + "The next tier costs " + price + ".");
             }
             player.openInventory(com.spacerng.solrng.gui.HoeGui.build(plugin, player));
             return;
@@ -612,6 +616,18 @@ public class GuiListener implements Listener {
         Player player = (Player) event.getWhoClicked();
         int rawSlot = event.getRawSlot();
 
+        // Page buttons first: they sit on the divider row, clear of the
+        // tab bar, and they have to win regardless of what else is there.
+        if (rawSlot == IndexGui.prevSlot()) {
+            player.openInventory(IndexGui.build(plugin, player, holder.getFilter(),
+                    Math.max(0, holder.getPage() - 1)));
+            return;
+        }
+        if (rawSlot == IndexGui.nextSlot()) {
+            player.openInventory(IndexGui.build(plugin, player, holder.getFilter(),
+                    holder.getPage() + 1));
+            return;
+        }
         if (rawSlot < 9) {
             handleIndexTopBar(holder, player, rawSlot);
             return;
@@ -631,18 +647,14 @@ public class GuiListener implements Listener {
         TagCommand.equip(plugin, player, data, rollName, rarityName);
     }
 
+    /** Slots 0 to 6 are the rarity tabs. 7 is a spacer, 8 is your head. */
     private void handleIndexTopBar(IndexHolder holder, Player player, int rawSlot) {
         Rarity[] rarities = Rarity.values();
-        if (rawSlot < rarities.length) {
-            Rarity clicked = rarities[rawSlot];
-            Rarity newFilter = holder.getFilter() == clicked ? null : clicked;
-            player.openInventory(IndexGui.build(plugin, player, newFilter, 0));
-        } else if (rawSlot == 6) {
-            player.openInventory(IndexGui.build(plugin, player, holder.getFilter(), holder.getPage() - 1));
-        } else if (rawSlot == 8) {
-            player.openInventory(IndexGui.build(plugin, player, holder.getFilter(), holder.getPage() + 1));
-        }
-        // slot 7 is the Index Progress readout - no-op
+        if (rawSlot >= rarities.length) return;
+
+        Rarity clicked = rarities[rawSlot];
+        Rarity newFilter = holder.getFilter() == clicked ? null : clicked;
+        player.openInventory(IndexGui.build(plugin, player, newFilter, 0));
     }
 
     private void handleSkillTreeClick(InventoryClickEvent event) {

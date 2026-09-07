@@ -47,7 +47,7 @@ public class FarmingManager {
      * own number and an old config can't reintroduce a stone one.
      */
     public record HoeTier(String display, double tokenBonus, double speedBonus,
-                          com.spacerng.solrng.rarity.Rarity costRarity, long costAmount) {
+                          Map<com.spacerng.solrng.rarity.Rarity, Long> costs) {
     }
 
     public FarmingManager(SolRNGPlugin plugin) {
@@ -111,25 +111,42 @@ public class FarmingManager {
      * and a Divine tier is +7%, and the full ladder comes to +280%.
      */
     private void buildLadder(FileConfiguration config) {
-        int perRarity = Math.max(1, config.getInt("farming.hoe-ladder.tiers-per-rarity", 10));
+        var rarities = com.spacerng.solrng.rarity.Rarity.values();
+        int perBand = Math.max(1, config.getInt("farming.hoe-ladder.tiers-per-band", 10));
+        int bands = Math.max(1, Math.min(rarities.length,
+                config.getInt("farming.hoe-ladder.bands", 5)));
         long costStep = Math.max(1L, config.getLong("farming.hoe-ladder.cost-step", 2L));
         double coinStep = config.getDouble("farming.hoe-ladder.coin-bonus-step", 0.01);
         double speedShare = config.getDouble("farming.hoe-ladder.speed-share", 0.25);
+        int blendFrom = config.getInt("farming.hoe-ladder.blend-from", 8);
 
         hoeTiers.clear();
         // Tier I is the hoe you are handed. Nothing was paid for it, so it
         // grants nothing, and the ladder is what you buy on top.
-        hoeTiers.add(new HoeTier(roman(1), 0.0, 0.0, null, 0L));
+        hoeTiers.add(new HoeTier(roman(1), 0.0, 0.0, Map.of()));
 
         double coins = 0.0;
         double speed = 0.0;
-        for (com.spacerng.solrng.rarity.Rarity rarity : com.spacerng.solrng.rarity.Rarity.values()) {
-            double perTier = coinStep * (rarity.ordinal() + 1);
-            for (int step = 1; step <= perRarity; step++) {
+        for (int band = 0; band < bands; band++) {
+            var rarity = rarities[band];
+            var next = band + 1 < rarities.length ? rarities[band + 1] : null;
+            double perTier = coinStep * (band + 1);
+
+            for (int step = 1; step <= perBand; step++) {
                 coins += perTier;
                 speed += perTier * speedShare;
-                hoeTiers.add(new HoeTier(roman(hoeTiers.size() + 1), coins, speed,
-                        rarity, costStep * step));
+
+                Map<com.spacerng.solrng.rarity.Rarity, Long> costs =
+                        new java.util.EnumMap<>(com.spacerng.solrng.rarity.Rarity.class);
+                costs.put(rarity, costStep * step);
+                // The last few tiers of a band ask for a taste of the next
+                // rarity, so moving up a band is a slope rather than a
+                // wall. The FINAL band never blends: nothing at the top of
+                // the ladder is allowed to be unreachable.
+                if (next != null && band + 1 < bands && step >= blendFrom) {
+                    costs.put(next, (long) (step - blendFrom + 1));
+                }
+                hoeTiers.add(new HoeTier(roman(hoeTiers.size() + 1), coins, speed, costs));
             }
         }
     }
@@ -153,16 +170,26 @@ public class FarmingManager {
     public boolean purchaseTier(org.bukkit.entity.Player player,
                                 com.spacerng.solrng.player.PlayerData data) {
         HoeTier next = nextTier(data);
-        if (next == null || next.costRarity() == null) return false;
+        if (next == null || next.costs().isEmpty()) return false;
+        if (!canAfford(player, data, next)) return false;
 
-        long held = com.spacerng.solrng.player.DropWallet
-                .total(plugin, player, data, next.costRarity());
-        if (held < next.costAmount()) return false;
-
-        com.spacerng.solrng.player.DropWallet
-                .spend(plugin, player, data, next.costRarity(), next.costAmount());
+        for (var cost : next.costs().entrySet()) {
+            com.spacerng.solrng.player.DropWallet
+                    .spend(plugin, player, data, cost.getKey(), cost.getValue());
+        }
         data.setHoeTier(data.getHoeTier() + 1);
         refreshHeldHoe(player, data);
+        return true;
+    }
+
+    /** Every line of the price has to be covered before any of it is spent. */
+    public boolean canAfford(org.bukkit.entity.Player player,
+                             com.spacerng.solrng.player.PlayerData data, HoeTier tier) {
+        for (var cost : tier.costs().entrySet()) {
+            long held = com.spacerng.solrng.player.DropWallet
+                    .total(plugin, player, data, cost.getKey());
+            if (held < cost.getValue()) return false;
+        }
         return true;
     }
 
@@ -259,12 +286,14 @@ public class FarmingManager {
         lore.add("");
 
         HoeTier next = data == null ? null : nextTier(data);
-        if (next != null && next.costRarity() != null) {
+        if (next != null && !next.costs().isEmpty()) {
             lore.add(com.spacerng.solrng.gui.Lore.section(ChatColor.AQUA, "Next tier"));
-            lore.add(ChatColor.AQUA + com.spacerng.solrng.gui.Lore.BULLET + " " + ChatColor.GRAY
-                    + "Costs " + ChatColor.WHITE + next.costAmount() + " "
-                    + plugin.getRarityManager().style(next.costRarity(),
-                            next.costRarity().displayName()) + ChatColor.GRAY + " drops");
+            for (var cost : next.costs().entrySet()) {
+                lore.add(ChatColor.AQUA + com.spacerng.solrng.gui.Lore.BULLET + " "
+                        + ChatColor.WHITE + cost.getValue() + " "
+                        + plugin.getRarityManager().style(cost.getKey(),
+                                cost.getKey().displayName()));
+            }
             lore.add("");
         }
         lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Right-click to upgrade");

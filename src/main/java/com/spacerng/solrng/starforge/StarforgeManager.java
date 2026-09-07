@@ -272,17 +272,59 @@ public class StarforgeManager {
      * The shared top half of the tooltip - stats and controls. The shop
      * icon appends a price block below this; the held item stops here.
      */
+    /**
+     * What a tier does, shown the same way whether you own it or not.
+     *
+     * A locked tier hiding its Speed and its ability is the reason nobody
+     * knows the ladder forks: you cannot aim at a trade you cannot see.
+     */
     public List<String> statLines(StarforgeTier tier) {
         List<String> lore = new ArrayList<>();
         lore.add("");
-        lore.add(ChatColor.GRAY + "When Held:");
-        lore.add(ChatColor.AQUA + "◆ " + ChatColor.GRAY + "Luck: " + ChatColor.GREEN
-                + "+" + formatPercent(tier.getLuckBonus()) + "%");
+        lore.add(com.spacerng.solrng.gui.Lore.section(ChatColor.AQUA, "While held"));
+        lore.add(com.spacerng.solrng.gui.Lore.stat(ChatColor.GREEN, "Luck",
+                "+" + formatPercent(tier.getLuckBonus()) + "%"));
+
+        double speed = tier.getSpeedBonus();
+        lore.add((speed < 0 ? ChatColor.RED : ChatColor.AQUA)
+                + com.spacerng.solrng.gui.Lore.BULLET + " " + ChatColor.GRAY + "Speed: "
+                + (speed < 0 ? ChatColor.RED : ChatColor.WHITE)
+                + (speed < 0 ? "-" : "+") + formatPercent(Math.abs(speed)) + "%");
+
+        StarforgeTier.Ability ability = tier.getAbility();
         lore.add("");
-        lore.add(ChatColor.GRAY + "Punch " + ChatColor.DARK_GRAY + "» " + ChatColor.AQUA + "Auto Roll");
+        if (ability != null) {
+            lore.add(com.spacerng.solrng.gui.Lore.section(ChatColor.LIGHT_PURPLE, "Ability"));
+            lore.add(ChatColor.LIGHT_PURPLE + com.spacerng.solrng.gui.Lore.BULLET + " "
+                    + ChatColor.WHITE + ability.display());
+            if (ability.luckMultiplier() != 1.0) {
+                lore.add(com.spacerng.solrng.gui.Lore.stat(ChatColor.GREEN, "Luck",
+                        trimTimes(ability.luckMultiplier())));
+            }
+            if (ability.speedMultiplier() != 1.0) {
+                lore.add(com.spacerng.solrng.gui.Lore.stat(ChatColor.AQUA, "Speed",
+                        trimTimes(ability.speedMultiplier())));
+            }
+            lore.add(com.spacerng.solrng.gui.Lore.stat(ChatColor.YELLOW, "Lasts",
+                    ability.durationSeconds() + "s"));
+            lore.add(com.spacerng.solrng.gui.Lore.stat(ChatColor.YELLOW, "Cooldown",
+                    (ability.cooldownSeconds() / 60) + "m"));
+            lore.add(com.spacerng.solrng.gui.Lore.footnote("Shift + right-click to fire it"));
+        } else {
+            lore.add(com.spacerng.solrng.gui.Lore.footnote("No ability. The last tiers have one."));
+        }
+
         lore.add("");
-        lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "INTERACT TO ROLL");
+        lore.add(com.spacerng.solrng.gui.Lore.footnote("Left-click toggles Auto Roll"));
+        lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Right-click to roll");
         return lore;
+    }
+
+    private static String trimTimes(double value) {
+        String text = String.format("%.2f", value);
+        if (text.endsWith(".00")) text = text.substring(0, text.length() - 3);
+        else if (text.endsWith("0")) text = text.substring(0, text.length() - 1);
+        return text + "x";
     }
 
     public static String formatPercent(double luckBonus) {

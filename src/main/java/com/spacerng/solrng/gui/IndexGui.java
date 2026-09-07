@@ -35,9 +35,21 @@ public class IndexGui {
     private static final int PAGE_SIZE = 36;
     private static final int ENTRY_START_SLOT = 18;
     private static final int DIVIDER_ROW_START = 9;
-    private static final int PREV_SLOT = 6;
-    private static final int PROGRESS_SLOT = 7;
-    private static final int NEXT_SLOT = 8;
+    // The tab bar is seven rarities wide, so it owns slots 0 to 6 and the
+     // page buttons cannot live there. Slot 6 used to be BOTH the Divine
+     // tab and Previous: the tab was drawn, then painted over, and a click
+     // on it was read as "filter to Divine".
+    private static final int PROGRESS_SLOT = 8;
+    private static final int PREV_SLOT = 9;
+    private static final int NEXT_SLOT = 17;
+
+    public static int prevSlot() {
+        return PREV_SLOT;
+    }
+
+    public static int nextSlot() {
+        return NEXT_SLOT;
+    }
 
     public static Inventory build(SolRNGPlugin plugin, Player player, Rarity filter, int page) {
         IndexHolder holder = new IndexHolder();
