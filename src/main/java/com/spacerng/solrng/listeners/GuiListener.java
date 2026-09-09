@@ -156,6 +156,12 @@ public class GuiListener implements Listener {
             toggleShout(player, data, com.spacerng.solrng.rarity.Rarity.MYTHICAL);
         } else if (rawSlot == OptionsHolder.SHOUT_DIVINE_SLOT) {
             toggleShout(player, data, com.spacerng.solrng.rarity.Rarity.DIVINE);
+        } else if (rawSlot >= OptionsHolder.DROP_COMMON_SLOT
+                && rawSlot <= OptionsHolder.DROP_DIVINE_SLOT) {
+            var rarity = com.spacerng.solrng.rarity.Rarity.values()
+                    [rawSlot - OptionsHolder.DROP_COMMON_SLOT];
+            data.setDropMessageEnabled(rarity, !data.isDropMessageEnabled(rarity));
+            player.openInventory(OptionsGui.build(plugin, player));
         }
     }
 

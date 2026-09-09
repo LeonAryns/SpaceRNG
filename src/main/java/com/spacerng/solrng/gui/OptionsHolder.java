@@ -29,4 +29,12 @@ public class OptionsHolder implements InventoryHolder {
     public static final int SHOUT_LEGENDARY_SLOT = 30;
     public static final int SHOUT_MYTHICAL_SLOT = 32;
     public static final int SHOUT_DIVINE_SLOT = 34;
+    // Row 4: whether YOUR OWN drop at that tier is printed at all.
+    public static final int DROP_COMMON_SLOT = 37;
+    public static final int DROP_UNCOMMON_SLOT = 38;
+    public static final int DROP_RARE_SLOT = 39;
+    public static final int DROP_EPIC_SLOT = 40;
+    public static final int DROP_LEGENDARY_SLOT = 41;
+    public static final int DROP_MYTHICAL_SLOT = 42;
+    public static final int DROP_DIVINE_SLOT = 43;
 }

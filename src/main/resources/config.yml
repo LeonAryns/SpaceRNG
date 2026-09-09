@@ -20,6 +20,13 @@ roll-item:
   # The click track under a roll. It fires several times a second, so it
   # has to sit under the music rather than on top of it.
   roll-sound-volume: 0.12
+  # Once in a while a roll comes out one tier rarer than it landed. It is
+  # deliberately NOT affected by Luck: this is the moment a brand new
+  # player gets something they had no business getting. Capped below the
+  # top rarity, so the thing everyone is chasing still has to be earned.
+  lucky-strike:
+    chance: 0.004
+    max-rarity: MYTHICAL
 
 # The Starforge - right-click to roll, left-click to toggle Auto Roll
 # (once the Auto Roll skill is unlocked). Everyone starts on BASIC;
@@ -80,16 +87,28 @@ starforge:
         RARE: 20
         EPIC: 3
     # ---- The deep line ----
+    # The fork. Two Refined forges, opposite trades, and you can reach
+    # either one from Advanced.
     REFINED:
-      display: "Refined Starforge"
+      display: "Refined Luck Starforge"
       colors: ["#8B5CF6", "#E879F9"]
       bold: true
-      luck-bonus: 1.50
-      speed-bonus: -0.15
+      luck-bonus: 2.00
+      speed-bonus: -0.35
       costs:
         UNCOMMON: 200
         RARE: 60
         EPIC: 10
+    REFINED_SPEED:
+      display: "Refined Speed Starforge"
+      colors: ["#22D3EE", "#A5F3FC"]
+      bold: true
+      luck-bonus: 0.50
+      speed-bonus: 1.00
+      costs:
+        UNCOMMON: 240
+        RARE: 45
+        EPIC: 12
     SUPERIOR:
       display: "Superior Starforge"
       colors: ["#FF9F1C", "#FFE066"]
@@ -708,6 +727,10 @@ farming:
     per-level-cap: 0.05
     # Seconds without a harvest before the run ends.
     idle-seconds: 30
+    # After you stop swinging, the multiplier slides from wherever it got
+    # to down to nothing over this many seconds, with the bar still up.
+    # Stopping should be a decision with a visible cost, not a switch.
+    decay-seconds: 60
 
   # ---- Hoe tiers ----
   # The Tool Upgrade nodes in /farmtree walk the hoe up this list. A tier
@@ -1550,6 +1573,10 @@ items:
 # your total is 1 + the sum of everything you've found. Rare finds move
 # the needle far more than common ones.
 index:
+  # Luck for every entry discovered, before any skill. Collecting is
+  # supposed to BE progression, not just a prerequisite for a skill that
+  # makes collecting progression.
+  luck-per-discovery: 0.01
   luck-multipliers:
     COMMON: [1.0, 1.1]
     UNCOMMON: [1.1, 1.25]
@@ -2679,6 +2706,11 @@ guide:
   # worth most to somebody who saves it for something they cannot afford,
   # so it is deliberately not tied to a particular node.
   completion-free-skills: 1
+  # A drop handed over on finishing a named step. The Basic Starforge
+  # costs an Uncommon, which is rare enough early that a new player can
+  # stall with nothing to do about it.
+  guaranteed-drop:
+    starforge_upgrade: UNCOMMON
   # Every step of the guide hands over one voucher and nothing else. The
   # guide teaches the game; paying it in Coins made it a farming route.
   free-skills-per-step: 1

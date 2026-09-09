@@ -149,12 +149,47 @@ public class QuestManager {
      * rushed for the reward; paying only at the end makes finishing it
      * the point.
      */
+    /**
+     * Hands over one drop of a named rarity.
+     *
+     * The Basic Starforge costs 25 Common and 1 Uncommon, and an Uncommon
+     * is rare enough early that a new player can stall there with nothing
+     * to do about it. One guaranteed Uncommon part way through the guide
+     * turns that wall back into a step.
+     */
+    private void giveGuideDrop(Player player, String rarityName) {
+        com.spacerng.solrng.rarity.Rarity rarity;
+        try {
+            rarity = com.spacerng.solrng.rarity.Rarity.valueOf(rarityName.toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            return;
+        }
+
+        java.util.List<com.spacerng.solrng.rarity.RollableItem> pool = new java.util.ArrayList<>();
+        for (var item : plugin.getRarityManager().getItems()) {
+            if (item.getRarity() == rarity) pool.add(item);
+        }
+        if (pool.isEmpty()) return;
+
+        var drop = pool.get(java.util.concurrent.ThreadLocalRandom.current().nextInt(pool.size()));
+        player.getInventory().addItem(plugin.getRollListener().buildTaggedItem(drop));
+        player.sendMessage(ChatColor.GRAY + "  A guaranteed "
+                + plugin.getRarityManager().style(rarity, rarity.displayName())
+                + ChatColor.GRAY + " drop, for your first Starforge.");
+    }
+
     private void reward(Player player, PlayerData data, Quest quest) {
 
         player.sendMessage("");
         player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "✔ Guide step done  "
                 + ChatColor.RESET + ChatColor.WHITE + quest.getDisplay());
 
+
+        String guaranteed = plugin.getConfig()
+                .getString("guide.guaranteed-drop." + quest.getId(), "");
+        if (!guaranteed.isEmpty()) {
+            giveGuideDrop(player, guaranteed);
+        }
 
         Quest next = current(player, data);
         if (next == null) {
@@ -173,7 +208,10 @@ public class QuestManager {
         } else {
             player.sendMessage(ChatColor.GRAY + "Next: " + ChatColor.YELLOW + next.getDisplay());
             if (!next.getHint().isEmpty()) {
-                player.sendMessage(ChatColor.DARK_GRAY + "  " + next.getHint());
+                // Not dark grey. The hint is the one line that tells a new
+                // player what to actually do, and dark grey on the default
+                // chat background is close to unreadable.
+                player.sendMessage(ChatColor.GRAY + "  " + ChatColor.ITALIC + next.getHint());
             }
             player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.8f, 1.5f);
         }

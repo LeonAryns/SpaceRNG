@@ -127,6 +127,37 @@ public class RollListener implements Listener {
         player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_NOTE_BLOCK_BASS, 1.0f, 0.6f);
     }
 
+    /**
+     * A flat chance that a roll comes out one tier rarer than it landed.
+     *
+     * Deliberately independent of Luck: it is the moment a brand new
+     * player gets something they had no business getting, which is what
+     * makes them stay. Capped below the top rarity, so the thing everyone
+     * is actually chasing still has to be earned.
+     */
+    private RollableItem luckyStrike(RollableItem result) {
+        double chance = plugin.getConfig().getDouble("roll-item.lucky-strike.chance", 0.004);
+        if (chance <= 0 || random.nextDouble() >= chance) return result;
+
+        Rarity ceiling;
+        try {
+            ceiling = Rarity.valueOf(plugin.getConfig()
+                    .getString("roll-item.lucky-strike.max-rarity", "MYTHICAL").toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            ceiling = Rarity.MYTHICAL;
+        }
+
+        int next = result.getRarity().ordinal() + 1;
+        if (next > ceiling.ordinal() || next >= Rarity.values().length) return result;
+
+        java.util.List<RollableItem> pool = new java.util.ArrayList<>();
+        for (RollableItem item : plugin.getRarityManager().getItems()) {
+            if (item.getRarity().ordinal() == next) pool.add(item);
+        }
+        if (pool.isEmpty()) return result;
+        return pool.get(random.nextInt(pool.size()));
+    }
+
     public double shinyChance(PlayerData data) {
         return com.spacerng.solrng.stats.StatSources.shiny(plugin, data).total();
     }
@@ -303,7 +334,7 @@ public class RollListener implements Listener {
         // then the final frames ARE the drop you're about to be handed.
         // Rolling at the end instead meant the reel visibly stopped on one
         // item and gave you a different one.
-        RollableItem result = plugin.getRarityManager().roll(luck);
+        RollableItem result = luckyStrike(plugin.getRarityManager().roll(luck));
         boolean shiny = rollShiny(data);
 
         // An Epic+ roll is stretched to at least the length of its own
@@ -518,7 +549,8 @@ public class RollListener implements Listener {
             if (!silent) {
                 // Auto-convert is a bulk mode: the full name and the odds
                 // on every single roll is noise you asked for none of.
-                player.sendMessage(plugin.getRarityManager().style(rarity, rarity.displayName())
+                player.sendMessage(ChatColor.AQUA + "\u26a1 " + ChatColor.GRAY + "You rolled "
+                        + plugin.getRarityManager().style(rarity, rarity.displayName())
                         + ChatColor.DARK_GRAY + " (auto converted)");
             }
         } else {
@@ -530,7 +562,7 @@ public class RollListener implements Listener {
                 // outcome, as long as we say so clearly.
                 warnInventoryFull(player);
             }
-            if (!silent) {
+            if (!silent && data.isDropMessageEnabled(result.getRarity())) {
                 sendHoverable(player, previewItem, RollFormat.personalRollLine(plugin, result, shiny));
             }
         }
@@ -602,8 +634,8 @@ public class RollListener implements Listener {
         if (silent) return;
 
         String notice = (newShiny
-                ? ChatColor.AQUA + "" + ChatColor.BOLD + "NEW SHINY! "
-                : ChatColor.GREEN + "" + ChatColor.BOLD + "NEW! ")
+                ? ChatColor.AQUA + "" + ChatColor.BOLD + "New shiny  "
+                : ChatColor.GREEN + "" + ChatColor.BOLD + "New  ")
                 + ChatColor.RESET + RollFormat.displayName(plugin, result, shiny)
                 + ChatColor.GRAY + " added to your index "
                 + ChatColor.DARK_AQUA + "(" + String.format("%.2f", result.getLuckMultiplier()) + "x Luck)";

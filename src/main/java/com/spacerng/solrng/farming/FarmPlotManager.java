@@ -83,6 +83,7 @@ public class FarmPlotManager {
     private int lightningRadius = 5;
     private int lightningBolts = 5;
     private long nukeCrops = 10_000L;
+    private long momentumDecayMillis = 60_000L;
     private double gambaMultiplier = 3.0;
     private long gambaSeconds = 60L;
     private String keyFinderReward = "crate_key";
@@ -159,6 +160,8 @@ public class FarmPlotManager {
     // ------------------------------------------------------------- config
 
     public void load(FileConfiguration config) {
+        momentumDecayMillis = Math.max(1000L,
+                config.getLong("farming.momentum.decay-seconds", 60L) * 1000L);
         goldenEnabled = config.getBoolean("farming.golden-crop.enabled", true);
         goldenMultiplier = config.getDouble("farming.golden-crop.multiplier", 10.0);
         prospectorShare = config.getDouble("farming.procs.prospector-share", 0.02);
@@ -622,7 +625,8 @@ public class FarmPlotManager {
             return 1.0;
         }
 
-        long[] state = momentum.computeIfAbsent(player.getUniqueId(), k -> new long[]{0L, 0L});
+        // {crops, last harvest millis, the peak to drain from}
+        long[] state = momentum.computeIfAbsent(player.getUniqueId(), k -> new long[]{0L, 0L, 0L});
         long now = System.currentTimeMillis();
         if (chain) {
             state[0] = (now - state[1] > momentumIdleMillis) ? 1L : state[0] + 1L;
@@ -641,14 +645,54 @@ public class FarmPlotManager {
      * timer rather than from a "stopped farming" event, because there
      * isn't one - you stop by simply not doing anything.
      */
+    /**
+     * Momentum drains rather than vanishing.
+     *
+     * It used to be deleted the moment you stopped, which meant the number
+     * you had built was gone before you could look at it and the bar
+     * disappeared mid-glance. Now the bar stays and the multiplier slides
+     * from where it was down to nothing over a minute, so stopping is a
+     * decision with a visible cost rather than a light switch.
+     */
     public void expireMomentum() {
         long now = System.currentTimeMillis();
+        HoeEnchantManager hoe = plugin.getHoeEnchantManager();
+
         java.util.Iterator<Map.Entry<UUID, long[]>> it = momentum.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry<UUID, long[]> entry = it.next();
-            if (now - entry.getValue()[1] <= momentumIdleMillis) continue;
-            it.remove();
-            plugin.getMomentumBar().hide(entry.getKey());
+            long[] state = entry.getValue();
+            Player player = Bukkit.getPlayer(entry.getKey());
+            if (player == null) {
+                it.remove();
+                continue;
+            }
+
+            PlayerData data = plugin.getPlayerDataManager().get(entry.getKey());
+            double cap = momentumPerLevelCap * hoe.levelOf(data, "MOMENTUM");
+            if (cap <= 0) {
+                it.remove();
+                plugin.getMomentumBar().hide(entry.getKey());
+                continue;
+            }
+
+            long idleFor = now - state[1];
+            if (idleFor <= momentumIdleMillis) {
+                // Still swinging. Keep the peak in step with the run so the
+                // drain starts from wherever they actually got to.
+                state[2] = state[0];
+            } else {
+                double left = 1.0 - (double) (idleFor - momentumIdleMillis) / momentumDecayMillis;
+                if (left <= 0.0) {
+                    it.remove();
+                    plugin.getMomentumBar().hide(entry.getKey());
+                    continue;
+                }
+                state[0] = Math.round(state[2] * left);
+            }
+
+            double bonus = Math.min(cap, (state[0] / 1000.0) * momentumPerThousand);
+            plugin.getMomentumBar().update(player, state[0], bonus, cap);
         }
     }
 

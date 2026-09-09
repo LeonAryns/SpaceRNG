@@ -84,7 +84,11 @@ public final class StatSources {
                 Op.ADD));
         parts.add(new Part("Skills", "Luck nodes in /skilltree",
                 skills.skillLuck(data), Op.ADD));
-        parts.add(new Part("Curator", "Luck per drop discovered, from /skilltree",
+        parts.add(new Part("Index", "Every drop discovered, no skill needed",
+                plugin.getConfig().getDouble("index.luck-per-discovery", 0.01)
+                        * data.getDiscoveredItems().size(),
+                Op.ADD));
+        parts.add(new Part("Curator", "MORE Luck per drop, from /skilltree",
                 skills.totalOf(data, SkillNode.Effect.LUCK_PER_DISCOVERY) * data.getDiscoveredItems().size(),
                 Op.ADD));
         parts.add(new Part("Affinity", "Luck per prestige, from /skilltree",

@@ -43,6 +43,10 @@ public class PlayerData {
     // Rarities whose global announcement this player has switched off.
     // Their own drops are never muted - this is for everyone else's.
     private final Set<Rarity> mutedBroadcasts = EnumSet.noneOf(Rarity.class);
+    // Rarities whose OWN drop line this player has switched off. Separate
+    // from mutedBroadcasts: somebody auto-rolling thousands of Commons
+    // wants their own spam gone without losing everyone else's Divines.
+    private final Set<Rarity> mutedDrops = EnumSet.noneOf(Rarity.class);
     private int hoeTier;
     private int freeSkills;
     private double starforgeSpeedBonus;
@@ -905,6 +909,24 @@ public class PlayerData {
 
     public Set<Rarity> getMutedBroadcasts() {
         return mutedBroadcasts;
+    }
+
+    /** Whether this player wants their own drop at a rarity printed. */
+    public boolean isDropMessageEnabled(Rarity rarity) {
+        return rarity == null || !mutedDrops.contains(rarity);
+    }
+
+    public void setDropMessageEnabled(Rarity rarity, boolean enabled) {
+        if (rarity == null) return;
+        if (enabled) {
+            mutedDrops.remove(rarity);
+        } else {
+            mutedDrops.add(rarity);
+        }
+    }
+
+    public Set<Rarity> getMutedDrops() {
+        return mutedDrops;
     }
 
     /**

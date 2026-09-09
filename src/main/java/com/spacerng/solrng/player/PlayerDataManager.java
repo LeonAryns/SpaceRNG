@@ -117,6 +117,12 @@ public class PlayerDataManager {
             } catch (IllegalArgumentException ignored) {
             }
         }
+        for (String rarityName : yml.getStringList("muted-drops")) {
+            try {
+                data.setDropMessageEnabled(Rarity.valueOf(rarityName), false);
+            } catch (IllegalArgumentException ignored) {
+            }
+        }
         for (String rarityName : yml.getStringList("muted-broadcasts")) {
             try {
                 data.setBroadcastEnabled(Rarity.valueOf(rarityName), false);
@@ -313,6 +319,7 @@ public class PlayerDataManager {
         for (Rarity r : data.getDisabledAuras()) disabledAuras.add(r.name());
         yml.set("disabled-auras", disabledAuras);
         yml.set("muted-broadcasts", data.getMutedBroadcasts().stream().map(Enum::name).toList());
+        yml.set("muted-drops", data.getMutedDrops().stream().map(Enum::name).toList());
         for (Map.Entry<Rarity, Long> entry : data.getShinyBank().entrySet()) {
             yml.set("shiny-bank." + entry.getKey().name(), entry.getValue());
         }

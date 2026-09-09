@@ -38,7 +38,9 @@ public final class RollFormat {
         if (!shiny) return name;
         String mark = plugin.getConfig().getString("shiny.marker", "&b&l\u2726");
         String marker = ChatColor.translateAlternateColorCodes('&', mark);
-        return marker + " " + name + " " + marker;
+        // An explicit reset before the trailing marker, so nothing in the
+        // name's own gradient can swallow it.
+        return marker + " " + name + ChatColor.RESET + " " + marker;
     }
 
     // Legacy chat only has 16 colors, so this is an approximation of each
