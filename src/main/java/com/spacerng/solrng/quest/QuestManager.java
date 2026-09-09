@@ -185,6 +185,13 @@ public class QuestManager {
                 + ChatColor.RESET + ChatColor.WHITE + quest.getDisplay());
 
 
+        int novaTiers = plugin.getConfig().getInt("guide.free-nova." + quest.getId(), 0);
+        if (novaTiers > 0) {
+            data.setNovaTier(data.getNovaTier() + novaTiers);
+            player.sendMessage(ChatColor.AQUA + "  A free Nova Core, so the climb starts "
+                    + "somewhere rather than nowhere.");
+        }
+
         String guaranteed = plugin.getConfig()
                 .getString("guide.guaranteed-drop." + quest.getId(), "");
         if (!guaranteed.isEmpty()) {

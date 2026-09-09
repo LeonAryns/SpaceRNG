@@ -143,7 +143,9 @@ public class NovaCoreGui {
         double chance = nova.chanceAt(tier, luck);
         boolean affordable = data.getTokens() >= cost;
 
-        ItemStack item = new ItemStack(maxed ? Material.NETHER_STAR : Material.HEART_OF_THE_SEA);
+        // A compass, because this button is a gamble on a direction: it is
+        // the one thing in the menu you press rather than read.
+        ItemStack item = new ItemStack(maxed ? Material.NETHER_STAR : Material.COMPASS);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(maxed
                 ? Lore.title(ChatColor.GREEN, "Fully Forged")

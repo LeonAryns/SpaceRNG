@@ -285,6 +285,9 @@ public class SkillTreeGui {
         double value = node.getValue();
 
         return switch (node.getEffect()) {
+            case CONVERT_CAP -> scaled(ChatColor.AQUA,
+                    "+" + (long) value + " vault space per rarity",
+                    "+" + (long) (value * level), leveled);
             case GOLDEN_CROP -> scaled(ChatColor.GOLD,
                     "+" + trim(value) + "x on the golden crop",
                     "+" + trim(value * level) + "x", leveled);

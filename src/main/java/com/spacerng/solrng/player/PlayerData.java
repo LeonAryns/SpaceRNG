@@ -366,6 +366,20 @@ public class PlayerData {
         return dropBank.getOrDefault(rarity, 0L);
     }
 
+    /**
+     * Banks drops up to a ceiling, and says how many actually fit.
+     *
+     * A vault with no lid is not storage, it is a second inventory with
+     * infinite slots, and there is no reason to ever spend what is in it.
+     * The cap is what turns converting into a decision.
+     */
+    public long addBankedDrops(Rarity rarity, long amount, long cap) {
+        long room = Math.max(0L, cap - getBankedDrops(rarity));
+        long fits = Math.min(amount, room);
+        if (fits > 0) addBankedDrops(rarity, fits);
+        return fits;
+    }
+
     public void addBankedDrops(Rarity rarity, long amount) {
         if (amount <= 0) return;
         dropBank.merge(rarity, amount, Long::sum);

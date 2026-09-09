@@ -200,7 +200,7 @@ tag:
 # straight back to fully-grown after regrow-seconds instead of waiting
 # on random tick growth.
 farming:
-  regrow-seconds: 3
+  regrow-seconds: 1
   crops:
     WHEAT:
       tokens: 100
@@ -863,42 +863,42 @@ armor:
       costs:
         COMMON: 10
         UNCOMMON: 1
-      luck-bonus: 0.10
+      luck-bonus: 0.25
       speed-bonus: 0.05
     CHAINMAIL:
       display: "Chainmail"
       costs:
         COMMON: 25
         UNCOMMON: 5
-      luck-bonus: 0.18
+      luck-bonus: 0.45
       speed-bonus: 0.08
     IRON:
       display: "Iron"
       costs:
         UNCOMMON: 25
         RARE: 5
-      luck-bonus: 0.28
+      luck-bonus: 0.70
       speed-bonus: 0.12
     GOLD:
       display: "Gold"
       costs:
         UNCOMMON: 50
         RARE: 10
-      luck-bonus: 0.42
+      luck-bonus: 1.05
       speed-bonus: 0.16
     DIAMOND:
       display: "Diamond"
       costs:
         RARE: 25
         EPIC: 5
-      luck-bonus: 0.65
+      luck-bonus: 1.60
       speed-bonus: 0.20
     NETHERITE:
       display: "Netherite"
       costs:
         RARE: 50
         EPIC: 10
-      luck-bonus: 1.00
+      luck-bonus: 2.50
       speed-bonus: 0.25
 
 # Rarity tiers, in ascending order. "luck-factor" controls how strongly
@@ -1148,203 +1148,203 @@ items:
   - material: COAL
     name: "Coal"
     rarity: UNCOMMON
-    odds: 250
+    odds: 50
   - material: REDSTONE
     name: "Redstone"
     rarity: UNCOMMON
-    odds: 257
+    odds: 51
   - material: LAPIS_LAZULI
     name: "Lapis Lazuli"
     rarity: UNCOMMON
-    odds: 265
+    odds: 53
   - material: COPPER_INGOT
     name: "Copper"
     rarity: UNCOMMON
-    odds: 272
+    odds: 54
   - material: IRON_INGOT
     name: "Iron"
     rarity: UNCOMMON
-    odds: 280
+    odds: 56
   - material: RAW_IRON
     name: "Raw Iron"
     rarity: UNCOMMON
-    odds: 288
+    odds: 58
   - material: RAW_COPPER
     name: "Raw Copper"
     rarity: UNCOMMON
-    odds: 296
+    odds: 59
   - material: RAW_GOLD
     name: "Raw Gold"
     rarity: UNCOMMON
-    odds: 305
+    odds: 61
   - material: IRON_NUGGET
     name: "Iron Nugget"
     rarity: UNCOMMON
-    odds: 313
+    odds: 63
   - material: GOLD_NUGGET
     name: "Gold Nugget"
     rarity: UNCOMMON
-    odds: 322
+    odds: 64
   - material: HONEYCOMB
     name: "Honeycomb"
     rarity: UNCOMMON
-    odds: 332
+    odds: 66
   - material: HONEY_BOTTLE
     name: "Honey Bottle"
     rarity: UNCOMMON
-    odds: 341
+    odds: 68
   - material: SLIME_BALL
     name: "Slime Ball"
     rarity: UNCOMMON
-    odds: 351
+    odds: 70
   - material: MAGMA_CREAM
     name: "Magma Cream"
     rarity: UNCOMMON
-    odds: 361
+    odds: 72
   - material: GUNPOWDER
     name: "Gunpowder"
     rarity: UNCOMMON
-    odds: 371
+    odds: 74
   - material: SPIDER_EYE
     name: "Spider Eye"
     rarity: UNCOMMON
-    odds: 382
+    odds: 76
   - material: FERMENTED_SPIDER_EYE
     name: "Fermented Spider Eye"
     rarity: UNCOMMON
-    odds: 393
+    odds: 79
   - material: BLAZE_POWDER
     name: "Blaze Powder"
     rarity: UNCOMMON
-    odds: 404
+    odds: 81
   - material: GLOW_INK_SAC
     name: "Glow Ink Sac"
     rarity: UNCOMMON
-    odds: 416
+    odds: 83
   - material: PHANTOM_MEMBRANE
     name: "Phantom Membrane"
     rarity: UNCOMMON
-    odds: 428
+    odds: 86
   - material: RABBIT_FOOT
     name: "Rabbit Foot"
     rarity: UNCOMMON
-    odds: 440
+    odds: 88
   - material: RABBIT_HIDE
     name: "Rabbit Hide"
     rarity: UNCOMMON
-    odds: 453
+    odds: 91
   - material: TURTLE_SCUTE
     name: "Turtle Scute"
     rarity: UNCOMMON
-    odds: 466
+    odds: 93
   - material: TROPICAL_FISH
     name: "Tropical Fish"
     rarity: UNCOMMON
-    odds: 479
+    odds: 96
   - material: PRISMARINE_SHARD
     name: "Prismarine Shard"
     rarity: UNCOMMON
-    odds: 493
+    odds: 99
   - material: PUFFERFISH
     name: "Pufferfish"
     rarity: UNCOMMON
-    odds: 507
+    odds: 101
   - material: OBSIDIAN
     name: "Obsidian"
     rarity: UNCOMMON
-    odds: 522
+    odds: 104
   - material: CRYING_OBSIDIAN
     name: "Crying Obsidian"
     rarity: UNCOMMON
-    odds: 537
+    odds: 107
   - material: GLOWSTONE
     name: "Glowstone"
     rarity: UNCOMMON
-    odds: 552
+    odds: 110
   - material: SEA_LANTERN
     name: "Sea Lantern"
     rarity: UNCOMMON
-    odds: 568
+    odds: 114
   - material: REDSTONE_BLOCK
     name: "Redstone Block"
     rarity: UNCOMMON
-    odds: 584
+    odds: 117
   - material: COAL_BLOCK
     name: "Coal Block"
     rarity: UNCOMMON
-    odds: 601
+    odds: 120
   - material: IRON_BLOCK
     name: "Iron Block"
     rarity: UNCOMMON
-    odds: 618
+    odds: 124
   - material: COPPER_BLOCK
     name: "Copper Block"
     rarity: UNCOMMON
-    odds: 636
+    odds: 127
   - material: LAPIS_BLOCK
     name: "Lapis Block"
     rarity: UNCOMMON
-    odds: 654
+    odds: 131
   - material: ARROW
     name: "Arrow"
     rarity: UNCOMMON
-    odds: 673
+    odds: 135
   - material: BOOK
     name: "Book"
     rarity: UNCOMMON
-    odds: 692
+    odds: 138
   - material: LEATHER_HELMET
     name: "Leather Helmet"
     rarity: UNCOMMON
-    odds: 712
+    odds: 142
   - material: FISHING_ROD
     name: "Fishing Rod"
     rarity: UNCOMMON
-    odds: 733
+    odds: 147
   - material: SHEARS
     name: "Shears"
     rarity: UNCOMMON
-    odds: 754
+    odds: 151
   - material: COMPASS
     name: "Compass"
     rarity: UNCOMMON
-    odds: 775
+    odds: 155
   - material: CLOCK
     name: "Clock"
     rarity: UNCOMMON
-    odds: 797
+    odds: 159
   - material: SPYGLASS
     name: "Spyglass"
     rarity: UNCOMMON
-    odds: 820
+    odds: 164
   - material: BUCKET
     name: "Bucket"
     rarity: UNCOMMON
-    odds: 844
+    odds: 169
   - material: SADDLE
     name: "Saddle"
     rarity: UNCOMMON
-    odds: 868
+    odds: 174
   - material: LEAD
     name: "Lead"
     rarity: UNCOMMON
-    odds: 893
+    odds: 179
   - material: NAME_TAG
     name: "Name Tag"
     rarity: UNCOMMON
-    odds: 919
+    odds: 184
   - material: TRIPWIRE_HOOK
     name: "Tripwire Hook"
     rarity: UNCOMMON
-    odds: 945
+    odds: 189
   - material: REPEATER
     name: "Repeater"
     rarity: UNCOMMON
-    odds: 972
+    odds: 194
   - material: COMPARATOR
     name: "Comparator"
     rarity: UNCOMMON
-    odds: 1000
+    odds: 200
 
   # --- Rare ---
   - material: GOLD_INGOT
@@ -1605,6 +1605,10 @@ index:
 # instead of paying Credits, so nothing reads these any more. Kept so the
 # values aren't lost if a Credit payout ever comes back.
 conversion:
+  # How many of each rarity the vault holds. Raised by Vault Space in
+  # /skilltree. A vault with no lid is a second inventory with infinite
+  # slots, and there is no reason to ever spend what is in one.
+  max-per-rarity: 100
   points-per-rarity:
     COMMON: 1
     UNCOMMON: 5
@@ -1698,6 +1702,18 @@ skilltree:
       requires: "luck_skill"
       effect: ROLL_SPEED
       value: 0.02
+      max-level: 10
+
+    vault_space:
+      display: "Vault Space"
+      page: 4
+      slot: "2,1"
+      icon: ENDER_CHEST
+      cost-money: 12000
+      cost-growth: 1.45
+      requires: "convert_unlock"
+      effect: CONVERT_CAP
+      value: 50
       max-level: 10
 
     convert_unlock:
@@ -2709,6 +2725,10 @@ guide:
   # A drop handed over on finishing a named step. The Basic Starforge
   # costs an Uncommon, which is rare enough early that a new player can
   # stall with nothing to do about it.
+  # Nova tiers handed over on finishing a named step, so the climb starts
+  # somewhere rather than nowhere.
+  free-nova:
+    nova_core: 1
   guaranteed-drop:
     starforge_upgrade: UNCOMMON
   # Every step of the guide hands over one voucher and nothing else. The
@@ -3738,7 +3758,7 @@ novacore:
   # First checkpoint tier; each gap after it is one longer, so the
   # defaults give 5, 11, 18 across a 20-tier ladder.
   first-checkpoint: 5
-  base-chance: 0.75
+  base-chance: 0.50
   decay: 0.85
   luck-weight: 1.0
   min-chance: 0.02
@@ -3784,13 +3804,14 @@ pass:
   xp:
     # XP per roll, by what the roll landed on.
     per-roll:
-      COMMON: 1
-      UNCOMMON: 3
-      RARE: 12
-      EPIC: 50
-      LEGENDARY: 200
-      MYTHICAL: 750
-    per-harvest: 2
+      COMMON: 10
+      UNCOMMON: 100
+      RARE: 1000
+      EPIC: 5000
+      LEGENDARY: 25000
+      MYTHICAL: 100000
+      DIVINE: 500000
+    per-harvest: 1
   # One entry per level, in order. `xp` is what THAT level costs, not a
   # running total. Both tracks are optional per level.
   #
@@ -3799,20 +3820,20 @@ pass:
   # premium track is actually selling.
   levels:
     # ---- level 1
-    - xp: 50
+    - xp: 5000
       free:
         tokens: 250
       premium:
         tokens: 750
     # ---- level 2
-    - xp: 60
+    - xp: 5000
       free:
         tokens: 500
       premium:
         tokens: 1500
         coins: 200000
     # ---- level 3
-    - xp: 60
+    - xp: 5000
       free:
         tokens: 750
       premium:
@@ -3820,7 +3841,7 @@ pass:
         gems: 3
         consumable: roll_10x
     # ---- level 4
-    - xp: 70
+    - xp: 5000
       free:
         tokens: 1000
         coins: 100000
@@ -3828,7 +3849,7 @@ pass:
         tokens: 3000
         coins: 400000
     # ---- level 5
-    - xp: 70
+    - xp: 5000
       free:
         tokens: 1250
         gems: 2
@@ -3838,7 +3859,7 @@ pass:
         drop-rarity: UNCOMMON
         drops: 18
     # ---- level 6
-    - xp: 80
+    - xp: 5000
       free:
         tokens: 1500
       premium:
@@ -3847,13 +3868,13 @@ pass:
         coins: 600000
         consumable: draught_deep
     # ---- level 7
-    - xp: 90
+    - xp: 5000
       free:
         tokens: 1750
       premium:
         tokens: 5250
     # ---- level 8
-    - xp: 100
+    - xp: 5000
       free:
         tokens: 2000
         coins: 200000
@@ -3861,7 +3882,7 @@ pass:
         tokens: 6000
         coins: 800000
     # ---- level 9
-    - xp: 110
+    - xp: 5000
       free:
         tokens: 2250
       premium:
@@ -3869,7 +3890,7 @@ pass:
         gems: 9
         consumable: coin_potion
     # ---- level 10
-    - xp: 120
+    - xp: 5000
       free:
         tokens: 2500
         gems: 4
@@ -3883,13 +3904,13 @@ pass:
         drop-rarity: RARE
         drops: 16
     # ---- level 11
-    - xp: 130
+    - xp: 5000
       free:
         tokens: 2750
       premium:
         tokens: 8250
     # ---- level 12
-    - xp: 140
+    - xp: 5000
       free:
         tokens: 3000
         coins: 300000
@@ -3900,20 +3921,20 @@ pass:
         consumable: roll_10x
         consumable-amount: 2
     # ---- level 13
-    - xp: 160
+    - xp: 5000
       free:
         tokens: 3250
       premium:
         tokens: 9750
     # ---- level 14
-    - xp: 170
+    - xp: 5000
       free:
         tokens: 3500
       premium:
         tokens: 10500
         coins: 1400000
     # ---- level 15
-    - xp: 190
+    - xp: 5000
       free:
         tokens: 3750
         gems: 6
@@ -3926,7 +3947,7 @@ pass:
         consumable: draught_swift
         consumable-amount: 2
     # ---- level 16
-    - xp: 210
+    - xp: 5000
       free:
         tokens: 4000
         coins: 400000
@@ -3934,13 +3955,13 @@ pass:
         tokens: 12000
         coins: 1600000
     # ---- level 17
-    - xp: 230
+    - xp: 5000
       free:
         tokens: 4250
       premium:
         tokens: 12750
     # ---- level 18
-    - xp: 250
+    - xp: 5000
       free:
         tokens: 4500
       premium:
@@ -3950,13 +3971,13 @@ pass:
         consumable: enchant_potion
         consumable-amount: 2
     # ---- level 19
-    - xp: 280
+    - xp: 5000
       free:
         tokens: 4750
       premium:
         tokens: 14250
     # ---- level 20
-    - xp: 310
+    - xp: 5000
       free:
         tokens: 5000
         gems: 8
@@ -3971,7 +3992,7 @@ pass:
         drop-rarity: EPIC
         drops: 12
     # ---- level 21
-    - xp: 340
+    - xp: 5000
       free:
         tokens: 5250
       premium:
@@ -3980,20 +4001,20 @@ pass:
         consumable: draught_deep
         consumable-amount: 2
     # ---- level 22
-    - xp: 370
+    - xp: 5000
       free:
         tokens: 5500
       premium:
         tokens: 16500
         coins: 2200000
     # ---- level 23
-    - xp: 410
+    - xp: 5000
       free:
         tokens: 5750
       premium:
         tokens: 17250
     # ---- level 24
-    - xp: 450
+    - xp: 5000
       free:
         tokens: 6000
         coins: 600000
@@ -4004,7 +4025,7 @@ pass:
         consumable: roll_10x
         consumable-amount: 3
     # ---- level 25
-    - xp: 490
+    - xp: 5000
       free:
         tokens: 6250
         gems: 10
@@ -4014,14 +4035,14 @@ pass:
         drop-rarity: EPIC
         drops: 10
     # ---- level 26
-    - xp: 550
+    - xp: 5000
       free:
         tokens: 6500
       premium:
         tokens: 19500
         coins: 2600000
     # ---- level 27
-    - xp: 600
+    - xp: 5000
       free:
         tokens: 6750
       premium:
@@ -4030,7 +4051,7 @@ pass:
         consumable: coin_potion
         consumable-amount: 3
     # ---- level 28
-    - xp: 650
+    - xp: 5000
       free:
         tokens: 7000
         coins: 700000
@@ -4038,13 +4059,13 @@ pass:
         tokens: 21000
         coins: 2800000
     # ---- level 29
-    - xp: 700
+    - xp: 5000
       free:
         tokens: 7250
       premium:
         tokens: 21750
     # ---- level 30
-    - xp: 800
+    - xp: 5000
       free:
         tokens: 7500
         gems: 12
@@ -4062,13 +4083,13 @@ pass:
         consumable: draught_swift
         consumable-amount: 3
     # ---- level 31
-    - xp: 850
+    - xp: 5000
       free:
         tokens: 7750
       premium:
         tokens: 23250
     # ---- level 32
-    - xp: 950
+    - xp: 5000
       free:
         tokens: 8000
         coins: 800000
@@ -4076,7 +4097,7 @@ pass:
         tokens: 24000
         coins: 3200000
     # ---- level 33
-    - xp: 1050
+    - xp: 5000
       free:
         tokens: 8250
       premium:
@@ -4085,14 +4106,14 @@ pass:
         consumable: enchant_potion
         consumable-amount: 3
     # ---- level 34
-    - xp: 1150
+    - xp: 5000
       free:
         tokens: 8500
       premium:
         tokens: 25500
         coins: 3400000
     # ---- level 35
-    - xp: 1300
+    - xp: 5000
       free:
         tokens: 8750
         gems: 14
@@ -4103,7 +4124,7 @@ pass:
         drop-rarity: LEGENDARY
         drops: 6
     # ---- level 36
-    - xp: 1400
+    - xp: 5000
       free:
         tokens: 9000
         coins: 900000
@@ -4114,20 +4135,20 @@ pass:
         consumable: draught_deep
         consumable-amount: 3
     # ---- level 37
-    - xp: 1550
+    - xp: 5000
       free:
         tokens: 9250
       premium:
         tokens: 27750
     # ---- level 38
-    - xp: 1700
+    - xp: 5000
       free:
         tokens: 9500
       premium:
         tokens: 28500
         coins: 3800000
     # ---- level 39
-    - xp: 1850
+    - xp: 5000
       free:
         tokens: 9750
       premium:
@@ -4136,7 +4157,7 @@ pass:
         consumable: roll_10x
         consumable-amount: 5
     # ---- level 40
-    - xp: 2100
+    - xp: 5000
       free:
         tokens: 10000
         gems: 16
@@ -4152,13 +4173,13 @@ pass:
         drop-rarity: MYTHICAL
         drops: 4
     # ---- level 41
-    - xp: 2300
+    - xp: 5000
       free:
         tokens: 10250
       premium:
         tokens: 30750
     # ---- level 42
-    - xp: 2500
+    - xp: 5000
       free:
         tokens: 10500
       premium:
@@ -4168,13 +4189,13 @@ pass:
         consumable: coin_potion
         consumable-amount: 5
     # ---- level 43
-    - xp: 2700
+    - xp: 5000
       free:
         tokens: 10750
       premium:
         tokens: 32250
     # ---- level 44
-    - xp: 3000
+    - xp: 5000
       free:
         tokens: 11000
         coins: 1100000
@@ -4182,7 +4203,7 @@ pass:
         tokens: 33000
         coins: 4400000
     # ---- level 45
-    - xp: 3300
+    - xp: 5000
       free:
         tokens: 11250
         gems: 18
@@ -4196,20 +4217,20 @@ pass:
         consumable: enchant_potion
         consumable-amount: 5
     # ---- level 46
-    - xp: 3600
+    - xp: 5000
       free:
         tokens: 11500
       premium:
         tokens: 34500
         coins: 4600000
     # ---- level 47
-    - xp: 4000
+    - xp: 5000
       free:
         tokens: 11750
       premium:
         tokens: 35250
     # ---- level 48
-    - xp: 4400
+    - xp: 5000
       free:
         tokens: 12000
         coins: 1200000
@@ -4220,13 +4241,13 @@ pass:
         consumable: draught_deep
         consumable-amount: 5
     # ---- level 49
-    - xp: 4900
+    - xp: 5000
       free:
         tokens: 12250
       premium:
         tokens: 36750
     # ---- level 50
-    - xp: 5300
+    - xp: 5000
       free:
         tokens: 12500
         gems: 20

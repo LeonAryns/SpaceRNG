@@ -904,8 +904,13 @@ public class GuiListener implements Listener {
                 if (plugin.getRollListener().isShiny(stack)) {
                     data.addBankedShiny(rarity, amount + extra);
                 } else {
-                    data.addBankedDrops(rarity, amount + extra);
-                    data.addConverted(rarity, amount);
+                    long cap = plugin.convertCap(data);
+                    long fits = data.addBankedDrops(rarity, amount + extra, cap);
+                    if (fits < amount + extra) {
+                        player.sendMessage(ChatColor.RED + "Only " + fits
+                                + " fit. Your vault holds " + cap + " of each.");
+                    }
+                    data.addConverted(rarity, fits);
                 }
                 top.setItem(slot, null);
             } catch (IllegalArgumentException ignored) {

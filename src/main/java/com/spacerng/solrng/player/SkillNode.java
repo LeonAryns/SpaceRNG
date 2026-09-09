@@ -30,6 +30,7 @@ public class SkillNode {
         // --- general tree: gates ---
         AUTO_ROLL,
         UNLOCK_CONVERT,
+        CONVERT_CAP,        // +value to how many of each rarity the vault holds
         UNLOCK_AUTO_CONVERT,
         UNLOCK_FARMING,
         UNLOCK_ARMOR,

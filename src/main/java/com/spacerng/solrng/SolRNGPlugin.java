@@ -240,6 +240,19 @@ public final class SolRNGPlugin extends JavaPlugin {
         }
     }
 
+    /**
+     * How many of one rarity the convert vault holds.
+     *
+     * Base from config, raised by the Vault Space nodes. Derived rather
+     * than stored, like every other stat, so retuning it retunes it for
+     * everybody who already bought the skill.
+     */
+    public long convertCap(com.spacerng.solrng.player.PlayerData data) {
+        long base = getConfig().getLong("conversion.max-per-rarity", 100L);
+        return base + Math.round(skillTreeManager.totalOf(data,
+                com.spacerng.solrng.player.SkillNode.Effect.CONVERT_CAP));
+    }
+
     public void reloadAll() {
         reloadConfig();
         rarityManager.load(getConfig());
