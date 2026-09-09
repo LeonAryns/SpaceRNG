@@ -89,8 +89,13 @@ public class NovaCoreGui {
 
         List<String> lore = new ArrayList<>();
         lore.add(Lore.section(ChatColor.LIGHT_PURPLE, "Holding this tier"));
-        lore.add(Lore.line(ChatColor.LIGHT_PURPLE,
-                String.format("%.2f", nova.multiplierAt(tier)) + "x Luck, Money and Coins"));
+        // One line per thing it multiplies, each in that thing's own
+        // colour. "1.50x Luck, Money and Coins" was one grey sentence
+        // doing three jobs, and none of them stood out.
+        String times = String.format("%.2f", nova.multiplierAt(tier)) + "x";
+        lore.add(Lore.stat(ChatColor.GREEN, "Luck", times));
+        lore.add(Lore.stat(Currency.MONEY.colour(), "Money", times));
+        lore.add(Lore.stat(Currency.COINS.colour(), "Coins", times));
         if (checkpoint) {
             lore.add(Lore.line(ChatColor.AQUA, "Checkpoint - a shatter never"));
             lore.add(Lore.line(ChatColor.AQUA, "drops you below here."));

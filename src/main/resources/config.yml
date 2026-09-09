@@ -4,7 +4,7 @@
 
 # The sidebar's fixed text. Colour codes use "&".
 scoreboard:
-  title: "&5&l\u2726 SPACERNG \u2726"
+  title: "&5&l\u2726 ѕᴘᴀᴄᴇʀɴᴍ \u2726"
   # Paints the title as a per-character purple gradient instead of the
   # flat colour above. Turn it off to go back to the "&" codes in `title`.
   title-gradient: true

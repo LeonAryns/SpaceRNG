@@ -96,8 +96,15 @@ public enum Currency {
         return paint(String.format("%,d", value));
     }
 
+    /**
+     * The number takes the rainbow; the word does not.
+     *
+     * Running the gradient across "1.2K Credits" as one string put several
+     * letters of the label in the washed-out middle of the spectrum, where
+     * they read as grey. The number is the part worth the colour anyway.
+     */
     private String paint(String number) {
-        if (rainbow) return Lore.rainbow(number + " " + label);
+        if (rainbow) return Lore.rainbow(number) + " " + colour + label;
         return numberColour + number + " " + colour + label;
     }
 }
