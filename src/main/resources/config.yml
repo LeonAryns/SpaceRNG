@@ -842,6 +842,10 @@ prestige:
       max-level: 25
       cost-points: 3
   rolls-per-level: 50
+  # Each level costs this much more than the one before it. At 1.0 the
+  # ladder is flat and level 50 costs what level 2 did, which turns
+  # levelling into a formality rather than a climb.
+  level-cost-growth: 1.15
   first-prestige-levels: 10
   levels-increment-per-prestige: 5
   luck-multiplier-per-prestige: 0.10
@@ -1148,11 +1152,11 @@ items:
   - material: COAL
     name: "Coal"
     rarity: UNCOMMON
-    odds: 50
+    odds: 150
   - material: REDSTONE
     name: "Redstone"
     rarity: UNCOMMON
-    odds: 51
+    odds: 153
   - material: LAPIS_LAZULI
     name: "Lapis Lazuli"
     rarity: UNCOMMON
@@ -1160,55 +1164,55 @@ items:
   - material: COPPER_INGOT
     name: "Copper"
     rarity: UNCOMMON
-    odds: 54
+    odds: 162
   - material: IRON_INGOT
     name: "Iron"
     rarity: UNCOMMON
-    odds: 56
+    odds: 168
   - material: RAW_IRON
     name: "Raw Iron"
     rarity: UNCOMMON
-    odds: 58
+    odds: 522
   - material: RAW_COPPER
     name: "Raw Copper"
     rarity: UNCOMMON
-    odds: 59
+    odds: 177
   - material: RAW_GOLD
     name: "Raw Gold"
     rarity: UNCOMMON
-    odds: 61
+    odds: 183
   - material: IRON_NUGGET
     name: "Iron Nugget"
     rarity: UNCOMMON
-    odds: 63
+    odds: 567
   - material: GOLD_NUGGET
     name: "Gold Nugget"
     rarity: UNCOMMON
-    odds: 64
+    odds: 192
   - material: HONEYCOMB
     name: "Honeycomb"
     rarity: UNCOMMON
-    odds: 66
+    odds: 198
   - material: HONEY_BOTTLE
     name: "Honey Bottle"
     rarity: UNCOMMON
-    odds: 68
+    odds: 204
   - material: SLIME_BALL
     name: "Slime Ball"
     rarity: UNCOMMON
-    odds: 70
+    odds: 210
   - material: MAGMA_CREAM
     name: "Magma Cream"
     rarity: UNCOMMON
-    odds: 72
+    odds: 216
   - material: GUNPOWDER
     name: "Gunpowder"
     rarity: UNCOMMON
-    odds: 74
+    odds: 222
   - material: SPIDER_EYE
     name: "Spider Eye"
     rarity: UNCOMMON
-    odds: 76
+    odds: 228
   - material: FERMENTED_SPIDER_EYE
     name: "Fermented Spider Eye"
     rarity: UNCOMMON
@@ -1216,135 +1220,135 @@ items:
   - material: BLAZE_POWDER
     name: "Blaze Powder"
     rarity: UNCOMMON
-    odds: 81
+    odds: 243
   - material: GLOW_INK_SAC
     name: "Glow Ink Sac"
     rarity: UNCOMMON
-    odds: 83
+    odds: 249
   - material: PHANTOM_MEMBRANE
     name: "Phantom Membrane"
     rarity: UNCOMMON
-    odds: 86
+    odds: 258
   - material: RABBIT_FOOT
     name: "Rabbit Foot"
     rarity: UNCOMMON
-    odds: 88
+    odds: 264
   - material: RABBIT_HIDE
     name: "Rabbit Hide"
     rarity: UNCOMMON
-    odds: 91
+    odds: 273
   - material: TURTLE_SCUTE
     name: "Turtle Scute"
     rarity: UNCOMMON
-    odds: 93
+    odds: 279
   - material: TROPICAL_FISH
     name: "Tropical Fish"
     rarity: UNCOMMON
-    odds: 96
+    odds: 288
   - material: PRISMARINE_SHARD
     name: "Prismarine Shard"
     rarity: UNCOMMON
-    odds: 99
+    odds: 297
   - material: PUFFERFISH
     name: "Pufferfish"
     rarity: UNCOMMON
-    odds: 101
+    odds: 303
   - material: OBSIDIAN
     name: "Obsidian"
     rarity: UNCOMMON
-    odds: 104
+    odds: 312
   - material: CRYING_OBSIDIAN
     name: "Crying Obsidian"
     rarity: UNCOMMON
-    odds: 107
+    odds: 321
   - material: GLOWSTONE
     name: "Glowstone"
     rarity: UNCOMMON
-    odds: 110
+    odds: 330
   - material: SEA_LANTERN
     name: "Sea Lantern"
     rarity: UNCOMMON
-    odds: 114
+    odds: 342
   - material: REDSTONE_BLOCK
     name: "Redstone Block"
     rarity: UNCOMMON
-    odds: 117
+    odds: 351
   - material: COAL_BLOCK
     name: "Coal Block"
     rarity: UNCOMMON
-    odds: 120
+    odds: 360
   - material: IRON_BLOCK
     name: "Iron Block"
     rarity: UNCOMMON
-    odds: 124
+    odds: 372
   - material: COPPER_BLOCK
     name: "Copper Block"
     rarity: UNCOMMON
-    odds: 127
+    odds: 381
   - material: LAPIS_BLOCK
     name: "Lapis Block"
     rarity: UNCOMMON
-    odds: 131
+    odds: 393
   - material: ARROW
     name: "Arrow"
     rarity: UNCOMMON
-    odds: 135
+    odds: 405
   - material: BOOK
     name: "Book"
     rarity: UNCOMMON
-    odds: 138
+    odds: 414
   - material: LEATHER_HELMET
     name: "Leather Helmet"
     rarity: UNCOMMON
-    odds: 142
+    odds: 426
   - material: FISHING_ROD
     name: "Fishing Rod"
     rarity: UNCOMMON
-    odds: 147
+    odds: 441
   - material: SHEARS
     name: "Shears"
     rarity: UNCOMMON
-    odds: 151
+    odds: 453
   - material: COMPASS
     name: "Compass"
     rarity: UNCOMMON
-    odds: 155
+    odds: 465
   - material: CLOCK
     name: "Clock"
     rarity: UNCOMMON
-    odds: 159
+    odds: 477
   - material: SPYGLASS
     name: "Spyglass"
     rarity: UNCOMMON
-    odds: 164
+    odds: 492
   - material: BUCKET
     name: "Bucket"
     rarity: UNCOMMON
-    odds: 169
+    odds: 507
   - material: SADDLE
     name: "Saddle"
     rarity: UNCOMMON
-    odds: 174
+    odds: 522
   - material: LEAD
     name: "Lead"
     rarity: UNCOMMON
-    odds: 179
+    odds: 537
   - material: NAME_TAG
     name: "Name Tag"
     rarity: UNCOMMON
-    odds: 184
+    odds: 552
   - material: TRIPWIRE_HOOK
     name: "Tripwire Hook"
     rarity: UNCOMMON
-    odds: 189
+    odds: 567
   - material: REPEATER
     name: "Repeater"
     rarity: UNCOMMON
-    odds: 194
+    odds: 582
   - material: COMPARATOR
     name: "Comparator"
     rarity: UNCOMMON
-    odds: 200
+    odds: 600
 
   # --- Rare ---
   - material: GOLD_INGOT
@@ -2600,14 +2604,16 @@ milestones:
       description: "Hours spent on SpaceRNG."
       tiers:
         - { at: 1, money: 5000 }
-        - { at: 2, consumable: luck_50 }
+        - { at: 2, consumable: free_skill }
         - { at: 6, consumable: luck_potion }
-        - { at: 12, consumable: speed_potion }
-        - { at: 24, consumable: roll_10x, consumable-amount: 2 }
-        - { at: 48, consumable: luck_potion, consumable-amount: 3 }
-        - { at: 96, consumable: coin_potion, consumable-amount: 3 }
+        - { at: 12, consumable: nova_core }
+        # A day of playtime before anything permanent. Two hours was not
+        # a milestone, it was an evening.
+        - { at: 24, consumable: luck_50 }
+        - { at: 48, consumable: free_skill, consumable-amount: 2 }
+        - { at: 96, consumable: nova_core, consumable-amount: 3 }
         - { at: 168, consumable: roll_10x, consumable-amount: 5 }
-        - { at: 336, consumable: luck_potion, consumable-amount: 5 }
+        - { at: 336, consumable: luck_250 }
         - { at: 720, consumable: roll_10x, consumable-amount: 10 }
 
 # Leaderboards and the daily farming payout.
@@ -3013,6 +3019,12 @@ consumables:
     material: TRIPWIRE_HOOK
     colors: ["#FFE082", "#FF8F00"]
     description: "Turned up by Key Finder. Crates open soon."
+  nova_core:
+    display: "Nova Core"
+    material: HEART_OF_THE_SEA
+    colors: ["#7FE7FF", "#00B0FF"]
+    nova-tiers: 1
+    description: "One free tier up the Nova climb."
   free_skill:
     display: "Skilltree Unlock Voucher"
     material: KNOWLEDGE_BOOK

@@ -624,14 +624,19 @@ public class GuiListener implements Listener {
 
         // Page buttons first: they sit on the divider row, clear of the
         // tab bar, and they have to win regardless of what else is there.
+        if (rawSlot == IndexGui.shinySlot()) {
+            player.openInventory(IndexGui.build(plugin, player, holder.getFilter(), 0,
+                    !holder.isShinyView()));
+            return;
+        }
         if (rawSlot == IndexGui.prevSlot()) {
             player.openInventory(IndexGui.build(plugin, player, holder.getFilter(),
-                    Math.max(0, holder.getPage() - 1)));
+                    Math.max(0, holder.getPage() - 1), holder.isShinyView()));
             return;
         }
         if (rawSlot == IndexGui.nextSlot()) {
             player.openInventory(IndexGui.build(plugin, player, holder.getFilter(),
-                    holder.getPage() + 1));
+                    holder.getPage() + 1, holder.isShinyView()));
             return;
         }
         if (rawSlot < 9) {
@@ -660,7 +665,7 @@ public class GuiListener implements Listener {
 
         Rarity clicked = rarities[rawSlot];
         Rarity newFilter = holder.getFilter() == clicked ? null : clicked;
-        player.openInventory(IndexGui.build(plugin, player, newFilter, 0));
+        player.openInventory(IndexGui.build(plugin, player, newFilter, 0, holder.isShinyView()));
     }
 
     private void handleSkillTreeClick(InventoryClickEvent event) {

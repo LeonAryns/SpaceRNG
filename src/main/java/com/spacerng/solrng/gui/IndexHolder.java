@@ -9,6 +9,8 @@ public class IndexHolder implements InventoryHolder {
     // null = showing every rarity; otherwise filtered to just this one.
     private Rarity filter;
     private int page;
+    // Whether the grid is scoring shiny finds instead of ordinary ones.
+    private boolean shinyView;
 
     @Override
     public Inventory getInventory() {
@@ -17,6 +19,14 @@ public class IndexHolder implements InventoryHolder {
 
     public void setInventory(Inventory inventory) {
         this.inventory = inventory;
+    }
+
+    public boolean isShinyView() {
+        return shinyView;
+    }
+
+    public void setShinyView(boolean shinyView) {
+        this.shinyView = shinyView;
     }
 
     public Rarity getFilter() {

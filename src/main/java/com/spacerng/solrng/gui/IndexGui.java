@@ -39,7 +39,34 @@ public class IndexGui {
      // page buttons cannot live there. Slot 6 used to be BOTH the Divine
      // tab and Previous: the tab was drawn, then painted over, and a click
      // on it was read as "filter to Divine".
+    // Slot 7 is the one gap between the seven rarity tabs and the head.
+    private static final int SHINY_SLOT = 7;
     private static final int PROGRESS_SLOT = 8;
+
+    public static int shinySlot() {
+        return SHINY_SLOT;
+    }
+
+    private static ItemStack buildShinyToggle(SolRNGPlugin plugin, PlayerData data, boolean on) {
+        int found = data.getDiscoveredShiny().size();
+        int total = plugin.getRarityManager().getItems().size();
+
+        ItemStack item = new ItemStack(on ? Material.NAUTILUS_SHELL : Material.HEART_OF_THE_SEA);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(Lore.title(ChatColor.AQUA, on ? "Shiny Index" : "Normal Index"));
+        meta.setLore(java.util.List.of(
+                Lore.line(ChatColor.AQUA, on
+                        ? "Scoring shiny finds."
+                        : "Scoring ordinary finds."),
+                "",
+                Lore.stat(ChatColor.AQUA, "Shinies", found + " / " + total),
+                Lore.bar(total <= 0 ? 0.0 : (double) found / total),
+                "",
+                ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to switch"));
+        meta.setEnchantmentGlintOverride(on ? Boolean.TRUE : null);
+        item.setItemMeta(meta);
+        return item;
+    }
     private static final int PREV_SLOT = 9;
     private static final int NEXT_SLOT = 17;
 
@@ -52,6 +79,16 @@ public class IndexGui {
     }
 
     public static Inventory build(SolRNGPlugin plugin, Player player, Rarity filter, int page) {
+        return build(plugin, player, filter, page, false);
+    }
+
+    /**
+     * `shinyView` scores the grid on shiny finds rather than ordinary
+     * ones. Two collections live in the same 144 entries and only one of
+     * them was ever visible.
+     */
+    public static Inventory build(SolRNGPlugin plugin, Player player, Rarity filter, int page,
+                                  boolean shinyView) {
         IndexHolder holder = new IndexHolder();
         holder.setFilter(filter);
 
@@ -65,6 +102,7 @@ public class IndexGui {
 
         Inventory inv = Bukkit.createInventory(holder, 54, ChatColor.DARK_AQUA + "" + ChatColor.BOLD + "Your Index");
         holder.setInventory(inv);
+        holder.setShinyView(shinyView);
 
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
 
@@ -78,6 +116,7 @@ public class IndexGui {
             inv.setItem(rarity.ordinal(), buildTab(plugin, data, rarity, filter == rarity));
         }
 
+        inv.setItem(SHINY_SLOT, buildShinyToggle(plugin, data, shinyView));
         inv.setItem(PROGRESS_SLOT, buildProfile(plugin, player, data, filter, shown.size()));
         if (page > 0) {
             inv.setItem(PREV_SLOT, buildPageButton(false, page, totalPages));
@@ -90,7 +129,7 @@ public class IndexGui {
         int to = Math.min(shown.size(), from + PAGE_SIZE);
         int slot = ENTRY_START_SLOT;
         for (RollableItem item : shown.subList(from, to)) {
-            inv.setItem(slot, buildEntry(plugin, data, item));
+            inv.setItem(slot, buildEntry(plugin, data, item, shinyView));
             slot++;
         }
 
@@ -273,9 +312,12 @@ public class IndexGui {
         return button;
     }
 
-    private static ItemStack buildEntry(SolRNGPlugin plugin, PlayerData data, RollableItem item) {
-        boolean discovered = data.hasDiscovered(item.getDisplayName());
+    private static ItemStack buildEntry(SolRNGPlugin plugin, PlayerData data, RollableItem item,
+                                        boolean shinyView) {
         boolean shiny = data.hasDiscoveredShiny(item.getDisplayName());
+        // In the shiny view an ordinary find does not count as found: the
+        // whole point is seeing which of the 144 you still owe a shiny.
+        boolean discovered = shinyView ? shiny : data.hasDiscovered(item.getDisplayName());
 
         ItemStack icon = new ItemStack(discovered ? item.getMaterial() : Material.GRAY_DYE);
         ItemMeta meta = icon.getItemMeta();

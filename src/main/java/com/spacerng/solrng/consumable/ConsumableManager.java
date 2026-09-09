@@ -73,6 +73,7 @@ public class ConsumableManager {
                         c.getLong("charges", 0L),
                         c.getDouble("permanent-luck", 0.0),
                         c.getLong("free-skills", 0L),
+                        c.getLong("nova-tiers", 0L),
                         parseCosts(c.getConfigurationSection("costs")),
                         c.getString("description", "")));
             } catch (Exception ex) {
@@ -227,6 +228,13 @@ public class ConsumableManager {
             player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "Permanent Luck "
                     + ChatColor.RESET + ChatColor.GRAY + signed(consumable.permanentLuck() * 100)
                     + "%, and that one never runs out.");
+        }
+        if (consumable.isNovaCore()) {
+            data.setNovaTier(data.getNovaTier() + (int) consumable.novaTiers());
+            player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD
+                    + "+" + consumable.novaTiers() + " Nova tier"
+                    + (consumable.novaTiers() == 1 ? "" : "s")
+                    + ChatColor.RESET + ChatColor.GRAY + "  straight up the climb.");
         }
         if (consumable.isFreeSkill()) {
             data.addFreeSkills((int) consumable.freeSkills());

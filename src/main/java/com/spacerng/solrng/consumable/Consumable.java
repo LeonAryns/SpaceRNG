@@ -26,7 +26,7 @@ public record Consumable(String id, String display, Material material, List<Stri
                          double luck, double speed, long rolls,
                          double coinMultiplier, double enchantMultiplier, long durationSeconds,
                          double rollLuckMultiplier, long charges,
-                         double permanentLuck, long freeSkills,
+                         double permanentLuck, long freeSkills, long novaTiers,
                          Map<com.spacerng.solrng.rarity.Rarity, Long> costs,
                          String description) {
 
@@ -53,6 +53,11 @@ public record Consumable(String id, String display, Material material, List<Stri
     /** A voucher for one free skill node. */
     public boolean isFreeSkill() {
         return freeSkills > 0;
+    }
+
+    /** A Nova Core: free tiers on the climb. */
+    public boolean isNovaCore() {
+        return novaTiers > 0;
     }
 
     public boolean isForSale() {

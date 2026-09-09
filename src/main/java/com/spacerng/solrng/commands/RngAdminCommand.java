@@ -36,7 +36,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
     private static final List<String> SUBCOMMANDS = List.of(
             "reload", "setspawn", "starforge", "reset", "give", "drops",
             "bank", "aura", "roll", "unlock", "unlockall", "lockall", "odds", "farmblock", "farmscan",
-            "hoe", "consumable", "gradient", "welcome", "crops",
+            "hoe", "consumable", "gradient", "welcome", "crops", "farmclear",
             "milestones", "farmfill", "boost", "nova", "placeholders", "payout", "help");
     private static final List<String> CURRENCIES = List.of("money", "coins", "gems", "credits");
 
@@ -75,6 +75,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             case "gradient" -> doGradient(sender, args);
             case "welcome" -> doWelcome(sender, args);
             case "farmscan" -> doFarmScan(sender, args);
+            case "farmclear" -> doFarmClear(sender, args);
             case "lockall" -> doLockAll(sender, args);
             case "odds" -> doOdds(sender, args);
             case "farmblock" -> doFarmBlock(sender, args);
@@ -112,6 +113,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         line(sender, "gradient", "<#hex,#hex,...> <text>", "Build a gradient for Citizens / DecentHolograms");
         line(sender, "welcome", "[player]", "Replay the join banner");
         line(sender, "farmscan", "[radius] [legacy]", "Re-register farm plots by scanning the world");
+        line(sender, "farmclear", "confirm", "Remove every farm plot, everywhere");
         line(sender, "lockall", "[player]", "Wipe every skill, to test the tree from scratch");
         line(sender, "odds", "[rarity]", "Label vs. true odds, and each tier's real share");
         line(sender, "farmblock", "[amount]", "Farm Plot blocks - place to build the shared farm");
@@ -462,6 +464,27 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         if (target == null) return true;
         plugin.getWelcomeManager().send(target);
         sender.sendMessage(ChatColor.GREEN + "Replayed the welcome for " + target.getName() + ".");
+        return true;
+    }
+
+    /**
+     * Wipes the field.
+     *
+     * Destructive and unrecoverable except by rebuilding, so it takes the
+     * word confirm. The blocks go too, not just the registry: leaving the
+     * markers behind would mean farmscan puts every plot straight back.
+     */
+    private boolean doFarmClear(CommandSender sender, String[] args) {
+        var farm = plugin.getFarmPlotManager();
+        int count = farm.plotCount();
+        if (args.length < 2 || !args[1].equalsIgnoreCase("confirm")) {
+            sender.sendMessage(ChatColor.RED + "This removes all " + count + " farm plots.");
+            sender.sendMessage(ChatColor.RED + "Run " + ChatColor.YELLOW
+                    + "/rngadmin farmclear confirm" + ChatColor.RED + " if you're sure.");
+            return true;
+        }
+        int removed = farm.clearAll();
+        sender.sendMessage(ChatColor.GREEN + "Removed " + removed + " farm plots.");
         return true;
     }
 

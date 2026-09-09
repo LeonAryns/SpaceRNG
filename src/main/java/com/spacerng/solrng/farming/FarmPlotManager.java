@@ -295,6 +295,32 @@ public class FarmPlotManager {
         return plots.contains(normalise(location));
     }
 
+    /**
+     * Removes every plot and the block under it.
+     *
+     * The blocks go as well as the registry: leaving the markers standing
+     * would mean the next farmscan puts the whole field straight back.
+     */
+    public int clearAll() {
+        int removed = 0;
+        for (Location plot : new java.util.ArrayList<>(plots)) {
+            World world = plot.getWorld();
+            if (world != null && world.isChunkLoaded(plot.getBlockX() >> 4, plot.getBlockZ() >> 4)) {
+                Block block = plot.getBlock();
+                if (block.getType() == MARKER || block.getType() == LEGACY_MARKER) {
+                    block.setType(Material.AIR, false);
+                }
+            }
+            removed++;
+        }
+        plots.clear();
+        harvested.clear();
+        golden.clear();
+        savePlots();
+        renderAll();
+        return removed;
+    }
+
     public int plotCount() {
         return plots.size();
     }

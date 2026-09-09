@@ -15,6 +15,7 @@ public class PrestigeManager {
 
     private final SolRNGPlugin plugin;
     private int rollsPerLevel;
+    private double levelCostGrowth = 1.15;
     private int firstPrestigeLevels;
     private int levelsIncrementPerPrestige;
     private double luckMultiplierPerPrestige;
@@ -29,6 +30,7 @@ public class PrestigeManager {
 
     public void load(FileConfiguration config) {
         rollsPerLevel = config.getInt("prestige.rolls-per-level", 50);
+        levelCostGrowth = config.getDouble("prestige.level-cost-growth", 1.15);
         firstPrestigeLevels = config.getInt("prestige.first-prestige-levels", 10);
         levelsIncrementPerPrestige = config.getInt("prestige.levels-increment-per-prestige", 5);
         luckMultiplierPerPrestige = config.getDouble("prestige.luck-multiplier-per-prestige", 0.10);
@@ -104,8 +106,20 @@ public class PrestigeManager {
         return true;
     }
 
+    /**
+     * Total rolls to reach the next level, compounding.
+     *
+     * It used to be level x rolls-per-level, so level 50 cost the same
+     * fifty rolls that level 2 did and the ladder flattened into a
+     * formality. Each level now costs `level-cost-growth` times the one
+     * before it, and this returns the geometric SUM because the caller
+     * compares it against lifetime rolls.
+     */
     public long rollsNeededForNextLevel(PlayerData data) {
-        return (long) data.getLevel() * rollsPerLevel;
+        int level = Math.max(1, data.getLevel());
+        if (levelCostGrowth <= 1.0) return (long) level * rollsPerLevel;
+        return Math.round(rollsPerLevel
+                * (Math.pow(levelCostGrowth, level) - 1.0) / (levelCostGrowth - 1.0));
     }
 
     public int levelsNeededForNextPrestige(PlayerData data) {
