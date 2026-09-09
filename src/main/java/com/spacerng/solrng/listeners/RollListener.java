@@ -587,8 +587,12 @@ public class RollListener implements Listener {
         }
 
         if (!silent) {
+            // Money green, like it is everywhere else. Gold here made the
+            // one currency with its own colour the only one not using it.
             String moneyText = moneyEarned > 0
-                    ? ChatColor.GOLD + "  +" + RollFormat.abbreviate(Math.round(moneyEarned)) + " Money"
+                    ? com.spacerng.solrng.gui.Currency.MONEY.numberColour()
+                            + "  +" + RollFormat.abbreviate(Math.round(moneyEarned))
+                            + com.spacerng.solrng.gui.Currency.MONEY.colour() + " Money"
                     : "";
             sendActionBar(player, RollFormat.displayName(plugin, result, shiny)
                     + ChatColor.GRAY + "  " + RollFormat.compactOdds(result.getOdds()) + moneyText);

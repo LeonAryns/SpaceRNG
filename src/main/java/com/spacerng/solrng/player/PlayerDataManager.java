@@ -143,6 +143,7 @@ public class PlayerDataManager {
         data.setCropsHarvested(yml.getLong("crops-harvested", 0L));
         data.setCropsThisPeriod(yml.getLong("crops-this-period", 0L));
         data.setNovaTier(yml.getInt("nova-tier", 0));
+        data.setLuckLimitPercent(yml.getInt("luck-limit-percent", 100));
         data.setNovaBestTier(yml.getInt("nova-best-tier", 0));
         data.setSelectedCrop(yml.getString("selected-crop", "WHEAT"));
         data.setCropShardsUnlocked(yml.getBoolean("crop-shards-unlocked", false));
@@ -328,6 +329,7 @@ public class PlayerDataManager {
         yml.set("crops-harvested", data.getCropsHarvested());
         yml.set("crops-this-period", data.getCropsThisPeriod());
         yml.set("nova-tier", data.getNovaTier());
+        yml.set("luck-limit-percent", data.getLuckLimitPercent());
         yml.set("nova-best-tier", data.getNovaBestTier());
         yml.set("selected-crop", data.getSelectedCrop());
         yml.set("crop-shards-unlocked", data.isCropShardsUnlocked());

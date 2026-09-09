@@ -59,21 +59,31 @@ public class FarmPlotManager {
      * intercepted. A solid marker would block movement; a barrier can't be
      * broken at all, so no harvest event would ever arrive.
      *
-     * Torchflower crop on top of that because it is a block nobody builds
-     * with. That matters for one reason: it makes the WORLD a usable
-     * record of where the farm is. farmplots.yml is only a cache, and
-     * /rngadmin farmscan can rebuild it by looking for this block - so
-     * losing the plugin's data folder costs one command, not the field.
+     * It also has to be TERMINAL. Torchflower crop was not: its maximum
+     * age is 1, and a plant sitting at its maximum age is one random tick
+     * away from growing into the next block. Every plot in the field was
+     * quietly turning into a real TORCHFLOWER, which is a large orange
+     * flower and not a crop at all, and the only thing putting it back was
+     * the render pass up to two seconds later. Nether wart tops out at age
+     * 3 and grows into nothing, so a plot left alone stays what it was.
+     *
+     * Nether wart on top of that because it is a block nobody builds with
+     * in the overworld. That matters for one reason: it makes the WORLD a
+     * usable record of where the farm is. farmplots.yml is only a cache,
+     * and /rngadmin farmscan can rebuild it by looking for this block - so
+     * losing the plugin data folder costs one command, not the field.
      * Wheat could never work that way; every wheat block on the server
      * would look like a plot.
      */
-    private static final Material MARKER = Material.TORCHFLOWER_CROP;
+    private static final Material MARKER = Material.NETHER_WART;
 
     /**
-     * What plots used to be. A scan accepts these too, on request, so a
-     * field built before the marker changed can still be recovered.
+     * What plots used to be. A scan accepts these too, on request, and
+     * restore() converts any of them standing on a registered plot, so a
+     * field built under an older marker heals itself as players walk it.
      */
-    private static final Material LEGACY_MARKER = Material.WHEAT;
+    private static final java.util.Set<Material> LEGACY_MARKERS = java.util.Set.of(
+            Material.WHEAT, Material.TORCHFLOWER_CROP, Material.TORCHFLOWER);
 
     // What the newest crop paid, so Nuke can price itself off a real
     // harvest instead of guessing at the player's multipliers.
@@ -136,6 +146,7 @@ public class FarmPlotManager {
     private final Map<UUID, long[]> momentum = new HashMap<>(); // {streak, lastMillis}
 
     private int regrowTicks = 60;
+    private int regrowFloorTicks = 2;
     private String shardsNode = "";
     // Both sounds are configured rather than hard-coded, and both can be
     // switched off per player from the hoe menu - a farm is the one place
@@ -188,7 +199,13 @@ public class FarmPlotManager {
         potionFinderRewards = config.getStringList("farming.procs.potion-finder-rewards");
 
         crops.clear();
-        regrowTicks = Math.max(1, config.getInt("farming.regrow-seconds", 3)) * 20;
+        // Ticks first, seconds as the fallback. A whole second was the
+        // smallest regrow that could be expressed, which put a hard ceiling
+        // of one harvest per plot per second on the entire farm no matter
+        // what the hoe said.
+        regrowTicks = Math.max(1, config.getInt("farming.regrow-ticks",
+                Math.max(1, config.getInt("farming.regrow-seconds", 3)) * 20));
+        regrowFloorTicks = Math.max(1, config.getInt("farming.regrow-floor-ticks", 2));
         shardsNode = config.getString("farming.shards-node", "");
         harvestSound = soundOf(config.getString("farming.sounds.harvest"), org.bukkit.Sound.BLOCK_CROP_BREAK);
         harvestPitch = (float) config.getDouble("farming.sounds.harvest-pitch", 1.4);
@@ -307,7 +324,7 @@ public class FarmPlotManager {
             World world = plot.getWorld();
             if (world != null && world.isChunkLoaded(plot.getBlockX() >> 4, plot.getBlockZ() >> 4)) {
                 Block block = plot.getBlock();
-                if (block.getType() == MARKER || block.getType() == LEGACY_MARKER) {
+                if (block.getType() == MARKER || LEGACY_MARKERS.contains(block.getType())) {
                     block.setType(Material.AIR, false);
                 }
             }
@@ -356,7 +373,7 @@ public class FarmPlotManager {
                 for (int y = minY; y <= maxY; y++) {
                     Block block = world.getBlockAt(x, y, z);
                     Material type = block.getType();
-                    if (type != MARKER && !(includeLegacy && type == LEGACY_MARKER)) continue;
+                    if (type != MARKER && !(includeLegacy && LEGACY_MARKERS.contains(type))) continue;
                     Location key = normalise(block.getLocation());
                     if (!plots.add(key)) continue;
                     if (type != MARKER) block.setType(MARKER, false);
@@ -590,9 +607,15 @@ public class FarmPlotManager {
         // torchflower marker instead of vanishing. A tick later, the
         // resync has already happened and the AIR is what sticks.
         final CropType regrown = crop;
+        final BlockData nothing = Bukkit.createBlockData(Material.AIR);
+        // Now AND next tick. The immediate one covers the ordinary case;
+        // the deferred one wins the race against the resync a cancelled
+        // BlockBreakEvent triggers at the end of the tick, which would
+        // otherwise repaint the bare marker on top of the empty plot.
+        player.sendBlockChange(plot, nothing);
         plugin.getServer().getScheduler().runTask(plugin, () -> {
             if (player.isOnline()) {
-                player.sendBlockChange(plot, Bukkit.createBlockData(Material.AIR));
+                player.sendBlockChange(plot, nothing);
             }
         });
         plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
@@ -627,9 +650,19 @@ public class FarmPlotManager {
      * third thing it quietly did was how nobody could tell what a tier
      * was worth.
      */
+    /**
+     * How long this player crops take to come back, in ticks.
+     *
+     * The floor used to be a hard-coded 10 ticks. With the base at 20 that
+     * meant Speed stopped paying anything at all past 50 percent, and the
+     * fastest farm in the game was two crops a second. The floor is a
+     * config value now and sits at 2 ticks, so the enchant is worth the
+     * levels and a swing never waits on the block.
+     */
     private int regrowTicksFor(PlayerData data) {
         double faster = plugin.getHoeEnchantManager().powerOf(data, "SPEED");
-        return (int) Math.max(10, Math.round(regrowTicks * (1.0 - Math.min(0.85, faster))));
+        return (int) Math.max(regrowFloorTicks,
+                Math.round(regrowTicks * (1.0 - Math.min(0.90, faster))));
     }
 
     /**

@@ -86,6 +86,10 @@ commands:
     description: Brew potions with rolled drops
     usage: /potion
     aliases: [potions, brew]
+  limitluck:
+    description: Roll with less Luck than you have, to fill in the common end of your index
+    usage: /limitluck <percent|off>
+    aliases: [lucklimit, capluck]
   boosts:
     description: See every boost currently running on you
     usage: /boosts

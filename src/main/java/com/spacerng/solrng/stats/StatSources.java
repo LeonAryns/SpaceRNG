@@ -114,8 +114,8 @@ public final class StatSources {
                 Op.MULTIPLY));
 
         parts.add(new Part("Prestige upgrades", "Spend Prestige Points in /prestige",
-                plugin.getPrestigeManager().upgradeTotal(data, PrestigeUpgrade.Effect.LUCK_BONUS),
-                Op.ADD));
+                plugin.getPrestigeManager().upgradeMultiplier(data, PrestigeUpgrade.Effect.LUCK_BONUS),
+                Op.MULTIPLY));
 
         parts.add(new Part("Server boost", "Active for everyone, from /boosts",
                 plugin.getBoostManager().multiplier(), Op.MULTIPLY));
@@ -124,6 +124,11 @@ public final class StatSources {
         if (includeNova) {
             parts.add(new Part("Nova Core", "Hold Nova Cores - see /nova",
                     plugin.getNovaCoreManager().multiplierAt(data.getNovaTier()), Op.MULTIPLY));
+        }
+
+        if (data.getLuckLimitPercent() < 100) {
+            parts.add(new Part("Luck limit", "Raise it with /limitluck",
+                    data.getLuckLimitPercent() / 100.0, Op.MULTIPLY));
         }
 
         return new Stat(Id.LUCK, "Luck",
@@ -174,7 +179,7 @@ public final class StatSources {
         parts.add(new Part("Nova Core", "Hold Nova Cores - see /nova",
                 plugin.getNovaCoreManager().multiplierAt(data.getNovaTier()), Op.MULTIPLY));
         parts.add(new Part("Prestige upgrades", "Spend Prestige Points in /prestige",
-                1.0 + plugin.getPrestigeManager().upgradeTotal(data, PrestigeUpgrade.Effect.MONEY_BONUS),
+                plugin.getPrestigeManager().upgradeMultiplier(data, PrestigeUpgrade.Effect.MONEY_BONUS),
                 Op.MULTIPLY));
         parts.add(new Part("Skills", "Money nodes in /skilltree",
                 1.0 + skills.totalOf(data, SkillNode.Effect.MONEY_MULTIPLIER)
@@ -222,8 +227,8 @@ public final class StatSources {
         parts.add(new Part("Nova Core", "Hold Nova Cores - see /nova",
                 plugin.getNovaCoreManager().multiplierAt(data.getNovaTier()), Op.MULTIPLY));
         parts.add(new Part("Prestige upgrades", "Spend Prestige Points in /prestige",
-                plugin.getPrestigeManager().upgradeTotal(data, PrestigeUpgrade.Effect.TOKEN_BONUS),
-                Op.ADD));
+                plugin.getPrestigeManager().upgradeMultiplier(data, PrestigeUpgrade.Effect.TOKEN_BONUS),
+                Op.MULTIPLY));
         parts.add(new Part("General skills", "Coin nodes in /skilltree",
                 plugin.getSkillTreeManager().multiplierOf(data, SkillNode.Effect.TOKEN_GAIN),
                 Op.MULTIPLY));

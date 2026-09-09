@@ -105,7 +105,7 @@ public class StatsGui {
         } else {
             lore.add(Lore.section(ChatColor.GOLD, "Biggest sources"));
             for (int i = 0; i < Math.min(TOP_CONTRIBUTORS, ranked.size()); i++) {
-                lore.add(partLine(ranked.get(i), stat.format(), ChatColor.WHITE));
+                lore.add(partLine(ranked.get(i), stat, ChatColor.WHITE));
             }
         }
 
@@ -187,7 +187,7 @@ public class StatsGui {
 
         List<String> lore = new ArrayList<>();
         lore.add(Lore.section(ChatColor.GOLD, "Step " + step));
-        lore.add(partLine(part, stat.format(), idle ? ChatColor.DARK_GRAY : ChatColor.WHITE));
+        lore.add(partLine(part, stat, idle ? ChatColor.DARK_GRAY : ChatColor.WHITE));
         lore.add(Lore.stat(ChatColor.GRAY, "Running total", format(stat.format(), running)));
         lore.add("");
         if (idle) {
@@ -203,14 +203,21 @@ public class StatsGui {
         return item;
     }
 
-    private static String partLine(StatSources.Part part, StatSources.Format format, ChatColor value) {
+    /**
+     * One source line.
+     *
+     * Every additive source is shown scaled to 100, because 0.20 is not a
+     * quantity anybody reads - it is the internal number. Speed is the one
+     * stat that drops the percent sign: Speed 100 is the baseline roll
+     * rate, so a source that adds 20 is worth "+20 Speed", not "+20%".
+     */
+    private static String partLine(StatSources.Part part, StatSources.Stat stat, ChatColor value) {
         boolean adds = part.op() == StatSources.Op.ADD;
         ChatColor mark = adds ? ChatColor.GREEN : ChatColor.AQUA;
         String shown = adds
-                // An additive share of a chance is easier to read as the
-                // raw figure than as "1 in 100" of itself.
-                ? (format == StatSources.Format.PERCENT ? signedPercent(part.value())
-                        : trim(part.value()))
+                ? (stat.id() == StatSources.Id.SPEED
+                        ? signed(part.value() * 100.0)
+                        : signedPercent(part.value()))
                 : "x" + trim(part.value());
         return mark + Lore.BULLET + " " + ChatColor.GRAY + part.label() + ": " + value + shown;
     }
@@ -290,14 +297,40 @@ public class StatsGui {
     private static String format(StatSources.Format format, double value) {
         return switch (format) {
             case PERCENT -> signedPercent(value);
-            case CHANCE -> value <= 0.0 ? "never"
-                    : "1 in " + String.format("%,d", Math.round(1.0 / value));
+            // A chance reads as a percentage now. "1 in 10,000" is precise
+            // and useless at a glance; 0.01% is the number people compare.
+            case CHANCE -> value <= 0.0 ? "never" : percent(value)
+                    + ChatColor.DARK_GRAY + "  (1 in " + String.format("%,d", Math.round(1.0 / value)) + ")";
             default -> trim(value) + "x";
         };
     }
 
     private static String signedPercent(double value) {
-        return (value < 0 ? "-" : "+") + trim(Math.abs(value) * 100.0) + "%";
+        return (value < 0 ? "-" : "+") + percent(Math.abs(value));
+    }
+
+    private static String signed(double value) {
+        return (value < 0 ? "-" : "+") + trim(Math.abs(value));
+    }
+
+    /**
+     * A fraction as a percentage, with only as many decimals as it needs.
+     *
+     * A shiny chance of 0.0001 has to survive the trip: two fixed decimals
+     * would round it to "0.00%", which is the one reading that is flatly
+     * wrong.
+     */
+    private static String percent(double value) {
+        double shown = value * 100.0;
+        if (shown == 0.0) return "0%";
+        int decimals = 0;
+        while (decimals < 6 && Math.abs(shown) * Math.pow(10, decimals) < 10.0) decimals++;
+        String text = String.format("%." + decimals + "f", shown);
+        if (text.contains(".")) {
+            text = text.replaceAll("0+$", "");
+            if (text.endsWith(".")) text = text.substring(0, text.length() - 1);
+        }
+        return text + "%";
     }
 
     private static String trim(double value) {

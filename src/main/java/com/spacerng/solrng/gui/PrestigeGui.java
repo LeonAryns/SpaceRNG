@@ -204,9 +204,18 @@ public class PrestigeGui {
         lore.add(Lore.state(maxed ? "maxed" : "upgrade"));
         lore.add("");
         lore.add(Lore.section(ChatColor.YELLOW, "Effect"));
+        boolean scales = upgrade.isMultiplicative();
         lore.add(Lore.line(ChatColor.GREEN, describe(upgrade) + " "
-                + ChatColor.WHITE + format(upgrade.totalAt(level), upgrade.getUnit())));
-        lore.add(Lore.line(ChatColor.DARK_GRAY, format(upgrade.getPerLevel(), upgrade.getUnit()) + " per level"));
+                + ChatColor.WHITE + (scales
+                        ? String.format("%.2fx", upgrade.multiplierAt(level))
+                        : format(upgrade.totalAt(level), upgrade.getUnit()))));
+        lore.add(Lore.line(ChatColor.DARK_GRAY, scales
+                ? String.format("%.2fx", 1.0 + upgrade.getPerLevel()) + " compounding per level"
+                : format(upgrade.getPerLevel(), upgrade.getUnit()) + " per level"));
+        if (scales && level < upgrade.getMaxLevel()) {
+            lore.add(Lore.line(ChatColor.DARK_GRAY,
+                    String.format("%.2fx", upgrade.multiplierAt(upgrade.getMaxLevel())) + " at max level"));
+        }
         lore.add("");
         lore.add(Lore.section(ChatColor.AQUA, "Level"));
         lore.add(Lore.line(ChatColor.AQUA, ChatColor.GREEN + String.valueOf(level)
@@ -223,9 +232,9 @@ public class PrestigeGui {
             lore.add("");
             lore.add(affordable
                     ? ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to upgrade"
-                    : ChatColor.RED + "" + ChatColor.BOLD + "Not enough Credits");
+                    : ChatColor.RED + "" + ChatColor.BOLD + "Not enough Points");
             if (affordable) {
-                lore.add(ChatColor.DARK_GRAY + "SHIFT CLICK TO MAX");
+                lore.add(ChatColor.DARK_GRAY + "Shift click to max");
             }
         }
 

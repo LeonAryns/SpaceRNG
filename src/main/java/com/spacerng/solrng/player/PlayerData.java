@@ -157,6 +157,9 @@ public class PlayerData {
     // deepest ever reached. A failed climb drops the first back to a
     // checkpoint; the second is a record and never falls.
     private int novaTier = 0;
+    // A percentage of your own Luck, 100 meaning no limit. See
+    // LimitLuckCommand for why this is a proportion and not a number.
+    private int luckLimitPercent = 100;
     private int novaBestTier = 0;
     // Which Starforge the player owns - their BASE Luck comes from this.
     // Blank, not "BASIC". A fresh account starts on whatever the config
@@ -465,6 +468,15 @@ public class PlayerData {
      */
     public double getFlatLuck() {
         return bonusLuck;
+    }
+
+    /** How much of your own Luck you have chosen to roll with, 0 to 100. */
+    public int getLuckLimitPercent() {
+        return luckLimitPercent;
+    }
+
+    public void setLuckLimitPercent(int percent) {
+        this.luckLimitPercent = Math.max(0, Math.min(100, percent));
     }
 
     public Set<String> getPurchasedArmorTiers() {

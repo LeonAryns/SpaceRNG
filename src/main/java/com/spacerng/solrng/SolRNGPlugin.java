@@ -187,6 +187,9 @@ public final class SolRNGPlugin extends JavaPlugin {
         getCommand("leaderboards").setExecutor(
                 new com.spacerng.solrng.commands.LeaderboardsCommand(this));
         getCommand("stats").setExecutor(new com.spacerng.solrng.commands.StatsCommand(this));
+        var limitLuck = new com.spacerng.solrng.commands.LimitLuckCommand(this);
+        getCommand("limitluck").setExecutor(limitLuck);
+        getCommand("limitluck").setTabCompleter(limitLuck);
         getCommand("rngadmin").setExecutor(adminCommand);
         getCommand("rngadmin").setTabCompleter(adminCommand);
 

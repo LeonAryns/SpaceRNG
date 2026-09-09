@@ -37,6 +37,7 @@ public class NovaCoreManager {
     private int maxTier = 20;
     private int firstCheckpoint = 5;
     private double baseChance = 0.75;
+    private boolean firstTierFree = true;
     private double decay = 0.85;
     private double luckWeight = 1.0;
     private double minChance = 0.02;
@@ -57,6 +58,7 @@ public class NovaCoreManager {
         maxTier = config.getInt("novacore.max-tier", 20);
         firstCheckpoint = Math.max(1, config.getInt("novacore.first-checkpoint", 5));
         baseChance = config.getDouble("novacore.base-chance", 0.75);
+        firstTierFree = config.getBoolean("novacore.first-tier-guaranteed", true);
         decay = config.getDouble("novacore.decay", 0.85);
         luckWeight = config.getDouble("novacore.luck-weight", 1.0);
         minChance = config.getDouble("novacore.min-chance", 0.02);
@@ -123,7 +125,7 @@ public class NovaCoreManager {
         return plugin.getRarityManager()
                 .buildStyle(java.util.List.of("#FF4E6A", "#FFB03A", "#FFF35C", "#5CFF8F", "#4FC3FF", "#B36BFF"),
                         true, false, false)
-                .apply("NOVA CORE");
+                .apply("Nova Core");
     }
 
     /** Inventory titles can't take hex colours, so the menu gets a flat one. */
@@ -167,6 +169,10 @@ public class NovaCoreManager {
 
     /** Odds of clearing the step from {@code tier} to {@code tier + 1}. */
     public double chanceAt(int tier, double luck) {
+        // Tier 1 cannot fail. The guide asks for one forged tier, and a
+        // coin flip is a terrible thing to put between a new player and
+        // the step that teaches them what the ladder is.
+        if (tier <= 0 && firstTierFree) return 1.0;
         double raw = baseChance * Math.pow(decay, tier) * (1.0 + luck * luckWeight);
         return Math.max(minChance, Math.min(maxChance, raw));
     }

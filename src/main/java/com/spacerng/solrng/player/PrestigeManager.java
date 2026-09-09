@@ -79,7 +79,23 @@ public class PrestigeManager {
         return pointsPerPrestige;
     }
 
-    /** The total an upgrade effect is contributing for this player. */
+    /**
+     * The compounding total for a multiplicative effect, as a multiplier.
+     *
+     * Returns 1.0 when nothing is bought, so a caller can multiply by it
+     * unconditionally.
+     */
+    public double upgradeMultiplier(PlayerData data, PrestigeUpgrade.Effect effect) {
+        double total = 1.0;
+        for (PrestigeUpgrade upgrade : upgrades.values()) {
+            if (upgrade.getEffect() == effect) {
+                total *= upgrade.multiplierAt(data.getUpgradeLevel(upgrade.getId()));
+            }
+        }
+        return total;
+    }
+
+    /** The additive total an upgrade effect is contributing. */
     public double upgradeTotal(PlayerData data, PrestigeUpgrade.Effect effect) {
         double total = 0.0;
         for (PrestigeUpgrade upgrade : upgrades.values()) {

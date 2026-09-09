@@ -185,11 +185,16 @@ public class QuestManager {
                 + ChatColor.RESET + ChatColor.WHITE + quest.getDisplay());
 
 
-        int novaTiers = plugin.getConfig().getInt("guide.free-nova." + quest.getId(), 0);
-        if (novaTiers > 0) {
-            data.setNovaTier(data.getNovaTier() + novaTiers);
-            player.sendMessage(ChatColor.AQUA + "  A free Nova Core, so the climb starts "
-                    + "somewhere rather than nowhere.");
+        // An ITEM, not a silent tier bump. "A free Nova Core" that only
+        // moved a number was a reward the player never saw arrive.
+        int novaCores = plugin.getConfig().getInt("guide.free-nova." + quest.getId(), 0);
+        if (novaCores > 0) {
+            var core = plugin.getConsumableManager().get("nova_core");
+            if (core != null) {
+                plugin.getConsumableManager().give(player, core, novaCores);
+                player.sendMessage(ChatColor.AQUA + "  " + novaCores + "x Nova Core "
+                        + ChatColor.GRAY + "- right click it, then climb in /novacore.");
+            }
         }
 
         String guaranteed = plugin.getConfig()

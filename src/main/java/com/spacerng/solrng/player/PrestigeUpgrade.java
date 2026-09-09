@@ -10,11 +10,11 @@ package com.spacerng.solrng.player;
 public class PrestigeUpgrade {
 
     public enum Effect {
-        LUCK_BONUS,     // +value Luck per level, added like a skill node
-        TOKEN_BONUS,    // +value to the farm Token multiplier per level
-        MONEY_BONUS,    // +value to roll Money per level
+        LUCK_BONUS,     // x(1+value) Luck per level, compounding
+        TOKEN_BONUS,    // x(1+value) farm Coins per level, compounding
+        MONEY_BONUS,    // x(1+value) roll Money per level, compounding
         SHARD_BONUS,    // +value chance of a bonus Shard per farm harvest
-        NOVA_ODDS       // +value to the Nova Core's success roll per level
+        NOVA_ODDS       // +value to the Nova Core success roll per level
     }
 
     private final String id;
@@ -76,8 +76,28 @@ public class PrestigeUpgrade {
         return unit;
     }
 
-    /** The total effect at a given level. */
+    /** The total effect at a given level, for the additive kinds. */
     public double totalAt(int level) {
         return perLevel * Math.max(0, Math.min(level, maxLevel));
+    }
+
+    /**
+     * Whether this effect scales what you already have or adds to it.
+     *
+     * The three that scale are the three worth prestiging for: a flat
+     * +0.02 Luck is a rounding error next to a full armour set, while a
+     * 1.02x on the finished number is worth the same proportion forever.
+     * The two chance effects stay additive, because a probability is not
+     * something you multiply your way out of.
+     */
+    public boolean isMultiplicative() {
+        return effect == Effect.LUCK_BONUS
+                || effect == Effect.TOKEN_BONUS
+                || effect == Effect.MONEY_BONUS;
+    }
+
+    /** The compounding total at a given level, as a multiplier. */
+    public double multiplierAt(int level) {
+        return Math.pow(1.0 + perLevel, Math.max(0, Math.min(level, maxLevel)));
     }
 }

@@ -175,9 +175,9 @@ public final class Lore {
                 + ChatColor.DARK_GRAY + " 」";
     }
 
-    /** [ASCEND] - the small state tag under a title. */
+    /** [ascend] - the small state tag under a title. */
     public static String state(String text) {
-        return ChatColor.DARK_GRAY + "[" + text.toUpperCase() + "]";
+        return ChatColor.DARK_GRAY + "[" + text.toLowerCase() + "]";
     }
 
     /** A coloured section label: "Requirements:" */

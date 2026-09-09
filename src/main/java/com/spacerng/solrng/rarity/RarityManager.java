@@ -122,10 +122,15 @@ public class RarityManager {
                 maxOdds = Math.max(maxOdds, item.getOdds());
             }
 
+            // Interpolate on LOG odds, not raw odds. A band now runs from
+            // 1 in 16 to 1 in 12,000, and on a linear scale every entry
+            // but the last three collapses onto the floor of the band.
+            double logMin = Math.log(Math.max(1L, minOdds));
+            double logMax = Math.log(Math.max(1L, maxOdds));
             for (RollableItem item : tier) {
-                double t = maxOdds == minOdds
+                double t = logMax == logMin
                         ? 1.0
-                        : (double) (item.getOdds() - minOdds) / (maxOdds - minOdds);
+                        : (Math.log(Math.max(1L, item.getOdds())) - logMin) / (logMax - logMin);
                 item.setLuckMultiplier(low + t * (high - low));
             }
         }
