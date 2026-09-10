@@ -37,7 +37,8 @@ public class NovaCoreManager {
     private int maxTier = 20;
     private int firstCheckpoint = 5;
     private double baseChance = 0.75;
-    private boolean firstTierFree = true;
+    private boolean firstForgeFree = true;
+    private String howToGet = "";
     private double decay = 0.85;
     private double luckWeight = 1.0;
     private double minChance = 0.02;
@@ -58,7 +59,9 @@ public class NovaCoreManager {
         maxTier = config.getInt("novacore.max-tier", 20);
         firstCheckpoint = Math.max(1, config.getInt("novacore.first-checkpoint", 5));
         baseChance = config.getDouble("novacore.base-chance", 0.75);
-        firstTierFree = config.getBoolean("novacore.first-tier-guaranteed", true);
+        firstForgeFree = config.getBoolean("novacore.first-forge-guaranteed",
+                config.getBoolean("novacore.first-tier-guaranteed", true));
+        howToGet = config.getString("novacore.how-to-get", "");
         decay = config.getDouble("novacore.decay", 0.85);
         luckWeight = config.getDouble("novacore.luck-weight", 1.0);
         minChance = config.getDouble("novacore.min-chance", 0.02);
@@ -167,12 +170,48 @@ public class NovaCoreManager {
         return chance > 0 && ThreadLocalRandom.current().nextDouble() < chance;
     }
 
+    /** Nova Cores in a player's inventory, the only thing a forge costs. */
+    public int coresHeld(Player player) {
+        int count = 0;
+        for (org.bukkit.inventory.ItemStack stack : player.getInventory().getStorageContents()) {
+            var consumable = plugin.getConsumableManager().from(stack);
+            if (consumable != null && "nova_core".equals(consumable.id())) count += stack.getAmount();
+        }
+        return count;
+    }
+
+    private boolean takeCore(Player player) {
+        for (org.bukkit.inventory.ItemStack stack : player.getInventory().getStorageContents()) {
+            var consumable = plugin.getConsumableManager().from(stack);
+            if (consumable != null && "nova_core".equals(consumable.id())) {
+                stack.setAmount(stack.getAmount() - 1);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Where Nova Cores come from, from config, so it grows with the game. */
+    public String howToGet() {
+        return howToGet;
+    }
+
+    /** The chat explanation, for the moment somebody needs one. */
+    public void explainCores(Player player) {
+        player.sendMessage(ChatColor.AQUA + com.spacerng.solrng.gui.Lore.BULLET + " " + ChatColor.GRAY
+                + "Every forge uses up " + ChatColor.WHITE + "1 Nova Core" + ChatColor.GRAY
+                + " for a shot at the next tier.");
+        if (!howToGet.isEmpty()) {
+            player.sendMessage(ChatColor.AQUA + com.spacerng.solrng.gui.Lore.BULLET + " " + ChatColor.GRAY
+                    + "Get them from " + ChatColor.WHITE + howToGet);
+        }
+        player.sendMessage(ChatColor.AQUA + com.spacerng.solrng.gui.Lore.BULLET + " " + ChatColor.GRAY
+                + "Right click a Nova Core, or open " + ChatColor.YELLOW + "/novacore"
+                + ChatColor.GRAY + ", to forge.");
+    }
+
     /** Odds of clearing the step from {@code tier} to {@code tier + 1}. */
     public double chanceAt(int tier, double luck) {
-        // Tier 1 cannot fail. The guide asks for one forged tier, and a
-        // coin flip is a terrible thing to put between a new player and
-        // the step that teaches them what the ladder is.
-        if (tier <= 0 && firstTierFree) return 1.0;
         double raw = baseChance * Math.pow(decay, tier) * (1.0 + luck * luckWeight);
         return Math.max(minChance, Math.min(maxChance, raw));
     }
@@ -195,9 +234,9 @@ public class NovaCoreManager {
             return false;
         }
 
-        long cost = costFor(data, tier);
-        if (charge && !data.spendTokens(cost)) {
-            player.sendMessage(ChatColor.RED + "You need " + String.format("%,d", cost) + " Coins for that.");
+        if (charge && !takeCore(player)) {
+            player.sendMessage(ChatColor.RED + "You need a Nova Core to forge.");
+            explainCores(player);
             player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
             return false;
         }
@@ -208,7 +247,11 @@ public class NovaCoreManager {
         double chance = Math.min(maxChance, chanceAt(tier, luck)
                 + plugin.getPrestigeManager().upgradeTotal(data,
                         com.spacerng.solrng.player.PrestigeUpgrade.Effect.NOVA_ODDS));
-        boolean success = ThreadLocalRandom.current().nextDouble() < chance;
+        // The first forge anybody ever makes cannot fail. The menu still
+        // shows the real chance, because it is teaching what the ladder is;
+        // the guarantee is just so the first lesson is not a loss.
+        boolean firstEver = firstForgeFree && tier == 0 && data.getNovaBestTier() <= 0;
+        boolean success = firstEver || ThreadLocalRandom.current().nextDouble() < chance;
 
         if (success) {
             int next = tier + 1;

@@ -45,6 +45,14 @@ public class ConsumableListener implements Listener {
             return;
         }
 
+        // A Nova Core is spent in the forge, not on the spot. Using one
+        // means opening the menu that spends it.
+        if ("nova_core".equals(consumable.id())) {
+            event.getPlayer().openInventory(
+                    com.spacerng.solrng.gui.NovaCoreGui.build(plugin, event.getPlayer()));
+            return;
+        }
+
         PlayerData data = plugin.getPlayerDataManager().get(event.getPlayer().getUniqueId());
         if (!consumables.redeem(event.getPlayer(), data, consumable)) return;
 

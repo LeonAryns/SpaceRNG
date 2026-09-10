@@ -200,12 +200,12 @@ tag:
 # straight back to fully-grown after regrow-seconds instead of waiting
 # on random tick growth.
 farming:
-  regrow-seconds: 1
+  regrow-seconds: 5
   # Regrow in TICKS, which is what the scheduler actually counts. A whole
   # second was the smallest value that could be written down, so the whole
   # farm was capped at one harvest per plot per second however good the
   # hoe was. Set this and regrow-seconds is ignored.
-  regrow-ticks: 8
+  regrow-ticks: 100
   # The fastest a plot may ever come back, however much Speed is on the
   # hoe. This used to be hard-coded at 10, which is why Speed stopped
   # being worth anything past half its ladder.
@@ -922,27 +922,39 @@ rarities:
   # on each individual item instead (see the per-item "colors" below).
   # "symbol: true" wraps that rarity's item names in an obfuscated flair
   # character on both sides (Epic and up).
+  #
+  # Common, Uncommon and Rare labels are friendly rather than literal: the
+  # band as a whole lands on its `share` of all rolls, and the labels only
+  # decide which item inside the band wins. Money pays on the label, so a
+  # friendly label also keeps the early economy where it was. Epic and up
+  # set `true-odds`, and there the number on the item is the real chance.
   COMMON:
     colors: ["&7"]
     luck-factor: 0.0
+    share: 0.945
   UNCOMMON:
     colors: ["&a"]
     luck-factor: 0.15
+    share: 0.050
   RARE:
     colors: ["&9"]
     luck-factor: 0.35
+    share: 0.003
   EPIC:
     colors: ["&5"]
     symbol: true
     luck-factor: 0.6
+    true-odds: true
   LEGENDARY:
     colors: ["&6"]
     symbol: true
     luck-factor: 1.0
+    true-odds: true
   MYTHICAL:
     colors: ["&c"]
     symbol: true
     luck-factor: 1.6
+    true-odds: true
   # Divine sits above everything. Its label is the palest thing in the
   # plugin without ever being pure #FFFFFF - a drop name renders beside a
   # player name in the tab list, and white-on-white is unreadable.
@@ -951,777 +963,780 @@ rarities:
     symbol: true
     bold: true
     luck-factor: 2.5
+    true-odds: true
 
-# Every rollable item. "odds" = 1-in-X chance at 0 luck.
+# Every rollable item. "odds" is the label a player sees and what Money
+# pays on. For Epic and up it is also the real 1-in-X chance at 0 Luck;
+# for Common, Uncommon and Rare see `share` under rarities above.
 # Add as many items per rarity as you want.
 items:
   # --- Common ---
   - material: DIRT
     name: "Dirt"
     rarity: COMMON
-    odds: 16
+    odds: 2
   - material: COBBLESTONE
     name: "Stone"
     rarity: COMMON
-    odds: 17
+    odds: 3
   - material: OAK_LOG
     name: "Wood"
     rarity: COMMON
-    odds: 19
+    odds: 4
   - material: GRAVEL
     name: "Gravel"
     rarity: COMMON
-    odds: 20
+    odds: 5
   - material: SAND
     name: "Sand"
     rarity: COMMON
-    odds: 21
+    odds: 6
   - material: GRASS_BLOCK
     name: "Grass Block"
     rarity: COMMON
-    odds: 23
+    odds: 7
   - material: PODZOL
     name: "Podzol"
     rarity: COMMON
-    odds: 24
+    odds: 8
   - material: ANDESITE
     name: "Andesite"
     rarity: COMMON
-    odds: 26
+    odds: 9
   - material: DIORITE
     name: "Diorite"
     rarity: COMMON
-    odds: 28
+    odds: 10
   - material: GRANITE
     name: "Granite"
     rarity: COMMON
-    odds: 30
+    odds: 11
   - material: OAK_PLANKS
     name: "Oak Planks"
     rarity: COMMON
-    odds: 32
+    odds: 12
   - material: BIRCH_LOG
     name: "Birch Log"
     rarity: COMMON
-    odds: 34
+    odds: 13
   - material: SPRUCE_LOG
     name: "Spruce Log"
     rarity: COMMON
-    odds: 36
+    odds: 14
   - material: JUNGLE_LOG
     name: "Jungle Log"
     rarity: COMMON
-    odds: 39
+    odds: 15
   - material: ACACIA_LOG
     name: "Acacia Log"
     rarity: COMMON
-    odds: 42
+    odds: 16
   - material: DARK_OAK_LOG
     name: "Dark Oak Log"
     rarity: COMMON
-    odds: 45
+    odds: 17
   - material: MANGROVE_LOG
     name: "Mangrove Log"
     rarity: COMMON
-    odds: 48
+    odds: 18
   - material: CHERRY_LOG
     name: "Cherry Log"
     rarity: COMMON
-    odds: 51
+    odds: 19
   - material: STICK
     name: "Stick"
     rarity: COMMON
-    odds: 55
+    odds: 20
   - material: STRING
     name: "String"
     rarity: COMMON
-    odds: 58
+    odds: 21
   - material: FEATHER
     name: "Feather"
     rarity: COMMON
-    odds: 62
+    odds: 22
   - material: FLINT
     name: "Flint"
     rarity: COMMON
-    odds: 67
+    odds: 23
   - material: BONE
     name: "Bone"
     rarity: COMMON
-    odds: 71
+    odds: 24
   - material: ROTTEN_FLESH
     name: "Rotten Flesh"
     rarity: COMMON
-    odds: 76
+    odds: 25
   - material: LEATHER
     name: "Leather"
     rarity: COMMON
-    odds: 82
+    odds: 26
   - material: WHEAT_SEEDS
     name: "Wheat Seeds"
     rarity: COMMON
-    odds: 87
+    odds: 27
   - material: WHEAT
     name: "Wheat"
     rarity: COMMON
-    odds: 93
+    odds: 28
   - material: CARROT
     name: "Carrot"
     rarity: COMMON
-    odds: 100
+    odds: 29
   - material: POTATO
     name: "Potato"
     rarity: COMMON
-    odds: 107
+    odds: 30
   - material: BEETROOT
     name: "Beetroot"
     rarity: COMMON
-    odds: 114
+    odds: 31
   - material: SUGAR_CANE
     name: "Sugar Cane"
     rarity: COMMON
-    odds: 122
+    odds: 32
   - material: BAMBOO
     name: "Bamboo"
     rarity: COMMON
-    odds: 131
+    odds: 33
   - material: KELP
     name: "Kelp"
     rarity: COMMON
-    odds: 140
+    odds: 34
   - material: CACTUS
     name: "Cactus"
     rarity: COMMON
-    odds: 150
+    odds: 35
   - material: CLAY_BALL
     name: "Clay Ball"
     rarity: COMMON
-    odds: 160
+    odds: 36
   - material: SNOWBALL
     name: "Snowball"
     rarity: COMMON
-    odds: 171
+    odds: 37
   - material: EGG
     name: "Egg"
     rarity: COMMON
-    odds: 183
+    odds: 38
   - material: INK_SAC
     name: "Ink Sac"
     rarity: COMMON
-    odds: 196
+    odds: 39
   - material: CHARCOAL
     name: "Charcoal"
     rarity: COMMON
-    odds: 209
+    odds: 42
   - material: TERRACOTTA
     name: "Terracotta"
     rarity: COMMON
-    odds: 224
+    odds: 45
   - material: RED_SAND
     name: "Red Sand"
     rarity: COMMON
-    odds: 239
+    odds: 49
   - material: SANDSTONE
     name: "Sandstone"
     rarity: COMMON
-    odds: 256
+    odds: 53
   - material: MOSS_BLOCK
     name: "Moss Block"
     rarity: COMMON
-    odds: 274
+    odds: 57
   - material: MUD
     name: "Mud"
     rarity: COMMON
-    odds: 293
+    odds: 62
   - material: CALCITE
     name: "Calcite"
     rarity: COMMON
-    odds: 313
+    odds: 67
   - material: TUFF
     name: "Tuff"
     rarity: COMMON
-    odds: 335
+    odds: 73
   - material: DRIPSTONE_BLOCK
     name: "Dripstone Block"
     rarity: COMMON
-    odds: 358
+    odds: 79
   - material: POINTED_DRIPSTONE
     name: "Pointed Dripstone"
     rarity: COMMON
-    odds: 383
+    odds: 85
   - material: GLOWSTONE_DUST
     name: "Glowstone Dust"
     rarity: COMMON
-    odds: 409
+    odds: 92
   - material: SUGAR
     name: "Sugar"
     rarity: COMMON
-    odds: 438
+    odds: 100
   - material: NETHERRACK
     name: "Netherrack"
     rarity: COMMON
-    odds: 468
+    odds: 110
   - material: BASALT
     name: "Basalt"
     rarity: COMMON
-    odds: 501
+    odds: 117
   - material: BLACKSTONE
     name: "Blackstone"
     rarity: COMMON
-    odds: 536
+    odds: 124
   - material: SOUL_SAND
     name: "Soul Sand"
     rarity: COMMON
-    odds: 573
+    odds: 131
   - material: ICE
     name: "Ice"
     rarity: COMMON
-    odds: 613
+    odds: 139
   - material: PACKED_ICE
     name: "Packed Ice"
     rarity: COMMON
-    odds: 655
+    odds: 148
   - material: DEAD_BUSH
     name: "Dead Bush"
     rarity: COMMON
-    odds: 701
+    odds: 157
   - material: SEAGRASS
     name: "Seagrass"
     rarity: COMMON
-    odds: 749
+    odds: 166
   - material: VINE
     name: "Vine"
     rarity: COMMON
-    odds: 802
+    odds: 176
   - material: LILY_PAD
     name: "Lily Pad"
     rarity: COMMON
-    odds: 857
+    odds: 187
   - material: BROWN_MUSHROOM
     name: "Brown Mushroom"
     rarity: COMMON
-    odds: 917
+    odds: 198
   - material: RED_MUSHROOM
     name: "Red Mushroom"
     rarity: COMMON
-    odds: 980
+    odds: 211
   - material: MELON_SLICE
     name: "Melon Slice"
     rarity: COMMON
-    odds: 1050
+    odds: 223
   - material: PUMPKIN
     name: "Pumpkin"
     rarity: COMMON
-    odds: 1120
+    odds: 237
   - material: APPLE
     name: "Apple"
     rarity: COMMON
-    odds: 1200
+    odds: 251
   - material: BREAD
     name: "Bread"
     rarity: COMMON
-    odds: 1280
+    odds: 267
   - material: PAPER
     name: "Paper"
     rarity: COMMON
-    odds: 1370
+    odds: 283
   - material: COCOA_BEANS
     name: "Cocoa Beans"
     rarity: COMMON
-    odds: 1470
+    odds: 300
   - material: SPONGE
     name: "Sponge"
     rarity: COMMON
-    odds: 7340
+    odds: 1500
   - material: SUSPICIOUS_SAND
     name: "Suspicious Sand"
     rarity: COMMON
-    odds: 9170
+    odds: 2000
   - material: PETRIFIED_OAK_SLAB
     name: "Petrified Oak Slab"
     rarity: COMMON
-    odds: 11500
+    odds: 2500
   # --- Uncommon ---
   - material: COAL
     name: "Coal"
     rarity: UNCOMMON
-    odds: 411
+    odds: 150
   - material: REDSTONE
     name: "Redstone"
     rarity: UNCOMMON
-    odds: 431
+    odds: 153
   - material: LAPIS_LAZULI
     name: "Lapis Lazuli"
     rarity: UNCOMMON
-    odds: 452
+    odds: 157
   - material: COPPER_INGOT
     name: "Copper"
     rarity: UNCOMMON
-    odds: 474
+    odds: 162
   - material: IRON_INGOT
     name: "Iron"
     rarity: UNCOMMON
-    odds: 497
+    odds: 168
   - material: RAW_IRON
     name: "Raw Iron"
     rarity: UNCOMMON
-    odds: 521
+    odds: 522
   - material: RAW_COPPER
     name: "Raw Copper"
     rarity: UNCOMMON
-    odds: 547
+    odds: 177
   - material: RAW_GOLD
     name: "Raw Gold"
     rarity: UNCOMMON
-    odds: 574
+    odds: 183
   - material: IRON_NUGGET
     name: "Iron Nugget"
     rarity: UNCOMMON
-    odds: 601
+    odds: 567
   - material: GOLD_NUGGET
     name: "Gold Nugget"
     rarity: UNCOMMON
-    odds: 631
+    odds: 192
   - material: HONEYCOMB
     name: "Honeycomb"
     rarity: UNCOMMON
-    odds: 661
+    odds: 198
   - material: HONEY_BOTTLE
     name: "Honey Bottle"
     rarity: UNCOMMON
-    odds: 694
+    odds: 204
   - material: SLIME_BALL
     name: "Slime Ball"
     rarity: UNCOMMON
-    odds: 727
+    odds: 210
   - material: MAGMA_CREAM
     name: "Magma Cream"
     rarity: UNCOMMON
-    odds: 763
+    odds: 216
   - material: GUNPOWDER
     name: "Gunpowder"
     rarity: UNCOMMON
-    odds: 800
+    odds: 222
   - material: SPIDER_EYE
     name: "Spider Eye"
     rarity: UNCOMMON
-    odds: 839
+    odds: 228
   - material: FERMENTED_SPIDER_EYE
     name: "Fermented Spider Eye"
     rarity: UNCOMMON
-    odds: 880
+    odds: 235
   - material: BLAZE_POWDER
     name: "Blaze Powder"
     rarity: UNCOMMON
-    odds: 923
+    odds: 243
   - material: GLOW_INK_SAC
     name: "Glow Ink Sac"
     rarity: UNCOMMON
-    odds: 968
+    odds: 249
   - material: PHANTOM_MEMBRANE
     name: "Phantom Membrane"
     rarity: UNCOMMON
-    odds: 1020
+    odds: 258
   - material: RABBIT_FOOT
     name: "Rabbit Foot"
     rarity: UNCOMMON
-    odds: 1060
+    odds: 264
   - material: RABBIT_HIDE
     name: "Rabbit Hide"
     rarity: UNCOMMON
-    odds: 1120
+    odds: 273
   - material: TURTLE_SCUTE
     name: "Turtle Scute"
     rarity: UNCOMMON
-    odds: 1170
+    odds: 279
   - material: TROPICAL_FISH
     name: "Tropical Fish"
     rarity: UNCOMMON
-    odds: 1230
+    odds: 288
   - material: PRISMARINE_SHARD
     name: "Prismarine Shard"
     rarity: UNCOMMON
-    odds: 1290
+    odds: 297
   - material: PUFFERFISH
     name: "Pufferfish"
     rarity: UNCOMMON
-    odds: 1350
+    odds: 303
   - material: OBSIDIAN
     name: "Obsidian"
     rarity: UNCOMMON
-    odds: 1420
+    odds: 312
   - material: CRYING_OBSIDIAN
     name: "Crying Obsidian"
     rarity: UNCOMMON
-    odds: 1480
+    odds: 321
   - material: GLOWSTONE
     name: "Glowstone"
     rarity: UNCOMMON
-    odds: 1560
+    odds: 330
   - material: SEA_LANTERN
     name: "Sea Lantern"
     rarity: UNCOMMON
-    odds: 1630
+    odds: 342
   - material: REDSTONE_BLOCK
     name: "Redstone Block"
     rarity: UNCOMMON
-    odds: 1710
+    odds: 351
   - material: COAL_BLOCK
     name: "Coal Block"
     rarity: UNCOMMON
-    odds: 1800
+    odds: 360
   - material: IRON_BLOCK
     name: "Iron Block"
     rarity: UNCOMMON
-    odds: 1880
+    odds: 372
   - material: COPPER_BLOCK
     name: "Copper Block"
     rarity: UNCOMMON
-    odds: 1980
+    odds: 381
   - material: LAPIS_BLOCK
     name: "Lapis Block"
     rarity: UNCOMMON
-    odds: 2070
+    odds: 393
   - material: ARROW
     name: "Arrow"
     rarity: UNCOMMON
-    odds: 2170
+    odds: 405
   - material: BOOK
     name: "Book"
     rarity: UNCOMMON
-    odds: 2280
+    odds: 414
   - material: LEATHER_HELMET
     name: "Leather Helmet"
     rarity: UNCOMMON
-    odds: 2390
+    odds: 426
   - material: FISHING_ROD
     name: "Fishing Rod"
     rarity: UNCOMMON
-    odds: 2500
+    odds: 441
   - material: SHEARS
     name: "Shears"
     rarity: UNCOMMON
-    odds: 2630
+    odds: 453
   - material: COMPASS
     name: "Compass"
     rarity: UNCOMMON
-    odds: 2750
+    odds: 465
   - material: CLOCK
     name: "Clock"
     rarity: UNCOMMON
-    odds: 2890
+    odds: 477
   - material: SPYGLASS
     name: "Spyglass"
     rarity: UNCOMMON
-    odds: 3030
+    odds: 492
   - material: BUCKET
     name: "Bucket"
     rarity: UNCOMMON
-    odds: 3180
+    odds: 507
   - material: SADDLE
     name: "Saddle"
     rarity: UNCOMMON
-    odds: 3330
+    odds: 522
   - material: LEAD
     name: "Lead"
     rarity: UNCOMMON
-    odds: 3490
+    odds: 537
   - material: NAME_TAG
     name: "Name Tag"
     rarity: UNCOMMON
-    odds: 3660
+    odds: 552
   - material: TRIPWIRE_HOOK
     name: "Tripwire Hook"
     rarity: UNCOMMON
-    odds: 3840
+    odds: 567
   - material: REPEATER
     name: "Repeater"
     rarity: UNCOMMON
-    odds: 4030
+    odds: 582
   - material: COMPARATOR
     name: "Comparator"
     rarity: UNCOMMON
-    odds: 4230
+    odds: 600
   - material: FLINT_AND_STEEL
     name: "Flint and Steel"
     rarity: UNCOMMON
-    odds: 4430
+    odds: 620
   - material: CAULDRON
     name: "Cauldron"
     rarity: UNCOMMON
-    odds: 4650
+    odds: 643
   - material: BREWING_STAND
     name: "Brewing Stand"
     rarity: UNCOMMON
-    odds: 4870
+    odds: 667
   - material: HOPPER
     name: "Hopper"
     rarity: UNCOMMON
-    odds: 5110
+    odds: 692
   - material: PISTON
     name: "Piston"
     rarity: UNCOMMON
-    odds: 5360
+    odds: 718
   - material: OBSERVER
     name: "Observer"
     rarity: UNCOMMON
-    odds: 5620
+    odds: 745
   - material: TARGET
     name: "Target"
     rarity: UNCOMMON
-    odds: 5900
+    odds: 773
   - material: BELL
     name: "Bell"
     rarity: UNCOMMON
-    odds: 6180
+    odds: 802
   - material: LANTERN
     name: "Lantern"
     rarity: UNCOMMON
-    odds: 6480
+    odds: 832
   - material: SOUL_LANTERN
     name: "Soul Lantern"
     rarity: UNCOMMON
-    odds: 6800
+    odds: 863
   - material: IRON_CHAIN
     name: "Iron Chain"
     rarity: UNCOMMON
-    odds: 7130
+    odds: 896
   - material: ANVIL
     name: "Anvil"
     rarity: UNCOMMON
-    odds: 7480
+    odds: 929
   - material: AMETHYST_CLUSTER
     name: "Amethyst Cluster"
     rarity: UNCOMMON
-    odds: 7840
+    odds: 964
   - material: CHAINMAIL_HELMET
     name: "Chainmail Helmet"
     rarity: UNCOMMON
-    odds: 8220
+    odds: 1000
   - material: NAUTILUS_SHELL
     name: "Nautilus Shell"
     rarity: UNCOMMON
-    odds: 25000
+    odds: 3000
   - material: BEE_NEST
     name: "Bee Nest"
     rarity: UNCOMMON
-    odds: 25000
+    odds: 4000
   - material: SNIFFER_EGG
     name: "Sniffer Egg"
     rarity: UNCOMMON
-    odds: 25000
+    odds: 5000
   # --- Rare ---
   - material: GOLD_INGOT
     name: "Gold"
     rarity: RARE
-    odds: 1120
+    odds: 2500
   - material: QUARTZ
     name: "Quartz"
     rarity: RARE
-    odds: 1200
+    odds: 2570
   - material: AMETHYST_SHARD
     name: "Amethyst Shard"
     rarity: RARE
-    odds: 1280
+    odds: 2650
   - material: EMERALD
     name: "Emerald"
     rarity: RARE
-    odds: 1370
+    odds: 2730
   - material: PRISMARINE_CRYSTALS
     name: "Prismarine Crystals"
     rarity: RARE
-    odds: 1460
+    odds: 2810
   - material: GOLD_BLOCK
     name: "Gold Block"
     rarity: RARE
-    odds: 1570
+    odds: 2890
   - material: DIAMOND_ORE
     name: "Diamond Ore"
     rarity: RARE
-    odds: 1680
+    odds: 2970
   - material: EMERALD_ORE
     name: "Emerald Ore"
     rarity: RARE
-    odds: 1790
+    odds: 3060
   - material: ENDER_PEARL
     name: "Ender Pearl"
     rarity: RARE
-    odds: 1920
+    odds: 3150
   - material: BLAZE_ROD
     name: "Blaze Rod"
     rarity: RARE
-    odds: 2050
+    odds: 3240
   - material: GHAST_TEAR
     name: "Ghast Tear"
     rarity: RARE
-    odds: 2190
+    odds: 3340
   - material: SHULKER_SHELL
     name: "Shulker Shell"
     rarity: RARE
-    odds: 2340
+    odds: 3430
   - material: DIAMOND_HORSE_ARMOR
     name: "Diamond Horse Armor"
     rarity: RARE
-    odds: 2500
+    odds: 3540
   - material: ECHO_SHARD
     name: "Echo Shard"
     rarity: RARE
-    odds: 2680
+    odds: 3640
   - material: MUSIC_DISC_13
     name: "Music Disc 13"
     rarity: RARE
-    odds: 2860
+    odds: 3750
   - material: TRIDENT
     name: "Trident"
     rarity: RARE
-    odds: 3060
+    odds: 3860
   - material: CROSSBOW
     name: "Crossbow"
     rarity: RARE
-    odds: 3280
+    odds: 3970
   - material: SPECTRAL_ARROW
     name: "Spectral Arrow"
     rarity: RARE
-    odds: 3500
+    odds: 4080
   - material: ENCHANTED_BOOK
     name: "Enchanted Book"
     rarity: RARE
-    odds: 3750
+    odds: 4200
   - material: EXPERIENCE_BOTTLE
     name: "Experience Bottle"
     rarity: RARE
-    odds: 4010
+    odds: 4330
   - material: AMETHYST_BLOCK
     name: "Amethyst Block"
     rarity: RARE
-    odds: 4280
+    odds: 4450
   - material: BUDDING_AMETHYST
     name: "Budding Amethyst"
     rarity: RARE
-    odds: 4580
+    odds: 4590
   - material: RECOVERY_COMPASS
     name: "Recovery Compass"
     rarity: RARE
-    odds: 4900
+    odds: 4720
   - material: BRUSH
     name: "Brush"
     rarity: RARE
-    odds: 5240
+    odds: 4860
   - material: ARMOR_STAND
     name: "Armor Stand"
     rarity: RARE
-    odds: 5600
+    odds: 5000
   - material: NETHERITE_SCRAP
     name: "Netherite Scrap"
     rarity: RARE
-    odds: 5990
+    odds: 5200
   - material: ANCIENT_DEBRIS
     name: "Ancient Debris"
     rarity: RARE
-    odds: 6410
+    odds: 5520
   - material: WITHER_ROSE
     name: "Wither Rose"
     rarity: RARE
-    odds: 6850
+    odds: 5860
   - material: HEART_OF_THE_SEA
     name: "Heart of the Sea"
     rarity: RARE
-    odds: 7330
+    odds: 6220
   - material: BEACON
     name: "Beacon"
     rarity: RARE
-    odds: 7840
+    odds: 6600
   - material: NETHERITE_INGOT
     name: "Netherite Ingot"
     rarity: RARE
-    odds: 39200
+    odds: 10000
   - material: ENCHANTED_GOLDEN_APPLE
     name: "Enchanted Golden Apple"
     rarity: RARE
-    odds: 40000
+    odds: 12500
   - material: SCULK_CATALYST
     name: "Sculk Catalyst"
     rarity: RARE
-    odds: 40000
+    odds: 15000
   # --- Epic ---
   - material: ZOMBIE_SPAWN_EGG
     name: "Rotten Zombie"
     rarity: EPIC
-    odds: 1910
+    odds: 10000
   - material: SKELETON_SPAWN_EGG
     name: "Bone Marksman"
     rarity: EPIC
-    odds: 2340
+    odds: 11100
   - material: CREEPER_SPAWN_EGG
     name: "Creeper Menace"
     rarity: EPIC
-    odds: 2850
+    odds: 12300
   - material: SPIDER_SPAWN_EGG
     name: "Cave Crawler"
     rarity: EPIC
-    odds: 3480
+    odds: 13600
   - material: ENDERMAN_SPAWN_EGG
     name: "Void Wanderer"
     rarity: EPIC
-    odds: 4240
+    odds: 15000
   - material: WITCH_SPAWN_EGG
     name: "Vile Witch"
     rarity: EPIC
-    odds: 5180
+    odds: 16600
   - material: BLAZE_SPAWN_EGG
     name: "Blazing Fiend"
     rarity: EPIC
-    odds: 6320
+    odds: 18400
   - material: PIGLIN_SPAWN_EGG
     name: "Piglin Raider"
     rarity: EPIC
-    odds: 7710
+    odds: 20400
   - material: GUARDIAN_SPAWN_EGG
     name: "Abyssal Guardian"
     rarity: EPIC
-    odds: 9410
+    odds: 22600
   - material: SLIME_SPAWN_EGG
     name: "Gelatinous Slime"
     rarity: EPIC
-    odds: 11500
+    odds: 25000
   # --- Legendary ---
   - material: DRAGON_EGG
     name: "Dragon Egg"
     rarity: LEGENDARY
-    odds: 7030
+    odds: 50000
   - material: WITHER_SKELETON_SPAWN_EGG
     name: "Cursed Skeleton"
     rarity: LEGENDARY
-    odds: 9940
+    odds: 59500
   - material: RAVAGER_SPAWN_EGG
     name: "Rampaging Ravager"
     rarity: LEGENDARY
-    odds: 14100
+    odds: 70700
   - material: ELDER_GUARDIAN_SPAWN_EGG
     name: "Ancient Guardian"
     rarity: LEGENDARY
-    odds: 19900
+    odds: 84100
   - material: EVOKER_SPAWN_EGG
     name: "Evoker's Wrath"
     rarity: LEGENDARY
-    odds: 28100
+    odds: 100000
   # --- Mythical ---
   - material: NETHER_STAR
     name: "The Wither"
     rarity: MYTHICAL
-    odds: 23900
+    odds: 250000
   - material: SCULK_SHRIEKER
     name: "The Warden"
     rarity: MYTHICAL
-    odds: 41400
+    odds: 500000
   - material: ELYTRA
     name: "The Ender Dragon"
     rarity: MYTHICAL
-    odds: 71700
+    odds: 1000000
   # --- Divine ---
   - material: CONDUIT
     name: "Halo of the First Star"
     rarity: DIVINE
-    odds: 100000
+    odds: 10000000
 index:
   # Luck for every entry discovered, before any skill. Collecting is
   # supposed to BE progression, not just a prerequisite for a skill that
@@ -2730,16 +2745,16 @@ milestones:
       unit: "crops"
       description: "Crops harvested on the shared farm."
       tiers:
-        - { at: 100, tokens: 500 }
+        - { at: 100, tokens: 10000 }
         - { at: 500, consumable: coin_potion }
-        - { at: 1000, tokens: 3000 }
+        - { at: 1000, tokens: 100000 }
         - { at: 2500, consumable: enchant_potion }
         - { at: 5000, consumable: coin_potion, consumable-amount: 2 }
-        - { at: 10000, tokens: 30000, shards: 25 }
+        - { at: 10000, tokens: 1000000, shards: 25 }
         - { at: 25000, consumable: enchant_potion, consumable-amount: 2 }
-        - { at: 50000, tokens: 150000, shards: 100 }
+        - { at: 50000, tokens: 5000000, shards: 100 }
         - { at: 100000, consumable: coin_potion, consumable-amount: 5 }
-        - { at: 250000, tokens: 750000, shards: 500 }
+        - { at: 250000, tokens: 25000000, shards: 500 }
         - { at: 500000, consumable: enchant_potion, consumable-amount: 5 }
         - { at: 1000000, consumable: coin_potion, consumable-amount: 10 }
     playtime:
@@ -2877,8 +2892,8 @@ guide:
   # A drop handed over on finishing a named step. The Basic Starforge
   # costs an Uncommon, which is rare enough early that a new player can
   # stall with nothing to do about it.
-  # Nova tiers handed over on finishing a named step, so the climb starts
-  # somewhere rather than nowhere.
+  # Nova Cores handed over the moment a player REACHES a named step, so
+  # the step that asks for a forge comes with the Core to forge with.
   free-nova:
     nova_core: 1
   guaranteed-drop:
@@ -2960,7 +2975,7 @@ guide:
       amount: 1
     - id: nova_core
       display: "Forge a Nova Core tier"
-      hint: "/novacore is a push-your-luck ladder. Every tier multiplies everything."
+      hint: "Right click the Nova Core you were just given, or open /novacore."
       goal: NOVA_TIER
       amount: 1
     - id: claim_milestone
@@ -3169,8 +3184,7 @@ consumables:
     display: "Nova Core"
     material: HEART_OF_THE_SEA
     colors: ["#7FE7FF", "#00B0FF"]
-    nova-tiers: 1
-    description: "Right click to climb one tier in /novacore, no gamble."
+    description: "Spend it in /novacore on a shot at the next tier."
   free_skill:
     display: "Skilltree Unlock Voucher"
     material: KNOWLEDGE_BOOK
@@ -3233,7 +3247,7 @@ farmtree:
     enchant_green_thumb:
       display: "Speed"
       page: 1
-      slot: "2,1"
+      slot: "2,6"
       icon: "BONE_BLOCK"
       cost-money: 72300
       requires: "tokens_3"
@@ -3244,7 +3258,7 @@ farmtree:
     enchant_token_greed:
       display: "Coin Greed"
       page: 1
-      slot: "4,1"
+      slot: "3,5"
       icon: "GOLD_NUGGET"
       cost-money: 117100
       requires: "enchant_green_thumb"
@@ -3268,7 +3282,7 @@ farmtree:
     enchant_shard_greed:
       display: "Gem Greed"
       page: 1
-      slot: "7,1"
+      slot: "2,4"
       icon: "PRISMARINE_CRYSTALS"
       cost-money: 189700
       requires: "enchant_token_greed"
@@ -3279,7 +3293,7 @@ farmtree:
     enchant_fortune:
       display: "Key Finder"
       page: 1
-      slot: "2,2"
+      slot: "3,3"
       icon: "EMERALD"
       cost-money: 307400
       requires: "enchant_shard_greed"
@@ -3349,7 +3363,7 @@ farmtree:
     enchant_blast:
       display: "Blast Harvest"
       page: 1
-      slot: "2,3"
+      slot: "2,2"
       icon: "TNT"
       cost-money: 498000
       requires: "enchant_fortune"
@@ -3360,7 +3374,7 @@ farmtree:
     enchant_momentum:
       display: "Momentum"
       page: 1
-      slot: "4,3"
+      slot: "3,2"
       icon: "FEATHER"
       cost-money: 806700
       requires: "enchant_blast"
@@ -3384,7 +3398,7 @@ farmtree:
     enchant_potion_finder:
       display: "Potion Finder"
       page: 1
-      slot: "7,3"
+      slot: "2,1"
       icon: "BREWING_STAND"
       cost-money: 1306900
       requires: "enchant_momentum"
@@ -3395,7 +3409,7 @@ farmtree:
     enchant_lightning:
       display: "Lightning"
       page: 1
-      slot: "2,4"
+      slot: "3,1"
       icon: "LIGHTNING_ROD"
       cost-money: 2117200
       requires: "enchant_potion_finder"
@@ -3509,7 +3523,7 @@ farmtree:
     nova_finder:
       display: "Nova Finder"
       page: 2
-      slot: "2,1"
+      slot: "2,6"
       icon: "HEART_OF_THE_SEA"
       cost-money: 3429800
       requires: "enchant_lightning"
@@ -3520,7 +3534,7 @@ farmtree:
     enchant_coin_factory:
       display: "Coin Factory"
       page: 2
-      slot: "4,1"
+      slot: "3,5"
       icon: "HOPPER"
       cost-money: 5556300
       requires: "nova_finder"
@@ -3544,7 +3558,7 @@ farmtree:
     enchant_prospector:
       display: "Prospector"
       page: 2
-      slot: "7,1"
+      slot: "2,4"
       icon: "RAW_GOLD"
       cost-money: 9001200
       requires: "enchant_coin_factory"
@@ -3555,7 +3569,7 @@ farmtree:
     growth_4:
       display: "Growth IV"
       page: 2
-      slot: "2,2"
+      slot: "7,2"
       icon: "BONE_MEAL"
       cost-money: 1306900
       cost-growth: 1.32
@@ -3567,7 +3581,7 @@ farmtree:
     enchant_golden_touch:
       display: "Golden Touch"
       page: 2
-      slot: "3,2"
+      slot: "3,3"
       icon: "GOLDEN_HOE"
       cost-money: 14581900
       requires: "enchant_prospector"
@@ -3613,7 +3627,7 @@ farmtree:
     enchant_gem_rush:
       display: "Gem Rush"
       page: 2
-      slot: "8,2"
+      slot: "2,2"
       icon: "AMETHYST_CLUSTER"
       cost-money: 23622700
       requires: "enchant_golden_touch"
@@ -3624,7 +3638,7 @@ farmtree:
     enchant_harvest_echo:
       display: "Harvest Echo"
       page: 2
-      slot: "3,3"
+      slot: "3,2"
       icon: "SCULK_SENSOR"
       cost-money: 38268800
       requires: "enchant_gem_rush"
@@ -3660,7 +3674,7 @@ farmtree:
     enchant_alchemy:
       display: "Alchemy"
       page: 2
-      slot: "7,3"
+      slot: "2,1"
       icon: "BREWING_STAND"
       cost-money: 61995500
       requires: "enchant_harvest_echo"
@@ -3671,7 +3685,7 @@ farmtree:
     enchant_gem_cascade:
       display: "Gem Cascade"
       page: 2
-      slot: "2,4"
+      slot: "3,1"
       icon: "PRISMARINE_SHARD"
       cost-money: 100432700
       requires: "enchant_alchemy"
@@ -3799,7 +3813,7 @@ farmtree:
     enchant_coin_storm:
       display: "Coin Storm"
       page: 3
-      slot: "2,1"
+      slot: "2,6"
       icon: "GOLD_BLOCK"
       cost-money: 162701000
       requires: "enchant_gem_cascade"
@@ -3810,7 +3824,7 @@ farmtree:
     enchant_meteor:
       display: "Meteor"
       page: 3
-      slot: "4,1"
+      slot: "3,5"
       icon: "MAGMA_CREAM"
       cost-money: 263575700
       requires: "enchant_coin_storm"
@@ -3821,7 +3835,7 @@ farmtree:
     enchant_credit_finder:
       display: "Credit Finder"
       page: 3
-      slot: "6,1"
+      slot: "4,5"
       icon: "AMETHYST_SHARD"
       cost-money: 426992600
       requires: "enchant_meteor"
@@ -3832,7 +3846,7 @@ farmtree:
     enchant_gamba:
       display: "Gamba"
       page: 3
-      slot: "8,1"
+      slot: "4,4"
       icon: "SUNFLOWER"
       cost-money: 691728000
       requires: "enchant_credit_finder"
@@ -3843,7 +3857,7 @@ farmtree:
     enchant_black_hole:
       display: "Black Hole"
       page: 3
-      slot: "3,2"
+      slot: "5,3"
       icon: "ENDER_EYE"
       cost-money: 1120599400
       requires: "enchant_gamba"
@@ -3854,7 +3868,7 @@ farmtree:
     enchant_nuke:
       display: "Nuke"
       page: 3
-      slot: "5,2"
+      slot: "6,3"
       icon: "FIRE_CHARGE"
       cost-money: 1815371000
       requires: "enchant_black_hole"
@@ -3865,7 +3879,7 @@ farmtree:
     enchant_supernova:
       display: "Supernova"
       page: 3
-      slot: "7,2"
+      slot: "6,2"
       icon: "NETHER_STAR"
       cost-money: 2940901000
       requires: "enchant_nuke"
@@ -3876,7 +3890,7 @@ farmtree:
     mastery_2:
       display: "Enchant Mastery II"
       page: 3
-      slot: "7,6"
+      slot: "8,1"
       icon: "ENCHANTED_BOOK"
       cost-money: 7718100500
       cost-growth: 1.6
@@ -3888,7 +3902,7 @@ farmtree:
     mastery_1:
       display: "Enchant Mastery I"
       page: 3
-      slot: "8,6"
+      slot: "7,1"
       icon: "ENCHANTED_BOOK"
       cost-money: 4764259500
       cost-growth: 1.55
@@ -3917,12 +3931,15 @@ novacore:
   # defaults give 5, 11, 18 across a 20-tier ladder.
   first-checkpoint: 5
   base-chance: 0.50
-  # Tier 1 is free. The guide asks for one forged tier, and a coin flip
-  # is a poor thing to put between a new player and the step that teaches
-  # them what the ladder is.
-  first-tier-guaranteed: true
+  # The very first forge a player ever makes always succeeds. The menu
+  # still shows the real chance; only the result is guaranteed.
+  first-forge-guaranteed: true
   decay: 0.85
-  luck-weight: 1.0
+  # How much Luck lifts the chance. At 1.0 a player with +100% Luck saw a
+  # 50% forge as 95%, so the coin flip stopped being one.
+  luck-weight: 0.15
+  # Shown in chat whenever somebody needs to know where Nova Cores come from.
+  how-to-get: "/milestones (Playtime) and the /guide"
   min-chance: 0.02
   max-chance: 0.95
   # One entry per tier. This is a UNIVERSAL multiplier: it scales Luck,
@@ -3931,8 +3948,6 @@ novacore:
   # very top.
   multipliers: [1.02, 1.05, 1.10, 1.15, 1.25, 1.40, 1.55, 1.75, 2.00, 2.25,
                 2.50, 2.85, 3.25, 3.75, 4.25, 5.00, 6.00, 7.50, 9.00, 12.00]
-  base-cost-tokens: 500
-  cost-growth: 1.18
 
 # Shiny drops. A shiny is the same drop with a marker, an enchant glint
 # and its own entry in /index - 1 in 100 rolls by default, so roughly one

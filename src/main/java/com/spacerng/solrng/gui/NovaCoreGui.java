@@ -15,43 +15,42 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * /novacore - a climb drawn as something you climb.
+ * /novacore - the ladder drawn as a path you can actually trace.
  *
- * The tiers used to snake through the whole menu, which meant the eye had
- * to follow a route it could not see: twenty identical panes scattered
- * over six rows with black filler between them read as decoration, not as
- * a ladder. They now fill bottom row first and run upward, so the shape on
- * screen is the shape of the thing - you start at the bottom left and the
- * top right rung is the one worth all the money.
- *
- * Colour carries state: green behind you, a glinting yellow rung ahead,
- * grey for everything still out of reach, and checkpoints keep their own
- * icon at every state because they are the part worth planning around.
+ * The tiers snake through the menu rather than filling rows left to right,
+ * so the climb reads as a route with a start and an end instead of a
+ * spreadsheet. Colour carries the state: green behind you, yellow ahead,
+ * and a glinting yellow pane on the rung you're about to attempt.
  */
 public class NovaCoreGui {
 
     /**
-     * The rungs, bottom row first so the ladder climbs.
-     *
-     * Twenty-one slots for a twenty-tier ladder: the spare is the top
-     * right, which stays empty unless max-tier is raised.
+     * The route, in (column, row) order - 1-indexed, converted to slots as
+     * (row-1)*9 + (column-1). Tier 1 is the first entry.
      */
     private static final int[] PATH_SLOTS = {
-            28, 29, 30, 31, 32, 33, 34,   // bottom rung row, tiers 1-7
-            19, 20, 21, 22, 23, 24, 25,   // middle, tiers 8-14
-            10, 11, 12, 13, 14, 15, 16,   // top, tiers 15-21
+            37, 28, 19, 10,   // (2,5) (2,4) (2,3) (2,2)  - up the left side
+            11, 12,           // (3,2) (4,2)              - across the top
+            21, 30, 39,       // (4,3) (4,4) (4,5)        - back down
+            40, 41,           // (5,5) (6,5)              - across the bottom
+            32, 23, 14,       // (6,4) (6,3) (6,2)        - up again
+            15, 16,           // (7,2) (8,2)              - across
+            25, 34, 43,       // (8,3) (8,4) (8,5)        - down the right
+            44                // (9,5)                    - the last rung
     };
 
     public static final int FORGE_SLOT = 49;
-    private static final int INFO_SLOT = 47;
-    private static final int HELD_SLOT = 51;
+    private static final int INFO_SLOT = 45;
 
     public static Inventory build(SolRNGPlugin plugin, Player player) {
         NovaCoreHolder holder = new NovaCoreHolder();
         Inventory inv = Bukkit.createInventory(holder, 54, plugin.getNovaCoreManager().styledTitle());
         holder.setInventory(inv);
 
-        frame(inv);
+        ItemStack filler = pane(Material.BLACK_STAINED_GLASS_PANE, " ");
+        for (int slot = 0; slot < 54; slot++) {
+            inv.setItem(slot, filler);
+        }
 
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         NovaCoreManager nova = plugin.getNovaCoreManager();
@@ -62,26 +61,9 @@ public class NovaCoreGui {
             inv.setItem(PATH_SLOTS[t - 1], buildTier(nova, t, tier));
         }
 
-        inv.setItem(INFO_SLOT, buildInfo(data, nova, tier));
-        inv.setItem(FORGE_SLOT, buildForge(plugin, data, nova, tier));
-        inv.setItem(HELD_SLOT, buildHeld(nova, tier));
+        inv.setItem(INFO_SLOT, buildInfo(plugin, data, nova, tier));
+        inv.setItem(FORGE_SLOT, buildForge(plugin, player, data, nova, tier));
         return inv;
-    }
-
-    /**
-     * Cyan on the border, black inside.
-     *
-     * The whole menu used to be black, which left the two buttons in the
-     * bottom row floating in a void with nothing to sit on.
-     */
-    private static void frame(Inventory inv) {
-        ItemStack rim = pane(Material.CYAN_STAINED_GLASS_PANE, " ");
-        ItemStack fill = pane(Material.BLACK_STAINED_GLASS_PANE, " ");
-        for (int slot = 0; slot < inv.getSize(); slot++) {
-            int column = slot % 9;
-            int row = slot / 9;
-            inv.setItem(slot, row == 0 || row == 5 || column == 0 || column == 8 ? rim : fill);
-        }
     }
 
     private static ItemStack buildTier(NovaCoreManager nova, int tier, int current) {
@@ -89,122 +71,84 @@ public class NovaCoreGui {
         boolean next = tier == current + 1;
         boolean checkpoint = nova.isCheckpoint(tier);
 
+        // Checkpoints keep their own icon at every state - they're the part
+        // of the route worth planning around.
         Material material;
         if (checkpoint) {
             material = cleared ? Material.ENDER_EYE : Material.ENDER_PEARL;
         } else if (cleared) {
-            material = Material.LIME_STAINED_GLASS_PANE;
-        } else if (next) {
-            material = Material.YELLOW_STAINED_GLASS_PANE;
+            material = Material.GREEN_STAINED_GLASS_PANE;
         } else {
-            // Grey, not yellow. Every unforged rung looking like the next
-            // one made the menu a wall of yellow with nothing to aim at.
-            material = Material.GRAY_STAINED_GLASS_PANE;
+            material = Material.YELLOW_STAINED_GLASS_PANE;
         }
 
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(Lore.title(
-                cleared ? ChatColor.GREEN : next ? ChatColor.YELLOW : ChatColor.DARK_GRAY,
+        meta.setDisplayName(Lore.title(cleared ? ChatColor.GREEN : next ? ChatColor.YELLOW : ChatColor.GRAY,
                 "Tier " + tier + (checkpoint ? " " + Lore.SPARK : "")));
 
         List<String> lore = new ArrayList<>();
-        lore.add(Lore.state(cleared ? "forged" : next ? "next up" : "locked"));
-        lore.add("");
         lore.add(Lore.section(ChatColor.LIGHT_PURPLE, "Holding this tier"));
         // One line per thing it multiplies, each in that thing's own
-        // colour. One grey sentence doing three jobs did none of them.
+        // colour. "1.50x Luck, Money and Coins" was one grey sentence
+        // doing three jobs, and none of them stood out.
         String times = String.format("%.2f", nova.multiplierAt(tier)) + "x";
         lore.add(Lore.stat(ChatColor.GREEN, "Luck", times));
         lore.add(Lore.stat(Currency.MONEY.colour(), "Money", times));
         lore.add(Lore.stat(Currency.COINS.colour(), "Coins", times));
-
-        // What this rung is worth over the one below it, which is the
-        // number that actually decides whether the gamble is worth taking.
-        if (tier > 1) {
-            double step = nova.multiplierAt(tier) / nova.multiplierAt(tier - 1);
-            lore.add(Lore.stat(ChatColor.DARK_AQUA, "Over tier " + (tier - 1),
-                    String.format("%.2f", step) + "x"));
-        }
-
         if (checkpoint) {
-            lore.add("");
-            lore.add(Lore.line(ChatColor.AQUA, "Checkpoint. A shatter never"));
-            lore.add(Lore.line(ChatColor.AQUA, "drops you below this rung."));
+            lore.add(Lore.line(ChatColor.AQUA, "Checkpoint - a shatter never"));
+            lore.add(Lore.line(ChatColor.AQUA, "drops you below here."));
+        }
+        lore.add("");
+        if (cleared) {
+            lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "Forged");
+        } else if (next) {
+            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Next up");
+        } else {
+            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Locked");
         }
 
         meta.setLore(lore);
-        // Only the rung you are attempting glints, so the eye lands on it.
+        // Only the rung you're attempting glints, so the eye lands on it.
         meta.setEnchantmentGlintOverride(next ? Boolean.TRUE : null);
         item.setItemMeta(meta);
         return item;
     }
 
-    private static ItemStack buildInfo(PlayerData data, NovaCoreManager nova, int tier) {
+    private static ItemStack buildInfo(SolRNGPlugin plugin, PlayerData data, NovaCoreManager nova, int tier) {
         ItemStack item = new ItemStack(Material.HEART_OF_THE_SEA);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(nova.styledName());
 
         List<String> lore = new ArrayList<>();
-        lore.add(Lore.state("how it works"));
+        lore.add(Lore.section(ChatColor.LIGHT_PURPLE, "How it works"));
+        lore.add(Lore.line(ChatColor.LIGHT_PURPLE, "Each forge uses up one Nova Core."));
+        lore.add(Lore.line(ChatColor.LIGHT_PURPLE, "Every forge climbs a tier, or"));
+        lore.add(Lore.line(ChatColor.LIGHT_PURPLE, "drops you to the last checkpoint."));
+        lore.add(Lore.line(ChatColor.LIGHT_PURPLE, "Every tier held multiplies Luck,"));
+        lore.add(Lore.line(ChatColor.LIGHT_PURPLE, "Money and Coins at once."));
         lore.add("");
-        lore.add(Lore.section(ChatColor.LIGHT_PURPLE, "The climb"));
-        lore.add(Lore.line(ChatColor.LIGHT_PURPLE, "Every forge is a gamble. Win and"));
-        lore.add(Lore.line(ChatColor.LIGHT_PURPLE, "you climb a rung. Lose and the"));
-        lore.add(Lore.line(ChatColor.LIGHT_PURPLE, "Core shatters back to a checkpoint."));
-        lore.add("");
-        lore.add(Lore.section(ChatColor.AQUA, "Where you are"));
+        lore.add(Lore.section(ChatColor.AQUA, "Information"));
         lore.add(Lore.stat(ChatColor.AQUA, "Tier", tier + " / " + nova.getMaxTier()));
-        lore.add(Lore.bar(nova.getMaxTier() <= 0 ? 0.0 : (double) tier / nova.getMaxTier()));
+        lore.add(Lore.stat(ChatColor.LIGHT_PURPLE, "Multiplier",
+                String.format("%.2f", nova.multiplierAt(tier)) + "x"));
         lore.add(Lore.stat(ChatColor.YELLOW, "Best ever", String.valueOf(data.getNovaBestTier())));
         lore.add(Lore.stat(ChatColor.GREEN, "Safety net", "tier " + nova.checkpointBelow(tier)));
         lore.add(Lore.stat(ChatColor.DARK_AQUA, "Checkpoints", nova.checkpointList()));
-        lore.add("");
-        lore.add(Lore.footnote("Your Luck raises the odds of a forge."));
-        lore.add(Lore.footnote("The Core's own multiplier does not."));
         meta.setLore(lore);
         meta.setEnchantmentGlintOverride(Boolean.TRUE);
         item.setItemMeta(meta);
         return item;
     }
 
-    /** What the tier you are holding right now is worth, in one place. */
-    private static ItemStack buildHeld(NovaCoreManager nova, int tier) {
-        ItemStack item = new ItemStack(tier > 0 ? Material.NETHER_STAR : Material.GLASS_BOTTLE);
-        ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(Lore.title(tier > 0 ? ChatColor.LIGHT_PURPLE : ChatColor.DARK_GRAY,
-                "Your Core"));
-
-        List<String> lore = new ArrayList<>();
-        if (tier <= 0) {
-            lore.add(Lore.state("unforged"));
-            lore.add("");
-            lore.add(Lore.line(ChatColor.GRAY, "You are holding nothing yet."));
-            lore.add(Lore.line(ChatColor.GREEN, "The first forge cannot fail."));
-        } else {
-            lore.add(Lore.state("tier " + tier));
-            lore.add("");
-            String times = String.format("%.2f", nova.multiplierAt(tier)) + "x";
-            lore.add(Lore.section(ChatColor.LIGHT_PURPLE, "Right now"));
-            lore.add(Lore.stat(ChatColor.GREEN, "Luck", times));
-            lore.add(Lore.stat(Currency.MONEY.colour(), "Money", times));
-            lore.add(Lore.stat(Currency.COINS.colour(), "Coins", times));
-            lore.add("");
-            lore.add(Lore.footnote("Applied on top of everything else you own."));
-        }
-        meta.setLore(lore);
-        meta.setEnchantmentGlintOverride(tier > 0 ? Boolean.TRUE : null);
-        item.setItemMeta(meta);
-        return item;
-    }
-
-    private static ItemStack buildForge(SolRNGPlugin plugin, PlayerData data,
+    private static ItemStack buildForge(SolRNGPlugin plugin, Player player, PlayerData data,
                                         NovaCoreManager nova, int tier) {
         boolean maxed = tier >= nova.getMaxTier();
-        long cost = nova.costFor(data, tier);
+        int held = nova.coresHeld(player);
         double luck = plugin.getPrestigeManager().baseLuck(data);
         double chance = nova.chanceAt(tier, luck);
-        boolean affordable = data.getTokens() >= cost;
+        boolean affordable = held >= 1;
 
         // A compass, because this button is a gamble on a direction: it is
         // the one thing in the menu you press rather than read.
@@ -216,42 +160,32 @@ public class NovaCoreGui {
 
         List<String> lore = new ArrayList<>();
         if (maxed) {
-            lore.add(Lore.state("maxed"));
+            lore.add(Lore.line(ChatColor.GREEN, "There's nothing left to climb."));
             lore.add("");
-            lore.add(Lore.line(ChatColor.GREEN, "There is nothing left to climb."));
-            meta.setLore(lore);
-            meta.setEnchantmentGlintOverride(Boolean.TRUE);
-            item.setItemMeta(meta);
-            return item;
+            lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "Maxed");
+        } else {
+            ChatColor odds = chance >= 0.5 ? ChatColor.GREEN : chance >= 0.2 ? ChatColor.YELLOW : ChatColor.RED;
+            lore.add(Lore.section(ChatColor.AQUA, "This attempt"));
+            lore.add(Lore.stat(odds, "Success", String.format("%.1f%%", chance * 100.0)));
+            lore.add((affordable ? ChatColor.YELLOW : ChatColor.RED) + Lore.BULLET + " "
+                    + ChatColor.GRAY + "Cost: " + (affordable ? ChatColor.WHITE : ChatColor.RED)
+                    + "1 Nova Core" + ChatColor.DARK_GRAY + "  (you have " + held + ")");
+            lore.add(Lore.stat(ChatColor.RED, "On fail", "back to tier " + nova.checkpointBelow(tier)));
+            lore.add("");
+            lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " Your Luck raises the odds. The Core's");
+            lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " own multiplier does not.");
+            lore.add("");
+            if (affordable) {
+                lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to forge");
+            } else {
+                lore.add(ChatColor.RED + "" + ChatColor.BOLD + "No Nova Cores");
+                if (!nova.howToGet().isEmpty()) {
+                    lore.add(ChatColor.RED + Lore.BULLET + " " + ChatColor.GRAY + "Get them from " + nova.howToGet());
+                }
+            }
         }
-
-        boolean certain = chance >= 0.999;
-        ChatColor odds = certain ? ChatColor.GREEN
-                : chance >= 0.5 ? ChatColor.GREEN
-                : chance >= 0.2 ? ChatColor.YELLOW : ChatColor.RED;
-
-        lore.add(Lore.state(certain ? "guaranteed" : "a gamble"));
-        lore.add("");
-        lore.add(Lore.section(ChatColor.AQUA, "This attempt"));
-        lore.add(Lore.stat(odds, "Success", certain ? "100%"
-                : String.format("%.1f%%", chance * 100.0)));
-        lore.add((affordable ? ChatColor.YELLOW : ChatColor.RED) + Lore.BULLET + " "
-                + ChatColor.GRAY + "Cost: " + Currency.COINS.price(cost, affordable));
-        lore.add(Lore.stat(certain ? ChatColor.GREEN : ChatColor.RED, "On fail",
-                certain ? "cannot fail" : "back to tier " + nova.checkpointBelow(tier)));
-        lore.add("");
-        lore.add(Lore.section(ChatColor.LIGHT_PURPLE, "What you would gain"));
-        String from = String.format("%.2f", nova.multiplierAt(tier)) + "x";
-        String to = String.format("%.2f", nova.multiplierAt(tier + 1)) + "x";
-        lore.add(Lore.line(ChatColor.LIGHT_PURPLE, from + ChatColor.DARK_GRAY + " to "
-                + ChatColor.LIGHT_PURPLE + to + ChatColor.DARK_GRAY
-                + " on Luck, Money and Coins"));
-        lore.add("");
-        lore.add(affordable
-                ? ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to forge"
-                : ChatColor.RED + "" + ChatColor.BOLD + "Not enough Coins");
-
         meta.setLore(lore);
+        meta.setEnchantmentGlintOverride(maxed ? Boolean.TRUE : null);
         item.setItemMeta(meta);
         return item;
     }

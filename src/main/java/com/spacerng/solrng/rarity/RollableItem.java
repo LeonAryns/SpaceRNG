@@ -14,6 +14,9 @@ public class RollableItem {
     private final Rarity rarity;
     private final long odds;
     private final long baseWeight;
+    // The weight the roll actually uses. Starts as 1/odds and is rescaled
+    // by RarityManager for the rarities whose label is not literal.
+    private double rollWeight;
     // This item's own look (gradient/bold/etc). Null = fall back to the
     // material's natural color - styling lives per item, not per rarity.
     private final RarityStyle style;
@@ -31,6 +34,7 @@ public class RollableItem {
         this.odds = odds;
         this.style = style;
         this.baseWeight = Math.max(1L, WEIGHT_NUMERATOR / odds);
+        this.rollWeight = 1.0 / Math.max(1L, odds);
     }
 
     /** Null when the item doesn't define its own colors in config. */
@@ -70,5 +74,13 @@ public class RollableItem {
 
     public long getBaseWeight() {
         return baseWeight;
+    }
+
+    public double getRollWeight() {
+        return rollWeight;
+    }
+
+    public void setRollWeight(double rollWeight) {
+        this.rollWeight = rollWeight;
     }
 }

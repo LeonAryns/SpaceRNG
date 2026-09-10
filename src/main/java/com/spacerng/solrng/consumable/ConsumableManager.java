@@ -140,11 +140,7 @@ public class ConsumableManager {
         ItemStack item = new ItemStack(consumable.material(), Math.max(1, Math.min(64, amount)));
         ItemMeta meta = item.getItemMeta();
 
-        String name = consumable.colors().isEmpty()
-                ? ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + consumable.display()
-                : plugin.getRarityManager().buildStyle(consumable.colors(), true, false, false)
-                        .apply(consumable.display());
-        meta.setDisplayName(name);
+        meta.setDisplayName(styledName(consumable));
 
         List<String> lore = new ArrayList<>();
         lore.add(Lore.section(ChatColor.AQUA, "What it does"));
@@ -153,13 +149,22 @@ public class ConsumableManager {
         }
         lore.addAll(describe(consumable));
         lore.add("");
-        lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "RIGHT CLICK TO USE");
+        lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD
+                + ("nova_core".equals(consumable.id()) ? "Right click to forge" : "Right click to use"));
 
         meta.setLore(lore);
         meta.setEnchantmentGlintOverride(Boolean.TRUE);
         meta.getPersistentDataContainer().set(idKey, PersistentDataType.STRING, consumable.id());
         item.setItemMeta(meta);
         return item;
+    }
+
+    /** The consumable's name in its own gradient, as its item shows it. */
+    public String styledName(Consumable consumable) {
+        return consumable.colors().isEmpty()
+                ? ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + consumable.display()
+                : plugin.getRarityManager().buildStyle(consumable.colors(), true, false, false)
+                        .apply(consumable.display());
     }
 
     /**

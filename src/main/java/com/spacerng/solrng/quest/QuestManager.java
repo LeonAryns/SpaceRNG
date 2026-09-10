@@ -133,7 +133,36 @@ public class QuestManager {
             data.markQuestCompleted(quest.getId());
             reward(player, data, quest);
         }
+        giveStepGifts(player, data);
         updateBar(player, data);
+    }
+
+    /**
+     * Hands over what a step needs the moment the player REACHES it.
+     *
+     * The Nova Core used to arrive when the Nova step was finished, which
+     * is backwards: the step is "forge a tier", a forge uses up a Nova
+     * Core, and a new player has none. It now arrives with the step, once.
+     * The gift is remembered as a completed pseudo-quest, "gift:<id>", which
+     * nothing that counts guide progress ever looks at.
+     */
+    private void giveStepGifts(Player player, PlayerData data) {
+        Quest quest = current(player, data);
+        if (quest == null) return;
+        int cores = plugin.getConfig().getInt("guide.free-nova." + quest.getId(), 0);
+        String marker = "gift:" + quest.getId();
+        if (cores <= 0 || data.hasCompletedQuest(marker)) return;
+        var core = plugin.getConsumableManager().get("nova_core");
+        if (core == null) return;
+
+        data.markQuestCompleted(marker);
+        plugin.getConsumableManager().give(player, core, cores);
+        player.sendMessage("");
+        player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "+" + cores + " Nova Core"
+                + (cores == 1 ? "" : "s") + ChatColor.RESET + ChatColor.GRAY + "  for this step of the guide.");
+        plugin.getNovaCoreManager().explainCores(player);
+        player.sendMessage("");
+        player.playSound(player.getLocation(), Sound.ENTITY_ITEM_PICKUP, 0.8f, 1.2f);
     }
 
     public void checkAll() {
@@ -184,18 +213,6 @@ public class QuestManager {
         player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "✔ Guide step done  "
                 + ChatColor.RESET + ChatColor.WHITE + quest.getDisplay());
 
-
-        // An ITEM, not a silent tier bump. "A free Nova Core" that only
-        // moved a number was a reward the player never saw arrive.
-        int novaCores = plugin.getConfig().getInt("guide.free-nova." + quest.getId(), 0);
-        if (novaCores > 0) {
-            var core = plugin.getConsumableManager().get("nova_core");
-            if (core != null) {
-                plugin.getConsumableManager().give(player, core, novaCores);
-                player.sendMessage(ChatColor.AQUA + "  " + novaCores + "x Nova Core "
-                        + ChatColor.GRAY + "- right click it, then climb in /novacore.");
-            }
-        }
 
         String guaranteed = plugin.getConfig()
                 .getString("guide.guaranteed-drop." + quest.getId(), "");

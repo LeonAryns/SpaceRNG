@@ -234,7 +234,8 @@ public class SkillTreeGui {
     }
 
     private static ItemStack buildWalletPanel(SolRNGPlugin plugin, Player player, PlayerData data, boolean farming) {
-        Currency wallet = farming ? Currency.COINS : Currency.MONEY;
+        if (farming) return buildFarmPanel(plugin, player, data);
+        Currency wallet = Currency.MONEY;
         long balance = farming ? data.getTokens() : balanceOf(player);
 
         ItemStack stats = new ItemStack(farming ? Material.WHEAT : Material.GOLD_INGOT);
@@ -254,6 +255,41 @@ public class SkillTreeGui {
         lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " " + Lore.FOOT
                 + (farming ? "Farm skills are bought with Coins."
                            : "Skills are bought with Money."));
+        meta.setLore(lore);
+        stats.setItemMeta(meta);
+        return stats;
+    }
+
+    /**
+     * The farm tree's own panel. Luck and Speed have nothing to do with a
+     * tree bought in Coins, so this one only answers farm questions.
+     */
+    private static ItemStack buildFarmPanel(SolRNGPlugin plugin, Player player, PlayerData data) {
+        SkillTreeManager manager = plugin.getSkillTreeManager();
+        int unlocked = 0;
+        int total = 0;
+        for (SkillNode node : manager.getNodes("farmtree").values()) {
+            total++;
+            if (manager.levelOf(data, node) > 0) unlocked++;
+        }
+
+        ItemStack stats = new ItemStack(Material.WHEAT);
+        ItemMeta meta = stats.getItemMeta();
+        meta.setDisplayName(Lore.title(Currency.COINS.colour(), player.getName()));
+
+        List<String> lore = new ArrayList<>();
+        lore.add(Currency.COINS.colour() + Lore.BULLET + " " + Currency.COINS.amount(data.getTokens()));
+        lore.add(Currency.GEMS.colour() + Lore.BULLET + " " + Currency.GEMS.amount(data.getShards()));
+        lore.add("");
+        lore.add(Lore.section(ChatColor.GREEN, "Your farm"));
+        lore.add(Lore.stat(ChatColor.GREEN, "Farm skills", unlocked + " / " + total));
+        lore.add(Lore.bar(total == 0 ? 0.0 : (double) unlocked / total));
+        lore.add(Lore.stat(ChatColor.YELLOW, "Crops broken", String.format("%,d", data.getCropsHarvested())));
+        lore.add(Lore.stat(Currency.COINS.colour(), "Coin multiplier", String.format("%.2fx",
+                com.spacerng.solrng.stats.StatSources.coins(plugin, data).total())));
+        lore.add(Lore.stat(ChatColor.AQUA, "Hoe tier", plugin.getFarmingManager().tierOf(data).display()));
+        lore.add("");
+        lore.add(Lore.footnote("Farm skills are bought with Coins."));
         meta.setLore(lore);
         stats.setItemMeta(meta);
         return stats;

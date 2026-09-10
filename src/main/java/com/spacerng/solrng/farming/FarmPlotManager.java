@@ -59,23 +59,17 @@ public class FarmPlotManager {
      * intercepted. A solid marker would block movement; a barrier can't be
      * broken at all, so no harvest event would ever arrive.
      *
-     * It also has to be TERMINAL. Torchflower crop was not: its maximum
-     * age is 1, and a plant sitting at its maximum age is one random tick
-     * away from growing into the next block. Every plot in the field was
-     * quietly turning into a real TORCHFLOWER, which is a large orange
-     * flower and not a crop at all, and the only thing putting it back was
-     * the render pass up to two seconds later. Nether wart tops out at age
-     * 3 and grows into nothing, so a plot left alone stays what it was.
-     *
-     * Nether wart on top of that because it is a block nobody builds with
-     * in the overworld. That matters for one reason: it makes the WORLD a
-     * usable record of where the farm is. farmplots.yml is only a cache,
-     * and /rngadmin farmscan can rebuild it by looking for this block - so
-     * losing the plugin data folder costs one command, not the field.
-     * Wheat could never work that way; every wheat block on the server
-     * would look like a plot.
+     * And it has to be INVISIBLE. A harvest cancels the break, and a
+     * cancelled break makes the server send the real block back to the
+     * client in the same tick, before the plugin can answer with AIR. For
+     * that one tick the player sees whatever the marker is: a torchflower,
+     * then a nether wart. Structure void renders as nothing at all, so the
+     * resync lands and the plot simply looks empty. It is also terminal,
+     * needs nothing under it, breaks instantly, and nobody builds with it,
+     * which keeps the WORLD a usable record of where the farm is for
+     * /rngadmin farmscan.
      */
-    private static final Material MARKER = Material.NETHER_WART;
+    private static final Material MARKER = Material.STRUCTURE_VOID;
 
     /**
      * What plots used to be. A scan accepts these too, on request, and
@@ -83,7 +77,7 @@ public class FarmPlotManager {
      * field built under an older marker heals itself as players walk it.
      */
     private static final java.util.Set<Material> LEGACY_MARKERS = java.util.Set.of(
-            Material.WHEAT, Material.TORCHFLOWER_CROP, Material.TORCHFLOWER);
+            Material.WHEAT, Material.TORCHFLOWER_CROP, Material.TORCHFLOWER, Material.NETHER_WART);
 
     // What the newest crop paid, so Nuke can price itself off a real
     // harvest instead of guessing at the player's multipliers.

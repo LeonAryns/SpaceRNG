@@ -720,16 +720,15 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
 
         double weightSum = 0.0;
         for (RollableItem item : items) {
-            weightSum += 1.0 / item.getOdds();
+            weightSum += item.getRollWeight();
         }
 
         sender.sendMessage(ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + "Odds check "
                 + ChatColor.GRAY + "(" + items.size() + " items)");
-        sender.sendMessage(ChatColor.GRAY + "Sum of 1/odds: " + ChatColor.YELLOW
-                + String.format("%.4f", weightSum)
-                + ChatColor.GRAY + "  (1.0000 = every label is literally true)");
-        sender.sendMessage(ChatColor.GRAY + "Every item is currently " + ChatColor.YELLOW
-                + String.format("%.2fx", weightSum) + ChatColor.GRAY + " rarer than its label.");
+        sender.sendMessage(ChatColor.GRAY + "Total roll weight: " + ChatColor.YELLOW
+                + String.format("%.4f", weightSum) + ChatColor.GRAY + "  (1.0000 is expected)");
+        sender.sendMessage(ChatColor.GRAY + "Rarities marked true-odds roll at their label."
+                + " The rest split what is left by share.");
 
         Rarity filter = args.length >= 2 ? parseRarity(sender, args[1]) : null;
         if (args.length >= 2 && filter == null) return true;
@@ -739,7 +738,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             int count = 0;
             for (RollableItem item : items) {
                 if (item.getRarity() != rarity) continue;
-                share += 1.0 / item.getOdds();
+                share += item.getRollWeight();
                 count++;
             }
             if (count == 0) continue;
@@ -753,7 +752,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             sender.sendMessage(ChatColor.GRAY + "Label -> true odds:");
             for (RollableItem item : items) {
                 if (item.getRarity() != filter) continue;
-                long trueOdds = Math.round(weightSum * item.getOdds());
+                long trueOdds = Math.round(weightSum / Math.max(1e-18, item.getRollWeight()));
                 sender.sendMessage(ChatColor.DARK_GRAY + " - " + RollFormat.displayName(plugin, item)
                         + ChatColor.GRAY + "  " + RollFormat.chance(item.getOdds())
                         + ChatColor.DARK_GRAY + " -> " + ChatColor.WHITE + RollFormat.chance(trueOdds));

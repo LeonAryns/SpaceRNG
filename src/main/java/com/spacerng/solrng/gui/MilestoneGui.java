@@ -187,7 +187,10 @@ public class MilestoneGui {
         lore.add(Lore.line(ChatColor.AQUA, track.getVerb() + " " + String.format("%,d", tier.threshold())
                 + " " + track.getUnit() + "."));
         lore.add("");
-        if (tier.tokens() > 0 || tier.shards() > 0 || tier.money() > 0) {
+        // Consumables count as a reward too. They were left out of this
+        // check, so a rung paying a potion or a voucher showed no reward at
+        // all until it was already claimed.
+        if (tier.tokens() > 0 || tier.shards() > 0 || tier.money() > 0 || !tier.consumable().isEmpty()) {
             lore.add(Lore.section(ChatColor.GOLD, "Reward"));
             if (tier.tokens() > 0) {
                 lore.add(Currency.COINS.colour() + Lore.BULLET + " " + Currency.COINS.amount(tier.tokens()));
@@ -198,6 +201,17 @@ public class MilestoneGui {
             if (tier.money() > 0) {
                 lore.add(Currency.MONEY.colour() + Lore.BULLET + " "
                         + Currency.MONEY.amount(Math.round(tier.money())));
+            }
+            if (!tier.consumable().isEmpty()) {
+                var consumable = plugin.getConsumableManager().get(tier.consumable());
+                if (consumable != null) {
+                    lore.add(ChatColor.LIGHT_PURPLE + Lore.BULLET + " " + ChatColor.WHITE
+                            + (tier.consumableAmount() > 1 ? tier.consumableAmount() + "x " : "")
+                            + plugin.getConsumableManager().styledName(consumable));
+                    if (!consumable.description().isEmpty()) {
+                        lore.add(Lore.footnote(consumable.description()));
+                    }
+                }
             }
             lore.add("");
         }
@@ -238,11 +252,9 @@ public class MilestoneGui {
 
         ItemStack item = new ItemStack(Material.KNOWLEDGE_BOOK);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(ChatColor.YELLOW + "" + ChatColor.BOLD + track.getDisplay().toUpperCase());
+        meta.setDisplayName(Lore.title(ChatColor.YELLOW, track.getDisplay()));
 
         List<String> lore = new ArrayList<>();
-        lore.add(ChatColor.DARK_GRAY + "MILESTONES");
-        lore.add("");
         lore.add(ChatColor.YELLOW + BULLET + " " + ChatColor.GRAY + "Tier: " + ChatColor.AQUA + done
                 + ChatColor.GRAY + "/" + ChatColor.AQUA + total);
         lore.add(ChatColor.YELLOW + BULLET + " " + ChatColor.GRAY + "Total: " + ChatColor.WHITE

@@ -38,6 +38,10 @@ public class RarityManager {
     private final List<RollableItem> items = new ArrayList<>();
     private final Map<String, RollableItem> byName = new java.util.HashMap<>();
     private final Map<Rarity, Double> luckFactors = new EnumMap<>(Rarity.class);
+    // Rarities that roll at exactly their label, and the band shares the
+    // rest divide up. See assignRollWeights.
+    private final Map<Rarity, Boolean> trueOdds = new EnumMap<>(Rarity.class);
+    private final Map<Rarity, Double> shares = new EnumMap<>(Rarity.class);
     private final Map<Rarity, RarityStyle> styles = new EnumMap<>(Rarity.class);
     // Rarities flagged with "symbol: true" wrap item names in an
     // obfuscated flair character on BOTH sides (Epic and up).
@@ -51,6 +55,8 @@ public class RarityManager {
     public void load(FileConfiguration config) {
         items.clear();
         luckFactors.clear();
+        trueOdds.clear();
+        shares.clear();
         styles.clear();
         symbolFlair.clear();
 
@@ -63,6 +69,8 @@ public class RarityManager {
                 if (r == null) continue;
 
                 luckFactors.put(rarity, r.getDouble("luck-factor", 0.0));
+                trueOdds.put(rarity, r.getBoolean("true-odds", false));
+                if (r.contains("share")) shares.put(rarity, r.getDouble("share"));
                 styles.put(rarity, parseStyle(r.getStringList("colors"),
                         r.getBoolean("bold", false),
                         r.getBoolean("underline", false),
@@ -86,6 +94,7 @@ public class RarityManager {
         }
 
         assignLuckMultipliers(config);
+        assignRollWeights();
 
         byName.clear();
         for (RollableItem item : items) {
@@ -321,6 +330,55 @@ public class RarityManager {
         return luckFactors.getOrDefault(rarity, 0.0);
     }
 
+    /**
+     * Turns the labels into the weights the roll uses.
+     *
+     * A rarity with `true-odds: true` rolls at exactly its label: 1 in
+     * 10,000 means 1 in 10,000. Every other rarity is a band taking a
+     * `share` of whatever the literal rarities leave, and inside a band the
+     * labels only decide who wins against whom. That is how Epic and up can
+     * be honest while a Common keeps a friendly "1 in 2" on the tin, and it
+     * is why Money, which pays on the label, stays where it was.
+     *
+     * A band with no share falls back to its raw label sum, which is the
+     * old behaviour. Configure shares on every non-literal band or on none.
+     */
+    private void assignRollWeights() {
+        double literal = 0.0;
+        Map<Rarity, Double> bandSum = new EnumMap<>(Rarity.class);
+        for (RollableItem item : items) {
+            double raw = 1.0 / Math.max(1L, item.getOdds());
+            if (trueOdds.getOrDefault(item.getRarity(), false)) {
+                literal += raw;
+            } else {
+                bandSum.merge(item.getRarity(), raw, Double::sum);
+            }
+        }
+
+        double shareTotal = 0.0;
+        for (Map.Entry<Rarity, Double> band : bandSum.entrySet()) {
+            shareTotal += shares.getOrDefault(band.getKey(), band.getValue());
+        }
+        double room = Math.max(0.0, 1.0 - literal);
+
+        for (RollableItem item : items) {
+            double raw = 1.0 / Math.max(1L, item.getOdds());
+            if (trueOdds.getOrDefault(item.getRarity(), false)) {
+                item.setRollWeight(raw);
+                continue;
+            }
+            double sum = bandSum.get(item.getRarity());
+            double share = shares.getOrDefault(item.getRarity(), sum);
+            double bandWeight = shareTotal <= 0.0 ? 0.0 : share / shareTotal * room;
+            item.setRollWeight(sum <= 0.0 ? 0.0 : raw / sum * bandWeight);
+        }
+    }
+
+    /** Whether a rarity's labels are its real odds. */
+    public boolean isTrueOdds(Rarity rarity) {
+        return trueOdds.getOrDefault(rarity, false);
+    }
+
     public List<RollableItem> getItems() {
         return items;
     }
@@ -374,7 +432,7 @@ public class RarityManager {
                 continue;
             }
             double factor = 1.0 + (luck * luckFactorFor(item.getRarity()));
-            double weight = item.getBaseWeight() * factor;
+            double weight = item.getRollWeight() * factor;
             effectiveWeights[i] = weight;
             totalWeight += weight;
         }
