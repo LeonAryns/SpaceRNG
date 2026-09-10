@@ -34,6 +34,10 @@ public class ConsumableListener implements Listener {
         ItemStack held = event.getItem();
         ConsumableManager consumables = plugin.getConsumableManager();
         if (!consumables.isConsumable(held)) return;
+        // A click on a crate belongs to the crate. Without this a key would
+        // be redeemed as a consumable in the same click that opens it.
+        if (event.getClickedBlock() != null
+                && plugin.getCrateManager().crateAt(event.getClickedBlock()) != null) return;
 
         event.setCancelled(true);
 
@@ -42,6 +46,16 @@ public class ConsumableListener implements Listener {
             // The id was removed from config after the item was handed out.
             event.getPlayer().sendMessage(ChatColor.RED
                     + "That reward isn't part of the game any more - hold onto it, or ask staff.");
+            return;
+        }
+
+        // A key does nothing on its own. It used to be "redeemed" for no
+        // effect and deleted, which is the one way a key could be wasted.
+        var crate = plugin.getCrateManager().crateForKey(consumable.id());
+        if (crate != null) {
+            event.getPlayer().sendMessage(ChatColor.GRAY + "This key opens the "
+                    + plugin.getCrateManager().styledName(crate) + ChatColor.GRAY
+                    + ". Right click the crate with it.");
             return;
         }
 

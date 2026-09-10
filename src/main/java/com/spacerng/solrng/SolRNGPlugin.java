@@ -62,6 +62,8 @@ public final class SolRNGPlugin extends JavaPlugin {
     private com.spacerng.solrng.announce.AnnouncerManager announcerManager;
     private com.spacerng.solrng.daily.DailyManager dailyManager;
     private com.spacerng.solrng.leaderboard.LeaderboardManager leaderboardManager;
+    private com.spacerng.solrng.crate.CrateManager crateManager;
+    private com.spacerng.solrng.leaderboard.TopHeadManager topHeadManager;
     private com.spacerng.solrng.pass.PassManager passManager;
     private com.spacerng.solrng.farming.MomentumBar momentumBar;
     private com.spacerng.solrng.consumable.ConsumableManager consumableManager;
@@ -147,6 +149,8 @@ public final class SolRNGPlugin extends JavaPlugin {
         this.momentumBar = new com.spacerng.solrng.farming.MomentumBar();
         this.consumableManager = new com.spacerng.solrng.consumable.ConsumableManager(this);
         this.welcomeManager = new com.spacerng.solrng.welcome.WelcomeManager(this);
+        this.crateManager = new com.spacerng.solrng.crate.CrateManager(this);
+        this.topHeadManager = new com.spacerng.solrng.leaderboard.TopHeadManager(this);
 
         reloadAll();
 
@@ -159,6 +163,8 @@ public final class SolRNGPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new com.spacerng.solrng.farming.FarmPlotListener(this), this);
         getServer().getPluginManager().registerEvents(
                 new com.spacerng.solrng.consumable.ConsumableListener(this), this);
+        getServer().getPluginManager().registerEvents(
+                new com.spacerng.solrng.crate.CrateListener(this), this);
 
         getCommand("rngcore").setExecutor(new RngCoreCommand(this));
         getCommand("skilltree").setExecutor(new SkillTreeCommand(this));
@@ -197,6 +203,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         startScoreboardRefreshTask();
         startArmorRefreshTask();
         registerPlaceholderExpansion();
+        topHeadManager.start();
 
         getLogger().info("SpaceRNG enabled.");
     }
@@ -205,6 +212,10 @@ public final class SolRNGPlugin extends JavaPlugin {
     public void onDisable() {
         luckBarManager.removeAll();
         questManager.removeAll();
+        // Before saving: a crate still spinning pays out now, so the reward
+        // is inside the save file rather than lost with the server.
+        if (crateManager != null) crateManager.finishAll();
+        if (topHeadManager != null) topHeadManager.stop();
         if (momentumBar != null) momentumBar.removeAll();
         if (playerDataManager != null) {
             playerDataManager.saveAll();
@@ -276,6 +287,8 @@ public final class SolRNGPlugin extends JavaPlugin {
         passManager.load(getConfig());
         consumableManager.load(getConfig());
         welcomeManager.load(getConfig());
+        crateManager.load(getConfig());
+        topHeadManager.load(getConfig());
     }
 
     /**
@@ -360,6 +373,14 @@ public final class SolRNGPlugin extends JavaPlugin {
 
     public com.spacerng.solrng.leaderboard.LeaderboardManager getLeaderboardManager() {
         return leaderboardManager;
+    }
+
+    public com.spacerng.solrng.crate.CrateManager getCrateManager() {
+        return crateManager;
+    }
+
+    public com.spacerng.solrng.leaderboard.TopHeadManager getTopHeadManager() {
+        return topHeadManager;
     }
 
     public com.spacerng.solrng.pass.PassManager getPassManager() {

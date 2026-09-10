@@ -150,7 +150,10 @@ public class ConsumableManager {
         lore.addAll(describe(consumable));
         lore.add("");
         lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD
-                + ("nova_core".equals(consumable.id()) ? "Right click to forge" : "Right click to use"));
+                + ("nova_core".equals(consumable.id()) ? "Right click to forge"
+                        : plugin.getCrateManager() != null
+                                && plugin.getCrateManager().crateForKey(consumable.id()) != null
+                                ? "Right click a crate to open" : "Right click to use"));
 
         meta.setLore(lore);
         meta.setEnchantmentGlintOverride(Boolean.TRUE);

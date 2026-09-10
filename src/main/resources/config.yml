@@ -664,6 +664,9 @@ farming:
     gamba-multiplier: 3.0
     gamba-seconds: 60
     key-finder-reward: crate_key
+    # Now and then the key Key Finder turns up is the rare one instead.
+    key-finder-rare-reward: cosmic_key
+    key-finder-rare-chance: 0.08
     potion-finder-rewards:
       - luck_potion
       - speed_potion
@@ -3056,6 +3059,86 @@ welcome:
 #
 # Drinking a second potion of the same kind extends it if it's the same
 # strength and replaces it if it's stronger - two never multiply together.
+# Crates. Any block becomes one with /rngadmin crate set <crate> while you
+# look at it; the coordinates live in crates.yml, not here.
+#
+# Left click previews, right click with a key opens, sneak and right click
+# opens a whole stack at once without the spin.
+#
+# Rewards are weighted like the roll table. Every chance a player sees is
+# worked out from these weights, so there is no percentage to keep in step
+# by hand. One reward type per line:
+#   coins / gems / money / credits: <amount>
+#   consumable: <id>   (with amount: <n>)
+#   drop: <RARITY>     (with amount: <n>; picks weighted like a real roll)
+# Optional on any line: icon: <MATERIAL>, name: "&6Custom label"
+#
+# jackpot-below: a reward rarer than this share is announced to the whole
+# server and gets the big finish.
+crates:
+  # Steps the reel takes, and how slow the very last step is in ticks.
+  spin-steps: 32
+  slowest-gap-ticks: 7
+  # The most keys one sneak click opens.
+  quick-open-max: 25
+  types:
+    farm:
+      display: "Farm Crate"
+      colors: ["#FFE082", "#FF8F00"]
+      key: crate_key
+      key-source: "Farm Keys are dug up by the Key Finder enchant on your hoe."
+      jackpot-below: 0.03
+      rewards:
+        - { weight: 30, coins: 25000 }
+        - { weight: 18, gems: 50 }
+        - { weight: 14, money: 50000 }
+        - { weight: 12, coins: 100000 }
+        - { weight: 10, consumable: coin_potion }
+        - { weight: 8, consumable: enchant_potion }
+        - { weight: 8, consumable: luck_potion }
+        - { weight: 8, drop: UNCOMMON, amount: 3 }
+        - { weight: 6, consumable: nova_core }
+        - { weight: 2.5, consumable: free_skill }
+        - { weight: 2, drop: RARE }
+        - { weight: 1.5, consumable: roll_10x }
+        - { weight: 0.4, consumable: luck_50 }
+    cosmic:
+      display: "Cosmic Crate"
+      colors: ["#E1BEE7", "#7C4DFF", "#40C4FF"]
+      key: cosmic_key
+      key-source: "Cosmic Keys are the rare find from Key Finder, about one key in twelve."
+      jackpot-below: 0.04
+      rewards:
+        - { weight: 25, coins: 250000 }
+        - { weight: 18, gems: 250 }
+        - { weight: 14, money: 500000 }
+        - { weight: 12, consumable: nova_core, amount: 2 }
+        - { weight: 8, consumable: free_skill }
+        - { weight: 8, consumable: roll_10x, amount: 3 }
+        - { weight: 7, drop: RARE, amount: 2 }
+        - { weight: 3, drop: EPIC }
+        - { weight: 2.5, consumable: luck_50 }
+        - { weight: 0.5, consumable: luck_250 }
+
+# Floating heads on a leaderboard. Place them in game:
+#   /rngadmin tophead podium farming_total   (#1, #2, #3 around you)
+#   /rngadmin tophead set farming_total 1    (one rank, at your eyes)
+# Spots live in topheads.yml. The heads are never saved into the world, so
+# removing the plugin can never leave any behind.
+top-heads:
+  refresh-seconds: 30
+  spin-degrees-per-second: 90
+  bob-height: 0.12
+  # 1.5 is roughly a real head's size and a half.
+  scale: 1.5
+  # How far under the head the name and score float.
+  label-drop: 1.0
+  show-label: true
+  # Two small sparks orbiting whoever is #1.
+  sparkle-first: true
+  # 1.0 is vanilla render distance for display entities.
+  view-range: 1.0
+
 consumables:
   # ---- Draughts ----
   # Additive Luck and Speed, counted down in ROLLS rather than minutes.
@@ -3176,10 +3259,15 @@ consumables:
       EPIC: 8
       LEGENDARY: 2
   crate_key:
-    display: "Crate Key"
+    display: "Farm Key"
     material: TRIPWIRE_HOOK
     colors: ["#FFE082", "#FF8F00"]
-    description: "Turned up by Key Finder. Crates open soon."
+    description: "Opens the Farm Crate. Right click the crate with it."
+  cosmic_key:
+    display: "Cosmic Key"
+    material: TRIPWIRE_HOOK
+    colors: ["#E1BEE7", "#7C4DFF", "#40C4FF"]
+    description: "Opens the Cosmic Crate. Right click the crate with it."
   nova_core:
     display: "Nova Core"
     material: HEART_OF_THE_SEA
@@ -3939,7 +4027,7 @@ novacore:
   # 50% forge as 95%, so the coin flip stopped being one.
   luck-weight: 0.15
   # Shown in chat whenever somebody needs to know where Nova Cores come from.
-  how-to-get: "/milestones (Playtime) and the /guide"
+  how-to-get: "crates, /milestones (Playtime) and the /guide"
   min-chance: 0.02
   max-chance: 0.95
   # One entry per tier. This is a UNIVERSAL multiplier: it scales Luck,

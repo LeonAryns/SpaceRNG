@@ -91,6 +91,8 @@ public class FarmPlotManager {
     private double gambaMultiplier = 3.0;
     private long gambaSeconds = 60L;
     private String keyFinderReward = "crate_key";
+    private String keyFinderRareReward = "";
+    private double keyFinderRareChance = 0.0;
 
     // One plot per player is worth many times the others. Per player,
     // because every farmer already sees their own crop on every tile - a
@@ -190,6 +192,8 @@ public class FarmPlotManager {
         gambaMultiplier = Math.max(1.0, config.getDouble("farming.procs.gamba-multiplier", 3.0));
         gambaSeconds = Math.max(1L, config.getLong("farming.procs.gamba-seconds", 60L));
         keyFinderReward = config.getString("farming.procs.key-finder-reward", "crate_key");
+        keyFinderRareReward = config.getString("farming.procs.key-finder-rare-reward", "");
+        keyFinderRareChance = config.getDouble("farming.procs.key-finder-rare-chance", 0.0);
         potionFinderRewards = config.getStringList("farming.procs.potion-finder-rewards");
 
         crops.clear();
@@ -833,7 +837,10 @@ public class FarmPlotManager {
 
         double key = hoe.powerOf(data, "KEY_FINDER");
         if (key > 0 && ThreadLocalRandom.current().nextDouble() < key) {
-            var found = plugin.getConsumableManager().get(keyFinderReward);
+            // Now and then the key is the rare one instead of the usual.
+            boolean rare = !keyFinderRareReward.isEmpty()
+                    && ThreadLocalRandom.current().nextDouble() < keyFinderRareChance;
+            var found = plugin.getConsumableManager().get(rare ? keyFinderRareReward : keyFinderReward);
             if (found != null) {
                 plugin.getConsumableManager().give(player, found, 1);
                 player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "Key found  "

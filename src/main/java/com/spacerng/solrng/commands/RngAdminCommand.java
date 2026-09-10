@@ -37,7 +37,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             "reload", "setspawn", "starforge", "reset", "give", "drops",
             "bank", "aura", "roll", "unlock", "unlockall", "lockall", "odds", "farmblock", "farmscan",
             "hoe", "consumable", "gradient", "welcome", "crops", "farmclear",
-            "milestones", "farmfill", "boost", "nova", "placeholders", "payout", "help");
+            "milestones", "farmfill", "boost", "nova", "placeholders", "payout", "crate", "tophead", "help");
     private static final List<String> CURRENCIES = List.of("money", "coins", "gems", "credits");
 
     private final SolRNGPlugin plugin;
@@ -86,6 +86,8 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             case "nova" -> doNova(sender, args);
             case "placeholders" -> doPlaceholders(sender);
             case "payout" -> doPayout(sender);
+            case "crate" -> doCrate(sender, args);
+            case "tophead" -> doTopHead(sender, args);
             default -> {
                 sendHelp(sender);
                 yield true;
@@ -124,6 +126,8 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         line(sender, "nova", "<tier> [player]", "Set a Nova Core tier");
         line(sender, "placeholders", "", "What every %spacerng_% placeholder resolves to right now");
         line(sender, "payout", "", "Run the farming payout now and reset the period");
+        line(sender, "crate", "<set|remove|list|key|preview>", "Place crates and hand out keys");
+        line(sender, "tophead", "<set|podium|remove|clear|list>", "Floating heads for a leaderboard");
     }
 
     private void line(CommandSender sender, String sub, String args, String description) {
@@ -1035,6 +1039,214 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
     }
 
     /** Named player, or the sender when no name was given. */
+    // ---------------------------------------------------------------- crates
+
+    private boolean doCrate(CommandSender sender, String[] args) {
+        var crates = plugin.getCrateManager();
+        String action = args.length >= 2 ? args[1].toLowerCase(Locale.ROOT) : "";
+        switch (action) {
+            case "set" -> {
+                if (!(sender instanceof Player player)) {
+                    sender.sendMessage(ChatColor.RED + "Stand in game and look at a block to place a crate.");
+                    return true;
+                }
+                var crate = args.length >= 3 ? crates.get(args[2]) : null;
+                if (crate == null) {
+                    sender.sendMessage(ChatColor.RED + "Usage: /rngadmin crate set <crate>");
+                    sender.sendMessage(ChatColor.DARK_GRAY + "Crates: " + String.join(", ", crates.getAll().keySet()));
+                    return true;
+                }
+                org.bukkit.block.Block block = player.getTargetBlockExact(6);
+                if (block == null || block.getType().isAir()) {
+                    sender.sendMessage(ChatColor.RED + "Look at the block that should become the crate.");
+                    return true;
+                }
+                crates.place(block, crate);
+                sender.sendMessage(ChatColor.GREEN + "That "
+                        + block.getType().name().toLowerCase(Locale.ROOT).replace('_', ' ')
+                        + " is now the " + crates.styledName(crate) + ChatColor.GREEN + ".");
+            }
+            case "remove" -> {
+                if (!(sender instanceof Player player)) {
+                    sender.sendMessage(ChatColor.RED + "Stand in game and look at the crate.");
+                    return true;
+                }
+                org.bukkit.block.Block block = player.getTargetBlockExact(6);
+                sender.sendMessage(block != null && crates.remove(block)
+                        ? ChatColor.GREEN + "Crate removed. The block itself stays."
+                        : ChatColor.RED + "The block you are looking at is not a crate.");
+            }
+            case "list" -> {
+                if (crates.placements().isEmpty()) {
+                    sender.sendMessage(ChatColor.GRAY + "No crates placed yet.");
+                }
+                for (var entry : crates.placements().entrySet()) {
+                    var at = entry.getKey();
+                    sender.sendMessage(ChatColor.YELLOW + entry.getValue() + ChatColor.GRAY + " at "
+                            + at.getWorld().getName() + " " + at.getBlockX() + ", " + at.getBlockY()
+                            + ", " + at.getBlockZ());
+                }
+                sender.sendMessage(ChatColor.DARK_GRAY + "Types: " + String.join(", ", crates.getAll().keySet()));
+            }
+            case "key" -> {
+                var crate = args.length >= 3 ? crates.get(args[2]) : null;
+                if (crate == null) {
+                    sender.sendMessage(ChatColor.RED + "Usage: /rngadmin crate key <crate> [amount] [player]");
+                    return true;
+                }
+                int amount = 1;
+                if (args.length >= 4) {
+                    try {
+                        amount = Math.max(1, Math.min(64, Integer.parseInt(args[3])));
+                    } catch (NumberFormatException ex) {
+                        sender.sendMessage(ChatColor.RED + "Amount must be a number.");
+                        return true;
+                    }
+                }
+                Player target = resolve(sender, args.length >= 5 ? args[4] : null);
+                if (target == null) return true;
+                var key = plugin.getConsumableManager().get(crate.keyId());
+                if (key == null) {
+                    sender.sendMessage(ChatColor.RED + "The key '" + crate.keyId()
+                            + "' is not a consumable in config.yml.");
+                    return true;
+                }
+                plugin.getConsumableManager().give(target, key, amount);
+                target.sendMessage(ChatColor.GREEN + "You received " + ChatColor.WHITE + amount + "x "
+                        + crates.keyName(crate) + ChatColor.GREEN + ".");
+                if (!target.equals(sender)) {
+                    sender.sendMessage(ChatColor.GREEN + "Gave " + target.getName() + " " + amount + "x "
+                            + crates.keyName(crate) + ChatColor.GREEN + ".");
+                }
+            }
+            case "preview" -> {
+                if (!(sender instanceof Player player)) {
+                    sender.sendMessage(ChatColor.RED + "Only players can open a preview.");
+                    return true;
+                }
+                var crate = args.length >= 3 ? crates.get(args[2]) : null;
+                if (crate == null) {
+                    sender.sendMessage(ChatColor.RED + "Usage: /rngadmin crate preview <crate>");
+                    return true;
+                }
+                player.openInventory(com.spacerng.solrng.crate.CratePreviewGui.build(plugin, player, crate));
+            }
+            default -> {
+                line(sender, "crate set", "<crate>", "Turn the block you are looking at into a crate");
+                line(sender, "crate remove", "", "Stop the block you are looking at being a crate");
+                line(sender, "crate list", "", "Every placed crate");
+                line(sender, "crate key", "<crate> [amount] [player]", "Hand out keys");
+                line(sender, "crate preview", "<crate>", "Open a crate's reward list");
+            }
+        }
+        return true;
+    }
+
+    // ------------------------------------------------------------- top heads
+
+    private boolean doTopHead(CommandSender sender, String[] args) {
+        var heads = plugin.getTopHeadManager();
+        String action = args.length >= 2 ? args[1].toLowerCase(Locale.ROOT) : "";
+        String board = args.length >= 3 ? args[2].toLowerCase(Locale.ROOT) : "";
+        switch (action) {
+            case "set", "podium" -> {
+                if (!(sender instanceof Player player)) {
+                    sender.sendMessage(ChatColor.RED + "Stand where the head should float.");
+                    return true;
+                }
+                if (!com.spacerng.solrng.leaderboard.TopHeadManager.isBoard(board)) {
+                    sender.sendMessage(ChatColor.RED + "Usage: /rngadmin tophead " + action + " <board>"
+                            + (action.equals("set") ? " <rank>" : ""));
+                    sender.sendMessage(ChatColor.DARK_GRAY + "Boards: " + String.join(", ",
+                            com.spacerng.solrng.leaderboard.LeaderboardManager.BOARDS));
+                    return true;
+                }
+                String title = com.spacerng.solrng.leaderboard.LeaderboardManager.titleOf(board);
+                if (action.equals("podium")) {
+                    heads.podium(board, player.getEyeLocation());
+                    sender.sendMessage(ChatColor.GREEN + "Podium for " + title + " placed. #1 floats at your eyes, "
+                            + "#2 to your right and #3 to your left.");
+                    return true;
+                }
+                int rank = parseRank(args.length >= 4 ? args[3] : "1");
+                if (rank < 1) {
+                    sender.sendMessage(ChatColor.RED + "Rank must be 1 to 10.");
+                    return true;
+                }
+                heads.set(board, rank, player.getEyeLocation());
+                sender.sendMessage(ChatColor.GREEN + "#" + rank + " of " + title + " now floats at your eyes.");
+            }
+            case "remove" -> {
+                int rank = parseRank(args.length >= 4 ? args[3] : "");
+                if (!com.spacerng.solrng.leaderboard.TopHeadManager.isBoard(board) || rank < 1) {
+                    sender.sendMessage(ChatColor.RED + "Usage: /rngadmin tophead remove <board> <rank>");
+                    return true;
+                }
+                sender.sendMessage(heads.remove(board, rank)
+                        ? ChatColor.GREEN + "Removed."
+                        : ChatColor.RED + "There is no head for that board and rank.");
+            }
+            case "clear" -> {
+                if (!(sender instanceof Player player)) {
+                    sender.sendMessage(ChatColor.RED + "Stand near the heads you want gone.");
+                    return true;
+                }
+                int removed = heads.removeNear(player.getLocation(), 5.0);
+                sender.sendMessage(ChatColor.GREEN + "Removed " + removed + " head" + (removed == 1 ? "" : "s")
+                        + " within 5 blocks.");
+            }
+            case "list" -> {
+                if (heads.list().isEmpty()) sender.sendMessage(ChatColor.GRAY + "No heads placed yet.");
+                for (var spot : heads.list()) {
+                    var at = spot.at();
+                    sender.sendMessage(ChatColor.YELLOW + spot.board() + " #" + spot.rank() + ChatColor.GRAY + " at "
+                            + at.getWorld().getName() + " " + at.getBlockX() + ", " + at.getBlockY()
+                            + ", " + at.getBlockZ());
+                }
+            }
+            default -> {
+                line(sender, "tophead set", "<board> <rank>", "A head for one rank, at your eyes");
+                line(sender, "tophead podium", "<board>", "#1, #2 and #3 around you in one go");
+                line(sender, "tophead remove", "<board> <rank>", "Take one head down");
+                line(sender, "tophead clear", "", "Every head within 5 blocks");
+                line(sender, "tophead list", "", "Every placed head");
+            }
+        }
+        return true;
+    }
+
+    private static int parseRank(String raw) {
+        try {
+            int rank = Integer.parseInt(raw);
+            return rank >= 1 && rank <= 10 ? rank : -1;
+        } catch (NumberFormatException ex) {
+            return -1;
+        }
+    }
+
+    private List<String> crateTab(String[] args) {
+        List<String> ids = new ArrayList<>(plugin.getCrateManager().getAll().keySet());
+        String action = args.length >= 2 ? args[1].toLowerCase(Locale.ROOT) : "";
+        return switch (args.length) {
+            case 2 -> partial(args[1], List.of("set", "remove", "list", "key", "preview"));
+            case 3 -> List.of("set", "key", "preview").contains(action) ? partial(args[2], ids) : List.of();
+            case 4 -> action.equals("key") ? partial(args[3], List.of("1", "5", "10")) : List.of();
+            case 5 -> action.equals("key") ? partial(args[4], playerNames()) : List.of();
+            default -> List.of();
+        };
+    }
+
+    private List<String> topHeadTab(String[] args) {
+        String action = args.length >= 2 ? args[1].toLowerCase(Locale.ROOT) : "";
+        return switch (args.length) {
+            case 2 -> partial(args[1], List.of("set", "podium", "remove", "clear", "list"));
+            case 3 -> List.of("set", "podium", "remove").contains(action)
+                    ? partial(args[2], com.spacerng.solrng.leaderboard.LeaderboardManager.BOARDS) : List.of();
+            case 4 -> List.of("set", "remove").contains(action) ? partial(args[3], List.of("1", "2", "3")) : List.of();
+            default -> List.of();
+        };
+    }
+
     private Player resolve(CommandSender sender, String name) {
         if (name != null) {
             Player target = Bukkit.getPlayerExact(name);
@@ -1067,6 +1279,8 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         }
 
         String sub = args[0].toLowerCase(Locale.ROOT);
+        if (sub.equals("crate")) return crateTab(args);
+        if (sub.equals("tophead")) return topHeadTab(args);
         if (args.length == 2) {
             return switch (sub) {
                 case "give" -> partial(args[1], CURRENCIES);
