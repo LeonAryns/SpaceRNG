@@ -1664,64 +1664,64 @@ items:
   - material: ZOMBIE_SPAWN_EGG
     name: "Rotten Zombie"
     rarity: EPIC
-    odds: 10000
+    odds: 33000
   - material: SKELETON_SPAWN_EGG
     name: "Bone Marksman"
     rarity: EPIC
-    odds: 11100
+    odds: 36600
   - material: CREEPER_SPAWN_EGG
     name: "Creeper Menace"
     rarity: EPIC
-    odds: 12300
+    odds: 40600
   - material: SPIDER_SPAWN_EGG
     name: "Cave Crawler"
     rarity: EPIC
-    odds: 13600
+    odds: 44900
   - material: ENDERMAN_SPAWN_EGG
     name: "Void Wanderer"
     rarity: EPIC
-    odds: 15000
+    odds: 49500
   - material: WITCH_SPAWN_EGG
     name: "Vile Witch"
     rarity: EPIC
-    odds: 16600
+    odds: 54800
   - material: BLAZE_SPAWN_EGG
     name: "Blazing Fiend"
     rarity: EPIC
-    odds: 18400
+    odds: 60700
   - material: PIGLIN_SPAWN_EGG
     name: "Piglin Raider"
     rarity: EPIC
-    odds: 20400
+    odds: 67300
   - material: GUARDIAN_SPAWN_EGG
     name: "Abyssal Guardian"
     rarity: EPIC
-    odds: 22600
+    odds: 74600
   - material: SLIME_SPAWN_EGG
     name: "Gelatinous Slime"
     rarity: EPIC
-    odds: 25000
+    odds: 82500
   # --- Legendary ---
   - material: DRAGON_EGG
     name: "Dragon Egg"
     rarity: LEGENDARY
-    odds: 50000
+    odds: 100000
   - material: WITHER_SKELETON_SPAWN_EGG
     name: "Cursed Skeleton"
     rarity: LEGENDARY
-    odds: 59500
+    odds: 119000
   - material: RAVAGER_SPAWN_EGG
     name: "Rampaging Ravager"
     rarity: LEGENDARY
-    odds: 70700
+    odds: 141000
   - material: ELDER_GUARDIAN_SPAWN_EGG
     name: "Ancient Guardian"
     rarity: LEGENDARY
-    odds: 84100
+    odds: 168000
   - material: EVOKER_SPAWN_EGG
     name: "Evoker's Wrath"
     rarity: LEGENDARY
-    odds: 100000
+    odds: 200000
   # --- Mythical ---
   - material: NETHER_STAR
     name: "The Wither"
