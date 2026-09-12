@@ -1,0 +1,8 @@
+# Rotating item displays that mark portals, shops, lootboxes and the
+# like. Add spots in-game with:
+#
+#     /rngadmin floatingitem add <id> <material> [label]
+#
+# ...and remove them with /rngadmin floatingitem remove <id>. The label
+# is optional and supports "&" color codes.
+spots: {}

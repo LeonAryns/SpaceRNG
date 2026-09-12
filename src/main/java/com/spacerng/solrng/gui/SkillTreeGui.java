@@ -78,21 +78,20 @@ public class SkillTreeGui {
 
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
 
-        ItemStack filler = glassFiller();
+        // The frame: BLACK glass on the outer edge, DARK-STAINED glass on
+        // the interior. That reads as a fenced arena inside a black
+        // border - the 3 spines of nodes sit on the darker interior with
+        // an unmistakable outer boundary.
+        ItemStack border = glassFiller();
+        ItemStack interior = interiorFiller();
         for (int slot = 0; slot < 54; slot++) {
-            inv.setItem(slot, filler);
+            inv.setItem(slot, isInteriorSlot(slot) ? interior : border);
         }
 
-        // The silhouette is the tree's reserved slots plus wherever this
-        // page's own nodes sit. Every page is therefore the same shape, and
-        // an empty page reads as visible room to grow rather than as a
-        // different menu.
         List<SkillNode> nodes = manager.getNodes(tree, page);
-        Set<Integer> shape = new HashSet<>(manager.reservedSlots(tree));
         Set<Integer> placed = new HashSet<>();
         for (SkillNode node : nodes) {
             if (node.getSlot() < 0 || node.getSlot() >= 54) continue;
-            shape.add(node.getSlot());
             boolean reqMet = manager.requirementMet(data, node);
             inv.setItem(node.getSlot(), reqMet
                     ? buildNodeIcon(plugin, player, data, node)
@@ -100,10 +99,13 @@ public class SkillTreeGui {
             placed.add(node.getSlot());
         }
 
-        for (int slot : shape) {
-            if (!placed.contains(slot)) {
-                inv.setItem(slot, placeholderNode());
-            }
+        // Every interior slot without a node draws a "???" stone-button
+        // placeholder, so the shape of the tree is visible from the
+        // first time it is opened.
+        for (int slot = 0; slot < 54; slot++) {
+            if (!isInteriorSlot(slot)) continue;
+            if (placed.contains(slot)) continue;
+            inv.setItem(slot, placeholderNode());
         }
 
         inv.setItem(STATS_SLOT, buildWalletPanel(plugin, player, data, farming));
@@ -158,7 +160,7 @@ public class SkillTreeGui {
         lore.add(Lore.section(ChatColor.AQUA, "Information"));
         if (leveled) {
             lore.add(Lore.stat(ChatColor.AQUA, "Level", level + " / " + node.getMaxLevel()));
-            lore.add(Lore.bar(level / (double) node.getMaxLevel()));
+            lore.add(Lore.barMinimal(level / (double) node.getMaxLevel()));
         }
         if (!complete) {
             lore.add((affordable ? ChatColor.YELLOW : ChatColor.RED) + Lore.BULLET + " "
@@ -224,13 +226,33 @@ public class SkillTreeGui {
      * clicking it is a no-op in GuiListener.
      */
     private static ItemStack placeholderNode() {
-        ItemStack icon = new ItemStack(Material.GRAY_DYE);
+        ItemStack icon = new ItemStack(Material.STONE_BUTTON);
         ItemMeta meta = icon.getItemMeta();
         meta.setDisplayName(Lore.title(ChatColor.DARK_GRAY, "???"));
         meta.setLore(List.of(
                 ChatColor.DARK_GRAY + Lore.BULLET + " Reserved for a future skill."));
         icon.setItemMeta(meta);
         return icon;
+    }
+
+    /**
+     * Interior slots are rows 2-5 columns 2-8 (7x4 = 28 slots). The
+     * outer edge stays black glass and reads as the frame; the interior
+     * is a lighter stained glass and reads as the arena the nodes are
+     * planted in.
+     */
+    private static boolean isInteriorSlot(int slot) {
+        int row = slot / 9;   // 0-indexed
+        int col = slot % 9;
+        return row >= 1 && row <= 4 && col >= 1 && col <= 7;
+    }
+
+    private static ItemStack interiorFiller() {
+        ItemStack pane = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
+        ItemMeta meta = pane.getItemMeta();
+        meta.setDisplayName(" ");
+        pane.setItemMeta(meta);
+        return pane;
     }
 
     /**

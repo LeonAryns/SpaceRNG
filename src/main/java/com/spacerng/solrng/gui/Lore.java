@@ -209,6 +209,35 @@ public final class Lore {
     }
 
     /**
+     * A minimal white-on-grey progress bar - what the cleanest servers'
+     * resource-packed menus use. Read by fill only, no hue shift, no
+     * bracket. Prefer this on tooltips where the number next to it does
+     * the actual explaining and the bar is just a visual anchor.
+     */
+    public static String barMinimal(double fraction) {
+        int filled = (int) Math.round(Math.max(0.0, Math.min(1.0, fraction)) * BAR_LENGTH);
+        StringBuilder out = new StringBuilder();
+        for (int i = 0; i < BAR_LENGTH; i++) {
+            out.append(i < filled ? ChatColor.WHITE : ChatColor.DARK_GRAY).append(BAR_FULL);
+        }
+        return out.toString();
+    }
+
+    /**
+     * A section header written as a coloured pipe and coloured label -
+     * the tidier "| USAGE" / "| PRICING" style seen on top servers. Body
+     * lines under it start with the same pipe in the same colour.
+     */
+    public static String pipe(ChatColor colour, String label) {
+        return colour + "" + ChatColor.BOLD + "| " + label;
+    }
+
+    /** Body line for a pipe section - the same coloured pipe, grey text. */
+    public static String pipeLine(ChatColor colour, String text) {
+        return colour + "| " + ChatColor.GRAY + text;
+    }
+
+    /**
      * A filled bar that shifts hue as it fills - red when you've barely
      * started, green when you're done. The colour does the reading for you
      * before the numbers do.

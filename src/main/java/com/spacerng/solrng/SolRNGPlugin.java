@@ -69,6 +69,7 @@ public final class SolRNGPlugin extends JavaPlugin {
     private com.spacerng.solrng.consumable.ConsumableManager consumableManager;
     private com.spacerng.solrng.welcome.WelcomeManager welcomeManager;
     private com.spacerng.solrng.perk.PerkManager perkManager;
+    private com.spacerng.solrng.decor.FloatingItemManager floatingItemManager;
 
     /** The namespace every PersistentDataContainer tag is written under. */
     private static final String TAG_NAMESPACE = "solrng";
@@ -157,6 +158,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         this.crateManager = new com.spacerng.solrng.crate.CrateManager(this);
         this.topHeadManager = new com.spacerng.solrng.leaderboard.TopHeadManager(this);
         this.perkManager = new com.spacerng.solrng.perk.PerkManager(getLogger());
+        this.floatingItemManager = new com.spacerng.solrng.decor.FloatingItemManager(this);
 
         reloadAll();
 
@@ -211,6 +213,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         startArmorRefreshTask();
         registerPlaceholderExpansion();
         topHeadManager.start();
+        floatingItemManager.start();
 
         getLogger().info("SpaceRNG enabled.");
     }
@@ -223,6 +226,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         // is inside the save file rather than lost with the server.
         if (crateManager != null) crateManager.finishAll();
         if (topHeadManager != null) topHeadManager.stop();
+        if (floatingItemManager != null) floatingItemManager.stop();
         if (momentumBar != null) momentumBar.removeAll();
         if (playerDataManager != null) {
             playerDataManager.saveAll();
@@ -297,6 +301,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         crateManager.load(getConfig());
         topHeadManager.load(getConfig());
         perkManager.load(getConfig());
+        floatingItemManager.load(getConfig());
     }
 
     /**
@@ -409,6 +414,10 @@ public final class SolRNGPlugin extends JavaPlugin {
 
     public com.spacerng.solrng.perk.PerkManager getPerkManager() {
         return perkManager;
+    }
+
+    public com.spacerng.solrng.decor.FloatingItemManager getFloatingItemManager() {
+        return floatingItemManager;
     }
 
     public com.spacerng.solrng.daily.DailyManager getDailyManager() {

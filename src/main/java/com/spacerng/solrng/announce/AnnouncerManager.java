@@ -30,6 +30,7 @@ public class AnnouncerManager {
     private boolean enabled = true;
     private int intervalTicks = 20 * 300;
     private String header = "";
+    private String footer = "";
     private int next = 0;
 
     public AnnouncerManager(SolRNGPlugin plugin) {
@@ -43,6 +44,7 @@ public class AnnouncerManager {
         enabled = config.getBoolean("announcements.enabled", true);
         intervalTicks = Math.max(20, config.getInt("announcements.interval-seconds", 300) * 20);
         header = colour(config.getString("announcements.header", ""));
+        footer = colour(config.getString("announcements.footer", ""));
 
         List<?> raw = config.getList("announcements.messages");
         if (raw != null) {
@@ -100,6 +102,9 @@ public class AnnouncerManager {
             }
             for (String line : block) {
                 player.sendMessage(line);
+            }
+            if (!footer.isEmpty()) {
+                player.sendMessage(footer);
             }
             player.sendMessage("");
         }

@@ -37,7 +37,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             "reload", "setspawn", "starforge", "reset", "give", "drops",
             "bank", "aura", "roll", "unlock", "unlockall", "lockall", "odds", "farmblock", "farmscan",
             "hoe", "consumable", "gradient", "welcome", "crops", "farmclear",
-            "milestones", "farmfill", "boost", "nova", "placeholders", "payout", "crate", "tophead", "help");
+            "milestones", "farmfill", "boost", "nova", "placeholders", "payout", "crate", "tophead", "floatingitem", "help");
     private static final List<String> CURRENCIES = List.of("money", "coins", "gems", "credits");
 
     private final SolRNGPlugin plugin;
@@ -88,6 +88,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             case "payout" -> doPayout(sender);
             case "crate" -> doCrate(sender, args);
             case "tophead" -> doTopHead(sender, args);
+            case "floatingitem" -> doFloatingItem(sender, args);
             default -> {
                 sendHelp(sender);
                 yield true;
@@ -127,6 +128,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         line(sender, "placeholders", "", "What every %spacerng_% placeholder resolves to right now");
         line(sender, "payout", "", "Run the farming payout now and reset the period");
         line(sender, "crate", "<set|remove|list|key|preview>", "Place crates and hand out keys");
+        line(sender, "floatingitem", "<add|remove|list>", "Rotating item displays anchored at a spot");
         line(sender, "tophead", "<set|podium|remove|clear|list>", "Floating heads for a leaderboard");
     }
 
@@ -1211,6 +1213,78 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
                 line(sender, "tophead clear", "", "Every head within 5 blocks");
                 line(sender, "tophead list", "", "Every placed head");
             }
+        }
+        return true;
+    }
+
+    // ------------------------------------------------------------- floating items
+
+    private boolean doFloatingItem(CommandSender sender, String[] args) {
+        var manager = plugin.getFloatingItemManager();
+        if (args.length < 2) {
+            sender.sendMessage(ChatColor.RED + "Usage: /rngadmin floatingitem <add|remove|list>");
+            return true;
+        }
+        String sub = args[1].toLowerCase(Locale.ROOT);
+        switch (sub) {
+            case "add" -> {
+                if (!(sender instanceof org.bukkit.entity.Player player)) {
+                    sender.sendMessage(ChatColor.RED + "Stand in game to place a floating item.");
+                    return true;
+                }
+                if (args.length < 4) {
+                    sender.sendMessage(ChatColor.RED
+                            + "Usage: /rngadmin floatingitem add <id> <material> [label]");
+                    return true;
+                }
+                String id = args[2];
+                org.bukkit.Material material;
+                try {
+                    material = org.bukkit.Material.valueOf(args[3].toUpperCase(Locale.ROOT));
+                } catch (IllegalArgumentException ex) {
+                    sender.sendMessage(ChatColor.RED + "Unknown material: " + args[3]);
+                    return true;
+                }
+                StringBuilder label = new StringBuilder();
+                for (int i = 4; i < args.length; i++) {
+                    if (label.length() > 0) label.append(' ');
+                    label.append(args[i]);
+                }
+                if (!manager.add(id, player.getLocation(), material, label.toString())) {
+                    sender.sendMessage(ChatColor.RED + "A floating item with that id already exists.");
+                    return true;
+                }
+                sender.sendMessage(ChatColor.GREEN + "Placed floating " + material.name()
+                        + " as " + ChatColor.YELLOW + id + ChatColor.GREEN + ".");
+            }
+            case "remove" -> {
+                if (args.length < 3) {
+                    sender.sendMessage(ChatColor.RED + "Usage: /rngadmin floatingitem remove <id>");
+                    return true;
+                }
+                sender.sendMessage(manager.remove(args[2])
+                        ? ChatColor.GREEN + "Removed floating item " + args[2] + "."
+                        : ChatColor.RED + "No floating item with that id.");
+            }
+            case "list" -> {
+                var spots = manager.getSpots();
+                if (spots.isEmpty()) {
+                    sender.sendMessage(ChatColor.GRAY + "No floating items placed.");
+                    return true;
+                }
+                sender.sendMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD
+                        + "Floating items " + ChatColor.GRAY + "(" + spots.size() + ")");
+                for (var spot : spots.values()) {
+                    sender.sendMessage(ChatColor.GRAY + "- " + ChatColor.WHITE + spot.id()
+                            + ChatColor.DARK_GRAY + ": " + ChatColor.AQUA + spot.material().name()
+                            + ChatColor.DARK_GRAY + " @ " + ChatColor.WHITE
+                            + spot.at().getWorld().getName() + " "
+                            + String.format("%.1f, %.1f, %.1f",
+                                spot.at().getX(), spot.at().getY(), spot.at().getZ()));
+                }
+            }
+            default -> sender.sendMessage(ChatColor.RED
+                    + "Unknown subcommand. Try add / remove / list.");
         }
         return true;
     }
