@@ -68,6 +68,7 @@ public final class SolRNGPlugin extends JavaPlugin {
     private com.spacerng.solrng.farming.MomentumBar momentumBar;
     private com.spacerng.solrng.consumable.ConsumableManager consumableManager;
     private com.spacerng.solrng.welcome.WelcomeManager welcomeManager;
+    private com.spacerng.solrng.perk.PerkManager perkManager;
 
     /** The namespace every PersistentDataContainer tag is written under. */
     private static final String TAG_NAMESPACE = "solrng";
@@ -151,6 +152,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         this.welcomeManager = new com.spacerng.solrng.welcome.WelcomeManager(this);
         this.crateManager = new com.spacerng.solrng.crate.CrateManager(this);
         this.topHeadManager = new com.spacerng.solrng.leaderboard.TopHeadManager(this);
+        this.perkManager = new com.spacerng.solrng.perk.PerkManager(getLogger());
 
         reloadAll();
 
@@ -188,6 +190,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         getCommand("buy").setExecutor(new BuyCommand(this));
         getCommand("pass").setExecutor(new PassCommand(this));
         getCommand("boosts").setExecutor(new com.spacerng.solrng.commands.BoostsCommand(this));
+        getCommand("perks").setExecutor(new com.spacerng.solrng.commands.PerkCommand(this));
         getCommand("potion").setExecutor(new com.spacerng.solrng.commands.PotionCommand(this));
         getCommand("shop").setExecutor(new com.spacerng.solrng.commands.ShopCommand(this));
         getCommand("leaderboards").setExecutor(
@@ -289,6 +292,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         welcomeManager.load(getConfig());
         crateManager.load(getConfig());
         topHeadManager.load(getConfig());
+        perkManager.load(getConfig());
     }
 
     /**
@@ -397,6 +401,10 @@ public final class SolRNGPlugin extends JavaPlugin {
 
     public com.spacerng.solrng.welcome.WelcomeManager getWelcomeManager() {
         return welcomeManager;
+    }
+
+    public com.spacerng.solrng.perk.PerkManager getPerkManager() {
+        return perkManager;
     }
 
     public com.spacerng.solrng.daily.DailyManager getDailyManager() {

@@ -94,6 +94,10 @@ commands:
     description: See every boost currently running on you
     usage: /boosts
     aliases: [effects, potions]
+  perks:
+    description: Roll perks with drops, and equip a loadout
+    usage: /perks [vault]
+    aliases: [perk, perkroll]
   rngadmin:
     description: Admin tools for SpaceRNG
     usage: /rngadmin <reload|setspawn|starforge|reset|give|drops|bank|aura|roll|unlock|odds|farmblock|farmfill|crops|milestones|boost|nova|payout|crate|tophead>

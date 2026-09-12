@@ -370,4 +370,60 @@ public class SkillTreeManager {
             default -> { /* derived stats and gate flags - nothing to store */ }
         }
     }
+
+    /**
+     * What the player has spent on the general (Money-paid) tree so far.
+     * Sums per-level costs against every node they own, so a refund can
+     * hand back exactly the price they paid rather than a flat estimate.
+     */
+    public long totalMoneySpent(PlayerData data) {
+        long total = 0L;
+        for (SkillNode node : nodes.values()) {
+            if (node.usesTokens()) continue;
+            int level = levelOf(data, node);
+            for (int i = 0; i < level; i++) {
+                total += Math.round(node.costAtLevel(i));
+            }
+        }
+        return total;
+    }
+
+    /** Same, in Coins, for the farmtree. */
+    public long totalCoinsSpent(PlayerData data) {
+        long total = 0L;
+        for (SkillNode node : nodes.values()) {
+            if (!node.usesTokens()) continue;
+            int level = levelOf(data, node);
+            for (int i = 0; i < level; i++) {
+                total += Math.round(node.costAtLevel(i));
+            }
+        }
+        return total;
+    }
+
+    /**
+     * Wipes every bought node in the general tree, returns the Money to
+     * the player and hands the farmtree's Coins back to their bank. Auto
+     * Roll, unlocked crops and farm-token multiplier are wiped too -
+     * they were side-effects of nodes that no longer exist for this
+     * player. Called only after the shiny cost has been taken.
+     */
+    public void respec(org.bukkit.entity.Player player, PlayerData data) {
+        long money = totalMoneySpent(data);
+        long coins = totalCoinsSpent(data);
+
+        data.getUnlockedNodes().clear();
+        data.getNodeLevels().clear();
+        data.setAutoRollEnabled(false);
+        data.setFarmTokenMultiplier(1.0);
+        data.getUnlockedCrops().clear();
+        data.setCropShardsUnlocked(false);
+
+        if (coins > 0) data.addTokens(coins);
+        if (money > 0) {
+            var registration = Bukkit.getServicesManager().getRegistration(Economy.class);
+            if (registration != null) registration.getProvider().depositPlayer(player, money);
+        }
+        data.incrementRespecCount();
+    }
 }

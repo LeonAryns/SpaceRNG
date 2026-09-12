@@ -36,6 +36,7 @@ public class SkillTreeGui {
     private static final int STATS_SLOT = 53;
     private static final int PREV_SLOT = 0;
     private static final int NEXT_SLOT = 8;
+    private static final int RESPEC_SLOT = 45;
 
     public static NamespacedKey nodeIdKey(SolRNGPlugin plugin) {
         return SolRNGPlugin.key( "solrng_node_id");
@@ -47,6 +48,10 @@ public class SkillTreeGui {
 
     public static int nextSlot() {
         return NEXT_SLOT;
+    }
+
+    public static int respecSlot() {
+        return RESPEC_SLOT;
     }
 
     public static Inventory build(SolRNGPlugin plugin, Player player) {
@@ -102,6 +107,9 @@ public class SkillTreeGui {
         }
 
         inv.setItem(STATS_SLOT, buildWalletPanel(plugin, player, data, farming));
+        if (!farming) {
+            inv.setItem(RESPEC_SLOT, buildRespecButton(plugin, data));
+        }
         // Up and down, not next and previous: the tree is climbed from a
         // root at the bottom, so a later page is literally higher up and
         // calling it "next" fights the thing the layout is saying.
@@ -223,6 +231,49 @@ public class SkillTreeGui {
                 ChatColor.DARK_GRAY + Lore.BULLET + " Reserved for a future skill."));
         icon.setItemMeta(meta);
         return icon;
+    }
+
+    /**
+     * The respec button - spends shinies to refund every node bought so
+     * far. The price climbs one shiny per respec, so a habit is a real
+     * decision: at three respecs you're already six shinies deep.
+     */
+    private static ItemStack buildRespecButton(SolRNGPlugin plugin, PlayerData data) {
+        int cost = data.nextRespecCost();
+        long haveShinies = data.totalShinies();
+        boolean affordable = haveShinies >= cost;
+        int owned = 0;
+        for (SkillNode node : plugin.getSkillTreeManager().getNodes().values()) {
+            if (!node.usesTokens()) owned += plugin.getSkillTreeManager().levelOf(data, node);
+        }
+
+        ItemStack item = new ItemStack(Material.WITHER_ROSE);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(Lore.title(ChatColor.LIGHT_PURPLE, "Respec"));
+
+        List<String> lore = new ArrayList<>();
+        lore.add(Lore.section(ChatColor.LIGHT_PURPLE, "What it does"));
+        lore.add(Lore.line(ChatColor.GRAY, "Refunds every skill you bought."));
+        lore.add(Lore.line(ChatColor.GRAY, "Money and Coins go straight back."));
+        lore.add("");
+        lore.add(Lore.section(ChatColor.AQUA, "Cost"));
+        lore.add(Lore.stat(affordable ? ChatColor.GREEN : ChatColor.RED,
+                "Shinies", cost + " (any rarity)"));
+        lore.add(Lore.stat(ChatColor.AQUA, "You have", String.valueOf(haveShinies)));
+        lore.add(Lore.stat(ChatColor.DARK_GRAY, "Times respec'd", String.valueOf(data.getRespecCount())));
+        lore.add(Lore.stat(ChatColor.DARK_GRAY, "Skills owned", String.valueOf(owned)));
+        lore.add("");
+        if (owned == 0) {
+            lore.add(ChatColor.DARK_GRAY + "" + ChatColor.BOLD + "Nothing to refund");
+        } else if (affordable) {
+            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Shift-click to confirm");
+            lore.add(Lore.footnote("Shift protects against misclicks."));
+        } else {
+            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Not enough shinies");
+        }
+        meta.setLore(lore);
+        item.setItemMeta(meta);
+        return item;
     }
 
     private static ItemStack glassFiller() {

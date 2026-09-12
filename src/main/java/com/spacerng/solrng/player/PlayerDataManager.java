@@ -218,6 +218,23 @@ public class PlayerDataManager {
             data.setEquippedTag(tagItem, tagRarity);
         }
 
+        data.setRespecCount(yml.getInt("respec-count", 0));
+        for (String raw : yml.getStringList("perk-vault")) {
+            var perk = com.spacerng.solrng.perk.PerkInstance.decode(raw);
+            if (perk != null) data.getPerkVault().add(perk);
+        }
+        // Equipped list is decoded FROM the vault after both are loaded,
+        // so equipped perks share their identity with the vault entries
+        // and can never drift out of sync with them.
+        java.util.Set<java.util.UUID> equippedIds = new java.util.HashSet<>();
+        for (String raw : yml.getStringList("perk-equipped")) {
+            try { equippedIds.add(java.util.UUID.fromString(raw)); }
+            catch (IllegalArgumentException ignored) { }
+        }
+        for (var perk : data.getPerkVault()) {
+            if (equippedIds.contains(perk.id())) data.getEquippedPerks().add(perk);
+        }
+
         return data;
     }
 
@@ -371,6 +388,14 @@ public class PlayerDataManager {
             yml.set("tag-item", data.getEquippedTagItemKey());
             yml.set("tag-rarity", data.getEquippedTagRarity());
         }
+
+        yml.set("respec-count", data.getRespecCount());
+        java.util.List<String> vaultEncoded = new java.util.ArrayList<>();
+        for (var perk : data.getPerkVault()) vaultEncoded.add(perk.encode());
+        yml.set("perk-vault", vaultEncoded);
+        java.util.List<String> equippedIds = new java.util.ArrayList<>();
+        for (var perk : data.getEquippedPerks()) equippedIds.add(perk.id().toString());
+        yml.set("perk-equipped", equippedIds);
 
         // The index mirrors the save, so it can never be staler than the
         // file it describes.

@@ -1,6 +1,7 @@
 package com.spacerng.solrng.stats;
 
 import com.spacerng.solrng.SolRNGPlugin;
+import com.spacerng.solrng.perk.PerkStat;
 import com.spacerng.solrng.player.PlayerData;
 import com.spacerng.solrng.player.PrestigeUpgrade;
 import com.spacerng.solrng.player.SkillNode;
@@ -98,6 +99,8 @@ public final class StatSources {
                 data.getFlatLuck(), Op.ADD));
         parts.add(new Part("Potions", "Draughts from /potion",
                 data.getPotionLuck(), Op.ADD));
+        parts.add(new Part("Perks", "Equip perks in /perks",
+                plugin.getPerkManager().totalOf(data, PerkStat.LUCK_PERCENT), Op.ADD));
 
         parts.add(new Part("Equipped tag", "Equip a rarer drop in /index",
                 plugin.getRarityManager().tagMultiplierFor(data), Op.MULTIPLY));
@@ -158,6 +161,8 @@ public final class StatSources {
                 data.getStarforgeSpeedBonus(), Op.ADD));
         parts.add(new Part("Potions", "Draughts from /potion",
                 data.getPotionSpeed(), Op.ADD));
+        parts.add(new Part("Perks", "Equip perks in /perks",
+                plugin.getPerkManager().totalOf(data, PerkStat.ROLL_SPEED_FLAT), Op.ADD));
         parts.add(new Part("Ability", "Shift-right-click a late Starforge",
                 data.boostMultiplier("SPEED"), Op.MULTIPLY));
 
@@ -184,6 +189,9 @@ public final class StatSources {
         parts.add(new Part("Skills", "Money nodes in /skilltree",
                 1.0 + skills.totalOf(data, SkillNode.Effect.MONEY_MULTIPLIER)
                         + skills.totalOf(data, SkillNode.Effect.MONEY_PER_LEVEL) * data.getLevel(),
+                Op.MULTIPLY));
+        parts.add(new Part("Perks", "Equip perks in /perks",
+                1.0 + plugin.getPerkManager().totalOf(data, PerkStat.MONEY_PERCENT),
                 Op.MULTIPLY));
 
         return new Stat(Id.MONEY, "Money",
@@ -232,6 +240,9 @@ public final class StatSources {
         parts.add(new Part("General skills", "Coin nodes in /skilltree",
                 plugin.getSkillTreeManager().multiplierOf(data, SkillNode.Effect.TOKEN_GAIN),
                 Op.MULTIPLY));
+        parts.add(new Part("Perks", "Equip perks in /perks",
+                1.0 + plugin.getPerkManager().totalOf(data, PerkStat.COINS_PERCENT),
+                Op.MULTIPLY));
 
         return new Stat(Id.COINS, "Coins",
                 "What every crop pays on the farm.",
@@ -251,6 +262,9 @@ public final class StatSources {
                 plugin.getFarmingManager().tierOf(data).procMultiplier(), Op.MULTIPLY));
         parts.add(new Part("Potions", "Enchant Potions",
                 data.boostMultiplier("ENCHANT_PROC"), Op.MULTIPLY));
+        parts.add(new Part("Perks", "Equip perks in /perks",
+                1.0 + plugin.getPerkManager().totalOf(data, PerkStat.ENCHANT_PROC_PERCENT),
+                Op.MULTIPLY));
 
         return new Stat(Id.ENCHANT, "Enchant Proc",
                 "How often every hoe enchant fires.",
@@ -266,6 +280,9 @@ public final class StatSources {
                 plugin.getConfig().getDouble("shiny.chance", 0.01), Op.ADD));
         parts.add(new Part("Skills", "Shiny Chance nodes in /skilltree",
                 plugin.getSkillTreeManager().multiplierOf(data, SkillNode.Effect.SHINY_CHANCE),
+                Op.MULTIPLY));
+        parts.add(new Part("Perks", "Equip perks in /perks",
+                1.0 + plugin.getPerkManager().totalOf(data, PerkStat.SHINY_PERCENT),
                 Op.MULTIPLY));
 
         return new Stat(Id.SHINY, "Shiny Chance",

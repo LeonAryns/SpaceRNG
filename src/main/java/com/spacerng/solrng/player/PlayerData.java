@@ -1,11 +1,14 @@
 package com.spacerng.solrng.player;
 
+import com.spacerng.solrng.perk.PerkInstance;
 import com.spacerng.solrng.rarity.Rarity;
 
+import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -181,6 +184,15 @@ public class PlayerData {
     // Rewards already taken, keyed "F:12" / "P:12" for the free and
     // premium track of level 12.
     private final Set<String> passClaimed = new HashSet<>();
+    // How many times the skill tree has been respec'd. First respec
+    // costs 1 shiny, second costs 2, and so on - stored so the price is
+    // an ever-climbing decision instead of a one-time toll.
+    private int respecCount = 0;
+    // Perks the player owns. Split into a small equipped list (max
+    // loadout-slots from config) and an unlimited vault. Both are drawn
+    // from at read time; only equipped perks feed StatSources.
+    private final List<PerkInstance> equippedPerks = new ArrayList<>();
+    private final List<PerkInstance> perkVault = new ArrayList<>();
 
     public PlayerData(UUID uuid) {
         this.uuid = uuid;
@@ -1049,5 +1061,79 @@ public class PlayerData {
 
     public void setStarforgeLuckBonus(double starforgeLuckBonus) {
         this.starforgeLuckBonus = starforgeLuckBonus;
+    }
+
+    // ------------------------------------------------------------- respec
+
+    public int getRespecCount() {
+        return respecCount;
+    }
+
+    public void setRespecCount(int respecCount) {
+        this.respecCount = Math.max(0, respecCount);
+    }
+
+    public void incrementRespecCount() {
+        this.respecCount++;
+    }
+
+    /** Shinies the NEXT respec would cost - one more than the last, of any rarity. */
+    public int nextRespecCost() {
+        return respecCount + 1;
+    }
+
+    // -------------------------------------------------------------- perks
+
+    public List<PerkInstance> getEquippedPerks() {
+        return equippedPerks;
+    }
+
+    public List<PerkInstance> getPerkVault() {
+        return perkVault;
+    }
+
+    /** Whether a specific perk is currently equipped. */
+    public boolean isPerkEquipped(UUID perkId) {
+        for (PerkInstance perk : equippedPerks) {
+            if (perk.id().equals(perkId)) return true;
+        }
+        return false;
+    }
+
+    /** Removes a perk from the vault whether it is equipped or not. */
+    public PerkInstance takePerkById(UUID perkId) {
+        equippedPerks.removeIf(p -> p.id().equals(perkId));
+        for (int i = 0; i < perkVault.size(); i++) {
+            if (perkVault.get(i).id().equals(perkId)) {
+                return perkVault.remove(i);
+            }
+        }
+        return null;
+    }
+
+    /** Total shinies across every rarity - what respec spends against. */
+    public long totalShinies() {
+        long total = 0L;
+        for (long amount : shinyBank.values()) total += amount;
+        return total;
+    }
+
+    /**
+     * Spends N shinies of any rarity, cheapest first, and says whether
+     * the whole cost was covered. Cheapest first keeps the rarest ones
+     * for the tag equip that actually cares which they are.
+     */
+    public boolean spendAnyShinies(int amount) {
+        if (totalShinies() < amount) return false;
+        int remaining = amount;
+        for (Rarity r : Rarity.values()) {
+            if (remaining <= 0) break;
+            long have = getBankedShiny(r);
+            if (have <= 0) continue;
+            int take = (int) Math.min(remaining, have);
+            takeBankedShiny(r, take);
+            remaining -= take;
+        }
+        return remaining <= 0;
     }
 }

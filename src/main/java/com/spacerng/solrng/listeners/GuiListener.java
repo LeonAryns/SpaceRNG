@@ -7,6 +7,7 @@ import com.spacerng.solrng.gui.ArmorHolder;
 import com.spacerng.solrng.gui.BuyGui;
 import com.spacerng.solrng.gui.BuyHolder;
 import com.spacerng.solrng.gui.ConvertGui;
+import com.spacerng.solrng.gui.Currency;
 import com.spacerng.solrng.gui.CropsGui;
 import com.spacerng.solrng.gui.DailyGui;
 import com.spacerng.solrng.gui.DailyHolder;
@@ -95,7 +96,138 @@ public class GuiListener implements Listener {
             handlePotionClick(event);
         } else if (topInventory.getHolder() instanceof HoeHolder) {
             handleHoeClick(event);
+        } else if (topInventory.getHolder() instanceof com.spacerng.solrng.gui.PerkVaultHolder) {
+            handlePerkVaultClick(event);
+        } else if (topInventory.getHolder() instanceof com.spacerng.solrng.gui.PerkRollerHolder) {
+            handlePerkRollerClick(event);
         }
+    }
+
+    /**
+     * Vault: click a vault perk to equip/unequip; click an equipped
+     * slot to unequip; shift-click a vault perk to discard it.
+     */
+    private void handlePerkVaultClick(InventoryClickEvent event) {
+        event.setCancelled(true);
+        if (event.getClickedInventory() == null
+                || !(event.getClickedInventory().getHolder()
+                        instanceof com.spacerng.solrng.gui.PerkVaultHolder holder)) return;
+
+        Player player = (Player) event.getWhoClicked();
+        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+        int slot = event.getRawSlot();
+
+        if (slot == com.spacerng.solrng.gui.PerkVaultGui.rollerSlot()) {
+            player.openInventory(com.spacerng.solrng.gui.PerkRollerGui.build(plugin, player));
+            return;
+        }
+        if (slot == com.spacerng.solrng.gui.PerkVaultGui.prevSlot()) {
+            player.openInventory(com.spacerng.solrng.gui.PerkVaultGui.build(plugin, player,
+                    Math.max(0, holder.getPage() - 1)));
+            return;
+        }
+        if (slot == com.spacerng.solrng.gui.PerkVaultGui.nextSlot()) {
+            player.openInventory(com.spacerng.solrng.gui.PerkVaultGui.build(plugin, player,
+                    holder.getPage() + 1));
+            return;
+        }
+
+        java.util.UUID perkId = com.spacerng.solrng.gui.PerkVaultGui.clickedId(
+                plugin, event.getCurrentItem());
+        if (perkId == null) return;
+
+        // Loadout row (0..8): a click here just unequips.
+        if (slot < 9) {
+            data.getEquippedPerks().removeIf(p -> p.id().equals(perkId));
+            player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.7f, 0.9f);
+            player.openInventory(com.spacerng.solrng.gui.PerkVaultGui.build(plugin, player, holder.getPage()));
+            return;
+        }
+
+        // Vault row: shift-click discards, plain click toggles equip.
+        if (event.isShiftClick()) {
+            data.takePerkById(perkId);
+            player.sendMessage(ChatColor.GRAY + "Perk discarded.");
+            player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_ITEM_BREAK, 0.6f, 1.2f);
+            player.openInventory(com.spacerng.solrng.gui.PerkVaultGui.build(plugin, player, holder.getPage()));
+            return;
+        }
+        boolean equipped = data.isPerkEquipped(perkId);
+        if (equipped) {
+            data.getEquippedPerks().removeIf(p -> p.id().equals(perkId));
+            player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.7f, 0.9f);
+        } else {
+            int max = plugin.getPerkManager().loadoutSlots();
+            if (data.getEquippedPerks().size() >= max) {
+                player.sendMessage(ChatColor.RED + "Loadout is full. Unequip one first.");
+                player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.7f, 1.0f);
+                return;
+            }
+            for (var perk : data.getPerkVault()) {
+                if (perk.id().equals(perkId)) {
+                    data.getEquippedPerks().add(perk);
+                    break;
+                }
+            }
+            player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_BEACON_ACTIVATE, 0.5f, 1.4f);
+        }
+        plugin.getScoreboardManager().update(player);
+        plugin.getLuckBarManager().update(player);
+        player.openInventory(com.spacerng.solrng.gui.PerkVaultGui.build(plugin, player, holder.getPage()));
+    }
+
+    /** Roller: one of four buttons - or the vault link. */
+    private void handlePerkRollerClick(InventoryClickEvent event) {
+        event.setCancelled(true);
+        if (event.getClickedInventory() == null
+                || !(event.getClickedInventory().getHolder()
+                        instanceof com.spacerng.solrng.gui.PerkRollerHolder)) return;
+
+        Player player = (Player) event.getWhoClicked();
+        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+
+        if (event.getRawSlot() == com.spacerng.solrng.gui.PerkRollerGui.vaultSlot()) {
+            player.openInventory(com.spacerng.solrng.gui.PerkVaultGui.build(plugin, player, 0));
+            return;
+        }
+
+        var clicked = event.getCurrentItem();
+        if (clicked == null || clicked.getItemMeta() == null) return;
+        String tierName = clicked.getItemMeta().getPersistentDataContainer()
+                .get(com.spacerng.solrng.gui.PerkRollerGui.rollTierKey(plugin),
+                        PersistentDataType.STRING);
+        if (tierName == null) return;
+
+        com.spacerng.solrng.rarity.Rarity tier;
+        try {
+            tier = com.spacerng.solrng.rarity.Rarity.valueOf(tierName);
+        } catch (IllegalArgumentException ex) { return; }
+
+        var perk = plugin.getPerkManager().purchase(plugin, player, data, tier);
+        if (perk == null) {
+            var roll = plugin.getPerkManager().getRoll(tier);
+            String need = roll == null ? "drops" : (roll.costAmount() + "x "
+                    + plugin.getRarityManager().style(roll.costRarity(), roll.costRarity().displayName())
+                    + ChatColor.RED + " drops");
+            player.sendMessage(ChatColor.RED + "Not enough. You need " + need + ChatColor.RED + ".");
+            player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
+            return;
+        }
+
+        String tierColored = plugin.getRarityManager().style(perk.tier(), perk.display());
+        player.sendMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "New perk: "
+                + ChatColor.RESET + tierColored + ChatColor.GRAY + " " + perk.roman());
+        // Reveal cue: a short one-frame flourish matching the tier.
+        org.bukkit.Sound sound = switch (perk.tier()) {
+            case DIVINE -> org.bukkit.Sound.UI_TOAST_CHALLENGE_COMPLETE;
+            case MYTHICAL -> org.bukkit.Sound.ITEM_TRIDENT_THUNDER;
+            case LEGENDARY -> org.bukkit.Sound.ENTITY_PLAYER_LEVELUP;
+            case EPIC -> org.bukkit.Sound.BLOCK_BEACON_POWER_SELECT;
+            case RARE -> org.bukkit.Sound.BLOCK_ENCHANTMENT_TABLE_USE;
+            default -> org.bukkit.Sound.ENTITY_EXPERIENCE_ORB_PICKUP;
+        };
+        player.playSound(player.getLocation(), sound, 0.9f, 1.2f);
+        player.openInventory(com.spacerng.solrng.gui.PerkRollerGui.build(plugin, player));
     }
 
     private void handleStarforgeClick(InventoryClickEvent event) {
@@ -668,6 +800,54 @@ public class GuiListener implements Listener {
         player.openInventory(IndexGui.build(plugin, player, newFilter, 0, holder.isShinyView()));
     }
 
+    /**
+     * Respec spends the climbing shiny cost and refunds every bought
+     * node. Shift-click required so a stray click can't wipe a whole
+     * tree, and the message names exactly what was taken and what came
+     * back so nothing is lost silently.
+     */
+    private void handleRespecClick(Player player, SkillTreeHolder holder, InventoryClickEvent event) {
+        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+        int cost = data.nextRespecCost();
+        int owned = 0;
+        long money = plugin.getSkillTreeManager().totalMoneySpent(data);
+        long coins = plugin.getSkillTreeManager().totalCoinsSpent(data);
+        for (com.spacerng.solrng.player.SkillNode node
+                : plugin.getSkillTreeManager().getNodes().values()) {
+            if (!node.usesTokens()) owned += plugin.getSkillTreeManager().levelOf(data, node);
+        }
+
+        if (owned == 0) {
+            player.sendMessage(ChatColor.GRAY + "Nothing to respec.");
+            return;
+        }
+        if (!event.isShiftClick()) {
+            player.sendMessage(ChatColor.YELLOW + "Shift-click to confirm the respec.");
+            player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.6f, 1.2f);
+            return;
+        }
+        if (data.totalShinies() < cost) {
+            player.sendMessage(ChatColor.RED + "You need " + cost + " shinies for that.");
+            player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
+            return;
+        }
+        if (!data.spendAnyShinies(cost)) {
+            player.sendMessage(ChatColor.RED + "The shinies didn't clear. Try again.");
+            return;
+        }
+
+        plugin.getSkillTreeManager().respec(player, data);
+        player.sendMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "Respec complete. "
+                + ChatColor.RESET + ChatColor.GRAY + "Refunded "
+                + Currency.MONEY.amount(money) + ChatColor.GRAY + " and "
+                + Currency.COINS.amount(coins) + ChatColor.GRAY + ". Next respec costs "
+                + ChatColor.LIGHT_PURPLE + data.nextRespecCost() + ChatColor.GRAY + " shinies.");
+        player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_BEACON_POWER_SELECT, 1.0f, 1.4f);
+        plugin.getScoreboardManager().update(player);
+        plugin.getLuckBarManager().update(player);
+        player.openInventory(SkillTreeGui.build(plugin, player, holder.getTree(), holder.getPage()));
+    }
+
     private void handleSkillTreeClick(InventoryClickEvent event) {
         event.setCancelled(true); // whole GUI is view/click only, no item movement
         if (event.getClickedInventory() == null
@@ -680,6 +860,10 @@ public class GuiListener implements Listener {
         }
         if (event.getRawSlot() == SkillTreeGui.nextSlot()) {
             clicker.openInventory(SkillTreeGui.build(plugin, clicker, holder.getTree(), holder.getPage() + 1));
+            return;
+        }
+        if (event.getRawSlot() == SkillTreeGui.respecSlot() && !"farmtree".equals(holder.getTree())) {
+            handleRespecClick(clicker, holder, event);
             return;
         }
 
