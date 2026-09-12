@@ -2,6 +2,14 @@
 # SpaceRNG configuration
 # ============================================
 
+# Bumped when a section changes shape in a way that would leave an
+# existing config.yml on a running server out of step with the code -
+# every time this goes up, the sections listed in ConfigMigrator run
+# their fresh defaults in on top of whatever is on disk, so a server
+# owner never has to delete the whole file to pick up a structural
+# change. Item table, prices and cosmetic tweaks are untouched.
+config-version: 2
+
 # The sidebar's fixed text. Colour codes use "&".
 scoreboard:
   title: "&5&l\u2726 ѕᴘᴀᴄᴇʀɴɢ \u2726"

@@ -124,6 +124,10 @@ public final class SolRNGPlugin extends JavaPlugin {
             return;
         }
         saveDefaultConfig();
+        // Bring the structural sections on disk up to speed with what
+        // the jar ships. Runs before every manager loads its config so
+        // the freshly-written sections are what they see.
+        ConfigMigrator.run(this);
         sweepBossBars();
 
         this.rarityManager = new RarityManager(getLogger());

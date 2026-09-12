@@ -596,26 +596,31 @@ public class FarmPlotManager {
         data.addCropsHarvested(1L);
         plugin.getPassManager().awardHarvest(player, data, 1L);
 
-        // ONE TICK LATER, not now.
-        //
         // The break event was cancelled, and a cancelled BlockBreakEvent
-        // makes the server re-send the real block to the client at the end
-        // of the tick. Sending AIR inside the event means the resync lands
-        // on top of it and the player watches the crop turn into the bare
-        // torchflower marker instead of vanishing. A tick later, the
-        // resync has already happened and the AIR is what sticks.
+        // makes the server re-send the real block to the client at the
+        // end of the tick. STRUCTURE_VOID is drawn as nothing in survival
+        // but a small black quadrant on some client renderers, so if the
+        // resync lands between our AIR sends the player sees a flash of
+        // it. Three defences layered against that race:
+        //   1. sendBlockDamage(0) clears the crack animation the click
+        //      already started, so no dark cracks continue over empty air
+        //   2. AIR is written this tick, and again on the next three,
+        //      so any resync from the cancellation gets overwritten
+        //      before it can be drawn
+        //   3. After the regrow delay, the regrown crop is drawn
         final CropType regrown = crop;
         final BlockData nothing = Bukkit.createBlockData(Material.AIR);
-        // Now AND next tick. The immediate one covers the ordinary case;
-        // the deferred one wins the race against the resync a cancelled
-        // BlockBreakEvent triggers at the end of the tick, which would
-        // otherwise repaint the bare marker on top of the empty plot.
+        try {
+            player.sendBlockDamage(plot, 0f);
+        } catch (Throwable ignored) {
+            // sendBlockDamage is Paper-only; the multi-tick sends still cover it.
+        }
         player.sendBlockChange(plot, nothing);
-        plugin.getServer().getScheduler().runTask(plugin, () -> {
-            if (player.isOnline()) {
-                player.sendBlockChange(plot, nothing);
-            }
-        });
+        for (int delay = 1; delay <= 3; delay++) {
+            plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+                if (player.isOnline()) player.sendBlockChange(plot, nothing);
+            }, delay);
+        }
         plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
             if (player.isOnline() && plots.contains(plot)) {
                 player.sendBlockChange(plot, grownData(regrown.getMaterial()));
