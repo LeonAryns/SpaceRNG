@@ -4,7 +4,7 @@ main: com.spacerng.solrng.SolRNGPlugin
 api-version: '1.21'
 author: LaLaLeon
 description: Rarity-roll RNG progression plugin for SpaceRNG
-softdepend: [Vault, PlaceholderAPI]
+softdepend: [Vault, PlaceholderAPI, DiscordSRV]
 
 commands:
   rngcore:
@@ -98,6 +98,10 @@ commands:
     description: Roll perks with drops, and equip a loadout
     usage: /perks [vault]
     aliases: [perk, perkroll]
+  linked:
+    description: See your Discord link status and its bonuses
+    usage: /linked
+    aliases: [link, discordlink]
   rngadmin:
     description: Admin tools for SpaceRNG
     usage: /rngadmin <reload|setspawn|starforge|reset|give|drops|bank|aura|roll|unlock|odds|farmblock|farmfill|crops|milestones|boost|nova|payout|crate|tophead>

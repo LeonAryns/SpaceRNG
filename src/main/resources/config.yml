@@ -8,7 +8,7 @@
 # their fresh defaults in on top of whatever is on disk, so a server
 # owner never has to delete the whole file to pick up a structural
 # change. Item table, prices and cosmetic tweaks are untouched.
-config-version: 3
+config-version: 4
 
 # The sidebar's fixed text. Colour codes use "&".
 scoreboard:
@@ -4588,6 +4588,27 @@ unlock-commands:
 shiny:
   # Base 1 in 2,500. Shiny Chance nodes in /skilltree multiply this.
   chance: 0.0004
+
+# DiscordSRV integration. When a player links their Minecraft account
+# to Discord (typically via /discord link, provided by DiscordSRV), a
+# passive bonus turns on until they unlink again. The first ever link
+# also hands out a one-time gift, and cannot be farmed by unlinking
+# and relinking - the "claimed" flag stays set forever.
+#
+# Every field below is optional. Delete anything you don't want.
+linked-account:
+  enabled: true
+  bonus:
+    money-percent: 0.10
+    coins-percent: 0.10
+    luck-percent: 0.10
+    shiny-percent: 0.10
+  first-link-gift:
+    credits: 100
+    coins: 25000
+    money: 0
+  link-message: "&5&lLinked to Discord! &7Bonuses are active while your account stays linked."
+  unlink-message: "&cUnlinked from Discord. &7Bonuses removed."
   node: "shiny_unlock"
   marker: "&b&l✦"
   broadcast: true

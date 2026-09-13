@@ -193,6 +193,9 @@ public class PlayerData {
     // from at read time; only equipped perks feed StatSources.
     private final List<PerkInstance> equippedPerks = new ArrayList<>();
     private final List<PerkInstance> perkVault = new ArrayList<>();
+    // Whether the one-time Discord-linked gift has been handed out. Stays
+    // true after unlinking so a relink cannot farm the gift a second time.
+    private boolean claimedLinkGift = false;
 
     public PlayerData(UUID uuid) {
         this.uuid = uuid;
@@ -1109,6 +1112,14 @@ public class PlayerData {
             }
         }
         return null;
+    }
+
+    public boolean hasClaimedLinkGift() {
+        return claimedLinkGift;
+    }
+
+    public void setClaimedLinkGift(boolean claimed) {
+        this.claimedLinkGift = claimed;
     }
 
     /** Total shinies across every rarity - what respec spends against. */

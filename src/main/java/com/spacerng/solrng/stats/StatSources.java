@@ -101,6 +101,9 @@ public final class StatSources {
                 data.getPotionLuck(), Op.ADD));
         parts.add(new Part("Perks", "Equip perks in /perks",
                 plugin.getPerkManager().totalOf(data, PerkStat.LUCK_PERCENT), Op.ADD));
+        parts.add(new Part("Linked account", "Link with /discord link",
+                plugin.getLinkedAccountManager().bonusFor(data.getUuid(), PerkStat.LUCK_PERCENT),
+                Op.ADD));
 
         parts.add(new Part("Equipped tag", "Equip a rarer drop in /index",
                 plugin.getRarityManager().tagMultiplierFor(data), Op.MULTIPLY));
@@ -193,6 +196,9 @@ public final class StatSources {
         parts.add(new Part("Perks", "Equip perks in /perks",
                 1.0 + plugin.getPerkManager().totalOf(data, PerkStat.MONEY_PERCENT),
                 Op.MULTIPLY));
+        parts.add(new Part("Linked account", "Link with /discord link",
+                1.0 + plugin.getLinkedAccountManager().bonusFor(data.getUuid(), PerkStat.MONEY_PERCENT),
+                Op.MULTIPLY));
 
         return new Stat(Id.MONEY, "Money",
                 "What rolling pays. Rarer drops pay more of it.",
@@ -243,6 +249,9 @@ public final class StatSources {
         parts.add(new Part("Perks", "Equip perks in /perks",
                 1.0 + plugin.getPerkManager().totalOf(data, PerkStat.COINS_PERCENT),
                 Op.MULTIPLY));
+        parts.add(new Part("Linked account", "Link with /discord link",
+                1.0 + plugin.getLinkedAccountManager().bonusFor(data.getUuid(), PerkStat.COINS_PERCENT),
+                Op.MULTIPLY));
 
         return new Stat(Id.COINS, "Coins",
                 "What every crop pays on the farm.",
@@ -283,6 +292,9 @@ public final class StatSources {
                 Op.MULTIPLY));
         parts.add(new Part("Perks", "Equip perks in /perks",
                 1.0 + plugin.getPerkManager().totalOf(data, PerkStat.SHINY_PERCENT),
+                Op.MULTIPLY));
+        parts.add(new Part("Linked account", "Link with /discord link",
+                1.0 + plugin.getLinkedAccountManager().bonusFor(data.getUuid(), PerkStat.SHINY_PERCENT),
                 Op.MULTIPLY));
 
         return new Stat(Id.SHINY, "Shiny Chance",

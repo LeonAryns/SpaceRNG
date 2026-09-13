@@ -29,7 +29,7 @@ public final class ConfigMigrator {
      * even across a version bump.
      */
     private static final List<String> STRUCTURAL = List.of(
-            "skilltree", "farmtree", "shiny", "perks");
+            "skilltree", "farmtree", "shiny", "perks", "linked-account");
 
     private ConfigMigrator() {
     }

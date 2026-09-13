@@ -70,6 +70,7 @@ public final class SolRNGPlugin extends JavaPlugin {
     private com.spacerng.solrng.welcome.WelcomeManager welcomeManager;
     private com.spacerng.solrng.perk.PerkManager perkManager;
     private com.spacerng.solrng.decor.FloatingItemManager floatingItemManager;
+    private com.spacerng.solrng.discord.LinkedAccountManager linkedAccountManager;
 
     /** The namespace every PersistentDataContainer tag is written under. */
     private static final String TAG_NAMESPACE = "solrng";
@@ -159,6 +160,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         this.topHeadManager = new com.spacerng.solrng.leaderboard.TopHeadManager(this);
         this.perkManager = new com.spacerng.solrng.perk.PerkManager(getLogger());
         this.floatingItemManager = new com.spacerng.solrng.decor.FloatingItemManager(this);
+        this.linkedAccountManager = new com.spacerng.solrng.discord.LinkedAccountManager(this);
 
         reloadAll();
 
@@ -197,6 +199,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         getCommand("pass").setExecutor(new PassCommand(this));
         getCommand("boosts").setExecutor(new com.spacerng.solrng.commands.BoostsCommand(this));
         getCommand("perks").setExecutor(new com.spacerng.solrng.commands.PerkCommand(this));
+        getCommand("linked").setExecutor(new com.spacerng.solrng.commands.LinkedCommand(this));
         getCommand("potion").setExecutor(new com.spacerng.solrng.commands.PotionCommand(this));
         getCommand("shop").setExecutor(new com.spacerng.solrng.commands.ShopCommand(this));
         getCommand("leaderboards").setExecutor(
@@ -214,6 +217,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         registerPlaceholderExpansion();
         topHeadManager.start();
         floatingItemManager.start();
+        linkedAccountManager.start();
 
         getLogger().info("SpaceRNG enabled.");
     }
@@ -227,6 +231,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         if (crateManager != null) crateManager.finishAll();
         if (topHeadManager != null) topHeadManager.stop();
         if (floatingItemManager != null) floatingItemManager.stop();
+        if (linkedAccountManager != null) linkedAccountManager.stop();
         if (momentumBar != null) momentumBar.removeAll();
         if (playerDataManager != null) {
             playerDataManager.saveAll();
@@ -302,6 +307,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         topHeadManager.load(getConfig());
         perkManager.load(getConfig());
         floatingItemManager.load(getConfig());
+        linkedAccountManager.load(getConfig());
     }
 
     /**
@@ -418,6 +424,10 @@ public final class SolRNGPlugin extends JavaPlugin {
 
     public com.spacerng.solrng.decor.FloatingItemManager getFloatingItemManager() {
         return floatingItemManager;
+    }
+
+    public com.spacerng.solrng.discord.LinkedAccountManager getLinkedAccountManager() {
+        return linkedAccountManager;
     }
 
     public com.spacerng.solrng.daily.DailyManager getDailyManager() {

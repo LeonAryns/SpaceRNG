@@ -219,6 +219,7 @@ public class PlayerDataManager {
         }
 
         data.setRespecCount(yml.getInt("respec-count", 0));
+        data.setClaimedLinkGift(yml.getBoolean("claimed-link-gift", false));
         for (String raw : yml.getStringList("perk-vault")) {
             var perk = com.spacerng.solrng.perk.PerkInstance.decode(raw);
             if (perk != null) data.getPerkVault().add(perk);
@@ -390,6 +391,7 @@ public class PlayerDataManager {
         }
 
         yml.set("respec-count", data.getRespecCount());
+        yml.set("claimed-link-gift", data.hasClaimedLinkGift());
         java.util.List<String> vaultEncoded = new java.util.ArrayList<>();
         for (var perk : data.getPerkVault()) vaultEncoded.add(perk.encode());
         yml.set("perk-vault", vaultEncoded);
