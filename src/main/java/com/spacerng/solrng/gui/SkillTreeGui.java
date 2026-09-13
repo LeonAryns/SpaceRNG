@@ -20,6 +20,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+// The exact frame Leon spec'd, applied to every page of the skill tree.
+// Three vertical spines (Speed at col 2, Luck at col 5, Money at col 8)
+// converge on row 5, then a single root sits at (5,6). Two extras at row
+// 3 (one per side spine) and two extras at row 2 (both feeding the Luck
+// spine) round out the 24-slot shape. Any slot not in this set that is
+// also not one of the four reserved buttons renders as the dark border.
+
 /**
  * A 6x9 skill tree, drawn entirely from config. Every node declares its
  * own page, (column, row) and icon, so adding a skill - or a whole extra
@@ -37,6 +44,22 @@ public class SkillTreeGui {
     private static final int PREV_SLOT = 0;
     private static final int NEXT_SLOT = 8;
     private static final int RESPEC_SLOT = 45;
+
+    // 0-indexed inventory slots. Layout is identical on every page.
+    private static final Set<Integer> LAYOUT_SLOTS = Set.of(
+            // Speed spine: (2,1)->(2,5), then right to (3,5) and (4,5)
+            1, 10, 19, 28, 37, 38, 39,
+            // Luck spine: (5,1)->(5,6). (5,6) is the root at the very bottom.
+            4, 13, 22, 31, 40, 49,
+            // Money spine: (8,1)->(8,5), then left to (7,5) and (6,5)
+            7, 16, 25, 34, 43, 42, 41,
+            // Extras: (3,3) speed, (7,3) money, (4,2) and (6,2) luck
+            20, 24, 12, 14
+    );
+
+    private static boolean isReservedButton(int slot) {
+        return slot == PREV_SLOT || slot == NEXT_SLOT || slot == RESPEC_SLOT || slot == STATS_SLOT;
+    }
 
     public static NamespacedKey nodeIdKey(SolRNGPlugin plugin) {
         return SolRNGPlugin.key( "solrng_node_id");
@@ -78,34 +101,23 @@ public class SkillTreeGui {
 
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
 
-        // The frame: BLACK glass on the outer edge, DARK-STAINED glass on
-        // the interior. That reads as a fenced arena inside a black
-        // border - the 3 spines of nodes sit on the darker interior with
-        // an unmistakable outer boundary.
+        // The frame: BLACK glass on every slot that isn't one of the 24
+        // node positions or one of the four reserved buttons. Every node
+        // position starts as a "???" stone button, so the tree's shape is
+        // visible from the very first open even when nothing is unlocked.
         ItemStack border = glassFiller();
-        ItemStack interior = interiorFiller();
         for (int slot = 0; slot < 54; slot++) {
-            inv.setItem(slot, isInteriorSlot(slot) ? interior : border);
+            if (isReservedButton(slot)) continue;
+            inv.setItem(slot, LAYOUT_SLOTS.contains(slot) ? placeholderNode() : border);
         }
 
         List<SkillNode> nodes = manager.getNodes(tree, page);
-        Set<Integer> placed = new HashSet<>();
         for (SkillNode node : nodes) {
             if (node.getSlot() < 0 || node.getSlot() >= 54) continue;
             boolean reqMet = manager.requirementMet(data, node);
             inv.setItem(node.getSlot(), reqMet
                     ? buildNodeIcon(plugin, player, data, node)
                     : lockedNode(plugin, data, node));
-            placed.add(node.getSlot());
-        }
-
-        // Every interior slot without a node draws a "???" stone-button
-        // placeholder, so the shape of the tree is visible from the
-        // first time it is opened.
-        for (int slot = 0; slot < 54; slot++) {
-            if (!isInteriorSlot(slot)) continue;
-            if (placed.contains(slot)) continue;
-            inv.setItem(slot, placeholderNode());
         }
 
         inv.setItem(STATS_SLOT, buildWalletPanel(plugin, player, data, farming));
@@ -203,7 +215,9 @@ public class SkillTreeGui {
     private static ItemStack lockedNode(SolRNGPlugin plugin, PlayerData data, SkillNode node) {
         List<SkillNode> missing = plugin.getSkillTreeManager().missingRequirements(data, node);
 
-        ItemStack icon = new ItemStack(Material.GRAY_DYE);
+        // Same STONE_BUTTON shape as an empty placeholder, so the tree
+        // reads as one uniform grid until a skill is actually available.
+        ItemStack icon = new ItemStack(Material.STONE_BUTTON);
         ItemMeta meta = icon.getItemMeta();
         meta.setDisplayName(Lore.title(ChatColor.DARK_GRAY, "???"));
 
@@ -233,26 +247,6 @@ public class SkillTreeGui {
                 ChatColor.DARK_GRAY + Lore.BULLET + " Reserved for a future skill."));
         icon.setItemMeta(meta);
         return icon;
-    }
-
-    /**
-     * Interior slots are rows 2-5 columns 2-8 (7x4 = 28 slots). The
-     * outer edge stays black glass and reads as the frame; the interior
-     * is a lighter stained glass and reads as the arena the nodes are
-     * planted in.
-     */
-    private static boolean isInteriorSlot(int slot) {
-        int row = slot / 9;   // 0-indexed
-        int col = slot % 9;
-        return row >= 1 && row <= 4 && col >= 1 && col <= 7;
-    }
-
-    private static ItemStack interiorFiller() {
-        ItemStack pane = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
-        ItemMeta meta = pane.getItemMeta();
-        meta.setDisplayName(" ");
-        pane.setItemMeta(meta);
-        return pane;
     }
 
     /**

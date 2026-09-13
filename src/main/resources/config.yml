@@ -1,4 +1,4 @@
-# ============================================
+﻿# ============================================
 # SpaceRNG configuration
 # ============================================
 
@@ -8,11 +8,11 @@
 # their fresh defaults in on top of whatever is on disk, so a server
 # owner never has to delete the whole file to pick up a structural
 # change. Item table, prices and cosmetic tweaks are untouched.
-config-version: 4
+config-version: 5
 
 # The sidebar's fixed text. Colour codes use "&".
 scoreboard:
-  title: "&5&l\u2726 ѕᴘᴀᴄᴇʀɴɢ \u2726"
+  title: "&5&l\u2726 Ñ•á´˜á´€á´„á´‡Ê€É´É¢ \u2726"
   # Paints the title as a per-character purple gradient instead of the
   # flat colour above. Turn it off to go back to the "&" codes in `title`.
   title-gradient: true
@@ -1827,20 +1827,27 @@ economy:
 # Prices are a first pass: page base x 1.75 per step of depth, each page
 # starting 100x above the last. Paid in Money.
 skilltree:
-  # Three paths, one per page. No silhouette: each path has its own
-  # organic shape and the page name is what tells you which one you're on.
+  # Three pages, one identical shape. Every page has the same 24-slot
+  # frame Leon spec'd: three vertical spines (Speed at column 2, Luck at
+  # column 5, Money at column 8) all converge on row 5, a single root at
+  # (5,6), two extras at row 3 (one per side spine) and two extras at
+  # row 2 that both feed the Luck spine. The three pages then differ
+  # only in what those 24 nodes actually do: page 1 lays the foundations
+  # every player needs, page 2 opens the mid-game power spikes, page 3
+  # is the endgame with the three path capstones.
   reserved: []
   pages: 3
-  page-names: ["Money", "Speed", "Luck"]
+  page-names: ["Foundations", "Ascension", "Convergence"]
   nodes:
 
     # ====================================================================
     #  PAGE 1 - FOUNDATIONS
     # ====================================================================
 
+    # Root of the whole tree. Sits alone in the very middle of row 6.
     auto_roll_root:
       display: "Auto Roll"
-      page: 2
+      page: 1
       slot: "5,6"
       icon: CLOCK
       cost-money: 400
@@ -1848,10 +1855,11 @@ skilltree:
       effect: AUTO_ROLL
       value: 0
 
+    # -- Luck spine (col 5, rows 5 up to 1) --
     luck_skill:
       display: "Luck I"
-      page: 3
-      slot: "5,6"
+      page: 1
+      slot: "5,5"
       icon: RABBIT_FOOT
       cost-money: 700
       cost-growth: 1.22
@@ -1860,162 +1868,34 @@ skilltree:
       value: 0.05
       max-level: 10
 
-    speed_skill:
-      display: "Speed I"
-      page: 2
-      slot: "5,5"
-      icon: SUGAR
-      cost-money: 1220
-      cost-growth: 1.22
-      requires: "luck_skill"
-      effect: ROLL_SPEED
-      value: 0.02
-      max-level: 10
-
-    vault_space:
-      display: "Vault Space"
-      page: 1
-      slot: "7,4"
-      icon: ENDER_CHEST
-      cost-money: 12000
-      cost-growth: 1.45
-      requires: "convert_unlock"
-      effect: CONVERT_CAP
-      value: 50
-      max-level: 10
-
-    convert_unlock:
-      display: "Convert"
-      page: 1
-      slot: "7,5"
-      icon: CHEST
-      cost-money: 1220
-      requires: "luck_skill"
-      effect: UNLOCK_CONVERT
-      value: 0
-
-    coins_1:
-      display: "Money I"
-      page: 1
-      slot: "5,6"
-      icon: GOLD_INGOT
-      cost-money: 1220
-      cost-growth: 1.25
-      requires: "luck_skill"
-      effect: MONEY_MULTIPLIER
-      value: 0.1
-      max-level: 10
-
-    vault_unlock:
-      display: "Private Vault"
-      page: 1
-      slot: "7,2"
-      icon: ENDER_CHEST
-      cost-money: 2140
-      requires: "speed_skill"
-      effect: UNLOCK_PRIVATE_VAULT
-      value: 0
-
-    auto_convert:
-      display: "Auto Convert"
-      page: 1
-      slot: "7,3"
-      icon: HOPPER
-      cost-money: 2140
-      requires: "convert_unlock"
-      effect: UNLOCK_AUTO_CONVERT
-      value: 0
-
-    farming_unlock:
-      display: "Farming"
-      page: 1
-      slot: "6,5"
-      icon: WHEAT
-      cost-money: 3750
-      requires: "armor_unlock"
-      effect: UNLOCK_FARMING
-      value: 0
-
-    pass_unlock:
-      display: "Battle Pass"
-      page: 1
-      slot: "4,5"
-      icon: WRITABLE_BOOK
-      cost-money: 3750
-      requires: "vault_unlock"
-      effect: UNLOCK_PASS
-      value: 0
-
-    index_luck:
-      display: "Index Luck"
-      page: 3
-      slot: "6,3"
-      icon: KNOWLEDGE_BOOK
-      cost-money: 3750
-      requires: "auto_convert"
-      effect: UNLOCK_INDEX_LUCK
-      value: 0
-
-    armor_unlock:
-      display: "Armor"
-      page: 3
-      slot: "7,5"
-      icon: IRON_CHESTPLATE
-      cost-money: 2140
-      requires: "coins_1"
-      effect: UNLOCK_ARMOR
-      value: 0
-
-    bonus_roll_1:
-      display: "Double Roll I"
-      page: 2
-      slot: "3,5"
-      icon: ECHO_SHARD
-      cost-money: 6560
-      cost-growth: 1.3
-      requires: "pass_unlock"
-      effect: BONUS_ROLL_CHANCE
-      value: 0.01
-      max-level: 10
-
-    shiny_unlock:
-      display: "Shiny Unlocked"
-      page: 3
-      slot: "3,5"
-      icon: AMETHYST_SHARD
-      cost-money: 6560
-      requires: "index_luck"
-      effect: UNLOCK_SHINY
-      value: 0
-
-    curator_1:
-      display: "Curator I"
-      page: 3
-      slot: "6,5"
-      icon: BOOKSHELF
-      cost-money: 28700
-      cost-growth: 1.3
-      requires: "bonus_roll_1"
-      effect: LUCK_PER_DISCOVERY
-      value: 0.002
-      max-level: 10
-
     luck_2:
       display: "Luck II"
-      page: 3
-      slot: "5,5"
+      page: 1
+      slot: "5,4"
       icon: RABBIT_FOOT
       cost-money: 28700
       cost-growth: 1.24
-      requires: "shiny_unlock"
+      requires: "luck_skill"
       effect: LUCK
       value: 0.08
       max-level: 10
 
+    curator_1:
+      display: "Curator I"
+      page: 1
+      slot: "5,3"
+      icon: BOOKSHELF
+      cost-money: 28700
+      cost-growth: 1.3
+      requires: "luck_2"
+      effect: LUCK_PER_DISCOVERY
+      value: 0.002
+      max-level: 10
+
     shiny_chance_1:
       display: "Shiny Chance I"
-      page: 3
-      slot: "3,4"
+      page: 1
+      slot: "5,2"
       icon: PRISMARINE_CRYSTALS
       cost-money: 50300
       cost-growth: 1.3
@@ -2024,100 +1904,220 @@ skilltree:
       value: 0.1
       max-level: 10
 
-    dupe_1:
-      display: "Duplicate Value"
-      page: 1
-      slot: "3,5"
-      icon: GOLD_NUGGET
-      cost-money: 50300
-      cost-growth: 1.25
-      requires: "luck_2"
-      effect: DUPLICATE_BONUS
-      value: 0.1
-      max-level: 10
-
-    instant_roll_1:
-      display: "Instant Roll I"
-      page: 2
-      slot: "7,5"
-      icon: FIREWORK_ROCKET
-      cost-money: 88000
-      cost-growth: 1.35
-      requires: "shiny_chance_1"
-      effect: INSTANT_ROLL
-      value: 0.01
-      max-level: 10
-
-    speed_2:
-      display: "Speed II"
-      page: 2
-      slot: "5,4"
-      icon: SUGAR
-      cost-money: 88000
-      cost-growth: 1.24
-      requires: "dupe_1"
-      effect: ROLL_SPEED
-      value: 0.03
-      max-level: 10
-
-    refine_1:
-      display: "Refinery I"
-      page: 1
-      slot: "3,4"
-      icon: BLAST_FURNACE
-      cost-money: 154000
-      cost-growth: 1.3
-      requires: "instant_roll_1"
-      effect: CONVERT_BONUS
-      value: 0.05
-      max-level: 10
-
     forge_power_1:
       display: "Forge Attunement I"
-      page: 3
-      slot: "2,5"
+      page: 1
+      slot: "5,1"
       icon: SMITHING_TABLE
       cost-money: 154000
       cost-growth: 1.3
-      requires: "speed_2"
+      requires: "shiny_chance_1"
       effect: STARFORGE_POWER
       value: 0.05
       max-level: 10
 
-    armor_power_1:
-      display: "Quartermaster I"
-      page: 3
-      slot: "7,4"
-      icon: IRON_INGOT
-      cost-money: 269000
+    # -- Speed spine (col 4->2, row 5, then col 2 rows 5 up to 1) --
+    speed_skill:
+      display: "Speed I"
+      page: 1
+      slot: "4,5"
+      icon: SUGAR
+      cost-money: 1220
+      cost-growth: 1.22
+      requires: "auto_roll_root"
+      effect: ROLL_SPEED
+      value: 0.02
+      max-level: 10
+
+    speed_2:
+      display: "Speed II"
+      page: 1
+      slot: "3,5"
+      icon: SUGAR
+      cost-money: 88000
+      cost-growth: 1.24
+      requires: "speed_skill"
+      effect: ROLL_SPEED
+      value: 0.03
+      max-level: 10
+
+    bonus_roll_1:
+      display: "Double Roll I"
+      page: 1
+      slot: "2,5"
+      icon: ECHO_SHARD
+      cost-money: 6560
       cost-growth: 1.3
-      requires: "refine_1"
-      effect: ARMOR_POWER
+      requires: "speed_2"
+      effect: BONUS_ROLL_CHANCE
+      value: 0.01
+      max-level: 10
+
+    instant_roll_1:
+      display: "Instant Roll I"
+      page: 1
+      slot: "2,4"
+      icon: FIREWORK_ROCKET
+      cost-money: 88000
+      cost-growth: 1.35
+      requires: "bonus_roll_1"
+      effect: INSTANT_ROLL
+      value: 0.01
+      max-level: 10
+
+    pass_unlock:
+      display: "Battle Pass"
+      page: 1
+      slot: "2,3"
+      icon: WRITABLE_BOOK
+      cost-money: 3750
+      requires: "instant_roll_1"
+      effect: UNLOCK_PASS
+      value: 0
+
+    refine_1:
+      display: "Refinery I"
+      page: 1
+      slot: "2,2"
+      icon: BLAST_FURNACE
+      cost-money: 154000
+      cost-growth: 1.3
+      requires: "pass_unlock"
+      effect: CONVERT_BONUS
       value: 0.05
+      max-level: 10
+
+    dupe_1:
+      display: "Duplicate Value"
+      page: 1
+      slot: "2,1"
+      icon: GOLD_NUGGET
+      cost-money: 50300
+      cost-growth: 1.25
+      requires: "refine_1"
+      effect: DUPLICATE_BONUS
+      value: 0.1
+      max-level: 10
+
+    # -- Money spine (col 6->8, row 5, then col 8 rows 5 up to 1) --
+    coins_1:
+      display: "Money I"
+      page: 1
+      slot: "6,5"
+      icon: GOLD_INGOT
+      cost-money: 1220
+      cost-growth: 1.25
+      requires: "auto_roll_root"
+      effect: MONEY_MULTIPLIER
+      value: 0.1
       max-level: 10
 
     coins_2:
       display: "Money II"
       page: 1
-      slot: "5,4"
+      slot: "7,5"
       icon: GOLD_INGOT
       cost-money: 269000
       cost-growth: 1.28
-      requires: "forge_power_1"
+      requires: "coins_1"
       effect: MONEY_MULTIPLIER
       value: 0.2
       max-level: 10
 
-    supercharge_1:
-      display: "Supercharge I"
-      page: 2
-      slot: "4,3"
-      icon: NETHER_STAR
-      cost-money: 471000
+    armor_unlock:
+      display: "Armor"
+      page: 1
+      slot: "8,5"
+      icon: IRON_CHESTPLATE
+      cost-money: 2140
+      requires: "coins_2"
+      effect: UNLOCK_ARMOR
+      value: 0
+
+    armor_power_1:
+      display: "Quartermaster I"
+      page: 1
+      slot: "8,4"
+      icon: IRON_INGOT
+      cost-money: 269000
+      cost-growth: 1.3
+      requires: "armor_unlock"
+      effect: ARMOR_POWER
+      value: 0.05
+      max-level: 10
+
+    vault_space:
+      display: "Vault Space"
+      page: 1
+      slot: "8,3"
+      icon: ENDER_CHEST
+      cost-money: 12000
+      cost-growth: 1.45
       requires: "armor_power_1"
-      effect: SUPERCHARGE
-      value: 10.0
-      interval: 100
+      effect: CONVERT_CAP
+      value: 50
+      max-level: 10
+
+    vault_unlock:
+      display: "Private Vault"
+      page: 1
+      slot: "8,2"
+      icon: ENDER_CHEST
+      cost-money: 2140
+      requires: "vault_space"
+      effect: UNLOCK_PRIVATE_VAULT
+      value: 0
+
+    farming_unlock:
+      display: "Farming"
+      page: 1
+      slot: "8,1"
+      icon: WHEAT
+      cost-money: 3750
+      requires: "vault_unlock"
+      effect: UNLOCK_FARMING
+      value: 0
+
+    # -- Extras: two off row 3, two off row 2 --
+    convert_unlock:
+      display: "Convert"
+      page: 1
+      slot: "3,3"
+      icon: CHEST
+      cost-money: 1220
+      requires: "pass_unlock"
+      effect: UNLOCK_CONVERT
+      value: 0
+
+    auto_convert:
+      display: "Auto Convert"
+      page: 1
+      slot: "7,3"
+      icon: HOPPER
+      cost-money: 2140
+      requires: "vault_space"
+      effect: UNLOCK_AUTO_CONVERT
+      value: 0
+
+    index_luck:
+      display: "Index Luck"
+      page: 1
+      slot: "4,2"
+      icon: KNOWLEDGE_BOOK
+      cost-money: 3750
+      requires: "shiny_chance_1"
+      effect: UNLOCK_INDEX_LUCK
+      value: 0
+
+    shiny_unlock:
+      display: "Shiny Unlocked"
+      page: 1
+      slot: "6,2"
+      icon: AMETHYST_SHARD
+      cost-money: 6560
+      requires: "shiny_chance_1"
+      effect: UNLOCK_SHINY
+      value: 0
 
     # ====================================================================
     #  PAGE 2 - ASCENSION
@@ -2125,19 +2125,20 @@ skilltree:
 
     ascension:
       display: "Ascension"
-      page: 3
-      slot: "1,3"
+      page: 2
+      slot: "5,6"
       icon: END_CRYSTAL
       cost-money: 100000
-      requires: "supercharge_1"
-      requires-all: ["instant_roll_1", "armor_unlock", "speed_2"]
+      requires: "forge_power_1"
+      requires-all: ["dupe_1", "farming_unlock"]
       effect: LUCK
       value: 0.25
 
+    # -- Luck spine --
     luck_3:
       display: "Luck III"
-      page: 3
-      slot: "5,4"
+      page: 2
+      slot: "5,5"
       icon: RABBIT_FOOT
       cost-money: 175000
       cost-growth: 1.26
@@ -2146,262 +2147,265 @@ skilltree:
       value: 0.12
       max-level: 10
 
-    coins_3:
-      display: "Money III"
-      page: 1
-      slot: "5,3"
-      icon: GOLD_INGOT
-      cost-money: 306000
-      cost-growth: 1.28
-      requires: "luck_3"
-      effect: MONEY_MULTIPLIER
-      value: 0.35
-      max-level: 10
-
-    potion_unlock:
-      display: "Potions"
-      page: 3
-      slot: "6,2"
-      icon: BREWING_STAND
-      cost-money: 306000
-      requires: "luck_3"
-      effect: UNLOCK_POTION
-      value: 0
-
-    speed_3:
-      display: "Speed III"
-      page: 2
-      slot: "5,3"
-      icon: SUGAR
-      cost-money: 306000
-      cost-growth: 1.26
-      requires: "luck_3"
-      effect: ROLL_SPEED
-      value: 0.04
-      max-level: 10
-
-    artifact_unlock:
-      display: "Artifacts"
-      page: 3
-      slot: "7,6"
-      icon: HEART_OF_THE_SEA
-      cost-money: 536000
-      requires: "coins_3"
-      effect: UNLOCK_ARTIFACT
-      value: 0
-
-    shiny_chance_2:
-      display: "Shiny Chance II"
-      page: 3
-      slot: "3,3"
-      icon: PRISMARINE_CRYSTALS
-      cost-money: 536000
-      cost-growth: 1.3
-      requires: "potion_unlock"
-      effect: SHINY_CHANCE
-      value: 0.15
-      max-level: 10
-
-    pass_xp_1:
-      display: "Pass Momentum I"
-      page: 1
-      slot: "4,3"
-      icon: EXPERIENCE_BOTTLE
-      cost-money: 536000
-      cost-growth: 1.28
-      requires: "speed_3"
-      effect: PASS_XP
-      value: 0.1
-      max-level: 10
-
-    curator_2:
-      display: "Curator II"
-      page: 3
-      slot: "6,4"
-      icon: BOOKSHELF
-      cost-money: 938000
-      cost-growth: 1.3
-      requires: "artifact_unlock"
-      effect: LUCK_PER_DISCOVERY
-      value: 0.003
-      max-level: 10
-
-    coins_per_level:
-      display: "Money Per Level"
-      page: 1
-      slot: "5,5"
-      icon: GOLDEN_APPLE
-      cost-money: 938000
-      requires: "shiny_chance_2"
-      effect: MONEY_PER_LEVEL
-      value: 0.05
-
-    bonus_roll_2:
-      display: "Double Roll II"
-      page: 2
-      slot: "3,4"
-      icon: ECHO_SHARD
-      cost-money: 938000
-      cost-growth: 1.32
-      requires: "pass_xp_1"
-      effect: BONUS_ROLL_CHANCE
-      value: 0.015
-      max-level: 10
-
-    nova_safe_1:
-      display: "Core Anchor I"
-      page: 3
-      slot: "3,6"
-      icon: ANVIL
-      cost-money: 1640000
-      cost-growth: 1.32
-      requires: "curator_2"
-      effect: NOVA_SAFETY
-      value: 0.03
-      max-level: 10
-
     luck_4:
       display: "Luck IV"
-      page: 3
-      slot: "5,3"
+      page: 2
+      slot: "5,4"
       icon: RABBIT_FOOT
       cost-money: 1640000
       cost-growth: 1.28
-      requires: "coins_per_level"
+      requires: "luck_3"
       effect: LUCK
       value: 0.18
       max-level: 10
 
-    forge_power_2:
-      display: "Forge Attunement II"
-      page: 3
-      slot: "2,4"
-      icon: SMITHING_TABLE
-      cost-money: 2870000
-      cost-growth: 1.32
-      requires: "nova_safe_1"
-      effect: STARFORGE_POWER
-      value: 0.08
-      max-level: 10
-
-    armor_power_2:
-      display: "Quartermaster II"
-      page: 3
-      slot: "7,3"
-      icon: IRON_INGOT
-      cost-money: 2870000
-      cost-growth: 1.32
-      requires: "luck_4"
-      effect: ARMOR_POWER
-      value: 0.08
-      max-level: 10
-
-    instant_roll_2:
-      display: "Instant Roll II"
+    luck_5:
+      display: "Luck V"
       page: 2
-      slot: "7,4"
-      icon: FIREWORK_ROCKET
-      cost-money: 5030000
-      cost-growth: 1.36
-      requires: "forge_power_2"
-      effect: INSTANT_ROLL
-      value: 0.015
+      slot: "5,3"
+      icon: RABBIT_FOOT
+      cost-money: 26900000
+      cost-growth: 1.3
+      requires: "luck_4"
+      effect: LUCK
+      value: 0.25
       max-level: 10
 
     prestige_luck_1:
       display: "Prestige Affinity I"
-      page: 3
-      slot: "8,5"
+      page: 2
+      slot: "5,2"
       icon: TOTEM_OF_UNDYING
       cost-money: 5030000
       cost-growth: 1.32
-      requires: "armor_power_2"
+      requires: "luck_5"
       effect: LUCK_PER_PRESTIGE
       value: 0.02
       max-level: 10
 
-    refine_2:
-      display: "Refinery II"
-      page: 1
-      slot: "3,3"
-      icon: BLAST_FURNACE
-      cost-money: 8800000
-      cost-growth: 1.32
-      requires: "instant_roll_2"
-      effect: CONVERT_BONUS
-      value: 0.08
+    curator_2:
+      display: "Curator II"
+      page: 2
+      slot: "5,1"
+      icon: BOOKSHELF
+      cost-money: 938000
+      cost-growth: 1.3
+      requires: "prestige_luck_1"
+      effect: LUCK_PER_DISCOVERY
+      value: 0.003
+      max-level: 10
+
+    # -- Speed spine --
+    speed_3:
+      display: "Speed III"
+      page: 2
+      slot: "4,5"
+      icon: SUGAR
+      cost-money: 306000
+      cost-growth: 1.26
+      requires: "ascension"
+      effect: ROLL_SPEED
+      value: 0.04
       max-level: 10
 
     speed_4:
       display: "Speed IV"
       page: 2
-      slot: "5,2"
+      slot: "3,5"
       icon: SUGAR
       cost-money: 8800000
       cost-growth: 1.28
-      requires: "prestige_luck_1"
+      requires: "speed_3"
       effect: ROLL_SPEED
       value: 0.05
       max-level: 10
 
-    coins_4:
-      display: "Money IV"
-      page: 1
-      slot: "5,2"
-      icon: GOLD_INGOT
-      cost-money: 15400000
-      cost-growth: 1.3
-      requires: "refine_2"
-      effect: MONEY_MULTIPLIER
-      value: 0.5
-      max-level: 10
-
-    shiny_chance_3:
-      display: "Shiny Chance III"
-      page: 3
-      slot: "3,2"
-      icon: PRISMARINE_CRYSTALS
-      cost-money: 15400000
+    bonus_roll_2:
+      display: "Double Roll II"
+      page: 2
+      slot: "2,5"
+      icon: ECHO_SHARD
+      cost-money: 938000
       cost-growth: 1.32
       requires: "speed_4"
-      effect: SHINY_CHANCE
-      value: 0.2
+      effect: BONUS_ROLL_CHANCE
+      value: 0.015
+      max-level: 10
+
+    instant_roll_2:
+      display: "Instant Roll II"
+      page: 2
+      slot: "2,4"
+      icon: FIREWORK_ROCKET
+      cost-money: 5030000
+      cost-growth: 1.36
+      requires: "bonus_roll_2"
+      effect: INSTANT_ROLL
+      value: 0.015
+      max-level: 10
+
+    pass_xp_1:
+      display: "Pass Momentum I"
+      page: 2
+      slot: "2,3"
+      icon: EXPERIENCE_BOTTLE
+      cost-money: 536000
+      cost-growth: 1.28
+      requires: "instant_roll_2"
+      effect: PASS_XP
+      value: 0.1
       max-level: 10
 
     pass_xp_2:
       display: "Pass Momentum II"
-      page: 1
-      slot: "4,2"
+      page: 2
+      slot: "2,2"
       icon: EXPERIENCE_BOTTLE
       cost-money: 26900000
       cost-growth: 1.3
-      requires: "coins_4"
+      requires: "pass_xp_1"
       effect: PASS_XP
       value: 0.2
       max-level: 10
 
-    luck_5:
-      display: "Luck V"
-      page: 3
-      slot: "5,2"
-      icon: RABBIT_FOOT
-      cost-money: 26900000
-      cost-growth: 1.3
-      requires: "shiny_chance_3"
-      effect: LUCK
-      value: 0.25
-      max-level: 10
-
-    supercharge_2:
-      display: "Supercharge II"
+    supercharge_1:
+      display: "Supercharge I"
       page: 2
-      slot: "4,2"
+      slot: "2,1"
       icon: NETHER_STAR
-      cost-money: 47100000
+      cost-money: 471000
       requires: "pass_xp_2"
       effect: SUPERCHARGE
-      value: 100.0
-      interval: 1000
+      value: 10.0
+      interval: 100
+
+    # -- Money spine --
+    coins_3:
+      display: "Money III"
+      page: 2
+      slot: "6,5"
+      icon: GOLD_INGOT
+      cost-money: 306000
+      cost-growth: 1.28
+      requires: "ascension"
+      effect: MONEY_MULTIPLIER
+      value: 0.35
+      max-level: 10
+
+    coins_4:
+      display: "Money IV"
+      page: 2
+      slot: "7,5"
+      icon: GOLD_INGOT
+      cost-money: 15400000
+      cost-growth: 1.3
+      requires: "coins_3"
+      effect: MONEY_MULTIPLIER
+      value: 0.5
+      max-level: 10
+
+    refine_2:
+      display: "Refinery II"
+      page: 2
+      slot: "8,5"
+      icon: BLAST_FURNACE
+      cost-money: 8800000
+      cost-growth: 1.32
+      requires: "coins_4"
+      effect: CONVERT_BONUS
+      value: 0.08
+      max-level: 10
+
+    coins_per_level:
+      display: "Money Per Level"
+      page: 2
+      slot: "8,4"
+      icon: GOLDEN_APPLE
+      cost-money: 938000
+      requires: "refine_2"
+      effect: MONEY_PER_LEVEL
+      value: 0.05
+
+    armor_power_2:
+      display: "Quartermaster II"
+      page: 2
+      slot: "8,3"
+      icon: IRON_INGOT
+      cost-money: 2870000
+      cost-growth: 1.32
+      requires: "coins_per_level"
+      effect: ARMOR_POWER
+      value: 0.08
+      max-level: 10
+
+    forge_power_2:
+      display: "Forge Attunement II"
+      page: 2
+      slot: "8,2"
+      icon: SMITHING_TABLE
+      cost-money: 2870000
+      cost-growth: 1.32
+      requires: "armor_power_2"
+      effect: STARFORGE_POWER
+      value: 0.08
+      max-level: 10
+
+    nova_safe_1:
+      display: "Core Anchor I"
+      page: 2
+      slot: "8,1"
+      icon: ANVIL
+      cost-money: 1640000
+      cost-growth: 1.32
+      requires: "forge_power_2"
+      effect: NOVA_SAFETY
+      value: 0.03
+      max-level: 10
+
+    # -- Extras --
+    shiny_chance_2:
+      display: "Shiny Chance II"
+      page: 2
+      slot: "3,3"
+      icon: PRISMARINE_CRYSTALS
+      cost-money: 536000
+      cost-growth: 1.3
+      requires: "pass_xp_1"
+      effect: SHINY_CHANCE
+      value: 0.15
+      max-level: 10
+
+    shiny_chance_3:
+      display: "Shiny Chance III"
+      page: 2
+      slot: "7,3"
+      icon: PRISMARINE_CRYSTALS
+      cost-money: 15400000
+      cost-growth: 1.32
+      requires: "armor_power_2"
+      effect: SHINY_CHANCE
+      value: 0.2
+      max-level: 10
+
+    potion_unlock:
+      display: "Potions"
+      page: 2
+      slot: "4,2"
+      icon: BREWING_STAND
+      cost-money: 306000
+      requires: "prestige_luck_1"
+      effect: UNLOCK_POTION
+      value: 0
+
+    artifact_unlock:
+      display: "Artifacts"
+      page: 2
+      slot: "6,2"
+      icon: HEART_OF_THE_SEA
+      cost-money: 536000
+      requires: "prestige_luck_1"
+      effect: UNLOCK_ARTIFACT
+      value: 0
 
     # ====================================================================
     #  PAGE 3 - CONVERGENCE
@@ -2410,18 +2414,19 @@ skilltree:
     convergence:
       display: "Convergence"
       page: 3
-      slot: "1,4"
+      slot: "5,6"
       icon: END_CRYSTAL
       cost-money: 10000000
-      requires: "supercharge_2"
-      requires-all: ["refine_2", "bonus_roll_2", "speed_4"]
+      requires: "curator_2"
+      requires-all: ["supercharge_1", "nova_safe_1"]
       effect: LUCK
       value: 0.75
 
+    # -- Luck spine --
     luck_6:
       display: "Luck VI"
       page: 3
-      slot: "4,5"
+      slot: "5,5"
       icon: RABBIT_FOOT
       cost-money: 17500000
       cost-growth: 1.32
@@ -2430,194 +2435,192 @@ skilltree:
       value: 0.35
       max-level: 10
 
-    speed_5:
-      display: "Speed V"
-      page: 2
-      slot: "4,5"
-      icon: SUGAR
-      cost-money: 30600000
-      cost-growth: 1.3
+    luck_7:
+      display: "Luck VII"
+      page: 3
+      slot: "5,4"
+      icon: RABBIT_FOOT
+      cost-money: 287000000
+      cost-growth: 1.34
       requires: "luck_6"
-      effect: ROLL_SPEED
-      value: 0.07
+      effect: LUCK
+      value: 0.5
       max-level: 10
 
-    coins_5:
-      display: "Money V"
-      page: 1
-      slot: "4,4"
-      icon: GOLD_INGOT
-      cost-money: 30600000
-      cost-growth: 1.32
-      requires: "luck_6"
-      effect: MONEY_MULTIPLIER
+    luck_8:
+      display: "Luck VIII"
+      page: 3
+      slot: "5,3"
+      icon: RABBIT_FOOT
+      cost-money: 2690000000
+      cost-growth: 1.36
+      requires: "luck_7"
+      effect: LUCK
       value: 0.75
-      max-level: 10
-
-    bonus_roll_3:
-      display: "Double Roll III"
-      page: 2
-      slot: "3,3"
-      icon: ECHO_SHARD
-      cost-money: 30600000
-      cost-growth: 1.34
-      requires: "luck_6"
-      effect: BONUS_ROLL_CHANCE
-      value: 0.02
-      max-level: 10
-
-    shiny_chance_4:
-      display: "Shiny Chance IV"
-      page: 3
-      slot: "2,2"
-      icon: PRISMARINE_CRYSTALS
-      cost-money: 53600000
-      cost-growth: 1.34
-      requires: "speed_5"
-      effect: SHINY_CHANCE
-      value: 0.25
-      max-level: 10
-
-    instant_roll_3:
-      display: "Instant Roll III"
-      page: 2
-      slot: "7,3"
-      icon: FIREWORK_ROCKET
-      cost-money: 53600000
-      cost-growth: 1.38
-      requires: "coins_5"
-      effect: INSTANT_ROLL
-      value: 0.02
-      max-level: 10
-
-    nova_safe_2:
-      display: "Core Anchor II"
-      page: 3
-      slot: "4,6"
-      icon: ANVIL
-      cost-money: 53600000
-      cost-growth: 1.34
-      requires: "bonus_roll_3"
-      effect: NOVA_SAFETY
-      value: 0.025
       max-level: 10
 
     prestige_luck_2:
       display: "Prestige Affinity II"
       page: 3
-      slot: "8,4"
+      slot: "5,2"
       icon: TOTEM_OF_UNDYING
       cost-money: 93800000
       cost-growth: 1.34
-      requires: "shiny_chance_4"
+      requires: "luck_8"
       effect: LUCK_PER_PRESTIGE
       value: 0.04
       max-level: 10
 
-    forge_power_3:
-      display: "Forge Attunement III"
+    luck_capstone:
+      display: "Fortune's Favor"
       page: 3
-      slot: "2,3"
-      icon: SMITHING_TABLE
-      cost-money: 93800000
-      cost-growth: 1.34
-      requires: "instant_roll_3"
-      effect: STARFORGE_POWER
-      value: 0.12
+      slot: "5,1"
+      icon: NETHER_STAR
+      cost-money: 10000000000
+      requires: "prestige_luck_2"
+      effect: LUCK
+      value: 2.5
+
+    # -- Speed spine --
+    speed_5:
+      display: "Speed V"
+      page: 3
+      slot: "4,5"
+      icon: SUGAR
+      cost-money: 30600000
+      cost-growth: 1.3
+      requires: "convergence"
+      effect: ROLL_SPEED
+      value: 0.07
       max-level: 10
 
-    armor_power_3:
-      display: "Quartermaster III"
+    speed_6:
+      display: "Speed VI"
       page: 3
-      slot: "7,2"
-      icon: IRON_INGOT
-      cost-money: 93800000
+      slot: "3,5"
+      icon: SUGAR
+      cost-money: 287000000
+      cost-growth: 1.32
+      requires: "speed_5"
+      effect: ROLL_SPEED
+      value: 0.1
+      max-level: 10
+
+    speed_7:
+      display: "Speed VII"
+      page: 3
+      slot: "2,5"
+      icon: SUGAR
+      cost-money: 2690000000
       cost-growth: 1.34
-      requires: "nova_safe_2"
-      effect: ARMOR_POWER
-      value: 0.12
+      requires: "speed_6"
+      effect: ROLL_SPEED
+      value: 0.15
+      max-level: 10
+
+    bonus_roll_3:
+      display: "Double Roll III"
+      page: 3
+      slot: "2,4"
+      icon: ECHO_SHARD
+      cost-money: 30600000
+      cost-growth: 1.34
+      requires: "speed_7"
+      effect: BONUS_ROLL_CHANCE
+      value: 0.02
+      max-level: 10
+
+    bonus_roll_4:
+      display: "Double Roll IV"
+      page: 3
+      slot: "2,3"
+      icon: ECHO_SHARD
+      cost-money: 503000000
+      cost-growth: 1.36
+      requires: "bonus_roll_3"
+      effect: BONUS_ROLL_CHANCE
+      value: 0.025
+      max-level: 10
+
+    instant_roll_3:
+      display: "Instant Roll III"
+      page: 3
+      slot: "2,2"
+      icon: FIREWORK_ROCKET
+      cost-money: 53600000
+      cost-growth: 1.38
+      requires: "bonus_roll_4"
+      effect: INSTANT_ROLL
+      value: 0.02
+      max-level: 10
+
+    speed_capstone:
+      display: "Speed Demon"
+      page: 3
+      slot: "2,1"
+      icon: FIREWORK_ROCKET
+      cost-money: 10000000000
+      requires: "instant_roll_3"
+      effect: ROLL_SPEED
+      value: 0.75
+
+    # -- Money spine --
+    coins_5:
+      display: "Money V"
+      page: 3
+      slot: "6,5"
+      icon: GOLD_INGOT
+      cost-money: 30600000
+      cost-growth: 1.32
+      requires: "convergence"
+      effect: MONEY_MULTIPLIER
+      value: 0.75
+      max-level: 10
+
+    coins_6:
+      display: "Money VI"
+      page: 3
+      slot: "7,5"
+      icon: GOLD_INGOT
+      cost-money: 503000000
+      cost-growth: 1.34
+      requires: "coins_5"
+      effect: MONEY_MULTIPLIER
+      value: 1.0
       max-level: 10
 
     refine_3:
       display: "Refinery III"
-      page: 1
-      slot: "3,2"
+      page: 3
+      slot: "8,5"
       icon: BLAST_FURNACE
       cost-money: 164000000
       cost-growth: 1.34
-      requires: "prestige_luck_2"
+      requires: "coins_6"
       effect: CONVERT_BONUS
       value: 0.1
       max-level: 10
 
     pass_xp_3:
       display: "Pass Momentum III"
-      page: 1
-      slot: "6,3"
+      page: 3
+      slot: "8,4"
       icon: EXPERIENCE_BOTTLE
       cost-money: 164000000
       cost-growth: 1.32
-      requires: "forge_power_3"
+      requires: "refine_3"
       effect: PASS_XP
       value: 0.3
       max-level: 10
 
-    luck_7:
-      display: "Luck VII"
-      page: 3
-      slot: "4,4"
-      icon: RABBIT_FOOT
-      cost-money: 287000000
-      cost-growth: 1.34
-      requires: "refine_3"
-      effect: LUCK
-      value: 0.5
-      max-level: 10
-
-    speed_6:
-      display: "Speed VI"
-      page: 2
-      slot: "4,4"
-      icon: SUGAR
-      cost-money: 287000000
-      cost-growth: 1.32
-      requires: "pass_xp_3"
-      effect: ROLL_SPEED
-      value: 0.1
-      max-level: 10
-
-    coins_6:
-      display: "Money VI"
-      page: 1
-      slot: "6,4"
-      icon: GOLD_INGOT
-      cost-money: 503000000
-      cost-growth: 1.34
-      requires: "luck_7"
-      effect: MONEY_MULTIPLIER
-      value: 1.0
-      max-level: 10
-
-    bonus_roll_4:
-      display: "Double Roll IV"
-      page: 2
-      slot: "3,2"
-      icon: ECHO_SHARD
-      cost-money: 503000000
-      cost-growth: 1.36
-      requires: "speed_6"
-      effect: BONUS_ROLL_CHANCE
-      value: 0.025
-      max-level: 10
-
     instant_roll_4:
       display: "Instant Roll IV"
-      page: 2
-      slot: "7,2"
+      page: 3
+      slot: "8,3"
       icon: FIREWORK_ROCKET
       cost-money: 880000000
       cost-growth: 1.4
-      requires: "coins_6"
+      requires: "pass_xp_3"
       effect: INSTANT_ROLL
       value: 0.025
       max-level: 10
@@ -2625,107 +2628,71 @@ skilltree:
     prestige_luck_3:
       display: "Prestige Affinity III"
       page: 3
-      slot: "8,3"
+      slot: "8,2"
       icon: TOTEM_OF_UNDYING
       cost-money: 880000000
       cost-growth: 1.36
-      requires: "bonus_roll_4"
+      requires: "instant_roll_4"
       effect: LUCK_PER_PRESTIGE
       value: 0.06
       max-level: 10
 
-    nova_safe_3:
-      display: "Core Anchor III"
+    money_capstone:
+      display: "Money Baron"
       page: 3
-      slot: "6,6"
-      icon: ANVIL
-      cost-money: 1540000000
-      cost-growth: 1.38
-      requires: "instant_roll_4"
-      effect: NOVA_SAFETY
-      value: 0.02
+      slot: "8,1"
+      icon: RAW_GOLD_BLOCK
+      cost-money: 10000000000
+      requires: "prestige_luck_3"
+      effect: MONEY_MULTIPLIER
+      value: 2.5
+
+    # -- Extras --
+    shiny_chance_4:
+      display: "Shiny Chance IV"
+      page: 3
+      slot: "3,3"
+      icon: PRISMARINE_CRYSTALS
+      cost-money: 53600000
+      cost-growth: 1.34
+      requires: "bonus_roll_4"
+      effect: SHINY_CHANCE
+      value: 0.25
       max-level: 10
 
     shiny_chance_5:
       display: "Shiny Chance V"
       page: 3
-      slot: "8,2"
+      slot: "7,3"
       icon: PRISMARINE_CRYSTALS
       cost-money: 1540000000
       cost-growth: 1.36
-      requires: "prestige_luck_3"
+      requires: "instant_roll_4"
       effect: SHINY_CHANCE
       value: 0.3
       max-level: 10
 
-    luck_8:
-      display: "Luck VIII"
-      page: 3
-      slot: "4,3"
-      icon: RABBIT_FOOT
-      cost-money: 2690000000
-      cost-growth: 1.36
-      requires: "nova_safe_3"
-      effect: LUCK
-      value: 0.75
-      max-level: 10
-
-    speed_7:
-      display: "Speed VII"
-      page: 2
-      slot: "6,5"
-      icon: SUGAR
-      cost-money: 2690000000
-      cost-growth: 1.34
-      requires: "shiny_chance_5"
-      effect: ROLL_SPEED
-      value: 0.15
-      max-level: 10
-
-    supercharge_3:
-      display: "Supercharge III"
-      page: 2
-      slot: "6,4"
-      icon: NETHER_STAR
-      cost-money: 4710000000
-      requires: "luck_8"
-      effect: SUPERCHARGE
-      value: 1000.0
-      interval: 5000
-
-    # ====================================================================
-    #  CAPSTONES - one per path, the top of each spine
-    # ====================================================================
-
-    money_capstone:
-      display: "Money Baron"
-      page: 1
-      slot: "6,2"
-      icon: RAW_GOLD_BLOCK
-      cost-money: 10000000000
-      requires: "coins_6"
-      effect: MONEY_MULTIPLIER
-      value: 2.5
-
-    speed_capstone:
-      display: "Speed Demon"
-      page: 2
-      slot: "6,3"
-      icon: FIREWORK_ROCKET
-      cost-money: 10000000000
-      requires: "speed_7"
-      effect: ROLL_SPEED
-      value: 0.75
-
-    luck_capstone:
-      display: "Fortune's Favor"
+    supercharge_2:
+      display: "Supercharge II"
       page: 3
       slot: "4,2"
       icon: NETHER_STAR
-      cost-money: 10000000000
-      requires: "luck_8"
-      effect: LUCK
-      value: 2.5
+      cost-money: 47100000
+      requires: "prestige_luck_2"
+      effect: SUPERCHARGE
+      value: 100.0
+      interval: 1000
+
+    supercharge_3:
+      display: "Supercharge III"
+      page: 3
+      slot: "6,2"
+      icon: NETHER_STAR
+      cost-money: 4710000000
+      requires: "prestige_luck_2"
+      effect: SUPERCHARGE
+      value: 1000.0
+      interval: 5000
 
 # Long-run goals, shown in /milestones. Each track is one ladder of
 # thresholds against a single number; tiers MUST be listed in ascending
@@ -3062,7 +3029,7 @@ welcome:
   delay-ticks: 20
   # Shown to somebody who has played here before.
   lines:
-    - "&d&l✦ WELCOME BACK &d&l✦"
+    - "&d&lâœ¦ WELCOME BACK &d&lâœ¦"
     - "&8&lBETA"
     - ""
     - "&d| &fType &d/shop &fto see every shop."
@@ -3073,7 +3040,7 @@ welcome:
   # Shown on somebody's very first join instead. Leave the list empty to
   # give everyone the same banner.
   first-join-lines:
-    - "&d&l✦ WELCOME &d&l✦"
+    - "&d&lâœ¦ WELCOME &d&lâœ¦"
     - "&8&lBETA"
     - ""
     - "&d| &fRight-click your &dRoll &fitem to start."
@@ -4610,7 +4577,7 @@ linked-account:
   link-message: "&5&lLinked to Discord! &7Bonuses are active while your account stays linked."
   unlink-message: "&cUnlinked from Discord. &7Bonuses removed."
   node: "shiny_unlock"
-  marker: "&b&l✦"
+  marker: "&b&lâœ¦"
   broadcast: true
 
 # Perks are a second progression layer bought with drops, not Money.
