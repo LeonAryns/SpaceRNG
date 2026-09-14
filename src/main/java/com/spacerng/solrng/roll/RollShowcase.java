@@ -36,11 +36,19 @@ public final class RollShowcase {
     private static final float RIDE_ABOVE_EYES = 0.18f;
     private static final float SIZE = 0.34f;
     private static final float LANDED_SIZE = 0.5f;
+    // The landing pops past its size, then settles while it starts to turn.
+    private static final float PULSE_SIZE = 0.64f;
+    private static final long PULSE_TICKS = 3L;
+    // A quarter turn per update, so the client's shortest-path slerp can
+    // never pick the wrong way round; ten ticks each is a turn every two seconds.
+    private static final long SPIN_EVERY = 10L;
 
     private final SolRNGPlugin plugin;
     private final Player player;
     private final ItemDisplay display;
     private final BukkitTask watch;
+    private BukkitTask spin;
+    private int quarterTurns = 0;
     private boolean landed = false;
 
     private RollShowcase(SolRNGPlugin plugin, Player player) {
@@ -55,7 +63,7 @@ public final class RollShowcase {
             piece.setBrightness(new Display.Brightness(15, 15));
             piece.setShadowRadius(0f);
             piece.setViewRange(0.5f);
-            piece.setTransformation(pose(SIZE));
+            piece.setTransformation(pose(SIZE, 0));
             // The aura tag, so the aura sweep on startup clears one a crash left.
             piece.getPersistentDataContainer().set(SolRNGPlugin.key("solrng_aura"), PersistentDataType.BYTE, (byte) 1);
             // Only the roller sees it; to anyone else it was an item hanging in front of someone's face.
@@ -77,9 +85,19 @@ public final class RollShowcase {
         if (land && !landed) {
             landed = true;
             display.setInterpolationDelay(0);
-            display.setInterpolationDuration(6);
-            display.setTransformation(pose(LANDED_SIZE));
+            display.setInterpolationDuration((int) PULSE_TICKS);
+            display.setTransformation(pose(PULSE_SIZE, 0));
+            spin = plugin.getServer().getScheduler().runTaskTimer(plugin, this::spinStep, PULSE_TICKS, SPIN_EVERY);
         }
+    }
+
+    /** One quarter turn at the landed size; the first one also settles the pulse. */
+    private void spinStep() {
+        if (!display.isValid()) return;
+        quarterTurns = (quarterTurns + 1) % 4;
+        display.setInterpolationDelay(0);
+        display.setInterpolationDuration((int) SPIN_EVERY);
+        display.setTransformation(pose(LANDED_SIZE, quarterTurns));
     }
 
     /** Holds the landed item for {@code holdTicks}, then clears it away. */
@@ -90,6 +108,7 @@ public final class RollShowcase {
     /** Removes it now. Safe to call more than once. */
     public void cancel() {
         watch.cancel();
+        if (spin != null) spin.cancel();
         if (display.isValid()) display.remove();
     }
 
@@ -109,8 +128,9 @@ public final class RollShowcase {
         }
     }
 
-    private static Transformation pose(float scale) {
-        return new Transformation(new Vector3f(0f, -BELOW - RIDE_ABOVE_EYES, -AHEAD), new Quaternionf(),
+    private static Transformation pose(float scale, int quarterTurns) {
+        return new Transformation(new Vector3f(0f, -BELOW - RIDE_ABOVE_EYES, -AHEAD),
+                new Quaternionf().rotateY((float) (Math.PI / 2 * quarterTurns)),
                 new Vector3f(scale, scale, scale), new Quaternionf());
     }
 }

@@ -231,6 +231,7 @@ public class RollListener implements Listener {
         revealLockUntil.remove(uuid);
         RollShowcase showcase = showcases.remove(uuid);
         if (showcase != null) showcase.cancel();
+        chimedOnLanding.remove(uuid);
         if (task != null) {
             task.cancel();
         }
@@ -441,7 +442,13 @@ public class RollListener implements Listener {
                             (float) plugin.getConfig().getDouble("roll-item.roll-sound-volume", 0.12),
                             (float) (0.9 + 0.7 * step / 19.0));
                 }
-                if (data.isRollAnimationEnabled()) {
+                // The chime belongs to the moment the drop lands, not to the
+                // end of the hold after it. A big drop's aura brings its own.
+                if (step >= 19 && !RollAura.isBigDrop(result.getRarity())) {
+                    player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.8f, 1.2f);
+                    chimedOnLanding.add(player.getUniqueId());
+                }
+                if (reel && data.isRollAnimationEnabled()) {
                     boolean landed = step >= 19;
                     RollableItem shown = landed ? result : teaser(data, result, step);
                     // A candidate stays up until the next one replaces it, so
@@ -467,6 +474,9 @@ public class RollListener implements Listener {
     // One-shot "the next roll is shiny" flags for /rngadmin shiny, so the
     // pre-roll can be judged without waiting for a 1 in 2,500.
     private final java.util.Set<UUID> forcedShiny = new java.util.HashSet<>();
+
+    // Rolls whose landing frame played the chime, so finishRoll doesn't play it twice.
+    private final java.util.Set<UUID> chimedOnLanding = new java.util.HashSet<>();
 
     public void forceShinyNext(UUID uuid) {
         forcedShiny.add(uuid);
@@ -584,8 +594,9 @@ public class RollListener implements Listener {
         RollShowcase showcase = showcases.get(player.getUniqueId());
         if (showcase != null) showcase.finish(RollAura.finaleTicks(result.getRarity()) + 30L);
         // The level-up chime would land on the same tick as a big drop's
-        // detonation and just clutter it - the aura brings its own.
-        if (!RollAura.isBigDrop(result.getRarity())) {
+        // detonation and just clutter it - the aura brings its own. A roll
+        // that reached its landing frame already chimed there.
+        if (!RollAura.isBigDrop(result.getRarity()) && !chimedOnLanding.remove(player.getUniqueId())) {
             player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.8f, 1.2f);
         }
 
