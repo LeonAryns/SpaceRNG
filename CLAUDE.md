@@ -89,10 +89,12 @@ Load the matching skill before touching its area:
 - **Verify Paper API names against the jar** (particles, sounds,
   materials) instead of guessing. Example: `CHAIN` is `IRON_CHAIN` on
   1.21.11.
-- **Pushing.** Windows Credential Manager can hold a second GitHub
-  account, and pushes then fail with a 403. The auto-mode classifier
-  blocks tokens in commands, so Leon pushes himself with
-  `git push origin main` from `C:\Projects\SpaceRNG`.
+- **Pushing.** Push yourself with `git push origin main`; Leon expects
+  it and Credential Manager now holds his LeonAryns login. If a push
+  fails with a 403 naming another account (ArianceAI), that stale
+  credential is back: Leon removes it under Referentiebeheer, Windows
+  referenties, then pushes once himself. Never put a token in a command,
+  the auto-mode classifier blocks it.
 - **Java 21 only.** Leon's server runs Paper on Java 21, and a jar
   compiled for a newer release does not load. The VS Code Java upgrade
   tool creates `appmod/java-upgrade-*` branches that switch everything to

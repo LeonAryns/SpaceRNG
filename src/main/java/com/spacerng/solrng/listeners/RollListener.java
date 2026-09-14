@@ -376,6 +376,11 @@ public class RollListener implements Listener {
         final long preTicks = shiny ? ShinyPreRoll.TICKS : 0L;
         final long totalTicks = preTicks + rollTicks;
         final ShinyPreRoll preRoll = shiny ? new ShinyPreRoll(plugin, player) : null;
+        // Auto Roll reports on the action bar only. A title reel and a chat
+        // line every few seconds, forever, is noise; a big drop still gets
+        // its full reel, aura and title.
+        final boolean auto = data.isAutoRollEnabled();
+        final boolean reel = !auto || RollAura.isBigDrop(result.getRarity());
         final RollAura[] aura = {null};
         final boolean[] auraStarted = {false};
         if (preTicks == 0L) {
@@ -409,7 +414,7 @@ public class RollListener implements Listener {
                 taskHolder[0].cancel();
                 rollingTasks.remove(player.getUniqueId());
                 remainingTicks.remove(player.getUniqueId());
-                finishRoll(player, data, result, shiny);
+                finishRoll(player, data, result, shiny, auto);
                 return;
             }
 
@@ -550,7 +555,7 @@ public class RollListener implements Listener {
         return plugin.getRarityManager().roll(plugin.getPrestigeManager().effectiveLuck(data));
     }
 
-    private void finishRoll(Player player, PlayerData data, RollableItem result, boolean shiny) {
+    private void finishRoll(Player player, PlayerData data, RollableItem result, boolean shiny, boolean auto) {
         clearActionBar(player);
         // The level-up chime would land on the same tick as a big drop's
         // detonation and just clutter it - the aura brings its own.
@@ -572,7 +577,7 @@ public class RollListener implements Listener {
         // the player is handed, shiny markers included. For a big drop the
         // title waits a moment: dropping it over the detonation on the same
         // tick hides the burst the player just sat through the build-up for.
-        if (data.isRollAnimationEnabled()) {
+        if (data.isRollAnimationEnabled() && (!auto || RollAura.isBigDrop(result.getRarity()))) {
             long titleDelay = RollAura.titleDelayTicks(result.getRarity());
             if (titleDelay <= 0) {
                 showRollTitle(player, result, shiny, 1500L);
@@ -582,7 +587,10 @@ public class RollListener implements Listener {
                 }, titleDelay);
             }
         }
-        grantRoll(player, data, result, false);
+        // The shiny decided when the roll started is the one the item gets.
+        // Letting grantRoll roll it again meant the pre-roll could play and
+        // still hand over a plain drop, or the other way round.
+        grantRoll(player, data, result, false, shiny, auto);
 
         // Server First 10 hangs off the real roll path only, so an admin
         // roll can never take a spot. The event waits for the reveal.
@@ -594,8 +602,10 @@ public class RollListener implements Listener {
         double bonusChance = data.getBonusRollChance()
                 + plugin.getSkillTreeManager().totalOf(data, SkillNode.Effect.BONUS_ROLL_CHANCE);
         if (bonusChance > 0.0 && random.nextDouble() < bonusChance) {
-            player.sendMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "Bonus Roll! " + ChatColor.RESET
-                    + ChatColor.GRAY + "Rolling again...");
+            if (!auto) {
+                player.sendMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "Bonus Roll! " + ChatColor.RESET
+                        + ChatColor.GRAY + "Rolling again...");
+            }
             // Waits out the finale rather than being swallowed by the lock.
             plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
                 if (player.isOnline() && !isRolling(player.getUniqueId())) {
@@ -624,6 +634,16 @@ public class RollListener implements Listener {
     }
 
     public void grantRoll(Player player, PlayerData data, RollableItem result, boolean silent, boolean shiny) {
+        grantRoll(player, data, result, silent, shiny, false);
+    }
+
+    /**
+     * {@code auto} is an Auto Roll landing: it reports on the action bar
+     * instead of chat, "[Auto Roll] Shroomlight", with "(new)" on a first
+     * find. Server broadcasts for big drops still go out as normal.
+     */
+    public void grantRoll(Player player, PlayerData data, RollableItem result, boolean silent, boolean shiny,
+                          boolean auto) {
         data.addRoll();
         Rarity rarity = result.getRarity();
         ItemStack previewItem = buildTaggedItem(result, shiny);
@@ -631,6 +651,7 @@ public class RollListener implements Listener {
         // Read before the discovery is registered, so a first find pays the
         // normal rate and only genuine repeats get the Duplicate bonus.
         boolean duplicate = data.hasDiscovered(result.getDisplayName());
+        boolean newFind = !duplicate || (shiny && !data.hasDiscoveredShiny(result.getDisplayName()));
         double moneyEarned = depositRollMoney(player, data, result, duplicate);
 
         // A shiny is only ever auto-converted by its OWN switch. The normal
@@ -650,7 +671,7 @@ public class RollListener implements Listener {
                     data.addConverted(rarity, banked);
                 }
             }
-            if (!silent) {
+            if (!silent && !auto) {
                 // Auto-convert is a bulk mode: the full name and the odds
                 // on every single roll is noise you asked for none of.
                 player.sendMessage(ChatColor.AQUA + "\u26a1 " + ChatColor.GRAY + "You rolled "
@@ -666,12 +687,17 @@ public class RollListener implements Listener {
                 // outcome, as long as we say so clearly.
                 warnInventoryFull(player);
             }
-            if (!silent && data.isDropMessageEnabled(result.getRarity())) {
+            if (!silent && !auto && data.isDropMessageEnabled(result.getRarity())) {
                 sendHoverable(player, previewItem, RollFormat.personalRollLine(plugin, result, shiny));
             }
         }
 
-        if (!silent) {
+        if (!silent && auto) {
+            sendActionBar(player, RollFormat.autoRollLine(plugin, result, shiny, newFind));
+            if (newFind) {
+                player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.8f, shiny ? 1.8f : 1.3f);
+            }
+        } else if (!silent) {
             // Money green, like it is everywhere else. Gold here made the
             // one currency with its own colour the only one not using it.
             String moneyText = moneyEarned > 0
@@ -689,7 +715,8 @@ public class RollListener implements Listener {
             player.playSound(player.getLocation(), Sound.BLOCK_BREWING_STAND_BREW, 0.6f, 0.7f);
         }
 
-        maybeRegisterDiscovery(player, data, result, silent, shiny);
+        // An Auto Roll registers the find quietly; its "(new)" is already on the action bar.
+        maybeRegisterDiscovery(player, data, result, silent || auto, shiny);
         maybeBroadcast(player, result, previewItem, shiny);
     }
 

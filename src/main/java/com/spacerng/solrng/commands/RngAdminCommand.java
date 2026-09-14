@@ -37,7 +37,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             "reload", "setspawn", "starforge", "reset", "give", "drops",
             "bank", "aura", "roll", "unlock", "unlockall", "lockall", "odds", "farmblock", "farmscan",
             "hoe", "consumable", "gradient", "welcome", "crops", "farmclear",
-            "milestones", "farmfill", "boost", "nova", "placeholders", "payout", "crate", "tophead", "floatingitem", "shiny", "firsts", "help");
+            "milestones", "farmfill", "boost", "nova", "placeholders", "payout", "crate", "tophead", "floatingitem", "shiny", "firsts", "lorestyles", "help");
     private static final List<String> CURRENCIES = List.of("money", "coins", "gems", "credits");
 
     private final SolRNGPlugin plugin;
@@ -70,6 +70,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             case "roll" -> doRoll(sender, args);
             case "shiny" -> doShiny(sender, args);
             case "firsts" -> doFirsts(sender, args);
+            case "lorestyles" -> doLoreStyles(sender, args);
             case "unlock" -> doUnlock(sender, args);
             case "unlockall" -> doUnlockAll(sender, args);
             case "hoe" -> doHoe(sender, args);
@@ -400,6 +401,61 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
 
         sender.sendMessage(ChatColor.GREEN + "Playing the " + rarity.displayName() + " reveal aura on "
                 + target.getName() + ChatColor.GRAY + " (" + String.format("%.0f", duration / 20.0) + "s).");
+        return true;
+    }
+
+    // ----------------------------------------------------------- lorestyles
+
+    /**
+     * Hands out the same drop once per lore style, so the layouts can be
+     * compared by hovering in the inventory. The stack size is the style's
+     * number, which is why a stackable item is picked. The samples carry
+     * no drop tags, so they can't be converted or passed off as real.
+     */
+    private boolean doLoreStyles(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(ChatColor.RED + "Only a player can receive the samples.");
+            return true;
+        }
+        Rarity rarity = Rarity.LEGENDARY;
+        if (args.length >= 2) {
+            rarity = parseRarity(sender, args[1]);
+            if (rarity == null) return true;
+        }
+        boolean shiny = args.length >= 3 && args[2].equalsIgnoreCase("shiny");
+
+        RollableItem item = null;
+        for (int attempt = 0; attempt < 30; attempt++) {
+            RollableItem candidate = randomItemOf(rarity);
+            if (candidate == null) break;
+            item = candidate;
+            if (candidate.getMaterial().getMaxStackSize() >= 8) break;
+        }
+        if (item == null) {
+            sender.sendMessage(ChatColor.RED + "No items configured for " + rarity.displayName() + ".");
+            return true;
+        }
+
+        String name = com.spacerng.solrng.rarity.RollFormat.displayName(plugin, item, shiny);
+        com.spacerng.solrng.rarity.LoreStyle current = com.spacerng.solrng.rarity.LoreStyle.configured(plugin);
+        sender.sendMessage(ChatColor.AQUA + "Lore styles for " + name + ChatColor.GRAY + ", stack size is the number:");
+        int number = 0;
+        for (com.spacerng.solrng.rarity.LoreStyle style : com.spacerng.solrng.rarity.LoreStyle.values()) {
+            number++;
+            org.bukkit.inventory.ItemStack sample = new org.bukkit.inventory.ItemStack(item.getMaterial(), number);
+            org.bukkit.inventory.meta.ItemMeta meta = sample.getItemMeta();
+            meta.setDisplayName(name);
+            meta.setLore(style.build(plugin, item, shiny));
+            if (shiny) meta.setEnchantmentGlintOverride(Boolean.TRUE);
+            sample.setItemMeta(meta);
+            player.getInventory().addItem(sample);
+            sender.sendMessage(ChatColor.YELLOW + " " + number + "  " + ChatColor.WHITE + style.key()
+                    + ChatColor.GRAY + "  " + style.summary()
+                    + (style == current ? ChatColor.GREEN + "  (current)" : ""));
+        }
+        sender.sendMessage(ChatColor.GRAY + "Add " + ChatColor.YELLOW + "shiny" + ChatColor.GRAY
+                + " to see the shiny version. Pick one with " + ChatColor.YELLOW + "roll-item.lore-style"
+                + ChatColor.GRAY + " in config.yml, then /rngadmin reload.");
         return true;
     }
 
@@ -1442,6 +1498,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
                 case "aura" -> partial(args[1], List.of("epic", "legendary", "mythical", "divine"));
                 case "shiny" -> partial(args[1], playerNames());
                 case "firsts" -> partial(args[1], List.of("list", "reset", "preview"));
+                case "lorestyles" -> partial(args[1], rarityNames());
                 case "roll", "odds" -> partial(args[1], rarityNames());
                 case "unlock" -> partial(args[1], withAll(nodeIds()));
                 case "consumable" -> partial(args[1],

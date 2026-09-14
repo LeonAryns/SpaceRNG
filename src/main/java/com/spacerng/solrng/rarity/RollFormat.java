@@ -227,20 +227,25 @@ public final class RollFormat {
         return lore(plugin, item, false);
     }
 
+    /** The drop tooltip, in whichever layout roll-item.lore-style picks. */
     public static List<String> lore(SolRNGPlugin plugin, RollableItem item, boolean shiny) {
-        List<String> lore = new ArrayList<>();
+        return LoreStyle.configured(plugin).build(plugin, item, shiny);
+    }
+
+    /**
+     * The Auto Roll action bar line, "[Auto Roll] Shroomlight", with the
+     * name in its rarity's colour so the tier reads without a word for it.
+     * A first find gets a small "(new)" instead of a chat line.
+     */
+    public static String autoRollLine(SolRNGPlugin plugin, RollableItem item, boolean shiny, boolean newFind) {
+        String name = plugin.getRarityManager().style(item.getRarity(), item.getDisplayName());
         if (shiny) {
-            lore.add(ChatColor.AQUA + "" + ChatColor.BOLD + "SHINY "
-                    + ChatColor.RESET + ChatColor.DARK_GRAY + "1 in "
-                    + Math.round(1.0 / Math.max(0.0001, plugin.getConfig().getDouble("shiny.chance", 0.01)))
-                    + " drops");
-            lore.add("");
+            String marker = ChatColor.translateAlternateColorCodes('&',
+                    plugin.getConfig().getString("shiny.marker", "&b&l✦"));
+            name = marker + " " + name + ChatColor.RESET + " " + marker;
         }
-        lore.add(ChatColor.GRAY + "Rarity: " + plugin.getRarityManager().style(item.getRarity(), item.getRarity().displayName()));
-        lore.add(ChatColor.GRAY + "Chance: " + plugin.getRarityManager().style(item.getRarity(), chance(item.getOdds())));
-        lore.add(ChatColor.GRAY + "Index Luck: " + ChatColor.DARK_AQUA
-                + String.format("%.2f", item.getLuckMultiplier()) + "x");
-        return lore;
+        return ChatColor.AQUA + "[Auto Roll] " + name
+                + (newFind ? ChatColor.DARK_GRAY + " (" + ChatColor.GREEN + "new" + ChatColor.DARK_GRAY + ")" : "");
     }
 
     /**

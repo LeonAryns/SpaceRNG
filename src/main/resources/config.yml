@@ -28,6 +28,10 @@ roll-item:
   # The click track under a roll. It fires several times a second, so it
   # has to sit under the music rather than on top of it.
   roll-sound-volume: 0.12
+  # The tooltip layout on new drops: classic, pipe, compact, stats, card,
+  # ladder or story. /rngadmin lorestyles [rarity] [shiny] gives one sample
+  # of each to compare. Items already rolled keep the lore they came with.
+  lore-style: classic
   # Once in a while a roll comes out one tier rarer than it landed. It is
   # deliberately NOT affected by Luck: this is the moment a brand new
   # player gets something they had no business getting. Capped below the
