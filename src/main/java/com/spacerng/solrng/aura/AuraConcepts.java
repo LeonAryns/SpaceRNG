@@ -3,6 +3,7 @@ package com.spacerng.solrng.aura;
 import org.bukkit.Color;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.Player;
+import org.bukkit.util.Vector;
 import org.joml.Quaternionf;
 
 import java.util.ArrayList;
@@ -10,8 +11,10 @@ import java.util.List;
 
 import static com.spacerng.solrng.aura.AuraParts.FEET;
 import static com.spacerng.solrng.aura.AuraParts.flat;
+import static com.spacerng.solrng.aura.AuraParts.flatRotation;
 import static com.spacerng.solrng.aura.AuraParts.move;
 import static com.spacerng.solrng.aura.AuraParts.pair;
+import static com.spacerng.solrng.aura.AuraParts.pairStars;
 import static com.spacerng.solrng.aura.AuraParts.rad;
 import static com.spacerng.solrng.aura.AuraParts.single;
 import static com.spacerng.solrng.aura.AuraParts.softer;
@@ -27,6 +30,10 @@ import static com.spacerng.solrng.aura.AuraParts.upright;
  * one update every one or two seconds reads as a smooth orbit. Turns are
  * sent in steps of 120 degrees at most, because a slerp always takes the
  * short way round and a bigger step could reverse.
+ *
+ * A look that sends a turn of 120 degrees every n frames is, at any frame
+ * f, 120 * f / n degrees round, which is how {@code stars} finds its glyphs
+ * for accents without asking the client.
  */
 public final class AuraConcepts {
 
@@ -59,6 +66,11 @@ public final class AuraConcepts {
         return (int) ((frame / every + 1) % 3);
     }
 
+    /** Degrees turned by frame f for a look that turns 120 degrees every {@code every} frames. */
+    private static double turned(long frame, int every) {
+        return 120.0 * frame / every;
+    }
+
     // ------------------------------------------------------------------ orbit
 
     /** Two rings of stars, waist and shoulders, turning in opposite directions. */
@@ -86,6 +98,12 @@ public final class AuraConcepts {
             int step = step(frame, 10);
             move(displays.get(0), upright(WAIST, rad(120 * step), 2.0f), 20);
             move(displays.get(1), upright(SHOULDER, rad(90 - 120 * step), 1.6f), 20);
+        }
+
+        @Override
+        public void stars(long frame, List<Vector> out) {
+            pairStars(out, WAIST, new Quaternionf().rotateY(rad(turned(frame, 10))), 8, 2.0f);
+            pairStars(out, SHOULDER, new Quaternionf().rotateY(rad(90 - turned(frame, 10))), 8, 1.6f);
         }
     }
 
@@ -124,6 +142,16 @@ public final class AuraConcepts {
                 move(displays.get(3 + i), flat(FEET + 0.01f, rad(90 * i - 120 * step), 1.4f), 40);
             }
         }
+
+        @Override
+        public void stars(long frame, List<Vector> out) {
+            for (int i = 0; i < 3; i++) {
+                pairStars(out, FEET, flatRotation(rad(60 * i + turned(frame, 20))), 12, 1.8f);
+            }
+            for (int i = 0; i < 2; i++) {
+                pairStars(out, FEET + 0.01f, flatRotation(rad(90 * i - turned(frame, 20))), 6, 1.4f);
+            }
+        }
     }
 
     // ------------------------------------------------------------------- halo
@@ -154,6 +182,13 @@ public final class AuraConcepts {
             int step = step(frame, 10);
             for (int i = 0; i < 3; i++) {
                 move(displays.get(i), flat(Y, rad(60 * i + 120 * step), 1.1f), 20);
+            }
+        }
+
+        @Override
+        public void stars(long frame, List<Vector> out) {
+            for (int i = 0; i < 3; i++) {
+                pairStars(out, Y, flatRotation(rad(60 * i + turned(frame, 10))), 6, 1.1f);
             }
         }
     }
@@ -320,9 +355,19 @@ public final class AuraConcepts {
             int step = step(frame, 10);
             for (int k = 0; k < 3; k++) {
                 // The middle orbit runs the other way, so the three never line up.
-                int direction = k == 1 ? -1 : 1;
-                move(displays.get(k), tilted(CHEST, TILTS[k], rad(direction * 120 * step), 1.7f), 20);
+                move(displays.get(k), tilted(CHEST, TILTS[k], rad(direction(k) * 120 * step), 1.7f), 20);
             }
+        }
+
+        @Override
+        public void stars(long frame, List<Vector> out) {
+            for (int k = 0; k < 3; k++) {
+                pairStars(out, CHEST, new Quaternionf(TILTS[k]).rotateY(rad(direction(k) * turned(frame, 10))), 7, 1.7f);
+            }
+        }
+
+        private static int direction(int k) {
+            return k == 1 ? -1 : 1;
         }
     }
 
@@ -353,6 +398,13 @@ public final class AuraConcepts {
         public void tick(List<Display> displays, long frame) {
             for (int i = 0; i < looks.length; i++) {
                 looks[i].tick(displays.subList(starts[i], starts[i + 1]), frame);
+            }
+        }
+
+        @Override
+        public void stars(long frame, List<Vector> out) {
+            for (AuraConcept look : looks) {
+                look.stars(frame, out);
             }
         }
     }

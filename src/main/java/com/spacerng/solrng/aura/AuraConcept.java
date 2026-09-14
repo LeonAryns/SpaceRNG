@@ -17,4 +17,11 @@ public interface AuraConcept {
 
     /** Called every 2 ticks while worn; {@code frame} counts those calls from 0. */
     void tick(List<Display> displays, long frame);
+
+    /**
+     * Where this look's stars are at {@code frame}, relative to the feet,
+     * for accents that follow them. A look that can't say leaves it empty.
+     */
+    default void stars(long frame, List<org.bukkit.util.Vector> out) {
+    }
 }

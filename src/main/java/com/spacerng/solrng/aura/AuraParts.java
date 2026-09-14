@@ -92,6 +92,29 @@ public final class AuraParts {
         return pose(y, new Quaternionf(tilt).rotateY(angle), scale);
     }
 
+    /** How high a passenger rides above the feet of a standing player. */
+    public static final float RIDE = 1.8f;
+
+    /**
+     * Where a pair display's two glyphs sit, relative to the feet, run
+     * through the same rotation the display is drawn with. The glyph's
+     * centre is about four and a half font pixels above the text baseline.
+     */
+    public static void pairStars(java.util.List<org.bukkit.util.Vector> out, float y, Quaternionf rotation,
+                                 int spaces, float scale) {
+        float radius = (4 + 2 * spaces) * 0.025f * scale;
+        float lift = 4.5f * 0.025f * scale;
+        for (int side = -1; side <= 1; side += 2) {
+            Vector3f point = rotation.transform(new Vector3f(side * radius, lift, 0f));
+            out.add(new org.bukkit.util.Vector(point.x, RIDE + y + point.y, point.z));
+        }
+    }
+
+    /** The rotation {@link #flat} uses, for working out where its glyphs are. */
+    public static Quaternionf flatRotation(float angle) {
+        return new Quaternionf().rotateY(angle).rotateX(rad(-90));
+    }
+
     /** Sends a new pose that the client glides to over {@code ticks}; 0 snaps. */
     public static void move(Display display, Transformation pose, int ticks) {
         display.setInterpolationDelay(0);

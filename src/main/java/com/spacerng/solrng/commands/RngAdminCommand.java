@@ -418,7 +418,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         }
         String concepts = String.join("|", com.spacerng.solrng.aura.AuraConcepts.KEYS);
         if (args.length < 2) {
-            sender.sendMessage(ChatColor.RED + "Usage: /rngadmin auratest <" + concepts + "|off> [rarity]");
+            sender.sendMessage(ChatColor.RED + "Usage: /rngadmin auratest <" + concepts + "|off> [rarity] [accent]");
             return true;
         }
         String key = args[1].toLowerCase(Locale.ROOT);
@@ -432,7 +432,16 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             rarity = parseRarity(sender, args[2]);
             if (rarity == null) return true;
         }
-        if (!plugin.getAuraManager().show(player, key, rarity)) {
+        com.spacerng.solrng.aura.AuraAccent accent = com.spacerng.solrng.aura.AuraAccent.NONE;
+        if (args.length >= 4) {
+            accent = com.spacerng.solrng.aura.AuraAccent.parse(args[3]);
+            if (accent == null) {
+                sender.sendMessage(ChatColor.RED + "Unknown accent. Try "
+                        + String.join("|", com.spacerng.solrng.aura.AuraAccent.KEYS) + ".");
+                return true;
+            }
+        }
+        if (!plugin.getAuraManager().show(player, key, rarity, accent)) {
             sender.sendMessage(ChatColor.RED + "Unknown concept. Try " + concepts + ".");
             return true;
         }
@@ -1526,6 +1535,9 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             return partial(args[2], List.of("legacy"));
         }
 
+        if (args.length == 4 && args[0].equalsIgnoreCase("auratest")) {
+            return partial(args[3], com.spacerng.solrng.aura.AuraAccent.KEYS);
+        }
         String sub = args[0].toLowerCase(Locale.ROOT);
         if (sub.equals("crate")) return crateTab(args);
         if (sub.equals("tophead")) return topHeadTab(args);

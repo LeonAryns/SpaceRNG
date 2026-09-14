@@ -4,6 +4,8 @@ import com.spacerng.solrng.SolRNGPlugin;
 import com.spacerng.solrng.rarity.Rarity;
 import com.spacerng.solrng.roll.RollAura;
 import org.bukkit.Bukkit;
+import org.bukkit.Color;
+import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.entity.Display;
@@ -12,17 +14,20 @@ import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitTask;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.UUID;
 
 /**
  * Worn auras: display entities mounted straight onto the player as
  * passengers, the same way the floating tag is. The client carries
  * passengers with their vehicle every frame, so an aura follows its player
- * with no lag and no server-side movement at all.
+ * with no lag and no server-side movement at all. An optional particle
+ * accent is drawn on top, per viewer.
  *
  * Cleanup is layered so nothing can be left floating in the world:
  * pieces are non-persistent, so a chunk never saves them; they are removed
@@ -32,13 +37,22 @@ import java.util.UUID;
  */
 public final class AuraManager {
 
+    // Accent particles reach this far; past it they are cost with no one watching.
+    private static final double ACCENT_RANGE = 32.0;
+
     private static final class Worn {
         final AuraConcept concept;
+        final Rarity rarity;
+        final Color color;
+        final AuraAccent accent;
         List<Display> displays = List.of();
         long frame = 0L;
 
-        Worn(AuraConcept concept) {
+        Worn(AuraConcept concept, Rarity rarity, Color color, AuraAccent accent) {
             this.concept = concept;
+            this.rarity = rarity;
+            this.color = color;
+            this.accent = accent;
         }
     }
 
@@ -46,6 +60,7 @@ public final class AuraManager {
     private final NamespacedKey tag;
     private final AuraParts parts;
     private final Map<UUID, Worn> worn = new HashMap<>();
+    private final Random random = new Random();
     private BukkitTask task;
 
     public AuraManager(SolRNGPlugin plugin) {
@@ -66,11 +81,12 @@ public final class AuraManager {
     }
 
     /** Puts a concept on a player in a rarity's colours. False if the concept doesn't exist. */
-    public boolean show(Player player, String conceptKey, Rarity rarity) {
-        AuraConcept concept = AuraConcepts.create(conceptKey, RollAura.colorFor(rarity));
+    public boolean show(Player player, String conceptKey, Rarity rarity, AuraAccent accent) {
+        Color color = RollAura.colorFor(rarity);
+        AuraConcept concept = AuraConcepts.create(conceptKey, color);
         if (concept == null) return false;
         hide(player.getUniqueId());
-        Worn aura = new Worn(concept);
+        Worn aura = new Worn(concept, rarity, color, accent == null ? AuraAccent.NONE : accent);
         worn.put(player.getUniqueId(), aura);
         mount(player, aura);
         return true;
@@ -98,13 +114,33 @@ public final class AuraManager {
             }
             try {
                 if (!mounted(player, aura)) mount(player, aura);
-                aura.concept.tick(aura.displays, aura.frame++);
+                long frame = aura.frame++;
+                aura.concept.tick(aura.displays, frame);
+                if (aura.accent != AuraAccent.NONE) {
+                    List<Player> audience = audience(player, aura.rarity);
+                    if (!audience.isEmpty()) {
+                        aura.accent.play(new AuraFx(player, audience, aura.color), aura.concept, frame, random);
+                    }
+                }
             } catch (RuntimeException ex) {
                 plugin.getLogger().warning("Aura on " + player.getName() + " failed and was removed: " + ex);
                 despawn(aura);
                 it.remove();
             }
         }
+    }
+
+    /** Players close enough to see the accent who haven't switched this rarity's aura off. */
+    private List<Player> audience(Player wearer, Rarity rarity) {
+        List<Player> viewers = new ArrayList<>();
+        Location at = wearer.getLocation();
+        double rangeSq = ACCENT_RANGE * ACCENT_RANGE;
+        for (Player viewer : wearer.getWorld().getPlayers()) {
+            if (viewer.getLocation().distanceSquared(at) > rangeSq) continue;
+            if (!plugin.getPlayerDataManager().get(viewer.getUniqueId()).isAuraEnabled(rarity)) continue;
+            viewers.add(viewer);
+        }
+        return viewers;
     }
 
     private boolean mounted(Player player, Worn aura) {
