@@ -29,18 +29,17 @@ public final class RollFormat {
     }
 
     /**
-     * A shiny keeps the drop's own colours but gains a marker on both
-     * sides, so it reads as "the same thing, rarer" rather than a
-     * different item.
+     * A shiny swaps the drop's own colours for the shiny gradient and gains
+     * a marker on both sides, so it can't be mistaken for the plain drop in
+     * an inventory, a chat line, the reel or a broadcast.
      */
     public static String displayName(SolRNGPlugin plugin, RollableItem item, boolean shiny) {
-        String name = plugin.getRarityManager().styleItemName(item);
-        if (!shiny) return name;
+        if (!shiny) return plugin.getRarityManager().styleItemName(item);
         String mark = plugin.getConfig().getString("shiny.marker", "&b&l\u2726");
         String marker = ChatColor.translateAlternateColorCodes('&', mark);
         // An explicit reset before the trailing marker, so nothing in the
         // name's own gradient can swallow it.
-        return marker + " " + name + ChatColor.RESET + " " + marker;
+        return marker + " " + plugin.getRarityManager().styleShinyName(item) + ChatColor.RESET + " " + marker;
     }
 
     // Legacy chat only has 16 colors, so this is an approximation of each
@@ -238,12 +237,9 @@ public final class RollFormat {
      * A first find gets a small "(new)" instead of a chat line.
      */
     public static String autoRollLine(SolRNGPlugin plugin, RollableItem item, boolean shiny, boolean newFind) {
-        String name = plugin.getRarityManager().style(item.getRarity(), item.getDisplayName());
-        if (shiny) {
-            String marker = ChatColor.translateAlternateColorCodes('&',
-                    plugin.getConfig().getString("shiny.marker", "&b&l✦"));
-            name = marker + " " + name + ChatColor.RESET + " " + marker;
-        }
+        String name = shiny
+                ? displayName(plugin, item, true)
+                : plugin.getRarityManager().style(item.getRarity(), item.getDisplayName());
         return ChatColor.AQUA + "[Auto Roll] " + name
                 + (newFind ? ChatColor.DARK_GRAY + " (" + ChatColor.GREEN + "new" + ChatColor.DARK_GRAY + ")" : "");
     }

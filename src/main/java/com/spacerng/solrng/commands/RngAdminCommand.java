@@ -515,7 +515,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
                     sender.sendMessage(ChatColor.RED + "No items configured for " + rarity.displayName() + ".");
                     return true;
                 }
-                firsts.preview(sender instanceof Player player ? player : null, item);
+                firsts.preview(sender instanceof Player player ? player : null, item, args.length >= 4 && args[3].equalsIgnoreCase("shiny"));
             }
             default -> sender.sendMessage(usage);
         }

@@ -439,7 +439,7 @@ public class RollListener implements Listener {
                     // A candidate stays up until the next one replaces it, so
                     // the slow frames at the end hang instead of blinking out;
                     // the landing holds until the roll finishes.
-                    showRollTitle(player, landed ? result : teaser(data, result, step), landed && shiny,
+                    showRollTitle(player, landed ? result : teaser(data, result, step), shiny,
                             landed ? (rollTicks - rollElapsed) * 50L + 400L : 1500L);
                 }
             }
@@ -594,7 +594,7 @@ public class RollListener implements Listener {
 
         // Server First 10 hangs off the real roll path only, so an admin
         // roll can never take a spot. The event waits for the reveal.
-        plugin.getFirstTenManager().onRoll(player, result,
+        plugin.getFirstTenManager().onRoll(player, result, shiny,
                 finaleTicks + RollAura.titleDelayTicks(result.getRarity()) + 10L);
 
         // Double Roll skill tree branch: a chance to immediately chain into

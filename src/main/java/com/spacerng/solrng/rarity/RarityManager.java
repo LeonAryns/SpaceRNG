@@ -318,12 +318,56 @@ public class RarityManager {
         String colored = item.getStyle() != null
                 ? item.getStyle().apply(item.getDisplayName())
                 : RollFormat.naturalColor(item.getMaterial()) + item.getDisplayName();
+        return withFlair ? withFlair(item, colored) : colored;
+    }
 
-        if (!withFlair || !Boolean.TRUE.equals(symbolFlair.get(item.getRarity()))) {
-            return colored;
+    private static final List<String> SHINY_COLORS = List.of("#3CE8FF", "#A6F7FF");
+
+    /**
+     * A shiny's name: the drop's own colours are swapped for the shiny aqua
+     * gradient, in bold, so a shiny reads as shiny before its markers are
+     * even noticed. The flair follows the same rules as the plain name.
+     */
+    public String styleShinyName(RollableItem item) {
+        RarityStyle shine = buildStyle(SHINY_COLORS, true, false, false);
+        return withFlair(item, shine.apply(item.getDisplayName()));
+    }
+
+    /**
+     * Wraps a coloured name in the obfuscated flair when its rarity asks for
+     * it. Each flair carries the colour of the name beside it: a bare flair
+     * inherited whatever came before it, which in a chat line was the grey
+     * of ": " and left the first glyph the wrong colour.
+     */
+    private String withFlair(RollableItem item, String colored) {
+        if (!Boolean.TRUE.equals(symbolFlair.get(item.getRarity()))) return colored;
+        String left = leadingCodes(colored) + ChatColor.MAGIC + "#" + ChatColor.RESET;
+        String right = lastColour(colored) + ChatColor.MAGIC + "#" + ChatColor.RESET;
+        return left + " " + colored + ChatColor.RESET + " " + right;
+    }
+
+    /** The colour and format codes a legacy string starts with. */
+    private static String leadingCodes(String legacy) {
+        int i = 0;
+        while (i + 1 < legacy.length() && legacy.charAt(i) == ChatColor.COLOR_CHAR) i += 2;
+        return legacy.substring(0, i);
+    }
+
+    /** The last colour a legacy string sets, hex or classic, or "" if it sets none. */
+    private static String lastColour(String legacy) {
+        String last = "";
+        for (int i = 0; i + 1 < legacy.length(); i++) {
+            if (legacy.charAt(i) != ChatColor.COLOR_CHAR) continue;
+            char code = Character.toLowerCase(legacy.charAt(i + 1));
+            if (code == 'x' && i + 14 <= legacy.length()) {
+                last = legacy.substring(i, i + 14);
+                i += 13;
+            } else if ("0123456789abcdef".indexOf(code) >= 0) {
+                last = legacy.substring(i, i + 2);
+                i++;
+            }
         }
-        String flair = ChatColor.MAGIC + "#" + ChatColor.RESET;
-        return flair + " " + colored + " " + flair;
+        return last;
     }
 
     public double luckFactorFor(Rarity rarity) {

@@ -111,7 +111,7 @@ public final class FirstTenManager {
      * still free and this player doesn't already hold one in it, then
      * schedules the event for after the reveal has played out.
      */
-    public void onRoll(Player player, RollableItem item, long delayTicks) {
+    public void onRoll(Player player, RollableItem item, boolean shiny, long delayTicks) {
         Rarity rarity = item.getRarity();
         if (!trackedRarities().contains(rarity)) return;
         List<Entry> list = entries.computeIfAbsent(rarity, key -> new ArrayList<>());
@@ -129,14 +129,14 @@ public final class FirstTenManager {
         UUID roller = player.getUniqueId();
         String name = player.getName();
         plugin.getServer().getScheduler().runTaskLater(plugin,
-                () -> announce(roller, name, item, place, false), Math.max(1L, delayTicks));
+                () -> announce(roller, name, item, shiny, place, false), Math.max(1L, delayTicks));
     }
 
     /** Plays the whole event without recording anything. */
-    public void preview(Player viewer, RollableItem item) {
+    public void preview(Player viewer, RollableItem item, boolean shiny) {
         int place = Math.min(slots(), entries.getOrDefault(item.getRarity(), List.of()).size() + 1);
         announce(viewer == null ? null : viewer.getUniqueId(),
-                viewer == null ? "Console" : viewer.getName(), item, place, true);
+                viewer == null ? "Console" : viewer.getName(), item, shiny, place, true);
     }
 
     public void reset(Rarity rarity) {
@@ -151,7 +151,7 @@ public final class FirstTenManager {
 
     // ---------------------------------------------------------------- event
 
-    private void announce(UUID roller, String name, RollableItem item, int place, boolean preview) {
+    private void announce(UUID roller, String name, RollableItem item, boolean shiny, int place, boolean preview) {
         Rarity rarity = item.getRarity();
         int slots = slots();
         int left = Math.max(0, slots - place);
@@ -162,10 +162,13 @@ public final class FirstTenManager {
                 + plugin.getRarityManager().style(rarity, "✦ SERVER FIRST " + slots + " ✦");
         String line = ChatColor.YELLOW + name + ChatColor.GRAY + " is " + ChatColor.WHITE + "#" + place
                 + ChatColor.GRAY + " of the first " + slots + " to find " + article + word
-                + ChatColor.GRAY + ": " + RollFormat.displayName(plugin, item);
-        String footer = left > 0
-                ? ChatColor.GRAY + "" + left + (left == 1 ? " spot" : " spots") + " left"
-                : ChatColor.RED + "That was the last spot.";
+                + ChatColor.GRAY + ": " + RollFormat.displayName(plugin, item, shiny);
+        // The spots as a meter: taken in the rarity's colour, free in grey.
+        String meter = plugin.getRarityManager().style(rarity, "▬".repeat(place))
+                + ChatColor.DARK_GRAY + "▬".repeat(left);
+        String footer = meter + "  " + (left > 0
+                ? ChatColor.WHITE + "" + left + ChatColor.GRAY + (left == 1 ? " spot left" : " spots left")
+                : ChatColor.RED + "Every spot is taken");
         Component banner = LegacyComponentSerializer.legacySection()
                 .deserialize(header + "\n" + line + "\n" + footer);
 

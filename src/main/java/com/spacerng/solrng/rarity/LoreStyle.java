@@ -16,11 +16,11 @@ import java.util.List;
  * changes drops rolled after it.
  */
 public enum LoreStyle {
-    CLASSIC("classic", "labelled lines, what drops use today"),
+    CLASSIC("classic", "labelled lines, the original layout"),
     PIPE("pipe", "a coloured bar down the left, sectioned"),
     COMPACT("compact", "two short lines and nothing else"),
     STATS("stats", "stat rows behind rarity-coloured bullets"),
-    CARD("card", "a framed card with rules above and below"),
+    CARD("card", "framed card with full-width rules and bulleted rows"),
     LADDER("ladder", "a seven-step bar showing where the rarity sits"),
     STORY("story", "plain sentences instead of labels");
 
@@ -41,7 +41,7 @@ public enum LoreStyle {
     }
 
     public static LoreStyle configured(SolRNGPlugin plugin) {
-        return parse(plugin.getConfig().getString("roll-item.lore-style", "classic"));
+        return parse(plugin.getConfig().getString("roll-item.lore-style", "card"));
     }
 
     public static LoreStyle parse(String raw) {
@@ -50,7 +50,7 @@ public enum LoreStyle {
                 if (style.key.equalsIgnoreCase(raw.trim())) return style;
             }
         }
-        return CLASSIC;
+        return CARD;
     }
 
     public List<String> build(SolRNGPlugin plugin, RollableItem item, boolean shiny) {
@@ -101,15 +101,31 @@ public enum LoreStyle {
                 }
             }
             case CARD -> {
-                String rule = ChatColor.DARK_GRAY + "⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯";
-                lore.add(rule);
-                lore.add("  " + rarities.style(rarity, (shiny ? "✦ Shiny " : "") + rarity.displayName() + " drop"));
-                lore.add(rule);
-                lore.add("  " + ChatColor.GRAY + "Odds  " + ChatColor.WHITE + odds);
-                lore.add("  " + ChatColor.GRAY + "Index Luck  " + ChatColor.DARK_AQUA + luck);
+                // The card from style 5 with the bulleted rows from style 4.
+                // A shiny keeps the same frame but in aqua, with its own row.
+                String title = "  " + (shiny
+                        ? ChatColor.AQUA + "✦ Shiny " + rarities.style(rarity, rarity.displayName() + " drop")
+                        : rarities.style(rarity, rarity.displayName() + " drop"));
+                String bullet = rarities.style(rarity, "▎");
+                List<String> rows = new ArrayList<>();
+                rows.add(bullet + " " + ChatColor.GRAY + "Odds  " + ChatColor.WHITE + odds);
+                rows.add(bullet + " " + ChatColor.GRAY + "Index Luck  " + ChatColor.DARK_AQUA + luck);
                 if (shiny) {
-                    lore.add("  " + ChatColor.GRAY + "Shiny  " + ChatColor.AQUA + shinyOdds);
+                    rows.add(ChatColor.AQUA + "▎ " + ChatColor.GRAY + "Shiny  " + ChatColor.AQUA + shinyOdds + " drops");
                 }
+
+                // The tooltip is as wide as its widest line, so a rule cut
+                // to at least that width runs edge to edge instead of
+                // stopping short like a fixed row of dashes did.
+                int widest = Math.max(pixelWidth(RollFormat.displayName(plugin, item, shiny)), pixelWidth(title));
+                for (String row : rows) widest = Math.max(widest, pixelWidth(row));
+                String rule = (shiny ? ChatColor.DARK_AQUA : ChatColor.DARK_GRAY) + "" + ChatColor.STRIKETHROUGH
+                        + " ".repeat(widest / 4 + 2);
+
+                lore.add(rule);
+                lore.add(title);
+                lore.add(rule);
+                lore.addAll(rows);
                 lore.add(rule);
             }
             case LADDER -> {
@@ -135,5 +151,43 @@ public enum LoreStyle {
             }
         }
         return lore;
+    }
+
+    /**
+     * Roughly how wide a legacy-coloured line renders in a tooltip, in GUI
+     * pixels. Minecraft's font is proportional: most ASCII advances 6, a
+     * few narrow glyphs less, bold adds one per glyph, and anything outside
+     * ASCII is counted generously so a rule is never shorter than the text.
+     */
+    static int pixelWidth(String legacy) {
+        int width = 0;
+        boolean bold = false;
+        for (int i = 0; i < legacy.length(); i++) {
+            char c = legacy.charAt(i);
+            if (c == ChatColor.COLOR_CHAR && i + 1 < legacy.length()) {
+                char code = Character.toLowerCase(legacy.charAt(++i));
+                if (code == 'l') {
+                    bold = true;
+                } else if (code == 'r' || "0123456789abcdefx".indexOf(code) >= 0) {
+                    bold = false;
+                }
+                continue;
+            }
+            width += advance(c) + (bold ? 1 : 0);
+        }
+        return width;
+    }
+
+    private static int advance(char c) {
+        if (c == ' ') return 4;
+        if (c > 126) return c == '·' ? 2 : 9;
+        return switch (c) {
+            case 'i', '!', '|', '.', ',', ':', ';', '\'' -> 2;
+            case 'l', '`' -> 3;
+            case 'I', 't', '[', ']', '(', ')', '{', '}', '"', '*' -> 4;
+            case 'f', 'k', '<', '>' -> 5;
+            case '@', '~' -> 7;
+            default -> 6;
+        };
     }
 }
