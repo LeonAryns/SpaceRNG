@@ -97,6 +97,19 @@ Load the matching skill before touching its area:
   degrees per update); item pieces move their translation in small steps.
   The tag rarity picks the look from `auras:` in config; `/rngadmin
   auratest list` shows every concept and accent.
+- **Changing a default outside a structural section.** The live config
+  keeps its old value, so add a one-off patch in `ConfigMigrator`:
+  `Patch` for a fixed path, `EntryPatch` for one field of a list entry
+  by id (the guide quests). Both only replace a value that still equals
+  the old default. V114 moved skills and left the live guide hints
+  pointing at the old spots until V116.
+- **Roll showcase** (`roll/RollShowcase`) rides the player with billboard
+  CENTER, and its translation is in the camera's frame (minus Z ahead,
+  minus Y down the screen), so the client pins it to the screen without
+  lag. Teleporting it every two ticks trailed every head turn. It sits
+  low because the client pins the title and subtitle to the middle of
+  the screen and nothing can move them. The reel lands at
+  `REEL_LANDS_AT` (78%) in `RollListener` and holds the rest of the roll.
 - **Inserting a config section.** Check you are not landing inside
   another section. V93 put `linked-account:` between `shiny.chance` and
   the rest of `shiny:`, which silently moved `node`, `marker` and

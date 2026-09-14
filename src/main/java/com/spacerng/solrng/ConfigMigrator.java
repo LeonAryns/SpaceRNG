@@ -10,6 +10,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
 
@@ -48,6 +49,23 @@ public final class ConfigMigrator {
     private static final List<Patch> PATCHES = List.of(
             // V108: Common's label went from grey to white at Leon's request.
             new Patch("common-label-white", "rarities.COMMON.colors", List.of("&7"), List.of("&f")));
+
+    /** Like a Patch, for one field of the entry with a given id inside a list of maps. */
+    private record EntryPatch(String id, String list, String entryId, String field, Object oldDefault,
+                              Object newDefault) {
+    }
+
+    private static final List<EntryPatch> ENTRY_PATCHES = List.of(
+            // V114 moved Index Luck, Armor and Farming earlier in the skill tree.
+            new EntryPatch("guide-hint-index-luck", "guide.quests", "index_luck", "hint",
+                    "In /skilltree, right of Luck. It's what lets you equip a tag.",
+                    "In /skilltree, right above Luck I. It's what lets you equip a tag."),
+            new EntryPatch("guide-hint-armor", "guide.quests", "armor_unlock", "hint",
+                    "Buy Armor Unlocked in /skilltree, above Farming.",
+                    "Buy Armor in /skilltree, right after Money I."),
+            new EntryPatch("guide-hint-farming", "guide.quests", "farming_unlock", "hint",
+                    "Buy Farming Unlocked in /skilltree to get the Farmer's Hoe.",
+                    "Buy Farming in /skilltree, right after Armor, to get the Farmer's Hoe."));
 
     private ConfigMigrator() {
     }
@@ -117,6 +135,23 @@ public final class ConfigMigrator {
                         + " is now " + patch.newDefault());
             }
             // Marked applied either way, so a value chosen by hand is never revisited.
+            applied.add(patch.id());
+            changed = true;
+        }
+        for (EntryPatch patch : ENTRY_PATCHES) {
+            if (applied.contains(patch.id())) continue;
+            List<Map<?, ?>> entries = disk.getMapList(patch.list());
+            for (Map<?, ?> entry : entries) {
+                if (!patch.entryId().equals(entry.get("id"))) continue;
+                if (Objects.equals(entry.get(patch.field()), patch.oldDefault())) {
+                    @SuppressWarnings("unchecked")
+                    Map<Object, Object> editable = (Map<Object, Object>) entry;
+                    editable.put(patch.field(), patch.newDefault());
+                    disk.set(patch.list(), entries);
+                    plugin.getLogger().info("Config patch " + patch.id() + ": " + patch.list() + " "
+                            + patch.entryId() + "." + patch.field() + " updated");
+                }
+            }
             applied.add(patch.id());
             changed = true;
         }
