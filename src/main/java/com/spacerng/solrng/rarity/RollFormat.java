@@ -234,15 +234,14 @@ public final class RollFormat {
     /**
      * The Auto Roll action bar line, "[Auto Roll] Shroomlight", with the
      * name in its rarity's colour so the tier reads without a word for it.
-     * A first find gets a small "(new)" instead of a chat line.
+     * A first find is announced in chat, not here.
      */
-    public static String autoRollLine(SolRNGPlugin plugin, RollableItem item, boolean shiny, boolean newFind) {
+    public static String autoRollLine(SolRNGPlugin plugin, RollableItem item, boolean shiny) {
         // The drop in its own colours, the same as its name everywhere else.
         String name = displayName(plugin, item, shiny);
         return ChatColor.AQUA + "[Auto Roll] "
                 + plugin.getRarityManager().style(item.getRarity(), item.getRarity().displayName())
-                + ChatColor.DARK_GRAY + " \u00b7 " + name
-                + (newFind ? ChatColor.DARK_GRAY + " (" + ChatColor.GREEN + "new" + ChatColor.DARK_GRAY + ")" : "");
+                + ChatColor.DARK_GRAY + " \u00b7 " + name;
     }
 
     /**

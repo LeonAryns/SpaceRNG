@@ -667,8 +667,8 @@ public class RollListener implements Listener {
 
     /**
      * {@code auto} is an Auto Roll landing: it reports on the action bar
-     * instead of chat, "[Auto Roll] Shroomlight", with "(new)" on a first
-     * find. Server broadcasts for big drops still go out as normal.
+     * instead of chat, "[Auto Roll] Shroomlight". A first find still gets
+     * its chat line. Server broadcasts for big drops go out as normal.
      */
     public void grantRoll(Player player, PlayerData data, RollableItem result, boolean silent, boolean shiny,
                           boolean auto) {
@@ -679,7 +679,6 @@ public class RollListener implements Listener {
         // Read before the discovery is registered, so a first find pays the
         // normal rate and only genuine repeats get the Duplicate bonus.
         boolean duplicate = data.hasDiscovered(result.getDisplayName());
-        boolean newFind = !duplicate || (shiny && !data.hasDiscoveredShiny(result.getDisplayName()));
         double moneyEarned = depositRollMoney(player, data, result, duplicate);
 
         // A shiny is only ever auto-converted by its OWN switch. The normal
@@ -721,7 +720,7 @@ public class RollListener implements Listener {
         }
 
         if (!silent && auto) {
-            sendActionBar(player, RollFormat.autoRollLine(plugin, result, shiny, newFind) + moneyLine(moneyEarned));
+            sendActionBar(player, RollFormat.autoRollLine(plugin, result, shiny) + moneyLine(moneyEarned));
         } else if (!silent) {
             // Money green, like it is everywhere else. Gold here made the
             // one currency with its own colour the only one not using it.

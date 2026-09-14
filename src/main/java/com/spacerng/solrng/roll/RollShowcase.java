@@ -21,15 +21,17 @@ import org.joml.Vector3f;
  * One item display, not mounted: a passenger can't sit in front of the
  * face, because it doesn't turn with the head. It is moved to a point
  * ahead of the eyes every two ticks and the client glides it there over
- * the same two ticks. It sits below the crosshair so it doesn't cover the
- * title, and faces the camera from any angle.
+ * the same two ticks. It sits well below the crosshair so it doesn't cover
+ * the title or subtitle, and faces the camera from any angle.
  */
 public final class RollShowcase {
 
     private static final double AHEAD = 1.5;
-    private static final double BELOW = 0.25;
-    private static final float SIZE = 0.38f;
-    private static final float LANDED_SIZE = 0.62f;
+    // The client pins the title and subtitle to the middle of the screen, so
+    // the item goes low enough that even landed it clears the subtitle.
+    private static final double BELOW = 0.55;
+    private static final float SIZE = 0.34f;
+    private static final float LANDED_SIZE = 0.5f;
 
     private final SolRNGPlugin plugin;
     private final Player player;
@@ -95,7 +97,12 @@ public final class RollShowcase {
     private Location target() {
         Location eye = player.getEyeLocation();
         Vector ahead = eye.getDirection().multiply(AHEAD);
-        Location at = eye.add(ahead).add(0.0, -BELOW, 0.0);
+        // Down along the screen rather than the world, so looking up or down
+        // doesn't slide it back under the title.
+        Location screenUp = eye.clone();
+        screenUp.setPitch(eye.getPitch() - 90f);
+        Vector down = screenUp.getDirection().multiply(-BELOW);
+        Location at = eye.add(ahead).add(down);
         at.setYaw(0f);
         at.setPitch(0f);
         return at;
