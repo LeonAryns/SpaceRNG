@@ -240,7 +240,9 @@ public final class RollFormat {
         String name = shiny
                 ? displayName(plugin, item, true)
                 : plugin.getRarityManager().style(item.getRarity(), item.getDisplayName());
-        return ChatColor.AQUA + "[Auto Roll] " + name
+        return ChatColor.AQUA + "[Auto Roll] "
+                + plugin.getRarityManager().style(item.getRarity(), item.getRarity().displayName())
+                + ChatColor.DARK_GRAY + " \u00b7 " + name
                 + (newFind ? ChatColor.DARK_GRAY + " (" + ChatColor.GREEN + "new" + ChatColor.DARK_GRAY + ")" : "");
     }
 

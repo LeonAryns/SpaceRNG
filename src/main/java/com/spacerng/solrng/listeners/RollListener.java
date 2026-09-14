@@ -615,6 +615,15 @@ public class RollListener implements Listener {
         }
     }
 
+    /** What a roll paid, for the end of an action bar line; empty when Vault paid nothing. */
+    private static String moneyLine(double moneyEarned) {
+        return moneyEarned > 0
+                ? com.spacerng.solrng.gui.Currency.MONEY.numberColour()
+                        + "  +" + RollFormat.abbreviate(Math.round(moneyEarned))
+                        + com.spacerng.solrng.gui.Currency.MONEY.colour() + " Money"
+                : "";
+    }
+
     private void sendActionBar(Player player, String text) {
         player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(text));
     }
@@ -693,10 +702,7 @@ public class RollListener implements Listener {
         }
 
         if (!silent && auto) {
-            sendActionBar(player, RollFormat.autoRollLine(plugin, result, shiny, newFind));
-            if (newFind) {
-                player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.8f, shiny ? 1.8f : 1.3f);
-            }
+            sendActionBar(player, RollFormat.autoRollLine(plugin, result, shiny, newFind) + moneyLine(moneyEarned));
         } else if (!silent) {
             // Money green, like it is everywhere else. Gold here made the
             // one currency with its own colour the only one not using it.
@@ -715,8 +721,9 @@ public class RollListener implements Listener {
             player.playSound(player.getLocation(), Sound.BLOCK_BREWING_STAND_BREW, 0.6f, 0.7f);
         }
 
-        // An Auto Roll registers the find quietly; its "(new)" is already on the action bar.
-        maybeRegisterDiscovery(player, data, result, silent || auto, shiny);
+        // A new find is still news on Auto Roll, so it reaches chat; only
+        // the action bar stays with the Auto Roll line.
+        maybeRegisterDiscovery(player, data, result, silent, shiny, auto);
         maybeBroadcast(player, result, previewItem, shiny);
     }
 
@@ -759,7 +766,7 @@ public class RollListener implements Listener {
      * item is itself a form of progression.
      */
     private void maybeRegisterDiscovery(Player player, PlayerData data, RollableItem result, boolean silent,
-                                        boolean shiny) {
+                                        boolean shiny, boolean auto) {
         boolean newBase = !data.hasDiscovered(result.getDisplayName());
         boolean newShiny = shiny && !data.hasDiscoveredShiny(result.getDisplayName());
         if (!newBase && !newShiny) return;
@@ -775,7 +782,7 @@ public class RollListener implements Listener {
                 + ChatColor.GRAY + " added to your index "
                 + ChatColor.DARK_AQUA + "(" + String.format("%.2f", result.getLuckMultiplier()) + "x Luck)";
         player.sendMessage(notice);
-        sendActionBar(player, notice);
+        if (!auto) sendActionBar(player, notice);
         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.8f, newShiny ? 1.8f : 1.3f);
     }
 

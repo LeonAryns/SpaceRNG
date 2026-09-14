@@ -104,7 +104,7 @@ public enum LoreStyle {
                 // The card from style 5 with the bulleted rows from style 4.
                 // A shiny keeps the same frame but in aqua, with its own row.
                 String title = "  " + (shiny
-                        ? ChatColor.AQUA + "✦ Shiny " + rarities.style(rarity, rarity.displayName() + " drop")
+                        ? ChatColor.AQUA + "✦ Shiny ✦ " + rarities.style(rarity, rarity.displayName() + " drop")
                         : rarities.style(rarity, rarity.displayName() + " drop"));
                 String bullet = rarities.style(rarity, "▎");
                 List<String> rows = new ArrayList<>();

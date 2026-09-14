@@ -151,26 +151,41 @@ public final class FirstTenManager {
 
     // ---------------------------------------------------------------- event
 
+    /**
+     * The banner, framed so it can't be mistaken for an ordinary drop line:
+     *
+     *   ------------------------------------------   rule, rarity colour
+     *   ✦ SERVER FIRST 10 ✦ (preview)
+     *   Leon is #1 of the first 10 to find a Divine
+     *   Drop: ✦ Halo of the First Star ✦
+     *   ▬▬▬▬▬▬▬▬▬▬  9 spots left
+     *   ------------------------------------------
+     *
+     * The rarity's colour carries the frame, the place and the rarity word;
+     * everything else stays grey so those three are what the eye lands on.
+     */
     private void announce(UUID roller, String name, RollableItem item, boolean shiny, int place, boolean preview) {
         Rarity rarity = item.getRarity();
         int slots = slots();
         int left = Math.max(0, slots - place);
-        String word = plugin.getRarityManager().style(rarity, rarity.displayName());
+        var rarities = plugin.getRarityManager();
         String article = "AEIOU".indexOf(rarity.name().charAt(0)) >= 0 ? "an " : "a ";
 
-        String header = (preview ? ChatColor.DARK_GRAY + "(preview) " : "")
-                + plugin.getRarityManager().style(rarity, "✦ SERVER FIRST " + slots + " ✦");
-        String line = ChatColor.YELLOW + name + ChatColor.GRAY + " is " + ChatColor.WHITE + "#" + place
-                + ChatColor.GRAY + " of the first " + slots + " to find " + article + word
-                + ChatColor.GRAY + ": " + RollFormat.displayName(plugin, item, shiny);
+        String rule = colourOf(rarity) + ChatColor.STRIKETHROUGH + " ".repeat(52);
+        String header = rarities.styleBold(rarity, "✦ SERVER FIRST " + slots + " ✦")
+                + (preview ? ChatColor.DARK_GRAY + " (preview)" : "");
+        String line = ChatColor.YELLOW + name + ChatColor.GRAY + " is "
+                + rarities.styleBold(rarity, "#" + place)
+                + ChatColor.GRAY + " of the first " + ChatColor.WHITE + slots
+                + ChatColor.GRAY + " to find " + article + rarities.styleBold(rarity, rarity.displayName());
+        String drop = ChatColor.GRAY + "Drop: " + RollFormat.displayName(plugin, item, shiny);
         // The spots as a meter: taken in the rarity's colour, free in grey.
-        String meter = plugin.getRarityManager().style(rarity, "▬".repeat(place))
-                + ChatColor.DARK_GRAY + "▬".repeat(left);
+        String meter = rarities.style(rarity, "▬".repeat(place)) + ChatColor.DARK_GRAY + "▬".repeat(left);
         String footer = meter + "  " + (left > 0
                 ? ChatColor.WHITE + "" + left + ChatColor.GRAY + (left == 1 ? " spot left" : " spots left")
                 : ChatColor.RED + "Every spot is taken");
         Component banner = LegacyComponentSerializer.legacySection()
-                .deserialize(header + "\n" + line + "\n" + footer);
+                .deserialize(rule + "\n" + header + "\n" + line + "\n" + drop + "\n" + footer + "\n" + rule);
 
         for (Player online : Bukkit.getOnlinePlayers()) {
             boolean own = online.getUniqueId().equals(roller);
@@ -183,15 +198,30 @@ public final class FirstTenManager {
             if (own) {
                 online.showTitle(Title.title(
                         LegacyComponentSerializer.legacySection()
-                                .deserialize(plugin.getRarityManager().style(rarity, "✦ First " + slots + " ✦")),
+                                .deserialize(rarities.styleBold(rarity, "✦ First " + slots + " ✦")),
                         LegacyComponentSerializer.legacySection()
-                                .deserialize(ChatColor.GRAY + "You are " + ChatColor.WHITE + "#" + place
-                                        + ChatColor.GRAY + " to find " + article + word),
+                                .deserialize(ChatColor.GRAY + "You are " + rarities.styleBold(rarity, "#" + place)
+                                        + ChatColor.GRAY + " to find " + article
+                                        + rarities.style(rarity, rarity.displayName())),
                         Title.Times.times(Duration.ofMillis(200), Duration.ofMillis(2500), Duration.ofMillis(400))));
             }
         }
         Bukkit.getConsoleSender().sendMessage(banner);
         new Rain(rarity).start();
+    }
+
+    /**
+     * The colour codes a rarity's style starts with, for drawing something
+     * of its own in that colour. Bold is dropped so a rule stays thin.
+     */
+    private String colourOf(Rarity rarity) {
+        String styled = plugin.getRarityManager().style(rarity, "|");
+        StringBuilder codes = new StringBuilder();
+        for (int i = 0; i + 1 < styled.length() && styled.charAt(i) == ChatColor.COLOR_CHAR; i += 2) {
+            char code = Character.toLowerCase(styled.charAt(i + 1));
+            if (code != 'l') codes.append(styled, i, i + 2);
+        }
+        return codes.toString();
     }
 
     /**
