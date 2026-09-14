@@ -584,6 +584,11 @@ public class RollListener implements Listener {
         }
         grantRoll(player, data, result, false);
 
+        // Server First 10 hangs off the real roll path only, so an admin
+        // roll can never take a spot. The event waits for the reveal.
+        plugin.getFirstTenManager().onRoll(player, result,
+                finaleTicks + RollAura.titleDelayTicks(result.getRarity()) + 10L);
+
         // Double Roll skill tree branch: a chance to immediately chain into
         // another free roll, no click required.
         double bonusChance = data.getBonusRollChance()

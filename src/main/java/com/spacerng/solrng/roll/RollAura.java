@@ -104,7 +104,7 @@ public final class RollAura {
         };
     }
 
-    private static Color colorFor(Rarity rarity) {
+    public static Color colorFor(Rarity rarity) {
         return switch (rarity) {
             // Divine is the warm near-white, never pure white: a
             // 255,255,255 dust cloud reads as a rendering glitch rather

@@ -107,6 +107,17 @@ public class SolRNGExpansion extends PlaceholderExpansion {
             case "tag_multiplier":
                 return String.format("%.2f", plugin.getRarityManager().tagMultiplierFor(data));
 
+            // --- server first 10 ---
+            case "first10": {
+                var spots = plugin.getFirstTenManager().spotsOf(player.getUniqueId());
+                if (spots.isEmpty()) return "";
+                var best = spots.get(0);
+                return plugin.getRarityManager().style(best.rarity(),
+                        "✦ #" + best.place() + " " + best.rarity().displayName());
+            }
+            case "first10_count":
+                return String.valueOf(plugin.getFirstTenManager().spotsOf(player.getUniqueId()).size());
+
             // --- prestige ---
             case "prestige":
                 return String.valueOf(data.getPrestige());

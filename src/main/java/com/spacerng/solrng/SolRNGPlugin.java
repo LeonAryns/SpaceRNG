@@ -62,6 +62,7 @@ public final class SolRNGPlugin extends JavaPlugin {
     private com.spacerng.solrng.announce.AnnouncerManager announcerManager;
     private com.spacerng.solrng.daily.DailyManager dailyManager;
     private com.spacerng.solrng.leaderboard.LeaderboardManager leaderboardManager;
+    private com.spacerng.solrng.firsts.FirstTenManager firstTenManager;
     private com.spacerng.solrng.crate.CrateManager crateManager;
     private com.spacerng.solrng.leaderboard.TopHeadManager topHeadManager;
     private com.spacerng.solrng.pass.PassManager passManager;
@@ -135,6 +136,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         this.rarityManager = new RarityManager(getLogger());
         this.skillTreeManager = new SkillTreeManager(getLogger());
         this.leaderboardManager = new com.spacerng.solrng.leaderboard.LeaderboardManager(this);
+        this.firstTenManager = new com.spacerng.solrng.firsts.FirstTenManager(this);
         this.playerDataManager = new PlayerDataManager(this);
         this.prestigeManager = new PrestigeManager(this);
         this.armorManager = new ArmorManager(this);
@@ -236,6 +238,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         if (playerDataManager != null) {
             playerDataManager.saveAll();
         }
+        if (firstTenManager != null) firstTenManager.save();
         if (leaderboardManager != null) {
             leaderboardManager.saveIndex();
         }
@@ -368,6 +371,10 @@ public final class SolRNGPlugin extends JavaPlugin {
 
     public FarmingManager getFarmingManager() {
         return farmingManager;
+    }
+
+    public com.spacerng.solrng.firsts.FirstTenManager getFirstTenManager() {
+        return firstTenManager;
     }
 
     public SpawnManager getSpawnManager() {

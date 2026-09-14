@@ -93,13 +93,23 @@ Load the matching skill before touching its area:
   account, and pushes then fail with a 403. The auto-mode classifier
   blocks tokens in commands, so Leon pushes himself with
   `git push origin main` from `C:\Projects\SpaceRNG`.
+- **Java 21 only.** Leon's server runs Paper on Java 21, and a jar
+  compiled for a newer release does not load. The VS Code Java upgrade
+  tool creates `appmod/java-upgrade-*` branches that switch everything to
+  Java 25 and leaves the repo checked out on them. Check that
+  `git status -sb` says `main` before committing, and never merge those
+  branches.
 
 ## Building
 
 `mvn -B clean package` with JDK 21. Maven is not installed locally, so
-CI (`.github/workflows/build.yml`) is the compiler; it uploads the
-artifact `space-rng-jar`. The Paper API jar is in `~/.m2` and can be read
-for name checks.
+CI (`.github/workflows/build.yml`) builds the jar and uploads the
+artifact `space-rng-jar`. For a local compile check, the VS Code Java
+extension ships a JDK 21 at
+`~/.vscode/extensions/redhat.java-*/jre/*/bin/javac.exe`; put every jar
+in `~/.m2/repository` on the classpath (skip the old adventure 4.13.1
+jars) and run `javac --release 21 -encoding UTF-8` over `src/main/java`.
+The Paper API jar there can also be read for name checks.
 
 ## Open
 

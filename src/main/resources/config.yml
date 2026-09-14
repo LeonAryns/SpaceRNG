@@ -4690,3 +4690,16 @@ perks:
 # Rolls of this rarity or higher get broadcast to the whole server.
 broadcast:
   min-rarity-to-broadcast: EPIC
+
+# Server First 10. The first players to roll a tracked rarity each take a
+# numbered spot, and the whole server is told: a banner in chat, a toast,
+# the rarity's colour drifting down around every online player and a
+# pillar over spawn. A player can hold one spot per rarity, and admin
+# rolls never take one. Spots are kept in firsts.yml.
+#   /rngadmin firsts list | reset <rarity|all> | preview <rarity>
+#   placeholders: %solrng_first10% and %solrng_first10_count%
+# Not a structural section, so tuning here survives a jar update.
+first-ten:
+  enabled: true
+  slots: 10
+  rarities: [LEGENDARY, MYTHICAL, DIVINE]

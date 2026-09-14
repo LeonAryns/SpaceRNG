@@ -37,7 +37,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             "reload", "setspawn", "starforge", "reset", "give", "drops",
             "bank", "aura", "roll", "unlock", "unlockall", "lockall", "odds", "farmblock", "farmscan",
             "hoe", "consumable", "gradient", "welcome", "crops", "farmclear",
-            "milestones", "farmfill", "boost", "nova", "placeholders", "payout", "crate", "tophead", "floatingitem", "shiny", "help");
+            "milestones", "farmfill", "boost", "nova", "placeholders", "payout", "crate", "tophead", "floatingitem", "shiny", "firsts", "help");
     private static final List<String> CURRENCIES = List.of("money", "coins", "gems", "credits");
 
     private final SolRNGPlugin plugin;
@@ -69,6 +69,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             case "aura" -> doAura(sender, args);
             case "roll" -> doRoll(sender, args);
             case "shiny" -> doShiny(sender, args);
+            case "firsts" -> doFirsts(sender, args);
             case "unlock" -> doUnlock(sender, args);
             case "unlockall" -> doUnlockAll(sender, args);
             case "hoe" -> doHoe(sender, args);
@@ -399,6 +400,69 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
 
         sender.sendMessage(ChatColor.GREEN + "Playing the " + rarity.displayName() + " reveal aura on "
                 + target.getName() + ChatColor.GRAY + " (" + String.format("%.0f", duration / 20.0) + "s).");
+        return true;
+    }
+
+    // --------------------------------------------------------------- firsts
+
+    /**
+     * Server First 10 tools. list shows who holds each spot, reset frees a
+     * rarity's spots again, and preview plays the whole server-wide event
+     * without recording anything, because waiting for a real Legendary is
+     * not a test plan.
+     */
+    private boolean doFirsts(CommandSender sender, String[] args) {
+        com.spacerng.solrng.firsts.FirstTenManager firsts = plugin.getFirstTenManager();
+        String usage = ChatColor.RED + "Usage: /rngadmin firsts <list | reset <rarity|all> | preview <rarity>>";
+        String action = args.length >= 2 ? args[1].toLowerCase(Locale.ROOT) : "list";
+        switch (action) {
+            case "list" -> {
+                List<Rarity> tracked = firsts.trackedRarities();
+                if (tracked.isEmpty()) {
+                    sender.sendMessage(ChatColor.GRAY + "Server First 10 is switched off in config.");
+                }
+                for (Rarity rarity : tracked) {
+                    List<com.spacerng.solrng.firsts.FirstTenManager.Entry> held = firsts.entries(rarity);
+                    sender.sendMessage(plugin.getRarityManager().style(rarity, rarity.displayName())
+                            + ChatColor.GRAY + "  " + held.size() + " / " + firsts.slots());
+                    for (int i = 0; i < held.size(); i++) {
+                        sender.sendMessage(ChatColor.DARK_GRAY + "  #" + (i + 1) + " "
+                                + ChatColor.YELLOW + held.get(i).name()
+                                + ChatColor.GRAY + "  " + held.get(i).item());
+                    }
+                }
+            }
+            case "reset" -> {
+                if (args.length < 3) {
+                    sender.sendMessage(usage);
+                    return true;
+                }
+                if (args[2].equalsIgnoreCase("all")) {
+                    firsts.resetAll();
+                    sender.sendMessage(ChatColor.GREEN + "Every First 10 spot is free again.");
+                } else {
+                    Rarity rarity = parseRarity(sender, args[2]);
+                    if (rarity == null) return true;
+                    firsts.reset(rarity);
+                    sender.sendMessage(ChatColor.GREEN + "The " + rarity.displayName() + " First 10 spots are free again.");
+                }
+            }
+            case "preview" -> {
+                if (args.length < 3) {
+                    sender.sendMessage(usage);
+                    return true;
+                }
+                Rarity rarity = parseRarity(sender, args[2]);
+                if (rarity == null) return true;
+                RollableItem item = randomItemOf(rarity);
+                if (item == null) {
+                    sender.sendMessage(ChatColor.RED + "No items configured for " + rarity.displayName() + ".");
+                    return true;
+                }
+                firsts.preview(sender instanceof Player player ? player : null, item);
+            }
+            default -> sender.sendMessage(usage);
+        }
         return true;
     }
 
@@ -1377,6 +1441,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
                 case "drops", "bank" -> partial(args[1], withAll(rarityNames()));
                 case "aura" -> partial(args[1], List.of("epic", "legendary", "mythical", "divine"));
                 case "shiny" -> partial(args[1], playerNames());
+                case "firsts" -> partial(args[1], List.of("list", "reset", "preview"));
                 case "roll", "odds" -> partial(args[1], rarityNames());
                 case "unlock" -> partial(args[1], withAll(nodeIds()));
                 case "consumable" -> partial(args[1],
@@ -1401,6 +1466,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
                 case "farmfill" -> partial(args[2], List.of("confirm"));
                 case "nova" -> partial(args[2], playerNames());
                 case "give", "drops", "bank" -> partial(args[2], List.of("1", "10", "100", "1000"));
+                case "firsts" -> partial(args[2], args[1].equalsIgnoreCase("reset") ? withAll(rarityNames()) : rarityNames());
                 case "aura", "roll", "unlock", "starforge", "milestones", "farmblock" ->
                         partial(args[2], playerNames());
                 case "consumable" -> partial(args[2], List.of("1", "3", "5"));
