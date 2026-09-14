@@ -1,4 +1,4 @@
-﻿# ============================================
+# ============================================
 # SpaceRNG configuration
 # ============================================
 
@@ -8,11 +8,11 @@
 # their fresh defaults in on top of whatever is on disk, so a server
 # owner never has to delete the whole file to pick up a structural
 # change. Item table, prices and cosmetic tweaks are untouched.
-config-version: 5
+config-version: 6
 
 # The sidebar's fixed text. Colour codes use "&".
 scoreboard:
-  title: "&5&l\u2726 Ñ•á´˜á´€á´„á´‡Ê€É´É¢ \u2726"
+  title: "&5&l\u2726 ѕᴘᴀᴄᴇʀɴɢ \u2726"
   # Paints the title as a per-character purple gradient instead of the
   # flat colour above. Turn it off to go back to the "&" codes in `title`.
   title-gradient: true
@@ -3029,7 +3029,7 @@ welcome:
   delay-ticks: 20
   # Shown to somebody who has played here before.
   lines:
-    - "&d&lâœ¦ WELCOME BACK &d&lâœ¦"
+    - "&d&l✦ WELCOME BACK &d&l✦"
     - "&8&lBETA"
     - ""
     - "&d| &fType &d/shop &fto see every shop."
@@ -3040,7 +3040,7 @@ welcome:
   # Shown on somebody's very first join instead. Leave the list empty to
   # give everyone the same banner.
   first-join-lines:
-    - "&d&lâœ¦ WELCOME &d&lâœ¦"
+    - "&d&l✦ WELCOME &d&l✦"
     - "&8&lBETA"
     - ""
     - "&d| &fRight-click your &dRoll &fitem to start."
@@ -4555,6 +4555,9 @@ unlock-commands:
 shiny:
   # Base 1 in 2,500. Shiny Chance nodes in /skilltree multiply this.
   chance: 0.0004
+  node: "shiny_unlock"
+  marker: "&b&l✦"
+  broadcast: true
 
 # DiscordSRV integration. When a player links their Minecraft account
 # to Discord (typically via /discord link, provided by DiscordSRV), a
@@ -4576,9 +4579,6 @@ linked-account:
     money: 0
   link-message: "&5&lLinked to Discord! &7Bonuses are active while your account stays linked."
   unlink-message: "&cUnlinked from Discord. &7Bonuses removed."
-  node: "shiny_unlock"
-  marker: "&b&lâœ¦"
-  broadcast: true
 
 # Perks are a second progression layer bought with drops, not Money.
 # A roll trades a fixed number of drops of one tier for one random perk

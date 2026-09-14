@@ -143,8 +143,9 @@ column. Trailing it, a stacked list lines up.
   a size the content doesn't fill - empty rows read as unfinished.
 - **Filler** is `BLACK_STAINED_GLASS_PANE` with a single-space name.
   Section breaks use the same pane so the eye reads them as structure.
-- **Locked / undefined slots** are `GRAY_DYE` named `???` with a
-  dark-grey reason. Showing a locked thing exists beats hiding it.
+- **Locked / undefined slots** are `STONE_BUTTON` named `???` with a
+  dark-grey reason. Showing a locked thing exists beats hiding it. Leon
+  replaced `GRAY_DYE` with stone buttons in V94; don't bring the dye back.
 - **Navigation**: `SPECTRAL_ARROW` = back, `ARROW` = forward, and both
   say `Page N/M`. Keep them in the same slots across menus. In a menu
   that is climbed from a root at the bottom - the skill trees - they read
