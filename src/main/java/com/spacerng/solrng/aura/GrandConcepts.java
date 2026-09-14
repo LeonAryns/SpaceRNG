@@ -45,6 +45,7 @@ final class GrandConcepts {
         d.put("halo-grand", "a sunburst of sixteen end rods round the head, stars inside it");
         d.put("galaxy-grand", "a galaxy disc nine blocks wide: star bands, nether stars, sea lanterns");
         d.put("nova-grand", "a sea lantern atom, a nether star atom inside, wide star rings below");
+        MassiveConcepts.describe(d);
     }
 
     static AuraConcept create(String key, Rarity rarity, Color color) {
@@ -57,7 +58,7 @@ final class GrandConcepts {
                     new AuraConcepts.SolidAtom(Material.NETHER_STAR, -0.8f, 1.5f, 0.7f, false, 90, 2, 24.0, true),
                     new StarRing(color, FEET, 28, 2.6f, 4, 20, -1, "✦"),
                     new StarRing(softer(color), FEET + 0.01f, 16, 2.0f, 3, 15, 1, "✧"));
-            default -> null;
+            default -> MassiveConcepts.create(key, rarity, color);
         };
     }
 
