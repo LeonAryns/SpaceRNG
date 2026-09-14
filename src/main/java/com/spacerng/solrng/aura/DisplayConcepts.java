@@ -450,6 +450,11 @@ final class DisplayConcepts {
         }
 
         @Override
+        public boolean lowToGround() {
+            return true;
+        }
+
+        @Override
         public List<Display> spawn(Player player, AuraParts parts) {
             List<Display> displays = new ArrayList<>();
             for (int i = 0; i < COUNT; i++) {

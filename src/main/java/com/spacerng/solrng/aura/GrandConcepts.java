@@ -115,6 +115,11 @@ final class GrandConcepts {
         }
 
         @Override
+        public boolean lowToGround() {
+            return true;
+        }
+
+        @Override
         public List<Display> spawn(Player player, AuraParts parts) {
             List<Display> displays = new ArrayList<>();
             for (int i = 0; i < count; i++) {
@@ -220,6 +225,11 @@ final class GrandConcepts {
             this.scale = scale;
             this.every = every;
             this.step = step;
+        }
+
+        @Override
+        public boolean lowToGround() {
+            return true;
         }
 
         @Override

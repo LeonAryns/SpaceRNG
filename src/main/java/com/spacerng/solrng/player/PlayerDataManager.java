@@ -94,6 +94,7 @@ public class PlayerDataManager {
         data.setRollSoundEnabled(yml.getBoolean("roll-sound-enabled", true));
         data.setRollAnimationEnabled(yml.getBoolean("roll-animation-enabled", true));
         data.setWornAurasVisible(yml.getBoolean("worn-auras-visible", true));
+        data.setOwnAuraView(yml.getString("own-aura-view", "ground"));
         data.setFarmSoundEnabled(yml.getBoolean("farm-sound-enabled", true));
         data.setEnchantSoundEnabled(yml.getBoolean("enchant-sound-enabled", true));
         data.setRollCharges(yml.getLong("roll-charges", 0L), yml.getDouble("roll-charge-multiplier", 1.0));
@@ -323,6 +324,7 @@ public class PlayerDataManager {
         yml.set("roll-sound-enabled", data.isRollSoundEnabled());
         yml.set("roll-animation-enabled", data.isRollAnimationEnabled());
         yml.set("worn-auras-visible", data.isWornAurasVisible());
+        yml.set("own-aura-view", data.getOwnAuraView());
         yml.set("farm-sound-enabled", data.isFarmSoundEnabled());
         yml.set("enchant-sound-enabled", data.isEnchantSoundEnabled());
         yml.set("roll-charges", data.getRollCharges());

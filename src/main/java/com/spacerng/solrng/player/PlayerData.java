@@ -922,6 +922,28 @@ public class PlayerData {
         this.wornAurasVisible = wornAurasVisible;
     }
 
+    // How a player sees their own worn aura: "ground" (only the pieces down at
+    // the feet, so nothing orbits across their view), "full" or "hidden".
+    private String ownAuraView = "ground";
+
+    public String getOwnAuraView() {
+        return ownAuraView;
+    }
+
+    public void setOwnAuraView(String ownAuraView) {
+        this.ownAuraView = "full".equals(ownAuraView) || "hidden".equals(ownAuraView) ? ownAuraView : "ground";
+    }
+
+    /** Ground only, then full, then hidden, then back to ground only. */
+    public String cycleOwnAuraView() {
+        setOwnAuraView(switch (ownAuraView) {
+            case "ground" -> "full";
+            case "full" -> "hidden";
+            default -> "ground";
+        });
+        return ownAuraView;
+    }
+
     /**
      * Whether this player sees the reveal aura for a given rarity. Split
      * per tier because the tiers are wildly different events: a Mythical

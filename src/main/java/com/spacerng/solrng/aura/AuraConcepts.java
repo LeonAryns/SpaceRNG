@@ -235,6 +235,11 @@ public final class AuraConcepts {
         }
 
         @Override
+        public boolean lowToGround() {
+            return true;
+        }
+
+        @Override
         public List<Display> spawn(Player player, AuraParts parts) {
             List<Display> displays = new ArrayList<>();
             for (int i = 0; i < 3; i++) {
@@ -371,6 +376,11 @@ public final class AuraConcepts {
         }
 
         @Override
+        public boolean lowToGround() {
+            return true;
+        }
+
+        @Override
         public List<Display> spawn(Player player, AuraParts parts) {
             List<Display> displays = new ArrayList<>();
             for (int band = 0; band < 3; band++) {
@@ -411,6 +421,11 @@ public final class AuraConcepts {
         Ripple(Color color) {
             this.color = color;
             this.soft = softer(color);
+        }
+
+        @Override
+        public boolean lowToGround() {
+            return true;
         }
 
         @Override
@@ -617,6 +632,11 @@ public final class AuraConcepts {
         }
 
         @Override
+        public boolean lowToGround() {
+            return true;
+        }
+
+        @Override
         public List<Display> spawn(Player player, AuraParts parts) {
             List<Display> displays = new ArrayList<>();
             for (int i = 0; i < 3; i++) {
@@ -788,6 +808,25 @@ public final class AuraConcepts {
         public boolean followsBody() {
             for (AuraConcept look : looks) {
                 if (look.followsBody()) return true;
+            }
+            return false;
+        }
+
+        @Override
+        public boolean lowToGround() {
+            for (AuraConcept look : looks) {
+                if (!look.lowToGround()) return false;
+            }
+            return true;
+        }
+
+        /** Whether piece {@code index} of this combination belongs to a look that stays at the feet. */
+        boolean lowAt(int index) {
+            for (int i = 0; i < looks.length; i++) {
+                if (index >= starts[i] && index < starts[i + 1]) {
+                    return looks[i] instanceof Combined inner
+                            ? inner.lowAt(index - starts[i]) : looks[i].lowToGround();
+                }
             }
             return false;
         }

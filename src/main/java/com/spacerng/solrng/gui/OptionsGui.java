@@ -43,6 +43,7 @@ public class OptionsGui {
         inv.setItem(OptionsHolder.WORN_AURA_SLOT, toggleItem(Material.AMETHYST_CLUSTER,
                 "Worn Auras", data.isWornAurasVisible(),
                 "The auras players wear with an", "Epic or rarer tag, yours too."));
+        inv.setItem(OptionsHolder.OWN_AURA_SLOT, ownAuraItem(data.getOwnAuraView()));
 
         inv.setItem(OptionsHolder.AURA_EPIC_SLOT, auraToggle(plugin, data, Rarity.EPIC, Material.WITHER_ROSE));
         inv.setItem(OptionsHolder.AURA_LEGENDARY_SLOT, auraToggle(plugin, data, Rarity.LEGENDARY, Material.BLAZE_POWDER));
@@ -136,6 +137,34 @@ public class OptionsGui {
                 "",
                 ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to toggle"));
         meta.setEnchantmentGlintOverride(on ? Boolean.TRUE : null);
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    /**
+     * How you see your own worn aura. Ground only is the default: pieces
+     * orbiting at chest and head height cross your view in first person,
+     * the rings at your feet don't. Everyone else sees all of it either way.
+     */
+    private static ItemStack ownAuraItem(String mode) {
+        ItemStack item = new ItemStack(Material.ENDER_EYE);
+        ItemMeta meta = item.getItemMeta();
+        String state = switch (mode) {
+            case "full" -> ChatColor.GREEN.toString() + ChatColor.BOLD + "Full";
+            case "hidden" -> ChatColor.RED.toString() + ChatColor.BOLD + "Hidden";
+            default -> ChatColor.YELLOW.toString() + ChatColor.BOLD + "Ground only";
+        };
+        meta.setDisplayName(Lore.title(ChatColor.YELLOW, "Your Own Aura") + ChatColor.DARK_GRAY + " - " + state);
+        List<String> lore = new ArrayList<>();
+        lore.add(Lore.section(ChatColor.AQUA, "What you see of yours"));
+        lore.add(Lore.line(ChatColor.AQUA, "Ground only: the rings at your feet."));
+        lore.add(Lore.line(ChatColor.AQUA, "Full: all of it, orbits too."));
+        lore.add(Lore.line(ChatColor.AQUA, "Hidden: none of it."));
+        lore.add("");
+        lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " Others always see your whole aura.");
+        lore.add("");
+        lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to change");
+        meta.setLore(lore);
         item.setItemMeta(meta);
         return item;
     }

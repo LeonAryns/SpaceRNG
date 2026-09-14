@@ -189,15 +189,37 @@ public final class AuraManager {
 
     // ------------------------------------------------------------- visibility
 
-    /** Hides or shows every worn aura for one viewer, following their /options switch. */
+    /**
+     * Hides or shows every worn aura for one viewer, following their
+     * /options settings: Worn Auras for everyone's, and Your Own Aura for
+     * the pieces of their own.
+     */
     public void refreshVisibility(Player viewer) {
-        boolean visible = visibleTo(viewer);
-        for (Worn aura : worn.values()) {
-            for (Display display : aura.displays) {
-                if (visible) viewer.showEntity(plugin, display);
+        for (Map.Entry<UUID, Worn> entry : worn.entrySet()) {
+            boolean own = entry.getKey().equals(viewer.getUniqueId());
+            Worn aura = entry.getValue();
+            for (int i = 0; i < aura.displays.size(); i++) {
+                Display display = aura.displays.get(i);
+                if (own ? ownerSees(viewer, aura, i) : visibleTo(viewer)) viewer.showEntity(plugin, display);
                 else viewer.hideEntity(plugin, display);
             }
         }
+    }
+
+    /**
+     * Whether a wearer sees piece {@code index} of their own aura. Ground
+     * only, the default, keeps just the pieces at the feet, so nothing
+     * orbits across their view in first person.
+     */
+    private boolean ownerSees(Player owner, Worn aura, int index) {
+        var data = plugin.getPlayerDataManager().get(owner.getUniqueId());
+        if (!data.isWornAurasVisible()) return false;
+        return switch (data.getOwnAuraView()) {
+            case "full" -> true;
+            case "hidden" -> false;
+            default -> aura.concept instanceof AuraConcepts.Combined combined
+                    ? combined.lowAt(index) : aura.concept.lowToGround();
+        };
     }
 
     private boolean visibleTo(Player viewer) {
@@ -298,13 +320,15 @@ public final class AuraManager {
         for (Display display : displays) {
             player.addPassenger(display);
         }
+        aura.displays = displays;
         for (Player viewer : Bukkit.getOnlinePlayers()) {
-            if (visibleTo(viewer)) continue;
-            for (Display display : displays) {
-                viewer.hideEntity(plugin, display);
+            boolean own = viewer.equals(player);
+            for (int i = 0; i < displays.size(); i++) {
+                if (!(own ? ownerSees(viewer, aura, i) : visibleTo(viewer))) {
+                    viewer.hideEntity(plugin, displays.get(i));
+                }
             }
         }
-        aura.displays = displays;
         aura.lastYaw = Float.NaN;
     }
 

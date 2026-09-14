@@ -33,4 +33,12 @@ public interface AuraConcept {
     default boolean followsBody() {
         return false;
     }
+
+    /**
+     * True for looks that stay down at the feet, out of the wearer's own
+     * view. With the default own-aura setting a wearer sees only these.
+     */
+    default boolean lowToGround() {
+        return false;
+    }
 }

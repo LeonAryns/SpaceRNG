@@ -27,7 +27,7 @@ import org.joml.Vector3f;
 public final class RollShowcase {
 
     private static final double AHEAD = 1.5;
-    private static final double BELOW = 0.45;
+    private static final double BELOW = 0.25;
     private static final float SIZE = 0.38f;
     private static final float LANDED_SIZE = 0.62f;
 
@@ -50,7 +50,10 @@ public final class RollShowcase {
             piece.setTransformation(size(SIZE));
             // The aura tag, so the aura sweep on startup clears one a crash left.
             piece.getPersistentDataContainer().set(SolRNGPlugin.key("solrng_aura"), PersistentDataType.BYTE, (byte) 1);
+            // Only the roller sees it; to anyone else it was an item hanging in front of someone's face.
+            piece.setVisibleByDefault(false);
         });
+        player.showEntity(plugin, display);
         this.follow = plugin.getServer().getScheduler().runTaskTimer(plugin, this::follow, 2L, 2L);
     }
 

@@ -276,6 +276,10 @@ public class GuiListener implements Listener {
             data.setWornAurasVisible(!data.isWornAurasVisible());
             plugin.getAuraManager().refreshVisibility(player);
             player.openInventory(OptionsGui.build(plugin, player));
+        } else if (rawSlot == OptionsHolder.OWN_AURA_SLOT) {
+            data.cycleOwnAuraView();
+            plugin.getAuraManager().refreshVisibility(player);
+            player.openInventory(OptionsGui.build(plugin, player));
         } else if (rawSlot == OptionsHolder.AURA_EPIC_SLOT) {
             toggleAura(player, data, com.spacerng.solrng.rarity.Rarity.EPIC);
         } else if (rawSlot == OptionsHolder.AURA_LEGENDARY_SLOT) {
