@@ -103,13 +103,14 @@ public enum LoreStyle {
             case CARD -> {
                 // The card from style 5 with the bulleted rows from style 4.
                 // A shiny keeps the same frame but in aqua, with its own row.
-                String title = "  " + (shiny
-                        ? ChatColor.AQUA + "✦ Shiny ✦ " + rarities.style(rarity, rarity.displayName() + " drop")
-                        : rarities.style(rarity, rarity.displayName() + " drop"));
+                // The whole card speaks in the rarity's colour; only the
+                // labels and the word "drop" stay grey.
+                String title = "  " + (shiny ? ChatColor.AQUA + "✦ Shiny ✦ " : "")
+                        + word + ChatColor.GRAY + " drop";
                 String bullet = rarities.style(rarity, "▎");
                 List<String> rows = new ArrayList<>();
-                rows.add(bullet + " " + ChatColor.GRAY + "Odds  " + ChatColor.WHITE + odds);
-                rows.add(bullet + " " + ChatColor.GRAY + "Index Luck  " + ChatColor.DARK_AQUA + luck);
+                rows.add(bullet + " " + ChatColor.GRAY + "Odds  " + rarities.style(rarity, odds));
+                rows.add(bullet + " " + ChatColor.GRAY + "Index Luck  " + rarities.style(rarity, luck));
                 if (shiny) {
                     rows.add(ChatColor.AQUA + "▎ " + ChatColor.GRAY + "Shiny  " + ChatColor.AQUA + shinyOdds + " drops");
                 }
@@ -119,8 +120,10 @@ public enum LoreStyle {
                 // stopping short like a fixed row of dashes did.
                 int widest = Math.max(pixelWidth(RollFormat.displayName(plugin, item, shiny)), pixelWidth(title));
                 for (String row : rows) widest = Math.max(widest, pixelWidth(row));
-                String rule = (shiny ? ChatColor.DARK_AQUA : ChatColor.DARK_GRAY) + "" + ChatColor.STRIKETHROUGH
-                        + " ".repeat(widest / 4 + 2);
+                // One flat colour: a gradient's code per character would
+                // reset the strikethrough after every space.
+                String rule = (shiny ? ChatColor.DARK_AQUA.toString() : flatColour(rarities, rarity))
+                        + ChatColor.STRIKETHROUGH + " ".repeat(widest / 4 + 2);
 
                 lore.add(rule);
                 lore.add(title);
@@ -151,6 +154,17 @@ public enum LoreStyle {
             }
         }
         return lore;
+    }
+
+    /** The colour codes a rarity's style opens with, without bold. */
+    private static String flatColour(RarityManager rarities, Rarity rarity) {
+        String styled = rarities.style(rarity, "|");
+        StringBuilder codes = new StringBuilder();
+        for (int i = 0; i + 1 < styled.length() && styled.charAt(i) == ChatColor.COLOR_CHAR; i += 2) {
+            char code = Character.toLowerCase(styled.charAt(i + 1));
+            if (code != 'l') codes.append(styled, i, i + 2);
+        }
+        return codes.toString();
     }
 
     /**

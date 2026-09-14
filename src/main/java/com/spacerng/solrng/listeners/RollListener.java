@@ -472,17 +472,24 @@ public class RollListener implements Listener {
         forcedShiny.add(uuid);
     }
 
+    // Where the real result lands, as a fraction of the roll. The rest of
+    // the roll holds it on screen.
+    private static final double REEL_LANDS_AT = 0.78;
+    // How hard the candidates slow down. A square curve left the last
+    // candidate up for almost a quarter of the roll.
+    private static final double REEL_EASE = 1.5;
+
     /**
      * Which of the 20 reel frames a roll is on. Frames 0 to 18 are
-     * candidates on an ease-out curve across the first 95% of the roll, so
-     * they arrive quickly and then slow down. Frame 19 is the real result
-     * and still lands at 95%, as it always did: landing any earlier would
-     * give away a big drop seconds before its aura detonates.
+     * candidates on an ease-out curve across the first 78% of the roll, so
+     * they arrive quickly and then slow down, the last one up for about a
+     * tenth of the roll. Frame 19 is the real result and stays for the last
+     * 22%, twice as long as the frame before it.
      */
     private static int reelStep(double t) {
-        if (t >= 0.95) return 19;
-        double u = t / 0.95;
-        double eased = 1.0 - (1.0 - u) * (1.0 - u);
+        if (t >= REEL_LANDS_AT) return 19;
+        double u = t / REEL_LANDS_AT;
+        double eased = 1.0 - Math.pow(1.0 - u, REEL_EASE);
         return Math.min(18, (int) (eased * 19.0));
     }
 
