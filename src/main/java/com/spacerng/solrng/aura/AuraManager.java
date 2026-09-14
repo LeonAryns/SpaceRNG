@@ -64,6 +64,7 @@ public final class AuraManager {
         List<Display> displays = List.of();
         long frame = 0L;
         boolean paused = false;
+        float lastYaw = Float.NaN;
 
         Worn(String key, AuraConcept concept, Rarity rarity, Color color, AuraAccent accent, boolean test) {
             this.key = key;
@@ -238,10 +239,25 @@ public final class AuraManager {
                 }
                 if (!mounted(player, aura)) mount(player, aura);
                 aura.concept.tick(aura.displays, frame);
+                // A look that hangs off the back turns with the body. A mounted
+                // display keeps its own yaw, so it is set whenever the body has
+                // turned a little; the pieces' teleport duration glides it.
+                if (aura.concept.followsBody()) {
+                    float yaw = player.getBodyYaw();
+                    float turned = ((yaw - aura.lastYaw) % 360f + 540f) % 360f - 180f;
+                    if (Float.isNaN(aura.lastYaw) || Math.abs(turned) > 4f) {
+                        for (Display display : aura.displays) {
+                            display.setRotation(yaw, 0f);
+                        }
+                        aura.lastYaw = yaw;
+                    }
+                }
                 if (aura.accent != AuraAccent.NONE) {
                     List<Player> audience = audience(player, aura.rarity);
                     if (!audience.isEmpty()) {
-                        aura.accent.play(new AuraFx(player, audience, aura.color), aura.concept, frame, random);
+                        AuraConcept drawn = aura.concept.followsBody() && !Float.isNaN(aura.lastYaw)
+                                ? turnedStars(aura.concept, aura.lastYaw) : aura.concept;
+                        aura.accent.play(new AuraFx(player, audience, aura.color), drawn, frame, random);
                     }
                 }
             } catch (RuntimeException ex) {
@@ -289,6 +305,38 @@ public final class AuraManager {
             }
         }
         aura.displays = displays;
+        aura.lastYaw = Float.NaN;
+    }
+
+    /**
+     * The same look, with its star positions turned by the body yaw the
+     * pieces are drawn at, so accents land on pieces that follow the body.
+     * A display at yaw y is turned by -y about the vertical axis.
+     */
+    private static AuraConcept turnedStars(AuraConcept look, float yaw) {
+        double phi = Math.toRadians(-yaw);
+        double cos = Math.cos(phi);
+        double sin = Math.sin(phi);
+        return new AuraConcept() {
+            @Override
+            public List<Display> spawn(Player player, AuraParts parts) {
+                return List.of();
+            }
+
+            @Override
+            public void tick(List<Display> displays, long frame) {
+            }
+
+            @Override
+            public void stars(long frame, List<org.bukkit.util.Vector> out) {
+                List<org.bukkit.util.Vector> local = new ArrayList<>();
+                look.stars(frame, local);
+                for (org.bukkit.util.Vector v : local) {
+                    out.add(new org.bukkit.util.Vector(v.getX() * cos + v.getZ() * sin, v.getY(),
+                            -v.getX() * sin + v.getZ() * cos));
+                }
+            }
+        };
     }
 
     private void despawn(Worn aura) {

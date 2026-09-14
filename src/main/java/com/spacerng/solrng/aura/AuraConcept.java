@@ -24,4 +24,13 @@ public interface AuraConcept {
      */
     default void stars(long frame, List<org.bukkit.util.Vector> out) {
     }
+
+    /**
+     * True for looks that hang off one side of the body, like wings, and so
+     * must turn with it. The manager then sets every piece's yaw to the
+     * body's whenever it turns.
+     */
+    default boolean followsBody() {
+        return false;
+    }
 }

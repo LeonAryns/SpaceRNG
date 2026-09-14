@@ -771,5 +771,13 @@ public final class AuraConcepts {
                 look.stars(frame, out);
             }
         }
+
+        @Override
+        public boolean followsBody() {
+            for (AuraConcept look : looks) {
+                if (look.followsBody()) return true;
+            }
+            return false;
+        }
     }
 }

@@ -42,6 +42,10 @@ final class DisplayConcepts {
         d.put("planet", "a lantern planet above the head with three moons");
         d.put("warlord", "blades and crown");
         d.put("sanctum", "pillars, runes and halo");
+        d.put("wings", "stained glass wings fanned from the back, beating gently (experimental)");
+        d.put("barrier", "a slow hexagon of the rarity's glass round the hips");
+        d.put("angel", "wings and halo (experimental)");
+        d.put("archon", "wings, crown and runes (experimental)");
     }
 
     static AuraConcept create(String key, Rarity rarity, Color color) {
@@ -53,6 +57,11 @@ final class DisplayConcepts {
             case "warlord" -> new AuraConcepts.Combined(new Blades(rarity), new Crown(rarity));
             case "sanctum" -> new AuraConcepts.Combined(new Pillars(rarity),
                     new AuraConcepts.RuneRing(color), new AuraConcepts.Halo(color));
+            case "wings" -> new Wings(rarity);
+            case "barrier" -> new Barrier(rarity);
+            case "angel" -> new AuraConcepts.Combined(new Wings(rarity), new AuraConcepts.Halo(color));
+            case "archon" -> new AuraConcepts.Combined(new Wings(rarity), new Crown(rarity),
+                    new AuraConcepts.RuneRing(color));
             default -> null;
         };
     }
@@ -307,6 +316,163 @@ final class DisplayConcepts {
             double a = moonAngle(m, steps);
             Vector3f p = ORBIT.transform(onCircle(MOON_RADIUS, a));
             return at(p.x, Y + p.y, p.z, new Quaternionf().rotateY((float) (a * 2)), 0.2f);
+        }
+    }
+
+    /** The rarity's stained glass. */
+    private static Material glass(Rarity rarity) {
+        return switch (rarity) {
+            case DIVINE -> Material.WHITE_STAINED_GLASS;
+            case MYTHICAL -> Material.RED_STAINED_GLASS;
+            case LEGENDARY -> Material.ORANGE_STAINED_GLASS;
+            default -> Material.PURPLE_STAINED_GLASS;
+        };
+    }
+
+    // ------------------------------------------------------------------ wings
+
+    /**
+     * Wings of the rarity's stained glass: five feathers a side fanned out
+     * from the shoulder blades, a glowing end rod on each leading edge, a
+     * gentle beat once a second. They hang off the back, so this look turns
+     * with the body.
+     *
+     * A feather is an item model centred on its origin, so it is placed at
+     * the middle of its reach, the pivot plus half its length along its
+     * direction, and rotated so its long axis (model X) points that way:
+     * raised by alpha about Z, then swung back by beta about Y. The left
+     * wing mirrors that by swinging to 180 - beta.
+     */
+    static final class Wings implements AuraConcept {
+        private static final float PIVOT_X = 0.1f;
+        private static final float PIVOT_Y = -0.38f;
+        private static final float PIVOT_Z = -0.22f;
+        private static final double[] RAISE = {40, 22, 5, -15, -35};
+        private static final float[] LENGTH = {1.2f, 1.35f, 1.25f, 1.0f, 0.75f};
+        private static final int EVERY = 10;
+        private final Material glass;
+
+        Wings(Rarity rarity) {
+            this.glass = glass(rarity);
+        }
+
+        @Override
+        public boolean followsBody() {
+            return true;
+        }
+
+        @Override
+        public List<Display> spawn(Player player, AuraParts parts) {
+            List<Display> displays = new ArrayList<>();
+            for (int side = -1; side <= 1; side += 2) {
+                for (int f = 0; f < RAISE.length; f++) {
+                    displays.add(parts.item(player, glass, feather(side, f, 0)));
+                }
+                displays.add(parts.item(player, Material.END_ROD, edge(side, 0)));
+            }
+            return displays;
+        }
+
+        @Override
+        public void tick(List<Display> displays, long frame) {
+            if (frame % EVERY != 0) return;
+            long beat = frame / EVERY + 1;
+            int index = 0;
+            for (int side = -1; side <= 1; side += 2) {
+                for (int f = 0; f < RAISE.length; f++) {
+                    move(displays.get(index++), feather(side, f, beat), EVERY * 2);
+                }
+                move(displays.get(index++), edge(side, beat), EVERY * 2);
+            }
+        }
+
+        /** Degrees swept back: open and folded on alternate beats. */
+        private static double sweep(long beat) {
+            return beat % 2 == 0 ? 25 : 42;
+        }
+
+        /** Degrees added to every feather's raise: up on the open beat, down on the fold. */
+        private static double lift(long beat) {
+            return beat % 2 == 0 ? 6 : -4;
+        }
+
+        private static Quaternionf rotation(int side, double alpha, double beta) {
+            return new Quaternionf().rotateY((float) (side > 0 ? beta : Math.PI - beta)).rotateZ((float) alpha);
+        }
+
+        private static Vector3f direction(int side, double alpha, double beta) {
+            return new Vector3f((float) (side * Math.cos(alpha) * Math.cos(beta)), (float) Math.sin(alpha),
+                    (float) (-Math.cos(alpha) * Math.sin(beta)));
+        }
+
+        private static Transformation feather(int side, int f, long beat) {
+            double alpha = Math.toRadians(RAISE[f] + lift(beat));
+            // Lower feathers sweep a touch further back, like a real wing.
+            double beta = Math.toRadians(sweep(beat) + f * 3);
+            Vector3f dir = direction(side, alpha, beta);
+            float half = LENGTH[f] / 2;
+            return atScaled(side * PIVOT_X + dir.x * half, PIVOT_Y + dir.y * half - f * 0.04f,
+                    PIVOT_Z + dir.z * half, rotation(side, alpha, beta), LENGTH[f], 0.11f, 0.05f);
+        }
+
+        /** The end rod along the top feather; the rod model is long on Y, so it is turned onto X first. */
+        private static Transformation edge(int side, long beat) {
+            double alpha = Math.toRadians(RAISE[0] + lift(beat));
+            double beta = Math.toRadians(sweep(beat));
+            Vector3f dir = direction(side, alpha, beta);
+            float half = LENGTH[0] / 2;
+            Quaternionf rod = rotation(side, alpha, beta).rotateZ(rad(-90));
+            return atScaled(side * PIVOT_X + dir.x * half, PIVOT_Y + dir.y * half + 0.06f,
+                    PIVOT_Z + dir.z * half, rod, 0.8f, LENGTH[0], 0.8f);
+        }
+    }
+
+    // ---------------------------------------------------------------- barrier
+
+    /**
+     * Six panes of the rarity's glass closing into a hexagon round the hips,
+     * turning slowly. Kept below the eyes on purpose: a shell the wearer's
+     * camera sat inside would tint their whole screen.
+     */
+    static final class Barrier implements AuraConcept {
+        private static final float RADIUS = 1.15f;
+        private static final float CENTRE = -1.35f;
+        private static final float HEIGHT = 0.8f;
+        private static final int COUNT = 6;
+        private static final int EVERY = 4;
+        private static final double STEP = 15.0;
+        // Wide enough that neighbouring panes meet at the hexagon's corners.
+        private static final float WIDTH = (float) (2 * RADIUS * Math.tan(Math.toRadians(30)));
+        private final Material glass;
+
+        Barrier(Rarity rarity) {
+            this.glass = glass(rarity);
+        }
+
+        @Override
+        public List<Display> spawn(Player player, AuraParts parts) {
+            List<Display> displays = new ArrayList<>();
+            for (int i = 0; i < COUNT; i++) {
+                displays.add(parts.item(player, glass, pane(i, 0)));
+            }
+            return displays;
+        }
+
+        @Override
+        public void tick(List<Display> displays, long frame) {
+            if (frame % EVERY != 0) return;
+            long n = frame / EVERY + 1;
+            for (int i = 0; i < COUNT; i++) {
+                move(displays.get(i), pane(i, n), EVERY * 2);
+            }
+        }
+
+        private static Transformation pane(int i, long steps) {
+            double a = Math.toRadians(60.0 * i + STEP * steps);
+            Vector3f p = onCircle(RADIUS, a);
+            // A quarter turn past the heading lays the pane along the ring.
+            return atScaled(p.x, CENTRE, p.z, new Quaternionf().rotateY((float) (a + Math.PI / 2)),
+                    WIDTH, HEIGHT, 0.04f);
         }
     }
 }

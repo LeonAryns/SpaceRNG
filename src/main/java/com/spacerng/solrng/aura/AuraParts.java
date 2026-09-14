@@ -87,6 +87,8 @@ public final class AuraParts {
         display.setBrightness(new Display.Brightness(15, 15));
         display.setViewRange(0.6f);
         display.setShadowRadius(0f);
+        // A turn sent to a piece that follows the body glides instead of snapping.
+        display.setTeleportDuration(3);
         display.setTransformation(pose);
         display.getPersistentDataContainer().set(tag, PersistentDataType.BYTE, (byte) 1);
     }
