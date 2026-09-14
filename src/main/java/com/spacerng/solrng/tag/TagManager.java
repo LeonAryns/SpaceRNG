@@ -17,6 +17,7 @@ import org.bukkit.util.Transformation;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -53,6 +54,9 @@ import java.util.UUID;
  * while moving, since the second-level passenger's position depends on
  * the first's already-interpolated position, compounding a small extra
  * lag - mounting both directly on the player avoids that entirely.
+ *
+ * The worn aura follows the tag: showing a tag puts on the aura for its
+ * rarity, and hiding the tag takes it off.
  */
 public class TagManager {
 
@@ -70,6 +74,9 @@ public class TagManager {
     // index 0 = item name (top), index 1 = odds (bottom) - both direct
     // passengers of the player.
     private final Map<UUID, TextDisplay[]> holograms = new HashMap<>();
+    // The two lines each hologram shows, so one dropped by a teleport can
+    // be rebuilt without asking anyone for the text again.
+    private final Map<UUID, String[]> hologramTexts = new HashMap<>();
     // Cached equipped-tag prefix text per player, so a newly-joined
     // player's fresh Scoreboard can be backfilled with everyone else's
     // team without needing to ask each of them to refresh.
@@ -194,9 +201,9 @@ public class TagManager {
 
     /**
      * (Re)builds the floating odds/item-name display above the player's
-     * head. Safe to call repeatedly (e.g. on join or respawn) - always
-     * tears down any previous displays first. oddsText renders on TOP,
-     * itemNameColored just below it.
+     * head and puts on the aura for the tag's rarity. Safe to call
+     * repeatedly (e.g. on join or respawn) - always tears down any previous
+     * displays first. oddsText renders on TOP, itemNameColored just below it.
      *
      * Both displays are mounted DIRECTLY on the player (not chained onto
      * each other) - a 2-level mount chain (player -> A -> B) was visibly
@@ -207,7 +214,14 @@ public class TagManager {
      * comes entirely from their own Transformation offsets.
      */
     public void showHologram(Player player, String itemNameColored, String oddsText) {
-        hideHologram(player);
+        spawnHologram(player, itemNameColored, oddsText);
+        if (plugin.getAuraManager() != null) {
+            plugin.getAuraManager().applyTag(player);
+        }
+    }
+
+    private void spawnHologram(Player player, String itemNameColored, String oddsText) {
+        removeDisplays(player.getUniqueId());
 
         TextDisplay oddsDisplay = spawnLine(player, oddsText, TOP_OFFSET);
         TextDisplay nameDisplay = spawnLine(player, itemNameColored, BOTTOM_OFFSET);
@@ -216,17 +230,45 @@ public class TagManager {
         player.addPassenger(nameDisplay);
 
         holograms.put(player.getUniqueId(), new TextDisplay[]{oddsDisplay, nameDisplay});
+        hologramTexts.put(player.getUniqueId(), new String[]{itemNameColored, oddsText});
     }
 
     public void hideHologram(Player player) {
-        removeHologram(player.getUniqueId());
+        hideHologram(player.getUniqueId());
     }
 
+    /** Takes the tag down, and the aura that came with it. */
     public void hideHologram(UUID uuid) {
-        removeHologram(uuid);
+        removeDisplays(uuid);
+        hologramTexts.remove(uuid);
+        if (plugin.getAuraManager() != null) {
+            plugin.getAuraManager().clearTag(uuid);
+        }
     }
 
-    private void removeHologram(UUID uuid) {
+    /**
+     * A teleport can drop passengers, which would leave the floating tag
+     * hanging where the player used to be. Called now and then by the aura
+     * ticker, this rebuilds any tag that is no longer riding its player.
+     */
+    public void keepMounted() {
+        for (Map.Entry<UUID, TextDisplay[]> entry : new ArrayList<>(holograms.entrySet())) {
+            Player player = Bukkit.getPlayer(entry.getKey());
+            if (player == null || !player.isOnline() || player.isDead()) continue;
+            boolean riding = true;
+            for (TextDisplay display : entry.getValue()) {
+                if (display == null || !display.isValid() || !player.getPassengers().contains(display)) {
+                    riding = false;
+                    break;
+                }
+            }
+            if (riding) continue;
+            String[] text = hologramTexts.get(entry.getKey());
+            if (text != null) spawnHologram(player, text[0], text[1]);
+        }
+    }
+
+    private void removeDisplays(UUID uuid) {
         TextDisplay[] displays = holograms.remove(uuid);
         if (displays == null) return;
         for (TextDisplay display : displays) {

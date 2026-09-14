@@ -272,6 +272,10 @@ public class GuiListener implements Listener {
         } else if (rawSlot == OptionsHolder.ANIMATION_SLOT) {
             data.setRollAnimationEnabled(!data.isRollAnimationEnabled());
             player.openInventory(OptionsGui.build(plugin, player));
+        } else if (rawSlot == OptionsHolder.WORN_AURA_SLOT) {
+            data.setWornAurasVisible(!data.isWornAurasVisible());
+            plugin.getAuraManager().refreshVisibility(player);
+            player.openInventory(OptionsGui.build(plugin, player));
         } else if (rawSlot == OptionsHolder.AURA_EPIC_SLOT) {
             toggleAura(player, data, com.spacerng.solrng.rarity.Rarity.EPIC);
         } else if (rawSlot == OptionsHolder.AURA_LEGENDARY_SLOT) {

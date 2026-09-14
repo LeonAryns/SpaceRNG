@@ -40,6 +40,9 @@ public class OptionsGui {
         inv.setItem(OptionsHolder.ANIMATION_SLOT, toggleItem(Material.ITEM_FRAME,
                 "Rolling Animation", data.isRollAnimationEnabled(),
                 "The item names flashing on screen mid-roll."));
+        inv.setItem(OptionsHolder.WORN_AURA_SLOT, toggleItem(Material.AMETHYST_CLUSTER,
+                "Worn Auras", data.isWornAurasVisible(),
+                "The auras players wear with an", "Epic or rarer tag, yours too."));
 
         inv.setItem(OptionsHolder.AURA_EPIC_SLOT, auraToggle(plugin, data, Rarity.EPIC, Material.WITHER_ROSE));
         inv.setItem(OptionsHolder.AURA_LEGENDARY_SLOT, auraToggle(plugin, data, Rarity.LEGENDARY, Material.BLAZE_POWDER));

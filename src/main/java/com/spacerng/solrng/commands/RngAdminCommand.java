@@ -423,7 +423,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         }
         String key = args[1].toLowerCase(Locale.ROOT);
         if (key.equals("off")) {
-            plugin.getAuraManager().hide(player.getUniqueId());
+            plugin.getAuraManager().endTest(player);
             sender.sendMessage(ChatColor.GRAY + "Aura removed.");
             return true;
         }

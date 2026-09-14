@@ -4707,3 +4707,29 @@ first-ten:
   enabled: true
   slots: 10
   rarities: [LEGENDARY, MYTHICAL, DIVINE]
+
+# Worn auras. A player wearing a /tag of Epic or rarer wears the aura set
+# here for that rarity: a concept, and an optional particle accent drawn
+# on top. Try any combination first with
+#   /rngadmin auratest <concept> [rarity] [accent]
+# Concepts: orbit, runes, halo, helix, galaxy, ripple, atom, celestial,
+# seraph, nebula, cosmos, or none. Accents: none, sparkle, embers, trails,
+# enchant, all. Auras step aside within farm-pause-radius blocks of a farm
+# plot, and every player can hide them in /options. Not a structural
+# section, so tuning here survives a jar update.
+auras:
+  enabled: true
+  farm-pause-radius: 10
+  tag:
+    EPIC:
+      concept: runes
+      accent: none
+    LEGENDARY:
+      concept: celestial
+      accent: sparkle
+    MYTHICAL:
+      concept: cosmos
+      accent: trails
+    DIVINE:
+      concept: seraph
+      accent: all

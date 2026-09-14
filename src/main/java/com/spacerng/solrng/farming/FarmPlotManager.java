@@ -407,6 +407,16 @@ public class FarmPlotManager {
         return true;
     }
 
+    /** Whether any plot is within {@code radius} blocks; worn auras step aside over the farm. */
+    public boolean isNearPlot(Location location, double radius) {
+        double rangeSq = radius * radius;
+        for (Location plot : plots) {
+            if (plot.getWorld() == null || !plot.getWorld().equals(location.getWorld())) continue;
+            if (plot.distanceSquared(location) <= rangeSq) return true;
+        }
+        return false;
+    }
+
     private Location normalise(Location location) {
         return new Location(location.getWorld(), location.getBlockX(), location.getBlockY(), location.getBlockZ());
     }

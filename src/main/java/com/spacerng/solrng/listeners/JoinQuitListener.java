@@ -56,6 +56,7 @@ public class JoinQuitListener implements Listener {
         plugin.getLuckBarManager().show(event.getPlayer());
         plugin.getQuestManager().check(event.getPlayer());
         plugin.getFarmPlotManager().render(event.getPlayer());
+        plugin.getAuraManager().refreshVisibility(event.getPlayer());
     }
 
     @EventHandler

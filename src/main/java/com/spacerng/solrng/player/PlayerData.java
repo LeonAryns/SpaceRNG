@@ -911,6 +911,17 @@ public class PlayerData {
         this.rollAnimationEnabled = rollAnimationEnabled;
     }
 
+    // Whether worn auras are drawn for this player: their own and everyone else's.
+    private boolean wornAurasVisible = true;
+
+    public boolean isWornAurasVisible() {
+        return wornAurasVisible;
+    }
+
+    public void setWornAurasVisible(boolean wornAurasVisible) {
+        this.wornAurasVisible = wornAurasVisible;
+    }
+
     /**
      * Whether this player sees the reveal aura for a given rarity. Split
      * per tier because the tiers are wildly different events: a Mythical

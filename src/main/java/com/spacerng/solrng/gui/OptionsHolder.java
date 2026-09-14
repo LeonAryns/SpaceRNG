@@ -21,6 +21,7 @@ public class OptionsHolder implements InventoryHolder {
     // without the chat spam, or the other way round.
     public static final int SOUND_SLOT = 11;
     public static final int ANIMATION_SLOT = 15;
+    public static final int WORN_AURA_SLOT = 13;
     public static final int AURA_EPIC_SLOT = 19;
     public static final int AURA_LEGENDARY_SLOT = 21;
     public static final int AURA_MYTHICAL_SLOT = 23;
