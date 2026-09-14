@@ -79,6 +79,7 @@ public final class AuraConcepts {
         d.put("ascendant", "cubes and halo");
         d.put("stellar", "shards, runes and halo");
         DisplayConcepts.describe(d);
+        GrandConcepts.describe(d);
         DESCRIPTIONS = Collections.unmodifiableMap(d);
     }
 
@@ -113,7 +114,10 @@ public final class AuraConcepts {
             case "cosmos" -> new Combined(new Atom(color), new RuneRing(color));
             case "ascendant" -> new Combined(new Cubes(block(rarity)), new Halo(color));
             case "stellar" -> new Combined(new Shards(gem(rarity)), new RuneRing(color), new Halo(color));
-            default -> DisplayConcepts.create(key, rarity, color);
+            default -> {
+                AuraConcept display = DisplayConcepts.create(key, rarity, color);
+                yield display != null ? display : GrandConcepts.create(key, rarity, color);
+            }
         };
     }
 
@@ -510,6 +514,7 @@ public final class AuraConcepts {
     static final class SolidAtom implements AuraConcept {
         private final int every;
         private final double step;
+        private final boolean faceViewer;
         private final Material material;
         private final float y;
         private final float radius;
@@ -531,6 +536,13 @@ public final class AuraConcepts {
          */
         SolidAtom(Material material, float y, float radius, float scale, boolean facing, double phase,
                   int every, double step) {
+            this(material, y, radius, scale, facing, phase, every, step, false);
+        }
+
+        /** @param faceViewer flat sprites such as a nether star turn to the viewer, so they never go thin */
+        SolidAtom(Material material, float y, float radius, float scale, boolean facing, double phase,
+                  int every, double step, boolean faceViewer) {
+            this.faceViewer = faceViewer;
             this.every = every;
             this.step = step;
             this.material = material;
@@ -546,7 +558,7 @@ public final class AuraConcepts {
             List<Display> displays = new ArrayList<>();
             for (int k = 0; k < 3; k++) {
                 for (int side = 0; side < 2; side++) {
-                    displays.add(parts.item(player, material, pose(k, side, 0)));
+                    displays.add(parts.item(player, material, pose(k, side, 0), faceViewer));
                 }
             }
             return displays;

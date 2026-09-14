@@ -57,6 +57,8 @@ public final class AuraParts {
             display.setBackgroundColor(Color.fromARGB(0, 0, 0, 0));
             display.setShadowed(false);
             display.setSeeThrough(false);
+            // Wide enough that the widest ground rings never wrap onto a second line.
+            display.setLineWidth(4000);
             display.text(Component.text(text, TextColor.color(color.getRed(), color.getGreen(), color.getBlue())));
         });
     }
@@ -68,6 +70,13 @@ public final class AuraParts {
             display.setItemStack(new ItemStack(material));
             display.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
         });
+    }
+
+    /** An item piece that, when {@code faceViewer} is set, always turns its face to whoever is looking. */
+    public ItemDisplay item(Player player, Material material, Transformation pose, boolean faceViewer) {
+        ItemDisplay display = item(player, material, pose);
+        if (faceViewer) display.setBillboard(Display.Billboard.CENTER);
+        return display;
     }
 
     /**
