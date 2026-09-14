@@ -37,7 +37,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             "reload", "setspawn", "starforge", "reset", "give", "drops",
             "bank", "aura", "roll", "unlock", "unlockall", "lockall", "odds", "farmblock", "farmscan",
             "hoe", "consumable", "gradient", "welcome", "crops", "farmclear",
-            "milestones", "farmfill", "boost", "nova", "placeholders", "payout", "crate", "tophead", "floatingitem", "help");
+            "milestones", "farmfill", "boost", "nova", "placeholders", "payout", "crate", "tophead", "floatingitem", "shiny", "help");
     private static final List<String> CURRENCIES = List.of("money", "coins", "gems", "credits");
 
     private final SolRNGPlugin plugin;
@@ -68,6 +68,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             case "bank" -> doDrops(sender, args, true);
             case "aura" -> doAura(sender, args);
             case "roll" -> doRoll(sender, args);
+            case "shiny" -> doShiny(sender, args);
             case "unlock" -> doUnlock(sender, args);
             case "unlockall" -> doUnlockAll(sender, args);
             case "hoe" -> doHoe(sender, args);
@@ -398,6 +399,21 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
 
         sender.sendMessage(ChatColor.GREEN + "Playing the " + rarity.displayName() + " reveal aura on "
                 + target.getName() + ChatColor.GRAY + " (" + String.format("%.0f", duration / 20.0) + "s).");
+        return true;
+    }
+
+    // ---------------------------------------------------------------- shiny
+
+    /**
+     * Makes the target's next roll come out shiny, so the pre-roll can be
+     * watched without waiting for a 1 in 2,500. The roll itself still
+     * starts the normal way, by clicking or through Auto Roll.
+     */
+    private boolean doShiny(CommandSender sender, String[] args) {
+        Player target = resolve(sender, args.length >= 2 ? args[1] : null);
+        if (target == null) return true;
+        plugin.getRollListener().forceShinyNext(target.getUniqueId());
+        sender.sendMessage(ChatColor.AQUA + "The next roll for " + target.getName() + " comes out shiny.");
         return true;
     }
 
@@ -1360,6 +1376,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
                 case "give" -> partial(args[1], CURRENCIES);
                 case "drops", "bank" -> partial(args[1], withAll(rarityNames()));
                 case "aura" -> partial(args[1], List.of("epic", "legendary", "mythical", "divine"));
+                case "shiny" -> partial(args[1], playerNames());
                 case "roll", "odds" -> partial(args[1], rarityNames());
                 case "unlock" -> partial(args[1], withAll(nodeIds()));
                 case "consumable" -> partial(args[1],

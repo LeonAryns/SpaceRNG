@@ -6,6 +6,7 @@ import com.spacerng.solrng.player.SkillNode;
 import com.spacerng.solrng.player.SkillTreeManager;
 import com.spacerng.solrng.rarity.Rarity;
 import com.spacerng.solrng.roll.RollAura;
+import com.spacerng.solrng.roll.ShinyPreRoll;
 import com.spacerng.solrng.rarity.RollFormat;
 import com.spacerng.solrng.rarity.RollableItem;
 import net.kyori.adventure.text.Component;
@@ -350,7 +351,7 @@ public class RollListener implements Listener {
         // Rolling at the end instead meant the reel visibly stopped on one
         // item and gave you a different one.
         RollableItem result = luckyStrike(plugin.getRarityManager().roll(luck));
-        boolean shiny = rollShiny(data);
+        boolean shiny = forcedShiny.remove(player.getUniqueId()) || rollShiny(data);
 
         // An Epic+ roll is stretched to at least the length of its own
         // build-up, so the effect always gets to play out in full - a
@@ -364,13 +365,23 @@ public class RollListener implements Listener {
         // Assigned once: the timer lambda below captures it, so it has to
         // stay effectively final.
         long baseTicks = effectiveRollTicks(data);
-        final long totalTicks = RollAura.isBigDrop(result.getRarity())
+        final long rollTicks = RollAura.isBigDrop(result.getRarity())
                 ? Math.max(baseTicks, RollAura.durationTicks(result.getRarity()))
                 : (rollsInstantly(data) ? 1L : baseTicks);
 
-        RollAura aura = RollAura.start(plugin, player, result.getRarity());
-        if (aura != null) {
-            activeAuras.put(player.getUniqueId(), aura);
+        // A shiny gets its own beat before the roll, and Instant Roll can't
+        // skip it for the same reason it can't skip a big drop. The aura's
+        // build-up is timed to the roll that follows, so it only starts
+        // once the pre-roll is over.
+        final long preTicks = shiny ? ShinyPreRoll.TICKS : 0L;
+        final long totalTicks = preTicks + rollTicks;
+        final ShinyPreRoll preRoll = shiny ? new ShinyPreRoll(plugin, player) : null;
+        final RollAura[] aura = {null};
+        final boolean[] auraStarted = {false};
+        if (preTicks == 0L) {
+            auraStarted[0] = true;
+            aura[0] = RollAura.start(plugin, player, result.getRarity());
+            if (aura[0] != null) activeAuras.put(player.getUniqueId(), aura[0]);
         }
 
         long[] elapsed = {0L};
@@ -381,7 +392,20 @@ public class RollListener implements Listener {
         taskHolder[0] = plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
             elapsed[0] += 2L;
 
-            if (elapsed[0] >= totalTicks) {
+            if (elapsed[0] <= preTicks) {
+                remainingTicks.put(player.getUniqueId(), totalTicks - elapsed[0]);
+                preRoll.frame((double) elapsed[0] / preTicks, data.isRollAnimationEnabled());
+                return;
+            }
+
+            if (!auraStarted[0]) {
+                auraStarted[0] = true;
+                aura[0] = RollAura.start(plugin, player, result.getRarity());
+                if (aura[0] != null) activeAuras.put(player.getUniqueId(), aura[0]);
+            }
+
+            long rollElapsed = elapsed[0] - preTicks;
+            if (rollElapsed >= rollTicks) {
                 taskHolder[0].cancel();
                 rollingTasks.remove(player.getUniqueId());
                 remainingTicks.remove(player.getUniqueId());
@@ -390,29 +414,98 @@ public class RollListener implements Listener {
             }
 
             remainingTicks.put(player.getUniqueId(), totalTicks - elapsed[0]);
-            // The per-tick click is a constant clatter that buries the
-            // aura's score, so a big roll goes quiet and lets the build-up
-            // carry the audio instead.
-            if (data.isRollSoundEnabled() && aura == null) {
-                player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK,
-                        (float) plugin.getConfig().getDouble("roll-item.roll-sound-volume", 0.12),
-                        1.0f);
-            }
 
-            // Case-opening-style teaser: every 5% of the roll, flash a
-            // candidate item + its odds in the center of the screen.
-            if (data.isRollAnimationEnabled()) {
-                int step = (int) (elapsed[0] * 20 / totalTicks);
-                if (step != lastStep[0]) {
-                    lastStep[0] = step;
-                    // The last frame already shows the real result, so the
-                    // reel visibly slows onto it instead of cutting to it.
-                    showRollTitle(player, step >= 19 ? result : randomPreview(data));
+            // Case-opening reel: 20 frames that land on the real result.
+            // Candidates come fast and then slow down, and the click follows
+            // the frames rather than ticking at a flat rate, so the sound
+            // decelerates with the picture and climbs in pitch toward the
+            // landing.
+            int step = reelStep((double) rollElapsed / rollTicks);
+            if (step != lastStep[0]) {
+                lastStep[0] = step;
+                // A big roll goes quiet and lets the aura's score carry the audio.
+                if (data.isRollSoundEnabled() && aura[0] == null) {
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK,
+                            (float) plugin.getConfig().getDouble("roll-item.roll-sound-volume", 0.12),
+                            (float) (0.9 + 0.7 * step / 19.0));
+                }
+                if (data.isRollAnimationEnabled()) {
+                    boolean landed = step >= 19;
+                    // A candidate stays up until the next one replaces it, so
+                    // the slow frames at the end hang instead of blinking out;
+                    // the landing holds until the roll finishes.
+                    showRollTitle(player, landed ? result : teaser(data, result, step), landed && shiny,
+                            landed ? (rollTicks - rollElapsed) * 50L + 400L : 1500L);
                 }
             }
         }, 0L, 2L);
 
         rollingTasks.put(player.getUniqueId(), taskHolder[0]);
+    }
+
+    // One-shot "the next roll is shiny" flags for /rngadmin shiny, so the
+    // pre-roll can be judged without waiting for a 1 in 2,500.
+    private final java.util.Set<UUID> forcedShiny = new java.util.HashSet<>();
+
+    public void forceShinyNext(UUID uuid) {
+        forcedShiny.add(uuid);
+    }
+
+    /**
+     * Which of the 20 reel frames a roll is on. Frames 0 to 18 are
+     * candidates on an ease-out curve across the first 95% of the roll, so
+     * they arrive quickly and then slow down. Frame 19 is the real result
+     * and still lands at 95%, as it always did: landing any earlier would
+     * give away a big drop seconds before its aura detonates.
+     */
+    private static int reelStep(double t) {
+        if (t >= 0.95) return 19;
+        double u = t / 0.95;
+        double eased = 1.0 - (1.0 - u) * (1.0 - u);
+        return Math.min(18, (int) (eased * 19.0));
+    }
+
+    /**
+     * The candidate for one reel frame. For a Rare or better, the last
+     * three frames before the landing climb toward the real rarity, three
+     * tiers below, then two, then one, so a good roll visibly builds instead
+     * of cutting in from nowhere. The climb never shows anything rarer than
+     * what is actually coming.
+     */
+    private RollableItem teaser(PlayerData data, RollableItem result, int step) {
+        Rarity landing = result.getRarity();
+        int below = 19 - step;
+        if (landing.ordinal() >= Rarity.RARE.ordinal() && below <= 3) {
+            RollableItem climb = randomItemOf(Rarity.values()[Math.max(0, landing.ordinal() - below)]);
+            if (climb != null) return climb;
+        }
+        return randomPreview(data);
+    }
+
+    private RollableItem randomItemOf(Rarity rarity) {
+        java.util.List<RollableItem> pool = new java.util.ArrayList<>();
+        for (RollableItem item : plugin.getRarityManager().getItems()) {
+            if (item.getRarity() == rarity) pool.add(item);
+        }
+        return pool.isEmpty() ? null : pool.get(random.nextInt(pool.size()));
+    }
+
+    /**
+     * One reel frame: the item's name as the title, and its rarity in its
+     * own colour with the odds as the subtitle, so the tier reads at a
+     * glance even when the item name doesn't give it away.
+     */
+    private void showRollTitle(Player player, RollableItem item, boolean shiny, long stayMillis) {
+        if (item == null) return;
+
+        Component name = LegacyComponentSerializer.legacySection()
+                .deserialize(RollFormat.displayName(plugin, item, shiny));
+        Component subtitle = LegacyComponentSerializer.legacySection()
+                .deserialize(plugin.getRarityManager().style(item.getRarity(), item.getRarity().displayName())
+                        + ChatColor.DARK_GRAY + "  ·  " + ChatColor.GRAY + RollFormat.chance(item.getOdds()));
+
+        player.showTitle(Title.title(name, subtitle,
+                Title.Times.times(Duration.ZERO, Duration.ofMillis(stayMillis), Duration.ZERO)));
     }
 
     /** Instant Roll: the whole animation collapses to a single tick. */
@@ -457,19 +550,6 @@ public class RollListener implements Listener {
         return plugin.getRarityManager().roll(plugin.getPrestigeManager().effectiveLuck(data));
     }
 
-    /** Flashes one item + its odds in the center of the screen. */
-    private void showRollTitle(Player player, RollableItem item) {
-        if (item == null) return;
-
-        Component name = LegacyComponentSerializer.legacySection()
-                .deserialize(RollFormat.displayName(plugin, item));
-        Component odds = LegacyComponentSerializer.legacySection()
-                .deserialize(ChatColor.GRAY + "· " + RollFormat.chance(item.getOdds()) + " ·");
-
-        Title title = Title.title(name, odds, Title.Times.times(Duration.ZERO, Duration.ofMillis(600), Duration.ZERO));
-        player.showTitle(title);
-    }
-
     private void finishRoll(Player player, PlayerData data, RollableItem result, boolean shiny) {
         clearActionBar(player);
         // The level-up chime would land on the same tick as a big drop's
@@ -489,16 +569,16 @@ public class RollListener implements Listener {
         }
 
         // Hold the landed item on screen so the reel ends on exactly what
-        // the player is handed. For a big drop the title waits a moment:
-        // dropping it over the detonation on the same tick hides the burst
-        // the player just sat through ten seconds of build-up for.
+        // the player is handed, shiny markers included. For a big drop the
+        // title waits a moment: dropping it over the detonation on the same
+        // tick hides the burst the player just sat through the build-up for.
         if (data.isRollAnimationEnabled()) {
             long titleDelay = RollAura.titleDelayTicks(result.getRarity());
             if (titleDelay <= 0) {
-                showRollTitle(player, result);
+                showRollTitle(player, result, shiny, 1500L);
             } else {
                 plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
-                    if (player.isOnline()) showRollTitle(player, result);
+                    if (player.isOnline()) showRollTitle(player, result, shiny, 1500L);
                 }, titleDelay);
             }
         }
