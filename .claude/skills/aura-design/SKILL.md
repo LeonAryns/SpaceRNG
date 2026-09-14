@@ -511,3 +511,31 @@ console every tick forever.
 Test with `/rngadmin aura <rarity>`. Watch it from 40 blocks away as well
 as from on top of it, because the two look nothing alike and players will
 mostly see the far one.
+
+## Worn auras (display entities)
+
+Everything above is about particles for one-off spectacles. Auras a
+player wears for hours are built differently, in `aura/`, because
+particles every tick for every wearer would never fit the budget.
+
+- **Pieces are display entities mounted as passengers** on the player
+  (`AuraParts`). The client carries passengers with the vehicle every
+  frame, so a piece follows with no lag and the server moves nothing.
+  Spawn them with yaw and pitch 0, non-persistent, fullbright, tagged.
+- **Text pieces orbit for free.** A glyph plus n spaces is centred, so the
+  glyph sits 2n font pixels (0.025 blocks each at scale 1) off the axis;
+  spinning the display about its axis swings the glyph round the player.
+  Rotation is slerped by the client, so one update per one or two seconds
+  is a smooth orbit. Never send more than 120 degrees per update, a slerp
+  takes the short way round. Glyphs take any RGB colour; `✦ ✧ ◆` render.
+- **Item pieces are centred**, so they orbit by moving translation a few
+  degrees every 4 ticks; the chord is indistinguishable from the arc.
+- **Accents** (`AuraAccent`) are the only particles: a handful per viewer
+  every 2 ticks, audience within 32 blocks, honouring both the per-rarity
+  aura toggle and the Worn Auras switch in /options.
+- **Where a glyph is** at frame f is known without the client: a look
+  turning 120 degrees every n frames is at 120 f / n; `AuraConcept.stars`
+  runs the glyph offset through the display's own quaternion.
+- **Lifecycle** (`AuraManager`): rebuilt when not riding (death, teleport),
+  paused near farm plots, removed on quit, disable and swap, swept on
+  start. The tag's rarity picks the look from `auras:` in config.

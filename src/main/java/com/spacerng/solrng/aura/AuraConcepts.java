@@ -1,15 +1,24 @@
 package com.spacerng.solrng.aura;
 
+import com.spacerng.solrng.rarity.Rarity;
 import org.bukkit.Color;
+import org.bukkit.Material;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.Player;
+import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
 import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.spacerng.solrng.aura.AuraParts.FEET;
+import static com.spacerng.solrng.aura.AuraParts.RIDE;
+import static com.spacerng.solrng.aura.AuraParts.at;
 import static com.spacerng.solrng.aura.AuraParts.flat;
 import static com.spacerng.solrng.aura.AuraParts.flatRotation;
 import static com.spacerng.solrng.aura.AuraParts.move;
@@ -24,27 +33,54 @@ import static com.spacerng.solrng.aura.AuraParts.upright;
 /**
  * The aura looks that can be tried on with /rngadmin auratest.
  *
- * The trick they share: a star glyph sits off-centre inside its own text,
- * pushed out by spaces, so spinning the whole display about its own axis
- * swings the star round the player. Rotation is slerped by the client, so
- * one update every one or two seconds reads as a smooth orbit. Turns are
+ * Text looks share one trick: a star glyph sits off-centre inside its own
+ * text, pushed out by spaces, so spinning the whole display about its own
+ * axis swings the star round the player. Rotation is slerped by the client,
+ * so one update every one or two seconds reads as a smooth orbit. Turns are
  * sent in steps of 120 degrees at most, because a slerp always takes the
  * short way round and a bigger step could reverse.
  *
+ * Item looks can't do that, an item model is centred on its origin, so they
+ * orbit by moving their translation in small steps a few times a second;
+ * the chord between two close points on a circle is indistinguishable from
+ * the arc.
+ *
  * A look that sends a turn of 120 degrees every n frames is, at any frame
- * f, 120 * f / n degrees round, which is how {@code stars} finds its glyphs
+ * f, 120 * f / n degrees round, which is how {@code stars} finds its pieces
  * for accents without asking the client.
  */
 public final class AuraConcepts {
 
-    public static final List<String> KEYS = List.of(
-            "orbit", "runes", "halo", "helix", "galaxy", "ripple", "atom",
-            "celestial", "seraph", "nebula", "cosmos");
+    /** Every look, with one line saying what it is, in the order /rngadmin auratest list shows them. */
+    public static final Map<String, String> DESCRIPTIONS;
+
+    static {
+        Map<String, String> d = new LinkedHashMap<>();
+        d.put("orbit", "two star rings, waist and shoulders, turning opposite ways");
+        d.put("runes", "six runes flat round the feet, four smaller ones inside");
+        d.put("halo", "a ring of six stars just above the head");
+        d.put("helix", "two stars spiralling up and down the body");
+        d.put("galaxy", "three bands round the feet, the inner one fastest");
+        d.put("ripple", "rings of stars bursting outward from the feet");
+        d.put("atom", "three slanted orbits round the chest");
+        d.put("pulse", "a ring at the feet that swells and settles as it turns");
+        d.put("cubes", "three small blocks of the rarity's material orbiting the chest");
+        d.put("shards", "four of the rarity's gems circling the waist on a tilted ring");
+        d.put("celestial", "orbit and runes");
+        d.put("seraph", "halo and orbit");
+        d.put("nebula", "galaxy and ripple");
+        d.put("cosmos", "atom and runes");
+        d.put("ascendant", "cubes and halo");
+        d.put("stellar", "shards, runes and halo");
+        DESCRIPTIONS = Collections.unmodifiableMap(d);
+    }
+
+    public static final List<String> KEYS = List.copyOf(DESCRIPTIONS.keySet());
 
     private AuraConcepts() {
     }
 
-    public static AuraConcept create(String key, Color color) {
+    public static AuraConcept create(String key, Rarity rarity, Color color) {
         return switch (key) {
             case "orbit" -> new StarOrbit(color);
             case "runes" -> new RuneRing(color);
@@ -53,10 +89,15 @@ public final class AuraConcepts {
             case "galaxy" -> new Galaxy(color);
             case "ripple" -> new Ripple(color);
             case "atom" -> new Atom(color);
+            case "pulse" -> new Pulse(color);
+            case "cubes" -> new Cubes(rarity);
+            case "shards" -> new Shards(rarity);
             case "celestial" -> new Combined(new StarOrbit(color), new RuneRing(color));
             case "seraph" -> new Combined(new Halo(color), new StarOrbit(color));
             case "nebula" -> new Combined(new Galaxy(color), new Ripple(color));
             case "cosmos" -> new Combined(new Atom(color), new RuneRing(color));
+            case "ascendant" -> new Combined(new Cubes(rarity), new Halo(color));
+            case "stellar" -> new Combined(new Shards(rarity), new RuneRing(color), new Halo(color));
             default -> null;
         };
     }
@@ -368,6 +409,159 @@ public final class AuraConcepts {
 
         private static int direction(int k) {
             return k == 1 ? -1 : 1;
+        }
+    }
+
+    // ------------------------------------------------------------------ pulse
+
+    /** A ring of stars at the feet that swells and settles while it turns, like breathing. */
+    static final class Pulse implements AuraConcept {
+        private final Color color;
+        private final Color soft;
+
+        Pulse(Color color) {
+            this.color = color;
+            this.soft = softer(color);
+        }
+
+        @Override
+        public List<Display> spawn(Player player, AuraParts parts) {
+            List<Display> displays = new ArrayList<>();
+            for (int i = 0; i < 3; i++) {
+                displays.add(parts.text(player, pair("✦", 10), i == 1 ? soft : color, flat(FEET, rad(60 * i), 1.3f)));
+            }
+            return displays;
+        }
+
+        @Override
+        public void tick(List<Display> displays, long frame) {
+            if (frame % 10 != 0) return;
+            long n = frame / 10 + 1;
+            float scale = n % 2 == 0 ? 1.3f : 2.0f;
+            // A sixth of a turn per breath, well inside what a slerp keeps straight.
+            int turn = (int) (n % 6);
+            for (int i = 0; i < 3; i++) {
+                move(displays.get(i), flat(FEET, rad(60 * i + 60 * turn), scale), 20);
+            }
+        }
+    }
+
+    // ------------------------------------------------------------------ cubes
+
+    /** Three small blocks of the rarity's own material orbiting the chest, tumbling as they go. */
+    static final class Cubes implements AuraConcept {
+        private static final float Y = -0.75f;
+        private static final float RADIUS = 0.95f;
+        private static final float SCALE = 0.28f;
+        private static final int EVERY = 2;
+        private static final double STEP = 30.0;
+        private final Material material;
+
+        Cubes(Rarity rarity) {
+            this.material = switch (rarity) {
+                case DIVINE -> Material.QUARTZ_BLOCK;
+                case MYTHICAL -> Material.REDSTONE_BLOCK;
+                case LEGENDARY -> Material.GOLD_BLOCK;
+                default -> Material.AMETHYST_BLOCK;
+            };
+        }
+
+        @Override
+        public List<Display> spawn(Player player, AuraParts parts) {
+            List<Display> displays = new ArrayList<>();
+            for (int i = 0; i < 3; i++) {
+                displays.add(parts.item(player, material, pose(i, 0)));
+            }
+            return displays;
+        }
+
+        @Override
+        public void tick(List<Display> displays, long frame) {
+            if (frame % EVERY != 0) return;
+            long n = frame / EVERY + 1;
+            for (int i = 0; i < 3; i++) {
+                move(displays.get(i), pose(i, n), EVERY * 2);
+            }
+        }
+
+        @Override
+        public void stars(long frame, List<Vector> out) {
+            double steps = (double) frame / EVERY;
+            for (int i = 0; i < 3; i++) {
+                double a = Math.toRadians(120 * i + STEP * steps);
+                out.add(new Vector(RADIUS * Math.cos(a), RIDE + Y, -RADIUS * Math.sin(a)));
+            }
+        }
+
+        private static Transformation pose(int i, double steps) {
+            double a = Math.toRadians(120 * i + STEP * steps);
+            // Turning twice as fast as it orbits, on a tipped axis, so every face shows.
+            Quaternionf tumble = new Quaternionf().rotateY((float) (a * 2)).rotateX(rad(35)).rotateZ(rad(45));
+            return at((float) (RADIUS * Math.cos(a)), Y, (float) (-RADIUS * Math.sin(a)), tumble, SCALE);
+        }
+    }
+
+    // ----------------------------------------------------------------- shards
+
+    /** Four of the rarity's gems circling the waist on a gently tilted ring, each facing along its path. */
+    static final class Shards implements AuraConcept {
+        private static final float Y = -1.0f;
+        private static final float RADIUS = 0.85f;
+        private static final float SCALE = 0.45f;
+        private static final int EVERY = 2;
+        private static final double STEP = 24.0;
+        private static final Quaternionf TILT = new Quaternionf().rotateX(rad(18));
+        private final Material material;
+
+        Shards(Rarity rarity) {
+            this.material = switch (rarity) {
+                case DIVINE -> Material.NETHER_STAR;
+                case MYTHICAL -> Material.FIRE_CHARGE;
+                case LEGENDARY -> Material.GOLD_INGOT;
+                default -> Material.AMETHYST_SHARD;
+            };
+        }
+
+        @Override
+        public List<Display> spawn(Player player, AuraParts parts) {
+            List<Display> displays = new ArrayList<>();
+            for (int i = 0; i < 4; i++) {
+                displays.add(parts.item(player, material, pose(i, 0)));
+            }
+            return displays;
+        }
+
+        @Override
+        public void tick(List<Display> displays, long frame) {
+            if (frame % EVERY != 0) return;
+            long n = frame / EVERY + 1;
+            for (int i = 0; i < 4; i++) {
+                move(displays.get(i), pose(i, n), EVERY * 2);
+            }
+        }
+
+        @Override
+        public void stars(long frame, List<Vector> out) {
+            for (int i = 0; i < 4; i++) {
+                Vector3f p = offset(angle(i, (double) frame / EVERY));
+                out.add(new Vector(p.x, RIDE + Y + p.y, p.z));
+            }
+        }
+
+        /** Clockwise, so it crosses any counter-clockwise look worn with it. */
+        private static double angle(int i, double steps) {
+            return Math.toRadians(90 * i - STEP * steps);
+        }
+
+        private static Vector3f offset(double a) {
+            return TILT.transform(new Vector3f((float) (RADIUS * Math.cos(a)), 0f, (float) (-RADIUS * Math.sin(a))));
+        }
+
+        private static Transformation pose(int i, double steps) {
+            double a = angle(i, steps);
+            Vector3f p = offset(a);
+            Quaternionf facing = new Quaternionf(TILT).rotateY((float) a + rad(90));
+            return at(p.x, Y + p.y, p.z, facing, SCALE);
         }
     }
 

@@ -422,6 +422,14 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             return true;
         }
         String key = args[1].toLowerCase(Locale.ROOT);
+        if (key.equals("list")) {
+            sender.sendMessage(ChatColor.AQUA + "Aura concepts:");
+            com.spacerng.solrng.aura.AuraConcepts.DESCRIPTIONS.forEach((name, line) ->
+                    sender.sendMessage(ChatColor.YELLOW + " " + name + ChatColor.GRAY + "  " + line));
+            sender.sendMessage(ChatColor.AQUA + "Accents: " + ChatColor.GRAY
+                    + String.join(", ", com.spacerng.solrng.aura.AuraAccent.KEYS));
+            return true;
+        }
         if (key.equals("off")) {
             plugin.getAuraManager().endTest(player);
             sender.sendMessage(ChatColor.GRAY + "Aura removed.");
@@ -1549,7 +1557,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
                 case "shiny" -> partial(args[1], playerNames());
                 case "firsts" -> partial(args[1], List.of("list", "reset", "preview"));
                 case "lorestyles" -> partial(args[1], rarityNames());
-                case "auratest" -> partial(args[1], java.util.stream.Stream.concat(com.spacerng.solrng.aura.AuraConcepts.KEYS.stream(), java.util.stream.Stream.of("off")).toList());
+                case "auratest" -> partial(args[1], java.util.stream.Stream.concat(com.spacerng.solrng.aura.AuraConcepts.KEYS.stream(), java.util.stream.Stream.of("off", "list")).toList());
                 case "roll", "odds" -> partial(args[1], rarityNames());
                 case "unlock" -> partial(args[1], withAll(nodeIds()));
                 case "consumable" -> partial(args[1],

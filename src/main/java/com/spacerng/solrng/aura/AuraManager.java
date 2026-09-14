@@ -157,7 +157,7 @@ public final class AuraManager {
 
     private boolean wear(Player player, String conceptKey, Rarity rarity, AuraAccent accent, boolean test) {
         Color color = RollAura.colorFor(rarity);
-        AuraConcept concept = AuraConcepts.create(conceptKey, color);
+        AuraConcept concept = AuraConcepts.create(conceptKey, rarity, color);
         if (concept == null) return false;
         hide(player.getUniqueId());
         Worn aura = new Worn(conceptKey, concept, rarity, color, accent == null ? AuraAccent.NONE : accent, test);

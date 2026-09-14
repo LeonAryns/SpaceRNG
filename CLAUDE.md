@@ -82,6 +82,21 @@ Load the matching skill before touching its area:
   scoreboard title in config.yml. Use the Edit tool, or git-bash
   `sed` / `awk` with `LC_ALL=C`. Git-bash `sed -i` also turns CRLF into
   LF, which is harmless because git normalises line endings.
+- **Backslashes in tool commands.** The command tool turns `\\` into a
+  single backslash before bash sees it, so a sed or perl pattern meant to
+  match a literal backslash (like the escaped dash code in Java source)
+  silently matches nothing. Match it with `.` instead, and always grep
+  afterwards that the change happened. V103 claimed a fix that never
+  landed this way.
+- **Display entities copy their spawn rotation.** A display spawned at
+  `player.getLocation()` takes the player's yaw and pitch. Spawn aura
+  pieces at a location with both set to 0, or they hang tilted.
+- **Worn auras** live in `aura/`. Pieces are display entities mounted on
+  the player as passengers. Text pieces orbit by putting a glyph off
+  centre with spaces and spinning the display (slerped, at most 120
+  degrees per update); item pieces move their translation in small steps.
+  The tag rarity picks the look from `auras:` in config; `/rngadmin
+  auratest list` shows every concept and accent.
 - **Inserting a config section.** Check you are not landing inside
   another section. V93 put `linked-account:` between `shiny.chance` and
   the rest of `shiny:`, which silently moved `node`, `marker` and
