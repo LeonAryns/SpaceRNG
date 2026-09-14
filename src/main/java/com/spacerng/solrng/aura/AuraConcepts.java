@@ -24,6 +24,7 @@ import static com.spacerng.solrng.aura.AuraParts.flatRotation;
 import static com.spacerng.solrng.aura.AuraParts.move;
 import static com.spacerng.solrng.aura.AuraParts.pair;
 import static com.spacerng.solrng.aura.AuraParts.pairStars;
+import static com.spacerng.solrng.aura.AuraParts.pose;
 import static com.spacerng.solrng.aura.AuraParts.rad;
 import static com.spacerng.solrng.aura.AuraParts.single;
 import static com.spacerng.solrng.aura.AuraParts.softer;
@@ -62,7 +63,12 @@ public final class AuraConcepts {
         d.put("helix", "two stars spiralling up and down the body");
         d.put("galaxy", "three bands round the feet, the inner one fastest");
         d.put("ripple", "rings of stars bursting outward from the feet");
-        d.put("atom", "three slanted orbits round the chest");
+        d.put("atom", "three slanted orbits of crossed stars, solid from any side");
+        d.put("atom-cubes", "the atom with small tumbling blocks of the rarity's material");
+        d.put("atom-gems", "the atom with the rarity's gems, each facing along its orbit");
+        d.put("atom-lanterns", "the atom with glowing froglights and lanterns");
+        d.put("atom-hybrid", "the star atom with small lanterns riding between the stars");
+        d.put("atom-grand", "a wide lantern atom round the whole body, runes at the feet");
         d.put("pulse", "a ring at the feet that swells and settles as it turns");
         d.put("cubes", "three small blocks of the rarity's material orbiting the chest");
         d.put("shards", "four of the rarity's gems circling the waist on a tilted ring");
@@ -89,16 +95,57 @@ public final class AuraConcepts {
             case "galaxy" -> new Galaxy(color);
             case "ripple" -> new Ripple(color);
             case "atom" -> new Atom(color);
+            case "atom-cubes" -> new SolidAtom(block(rarity), Atom.CHEST, 0.85f, 0.22f, false, 0);
+            case "atom-gems" -> new SolidAtom(gem(rarity), Atom.CHEST, 0.85f, 0.38f, true, 0);
+            case "atom-lanterns" -> new SolidAtom(lantern(rarity), Atom.CHEST, 0.85f, 0.22f, false, 0);
+            // Same ring and speed as the star atom, a quarter turn behind, so
+            // each lantern rides exactly between two stars.
+            case "atom-hybrid" -> new Combined(new Atom(color),
+                    new SolidAtom(lantern(rarity), Atom.CHEST, Atom.RADIUS, 0.16f, false, 90));
+            case "atom-grand" -> new Combined(
+                    new SolidAtom(lantern(rarity), -0.9f, 1.25f, 0.26f, false, 0), new RuneRing(color));
             case "pulse" -> new Pulse(color);
-            case "cubes" -> new Cubes(rarity);
-            case "shards" -> new Shards(rarity);
+            case "cubes" -> new Cubes(block(rarity));
+            case "shards" -> new Shards(gem(rarity));
             case "celestial" -> new Combined(new StarOrbit(color), new RuneRing(color));
             case "seraph" -> new Combined(new Halo(color), new StarOrbit(color));
             case "nebula" -> new Combined(new Galaxy(color), new Ripple(color));
             case "cosmos" -> new Combined(new Atom(color), new RuneRing(color));
-            case "ascendant" -> new Combined(new Cubes(rarity), new Halo(color));
-            case "stellar" -> new Combined(new Shards(rarity), new RuneRing(color), new Halo(color));
+            case "ascendant" -> new Combined(new Cubes(block(rarity)), new Halo(color));
+            case "stellar" -> new Combined(new Shards(gem(rarity)), new RuneRing(color), new Halo(color));
             default -> null;
+        };
+    }
+
+    // ---------------------------------------------------- materials by rarity
+
+    /** A solid block in the rarity's colour. */
+    private static Material block(Rarity rarity) {
+        return switch (rarity) {
+            case DIVINE -> Material.QUARTZ_BLOCK;
+            case MYTHICAL -> Material.REDSTONE_BLOCK;
+            case LEGENDARY -> Material.GOLD_BLOCK;
+            default -> Material.AMETHYST_BLOCK;
+        };
+    }
+
+    /** A flat gem or charm in the rarity's colour. */
+    private static Material gem(Rarity rarity) {
+        return switch (rarity) {
+            case DIVINE -> Material.NETHER_STAR;
+            case MYTHICAL -> Material.FIRE_CHARGE;
+            case LEGENDARY -> Material.GOLD_INGOT;
+            default -> Material.AMETHYST_SHARD;
+        };
+    }
+
+    /** A block that looks lit from inside, which reads as light even at full brightness. */
+    private static Material lantern(Rarity rarity) {
+        return switch (rarity) {
+            case DIVINE -> Material.SEA_LANTERN;
+            case MYTHICAL -> Material.SHROOMLIGHT;
+            case LEGENDARY -> Material.OCHRE_FROGLIGHT;
+            default -> Material.PEARLESCENT_FROGLIGHT;
         };
     }
 
@@ -364,10 +411,18 @@ public final class AuraConcepts {
 
     // ------------------------------------------------------------------- atom
 
-    /** Three slanted orbits around the chest, 60 degrees apart, like an atom. */
+    /**
+     * Three slanted orbits around the chest, 60 degrees apart, like an atom.
+     *
+     * Each orbit is two text cards crossed at right angles along the line
+     * through their stars. A single card went thin whenever it turned edge-on
+     * to the viewer, which read as the whole aura going flat from one side;
+     * with a second card at 90 degrees, one of the two always faces you.
+     */
     static final class Atom implements AuraConcept {
-        private static final float CHEST = -0.8f;
-        private static final Quaternionf[] TILTS = {
+        static final float CHEST = -0.8f;
+        static final float RADIUS = (4 + 2 * 7) * 0.025f * 1.7f;
+        static final Quaternionf[] TILTS = {
                 new Quaternionf().rotateX(rad(60)),
                 new Quaternionf().rotateY(rad(60)).rotateX(rad(60)),
                 new Quaternionf().rotateY(rad(120)).rotateX(rad(60))
@@ -384,8 +439,9 @@ public final class AuraConcepts {
         public List<Display> spawn(Player player, AuraParts parts) {
             List<Display> displays = new ArrayList<>();
             for (int k = 0; k < 3; k++) {
-                displays.add(parts.text(player, pair("✦", 7), k == 1 ? soft : color,
-                        tilted(CHEST, TILTS[k], 0f, 1.7f)));
+                Color tint = k == 1 ? soft : color;
+                displays.add(parts.text(player, pair("✦", 7), tint, tilted(CHEST, TILTS[k], 0f, 1.7f)));
+                displays.add(parts.text(player, pair("✦", 7), tint, crossed(k, 0f)));
             }
             return displays;
         }
@@ -396,7 +452,9 @@ public final class AuraConcepts {
             int step = step(frame, 10);
             for (int k = 0; k < 3; k++) {
                 // The middle orbit runs the other way, so the three never line up.
-                move(displays.get(k), tilted(CHEST, TILTS[k], rad(direction(k) * 120 * step), 1.7f), 20);
+                float angle = rad(direction(k) * 120 * step);
+                move(displays.get(k * 2), tilted(CHEST, TILTS[k], angle, 1.7f), 20);
+                move(displays.get(k * 2 + 1), crossed(k, angle), 20);
             }
         }
 
@@ -407,8 +465,96 @@ public final class AuraConcepts {
             }
         }
 
-        private static int direction(int k) {
+        /** The second card: the same orbit, rolled a quarter turn about the line through its stars. */
+        private static Transformation crossed(int k, float angle) {
+            return pose(CHEST, new Quaternionf(TILTS[k]).rotateY(angle).rotateX(rad(90)), 1.7f);
+        }
+
+        static int direction(int k) {
             return k == 1 ? -1 : 1;
+        }
+    }
+
+    // -------------------------------------------------------------- solid atom
+
+    /**
+     * The atom built from solid pieces, two items on each of its three
+     * slanted orbits, so it has volume from every side. Items can't use the
+     * glyph trick, so every 6 ticks each one moves 36 degrees along its
+     * slanted circle: the same 12 degrees a frame as the star atom, which is
+     * what lets a hybrid ride its lanterns exactly between the stars.
+     */
+    static final class SolidAtom implements AuraConcept {
+        private static final int EVERY = 3;
+        private static final double STEP = 36.0;
+        private final Material material;
+        private final float y;
+        private final float radius;
+        private final float scale;
+        private final boolean facing;
+        private final double phase;
+
+        /**
+         * @param facing gems turn to face along their path; blocks tumble instead
+         * @param phase  degrees ahead of the star atom's own stars
+         */
+        SolidAtom(Material material, float y, float radius, float scale, boolean facing, double phase) {
+            this.material = material;
+            this.y = y;
+            this.radius = radius;
+            this.scale = scale;
+            this.facing = facing;
+            this.phase = phase;
+        }
+
+        @Override
+        public List<Display> spawn(Player player, AuraParts parts) {
+            List<Display> displays = new ArrayList<>();
+            for (int k = 0; k < 3; k++) {
+                for (int side = 0; side < 2; side++) {
+                    displays.add(parts.item(player, material, pose(k, side, 0)));
+                }
+            }
+            return displays;
+        }
+
+        @Override
+        public void tick(List<Display> displays, long frame) {
+            if (frame % EVERY != 0) return;
+            long n = frame / EVERY + 1;
+            for (int k = 0; k < 3; k++) {
+                for (int side = 0; side < 2; side++) {
+                    move(displays.get(k * 2 + side), pose(k, side, n), EVERY * 2);
+                }
+            }
+        }
+
+        @Override
+        public void stars(long frame, List<Vector> out) {
+            double steps = (double) frame / EVERY;
+            for (int k = 0; k < 3; k++) {
+                for (int side = 0; side < 2; side++) {
+                    Vector3f p = offset(k, angle(k, side, steps));
+                    out.add(new Vector(p.x, RIDE + y + p.y, p.z));
+                }
+            }
+        }
+
+        private double angle(int k, int side, double steps) {
+            return Math.toRadians(phase + 180 * side + Atom.direction(k) * STEP * steps);
+        }
+
+        private Vector3f offset(int k, double a) {
+            return Atom.TILTS[k].transform(new Vector3f((float) (radius * Math.cos(a)), 0f, (float) (-radius * Math.sin(a))));
+        }
+
+        private Transformation pose(int k, int side, double steps) {
+            double a = angle(k, side, steps);
+            Vector3f p = offset(k, a);
+            Quaternionf rotation = facing
+                    ? new Quaternionf(Atom.TILTS[k]).rotateY((float) a + rad(90))
+                    : new Quaternionf().rotateY((float) (a * 2)).rotateX(rad(35)).rotateZ(rad(45));
+            return at(p.x, y + p.y, p.z, rotation, scale);
         }
     }
 
@@ -457,13 +603,8 @@ public final class AuraConcepts {
         private static final double STEP = 30.0;
         private final Material material;
 
-        Cubes(Rarity rarity) {
-            this.material = switch (rarity) {
-                case DIVINE -> Material.QUARTZ_BLOCK;
-                case MYTHICAL -> Material.REDSTONE_BLOCK;
-                case LEGENDARY -> Material.GOLD_BLOCK;
-                default -> Material.AMETHYST_BLOCK;
-            };
+        Cubes(Material material) {
+            this.material = material;
         }
 
         @Override
@@ -513,13 +654,8 @@ public final class AuraConcepts {
         private static final Quaternionf TILT = new Quaternionf().rotateX(rad(18));
         private final Material material;
 
-        Shards(Rarity rarity) {
-            this.material = switch (rarity) {
-                case DIVINE -> Material.NETHER_STAR;
-                case MYTHICAL -> Material.FIRE_CHARGE;
-                case LEGENDARY -> Material.GOLD_INGOT;
-                default -> Material.AMETHYST_SHARD;
-            };
+        Shards(Material material) {
+            this.material = material;
         }
 
         @Override
