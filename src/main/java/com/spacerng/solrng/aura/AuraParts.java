@@ -110,6 +110,12 @@ public final class AuraParts {
                 new Vector3f(scale, scale, scale), new Quaternionf());
     }
 
+    /** Like {@link #at}, stretched differently on each axis, for beams and plates. */
+    public static Transformation atScaled(float x, float y, float z, Quaternionf rotation,
+                                          float sx, float sy, float sz) {
+        return new Transformation(new Vector3f(x, y, z), rotation, new Vector3f(sx, sy, sz), new Quaternionf());
+    }
+
     /** Standing up, turned about the vertical axis. */
     public static Transformation upright(float y, float angle, float scale) {
         return pose(y, new Quaternionf().rotateY(angle), scale);

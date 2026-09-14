@@ -68,7 +68,7 @@ public final class AuraConcepts {
         d.put("atom-gems", "the atom with the rarity's gems, each facing along its orbit");
         d.put("atom-lanterns", "the atom with glowing froglights and lanterns");
         d.put("atom-hybrid", "the star atom with small lanterns riding between the stars");
-        d.put("atom-grand", "a wide lantern atom round the whole body, runes at the feet");
+        d.put("atom-grand", "a lantern atom round the whole body that grows with rarity, huge on Divine");
         d.put("pulse", "a ring at the feet that swells and settles as it turns");
         d.put("cubes", "three small blocks of the rarity's material orbiting the chest");
         d.put("shards", "four of the rarity's gems circling the waist on a tilted ring");
@@ -78,6 +78,7 @@ public final class AuraConcepts {
         d.put("cosmos", "atom and runes");
         d.put("ascendant", "cubes and halo");
         d.put("stellar", "shards, runes and halo");
+        DisplayConcepts.describe(d);
         DESCRIPTIONS = Collections.unmodifiableMap(d);
     }
 
@@ -102,8 +103,7 @@ public final class AuraConcepts {
             // each lantern rides exactly between two stars.
             case "atom-hybrid" -> new Combined(new Atom(color),
                     new SolidAtom(lantern(rarity), Atom.CHEST, Atom.RADIUS, 0.16f, false, 90));
-            case "atom-grand" -> new Combined(
-                    new SolidAtom(lantern(rarity), -0.9f, 1.25f, 0.26f, false, 0), new RuneRing(color));
+            case "atom-grand" -> grand(rarity, color);
             case "pulse" -> new Pulse(color);
             case "cubes" -> new Cubes(block(rarity));
             case "shards" -> new Shards(gem(rarity));
@@ -113,7 +113,30 @@ public final class AuraConcepts {
             case "cosmos" -> new Combined(new Atom(color), new RuneRing(color));
             case "ascendant" -> new Combined(new Cubes(block(rarity)), new Halo(color));
             case "stellar" -> new Combined(new Shards(gem(rarity)), new RuneRing(color), new Halo(color));
-            default -> null;
+            default -> DisplayConcepts.create(key, rarity, color);
+        };
+    }
+
+    /**
+     * atom-grand grows with the rarity, and Divine is on another scale: a
+     * lantern atom nearly six blocks across with pieces half a block wide,
+     * a second atom of end rods turning inside it a quarter turn behind, and
+     * the runes at the feet. Big rings move in small steps, so the orbit
+     * stays round instead of showing its corners.
+     */
+    private static AuraConcept grand(Rarity rarity, Color color) {
+        Material light = lantern(rarity);
+        return switch (rarity) {
+            case DIVINE -> new Combined(
+                    new SolidAtom(light, -0.6f, 2.8f, 0.5f, false, 0, 2, 16.0),
+                    new SolidAtom(Material.END_ROD, -0.8f, 1.45f, 0.35f, false, 90, 2, 24.0),
+                    new RuneRing(color));
+            case MYTHICAL -> new Combined(
+                    new SolidAtom(light, -0.8f, 1.85f, 0.36f, false, 0, 2, 20.0), new RuneRing(color));
+            case LEGENDARY -> new Combined(
+                    new SolidAtom(light, -0.85f, 1.5f, 0.3f, false, 0, 3, 30.0), new RuneRing(color));
+            default -> new Combined(
+                    new SolidAtom(light, -0.9f, 1.25f, 0.26f, false, 0), new RuneRing(color));
         };
     }
 
@@ -130,7 +153,7 @@ public final class AuraConcepts {
     }
 
     /** A flat gem or charm in the rarity's colour. */
-    private static Material gem(Rarity rarity) {
+    static Material gem(Rarity rarity) {
         return switch (rarity) {
             case DIVINE -> Material.NETHER_STAR;
             case MYTHICAL -> Material.FIRE_CHARGE;
@@ -140,7 +163,7 @@ public final class AuraConcepts {
     }
 
     /** A block that looks lit from inside, which reads as light even at full brightness. */
-    private static Material lantern(Rarity rarity) {
+    static Material lantern(Rarity rarity) {
         return switch (rarity) {
             case DIVINE -> Material.SEA_LANTERN;
             case MYTHICAL -> Material.SHROOMLIGHT;
@@ -485,8 +508,8 @@ public final class AuraConcepts {
      * what lets a hybrid ride its lanterns exactly between the stars.
      */
     static final class SolidAtom implements AuraConcept {
-        private static final int EVERY = 3;
-        private static final double STEP = 36.0;
+        private final int every;
+        private final double step;
         private final Material material;
         private final float y;
         private final float radius;
@@ -499,6 +522,17 @@ public final class AuraConcepts {
          * @param phase  degrees ahead of the star atom's own stars
          */
         SolidAtom(Material material, float y, float radius, float scale, boolean facing, double phase) {
+            this(material, y, radius, scale, facing, phase, 3, 36.0);
+        }
+
+        /**
+         * @param every frames between moves
+         * @param step  degrees per move; a big ring wants a small step to stay round
+         */
+        SolidAtom(Material material, float y, float radius, float scale, boolean facing, double phase,
+                  int every, double step) {
+            this.every = every;
+            this.step = step;
             this.material = material;
             this.y = y;
             this.radius = radius;
@@ -520,18 +554,18 @@ public final class AuraConcepts {
 
         @Override
         public void tick(List<Display> displays, long frame) {
-            if (frame % EVERY != 0) return;
-            long n = frame / EVERY + 1;
+            if (frame % every != 0) return;
+            long n = frame / every + 1;
             for (int k = 0; k < 3; k++) {
                 for (int side = 0; side < 2; side++) {
-                    move(displays.get(k * 2 + side), pose(k, side, n), EVERY * 2);
+                    move(displays.get(k * 2 + side), pose(k, side, n), every * 2);
                 }
             }
         }
 
         @Override
         public void stars(long frame, List<Vector> out) {
-            double steps = (double) frame / EVERY;
+            double steps = (double) frame / every;
             for (int k = 0; k < 3; k++) {
                 for (int side = 0; side < 2; side++) {
                     Vector3f p = offset(k, angle(k, side, steps));
@@ -541,7 +575,7 @@ public final class AuraConcepts {
         }
 
         private double angle(int k, int side, double steps) {
-            return Math.toRadians(phase + 180 * side + Atom.direction(k) * STEP * steps);
+            return Math.toRadians(phase + 180 * side + Atom.direction(k) * step * steps);
         }
 
         private Vector3f offset(int k, double a) {
