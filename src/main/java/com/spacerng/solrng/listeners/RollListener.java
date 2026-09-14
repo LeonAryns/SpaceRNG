@@ -7,6 +7,7 @@ import com.spacerng.solrng.player.SkillTreeManager;
 import com.spacerng.solrng.rarity.Rarity;
 import com.spacerng.solrng.roll.RollAura;
 import com.spacerng.solrng.roll.ShinyPreRoll;
+import com.spacerng.solrng.roll.RollShowcase;
 import com.spacerng.solrng.rarity.RollFormat;
 import com.spacerng.solrng.rarity.RollableItem;
 import net.kyori.adventure.text.Component;
@@ -61,6 +62,9 @@ public class RollListener implements Listener {
     // own payoff, and the build-up for the next one fights the shockwaves
     // of the last. Stored as a wall-clock deadline in millis.
     private final Map<UUID, Long> revealLockUntil = new HashMap<>();
+    // The item floating in front of a rolling player. Kept after the roll
+    // lands until the next roll replaces it or the player leaves.
+    private final Map<UUID, RollShowcase> showcases = new HashMap<>();
     private final Random random = new Random();
 
     public RollListener(SolRNGPlugin plugin) {
@@ -225,6 +229,8 @@ public class RollListener implements Listener {
             aura.cancel();
         }
         revealLockUntil.remove(uuid);
+        RollShowcase showcase = showcases.remove(uuid);
+        if (showcase != null) showcase.cancel();
         if (task != null) {
             task.cancel();
         }
@@ -381,6 +387,7 @@ public class RollListener implements Listener {
         // its full reel, aura and title.
         final boolean auto = data.isAutoRollEnabled();
         final boolean reel = !auto || RollAura.isBigDrop(result.getRarity());
+        final RollShowcase[] showcase = {null};
         final RollAura[] aura = {null};
         final boolean[] auraStarted = {false};
         if (preTicks == 0L) {
@@ -436,11 +443,20 @@ public class RollListener implements Listener {
                 }
                 if (data.isRollAnimationEnabled()) {
                     boolean landed = step >= 19;
+                    RollableItem shown = landed ? result : teaser(data, result, step);
                     // A candidate stays up until the next one replaces it, so
                     // the slow frames at the end hang instead of blinking out;
                     // the landing holds until the roll finishes.
-                    showRollTitle(player, landed ? result : teaser(data, result, step), shiny,
+                    showRollTitle(player, shown, shiny,
                             landed ? (rollTicks - rollElapsed) * 50L + 400L : 1500L);
+                    if (shown != null) {
+                        if (showcase[0] == null) {
+                            showcase[0] = RollShowcase.start(plugin, player);
+                            RollShowcase previous = showcases.put(player.getUniqueId(), showcase[0]);
+                            if (previous != null) previous.cancel();
+                        }
+                        showcase[0].show(buildTaggedItem(shown, shiny), landed);
+                    }
                 }
             }
         }, 0L, 2L);
@@ -557,6 +573,9 @@ public class RollListener implements Listener {
 
     private void finishRoll(Player player, PlayerData data, RollableItem result, boolean shiny, boolean auto) {
         clearActionBar(player);
+        // The landed item stays in front of the player through the payoff.
+        RollShowcase showcase = showcases.get(player.getUniqueId());
+        if (showcase != null) showcase.finish(RollAura.finaleTicks(result.getRarity()) + 30L);
         // The level-up chime would land on the same tick as a big drop's
         // detonation and just clutter it - the aura brings its own.
         if (!RollAura.isBigDrop(result.getRarity())) {

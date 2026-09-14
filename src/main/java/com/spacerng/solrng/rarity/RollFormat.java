@@ -237,9 +237,8 @@ public final class RollFormat {
      * A first find gets a small "(new)" instead of a chat line.
      */
     public static String autoRollLine(SolRNGPlugin plugin, RollableItem item, boolean shiny, boolean newFind) {
-        String name = shiny
-                ? displayName(plugin, item, true)
-                : plugin.getRarityManager().style(item.getRarity(), item.getDisplayName());
+        // The drop in its own colours, the same as its name everywhere else.
+        String name = displayName(plugin, item, shiny);
         return ChatColor.AQUA + "[Auto Roll] "
                 + plugin.getRarityManager().style(item.getRarity(), item.getRarity().displayName())
                 + ChatColor.DARK_GRAY + " \u00b7 " + name

@@ -10,6 +10,10 @@
 # change. Item table, prices and cosmetic tweaks are untouched.
 config-version: 6
 
+# One-off value changes the plugin has already made to this file, so none
+# is ever made twice. Managed by the plugin; leave it alone.
+applied-patches: [common-label-white]
+
 # The sidebar's fixed text. Colour codes use "&".
 scoreboard:
   title: "&5&l\u2726 ѕᴘᴀᴄᴇʀɴɢ \u2726"
@@ -944,7 +948,7 @@ rarities:
   # friendly label also keeps the early economy where it was. Epic and up
   # set `true-odds`, and there the number on the item is the real chance.
   COMMON:
-    colors: ["&7"]
+    colors: ["&f"]
     luck-factor: 0.0
     share: 0.945
   UNCOMMON:
