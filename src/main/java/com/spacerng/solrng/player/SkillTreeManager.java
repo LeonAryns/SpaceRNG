@@ -54,6 +54,7 @@ public class SkillTreeManager {
         pageCounts.clear();
         pageNames.clear();
         reserved.clear();
+        loadPricing(config);
         for (String tree : TREES) {
             loadTree(config, tree);
         }
@@ -254,7 +255,51 @@ public class SkillTreeManager {
 
     /** What this node's next level costs for this player. */
     public double priceFor(PlayerData data, SkillNode node) {
-        return node.costAtLevel(node.isLeveled() ? data.getNodeLevel(node.getId()) : 0);
+        return costAt(node, node.isLeveled() ? data.getNodeLevel(node.getId()) : 0);
+    }
+
+    /**
+     * The central price knobs for one tree, read from economy.skill-prices.
+     * Their defaults leave every price exactly as its node configures it.
+     */
+    private record Pricing(double multiplier, int earlyLevels, double earlyGrowth, double growthScale) {
+        static final Pricing NEUTRAL = new Pricing(1.0, 0, 1.15, 1.0);
+    }
+
+    private final Map<String, Pricing> pricing = new LinkedHashMap<>();
+
+    private void loadPricing(FileConfiguration config) {
+        pricing.clear();
+        for (String tree : TREES) {
+            String path = "economy.skill-prices." + tree + ".";
+            pricing.put(tree, new Pricing(
+                    Math.max(0.0, config.getDouble(path + "multiplier", 1.0)),
+                    Math.max(0, config.getInt(path + "early-levels", 0)),
+                    Math.max(1.0, config.getDouble(path + "early-growth", 1.15)),
+                    Math.max(0.0, config.getDouble(path + "growth-scale", 1.0))));
+        }
+    }
+
+    /**
+     * What level {@code level} of a node costs: the node's own cost-money
+     * and cost-growth with its tree's price knobs on top.
+     *
+     *   price = cost-money x multiplier
+     *         x early-growth ^ min(level, early-levels)
+     *         x growth ^ max(0, level - early-levels)
+     *
+     * where growth is the node's cost-growth with its steepness scaled,
+     * 1 + (cost-growth - 1) x growth-scale. With the defaults this is the
+     * node's own price, so nothing moves until a knob is turned. Refunds sum
+     * the same prices, so a respec always pays back at today's knobs.
+     */
+    public double costAt(SkillNode node, int level) {
+        Pricing knobs = pricing.getOrDefault(node.getTree(), Pricing.NEUTRAL);
+        double growth = 1.0 + (node.getCostGrowth() - 1.0) * knobs.growthScale();
+        int early = Math.min(level, knobs.earlyLevels());
+        int late = Math.max(0, level - knobs.earlyLevels());
+        return node.getMoneyCost() * knobs.multiplier()
+                * Math.pow(knobs.earlyGrowth(), early) * Math.pow(growth, late);
     }
 
     /** False when Vault/an economy plugin isn't installed - nothing is buyable then. */
@@ -382,7 +427,7 @@ public class SkillTreeManager {
             if (node.usesTokens()) continue;
             int level = levelOf(data, node);
             for (int i = 0; i < level; i++) {
-                total += Math.round(node.costAtLevel(i));
+                total += Math.round(costAt(node, i));
             }
         }
         return total;
@@ -395,7 +440,7 @@ public class SkillTreeManager {
             if (!node.usesTokens()) continue;
             int level = levelOf(data, node);
             for (int i = 0; i < level; i++) {
-                total += Math.round(node.costAtLevel(i));
+                total += Math.round(costAt(node, i));
             }
         }
         return total;

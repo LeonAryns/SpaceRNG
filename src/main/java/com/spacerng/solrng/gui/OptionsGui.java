@@ -82,7 +82,7 @@ public class OptionsGui {
 
         ItemStack item = new ItemStack(on ? Material.PAPER : Material.GRAY_DYE);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(name + ChatColor.DARK_GRAY + " \u2014 "
+        meta.setDisplayName(name + ChatColor.DARK_GRAY + " - "
                 .replace("\u2014", "-")
                 + (on ? ChatColor.GREEN.toString() + ChatColor.BOLD + "Shown"
                       : ChatColor.RED.toString() + ChatColor.BOLD + "Hidden"));
@@ -103,7 +103,7 @@ public class OptionsGui {
 
         ItemStack item = new ItemStack(on ? Material.BELL : Material.BARRIER);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(name + ChatColor.DARK_GRAY + " \u2014 "
+        meta.setDisplayName(name + ChatColor.DARK_GRAY + " - "
                 + (on ? ChatColor.GREEN.toString() + ChatColor.BOLD + "Announced"
                       : ChatColor.RED.toString() + ChatColor.BOLD + "Muted"));
         meta.setLore(java.util.List.of(

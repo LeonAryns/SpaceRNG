@@ -1803,6 +1803,29 @@ conversion:
 # at the default 10x. Requires Vault + an economy plugin to be installed.
 economy:
   money-per-odds-multiplier: 10.0
+  # Central price knobs for the skill trees, applied on top of every node's
+  # own cost-money and cost-growth. The defaults change nothing. Per tree:
+  #   multiplier    every price times this; 2.0 doubles the whole tree
+  #   early-levels  how many first levels of a leveled node use early-growth
+  #   early-growth  growth per level for those first levels, to make day 1
+  #                 cheap (use a number below the nodes' own cost-growth)
+  #   growth-scale  how steep the levels after that are: 1.5 turns a
+  #                 cost-growth of 1.22 into 1.33, 0.5 turns it into 1.11
+  # price = cost-money x multiplier x early-growth^min(level, early-levels)
+  #         x (1 + (cost-growth - 1) x growth-scale)^max(0, level - early-levels)
+  # A respec refunds at the prices these give right now, so settle them
+  # before players start buying. /rngadmin reload applies a change.
+  skill-prices:
+    skilltree:
+      multiplier: 1.0
+      early-levels: 0
+      early-growth: 1.15
+      growth-scale: 1.0
+    farmtree:
+      multiplier: 1.0
+      early-levels: 0
+      early-growth: 1.15
+      growth-scale: 1.0
 
 # The general skill tree. Three pages, all the same shape: a root at the
 # bottom of the middle column, a spine across row 5, three lines climbing
