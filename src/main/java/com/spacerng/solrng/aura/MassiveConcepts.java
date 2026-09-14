@@ -10,6 +10,7 @@ import org.joml.Quaternionf;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static com.spacerng.solrng.aura.AuraParts.FEET;
 import static com.spacerng.solrng.aura.AuraParts.atScaled;
@@ -33,6 +34,13 @@ import static com.spacerng.solrng.aura.AuraParts.softer;
 final class MassiveConcepts {
 
     private MassiveConcepts() {
+    }
+
+    private static final Set<String> HEAVY = Set.of("singularity", "titan", "supernova");
+
+    /** The looks AuraManager limits per area, since each costs about a hundred updates a second per viewer. */
+    static boolean isHeavy(String key) {
+        return HEAVY.contains(key);
     }
 
     static void describe(Map<String, String> d) {

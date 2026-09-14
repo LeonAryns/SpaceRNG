@@ -61,11 +61,11 @@ commands:
   top:
     description: Leaderboards, including the daily farming payout
     usage: /top [farming|farming_total|rolls|prestige|index]
-    aliases: [leaderboard, baltop]
+    aliases: [baltop]
   buy:
     description: Spend store Credits
     usage: /buy
-    aliases: [store, shop]
+    aliases: [store]
   pass:
     description: Open the Battle Pass
     usage: /pass
@@ -93,7 +93,7 @@ commands:
   boosts:
     description: See every boost currently running on you
     usage: /boosts
-    aliases: [effects, potions]
+    aliases: [effects]
   perks:
     description: Roll perks with drops, and equip a loadout
     usage: /perks [vault]

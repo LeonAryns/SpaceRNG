@@ -16,8 +16,8 @@ import org.bukkit.scheduler.BukkitTask;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
-import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -50,12 +50,14 @@ public final class AuraManager {
     // What each tag rarity wears when config says nothing: concept, accent.
     private static final Map<Rarity, String[]> DEFAULT_TAG_AURAS = new EnumMap<>(Map.of(
             Rarity.EPIC, new String[]{"runes", "none"},
-            Rarity.LEGENDARY, new String[]{"celestial", "sparkle"},
-            Rarity.MYTHICAL, new String[]{"cosmos", "trails"},
-            Rarity.DIVINE, new String[]{"seraph", "all"}));
+            Rarity.LEGENDARY, new String[]{"galaxy-grand", "sparkle"},
+            Rarity.MYTHICAL, new String[]{"nova-grand", "trails"},
+            Rarity.DIVINE, new String[]{"atom-grand", "all"}));
 
     private static final class Worn {
         final String key;
+        // The look asked for; differs from key while a heavy look waits for room.
+        final String wanted;
         final AuraConcept concept;
         final Rarity rarity;
         final Color color;
@@ -66,8 +68,10 @@ public final class AuraManager {
         boolean paused = false;
         float lastYaw = Float.NaN;
 
-        Worn(String key, AuraConcept concept, Rarity rarity, Color color, AuraAccent accent, boolean test) {
+        Worn(String key, String wanted, AuraConcept concept, Rarity rarity, Color color, AuraAccent accent,
+             boolean test) {
             this.key = key;
+            this.wanted = wanted;
             this.concept = concept;
             this.rarity = rarity;
             this.color = color;
@@ -79,7 +83,8 @@ public final class AuraManager {
     private final SolRNGPlugin plugin;
     private final NamespacedKey tag;
     private final AuraParts parts;
-    private final Map<UUID, Worn> worn = new HashMap<>();
+    // In the order auras were put on, so a heavy look stays with whoever wore it first.
+    private final Map<UUID, Worn> worn = new LinkedHashMap<>();
     private final Random random = new Random();
     private BukkitTask task;
     private long ticks = 0L;
@@ -137,7 +142,7 @@ public final class AuraManager {
         }
         AuraAccent accent = AuraAccent.parse(look[1]);
         if (accent == null) accent = AuraAccent.NONE;
-        if (current != null && current.rarity == rarity && current.key.equals(look[0]) && current.accent == accent) {
+        if (current != null && current.rarity == rarity && current.wanted.equals(look[0]) && current.accent == accent) {
             return;
         }
         if (!wear(player, look[0], rarity, accent, false)) {
@@ -157,11 +162,17 @@ public final class AuraManager {
     }
 
     private boolean wear(Player player, String conceptKey, Rarity rarity, AuraAccent accent, boolean test) {
+        return wear(player, conceptKey, conceptKey, rarity, accent, test);
+    }
+
+    private boolean wear(Player player, String conceptKey, String wanted, Rarity rarity, AuraAccent accent,
+                         boolean test) {
         Color color = RollAura.colorFor(rarity);
         AuraConcept concept = AuraConcepts.create(conceptKey, rarity, color);
         if (concept == null) return false;
         hide(player.getUniqueId());
-        Worn aura = new Worn(conceptKey, concept, rarity, color, accent == null ? AuraAccent.NONE : accent, test);
+        Worn aura = new Worn(conceptKey, wanted, concept, rarity, color,
+                accent == null ? AuraAccent.NONE : accent, test);
         worn.put(player.getUniqueId(), aura);
         mount(player, aura);
         return true;
@@ -231,6 +242,7 @@ public final class AuraManager {
     private void tick() {
         // The floating tag rides the same way and is dropped by the same teleports.
         if (ticks++ % 10 == 0) plugin.getTagManager().keepMounted();
+        if (ticks % 20 == 0) balanceHeavy();
 
         double pauseRadius = plugin.getConfig().getDouble("auras.farm-pause-radius", 10.0);
         Iterator<Map.Entry<UUID, Worn>> it = worn.entrySet().iterator();
@@ -287,6 +299,46 @@ public final class AuraManager {
                 despawn(aura);
                 it.remove();
             }
+        }
+    }
+
+    /**
+     * Heavy looks cost the most packets, so only auras.heavy.max-nearby of
+     * them run within auras.heavy.radius blocks of each other. Whoever put
+     * one on first keeps it; anyone past the limit wears the fallback look
+     * and gets the heavy one back once there is room. Getting it back needs
+     * a few blocks more than losing it, so a player standing right on the
+     * edge doesn't flip between the two every check.
+     */
+    private void balanceHeavy() {
+        int max = Math.max(0, plugin.getConfig().getInt("auras.heavy.max-nearby", 1));
+        double radius = plugin.getConfig().getDouble("auras.heavy.radius", 32.0);
+        String fallback = plugin.getConfig().getString("auras.heavy.fallback", "galaxy-grand").toLowerCase(Locale.ROOT);
+        if (MassiveConcepts.isHeavy(fallback)) fallback = "galaxy-grand";
+
+        record Swap(Player player, Worn aura, boolean heavy) {
+        }
+        List<Location> running = new ArrayList<>();
+        List<Swap> swaps = new ArrayList<>();
+        for (Map.Entry<UUID, Worn> entry : worn.entrySet()) {
+            Worn aura = entry.getValue();
+            if (!MassiveConcepts.isHeavy(aura.wanted) || aura.paused) continue;
+            Player player = Bukkit.getPlayer(entry.getKey());
+            if (player == null || player.isDead()) continue;
+            Location at = player.getLocation();
+            boolean heavyNow = aura.key.equals(aura.wanted);
+            double reach = heavyNow ? radius : radius + 8.0;
+            int near = 0;
+            for (Location other : running) {
+                if (other.getWorld().equals(at.getWorld()) && other.distanceSquared(at) <= reach * reach) near++;
+            }
+            boolean allowed = near < max;
+            if (allowed) running.add(at);
+            if (allowed != heavyNow) swaps.add(new Swap(player, aura, allowed));
+        }
+        for (Swap swap : swaps) {
+            Worn aura = swap.aura();
+            wear(swap.player(), swap.heavy() ? aura.wanted : fallback, aura.wanted, aura.rarity, aura.accent, aura.test);
         }
     }
 

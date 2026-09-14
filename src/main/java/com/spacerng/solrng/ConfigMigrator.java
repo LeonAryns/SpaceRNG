@@ -48,7 +48,11 @@ public final class ConfigMigrator {
 
     private static final List<Patch> PATCHES = List.of(
             // V108: Common's label went from grey to white at Leon's request.
-            new Patch("common-label-white", "rarities.COMMON.colors", List.of("&7"), List.of("&f")));
+            new Patch("common-label-white", "rarities.COMMON.colors", List.of("&7"), List.of("&f")),
+            // V118: tags wear the looks Leon picked, built from ground stars, sea lanterns and nether stars.
+            new Patch("tag-aura-legendary", "auras.tag.LEGENDARY.concept", "celestial", "galaxy-grand"),
+            new Patch("tag-aura-mythical", "auras.tag.MYTHICAL.concept", "cosmos", "nova-grand"),
+            new Patch("tag-aura-divine", "auras.tag.DIVINE.concept", "seraph", "atom-grand"));
 
     /** Like a Patch, for one field of the entry with a given id inside a list of maps. */
     private record EntryPatch(String id, String list, String entryId, String field, Object oldDefault,

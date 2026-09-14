@@ -4747,16 +4747,24 @@ first-ten:
 auras:
   enabled: true
   farm-pause-radius: 10
+  # The heavy looks (singularity, titan, supernova) cost about a hundred
+  # updates a second for each player watching. Only max-nearby of them run
+  # within radius blocks of each other; whoever put one on later wears the
+  # fallback look until there is room again.
+  heavy:
+    max-nearby: 1
+    radius: 32
+    fallback: galaxy-grand
   tag:
     EPIC:
       concept: runes
       accent: none
     LEGENDARY:
-      concept: celestial
+      concept: galaxy-grand
       accent: sparkle
     MYTHICAL:
-      concept: cosmos
+      concept: nova-grand
       accent: trails
     DIVINE:
-      concept: seraph
+      concept: atom-grand
       accent: all
