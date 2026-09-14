@@ -4,7 +4,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 
 /** Marks the leaderboard menu. */
-public class LeaderboardHolder implements InventoryHolder {
+public class LeaderboardHolder implements MenuHolder {
 
     private Inventory inventory;
 

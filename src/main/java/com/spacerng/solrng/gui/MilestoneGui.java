@@ -239,13 +239,6 @@ public class MilestoneGui {
         return pane;
     }
 
-    /** "▌▌▌▌▌▌░░░░" in green over grey. */
-    private static String progressBar(long progress, long threshold) {
-        int filled = threshold <= 0 ? BAR_LENGTH
-                : (int) Math.min(BAR_LENGTH, Math.round((double) progress / threshold * BAR_LENGTH));
-        return ChatColor.GREEN + BAR.repeat(filled) + ChatColor.DARK_GRAY + BAR.repeat(BAR_LENGTH - filled);
-    }
-
     private static ItemStack buildSummary(SolRNGPlugin plugin, MilestoneTrack track, long progress) {
         int done = track.completedCount(progress);
         int total = track.getTiers().size();

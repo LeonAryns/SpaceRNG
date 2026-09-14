@@ -244,13 +244,18 @@ public class FarmPlotManager {
     /** A named sound, or the fallback if config names one that doesn't exist. */
     private org.bukkit.Sound soundOf(String name, org.bukkit.Sound fallback) {
         if (name == null || name.isBlank()) return fallback;
+        // Sound stopped being an enum, and valueOf is marked for removal. The
+        // constants are still public static fields, so look the name up there.
         try {
-            return org.bukkit.Sound.valueOf(name.toUpperCase());
-        } catch (IllegalArgumentException ex) {
-            plugin.getLogger().warning("Unknown farming sound '" + name + "', using "
-                    + fallback.name() + ".");
-            return fallback;
+            if (org.bukkit.Sound.class.getField(name.trim().toUpperCase(java.util.Locale.ROOT)).get(null)
+                    instanceof org.bukkit.Sound sound) {
+                return sound;
+            }
+        } catch (ReflectiveOperationException ignored) {
+            // falls through to the warning
         }
+        plugin.getLogger().warning("Unknown farming sound '" + name + "', using the default.");
+        return fallback;
     }
 
     /** The crop coming up. Quiet on purpose - it fires several times a second. */
@@ -1063,21 +1068,6 @@ public class FarmPlotManager {
 
     // ------------------------------------------------------- golden crop
 
-    /**
-     * The golden plot for one player, chosen at random and moved every
-     * time it is harvested.
-     *
-     * Picked lazily rather than assigned on join, so it costs nothing
-     * until somebody actually farms, and it re-picks itself if the plot it
-     * was sitting on is removed.
-     */
-    public Location goldenPlot(UUID uuid) {
-        if (!goldenEnabled || plots.isEmpty()) return null;
-        Location current = golden.get(uuid);
-        if (current != null && plots.contains(current)) return current;
-        return moveGolden(uuid);
-    }
-
     private Location moveGolden(UUID uuid) {
         if (plots.isEmpty()) {
             golden.remove(uuid);
@@ -1160,13 +1150,6 @@ public class FarmPlotManager {
         harvested.remove(uuid);
         momentum.remove(uuid);
         plugin.getMomentumBar().hide(uuid);
-    }
-
-    /** Crops in the run currently going, or 0 when there isn't one. */
-    public long momentumStacks(UUID uuid) {
-        long[] state = momentum.get(uuid);
-        if (state == null) return 0L;
-        return System.currentTimeMillis() - state[1] > momentumIdleMillis ? 0L : state[0];
     }
 
     // ----------------------------------------------------------- the item

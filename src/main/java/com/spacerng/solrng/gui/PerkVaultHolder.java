@@ -6,7 +6,7 @@ import org.bukkit.inventory.InventoryHolder;
 /**
  * Marks a Perk Vault inventory and remembers the page it's on.
  */
-public class PerkVaultHolder implements InventoryHolder {
+public class PerkVaultHolder implements MenuHolder {
 
     private Inventory inventory;
     private int page;

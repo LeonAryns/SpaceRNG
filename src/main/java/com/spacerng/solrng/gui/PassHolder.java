@@ -3,7 +3,7 @@ package com.spacerng.solrng.gui;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 
-public class PassHolder implements InventoryHolder {
+public class PassHolder implements MenuHolder {
 
     private Inventory inventory;
     private int page;

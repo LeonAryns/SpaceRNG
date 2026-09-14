@@ -3,7 +3,7 @@ package com.spacerng.solrng.gui;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 
-public class StarforgeHolder implements InventoryHolder {
+public class StarforgeHolder implements MenuHolder {
 
     private Inventory inventory;
 

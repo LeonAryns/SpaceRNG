@@ -176,15 +176,6 @@ public class PassManager {
         data.setPassSeason(season);
     }
 
-    /** Total XP needed to have finished a given level (1-indexed). */
-    public long cumulativeXp(int level) {
-        long total = 0L;
-        for (int i = 0; i < Math.min(level, levels.size()); i++) {
-            total += levels.get(i).xpRequired();
-        }
-        return total;
-    }
-
     /** The level this player's XP currently buys - derived, never stored. */
     public int levelOf(PlayerData data) {
         syncSeason(data);

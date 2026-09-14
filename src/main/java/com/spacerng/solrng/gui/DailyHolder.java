@@ -4,7 +4,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 
 /** Marks the /daily streak screen. */
-public class DailyHolder implements InventoryHolder {
+public class DailyHolder implements MenuHolder {
     private Inventory inventory;
 
     @Override

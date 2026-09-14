@@ -4,7 +4,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 
 /** Marks a Perk Roller inventory. */
-public class PerkRollerHolder implements InventoryHolder {
+public class PerkRollerHolder implements MenuHolder {
 
     private Inventory inventory;
 

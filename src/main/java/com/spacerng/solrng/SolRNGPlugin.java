@@ -543,6 +543,14 @@ public final class SolRNGPlugin extends JavaPlugin {
         // rather than scheduled for the hour, so it still fires if the
         // server was down when the hour passed.
         getServer().getScheduler().runTaskTimer(this, () -> leaderboardManager.tick(), 600L, 600L);
+
+        // Autosave. Player data was only written on quit and on a clean
+        // shutdown, so a crash lost everything online players had done since
+        // they joined. Every five minutes caps that at five minutes.
+        getServer().getScheduler().runTaskTimer(this, () -> {
+            playerDataManager.saveAll();
+            if (firstTenManager != null) firstTenManager.save();
+        }, 6000L, 6000L);
     }
 
     private void registerPlaceholderExpansion() {

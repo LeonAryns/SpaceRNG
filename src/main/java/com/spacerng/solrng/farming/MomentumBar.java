@@ -90,7 +90,4 @@ public class MomentumBar {
         }
     }
 
-    public boolean isShowing(UUID uuid) {
-        return bars.containsKey(uuid);
-    }
 }

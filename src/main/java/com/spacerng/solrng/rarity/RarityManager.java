@@ -418,11 +418,6 @@ public class RarityManager {
         }
     }
 
-    /** Whether a rarity's labels are its real odds. */
-    public boolean isTrueOdds(Rarity rarity) {
-        return trueOdds.getOrDefault(rarity, false);
-    }
-
     public List<RollableItem> getItems() {
         return items;
     }
@@ -449,16 +444,6 @@ public class RarityManager {
      */
     public RollableItem roll(double luck) {
         return roll(luck, null);
-    }
-
-    /**
-     * A roll restricted to a floor rarity, for the Pity Timer skills.
-     * Weights inside the surviving band keep their normal proportions, so
-     * a forced Rare+ is still much more likely to be a Rare than a
-     * Mythical - pity guarantees you something good, not something absurd.
-     */
-    public RollableItem rollAtLeast(double luck, Rarity minimum) {
-        return roll(luck, minimum);
     }
 
     private RollableItem roll(double luck, Rarity minimum) {

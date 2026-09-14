@@ -4,7 +4,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 
 /** Marks a skill tree screen, and remembers which tree and page it shows. */
-public class SkillTreeHolder implements InventoryHolder {
+public class SkillTreeHolder implements MenuHolder {
 
     private Inventory inventory;
     private String tree = "skilltree";

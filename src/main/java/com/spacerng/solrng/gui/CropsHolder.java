@@ -4,7 +4,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 
 /** Marks the /crops picker. */
-public class CropsHolder implements InventoryHolder {
+public class CropsHolder implements MenuHolder {
     private Inventory inventory;
 
     @Override

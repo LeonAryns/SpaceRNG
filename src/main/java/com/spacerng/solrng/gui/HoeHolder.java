@@ -4,7 +4,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 
 /** Marks the hoe's enchant upgrade board. */
-public class HoeHolder implements InventoryHolder {
+public class HoeHolder implements MenuHolder {
     private Inventory inventory;
 
     @Override

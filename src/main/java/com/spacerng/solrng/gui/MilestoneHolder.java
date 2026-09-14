@@ -4,7 +4,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 
 /** Marks a /milestones screen, and remembers which track/page it shows. */
-public class MilestoneHolder implements InventoryHolder {
+public class MilestoneHolder implements MenuHolder {
 
     private Inventory inventory;
     private String trackId; // null = the landing page

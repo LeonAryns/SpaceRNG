@@ -243,14 +243,6 @@ public class HoeEnchantManager {
         return format(powerOf(data, enchantId));
     }
 
-    /** Whether this enchant fires on a roll rather than applying always. */
-    public boolean isProc(String enchantId) {
-        return switch (enchantId == null ? "" : enchantId.toUpperCase()) {
-            case "TOKEN_GREED", "SPEED", "MOMENTUM" -> false;
-            default -> true;
-        };
-    }
-
     public boolean has(PlayerData data, String enchantId) {
         return levelOf(data, enchantId) > 0;
     }

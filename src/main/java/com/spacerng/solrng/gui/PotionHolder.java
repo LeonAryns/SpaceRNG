@@ -4,7 +4,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 
 /** Marks the potion shop. */
-public class PotionHolder implements InventoryHolder {
+public class PotionHolder implements MenuHolder {
 
     private Inventory inventory;
 

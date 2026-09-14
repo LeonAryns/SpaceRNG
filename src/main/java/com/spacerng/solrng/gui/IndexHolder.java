@@ -4,7 +4,7 @@ import com.spacerng.solrng.rarity.Rarity;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 
-public class IndexHolder implements InventoryHolder {
+public class IndexHolder implements MenuHolder {
     private Inventory inventory;
     // null = showing every rarity; otherwise filtered to just this one.
     private Rarity filter;

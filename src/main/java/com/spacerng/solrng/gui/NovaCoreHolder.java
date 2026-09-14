@@ -4,7 +4,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 
 /** Marks the /rngcookie ladder screen. */
-public class NovaCoreHolder implements InventoryHolder {
+public class NovaCoreHolder implements MenuHolder {
     private Inventory inventory;
 
     @Override

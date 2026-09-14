@@ -176,11 +176,6 @@ public class SkillNode {
         return maxLevel > 1;
     }
 
-    /** What the NEXT level costs, given how many are already bought. */
-    public double costAtLevel(int currentLevel) {
-        return moneyCost * Math.pow(costGrowth, currentLevel);
-    }
-
     /**
      * Which wallet this node is bought from. It follows the tree rather
      * than being set per node: a tree that charged two different

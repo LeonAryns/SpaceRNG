@@ -251,11 +251,6 @@ public class PlayerDataManager {
         awardOffline(uuid, credits, "points", data -> data.addPoints(credits));
     }
 
-    /** The same, in Coins - what the daily farming payout pays. */
-    public void awardOfflineCoins(UUID uuid, long coins) {
-        awardOffline(uuid, coins, "tokens", data -> data.addTokens(coins));
-    }
-
     /**
      * A cached player is paid on the object, because the file underneath
      * them is about to be overwritten by their own save and would throw

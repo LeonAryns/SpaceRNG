@@ -51,10 +51,6 @@ public class PerkVaultGui {
     public static int prevSlot() { return PREV_SLOT; }
     public static int nextSlot() { return NEXT_SLOT; }
     public static int rollerSlot() { return ROLLER_SLOT; }
-    public static int vaultStart() { return VAULT_START; }
-    public static int vaultEnd() { return VAULT_END; }
-    public static int loadoutRow() { return LOADOUT_ROW; }
-
     public static Inventory build(SolRNGPlugin plugin, Player player, int page) {
         PerkVaultHolder holder = new PerkVaultHolder();
         holder.setPage(page);

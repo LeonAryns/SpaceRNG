@@ -102,14 +102,6 @@ public class ScoreboardManager {
         return Lore.banner(plain);
     }
 
-    /** Repaints every online player's title, for a /rngadmin reload. */
-    public void refreshTitles() {
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            Objective objective = player.getScoreboard().getObjective(OBJECTIVE_ID);
-            if (objective != null) objective.displayName(LEGACY.deserialize(title()));
-        }
-    }
-
     public void update(Player player) {
         Scoreboard board = player.getScoreboard();
         Objective objective = board.getObjective(OBJECTIVE_ID);

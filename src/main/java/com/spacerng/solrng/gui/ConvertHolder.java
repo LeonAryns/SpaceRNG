@@ -5,7 +5,7 @@ import org.bukkit.inventory.InventoryHolder;
 
 import java.util.stream.IntStream;
 
-public class ConvertHolder implements InventoryHolder {
+public class ConvertHolder implements MenuHolder {
     private Inventory inventory;
 
     @Override

@@ -100,6 +100,9 @@ public class GuiListener implements Listener {
             handlePerkVaultClick(event);
         } else if (topInventory.getHolder() instanceof com.spacerng.solrng.gui.PerkRollerHolder) {
             handlePerkRollerClick(event);
+        } else if (topInventory.getHolder() instanceof com.spacerng.solrng.gui.MenuHolder) {
+            // A menu with no handler yet is still never a chest.
+            event.setCancelled(true);
         }
     }
 
@@ -1022,7 +1025,19 @@ public class GuiListener implements Listener {
     @EventHandler
     public void onDrag(InventoryDragEvent event) {
         Inventory top = event.getView().getTopInventory();
-        if (!(top.getHolder() instanceof ConvertHolder)) return;
+        if (!(top.getHolder() instanceof ConvertHolder)) {
+            // Every other menu is click only. A drag across one used to drop
+            // the stack into the menu, where it vanished when the menu closed.
+            if (top.getHolder() instanceof com.spacerng.solrng.gui.MenuHolder) {
+                for (int slot : event.getRawSlots()) {
+                    if (slot < top.getSize()) {
+                        event.setCancelled(true);
+                        return;
+                    }
+                }
+            }
+            return;
+        }
 
         boolean touchesTop = false;
         boolean touchesNonInput = false;

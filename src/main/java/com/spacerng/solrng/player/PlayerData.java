@@ -249,12 +249,6 @@ public class PlayerData {
         this.shards += amount;
     }
 
-    public boolean spendShards(long amount) {
-        if (shards < amount) return false;
-        shards -= amount;
-        return true;
-    }
-
     public double getRollSpeedMultiplier() {
         return rollSpeedMultiplier;
     }

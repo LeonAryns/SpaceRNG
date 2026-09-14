@@ -232,11 +232,6 @@ public final class Lore {
         return colour + "" + ChatColor.BOLD + "| " + label;
     }
 
-    /** Body line for a pipe section - the same coloured pipe, grey text. */
-    public static String pipeLine(ChatColor colour, String text) {
-        return colour + "| " + ChatColor.GRAY + text;
-    }
-
     /**
      * A filled bar that shifts hue as it fills - red when you've barely
      * started, green when you're done. The colour does the reading for you

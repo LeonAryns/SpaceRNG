@@ -3,7 +3,7 @@ package com.spacerng.solrng.gui;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 
-public class PrestigeHolder implements InventoryHolder {
+public class PrestigeHolder implements MenuHolder {
     private Inventory inventory;
 
     @Override

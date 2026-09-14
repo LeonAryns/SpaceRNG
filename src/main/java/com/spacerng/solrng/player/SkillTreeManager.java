@@ -125,10 +125,6 @@ public class SkillTreeManager {
         return names.get(page);
     }
 
-    public Set<Integer> reservedSlots(String tree) {
-        return reserved.getOrDefault(tree, Set.of());
-    }
-
     /** Every node belonging to one tree, in config order. */
     public Map<String, SkillNode> getNodes(String tree) {
         Map<String, SkillNode> out = new LinkedHashMap<>();

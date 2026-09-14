@@ -4,7 +4,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 
 /** Marks the /buy store screen. */
-public class BuyHolder implements InventoryHolder {
+public class BuyHolder implements MenuHolder {
     private Inventory inventory;
 
     @Override

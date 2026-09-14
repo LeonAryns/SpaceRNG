@@ -11,7 +11,7 @@ import java.util.UUID;
  * open - a breakdown of somebody else's Luck has to keep being about them
  * when the back button is pressed.
  */
-public class StatsHolder implements InventoryHolder {
+public class StatsHolder implements MenuHolder {
 
     private Inventory inventory;
     private final UUID target;

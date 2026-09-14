@@ -48,8 +48,6 @@ public class PerkRollerGui {
 
     public static int vaultSlot() { return VAULT_SLOT; }
 
-    public static Map<Rarity, Integer> buttonSlots() { return BUTTON_SLOT; }
-
     public static Inventory build(SolRNGPlugin plugin, Player player) {
         PerkRollerHolder holder = new PerkRollerHolder();
         Inventory inv = Bukkit.createInventory(holder, SIZE,

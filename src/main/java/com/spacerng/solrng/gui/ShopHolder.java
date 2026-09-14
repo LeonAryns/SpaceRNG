@@ -4,7 +4,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 
 /** Marks the shop hub. */
-public class ShopHolder implements InventoryHolder {
+public class ShopHolder implements MenuHolder {
 
     private Inventory inventory;
 

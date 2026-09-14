@@ -291,10 +291,6 @@ public class CrateManager {
 
     // ------------------------------------------------------------ opening
 
-    public boolean isSpinning(UUID uuid) {
-        return spins.containsKey(uuid);
-    }
-
     public void open(Player player, Block block, Crate crate) {
         if (spins.containsKey(player.getUniqueId())) {
             player.sendMessage(ChatColor.RED + "Finish the crate you are already opening first.");
