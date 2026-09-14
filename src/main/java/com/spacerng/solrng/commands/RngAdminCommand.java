@@ -37,7 +37,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             "reload", "setspawn", "starforge", "reset", "give", "drops",
             "bank", "aura", "roll", "unlock", "unlockall", "lockall", "odds", "farmblock", "farmscan",
             "hoe", "consumable", "gradient", "welcome", "crops", "farmclear",
-            "milestones", "farmfill", "boost", "nova", "placeholders", "payout", "crate", "tophead", "floatingitem", "shiny", "firsts", "lorestyles", "help");
+            "milestones", "farmfill", "boost", "nova", "placeholders", "payout", "crate", "tophead", "floatingitem", "shiny", "firsts", "lorestyles", "auratest", "help");
     private static final List<String> CURRENCIES = List.of("money", "coins", "gems", "credits");
 
     private final SolRNGPlugin plugin;
@@ -71,6 +71,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             case "shiny" -> doShiny(sender, args);
             case "firsts" -> doFirsts(sender, args);
             case "lorestyles" -> doLoreStyles(sender, args);
+            case "auratest" -> doAuraTest(sender, args);
             case "unlock" -> doUnlock(sender, args);
             case "unlockall" -> doUnlockAll(sender, args);
             case "hoe" -> doHoe(sender, args);
@@ -401,6 +402,43 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
 
         sender.sendMessage(ChatColor.GREEN + "Playing the " + rarity.displayName() + " reveal aura on "
                 + target.getName() + ChatColor.GRAY + " (" + String.format("%.0f", duration / 20.0) + "s).");
+        return true;
+    }
+
+    // ------------------------------------------------------------- auratest
+
+    /**
+     * Tries an aura concept on yourself, in a rarity's colours, so the looks
+     * can be judged in game before any of them is tied to tags.
+     */
+    private boolean doAuraTest(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(ChatColor.RED + "Only a player can wear an aura.");
+            return true;
+        }
+        String concepts = String.join("|", com.spacerng.solrng.aura.AuraConcepts.KEYS);
+        if (args.length < 2) {
+            sender.sendMessage(ChatColor.RED + "Usage: /rngadmin auratest <" + concepts + "|off> [rarity]");
+            return true;
+        }
+        String key = args[1].toLowerCase(Locale.ROOT);
+        if (key.equals("off")) {
+            plugin.getAuraManager().hide(player.getUniqueId());
+            sender.sendMessage(ChatColor.GRAY + "Aura removed.");
+            return true;
+        }
+        Rarity rarity = Rarity.LEGENDARY;
+        if (args.length >= 3) {
+            rarity = parseRarity(sender, args[2]);
+            if (rarity == null) return true;
+        }
+        if (!plugin.getAuraManager().show(player, key, rarity)) {
+            sender.sendMessage(ChatColor.RED + "Unknown concept. Try " + concepts + ".");
+            return true;
+        }
+        sender.sendMessage(ChatColor.GREEN + "Wearing " + ChatColor.WHITE + key + ChatColor.GREEN + " in "
+                + plugin.getRarityManager().style(rarity, rarity.displayName()) + ChatColor.GREEN
+                + " colours. " + ChatColor.GRAY + "/rngadmin auratest off to remove.");
         return true;
     }
 
@@ -1499,6 +1537,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
                 case "shiny" -> partial(args[1], playerNames());
                 case "firsts" -> partial(args[1], List.of("list", "reset", "preview"));
                 case "lorestyles" -> partial(args[1], rarityNames());
+                case "auratest" -> partial(args[1], java.util.stream.Stream.concat(com.spacerng.solrng.aura.AuraConcepts.KEYS.stream(), java.util.stream.Stream.of("off")).toList());
                 case "roll", "odds" -> partial(args[1], rarityNames());
                 case "unlock" -> partial(args[1], withAll(nodeIds()));
                 case "consumable" -> partial(args[1],
@@ -1523,6 +1562,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
                 case "farmfill" -> partial(args[2], List.of("confirm"));
                 case "nova" -> partial(args[2], playerNames());
                 case "give", "drops", "bank" -> partial(args[2], List.of("1", "10", "100", "1000"));
+                case "auratest" -> partial(args[2], List.of("epic", "legendary", "mythical", "divine"));
                 case "firsts" -> partial(args[2], args[1].equalsIgnoreCase("reset") ? withAll(rarityNames()) : rarityNames());
                 case "aura", "roll", "unlock", "starforge", "milestones", "farmblock" ->
                         partial(args[2], playerNames());

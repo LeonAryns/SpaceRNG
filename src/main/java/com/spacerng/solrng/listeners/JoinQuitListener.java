@@ -63,6 +63,7 @@ public class JoinQuitListener implements Listener {
         event.setQuitMessage(ChatColor.YELLOW + event.getPlayer().getName() + " left the game");
         plugin.getRollListener().cancelRoll(event.getPlayer().getUniqueId());
         plugin.getTagManager().hideHologram(event.getPlayer().getUniqueId());
+        plugin.getAuraManager().hide(event.getPlayer().getUniqueId());
         plugin.getTagManager().forgetPrefix(event.getPlayer().getUniqueId());
         plugin.getFarmPlotManager().forget(event.getPlayer().getUniqueId());
         plugin.getFarmPlotManager().forgetGolden(event.getPlayer().getUniqueId());

@@ -104,7 +104,7 @@ commands:
     aliases: [link, discordlink]
   rngadmin:
     description: Admin tools for SpaceRNG
-    usage: /rngadmin <reload|setspawn|starforge|reset|give|drops|bank|aura|roll|shiny|firsts|lorestyles|unlock|odds|farmblock|farmfill|crops|milestones|boost|nova|payout|crate|tophead>
+    usage: /rngadmin <reload|setspawn|starforge|reset|give|drops|bank|aura|roll|shiny|firsts|lorestyles|auratest|unlock|odds|farmblock|farmfill|crops|milestones|boost|nova|payout|crate|tophead>
     permission: solrng.admin
     aliases: [solrngadmin]
 

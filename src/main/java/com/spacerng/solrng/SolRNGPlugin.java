@@ -63,6 +63,7 @@ public final class SolRNGPlugin extends JavaPlugin {
     private com.spacerng.solrng.daily.DailyManager dailyManager;
     private com.spacerng.solrng.leaderboard.LeaderboardManager leaderboardManager;
     private com.spacerng.solrng.firsts.FirstTenManager firstTenManager;
+    private com.spacerng.solrng.aura.AuraManager auraManager;
     private com.spacerng.solrng.crate.CrateManager crateManager;
     private com.spacerng.solrng.leaderboard.TopHeadManager topHeadManager;
     private com.spacerng.solrng.pass.PassManager passManager;
@@ -137,6 +138,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         this.skillTreeManager = new SkillTreeManager(getLogger());
         this.leaderboardManager = new com.spacerng.solrng.leaderboard.LeaderboardManager(this);
         this.firstTenManager = new com.spacerng.solrng.firsts.FirstTenManager(this);
+        this.auraManager = new com.spacerng.solrng.aura.AuraManager(this);
         this.playerDataManager = new PlayerDataManager(this);
         this.prestigeManager = new PrestigeManager(this);
         this.armorManager = new ArmorManager(this);
@@ -218,6 +220,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         startArmorRefreshTask();
         registerPlaceholderExpansion();
         topHeadManager.start();
+        auraManager.start();
         floatingItemManager.start();
         linkedAccountManager.start();
 
@@ -232,6 +235,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         // is inside the save file rather than lost with the server.
         if (crateManager != null) crateManager.finishAll();
         if (topHeadManager != null) topHeadManager.stop();
+        if (auraManager != null) auraManager.stop();
         if (floatingItemManager != null) floatingItemManager.stop();
         if (linkedAccountManager != null) linkedAccountManager.stop();
         if (momentumBar != null) momentumBar.removeAll();
@@ -371,6 +375,10 @@ public final class SolRNGPlugin extends JavaPlugin {
 
     public FarmingManager getFarmingManager() {
         return farmingManager;
+    }
+
+    public com.spacerng.solrng.aura.AuraManager getAuraManager() {
+        return auraManager;
     }
 
     public com.spacerng.solrng.firsts.FirstTenManager getFirstTenManager() {
