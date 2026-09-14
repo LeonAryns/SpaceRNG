@@ -1,4 +1,4 @@
-package com.spacerng.solrng.item;
+package com.spacerng.solrng.roll;
 
 import com.spacerng.solrng.SolRNGPlugin;
 import com.spacerng.solrng.starforge.StarforgeManager;

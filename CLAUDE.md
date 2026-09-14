@@ -45,6 +45,23 @@ Load the matching skill before touching its area:
 - `.claude/skills/aura-design` for any particle effect or sound cue.
 - `.claude/skills/enchant-design` for anything about hoe enchants.
 
+## Layout
+
+Packages are by feature under `com.spacerng.solrng`. Where new things go:
+
+- **A menu.** `gui/<Name>Gui` builds it and `gui/<Name>Holder` implements
+  `MenuHolder`. Its clicks go in the matching class in `listeners/menu/`
+  (convert, skill tree, progression, player menus, shops) with a route
+  in `GuiListener`. A holder that isn't a `MenuHolder` gets no drag or
+  click protection, and a drag into a menu destroys the item.
+- **An `/rngadmin` subcommand.** A `do<Name>` method in `PlayerAdmin`,
+  `ShowcaseAdmin` or `WorldAdmin` under `commands/admin/`, shared parsing
+  in `AdminTools`, and a route, a help line and tab completion in
+  `RngAdminCommand`.
+- **Saving.** Player data autosaves every five minutes and on quit.
+  Anything with its own file (First 10, crates, plots, top heads) saves
+  when it changes.
+
 ## Things that have bitten before
 
 - **Derived, not stored.** Stats are computed from node levels at read

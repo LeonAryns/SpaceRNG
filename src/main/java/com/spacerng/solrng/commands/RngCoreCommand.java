@@ -1,7 +1,7 @@
 package com.spacerng.solrng.commands;
 
 import com.spacerng.solrng.SolRNGPlugin;
-import com.spacerng.solrng.item.RollItemFactory;
+import com.spacerng.solrng.roll.RollItemFactory;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;

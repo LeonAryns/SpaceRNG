@@ -1,7 +1,7 @@
 package com.spacerng.solrng.gui;
 
 import com.spacerng.solrng.SolRNGPlugin;
-import com.spacerng.solrng.cookie.NovaCoreManager;
+import com.spacerng.solrng.nova.NovaCoreManager;
 import com.spacerng.solrng.player.PlayerData;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;

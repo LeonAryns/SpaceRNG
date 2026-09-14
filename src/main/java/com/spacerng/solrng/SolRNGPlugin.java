@@ -14,7 +14,7 @@ import com.spacerng.solrng.commands.TopCommand;
 import com.spacerng.solrng.commands.GuideCommand;
 import com.spacerng.solrng.commands.NovaCoreCommand;
 import com.spacerng.solrng.commands.MilestonesCommand;
-import com.spacerng.solrng.commands.RngAdminCommand;
+import com.spacerng.solrng.commands.admin.RngAdminCommand;
 import com.spacerng.solrng.commands.RngCoreCommand;
 import com.spacerng.solrng.commands.SkillTreeCommand;
 import com.spacerng.solrng.commands.StarforgeCommand;
@@ -22,7 +22,7 @@ import com.spacerng.solrng.commands.TagCommand;
 import com.spacerng.solrng.farming.FarmingListener;
 import com.spacerng.solrng.farming.FarmingManager;
 import com.spacerng.solrng.listeners.ChatListener;
-import com.spacerng.solrng.listeners.GuiListener;
+import com.spacerng.solrng.listeners.menu.GuiListener;
 import com.spacerng.solrng.listeners.JoinQuitListener;
 import com.spacerng.solrng.listeners.RollListener;
 import com.spacerng.solrng.player.ArmorManager;
@@ -56,7 +56,7 @@ public final class SolRNGPlugin extends JavaPlugin {
     private com.spacerng.solrng.milestone.MilestoneManager milestoneManager;
     private com.spacerng.solrng.boost.BoostManager boostManager;
     private com.spacerng.solrng.boost.LuckBarManager luckBarManager;
-    private com.spacerng.solrng.cookie.NovaCoreManager novaCoreManager;
+    private com.spacerng.solrng.nova.NovaCoreManager novaCoreManager;
     private com.spacerng.solrng.farming.HoeEnchantManager hoeEnchantManager;
     private com.spacerng.solrng.quest.QuestManager questManager;
     private com.spacerng.solrng.announce.AnnouncerManager announcerManager;
@@ -151,7 +151,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         this.milestoneManager = new com.spacerng.solrng.milestone.MilestoneManager(this);
         this.boostManager = new com.spacerng.solrng.boost.BoostManager(this);
         this.luckBarManager = new com.spacerng.solrng.boost.LuckBarManager(this);
-        this.novaCoreManager = new com.spacerng.solrng.cookie.NovaCoreManager(this);
+        this.novaCoreManager = new com.spacerng.solrng.nova.NovaCoreManager(this);
         this.hoeEnchantManager = new com.spacerng.solrng.farming.HoeEnchantManager(this);
         this.questManager = new com.spacerng.solrng.quest.QuestManager(this);
         this.announcerManager = new com.spacerng.solrng.announce.AnnouncerManager(this);
@@ -457,7 +457,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         return hoeEnchantManager;
     }
 
-    public com.spacerng.solrng.cookie.NovaCoreManager getNovaCoreManager() {
+    public com.spacerng.solrng.nova.NovaCoreManager getNovaCoreManager() {
         return novaCoreManager;
     }
 

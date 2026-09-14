@@ -1,7 +1,7 @@
 package com.spacerng.solrng.listeners;
 
 import com.spacerng.solrng.SolRNGPlugin;
-import com.spacerng.solrng.item.RollItemFactory;
+import com.spacerng.solrng.roll.RollItemFactory;
 import com.spacerng.solrng.player.PlayerData;
 import com.spacerng.solrng.rarity.RollFormat;
 import com.spacerng.solrng.rarity.RollableItem;

@@ -1,4 +1,4 @@
-package com.spacerng.solrng.cookie;
+package com.spacerng.solrng.nova;
 
 import com.spacerng.solrng.SolRNGPlugin;
 import com.spacerng.solrng.player.PlayerData;
