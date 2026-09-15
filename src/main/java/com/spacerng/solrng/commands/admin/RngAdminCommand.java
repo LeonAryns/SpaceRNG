@@ -40,7 +40,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             "reload", "setspawn", "starforge", "reset", "give", "drops",
             "bank", "aura", "roll", "unlock", "unlockall", "lockall", "odds", "farmblock", "farmscan",
             "hoe", "consumable", "gradient", "welcome", "crops", "farmclear",
-            "milestones", "farmfill", "boost", "nova", "placeholders", "payout", "crate", "tophead", "floatingitem", "shiny", "firsts", "lorestyles", "tagstyles", "menustyles", "hoestyles", "enchantstyles", "novastyles", "auratest", "holo", "help");
+            "milestones", "farmfill", "boost", "nova", "placeholders", "payout", "crate", "tophead", "floatingitem", "shiny", "firsts", "lorestyles", "tagstyles", "menustyles", "hoestyles", "standingstyles", "enchantstyles", "novastyles", "auratest", "holo", "help");
     private static final List<String> CURRENCIES = List.of("money", "coins", "gems", "credits", "luck", "speed");
 
     private final SolRNGPlugin plugin;
@@ -82,6 +82,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             case "tagstyles" -> showcase.doTagStyles(sender, args);
             case "menustyles" -> showcase.doMenuStyles(sender, args);
             case "hoestyles" -> showcase.doHoeStyles(sender, args);
+            case "standingstyles" -> showcase.doStandingStyles(sender, args);
             case "enchantstyles" -> showcase.doEnchantStyles(sender, args);
             case "novastyles" -> showcase.doNovaStyles(sender, args);
             case "auratest" -> showcase.doAuraTest(sender, args);
@@ -147,7 +148,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         line(sender, "placeholders", "", "What every %spacerng_% placeholder resolves to right now");
         line(sender, "payout", "", "Run the farming payout now and reset the period");
         line(sender, "crate", "<place|set|remove|list|key|preview>", "Place crates and hand out keys");
-        line(sender, "holo", "<panel|board|remove|list>", "NPC text panels and leaderboard walls");
+        line(sender, "holo", "<panel|board|leader|remove|list>", "NPC text, leaderboard walls and #1 heads");
         line(sender, "floatingitem", "<add|remove|list>", "Rotating item displays anchored at a spot");
         line(sender, "tophead", "<set|podium|remove|clear|list>", "Floating heads for a leaderboard");
         line(sender, "shiny", "[player]", "Make the next roll shiny");
@@ -156,6 +157,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         line(sender, "tagstyles", "[style]", "Tag odds styles side by side, or switch to one");
         line(sender, "menustyles", "[style]", "Hover each menu theme to compare, or switch to one");
         line(sender, "hoestyles", "[style]", "The hoe's tooltip in every style");
+        line(sender, "standingstyles", "[style]", "Your standings card in /leaderboards in every style");
         line(sender, "enchantstyles", "[style] [enchant]", "An enchant card in every style");
         line(sender, "novastyles", "[style] [consumable]", "The Nova Core and other consumables in every style");
         line(sender, "auratest", "<look|off|list> [rarity] [accent]", "Wear a worn aura look to test it");
@@ -215,7 +217,10 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         if (sub.equals("crate")) return crateTab(args);
         if (sub.equals("tophead")) return topHeadTab(args);
         if (sub.equals("holo")) {
-            if (args.length == 2) return partial(args[1], List.of("panel", "board", "remove", "list"));
+            if (args.length == 2) return partial(args[1], List.of("panel", "board", "leader", "remove", "list"));
+            if (args.length == 3 && args[1].equalsIgnoreCase("leader")) {
+                return partial(args[2], com.spacerng.solrng.leaderboard.LeaderboardManager.BOARDS);
+            }
             if (args.length == 3 && args[1].equalsIgnoreCase("panel")) {
                 return partial(args[2], new ArrayList<>(plugin.getHoloManager().panelIds()));
             }
@@ -236,6 +241,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
                 case "menustyles" -> partial(args[1], java.util.Arrays.stream(com.spacerng.solrng.gui.Lore.Theme.values())
                         .map(com.spacerng.solrng.gui.Lore.Theme::key).toList());
                 case "hoestyles" -> partial(args[1], com.spacerng.solrng.farming.FarmingManager.HOE_STYLES);
+                case "standingstyles" -> partial(args[1], com.spacerng.solrng.gui.LeaderboardGui.STANDINGS_STYLES);
                 case "enchantstyles" -> partial(args[1], com.spacerng.solrng.gui.HoeGui.ENCHANT_STYLES);
                 case "novastyles" -> partial(args[1], com.spacerng.solrng.consumable.ConsumableManager.CONSUMABLE_STYLES);
                 case "auratest" -> partial(args[1], java.util.stream.Stream.concat(com.spacerng.solrng.aura.AuraConcepts.KEYS.stream(), java.util.stream.Stream.of("off", "list")).toList());

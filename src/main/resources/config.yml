@@ -23,6 +23,9 @@ menu-style: classic
 hoe-style: classic
 enchant-style: classic
 consumable-style: card
+# Your own standings card in /leaderboards: summary, list, ranked, meter or
+# compact. /rngadmin standingstyles shows them side by side.
+standings-style: summary
 
 # The sidebar's fixed text. Colour codes use "&".
 scoreboard:

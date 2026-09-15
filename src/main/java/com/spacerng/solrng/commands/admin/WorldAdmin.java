@@ -499,6 +499,17 @@ final class WorldAdmin extends AdminTools {
                 holo.placeBoard(board, player.getEyeLocation());
                 sender.sendMessage(ChatColor.GREEN + "Placed the " + board + " board in front of you, facing you.");
             }
+            case "leader" -> {
+                Player player = (Player) sender;
+                String board = args.length >= 3 ? args[2].toLowerCase(Locale.ROOT) : "farming";
+                if (!com.spacerng.solrng.leaderboard.LeaderboardManager.BOARDS.contains(board)) {
+                    sender.sendMessage(ChatColor.RED + "Usage: /rngadmin holo leader [board]");
+                    return true;
+                }
+                holo.placeLeader(board, player.getLocation());
+                sender.sendMessage(ChatColor.GREEN + "Placed the " + board + " leader where you stand. "
+                        + ChatColor.GRAY + "The head follows whoever is #1.");
+            }
             case "remove" -> {
                 Player player = (Player) sender;
                 double radius = 4.0;
@@ -527,6 +538,7 @@ final class WorldAdmin extends AdminTools {
             default -> {
                 line(sender, "holo panel", "<panel>", "NPC text from holograms.panels, above where you stand");
                 line(sender, "holo board", "<board>", "A leaderboard with heads, in front of you");
+                line(sender, "holo leader", "[board]", "The #1 player's head and the top three, where you stand");
                 line(sender, "holo remove", "[radius]", "Take down panels and boards near you");
                 line(sender, "holo list", "", "Everything placed");
             }

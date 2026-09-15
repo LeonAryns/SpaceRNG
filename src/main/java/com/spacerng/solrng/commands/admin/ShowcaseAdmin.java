@@ -461,6 +461,7 @@ final class ShowcaseAdmin extends AdminTools {
      */
     boolean doMenuStyles(CommandSender sender, String[] args) {
         String pick = args.length >= 2 ? args[1].toLowerCase(Locale.ROOT) : "";
+        if (pick.equals("preview")) return previewMenu(sender, args);
         for (com.spacerng.solrng.gui.Lore.Theme theme : com.spacerng.solrng.gui.Lore.Theme.values()) {
             if (!theme.key().equals(pick)) continue;
             plugin.getConfig().set("menu-style", theme.key());
@@ -482,10 +483,19 @@ final class ShowcaseAdmin extends AdminTools {
             }
             String text = ChatColor.YELLOW + theme.key() + ChatColor.GRAY + "  " + theme.summary()
                     + (theme == current ? ChatColor.GREEN + "  (current)" : "");
-            sender.sendMessage(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection()
-                    .deserialize(text).hoverEvent(sample.asHoverEvent()));
+            var legacy = net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection();
+            var line = legacy.deserialize(text).hoverEvent(sample.asHoverEvent());
+            // Buttons that open the real menu in this theme.
+            for (String menu : List.of("skilltree", "prestige", "index")) {
+                line = line.append(legacy.deserialize("  " + ChatColor.AQUA + "[" + menu + "]")
+                        .clickEvent(net.kyori.adventure.text.event.ClickEvent.runCommand(
+                                "/rngadmin menustyles preview " + theme.key() + " " + menu))
+                        .hoverEvent(net.kyori.adventure.text.Component.text("Open " + menu + " in " + theme.key())));
+            }
+            sender.sendMessage(line);
         }
-        sender.sendMessage(ChatColor.GRAY + "Pick one with " + ChatColor.YELLOW + "/rngadmin menustyles <style>");
+        sender.sendMessage(ChatColor.GRAY + "Hover a style for a card, click a menu to open it in that style, or "
+                + ChatColor.YELLOW + "/rngadmin menustyles <style>" + ChatColor.GRAY + " to switch.");
         return true;
     }
 
@@ -600,6 +610,45 @@ final class ShowcaseAdmin extends AdminTools {
             sender.sendMessage(item == null ? line : line.hoverEvent(item.asHoverEvent()));
         }
         sender.sendMessage(ChatColor.GRAY + "Pick one with " + ChatColor.YELLOW + "/rngadmin " + command + " <style>");
+        return true;
+    }
+
+    /** Your own standings card in /leaderboards, in every style. */
+    boolean doStandingStyles(CommandSender sender, String[] args) {
+        return styleSamples(sender, args, "Standings", "standings-style", "standingstyles",
+                com.spacerng.solrng.gui.LeaderboardGui.STANDINGS_STYLES,
+                style -> sender instanceof Player player
+                        ? com.spacerng.solrng.gui.LeaderboardGui.selfItem(plugin, player, style) : null,
+                null);
+    }
+
+    /**
+     * Opens a real menu built in one theme, so the difference shows on a
+     * whole screen instead of one card. Anything clicked inside rebuilds in
+     * the server's current theme.
+     */
+    private boolean previewMenu(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(ChatColor.RED + "Run this in game to open the preview.");
+            return true;
+        }
+        var current = com.spacerng.solrng.gui.Lore.theme();
+        var theme = args.length >= 3 ? com.spacerng.solrng.gui.Lore.Theme.parse(args[2]) : current;
+        String menu = args.length >= 4 ? args[3].toLowerCase(Locale.ROOT) : "skilltree";
+        org.bukkit.inventory.Inventory inventory;
+        com.spacerng.solrng.gui.Lore.setTheme(theme);
+        try {
+            inventory = switch (menu) {
+                case "index" -> com.spacerng.solrng.gui.IndexGui.build(plugin, player, null, 0);
+                case "prestige" -> com.spacerng.solrng.gui.PrestigeGui.build(plugin, player);
+                default -> com.spacerng.solrng.gui.SkillTreeGui.build(plugin, player, "skilltree", 1);
+            };
+        } finally {
+            com.spacerng.solrng.gui.Lore.setTheme(current);
+        }
+        player.openInventory(inventory);
+        sender.sendMessage(ChatColor.GRAY + "Previewing " + ChatColor.YELLOW + theme.key() + ChatColor.GRAY
+                + " on " + menu + ". Clicking inside rebuilds it in the current style.");
         return true;
     }
 }

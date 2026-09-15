@@ -76,7 +76,7 @@ public class LeaderboardGui {
             inv.setItem(card.slot(), buildCard(boards, player, card));
         }
         inv.setItem(DAILY_SLOT, buildDaily());
-        inv.setItem(SELF_SLOT, buildSelf(boards, player));
+        inv.setItem(SELF_SLOT, selfItem(plugin, player, plugin.getConfig().getString("standings-style", "summary")));
         return inv;
     }
 
@@ -156,11 +156,22 @@ public class LeaderboardGui {
         return item;
     }
 
+    /** The looks the player's own standings card can take, picked with standings-style. */
+    public static final List<String> STANDINGS_STYLES = List.of("summary", "list", "ranked", "meter", "compact");
+
+    private record Standing(Card card, long value, int place) {
+        boolean ranked() {
+            return value > 0 && place > 0;
+        }
+    }
+
     /**
      * The player's own card, carrying all six placings at once - the
-     * answer to "where am I" without reading six tooltips.
+     * answer to "where am I" without reading six tooltips. /rngadmin
+     * standingstyles shows every style side by side.
      */
-    private static ItemStack buildSelf(LeaderboardManager boards, Player player) {
+    public static ItemStack selfItem(SolRNGPlugin plugin, Player player, String style) {
+        LeaderboardManager boards = plugin.getLeaderboardManager();
         ItemStack item = new ItemStack(Material.PLAYER_HEAD);
         ItemMeta meta = item.getItemMeta();
         if (meta instanceof SkullMeta skull) {
@@ -168,21 +179,109 @@ public class LeaderboardGui {
         }
         meta.setDisplayName(Lore.title(ChatColor.GOLD, player.getName()));
 
-        List<String> lore = new ArrayList<>();
-        lore.add(Lore.section(ChatColor.GOLD, "Your standings"));
         LeaderboardManager.Entry mine = boards.entryOf(player.getUniqueId());
+        List<Standing> standings = new ArrayList<>();
         for (Card card : CARDS) {
             long value = mine == null ? 0L : LeaderboardManager.valueOf(card.board(), mine);
-            int place = boards.positionOf(card.board(), player.getUniqueId());
-            String standing = value <= 0 ? ChatColor.DARK_GRAY + "unranked"
-                    : (place == 1 ? ChatColor.GOLD : ChatColor.YELLOW) + "#" + place;
-            lore.add(card.accent() + Lore.BULLET + " " + ChatColor.GRAY + card.name() + ": "
-                    + standing + ChatColor.DARK_GRAY + "  ·  " + card.accent() + Lore.shorten(value));
+            standings.add(new Standing(card, value, boards.positionOf(card.board(), player.getUniqueId())));
         }
-        lore.add("");
         int tracked = boards.size();
-        lore.add(ChatColor.AQUA + Lore.BULLET + " " + ChatColor.WHITE + tracked
-                + ChatColor.AQUA + (tracked == 1 ? " player" : " players") + " on the boards");
+        String footer = ChatColor.AQUA + Lore.BULLET + " " + ChatColor.WHITE + tracked
+                + ChatColor.AQUA + (tracked == 1 ? " player" : " players") + " on the boards";
+
+        List<String> lore = new ArrayList<>();
+        switch (style == null ? "" : style.toLowerCase(java.util.Locale.ROOT)) {
+            case "list" -> {
+                lore.add(Lore.section(ChatColor.GOLD, "Your standings"));
+                for (Standing s : standings) {
+                    String place = !s.ranked() ? ChatColor.DARK_GRAY + "unranked"
+                            : (s.place() == 1 ? ChatColor.GOLD : ChatColor.YELLOW) + "#" + s.place();
+                    lore.add(s.card().accent() + Lore.BULLET + " " + ChatColor.GRAY + s.card().name() + ": "
+                            + place + ChatColor.DARK_GRAY + "  ·  " + s.card().accent() + Lore.shorten(s.value()));
+                }
+                lore.add("");
+                lore.add(footer);
+            }
+            case "ranked" -> {
+                // Best placing first, so the top of the card is what you're proudest of.
+                List<Standing> sorted = new ArrayList<>(standings);
+                sorted.sort(java.util.Comparator.comparingInt((Standing s) -> s.ranked() ? s.place() : Integer.MAX_VALUE));
+                lore.add(Lore.section(ChatColor.GOLD, "Your best boards"));
+                for (Standing s : sorted) {
+                    if (!s.ranked()) {
+                        lore.add(ChatColor.DARK_GRAY + "  -   " + s.card().accent() + s.card().name()
+                                + ChatColor.DARK_GRAY + "  not on it yet");
+                        continue;
+                    }
+                    ChatColor placeColour = s.place() == 1 ? ChatColor.GOLD : s.place() <= 3 ? ChatColor.YELLOW
+                            : s.place() <= 10 ? ChatColor.WHITE : ChatColor.GRAY;
+                    lore.add(placeColour + "" + ChatColor.BOLD + "#" + s.place() + ChatColor.RESET + "  "
+                            + s.card().accent() + s.card().name() + "  " + ChatColor.WHITE + Lore.shorten(s.value())
+                            + " " + ChatColor.GRAY + s.card().unit());
+                }
+                lore.add("");
+                lore.add(footer);
+            }
+            case "meter" -> {
+                lore.add(Lore.section(ChatColor.GOLD, "How high you stand"));
+                for (Standing s : standings) {
+                    int filled = !s.ranked() || tracked <= 0 ? 0
+                            : (int) Math.round(10.0 * (tracked - s.place() + 1) / tracked);
+                    lore.add(s.card().accent() + "▬".repeat(filled) + ChatColor.DARK_GRAY + "▬".repeat(10 - filled)
+                            + "  " + s.card().accent() + s.card().name()
+                            + (s.ranked() ? ChatColor.WHITE + "  #" + s.place() : ChatColor.DARK_GRAY + "  unranked"));
+                }
+                lore.add("");
+                lore.add(footer);
+            }
+            case "compact" -> {
+                StringBuilder row = new StringBuilder();
+                int firsts = 0;
+                for (int i = 0; i < standings.size(); i++) {
+                    Standing s = standings.get(i);
+                    if (s.ranked() && s.place() == 1) firsts++;
+                    if (i % 3 != 0) row.append(ChatColor.DARK_GRAY).append("  ·  ");
+                    row.append(s.card().accent()).append(s.card().name()).append(" ")
+                            .append(s.ranked() ? ChatColor.WHITE + "#" + s.place() : ChatColor.DARK_GRAY + "-");
+                    if (i % 3 == 2 || i == standings.size() - 1) {
+                        lore.add(row.toString());
+                        row.setLength(0);
+                    }
+                }
+                lore.add("");
+                lore.add(ChatColor.GOLD + "" + ChatColor.BOLD + "First on " + firsts
+                        + (firsts == 1 ? " board" : " boards"));
+                lore.add(footer);
+            }
+            default -> {
+                // Grouped by how you're doing, so the answer comes before the detail.
+                List<String> first = new ArrayList<>();
+                List<String> top = new ArrayList<>();
+                List<String> rest = new ArrayList<>();
+                for (Standing s : standings) {
+                    String name = s.card().accent() + s.card().name();
+                    if (!s.ranked()) rest.add(name);
+                    else if (s.place() == 1) first.add(name + ChatColor.WHITE + " " + Lore.shorten(s.value()));
+                    else top.add(name + ChatColor.WHITE + " #" + s.place());
+                }
+                if (!first.isEmpty()) {
+                    lore.add(Lore.section(ChatColor.GOLD, "First place"));
+                    for (String line : first) lore.add(ChatColor.GOLD + Lore.BULLET + " " + line);
+                    lore.add("");
+                }
+                if (!top.isEmpty()) {
+                    lore.add(Lore.section(ChatColor.YELLOW, "On the boards"));
+                    for (String line : top) lore.add(ChatColor.YELLOW + Lore.BULLET + " " + line);
+                    lore.add("");
+                }
+                if (!rest.isEmpty()) {
+                    lore.add(Lore.section(ChatColor.AQUA, "Not on yet"));
+                    lore.add(ChatColor.AQUA + Lore.BULLET + " " + String.join(ChatColor.DARK_GRAY + ", ", rest));
+                    lore.add("");
+                }
+                lore.add(footer);
+            }
+        }
         meta.setLore(lore);
         item.setItemMeta(meta);
         return item;

@@ -129,14 +129,18 @@ public final class FirstTenManager {
         UUID roller = player.getUniqueId();
         String name = player.getName();
         plugin.getServer().getScheduler().runTaskLater(plugin,
-                () -> announce(roller, name, item, shiny, place, false), Math.max(1L, delayTicks));
+                () -> new FirstTenBuildUp(plugin, rarity, roller,
+                        () -> announce(roller, name, item, shiny, place, false)).start(),
+                Math.max(1L, delayTicks));
     }
 
     /** Plays the whole event without recording anything. */
     public void preview(Player viewer, RollableItem item, boolean shiny) {
         int place = Math.min(slots(), entries.getOrDefault(item.getRarity(), List.of()).size() + 1);
-        announce(viewer == null ? null : viewer.getUniqueId(),
-                viewer == null ? "Console" : viewer.getName(), item, shiny, place, true);
+        UUID roller = viewer == null ? null : viewer.getUniqueId();
+        String name = viewer == null ? "Console" : viewer.getName();
+        new FirstTenBuildUp(plugin, item.getRarity(), roller,
+                () -> announce(roller, name, item, shiny, place, true)).start();
     }
 
     public void reset(Rarity rarity) {
@@ -199,6 +203,12 @@ public final class FirstTenManager {
             online.playSound(online.getLocation(), Sound.ITEM_TRIDENT_THUNDER, 0.6f, 1.3f);
             online.playSound(online.getLocation(), Sound.BLOCK_BEACON_ACTIVATE, 1.0f, 0.8f);
             online.playSound(online.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0f, 1.0f);
+            // The burst itself: a flash of the rarity's colour right in front of the eyes.
+            if (plugin.getPlayerDataManager().get(online.getUniqueId()).isAuraEnabled(rarity)) {
+                online.spawnParticle(Particle.FLASH,
+                        online.getEyeLocation().add(online.getLocation().getDirection().multiply(2.0)),
+                        1, 0.0, 0.0, 0.0, 0.0, RollAura.colorFor(rarity), true);
+            }
             if (own) {
                 online.showTitle(Title.title(
                         LegacyComponentSerializer.legacySection()
@@ -260,7 +270,8 @@ public final class FirstTenManager {
                 case MYTHICAL -> 9;
                 default -> 6;
             };
-            this.dust = new Particle.DustOptions(RollAura.colorFor(rarity), 1.4f);
+            // Big dust: at 1.4 the far-off specks were too small to read as anything.
+            this.dust = new Particle.DustOptions(RollAura.colorFor(rarity), 2.6f);
             this.fall = switch (rarity) {
                 case DIVINE -> Material.QUARTZ_BLOCK.createBlockData();
                 case MYTHICAL -> Material.REDSTONE_BLOCK.createBlockData();
@@ -291,6 +302,11 @@ public final class FirstTenManager {
                             25.0, 4.0, 25.0, 0.0, fall, true);
                     viewer.spawnParticle(Particle.DUST, at.clone().add(0, 8, 0), count * 3,
                             25.0, 6.0, 25.0, 0.0, dust, true);
+                    // A close layer too, so it's thick right where the player is looking.
+                    viewer.spawnParticle(Particle.DUST, at.clone().add(0, 3, 0), count * 2,
+                            7.0, 2.5, 7.0, 0.0, dust, true);
+                    viewer.spawnParticle(Particle.END_ROD, at.clone().add(0, 4, 0), count,
+                            8.0, 3.0, 8.0, 0.02, null, true);
                     if (frame % 20 == 0) burst(viewer, at);
 
                     if (spawn != null && spawn.getWorld() != null && spawn.getWorld().equals(viewer.getWorld())
