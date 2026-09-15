@@ -8,7 +8,7 @@
 # their fresh defaults in on top of whatever is on disk, so a server
 # owner never has to delete the whole file to pick up a structural
 # change. Item table, prices and cosmetic tweaks are untouched.
-config-version: 12
+config-version: 13
 
 # One-off value changes the plugin has already made to this file, so none
 # is ever made twice. Managed by the plugin; leave it alone.
@@ -682,7 +682,8 @@ farming:
     gamba-seconds: 60
     key-finder-reward: crate_key
     # Now and then the key Key Finder turns up is the rare one instead.
-    key-finder-rare-reward: cosmic_key
+    # Cosmic Keys are store only, so the rare find is a Nebula Key.
+    key-finder-rare-reward: nebula_key
     key-finder-rare-chance: 0.08
     potion-finder-rewards:
       - luck_potion
@@ -3157,24 +3158,22 @@ announcements:
       - "&3\u258e &e\u25b8 &7Put spare drops in &e/convert&7 to buy armor and Starforges."
     - - "&3\u258e &e\u25b8 &7Every drop has its own &bTag Luck&7, equip the best in &e/index&7."
       - "&3\u258e &e\u25b8 &7Unlock &fTag Luck&7 in &e/skilltree&7 before you can wear one."
-    - - "&3\u258e &e\u25b8 &d/novacore&7 is the fourth way to raise your Luck \u2014 after skills, armor and prestige."
+    - - "&3\u258e &e\u25b8 &d/novacore&7 is the fourth way to raise your Luck, after skills, armor and prestige."
       - "&3\u258e &e\u25b8 &7Forge it a tier at a time with &6Coins&7. Every tier you hold is a permanent multiplier on &fLuck&7, &aMoney&7 and &6Coins&7 alike."
     - - "&3\u258e &e\u25b8 &a/farmtree&7 has crops, hoe enchants and Coin multipliers."
-      - "&3\u258e &e\u25b8 &7Pick what grows for you with &e/crops&7 \u2014 the field is yours alone."
+      - "&3\u258e &e\u25b8 &7Pick what grows for you with &e/crops&7. The field is yours alone."
     - - "&3\u258e &e\u25b8 &7Long-run goals live in &e/milestones&7. Rewards wait there to be claimed."
       - "&3\u258e &e\u25b8 &7New here? &e/guide&7 walks you through everything."
-    - - "&3\u258e &e\u25b8 &7Claim your streak every day with &e/daily&7 \u2014 miss one and it resets."
+    - - "&3\u258e &e\u25b8 &7Claim your streak every day with &e/daily&7. Miss one and it resets."
       - "&3\u258e &e\u25b8 &d/buy&7 has a &5Global Luck Boost&7 that helps the whole server."
-    - - "&3\u258e &e\u25b8 &6/pass&7 pays out for every roll and every harvest \u2014 rarer rolls are worth more XP."
+    - - "&3\u258e &e\u25b8 &6/pass&7 pays out for every roll and every harvest. Rarer rolls are worth more XP."
       - "&3\u258e &e\u25b8 &7The &5premium track&7 back-pays every level you already cleared."
     - - "&3\u258e &e\u25b8 &d/skilltree&7 is three paths deep. &aMoney&7, &eSpeed&7 and &aLuck&7 each carry their own capstone."
       - "&3\u258e &e\u25b8 &7Respec any time for a few &fshinies&7 - the price climbs one per respec."
-    - - "&5&l| DISCORD SERVER"
-      - "&5| &fJoin us for giveaways, news and updates."
-      - "&5| &b&nhttps://discord.gg/spacerng"
-    - - "&6&l| PERKS"
-      - "&6| &fTrade &e/roll&7 drops for perks in &e/perks&7."
-      - "&6| &7Higher tier drops = better perk odds."
+    - - "&3▎ &e▸ &7Join our &9&lDiscord&7 for giveaways, news and updates."
+      - "&3▎ &e▸ &7Click to join: &b&ndiscord.gg/spacerng"
+    - - "&3▎ &e▸ &7Trade drops for perks in &d/perks&7. Keep the good ones with save rolls."
+      - "&3▎ &e▸ &7Every perk you have found is listed in &d/perks index&7."
 
 # The daily streak (/daily). No checkpoints on purpose: the whole tension
 # of a streak is that there's no safety net.
@@ -3452,7 +3451,7 @@ crates:
       display: "Cosmic Crate"
       colors: ["#E1BEE7", "#7C4DFF", "#40C4FF"]
       key: cosmic_key
-      key-source: "Cosmic Keys are the rare find from Key Finder, about one key in twelve."
+      key-source: "Cosmic Keys come from the store."
       description:
         - "<white>Right-click with a <#B388FF>Cosmic Key</#B388FF> to open"
         - "<gray>Left-click to see what's inside"
@@ -3468,6 +3467,50 @@ crates:
         - { weight: 3, drop: EPIC }
         - { weight: 2.5, consumable: luck_50 }
         - { weight: 0.5, consumable: luck_250 }
+    # Hand these out from a voting plugin with
+    #   rngadmin crate key vote 1 %player%
+    vote:
+      display: "Vote Crate"
+      colors: ["#B9F6CA", "#00C853"]
+      key: vote_key
+      key-source: "Vote Keys come from voting for the server."
+      description:
+        - "<white>Right-click with a <#69F0AE>Vote Key</#69F0AE> to open"
+        - "<gray>Left-click to see what's inside"
+      jackpot-below: 0.03
+      rewards:
+        - { weight: 30, coins: 50000 }
+        - { weight: 18, money: 100000 }
+        - { weight: 14, gems: 75 }
+        - { weight: 10, consumable: luck_potion }
+        - { weight: 10, consumable: speed_potion }
+        - { weight: 8, drop: RARE }
+        - { weight: 6, consumable: nova_core }
+        - { weight: 3, consumable: free_skill }
+        - { weight: 2, consumable: roll_10x }
+        - { weight: 0.5, consumable: luck_50 }
+    # Rank key alls and events:  rngadmin crate keyall nebula 1
+    # Key Finder turns one up now and then as well.
+    nebula:
+      display: "Nebula Crate"
+      colors: ["#80D8FF", "#448AFF", "#B388FF"]
+      key: nebula_key
+      key-source: "Nebula Keys come from key alls, events and the rare Key Finder find."
+      description:
+        - "<white>Right-click with a <#82B1FF>Nebula Key</#82B1FF> to open"
+        - "<gray>Left-click to see what's inside"
+      jackpot-below: 0.035
+      rewards:
+        - { weight: 25, coins: 150000 }
+        - { weight: 18, money: 250000 }
+        - { weight: 14, gems: 150 }
+        - { weight: 12, consumable: nova_core }
+        - { weight: 8, consumable: roll_10x, amount: 2 }
+        - { weight: 8, drop: RARE, amount: 2 }
+        - { weight: 5, consumable: free_skill }
+        - { weight: 2, drop: EPIC }
+        - { weight: 1.5, consumable: luck_50 }
+        - { weight: 0.2, consumable: luck_250 }
 
 # Floating text drawn by the plugin: panels over NPCs, live leaderboards
 # with player heads, and the text over crates placed with
@@ -3741,6 +3784,16 @@ consumables:
     material: TRIPWIRE_HOOK
     colors: ["#E1BEE7", "#7C4DFF", "#40C4FF"]
     description: "Opens the Cosmic Crate. Right click the crate with it."
+  vote_key:
+    display: "Vote Key"
+    material: TRIPWIRE_HOOK
+    colors: ["#B9F6CA", "#00C853"]
+    description: "Opens the Vote Crate. Right click the crate with it."
+  nebula_key:
+    display: "Nebula Key"
+    material: TRIPWIRE_HOOK
+    colors: ["#80D8FF", "#448AFF", "#B388FF"]
+    description: "Opens the Nebula Crate. Right click the crate with it."
   nova_core:
     display: "Nova Core"
     material: HEART_OF_THE_SEA
@@ -5293,8 +5346,10 @@ discord:
 perks:
   # Maximum perks equipped at once. Rest sit in the vault, still owned.
   loadout-slots: 3
-  # A rolled perk waits in the roller until you save it to the vault.
-  # Rolling again replaces an unsaved one. Saving costs this many Credits.
+  # A rolled perk waits in the roller until you save it to the vault, and
+  # rolling again replaces an unsaved one. Save rolls cost this many
+  # Credits each; with saving switched on, every roll uses one and goes
+  # straight to the vault.
   save-cost-credits: 1
   # Per level (I to V) the roll picks. Same for every tier.
   level-chances: [0.40, 0.30, 0.20, 0.08, 0.02]
@@ -5320,20 +5375,56 @@ perks:
     LEGENDARY: 3
     MYTHICAL: 3
     DIVINE: 4
-  # The Roll buttons in /perks. Each is one drop tier you trade in.
+  # The Roll buttons in /perks. Each is one drop tier you trade in, and
+  # every roll can land on any perk tier. A Divine Roll has a 1% shot at a
+  # Divine perk and each roll below it a smaller one. Every table sums to
+  # 1. Write small chances as plain decimals, never 1e-06.
   rolls:
+    COMMON:
+      cost-rarity: COMMON
+      cost-amount: 100
+      # Chance a rolled perk lands at each tier.
+      tier-chances:
+        COMMON: 0.92
+        UNCOMMON: 0.07
+        RARE: 0.0085
+        EPIC: 0.0013
+        LEGENDARY: 0.00017
+        MYTHICAL: 0.000029
+        DIVINE: 0.000001
+    UNCOMMON:
+      cost-rarity: UNCOMMON
+      cost-amount: 50
+      tier-chances:
+        COMMON: 0.85
+        UNCOMMON: 0.12
+        RARE: 0.025
+        EPIC: 0.0045
+        LEGENDARY: 0.00045
+        MYTHICAL: 0.000045
+        DIVINE: 0.000005
+    RARE:
+      cost-rarity: RARE
+      cost-amount: 20
+      tier-chances:
+        COMMON: 0.75
+        UNCOMMON: 0.17
+        RARE: 0.06
+        EPIC: 0.017
+        LEGENDARY: 0.0027
+        MYTHICAL: 0.00028
+        DIVINE: 0.00002
     EPIC:
       cost-rarity: EPIC
       cost-amount: 5
-      # Chance a rolled perk lands at each tier.
       tier-chances:
-        COMMON: 0.60
+        COMMON: 0.5999
         UNCOMMON: 0.25
         RARE: 0.10
         EPIC: 0.04
         LEGENDARY: 0.009
         MYTHICAL: 0.001
-        DIVINE: 0.0
+        DIVINE: 0.0001
     LEGENDARY:
       cost-rarity: LEGENDARY
       cost-amount: 5
@@ -5343,8 +5434,8 @@ perks:
         RARE: 0.25
         EPIC: 0.12
         LEGENDARY: 0.06
-        MYTHICAL: 0.018
-        DIVINE: 0.002
+        MYTHICAL: 0.0195
+        DIVINE: 0.0005
     MYTHICAL:
       cost-rarity: MYTHICAL
       cost-amount: 3
@@ -5354,8 +5445,8 @@ perks:
         RARE: 0.25
         EPIC: 0.25
         LEGENDARY: 0.15
-        MYTHICAL: 0.08
-        DIVINE: 0.02
+        MYTHICAL: 0.098
+        DIVINE: 0.002
     DIVINE:
       cost-rarity: DIVINE
       cost-amount: 1
@@ -5365,8 +5456,8 @@ perks:
         RARE: 0.15
         EPIC: 0.25
         LEGENDARY: 0.25
-        MYTHICAL: 0.15
-        DIVINE: 0.05
+        MYTHICAL: 0.19
+        DIVINE: 0.01
   # The top-tier ceiling for each stat a perk can grant. Multiplied by
   # both the perk's tier and its level. So MONEY_PERCENT at Divine V is
   # +100%, Common I is +100% * 0.05 * 0.20 = +1%.

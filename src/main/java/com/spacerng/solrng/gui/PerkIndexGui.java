@@ -185,12 +185,13 @@ public class PerkIndexGui {
         return item;
     }
 
-    /** 12.5%, 0.40%, 0.004%: enough digits to never read as zero. */
+    /** 12.5%, 0.4%, 0.0001%: two significant digits, never scientific, never zero. */
     static String percent(double fraction) {
         double pct = fraction * 100.0;
-        if (pct >= 1.0) return String.format("%.1f%%", pct);
-        if (pct >= 0.1) return String.format("%.2f%%", pct);
-        return String.format("%.3f%%", pct);
+        if (pct >= 1.0) return String.format("%.1f%%", pct).replace(".0%", "%");
+        if (pct <= 0.0) return "0%";
+        return new java.math.BigDecimal(pct).round(new java.math.MathContext(2))
+                .stripTrailingZeros().toPlainString() + "%";
     }
 
     private static ItemStack pane(Material material) {

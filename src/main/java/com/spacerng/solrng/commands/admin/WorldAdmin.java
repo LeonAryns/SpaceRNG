@@ -301,6 +301,40 @@ final class WorldAdmin extends AdminTools {
                             + crates.keyName(crate) + ChatColor.GREEN + ".");
                 }
             }
+            case "keyall" -> {
+                // For rank key alls and events: every online player gets the keys at once.
+                var crate = args.length >= 3 ? crates.get(args[2]) : null;
+                if (crate == null) {
+                    sender.sendMessage(ChatColor.RED + "Usage: /rngadmin crate keyall <crate> [amount]");
+                    return true;
+                }
+                int amount = 1;
+                if (args.length >= 4) {
+                    try {
+                        amount = Math.max(1, Math.min(64, Integer.parseInt(args[3])));
+                    } catch (NumberFormatException ex) {
+                        sender.sendMessage(ChatColor.RED + "Amount must be a number.");
+                        return true;
+                    }
+                }
+                var key = plugin.getConsumableManager().get(crate.keyId());
+                if (key == null) {
+                    sender.sendMessage(ChatColor.RED + "The key '" + crate.keyId()
+                            + "' is not a consumable in config.yml.");
+                    return true;
+                }
+                int given = 0;
+                for (Player online : org.bukkit.Bukkit.getOnlinePlayers()) {
+                    plugin.getConsumableManager().give(online, key, amount);
+                    online.playSound(online.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_LEVELUP, 0.8f, 1.2f);
+                    given++;
+                }
+                org.bukkit.Bukkit.broadcastMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "Key All! "
+                        + ChatColor.RESET + ChatColor.GRAY + "Everyone online got " + ChatColor.WHITE + amount + "x "
+                        + crates.keyName(crate) + ChatColor.GRAY + ".");
+                sender.sendMessage(ChatColor.GREEN + "Gave " + given + " players " + amount + "x "
+                        + crates.keyName(crate) + ChatColor.GREEN + ".");
+            }
             case "preview" -> {
                 if (!(sender instanceof Player player)) {
                     sender.sendMessage(ChatColor.RED + "Only players can open a preview.");

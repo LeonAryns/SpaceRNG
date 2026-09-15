@@ -152,13 +152,59 @@ final class ShopClicks {
             player.openInventory(com.spacerng.solrng.gui.PerkIndexGui.build(plugin, player));
             return;
         }
-        if (event.getRawSlot() == com.spacerng.solrng.gui.PerkRollerGui.pendingSlot()) {
+        int slot = event.getRawSlot();
+        if (slot == com.spacerng.solrng.gui.PerkRollerGui.autoSaveSlot()) {
+            data.setPerkAutoSave(!data.isPerkAutoSave());
+            player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.7f,
+                    data.isPerkAutoSave() ? 1.5f : 0.8f);
+            player.openInventory(com.spacerng.solrng.gui.PerkRollerGui.build(plugin, player));
+            return;
+        }
+        if (slot == com.spacerng.solrng.gui.PerkRollerGui.amountSlot()) {
+            int[] amounts = com.spacerng.solrng.gui.PerkRollerGui.SAVE_AMOUNTS;
+            int at = 0;
+            for (int i = 0; i < amounts.length; i++) {
+                if (amounts[i] == data.getPerkSaveAmount()) at = i;
+            }
+            int next = Math.floorMod(at + (event.isRightClick() ? -1 : 1), amounts.length);
+            data.setPerkSaveAmount(amounts[next]);
+            player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.6f, 1.2f);
+            player.openInventory(com.spacerng.solrng.gui.PerkRollerGui.build(plugin, player));
+            return;
+        }
+        if (slot == com.spacerng.solrng.gui.PerkRollerGui.buySlot()) {
+            int amount = data.getPerkSaveAmount();
+            if (!plugin.getPerkManager().buySaveRolls(data, amount)) {
+                player.sendMessage(ChatColor.RED + "You need "
+                        + Currency.CREDITS.amount(amount * plugin.getPerkManager().saveCost())
+                        + ChatColor.RED + " for " + amount + " save rolls.");
+                player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
+                return;
+            }
+            player.sendMessage(ChatColor.GREEN + "Bought " + amount + " save rolls. You have "
+                    + String.format("%,d", data.getPerkSaveRolls()) + ".");
+            player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.7f, 1.3f);
+            plugin.getScoreboardManager().update(player);
+            player.openInventory(com.spacerng.solrng.gui.PerkRollerGui.build(plugin, player));
+            return;
+        }
+        if (slot == com.spacerng.solrng.gui.PerkRollerGui.confirmSlot()) {
+            com.spacerng.solrng.rarity.Rarity[] tiers = com.spacerng.solrng.rarity.Rarity.values();
+            // Positions 0..6 are the tiers, 7 is "never ask".
+            int at = data.getPerkConfirmFrom() == null ? tiers.length : data.getPerkConfirmFrom().ordinal();
+            int next = Math.floorMod(at + (event.isRightClick() ? -1 : 1), tiers.length + 1);
+            data.setPerkConfirmFrom(next == tiers.length ? null : tiers[next]);
+            player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_NOTE_BLOCK_BELL, 0.6f, 1.2f);
+            player.openInventory(com.spacerng.solrng.gui.PerkRollerGui.build(plugin, player));
+            return;
+        }
+        if (slot == com.spacerng.solrng.gui.PerkRollerGui.pendingSlot()) {
             if (data.getPendingPerk() == null) return;
             var saved = plugin.getPerkManager().save(data);
             if (saved == null) {
                 player.sendMessage(ChatColor.RED + "You need "
                         + Currency.CREDITS.amount(plugin.getPerkManager().saveCost())
-                        + ChatColor.RED + " to save this perk.");
+                        + ChatColor.RED + " or a save roll to save this perk.");
                 player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
                 return;
             }
@@ -183,9 +229,18 @@ final class ShopClicks {
             tier = com.spacerng.solrng.rarity.Rarity.valueOf(tierName);
         } catch (IllegalArgumentException ex) { return; }
 
-        // An unsaved Legendary or better takes a second click to throw away.
+        // Auto save with nothing left to save with: the menu shows why, and nothing rolls.
+        if (com.spacerng.solrng.gui.PerkRollerGui.outOfSaves(data)) {
+            player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
+            player.openInventory(com.spacerng.solrng.gui.PerkRollerGui.build(plugin, player));
+            return;
+        }
+
+        // An unsaved perk at or above the player's chosen tier takes a second click to throw away.
         var waiting = data.getPendingPerk();
-        if (waiting != null && waiting.tier().ordinal() >= com.spacerng.solrng.rarity.Rarity.LEGENDARY.ordinal()) {
+        var askFrom = data.getPerkConfirmFrom();
+        if (!data.isPerkAutoSave() && waiting != null && askFrom != null
+                && waiting.tier().ordinal() >= askFrom.ordinal()) {
             Long asked = replaceConfirm.get(player.getUniqueId());
             long now = System.currentTimeMillis();
             if (asked == null || now - asked > 5000L) {
@@ -215,8 +270,12 @@ final class ShopClicks {
         String tierColored = plugin.getRarityManager().style(perk.tier(), perk.display());
         player.sendMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "New perk: "
                 + ChatColor.RESET + tierColored + ChatColor.GRAY + " " + perk.roman());
-        player.sendMessage(ChatColor.GRAY + "Save it for " + Currency.CREDITS.amount(plugin.getPerkManager().saveCost())
-                + ChatColor.GRAY + " in the roller, or your next roll replaces it.");
+        if (data.getPendingPerk() == perk) {
+            player.sendMessage(ChatColor.GRAY + "Save it in the roller, or your next roll replaces it.");
+        } else {
+            player.sendMessage(ChatColor.GREEN + "Saved to your vault. " + ChatColor.GRAY
+                    + String.format("%,d", data.getPerkSaveRolls()) + " save rolls left.");
+        }
         if (newInIndex) {
             player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "New in your perk index! "
                     + ChatColor.RESET + ChatColor.GRAY + data.getPerkIndex().size() + " found. See /perks index");

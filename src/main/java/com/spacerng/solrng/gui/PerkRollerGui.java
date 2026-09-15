@@ -21,10 +21,11 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Four roll buttons in a row, one per Roll tier. Each shows what a roll
+ * Seven roll buttons in a row, Common to Divine. Each shows what a roll
  * costs, what it can produce and how many new index entries it could
- * still give you. The top rail holds how perks work, the vault and the
- * perk index; the bottom rail shows what your loadout adds up to.
+ * still give you. Below them: save rolls, the perk waiting to be saved and
+ * the reroll warning. The top rail holds how perks work, the vault and
+ * the perk index; the bottom rail shows what your loadout adds up to.
  */
 public class PerkRollerGui {
 
@@ -32,16 +33,31 @@ public class PerkRollerGui {
     private static final int GUIDE_SLOT = 2;
     private static final int VAULT_SLOT = 4;
     private static final int INDEX_SLOT = 6;
-    private static final int LOADOUT_SLOT = 40;
+    private static final int NOTICE_SLOT = 13;
+    private static final int AUTO_SAVE_SLOT = 28;
+    private static final int AMOUNT_SLOT = 29;
+    private static final int BUY_SLOT = 30;
     private static final int PENDING_SLOT = 31;
+    private static final int CONFIRM_SLOT = 33;
+    private static final int LOADOUT_SLOT = 40;
+
+    /** The amounts the buy button cycles through. */
+    public static final int[] SAVE_AMOUNTS = {1, 10, 50, 100};
+
     private static final Map<Rarity, Integer> BUTTON_SLOT = new EnumMap<>(Rarity.class);
     private static final Map<Rarity, Material> BUTTON_ICON = new EnumMap<>(Rarity.class);
 
     static {
-        BUTTON_SLOT.put(Rarity.EPIC, 19);
-        BUTTON_SLOT.put(Rarity.LEGENDARY, 21);
-        BUTTON_SLOT.put(Rarity.MYTHICAL, 23);
+        BUTTON_SLOT.put(Rarity.COMMON, 19);
+        BUTTON_SLOT.put(Rarity.UNCOMMON, 20);
+        BUTTON_SLOT.put(Rarity.RARE, 21);
+        BUTTON_SLOT.put(Rarity.EPIC, 22);
+        BUTTON_SLOT.put(Rarity.LEGENDARY, 23);
+        BUTTON_SLOT.put(Rarity.MYTHICAL, 24);
         BUTTON_SLOT.put(Rarity.DIVINE, 25);
+        BUTTON_ICON.put(Rarity.COMMON, Material.QUARTZ);
+        BUTTON_ICON.put(Rarity.UNCOMMON, Material.EMERALD);
+        BUTTON_ICON.put(Rarity.RARE, Material.DIAMOND);
         BUTTON_ICON.put(Rarity.EPIC, Material.AMETHYST_CLUSTER);
         BUTTON_ICON.put(Rarity.LEGENDARY, Material.END_CRYSTAL);
         BUTTON_ICON.put(Rarity.MYTHICAL, Material.NETHERITE_INGOT);
@@ -55,6 +71,15 @@ public class PerkRollerGui {
     public static int vaultSlot() { return VAULT_SLOT; }
     public static int indexSlot() { return INDEX_SLOT; }
     public static int pendingSlot() { return PENDING_SLOT; }
+    public static int autoSaveSlot() { return AUTO_SAVE_SLOT; }
+    public static int amountSlot() { return AMOUNT_SLOT; }
+    public static int buySlot() { return BUY_SLOT; }
+    public static int confirmSlot() { return CONFIRM_SLOT; }
+
+    /** Saving is on and there is nothing left to save with, so rolling is paused. */
+    public static boolean outOfSaves(PlayerData data) {
+        return data.isPerkAutoSave() && data.getPerkSaveRolls() <= 0;
+    }
 
     public static Inventory build(SolRNGPlugin plugin, Player player) {
         PerkRollerHolder holder = new PerkRollerHolder();
@@ -78,7 +103,13 @@ public class PerkRollerGui {
         inv.setItem(VAULT_SLOT, vaultLinkIcon(data));
         inv.setItem(INDEX_SLOT, PerkVaultGui.indexLinkIcon(data));
         inv.setItem(LOADOUT_SLOT, PerkLore.loadoutSummary(plugin, data));
+        if (outOfSaves(data)) inv.setItem(NOTICE_SLOT, outOfSavesNotice());
+
+        inv.setItem(AUTO_SAVE_SLOT, autoSaveIcon(data));
+        inv.setItem(AMOUNT_SLOT, amountIcon(data));
+        inv.setItem(BUY_SLOT, buyIcon(plugin, data));
         inv.setItem(PENDING_SLOT, pendingIcon(plugin, data));
+        inv.setItem(CONFIRM_SLOT, confirmIcon(plugin, data));
 
         for (Map.Entry<Rarity, Integer> entry : BUTTON_SLOT.entrySet()) {
             Rarity tier = entry.getKey();
@@ -113,43 +144,110 @@ public class PerkRollerGui {
         lore.add(Lore.stat(ChatColor.DARK_GRAY, "You have", have + " (bank and inventory)"));
         lore.add("");
         lore.add(Lore.section(ChatColor.LIGHT_PURPLE, "The perk lands at"));
-        int minStats = Integer.MAX_VALUE;
-        int maxStats = 0;
         int newForIndex = 0;
         int possible = 0;
         for (Rarity r : Rarity.values()) {
-            double chance = roll.tierChances().getOrDefault(r, 0.0);
+            double chance = perks.chanceOf(tier, r) * PerkType.values().length;
             if (chance <= 0.0) continue;
-            minStats = Math.min(minStats, perks.statCountFor(r));
-            maxStats = Math.max(maxStats, perks.statCountFor(r));
             for (PerkType type : PerkType.values()) {
                 possible++;
                 if (data.bestPerkLevel(type, r) == 0) newForIndex++;
             }
             lore.add(Lore.mark(ChatColor.GRAY) + plugin.getRarityManager().style(r, r.displayName())
-                    + ChatColor.DARK_GRAY + "  " + ChatColor.WHITE
-                    + PerkIndexGui.percent(perks.chanceOf(tier, r) * PerkType.values().length));
+                    + ChatColor.DARK_GRAY + "  " + ChatColor.WHITE + PerkIndexGui.percent(chance));
         }
         lore.add("");
-        if (maxStats > 0) {
-            lore.add(Lore.stat(ChatColor.AQUA, "Stats per perk",
-                    minStats == maxStats ? String.valueOf(maxStats) : minStats + " to " + maxStats));
-        }
         lore.add(Lore.stat(newForIndex > 0 ? ChatColor.GREEN : ChatColor.DARK_GRAY,
                 "New for your index", newForIndex + " of " + possible));
         lore.add("");
-        if (data.getPendingPerk() != null) {
+        if (data.isPerkAutoSave()) {
+            lore.add(Lore.line(ChatColor.GREEN, "Auto save is on: straight to your vault."));
+        } else if (data.getPendingPerk() != null) {
             lore.add(Lore.line(ChatColor.RED, "Replaces your unsaved "
                     + plugin.getRarityManager().style(data.getPendingPerk().tier(), data.getPendingPerk().display())));
-            lore.add("");
         }
-        if (affordable) {
+        if (outOfSaves(data)) {
+            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Out of save rolls");
+            lore.add(Lore.line(ChatColor.GRAY, "Buy save rolls or switch auto save off."));
+        } else if (affordable) {
             lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to roll");
         } else {
             lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Not enough drops");
         }
         meta.setLore(lore);
         meta.getPersistentDataContainer().set(rollTierKey(plugin), PersistentDataType.STRING, tier.name());
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    /** Shown in the middle of the menu while rolling is paused for want of save rolls. */
+    private static ItemStack outOfSavesNotice() {
+        ItemStack item = new ItemStack(Material.BARRIER);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(Lore.title(ChatColor.RED, "Out of save rolls"));
+        meta.setLore(List.of(
+                Lore.line(ChatColor.RED, "Auto save is on and you have none left,"),
+                Lore.line(ChatColor.RED, "so rolling is paused. No perk gets lost."),
+                "",
+                Lore.line(ChatColor.GRAY, "Buy save rolls below,"),
+                Lore.line(ChatColor.GRAY, "or switch auto save off.")));
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    private static ItemStack autoSaveIcon(PlayerData data) {
+        boolean on = data.isPerkAutoSave();
+        ItemStack item = new ItemStack(on ? Material.ENDER_CHEST : Material.CHEST);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(Lore.title(on ? ChatColor.GREEN : ChatColor.GRAY, "Auto Save"));
+        meta.setLore(List.of(
+                Lore.line(ChatColor.GRAY, "Every roll goes straight to your"),
+                Lore.line(ChatColor.GRAY, "vault and uses one save roll."),
+                "",
+                Lore.stat(on ? ChatColor.GREEN : ChatColor.RED, "State", on ? "On" : "Off"),
+                Lore.stat(ChatColor.AQUA, "Save rolls", String.format("%,d", data.getPerkSaveRolls())),
+                "",
+                ChatColor.YELLOW + "" + ChatColor.BOLD + (on ? "Click to turn off" : "Click to turn on")));
+        if (on) meta.setEnchantmentGlintOverride(Boolean.TRUE);
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    private static ItemStack amountIcon(PlayerData data) {
+        ItemStack item = new ItemStack(Material.PAPER);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(Lore.title(ChatColor.AQUA, "Buy Amount"));
+        List<String> lore = new ArrayList<>();
+        lore.add(Lore.line(ChatColor.GRAY, "How many save rolls to buy at once."));
+        lore.add("");
+        for (int amount : SAVE_AMOUNTS) {
+            boolean picked = amount == data.getPerkSaveAmount();
+            lore.add(Lore.mark(picked ? ChatColor.GREEN : ChatColor.DARK_GRAY)
+                    + (picked ? ChatColor.GREEN + "" + ChatColor.BOLD : ChatColor.GRAY + "") + amount + " save rolls");
+        }
+        lore.add("");
+        lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to change");
+        meta.setLore(lore);
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    private static ItemStack buyIcon(SolRNGPlugin plugin, PlayerData data) {
+        int amount = data.getPerkSaveAmount();
+        long price = amount * plugin.getPerkManager().saveCost();
+        boolean affordable = data.getPoints() >= price;
+        ItemStack item = new ItemStack(Material.SHIELD);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(Lore.title(ChatColor.LIGHT_PURPLE, "Buy " + amount + " Save Rolls"));
+        meta.setLore(List.of(
+                Lore.line(ChatColor.GRAY, "One save roll keeps one perk."),
+                "",
+                Lore.stat(ChatColor.LIGHT_PURPLE, "Price", Currency.CREDITS.price(price, affordable)),
+                Lore.stat(ChatColor.DARK_GRAY, "You have", Currency.CREDITS.amount(data.getPoints())),
+                Lore.stat(ChatColor.AQUA, "Save rolls", String.format("%,d", data.getPerkSaveRolls())),
+                "",
+                affordable ? ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to buy"
+                        : ChatColor.RED + "" + ChatColor.BOLD + "Not enough Credits"));
         item.setItemMeta(meta);
         return item;
     }
@@ -166,33 +264,58 @@ public class PerkRollerGui {
             ItemMeta meta = item.getItemMeta();
             meta.setDisplayName(Lore.title(ChatColor.DARK_GRAY, "No perk waiting"));
             meta.setLore(List.of(
-                    Lore.line(ChatColor.GRAY, "Your rolled perk shows up here."),
-                    Lore.line(ChatColor.GRAY, "Save it or the next roll replaces it.")));
+                    Lore.line(ChatColor.GRAY, "With auto save off, your rolled"),
+                    Lore.line(ChatColor.GRAY, "perk waits here until you save it.")));
             item.setItemMeta(meta);
             return item;
         }
         long cost = plugin.getPerkManager().saveCost();
-        boolean affordable = data.getPoints() >= cost;
+        boolean withSaveRoll = data.getPerkSaveRolls() > 0;
+        boolean affordable = withSaveRoll || data.getPoints() >= cost;
         ItemStack item = PerkLore.item(plugin, pending, PerkLore.style(plugin));
         ItemMeta meta = item.getItemMeta();
         List<String> lore = new ArrayList<>(meta.getLore() == null ? List.of() : meta.getLore());
         lore.add("");
         lore.add(Lore.section(ChatColor.LIGHT_PURPLE, "Not saved yet"));
         lore.add(Lore.line(ChatColor.RED, "Your next roll replaces it."));
-        lore.add(Lore.stat(ChatColor.LIGHT_PURPLE, "Save", Currency.CREDITS.price(cost, affordable)));
+        lore.add(Lore.stat(ChatColor.LIGHT_PURPLE, "Save", withSaveRoll ? "1 save roll"
+                : Currency.CREDITS.price(cost, affordable)));
         lore.add("");
-        if (affordable) {
-            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to save");
-        } else {
-            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Not enough Credits");
-        }
+        lore.add(affordable ? ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to save"
+                : ChatColor.RED + "" + ChatColor.BOLD + "Not enough Credits");
         meta.setLore(lore);
         meta.setEnchantmentGlintOverride(Boolean.TRUE);
         item.setItemMeta(meta);
         return item;
     }
 
-    /** How perks work, in one tooltip: tiers, levels and the five types. */
+    /** Which unsaved perk tier makes a roll ask first. Left click goes up, right click down. */
+    private static ItemStack confirmIcon(SolRNGPlugin plugin, PlayerData data) {
+        Rarity from = data.getPerkConfirmFrom();
+        ItemStack item = new ItemStack(Material.BELL);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(Lore.title(ChatColor.GOLD, "Reroll Warning"));
+        List<String> lore = new ArrayList<>();
+        lore.add(Lore.line(ChatColor.GRAY, "Asks before a roll throws away an"));
+        lore.add(Lore.line(ChatColor.GRAY, "unsaved perk of this tier or higher."));
+        lore.add("");
+        for (Rarity r : Rarity.values()) {
+            boolean picked = r == from;
+            lore.add(Lore.mark(picked ? ChatColor.GREEN : ChatColor.DARK_GRAY)
+                    + plugin.getRarityManager().style(r, r.displayName())
+                    + (picked ? ChatColor.GREEN + " and up" : ""));
+        }
+        lore.add(Lore.mark(from == null ? ChatColor.GREEN : ChatColor.DARK_GRAY)
+                + (from == null ? ChatColor.GREEN : ChatColor.GRAY) + "Never ask");
+        lore.add("");
+        lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to change");
+        lore.add(Lore.footnote("Right-click to go back."));
+        meta.setLore(lore);
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    /** How perks work, in one tooltip: saving, tiers, levels and the five types. */
     private static ItemStack guideIcon(SolRNGPlugin plugin) {
         PerkManager perks = plugin.getPerkManager();
         ItemStack item = new ItemStack(Material.BOOK);
@@ -200,8 +323,9 @@ public class PerkRollerGui {
         meta.setDisplayName(Lore.title(ChatColor.AQUA, "How Perks Work"));
         List<String> lore = new ArrayList<>();
         lore.add(Lore.line(ChatColor.GRAY, "Trade drops for a random perk."));
-        lore.add(Lore.line(ChatColor.GRAY, "Save it for " + Currency.CREDITS.amount(perks.saveCost())
-                + ChatColor.GRAY + ", or the next roll replaces it."));
+        lore.add(Lore.line(ChatColor.GRAY, "Keep it with a save roll ("
+                + Currency.CREDITS.amount(perks.saveCost()) + ChatColor.GRAY + "),"));
+        lore.add(Lore.line(ChatColor.GRAY, "or your next roll replaces it."));
         lore.add(Lore.line(ChatColor.GRAY, "Equip up to " + perks.loadoutSlots() + " in the vault."));
         lore.add("");
         lore.add(Lore.section(ChatColor.LIGHT_PURPLE, "Tier"));

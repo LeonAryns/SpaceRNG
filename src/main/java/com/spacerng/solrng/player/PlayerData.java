@@ -1170,6 +1170,25 @@ public class PlayerData {
         this.pendingPerk = pendingPerk;
     }
 
+    // Save rolls: bought with Credits. With auto save on, every perk roll
+    // uses one and goes straight to the vault; with none left the roller
+    // refuses to roll rather than throw a perk away.
+    private long perkSaveRolls = 0L;
+    private boolean perkAutoSave = false;
+    // How many save rolls the buy button buys at once.
+    private int perkSaveAmount = 1;
+    // Rolling over an unsaved perk of this tier or higher asks first. Null is never.
+    private com.spacerng.solrng.rarity.Rarity perkConfirmFrom = com.spacerng.solrng.rarity.Rarity.LEGENDARY;
+
+    public long getPerkSaveRolls() { return perkSaveRolls; }
+    public void setPerkSaveRolls(long rolls) { this.perkSaveRolls = Math.max(0L, rolls); }
+    public boolean isPerkAutoSave() { return perkAutoSave; }
+    public void setPerkAutoSave(boolean on) { this.perkAutoSave = on; }
+    public int getPerkSaveAmount() { return perkSaveAmount; }
+    public void setPerkSaveAmount(int amount) { this.perkSaveAmount = Math.max(1, amount); }
+    public com.spacerng.solrng.rarity.Rarity getPerkConfirmFrom() { return perkConfirmFrom; }
+    public void setPerkConfirmFrom(com.spacerng.solrng.rarity.Rarity tier) { this.perkConfirmFrom = tier; }
+
     // Perk index: the best level ever rolled for each type and tier, keyed
     // "TYPE:TIER". Kept apart from the vault so a discarded perk stays found.
     private final Map<String, Integer> perkIndex = new HashMap<>();

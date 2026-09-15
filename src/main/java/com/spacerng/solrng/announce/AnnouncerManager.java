@@ -24,6 +24,23 @@ import java.util.List;
  */
 public class AnnouncerManager {
 
+    private static final net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer LEGACY =
+            net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection();
+    // A web address in a tip (discord.gg/spacerng, https://...) opens on click.
+    private static final java.util.regex.Pattern URL =
+            java.util.regex.Pattern.compile("(https?://)?[\\w-]+(\\.[\\w-]+)*\\.[a-z]{2,}(/[^\\s]*)?");
+    private static final net.kyori.adventure.text.TextReplacementConfig LINKS =
+            net.kyori.adventure.text.TextReplacementConfig.builder()
+                    .match(URL)
+                    .replacement((match, text) -> {
+                        String url = match.group().startsWith("http") ? match.group() : "https://" + match.group();
+                        return text.clickEvent(net.kyori.adventure.text.event.ClickEvent.openUrl(url))
+                                .hoverEvent(net.kyori.adventure.text.event.HoverEvent.showText(
+                                        net.kyori.adventure.text.Component.text("Open " + url,
+                                                net.kyori.adventure.text.format.NamedTextColor.GRAY)));
+                    })
+                    .build();
+
     private final SolRNGPlugin plugin;
     private final List<List<String>> messages = new ArrayList<>();
 
@@ -101,7 +118,7 @@ public class AnnouncerManager {
                 player.sendMessage(header);
             }
             for (String line : block) {
-                player.sendMessage(line);
+                player.sendMessage(LEGACY.deserialize(line).replaceText(LINKS));
             }
             if (!footer.isEmpty()) {
                 player.sendMessage(footer);

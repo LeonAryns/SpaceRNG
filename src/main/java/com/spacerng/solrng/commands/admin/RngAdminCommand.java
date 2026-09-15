@@ -148,7 +148,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         line(sender, "nova", "<tier> [player]", "Set a Nova Core tier");
         line(sender, "placeholders", "", "What every %spacerng_% placeholder resolves to right now");
         line(sender, "payout", "", "Run the farming payout now and reset the period");
-        line(sender, "crate", "<place|set|remove|list|key|preview>", "Place crates and hand out keys");
+        line(sender, "crate", "<place|set|remove|list|key|keyall|preview>", "Place crates and hand out keys");
         line(sender, "holo", "<panel|board|leader|remove|list>", "NPC text, leaderboard walls and #1 heads");
         line(sender, "floatingitem", "<add|remove|list>", "Rotating item displays anchored at a spot");
         line(sender, "tophead", "<set|podium|remove|clear|list>", "Floating heads for a leaderboard");
@@ -175,9 +175,9 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         List<String> ids = new ArrayList<>(plugin.getCrateManager().getAll().keySet());
         String action = args.length >= 2 ? args[1].toLowerCase(Locale.ROOT) : "";
         return switch (args.length) {
-            case 2 -> partial(args[1], List.of("place", "set", "remove", "list", "key", "preview"));
-            case 3 -> List.of("place", "set", "key", "preview").contains(action) ? partial(args[2], ids) : List.of();
-            case 4 -> action.equals("key") ? partial(args[3], List.of("1", "5", "10")) : List.of();
+            case 2 -> partial(args[1], List.of("place", "set", "remove", "list", "key", "keyall", "preview"));
+            case 3 -> List.of("place", "set", "key", "keyall", "preview").contains(action) ? partial(args[2], ids) : List.of();
+            case 4 -> action.equals("key") || action.equals("keyall") ? partial(args[3], List.of("1", "5", "10")) : List.of();
             case 5 -> action.equals("key") ? partial(args[4], playerNames()) : List.of();
             default -> List.of();
         };

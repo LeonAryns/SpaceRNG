@@ -53,7 +53,9 @@ public final class ConfigMigrator {
             "holograms.panels.convert", "holograms.panels.pass", "holograms.panels.store",
             "holograms.panels.novacore", "holograms.panels.perks", "holograms.panels.index",
             "holograms.panels.farmtree", "holograms.panels.daily", "holograms.panels.leaderboards",
-            "holograms.panels.stash");
+            "holograms.panels.stash",
+            // V132: a Vote and a Nebula crate, with their keys.
+            "crates.types.vote", "crates.types.nebula", "consumables.vote_key", "consumables.nebula_key");
 
     private record Patch(String id, String path, Object oldDefault, Object newDefault) {
     }
@@ -74,7 +76,12 @@ public final class ConfigMigrator {
             // V126: a bigger crate head.
             new Patch("crate-head-bigger", "holograms.crate-head-scale", 2.0, 2.6),
             // V126: Luck now thins Commons out instead of leaving them at 94.5% of band rolls forever.
-            new Patch("common-luck-factor-negative", "rarities.COMMON.luck-factor", 0.0, -0.25));
+            new Patch("common-luck-factor-negative", "rarities.COMMON.luck-factor", 0.0, -0.25),
+            // V132: Cosmic is a store crate, so Key Finder's rare find is a Nebula Key.
+            new Patch("key-finder-rare-nebula", "farming.procs.key-finder-rare-reward", "cosmic_key", "nebula_key"),
+            new Patch("cosmic-key-source-store", "crates.types.cosmic.key-source",
+                    "Cosmic Keys are the rare find from Key Finder, about one key in twelve.",
+                    "Cosmic Keys come from the store."));
 
     /** Like a Patch, for one field of the entry with a given id inside a list of maps. */
     private record EntryPatch(String id, String list, String entryId, String field, Object oldDefault,
@@ -100,7 +107,57 @@ public final class ConfigMigrator {
                     "In /skilltree, right above Luck I. It's what lets you equip a tag.",
                     "In /skilltree, right after Index Luck I. It's what lets you equip a tag."));
 
+    /**
+     * Replaces one exact line anywhere inside a (nested) list, like a
+     * rotating tip. A null new text removes the line.
+     */
+    private record TextPatch(String id, String path, String oldText, String newText) {
+    }
+
+    // Built from its code point so no dash character sits in this file.
+    private static final String DASH = String.valueOf((char) 0x2014);
+
+    private static final List<TextPatch> TEXT_PATCHES = List.of(
+            // V132: the Discord and Perks tips in the same look as every other tip.
+            new TextPatch("tip-discord-1", "announcements.messages", "&5&l| DISCORD SERVER",
+                    "&3▎ &e▸ &7Join our &9&lDiscord&7 for giveaways, news and updates."),
+            new TextPatch("tip-discord-2", "announcements.messages", "&5| &fJoin us for giveaways, news and updates.",
+                    "&3▎ &e▸ &7Click to join: &b&ndiscord.gg/spacerng"),
+            new TextPatch("tip-discord-3", "announcements.messages", "&5| &b&nhttps://discord.gg/spacerng", null),
+            new TextPatch("tip-perks-1", "announcements.messages", "&6&l| PERKS",
+                    "&3▎ &e▸ &7Trade drops for perks in &d/perks&7. Keep the good ones with save rolls."),
+            new TextPatch("tip-perks-2", "announcements.messages", "&6| &fTrade &e/roll&7 drops for perks in &e/perks&7.",
+                    "&3▎ &e▸ &7Every perk you have found is listed in &d/perks index&7."),
+            new TextPatch("tip-perks-3", "announcements.messages", "&6| &7Higher tier drops = better perk odds.", null),
+            // V132: dashes out of the tips.
+            new TextPatch("tip-dash-novacore", "announcements.messages",
+                    "&3▎ &e▸ &d/novacore&7 is the fourth way to raise your Luck " + DASH + " after skills, armor and prestige.",
+                    "&3▎ &e▸ &d/novacore&7 is the fourth way to raise your Luck, after skills, armor and prestige."),
+            new TextPatch("tip-dash-crops", "announcements.messages",
+                    "&3▎ &e▸ &7Pick what grows for you with &e/crops&7 " + DASH + " the field is yours alone.",
+                    "&3▎ &e▸ &7Pick what grows for you with &e/crops&7. The field is yours alone."),
+            new TextPatch("tip-dash-daily", "announcements.messages",
+                    "&3▎ &e▸ &7Claim your streak every day with &e/daily&7 " + DASH + " miss one and it resets.",
+                    "&3▎ &e▸ &7Claim your streak every day with &e/daily&7. Miss one and it resets."),
+            new TextPatch("tip-dash-pass", "announcements.messages",
+                    "&3▎ &e▸ &6/pass&7 pays out for every roll and every harvest " + DASH + " rarer rolls are worth more XP.",
+                    "&3▎ &e▸ &6/pass&7 pays out for every roll and every harvest. Rarer rolls are worth more XP."));
+
     private ConfigMigrator() {
+    }
+
+    private static List<Object> rewrite(List<?> list, TextPatch patch) {
+        List<Object> out = new ArrayList<>();
+        for (Object entry : list) {
+            if (entry instanceof List<?> inner) {
+                out.add(rewrite(inner, patch));
+            } else if (patch.oldText().equals(entry)) {
+                if (patch.newText() != null) out.add(patch.newText());
+            } else {
+                out.add(entry);
+            }
+        }
+        return out;
     }
 
     /**
@@ -194,6 +251,19 @@ public final class ConfigMigrator {
                     disk.set(patch.list(), entries);
                     plugin.getLogger().info("Config patch " + patch.id() + ": " + patch.list() + " "
                             + patch.entryId() + "." + patch.field() + " updated");
+                }
+            }
+            applied.add(patch.id());
+            changed = true;
+        }
+        for (TextPatch patch : TEXT_PATCHES) {
+            if (applied.contains(patch.id())) continue;
+            List<?> list = disk.getList(patch.path());
+            if (list != null) {
+                List<Object> rewritten = rewrite(list, patch);
+                if (!rewritten.equals(list)) {
+                    disk.set(patch.path(), rewritten);
+                    plugin.getLogger().info("Config patch " + patch.id() + ": " + patch.path() + " updated");
                 }
             }
             applied.add(patch.id());

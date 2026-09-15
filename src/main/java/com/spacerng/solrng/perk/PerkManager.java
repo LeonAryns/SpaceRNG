@@ -263,10 +263,25 @@ public class PerkManager {
 
         spendDrops(plugin, player, data, roll.costRarity(), roll.costAmount());
 
-        // The perk waits in the roller; an unsaved one from before is gone.
+        // Auto save puts the perk straight in the vault for one save roll.
+        // Otherwise it waits in the roller and an unsaved one from before is gone.
         PerkInstance perk = rollFrom(rollTier);
-        if (perk != null) data.setPendingPerk(perk);
+        if (perk != null) {
+            if (data.isPerkAutoSave() && data.getPerkSaveRolls() > 0) {
+                data.setPerkSaveRolls(data.getPerkSaveRolls() - 1);
+                data.getPerkVault().add(perk);
+            } else {
+                data.setPendingPerk(perk);
+            }
+        }
         return perk;
+    }
+
+    /** Buys save rolls for Credits. False when the player can't pay. */
+    public boolean buySaveRolls(PlayerData data, int amount) {
+        if (amount <= 0 || !data.spendPoints(amount * saveCost)) return false;
+        data.setPerkSaveRolls(data.getPerkSaveRolls() + amount);
+        return true;
     }
 
     /** Credits it costs to move the waiting perk into the vault. */
@@ -280,7 +295,13 @@ public class PerkManager {
      */
     public PerkInstance save(PlayerData data) {
         PerkInstance pending = data.getPendingPerk();
-        if (pending == null || !data.spendPoints(saveCost)) return null;
+        if (pending == null) return null;
+        // A save roll first, Credits only when there are none.
+        if (data.getPerkSaveRolls() > 0) {
+            data.setPerkSaveRolls(data.getPerkSaveRolls() - 1);
+        } else if (!data.spendPoints(saveCost)) {
+            return null;
+        }
         data.getPerkVault().add(pending);
         data.setPendingPerk(null);
         return pending;

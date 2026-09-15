@@ -243,6 +243,14 @@ public class PlayerDataManager {
             if (equippedIds.contains(perk.id())) data.getEquippedPerks().add(perk);
         }
         data.setPendingPerk(com.spacerng.solrng.perk.PerkInstance.decode(yml.getString("perk-pending")));
+        data.setPerkSaveRolls(yml.getLong("perk-save-rolls", 0L));
+        data.setPerkAutoSave(yml.getBoolean("perk-auto-save", false));
+        data.setPerkSaveAmount(yml.getInt("perk-save-amount", 1));
+        String confirmFrom = yml.getString("perk-confirm-from", "LEGENDARY");
+        try {
+            data.setPerkConfirmFrom("OFF".equalsIgnoreCase(confirmFrom) ? null
+                    : com.spacerng.solrng.rarity.Rarity.valueOf(confirmFrom));
+        } catch (IllegalArgumentException ignored) { }
         var perkIndex = yml.getConfigurationSection("perk-index");
         if (perkIndex != null) {
             for (String key : perkIndex.getKeys(false)) data.getPerkIndex().put(key, perkIndex.getInt(key));
@@ -413,6 +421,10 @@ public class PlayerDataManager {
         for (var perk : data.getEquippedPerks()) equippedIds.add(perk.id().toString());
         yml.set("perk-equipped", equippedIds);
         yml.set("perk-pending", data.getPendingPerk() == null ? null : data.getPendingPerk().encode());
+        yml.set("perk-save-rolls", data.getPerkSaveRolls());
+        yml.set("perk-auto-save", data.isPerkAutoSave());
+        yml.set("perk-save-amount", data.getPerkSaveAmount());
+        yml.set("perk-confirm-from", data.getPerkConfirmFrom() == null ? "OFF" : data.getPerkConfirmFrom().name());
         yml.set("perk-index", null);
         for (var entry : data.getPerkIndex().entrySet()) yml.set("perk-index." + entry.getKey(), entry.getValue());
 
