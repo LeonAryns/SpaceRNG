@@ -214,6 +214,17 @@ public class SkillTreeManager {
         return best;
     }
 
+    /** The rarity floor Lucky Streak puts on this roll number: a Rarity ordinal, or 0 for none. */
+    public int luckyStreakFloor(PlayerData data, long rollNumber) {
+        int floor = 0;
+        for (SkillNode node : owned(data, SkillNode.Effect.LUCKY_STREAK)) {
+            int interval = node.getInterval();
+            if (interval <= 0 || rollNumber % interval != 0) continue;
+            floor = Math.max(floor, (int) Math.round(node.getValue()));
+        }
+        return Math.min(floor, com.spacerng.solrng.rarity.Rarity.values().length - 1);
+    }
+
     /**
      * The same sum, but only across nodes pointing at one target - a crop
      * id, an enchant id. Lets one effect be repeated per thing it acts on

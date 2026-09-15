@@ -446,6 +446,11 @@ public class RarityManager {
         return roll(luck, null);
     }
 
+    /** A roll that can't land below the given rarity, for Lucky Streak. */
+    public RollableItem rollAtLeast(double luck, Rarity minimum) {
+        return roll(luck, minimum);
+    }
+
     private RollableItem roll(double luck, Rarity minimum) {
         if (items.isEmpty()) {
             throw new IllegalStateException("No rollable items configured - check config.yml");

@@ -26,6 +26,11 @@ public class SkillNode {
         // --- general tree: event effects ---
         SUPERCHARGE,        // every `interval` rolls, one roll at value x Luck
         NOVA_SAFETY,        // +value chance a failed Nova climb doesn't drop you
+        LUCKY_STREAK,       // every `interval` rolls, the roll is at least the rarity whose ordinal is value
+        TAG_MASTERY,        // +value x how far the equipped tag's multiplier sits above 1
+        EXPLORER,           // +value x Money on a drop new to the index
+        AUTOPILOT,          // +value Speed while Auto Roll is on
+        KEY_ROLL,           // +value chance per roll to find a crate key
 
         // --- general tree: gates ---
         AUTO_ROLL,

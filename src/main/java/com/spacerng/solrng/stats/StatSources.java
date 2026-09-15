@@ -110,8 +110,10 @@ public final class StatSources {
                 plugin.getLinkedAccountManager().bonusFor(data.getUuid(), PerkStat.LUCK_PERCENT),
                 Op.ADD));
 
+        // Tag Mastery scales how far the tag's multiplier sits above 1.
         parts.add(new Part("Equipped tag", "Equip a rarer drop in /index",
-                plugin.getRarityManager().tagMultiplierFor(data), Op.MULTIPLY));
+                1.0 + (plugin.getRarityManager().tagMultiplierFor(data) - 1.0)
+                        * skills.multiplierOf(data, SkillNode.Effect.TAG_MASTERY), Op.MULTIPLY));
         parts.add(new Part("Index completion", "Finish whole rarities in /index",
                 plugin.getPrestigeManager().indexCompletion(data), Op.MULTIPLY));
         // COMPOUNDING, not linear. Each prestige is worth 1.1x on top of
@@ -171,6 +173,10 @@ public final class StatSources {
                 data.getPotionSpeed(), Op.ADD));
         parts.add(new Part("Permanent", "Speed rewards that stay",
                 data.getBonusSpeed(), Op.ADD));
+        parts.add(new Part("Autopilot", "Speed while Auto Roll is on, from /skilltree",
+                data.isAutoRollEnabled()
+                        ? plugin.getSkillTreeManager().totalOf(data, SkillNode.Effect.AUTOPILOT) : 0.0,
+                Op.ADD));
         parts.add(new Part("Perks", "Equip perks in /perks",
                 plugin.getPerkManager().totalOf(data, PerkStat.ROLL_SPEED_FLAT), Op.ADD));
         parts.add(new Part("Ability", "Shift-right-click a late Starforge",

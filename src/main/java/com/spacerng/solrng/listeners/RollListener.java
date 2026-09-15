@@ -357,7 +357,17 @@ public class RollListener implements Listener {
         // then the final frames ARE the drop you're about to be handed.
         // Rolling at the end instead meant the reel visibly stopped on one
         // item and gave you a different one.
-        RollableItem result = luckyStrike(plugin.getRarityManager().roll(luck));
+        // Lucky Streak: every so many rolls, this one can't land below its rarity.
+        int floor = plugin.getSkillTreeManager().luckyStreakFloor(data, rollNumber);
+        RollableItem result = luckyStrike(floor > 0
+                ? plugin.getRarityManager().rollAtLeast(luck, Rarity.values()[floor])
+                : plugin.getRarityManager().roll(luck));
+        if (floor > 0) {
+            Rarity least = Rarity.values()[floor];
+            player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "✦ LUCKY STREAK ✦" + ChatColor.RESET
+                    + ChatColor.GRAY + "  this roll is at least "
+                    + plugin.getRarityManager().style(least, least.displayName()) + ChatColor.GRAY + ".");
+        }
         boolean shiny = forcedShiny.remove(player.getUniqueId()) || rollShiny(data);
 
         // An Epic+ roll is stretched to at least the length of its own
@@ -572,7 +582,10 @@ public class RollListener implements Listener {
      */
     public long effectiveRollTicks(PlayerData data) {
         double baseSeconds = plugin.getConfig().getDouble("roll-item.roll-duration-seconds", 5.0);
-        double multiplier = data.getEffectiveRollSpeedMultiplier();
+        // The same Speed /stats shows. PlayerData's own sum left out perks,
+        // permanent Speed and Autopilot, so those showed up in /stats but
+        // never made a roll any faster.
+        double multiplier = com.spacerng.solrng.stats.StatSources.speed(plugin, data).total();
         return Math.max(1L, Math.round((baseSeconds / multiplier) * 20.0));
     }
 
@@ -697,6 +710,7 @@ public class RollListener implements Listener {
         // normal rate and only genuine repeats get the Duplicate bonus.
         boolean duplicate = data.hasDiscovered(result.getDisplayName());
         double moneyEarned = depositRollMoney(player, data, result, duplicate);
+        maybeKeyRoll(player, data, silent);
 
         // A shiny is only ever auto-converted by its OWN switch. The normal
         // per-rarity toggles are set for the common version of a drop, and
@@ -767,6 +781,21 @@ public class RollListener implements Listener {
      * money = odds x configured multiplier, so rarer items pay out more.
      * Returns 0 if Vault/an economy plugin isn't installed.
      */
+    /** Key Roll: a small chance per roll to turn up a crate key, into the inventory or the stash. */
+    private void maybeKeyRoll(Player player, PlayerData data, boolean silent) {
+        double chance = plugin.getSkillTreeManager().totalOf(data, SkillNode.Effect.KEY_ROLL);
+        if (chance <= 0.0 || random.nextDouble() >= chance) return;
+        var consumables = plugin.getConsumableManager();
+        var key = consumables.get(plugin.getConfig().getString("key-roll-key", "crate_key"));
+        if (key == null) return;
+        consumables.give(player, key, 1);
+        if (!silent) {
+            player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "Key Roll! " + ChatColor.RESET
+                    + ChatColor.GRAY + "You found a " + consumables.styledName(key) + ChatColor.GRAY + ".");
+            player.playSound(player.getLocation(), Sound.BLOCK_CHEST_LOCKED, 0.8f, 1.4f);
+        }
+    }
+
     private double depositRollMoney(Player player, PlayerData data, RollableItem result, boolean duplicate) {
         var registration = Bukkit.getServicesManager().getRegistration(Economy.class);
         if (registration == null) return 0.0;
@@ -778,7 +807,10 @@ public class RollListener implements Listener {
                 ? plugin.getSkillTreeManager().multiplierOf(data, SkillNode.Effect.DUPLICATE_BONUS)
                 : 1.0;
 
-        double money = result.getOdds() * multiplier * dupe;
+        // Explorer: a drop new to the index pays more.
+        double explorer = duplicate ? 1.0
+                : plugin.getSkillTreeManager().multiplierOf(data, SkillNode.Effect.EXPLORER);
+        double money = result.getOdds() * multiplier * dupe * explorer;
         registration.getProvider().depositPlayer(player, money);
         return money;
     }

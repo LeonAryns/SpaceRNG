@@ -438,6 +438,22 @@ public class SkillTreeGui {
                             + ChatColor.LIGHT_PURPLE + " rolls, one roll at "
                             + ChatColor.WHITE + String.format("%,.0f", value) + "x" + ChatColor.LIGHT_PURPLE + " Luck",
                     ChatColor.DARK_GRAY + "▎ Announced before it fires.");
+            case LUCKY_STREAK -> List.of(
+                    ChatColor.GREEN + "▎ Every " + ChatColor.WHITE + String.format("%,d", node.getInterval())
+                            + ChatColor.GREEN + " rolls, one roll is at least " + ChatColor.WHITE
+                            + com.spacerng.solrng.rarity.Rarity.values()[Math.max(0, Math.min(
+                                    com.spacerng.solrng.rarity.Rarity.values().length - 1,
+                                    (int) Math.round(value)))].displayName(),
+                    ChatColor.DARK_GRAY + "▎ Announced when it fires.");
+            case TAG_MASTERY -> scaled(ChatColor.GREEN,
+                    "+" + pct(value) + "% to your equipped tag's bonus", "+" + pct(value * level) + "%", leveled);
+            case EXPLORER -> scaled(ChatColor.GOLD,
+                    "+" + pct(value) + "% Money on a drop new to your index", "+" + pct(value * level) + "%", leveled);
+            case AUTOPILOT -> scaled(ChatColor.YELLOW,
+                    "+" + pct(value) + " Speed while Auto Roll is on", "+" + pct(value * level), leveled);
+            case KEY_ROLL -> scaled(ChatColor.GOLD,
+                    "+" + trim(value * 100) + "% chance per roll to find a Farm Key",
+                    trim(value * level * 100) + "%", leveled);
             case NOVA_SAFETY -> scaled(ChatColor.AQUA,
                     "+" + pct(value) + "% chance a failed Nova climb holds",
                     pct(value * level) + "%", leveled);
@@ -447,7 +463,7 @@ public class SkillTreeGui {
             case UNLOCK_AUTO_CONVERT -> gate("Unlocks the auto-convert switches in /convert");
             case UNLOCK_FARMING -> gate("Unlocks the farm and the Farmer's Hoe");
             case UNLOCK_ARMOR -> gate("Unlocks the /armor shop");
-            case UNLOCK_POTION -> gate("Unlocks the Potion system (coming soon)");
+            case UNLOCK_POTION -> gate("Unlocks the Brewing Shelf - /potion");
             case UNLOCK_SHINY -> gate("Unlocks Shiny drops - 1 in 100 rolls");
             case UNLOCK_INDEX_LUCK -> gate("Lets you equip a tag and use its Tag Luck");
             case UNLOCK_ARTIFACT -> gate("Unlocks the Artifact shop (coming soon)");
