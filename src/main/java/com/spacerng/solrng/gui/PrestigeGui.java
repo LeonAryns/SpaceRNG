@@ -27,9 +27,9 @@ import java.util.List;
  */
 public class PrestigeGui {
 
-    public static final int LEVEL_SLOT = 20;
-    public static final int PRESTIGE_SLOT = 24;
-    public static final int UPGRADES_SLOT = 40;
+    public static final int LEVEL_SLOT = 11;
+    public static final int PRESTIGE_SLOT = 15;
+    public static final int UPGRADES_SLOT = 22;
     public static final int BACK_SLOT = 45;
 
     public static NamespacedKey upgradeKey(SolRNGPlugin plugin) {
@@ -39,8 +39,14 @@ public class PrestigeGui {
     // ------------------------------------------------------------- main
 
     public static Inventory build(SolRNGPlugin plugin, Player player) {
+        // Leon picked the neon look for prestige, whatever the other menus wear.
+        return Lore.withTheme(Lore.Theme.NEON, () -> buildMain(plugin, player));
+    }
+
+    // Three rows: the summary on top, level and prestige either side, upgrades under them.
+    private static Inventory buildMain(SolRNGPlugin plugin, Player player) {
         PrestigeHolder holder = new PrestigeHolder();
-        Inventory inv = Bukkit.createInventory(holder, 45,
+        Inventory inv = Bukkit.createInventory(holder, 27,
                 ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + "Prestige");
         holder.setInventory(inv);
 
@@ -165,6 +171,10 @@ public class PrestigeGui {
     // --------------------------------------------------------- upgrades
 
     public static Inventory buildUpgrades(SolRNGPlugin plugin, Player player) {
+        return Lore.withTheme(Lore.Theme.NEON, () -> buildUpgradesScreen(plugin, player));
+    }
+
+    private static Inventory buildUpgradesScreen(SolRNGPlugin plugin, Player player) {
         PrestigeHolder holder = new PrestigeHolder();
         holder.setUpgradesPage(true);
 

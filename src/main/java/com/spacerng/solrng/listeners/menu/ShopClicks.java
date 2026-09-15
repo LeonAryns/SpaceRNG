@@ -209,8 +209,8 @@ final class ShopClicks {
                 return;
             }
             player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "Saved: " + ChatColor.RESET
-                    + plugin.getRarityManager().style(saved.tier(), saved.display()) + ChatColor.GRAY + " "
-                    + saved.roman() + ChatColor.GRAY + " is in your vault.");
+                    + plugin.getRarityManager().style(saved.tier(), saved.display()) + ChatColor.GRAY + " ("
+                    + com.spacerng.solrng.gui.PerkLore.shortStats(saved) + ChatColor.GRAY + ") is in your vault.");
             player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_ENDER_CHEST_CLOSE, 0.7f, 1.2f);
             plugin.getScoreboardManager().update(player);
             player.openInventory(com.spacerng.solrng.gui.PerkRollerGui.build(plugin, player));
@@ -269,7 +269,7 @@ final class ShopClicks {
         boolean newInIndex = data.recordPerk(perk);
         String tierColored = plugin.getRarityManager().style(perk.tier(), perk.display());
         player.sendMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "New perk: "
-                + ChatColor.RESET + tierColored + ChatColor.GRAY + " " + perk.roman());
+                + ChatColor.RESET + tierColored + ChatColor.GRAY + "  " + com.spacerng.solrng.gui.PerkLore.shortStats(perk));
         if (data.getPendingPerk() == perk) {
             player.sendMessage(ChatColor.GRAY + "Save it in the roller, or your next roll replaces it.");
         } else {

@@ -278,6 +278,22 @@ public final class Lore {
         };
     }
 
+    /** ▎ Label » value, with the royal theme's gold arrow, whatever the theme. */
+    public static String statArrow(ChatColor colour, String label, String value) {
+        return mark(colour) + ChatColor.GRAY + label + ChatColor.GOLD + " » " + ChatColor.WHITE + value;
+    }
+
+    /** Builds something in one theme whatever menu-style the server uses, then puts the theme back. */
+    public static <T> T withTheme(Theme forced, java.util.function.Supplier<T> build) {
+        Theme before = theme;
+        theme = forced;
+        try {
+            return build.get();
+        } finally {
+            theme = before;
+        }
+    }
+
     /** A requirement line with a tick or a cross on the end. */
     public static String requirement(String label, String have, String need, boolean met) {
         return mark(met ? ChatColor.GREEN : ChatColor.RED) + ChatColor.GRAY + label + " "

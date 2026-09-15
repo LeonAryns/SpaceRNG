@@ -584,19 +584,21 @@ final class ShowcaseAdmin extends AdminTools {
                 }, null);
     }
 
-    /** One perk in every perk style; defaults to your best perk, or a Legendary Luck Perk III. */
+    /** One perk in every perk style; defaults to your best perk, or a Legendary perk with Luck and Money. */
     boolean doPerkStyles(CommandSender sender, String[] args) {
         com.spacerng.solrng.perk.PerkInstance perk = null;
         if (sender instanceof Player player) {
             PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
             for (var owned : data.getPerkVault()) {
                 if (perk == null || owned.tier().ordinal() > perk.tier().ordinal()
-                        || (owned.tier() == perk.tier() && owned.level() > perk.level())) perk = owned;
+                        || (owned.tier() == perk.tier() && owned.total() > perk.total())) perk = owned;
             }
         }
         if (perk == null) {
-            perk = com.spacerng.solrng.perk.PerkInstance.freshly(com.spacerng.solrng.perk.PerkType.LUCK,
-                    com.spacerng.solrng.rarity.Rarity.LEGENDARY, 3);
+            perk = new com.spacerng.solrng.perk.PerkInstance(java.util.UUID.randomUUID(),
+                    com.spacerng.solrng.rarity.Rarity.LEGENDARY,
+                    java.util.Map.of(com.spacerng.solrng.perk.PerkStat.LUCK_PERCENT, 0.8,
+                            com.spacerng.solrng.perk.PerkStat.MONEY_PERCENT, 0.45));
         }
         final var shown = perk;
         return styleSamples(sender, args, "Perk", "perk-style", "perkstyles",

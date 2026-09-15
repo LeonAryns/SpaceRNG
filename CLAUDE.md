@@ -98,6 +98,11 @@ Packages are by feature under `com.spacerng.solrng`. Where new things go:
 - **Crates** keep placements in `crates.yml`; types live in config under
   `crates.types`. **Floating leaderboard heads** keep spots in
   `topheads.yml` and use non-persistent display entities.
+- **Worlds that load late.** A Multiverse world loads after the plugin
+  enables, so `Bukkit.getWorld` is null while plugin files are read. Keep
+  such lines as unresolved, write them back on save, and pick them up in
+  `listeners/WorldLoadListener`. Until V133 farm plots were dropped
+  instead, and the next save erased the farm on every jar update.
 - **Live config.** A whole new section does not merge into an existing
   `config.yml` on the server; a single missing key falls back to its code
   default.

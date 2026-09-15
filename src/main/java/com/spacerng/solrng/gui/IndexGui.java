@@ -59,7 +59,7 @@ public class IndexGui {
                         ? "Scoring shiny finds."
                         : "Scoring ordinary finds."),
                 "",
-                Lore.stat(ChatColor.AQUA, "Shinies", found + " / " + total),
+                Lore.statArrow(ChatColor.AQUA, "Shinies", found + " / " + total),
                 Lore.bar(total <= 0 ? 0.0 : (double) found / total),
                 "",
                 ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to switch"));
@@ -346,12 +346,12 @@ public class IndexGui {
         } else {
             meta.setDisplayName(Lore.title(ChatColor.DARK_GRAY, "???"));
             lore.add(Lore.section(ChatColor.AQUA, "What's known"));
-            lore.add(Lore.stat(ChatColor.AQUA, "Rarity",
+            lore.add(Lore.statArrow(ChatColor.AQUA, "Rarity",
                     ChatColor.stripColor(item.getRarity().displayName())));
             // The odds show even before it's found - that's the hook that
             // makes an undiscovered slot worth chasing.
-            lore.add(Lore.stat(ChatColor.AQUA, "Chance", RollFormat.chance(item.getOdds())));
-            lore.add(Lore.stat(ChatColor.AQUA, "Tag Luck",
+            lore.add(Lore.statArrow(ChatColor.AQUA, "Chance", RollFormat.chance(item.getOdds())));
+            lore.add(Lore.statArrow(ChatColor.AQUA, "Tag Luck",
                     String.format("%.2f", item.getLuckMultiplier()) + "x"));
             lore.add("");
             lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Not yet discovered");

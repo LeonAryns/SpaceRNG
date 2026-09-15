@@ -87,7 +87,10 @@ public class RarityManager {
                 Rarity rarity = safeRarity(String.valueOf(raw.get("rarity")));
                 long odds = Long.parseLong(String.valueOf(raw.get("odds")));
                 if (rarity == null) continue;
-                items.add(new RollableItem(material, name, rarity, odds, parseItemStyle(raw)));
+                RarityStyle style = parseItemStyle(raw);
+                // No colours of its own: the name takes the colour of its block.
+                if (style == null) style = parseStyle(BlockColours.gradientFor(material), false, false, false);
+                items.add(new RollableItem(material, name, rarity, odds, style));
             } catch (Exception ex) {
                 logger.warning("Skipped a malformed item entry in config.yml: " + raw);
             }

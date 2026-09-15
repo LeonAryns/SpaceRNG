@@ -103,8 +103,17 @@ public final class HoloManager {
     private double crateSpinDegrees = 90.0;
     private double crateBob = 0.12;
     private final Map<String, ItemDisplay> crateHeads = new HashMap<>();
-    // Whose head a leader spot is showing, so it's only swapped when #1 changes.
-    private final Map<String, java.util.UUID> leaderShown = new HashMap<>();
+    // A podium's three heads, name tags and whose heads they show, indexed by rank (#1, #2, #3).
+    private static final double PODIUM_YOU_Y = 0.1;
+    private static final double PODIUM_READ_RANGE = 48.0;
+    private float podiumHeadScale = 1.3f;
+    private double podiumSpacing = 1.9;
+    private final Map<String, ItemDisplay[]> podiumHeads = new HashMap<>();
+    private final Map<String, TextDisplay[]> podiumTags = new HashMap<>();
+    private final Map<String, java.util.UUID[]> podiumShown = new HashMap<>();
+    private final Map<String, TextDisplay> podiumTimers = new HashMap<>();
+    // Each reader's own "YOU" line under a podium, shown to that reader only.
+    private final Map<String, Map<java.util.UUID, TextDisplay>> podiumYou = new HashMap<>();
     private long boardRefreshTicks = 1200L;
 
     private BukkitTask task;
@@ -128,6 +137,8 @@ public final class HoloManager {
         // Past about 170 degrees an update, interpolation takes the short way round and spins backwards.
         crateSpinDegrees = Math.max(0.0, Math.min(170.0, config.getDouble("holograms.crate-spin-degrees", 90.0)));
         crateBob = config.getDouble("holograms.crate-bob", 0.12);
+        podiumHeadScale = (float) config.getDouble("holograms.podium-head-scale", 1.3);
+        podiumSpacing = config.getDouble("holograms.podium-spacing", 1.9);
         boardRefreshTicks = Math.max(200L, config.getLong("holograms.board-refresh-seconds", 60L) * 20L);
         // New text only reaches entities drawn after it, so take everything
         // down and let the next frame draw it fresh.
@@ -186,9 +197,16 @@ public final class HoloManager {
         add(Kind.CRATE, crateId, block.getLocation().add(0.5, 0.0, 0.5), yaw, head);
     }
 
-    /** The #1 player of a board as a big floating head where an admin stands, with the top three above. */
-    public void placeLeader(String board, Location feet) {
-        add(Kind.LEADER, board, feet, feet.getYaw() + 180f, null);
+    /** A board's top three as a podium three blocks in front of an admin, turned to face them. */
+    public void placeLeader(String board, Location eye) {
+        Vector ahead = eye.getDirection().setY(0);
+        if (ahead.lengthSquared() < 0.01) {
+            double yaw = Math.toRadians(eye.getYaw());
+            ahead = new Vector(-Math.sin(yaw), 0, Math.cos(yaw));
+        }
+        Location at = eye.clone().add(ahead.normalize().multiply(3.0));
+        at.setY(eye.getY() - 1.62);
+        add(Kind.LEADER, board, at, eye.getYaw() + 180f, null);
     }
 
     /** Removes the crate spot on this block, and the barrier under it. */
@@ -324,10 +342,10 @@ public final class HoloManager {
                 } else if (refresh && spot.kind() == Kind.BOARD) {
                     TextDisplay body = boardBodies.get(spot.id());
                     if (body != null && body.isValid()) body.text(boardBody(spot.key()));
-                } else if (refresh && spot.kind() == Kind.LEADER) {
-                    refreshLeader(spot);
+                } else if (spot.kind() == Kind.LEADER) {
+                    tickPodium(spot, refresh || ticks % 100 == 0);
                 }
-                if (spot.kind() == Kind.CRATE || spot.kind() == Kind.LEADER) spinCrate(spot.id());
+                if (spot.kind() == Kind.CRATE) spinCrate(spot.id());
             }
         } catch (RuntimeException ex) {
             plugin.getLogger().warning("Hologram frame failed: " + ex);
@@ -353,7 +371,16 @@ public final class HoloManager {
 
     private void despawn(String id) {
         crateHeads.remove(id);
-        leaderShown.remove(id);
+        podiumHeads.remove(id);
+        podiumTags.remove(id);
+        podiumShown.remove(id);
+        podiumTimers.remove(id);
+        Map<java.util.UUID, TextDisplay> readers = podiumYou.remove(id);
+        if (readers != null) {
+            for (TextDisplay line : readers.values()) {
+                if (line.isValid()) line.remove();
+            }
+        }
         List<Display> pieces = drawn.remove(id);
         if (pieces != null) {
             for (Display piece : pieces) {
@@ -460,62 +487,210 @@ public final class HoloManager {
     }
 
     /**
-     * A board's leader: the #1 player's head, floating and turning like a
-     * crate's, with the board's name and top three above it, and for the
-     * daily farming board the time until it pays out.
+     * A board's podium, like the one Leon picked from another server: the
+     * top three as heads side by side, #1 in the middle, #3 on the left and
+     * #2 on the right as a reader faces it, each with its name, value and
+     * payout above. Under them the title, the payout countdown ticking every
+     * second, and a line each reader sees only for themselves: their own
+     * place and value.
      */
     private void drawLeader(Spot spot, List<Display> pieces) {
         String board = spot.key();
-        java.util.UUID leader = leaderOf(board);
-        double headY = 1.0 + crateHeadScale / 2.0 + crateHeadLift;
-        Location centre = spot.at().clone().add(0, headY, 0);
-        centre.setYaw(spot.yaw());
-        centre.setPitch(0f);
-        ItemDisplay head = centre.getWorld().spawn(centre, ItemDisplay.class, d -> {
+        Vector right = podiumRight(spot);
+        List<LeaderboardManager.Entry> top = podiumTop(board);
+        double timerY = PODIUM_YOU_Y + 2 * LINE * textScale;
+        double titleY = timerY + LINE * textScale + GAP;
+        double headY = titleY + LINE * textScale * 1.25 + 0.1 + podiumHeadScale / 2.0;
+
+        ItemDisplay[] heads = new ItemDisplay[3];
+        TextDisplay[] tags = new TextDisplay[3];
+        java.util.UUID[] shown = new java.util.UUID[3];
+        for (int rank = 0; rank < 3; rank++) {
+            double side = rank == 0 ? 0.0 : rank == 1 ? podiumSpacing : -podiumSpacing;
+            Location centre = spot.at().clone().add(right.clone().multiply(side)).add(0, headY, 0);
+            centre.setYaw(spot.yaw());
+            centre.setPitch(0f);
+            LeaderboardManager.Entry entry = rank < top.size() ? top.get(rank) : null;
+            java.util.UUID uuid = entry == null ? null : entry.uuid();
+            ItemDisplay head = centre.getWorld().spawn(centre, ItemDisplay.class, d -> {
+                d.setPersistent(false);
+                d.setItemStack(leaderHead(uuid));
+                d.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
+                d.setTransformation(new Transformation(new Vector3f(), new Quaternionf(),
+                        new Vector3f(podiumHeadScale, podiumHeadScale, podiumHeadScale), new Quaternionf()));
+                d.setViewRange(viewRange);
+                d.setBrightness(new Display.Brightness(15, 15));
+                d.getPersistentDataContainer().set(tagKey, PersistentDataType.STRING, spot.id());
+            });
+            pieces.add(head);
+            heads[rank] = head;
+            shown[rank] = uuid;
+            // A head fills the lower half of its box, so its top sits at the display. The #1 tag rides higher.
+            Location tagAt = centre.clone().add(0, 0.15 + (rank == 0 ? 0.3 : 0.0), 0);
+            TextDisplay tag = text(spot, tagAt, podiumTag(board, rank, entry), textScale);
+            pieces.add(tag);
+            tags[rank] = tag;
+        }
+        podiumHeads.put(spot.id(), heads);
+        podiumTags.put(spot.id(), tags);
+        podiumShown.put(spot.id(), shown);
+
+        TextDisplay timer = text(spot, spot.at().clone().add(0, timerY, 0), podiumTimer(board), textScale);
+        pieces.add(timer);
+        podiumTimers.put(spot.id(), timer);
+        pieces.add(text(spot, spot.at().clone().add(0, titleY, 0), parse(podiumTitle(board)), textScale * 1.25f));
+    }
+
+    /** Once a second: the countdown, now and then the top three, and every reader's own line. */
+    private void tickPodium(Spot spot, boolean refreshTop) {
+        String board = spot.key();
+        TextDisplay timer = podiumTimers.get(spot.id());
+        if (timer != null && timer.isValid() && board.equals("farming")) timer.text(podiumTimer(board));
+        if (refreshTop) {
+            List<LeaderboardManager.Entry> top = podiumTop(board);
+            ItemDisplay[] heads = podiumHeads.get(spot.id());
+            TextDisplay[] tags = podiumTags.get(spot.id());
+            java.util.UUID[] shown = podiumShown.get(spot.id());
+            if (heads != null && tags != null && shown != null) {
+                for (int rank = 0; rank < 3; rank++) {
+                    LeaderboardManager.Entry entry = rank < top.size() ? top.get(rank) : null;
+                    java.util.UUID uuid = entry == null ? null : entry.uuid();
+                    if (tags[rank] != null && tags[rank].isValid()) tags[rank].text(podiumTag(board, rank, entry));
+                    if (!java.util.Objects.equals(uuid, shown[rank]) && heads[rank] != null && heads[rank].isValid()) {
+                        heads[rank].setItemStack(leaderHead(uuid));
+                        shown[rank] = uuid;
+                    }
+                }
+            }
+        }
+        tickPodiumReaders(spot);
+    }
+
+    /** Gives every player near a podium their own "YOU" line, and takes it down when they leave. */
+    private void tickPodiumReaders(Spot spot) {
+        World world = spot.at().getWorld();
+        if (world == null) return;
+        Map<java.util.UUID, TextDisplay> lines = podiumYou.computeIfAbsent(spot.id(), id -> new HashMap<>());
+        java.util.Set<java.util.UUID> near = new java.util.HashSet<>();
+        Map<java.util.UUID, Integer> places = null;
+        for (org.bukkit.entity.Player reader : world.getPlayers()) {
+            if (reader.getLocation().distanceSquared(spot.at()) > PODIUM_READ_RANGE * PODIUM_READ_RANGE) continue;
+            if (places == null) {
+                // One sort for everyone reading this podium this second, not one each.
+                places = new HashMap<>();
+                List<LeaderboardManager.Entry> all = plugin.getLeaderboardManager().top(spot.key(), Integer.MAX_VALUE);
+                for (int i = 0; i < all.size(); i++) places.put(all.get(i).uuid(), i + 1);
+            }
+            near.add(reader.getUniqueId());
+            Component content = podiumYouLine(spot.key(), reader, places);
+            TextDisplay line = lines.get(reader.getUniqueId());
+            if (line == null || !line.isValid()) {
+                line = privateText(spot, spot.at().clone().add(0, PODIUM_YOU_Y, 0), content, textScale);
+                reader.showEntity(plugin, line);
+                lines.put(reader.getUniqueId(), line);
+            } else {
+                line.text(content);
+            }
+        }
+        lines.entrySet().removeIf(entry -> {
+            if (near.contains(entry.getKey()) && entry.getValue().isValid()) return false;
+            if (entry.getValue().isValid()) entry.getValue().remove();
+            return true;
+        });
+    }
+
+    /** The reader's right as they face the podium. */
+    private static Vector podiumRight(Spot spot) {
+        double yaw = Math.toRadians(spot.yaw());
+        return new Vector(Math.cos(yaw), 0, Math.sin(yaw));
+    }
+
+    private List<LeaderboardManager.Entry> podiumTop(String board) {
+        List<LeaderboardManager.Entry> top = new ArrayList<>();
+        for (LeaderboardManager.Entry entry : plugin.getLeaderboardManager().top(board, 3)) {
+            if (LeaderboardManager.valueOf(board, entry) > 0) top.add(entry);
+        }
+        return top;
+    }
+
+    private String podiumTitle(String board) {
+        ConfigurationSection s = plugin.getConfig().getConfigurationSection("holograms.boards." + board);
+        if (s != null && s.contains("title")) return s.getString("title", board);
+        String name = board.equals("farming") ? "Farming Payouts" : BOARD_NAMES.getOrDefault(board, board);
+        return "<#FFE9A8><b>" + name.toUpperCase(Locale.ROOT) + "</b>";
+    }
+
+    private String podiumUnit(String board) {
+        ConfigurationSection s = plugin.getConfig().getConfigurationSection("holograms.boards." + board);
+        if (s != null && s.contains("unit")) return s.getString("unit", "");
+        if (board.startsWith("farming")) return "Farmed";
+        String unit = BOARD_UNITS.getOrDefault(board, "");
+        return unit.isEmpty() ? "" : Character.toUpperCase(unit.charAt(0)) + unit.substring(1);
+    }
+
+    /** "#1 Name", "294.4K Farmed" and, on the daily board, "+ 150 Credits (Daily)". */
+    private Component podiumTag(String board, int rank, LeaderboardManager.Entry entry) {
+        List<Component> rows = new ArrayList<>();
+        if (entry == null) {
+            rows.add(parse("<#FFE9A8><b>#" + (rank + 1) + "</b></#FFE9A8> <dark_gray>Nobody yet"));
+        } else {
+            rows.add(Component.text()
+                    .append(parse("<#FFE9A8><b>#" + (rank + 1) + "</b></#FFE9A8> "))
+                    .append(Component.text(entry.name(), NamedTextColor.WHITE))
+                    .build());
+            rows.add(parse("<white>" + Lore.shorten(LeaderboardManager.valueOf(board, entry)) + " <gray>"
+                    + podiumUnit(board)));
+        }
+        if (board.equals("farming")) {
+            List<Integer> payouts = plugin.getConfig().getIntegerList("leaderboard.farming.credit-payouts");
+            if (rank < payouts.size()) {
+                rows.add(parse("<#E879F9>+ " + String.format("%,d", payouts.get(rank))
+                        + " Credits</#E879F9> <gray>(Daily)"));
+            }
+        }
+        return Component.join(JoinConfiguration.newlines(), rows);
+    }
+
+    private Component podiumTimer(String board) {
+        if (!board.equals("farming")) return Component.empty();
+        long seconds = plugin.getLeaderboardManager().secondsUntilReset();
+        return parse("<gray>Resets in <white>" + seconds / 3600 + "h " + (seconds % 3600) / 60 + "m "
+                + seconds % 60 + "s");
+    }
+
+    /** "YOU: #4,951 Name: 0", for the reader alone. */
+    private Component podiumYouLine(String board, org.bukkit.entity.Player reader, Map<java.util.UUID, Integer> places) {
+        LeaderboardManager.Entry mine = plugin.getLeaderboardManager().entryOf(reader.getUniqueId());
+        long value = mine == null ? 0L : LeaderboardManager.valueOf(board, mine);
+        Integer place = places.get(reader.getUniqueId());
+        String placeText = place == null || value <= 0 ? "-" : String.format("%,d", place);
+        return Component.text()
+                .append(parse("<#FFE9A8><b>YOU:</b></#FFE9A8> <gold>#" + placeText + "</gold> "))
+                .append(Component.text(reader.getName(), NamedTextColor.WHITE))
+                .append(parse("<gray>: <white>" + String.format("%,d", value)))
+                .build();
+    }
+
+    /** A text piece nobody sees until it is shown to them. */
+    private TextDisplay privateText(Spot spot, Location at, Component content, float scale) {
+        Location spawnAt = at.clone();
+        spawnAt.setYaw(spot.yaw());
+        spawnAt.setPitch(0f);
+        return spawnAt.getWorld().spawn(spawnAt, TextDisplay.class, d -> {
+            d.setVisibleByDefault(false);
             d.setPersistent(false);
-            d.setItemStack(leaderHead(leader));
-            d.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
-            d.setTransformation(new Transformation(new Vector3f(), new Quaternionf(),
-                    new Vector3f(crateHeadScale, crateHeadScale, crateHeadScale), new Quaternionf()));
+            d.text(content);
+            d.setBillboard(Display.Billboard.CENTER);
+            d.setAlignment(TextDisplay.TextAlignment.CENTER);
+            d.setLineWidth(2000);
+            d.setShadowed(true);
+            d.setBackgroundColor(Color.fromARGB(0, 0, 0, 0));
             d.setViewRange(viewRange);
             d.setBrightness(new Display.Brightness(15, 15));
+            d.setTransformation(new Transformation(new Vector3f(), new Quaternionf(),
+                    new Vector3f(scale, scale, scale), new Quaternionf()));
             d.getPersistentDataContainer().set(tagKey, PersistentDataType.STRING, spot.id());
         });
-        pieces.add(head);
-        crateHeads.put(spot.id(), head);
-        leaderShown.put(spot.id(), leader);
-
-        Location y = spot.at().clone().add(0, headY + crateBob + 0.3, 0);
-        Component body = leaderText(board);
-        int rows = PlainTextComponentSerializer.plainText().serialize(body).split("\n", -1).length;
-        TextDisplay bodyDisplay = text(spot, y, body, textScale);
-        pieces.add(bodyDisplay);
-        boardBodies.put(spot.id(), bodyDisplay);
-        y.add(0, rows * LINE * textScale + GAP * 2, 0);
-
-        ConfigurationSection s = plugin.getConfig().getConfigurationSection("holograms.boards." + board);
-        String colour = s == null ? BOARD_COLOURS.getOrDefault(board, "#FFD54F")
-                : s.getString("color", BOARD_COLOURS.getOrDefault(board, "#FFD54F"));
-        String title = s != null && s.contains("title") ? s.getString("title")
-                : "<" + colour + "><b>" + BOARD_NAMES.getOrDefault(board, board).toUpperCase(Locale.ROOT) + "</b>";
-        pieces.add(text(spot, y, parse(title), titleScale));
-    }
-
-    private void refreshLeader(Spot spot) {
-        TextDisplay body = boardBodies.get(spot.id());
-        if (body != null && body.isValid()) body.text(leaderText(spot.key()));
-        ItemDisplay head = crateHeads.get(spot.id());
-        if (head == null || !head.isValid()) return;
-        java.util.UUID leader = leaderOf(spot.key());
-        if (!java.util.Objects.equals(leader, leaderShown.get(spot.id()))) {
-            head.setItemStack(leaderHead(leader));
-            leaderShown.put(spot.id(), leader);
-        }
-    }
-
-    private java.util.UUID leaderOf(String board) {
-        List<LeaderboardManager.Entry> top = plugin.getLeaderboardManager().top(board, 1);
-        return top.isEmpty() || LeaderboardManager.valueOf(board, top.get(0)) <= 0 ? null : top.get(0).uuid();
     }
 
     private static ItemStack leaderHead(java.util.UUID uuid) {
@@ -527,38 +702,26 @@ public final class HoloManager {
         return head;
     }
 
-    /** The top three and, for the daily board, the payout countdown. Always the same number of rows. */
-    private Component leaderText(String board) {
-        ConfigurationSection s = plugin.getConfig().getConfigurationSection("holograms.boards." + board);
-        String colour = s == null ? BOARD_COLOURS.getOrDefault(board, "#FFD54F")
-                : s.getString("color", BOARD_COLOURS.getOrDefault(board, "#FFD54F"));
-        String unit = s == null ? BOARD_UNITS.getOrDefault(board, "")
-                : s.getString("unit", BOARD_UNITS.getOrDefault(board, ""));
-        TextColor valueColour = TextColor.fromHexString(colour);
-        if (valueColour == null) valueColour = NamedTextColor.GOLD;
-
-        List<LeaderboardManager.Entry> top = plugin.getLeaderboardManager().top(board, 3);
-        List<Component> rows = new ArrayList<>();
-        for (int i = 0; i < 3; i++) {
-            LeaderboardManager.Entry entry = i < top.size() ? top.get(i) : null;
-            long value = entry == null ? 0L : LeaderboardManager.valueOf(board, entry);
-            if (entry == null || value <= 0) {
-                rows.add(Component.text("#" + (i + 1) + "  ...", NamedTextColor.DARK_GRAY));
-                continue;
+    /** Picks up the spots of a world that loaded after the plugin did; the next frame draws them. */
+    public void resolveWorld(World world) {
+        for (var it = unresolved.entrySet().iterator(); it.hasNext(); ) {
+            var entry = it.next();
+            Map<String, Object> s = entry.getValue();
+            if (!world.getName().equals(String.valueOf(s.get("world")))) continue;
+            try {
+                Kind kind = Kind.valueOf(String.valueOf(s.getOrDefault("kind", "PANEL")).toUpperCase(Locale.ROOT));
+                Location at = new Location(world, number(s.get("x")), number(s.get("y")), number(s.get("z")));
+                ItemStack head = s.get("head") instanceof ItemStack stack ? stack : null;
+                spots.put(entry.getKey(), new Spot(entry.getKey(), kind, String.valueOf(s.getOrDefault("key", "")),
+                        at, (float) number(s.get("yaw")), head));
+                it.remove();
+            } catch (IllegalArgumentException ignored) {
             }
-            rows.add(Component.text()
-                    .append(Component.text("#" + (i + 1) + " ", i == 0 ? NamedTextColor.GOLD : NamedTextColor.GRAY))
-                    .append(Component.text(entry.name(), NamedTextColor.WHITE))
-                    .append(Component.text("  →  ", NamedTextColor.DARK_GRAY))
-                    .append(Component.text(Lore.shorten(value), valueColour))
-                    .append(Component.text(unit.isEmpty() ? "" : " " + unit, NamedTextColor.GRAY))
-                    .build());
         }
-        if (board.equals("farming")) {
-            long seconds = plugin.getLeaderboardManager().secondsUntilReset();
-            rows.add(parse("<gray>Payout in <#FFD54F>" + seconds / 3600 + "h " + (seconds % 3600) / 60 + "m"));
-        }
-        return Component.join(JoinConfiguration.newlines(), rows);
+    }
+
+    private static double number(Object value) {
+        return value instanceof Number n ? n.doubleValue() : 0.0;
     }
 
     /** The top ten as text, each row with the player's head in front of the name. */

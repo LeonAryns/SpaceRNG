@@ -90,6 +90,8 @@ public class FarmPlotManager {
     private long momentumDecayMillis = 60_000L;
     private double gambaMultiplier = 3.0;
     private long gambaSeconds = 60L;
+    // farmplots.yml lines in worlds that weren't loaded when it was read.
+    private final List<String> unresolvedPlots = new ArrayList<>();
     private String keyFinderReward = "crate_key";
     private String keyFinderRareReward = "";
     private double keyFinderRareChance = 0.0;
@@ -1191,6 +1193,7 @@ public class FarmPlotManager {
 
     private void loadPlots() {
         plots.clear();
+        unresolvedPlots.clear();
         if (!plotFile.exists()) return;
 
         YamlConfiguration yml = YamlConfiguration.loadConfiguration(plotFile);
@@ -1198,7 +1201,12 @@ public class FarmPlotManager {
             String[] parts = raw.split(";");
             if (parts.length != 4) continue;
             World world = Bukkit.getWorld(parts[0]);
-            if (world == null) continue;
+            if (world == null) {
+                // Its world isn't loaded yet (a Multiverse world loads after us). Dropping it here
+                // meant the next save wrote the farm out of the file for good.
+                unresolvedPlots.add(raw);
+                continue;
+            }
             try {
                 plots.add(new Location(world,
                         Integer.parseInt(parts[1]), Integer.parseInt(parts[2]), Integer.parseInt(parts[3])));
@@ -1208,9 +1216,30 @@ public class FarmPlotManager {
         plugin.getLogger().info("Loaded " + plots.size() + " farm plots.");
     }
 
+    /** Picks up the plots of a world that loaded after the plugin did. */
+    public void resolveWorld(World world) {
+        int found = 0;
+        for (java.util.Iterator<String> it = unresolvedPlots.iterator(); it.hasNext(); ) {
+            String[] parts = it.next().split(";");
+            if (parts.length != 4 || !parts[0].equals(world.getName())) continue;
+            try {
+                plots.add(new Location(world,
+                        Integer.parseInt(parts[1]), Integer.parseInt(parts[2]), Integer.parseInt(parts[3])));
+                it.remove();
+                found++;
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        if (found > 0) {
+            plugin.getLogger().info("Loaded " + found + " farm plots in " + world.getName()
+                    + ", which loaded after the plugin.");
+        }
+    }
+
     public void savePlots() {
         YamlConfiguration yml = new YamlConfiguration();
-        List<String> raw = new ArrayList<>();
+        // Plots in a world that isn't loaded are written back untouched.
+        List<String> raw = new ArrayList<>(unresolvedPlots);
         for (Location plot : plots) {
             if (plot.getWorld() == null) continue;
             raw.add(plot.getWorld().getName() + ";" + plot.getBlockX() + ";" + plot.getBlockY() + ";" + plot.getBlockZ());

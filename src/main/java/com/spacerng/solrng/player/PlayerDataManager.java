@@ -253,7 +253,15 @@ public class PlayerDataManager {
         } catch (IllegalArgumentException ignored) { }
         var perkIndex = yml.getConfigurationSection("perk-index");
         if (perkIndex != null) {
-            for (String key : perkIndex.getKeys(false)) data.getPerkIndex().put(key, perkIndex.getInt(key));
+            for (String key : perkIndex.getKeys(false)) {
+                // Before V133 the index was keyed by perk type and held a level; those keys are dropped
+                // and the vault below fills the index back in.
+                String stat = key.contains(":") ? key.substring(0, key.indexOf(':')) : key;
+                try {
+                    com.spacerng.solrng.perk.PerkStat.valueOf(stat);
+                    data.getPerkIndex().put(key, perkIndex.getDouble(key));
+                } catch (IllegalArgumentException ignored) { }
+            }
         }
         // Players who rolled perks before the index existed get what they still own.
         for (var perk : data.getPerkVault()) data.recordPerk(perk);

@@ -228,6 +228,21 @@ public class TopHeadManager {
         }
     }
 
+    /** Picks up the heads of a world that loaded after the plugin did. */
+    public void resolveWorld(World world) {
+        for (java.util.Iterator<String> it = unresolved.iterator(); it.hasNext(); ) {
+            String[] parts = it.next().split(";");
+            if (parts.length != 6 || !parts[2].equals(world.getName())) continue;
+            try {
+                Spot spot = new Spot(parts[0], Integer.parseInt(parts[1]), new Location(world,
+                        Double.parseDouble(parts[3]), Double.parseDouble(parts[4]), Double.parseDouble(parts[5])));
+                spots.put(spot.id(), spot);
+                it.remove();
+            } catch (NumberFormatException ignored) {
+            }
+        }
+    }
+
     private void saveSpots() {
         YamlConfiguration yml = new YamlConfiguration();
         List<String> lines = new ArrayList<>(unresolved);

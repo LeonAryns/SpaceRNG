@@ -44,11 +44,10 @@ public class PerkVaultGui {
     private static final int INDEX_SLOT = 49;
     private static final int NEXT_SLOT = 53;
 
-    /** Best tier first, then highest level, so the good ones are on page one. */
+    /** Best tier first, then the biggest bonuses, so the good ones are on page one. */
     private static final Comparator<PerkInstance> BEST_FIRST = Comparator
             .comparing((PerkInstance p) -> p.tier().ordinal()).reversed()
-            .thenComparing(Comparator.comparingInt(PerkInstance::level).reversed())
-            .thenComparing(p -> p.type().ordinal());
+            .thenComparing(Comparator.comparingDouble(PerkInstance::total).reversed());
 
     public static NamespacedKey perkIdKey(SolRNGPlugin plugin) {
         return SolRNGPlugin.key("solrng_perk_id");
@@ -169,7 +168,7 @@ public class PerkVaultGui {
         ItemStack item = new ItemStack(Material.KNOWLEDGE_BOOK);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(Lore.title(ChatColor.LIGHT_PURPLE, "Perk Index"));
-        int total = com.spacerng.solrng.perk.PerkType.values().length
+        int total = com.spacerng.solrng.perk.PerkStat.rollableStats().size()
                 * com.spacerng.solrng.rarity.Rarity.values().length;
         meta.setLore(List.of(
                 Lore.line(ChatColor.GRAY, "Every perk you can roll."),

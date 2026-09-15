@@ -129,8 +129,7 @@ public final class FirstTenManager {
         UUID roller = player.getUniqueId();
         String name = player.getName();
         plugin.getServer().getScheduler().runTaskLater(plugin,
-                () -> new FirstTenBuildUp(plugin, rarity, roller,
-                        () -> announce(roller, name, item, shiny, place, false)).start(),
+                () -> buildUpThen(rarity, roller, () -> announce(roller, name, item, shiny, place, false)),
                 Math.max(1L, delayTicks));
     }
 
@@ -139,8 +138,16 @@ public final class FirstTenManager {
         int place = Math.min(slots(), entries.getOrDefault(item.getRarity(), List.of()).size() + 1);
         UUID roller = viewer == null ? null : viewer.getUniqueId();
         String name = viewer == null ? "Console" : viewer.getName();
-        new FirstTenBuildUp(plugin, item.getRarity(), roller,
-                () -> announce(roller, name, item, shiny, place, true)).start();
+        buildUpThen(item.getRarity(), roller, () -> announce(roller, name, item, shiny, place, true));
+    }
+
+    /** The build-up is for Legendary and up; anything below goes straight to the banner. */
+    private void buildUpThen(Rarity rarity, UUID roller, Runnable event) {
+        if (rarity.ordinal() >= Rarity.LEGENDARY.ordinal()) {
+            new FirstTenBuildUp(plugin, rarity, roller, event).start();
+        } else {
+            event.run();
+        }
     }
 
     public void reset(Rarity rarity) {
@@ -218,6 +225,16 @@ public final class FirstTenManager {
                                         + ChatColor.GRAY + " to find " + article
                                         + rarities.style(rarity, rarity.displayName())),
                         Title.Times.times(Duration.ofMillis(200), Duration.ofMillis(2500), Duration.ofMillis(400))));
+            } else {
+                // Everyone else is told on their screen who it was.
+                online.showTitle(Title.title(
+                        LegacyComponentSerializer.legacySection()
+                                .deserialize(rarities.styleBold(rarity, "✦ Server First " + slots + " ✦")),
+                        LegacyComponentSerializer.legacySection()
+                                .deserialize(ChatColor.YELLOW + name + ChatColor.GRAY + " is "
+                                        + rarities.styleBold(rarity, "#" + place) + ChatColor.GRAY + " to find "
+                                        + article + rarities.style(rarity, rarity.displayName())),
+                        Title.Times.times(Duration.ofMillis(200), Duration.ofMillis(3000), Duration.ofMillis(400))));
             }
         }
         Bukkit.getConsoleSender().sendMessage(banner);

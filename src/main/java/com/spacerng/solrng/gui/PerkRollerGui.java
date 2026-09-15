@@ -2,7 +2,7 @@ package com.spacerng.solrng.gui;
 
 import com.spacerng.solrng.SolRNGPlugin;
 import com.spacerng.solrng.perk.PerkManager;
-import com.spacerng.solrng.perk.PerkType;
+import com.spacerng.solrng.perk.PerkStat;
 import com.spacerng.solrng.player.PlayerData;
 import com.spacerng.solrng.rarity.Rarity;
 import org.bukkit.Bukkit;
@@ -147,11 +147,11 @@ public class PerkRollerGui {
         int newForIndex = 0;
         int possible = 0;
         for (Rarity r : Rarity.values()) {
-            double chance = perks.chanceOf(tier, r) * PerkType.values().length;
+            double chance = perks.chanceOf(tier, r);
             if (chance <= 0.0) continue;
-            for (PerkType type : PerkType.values()) {
+            for (PerkStat stat : perks.pool()) {
                 possible++;
-                if (data.bestPerkLevel(type, r) == 0) newForIndex++;
+                if (data.bestPerkValue(stat, r) <= 0.0) newForIndex++;
             }
             lore.add(Lore.mark(ChatColor.GRAY) + plugin.getRarityManager().style(r, r.displayName())
                     + ChatColor.DARK_GRAY + "  " + ChatColor.WHITE + PerkIndexGui.percent(chance));
@@ -328,26 +328,21 @@ public class PerkRollerGui {
         lore.add(Lore.line(ChatColor.GRAY, "or your next roll replaces it."));
         lore.add(Lore.line(ChatColor.GRAY, "Equip up to " + perks.loadoutSlots() + " in the vault."));
         lore.add("");
-        lore.add(Lore.section(ChatColor.LIGHT_PURPLE, "Tier"));
-        lore.add(Lore.line(ChatColor.LIGHT_PURPLE, "Higher tiers give bigger stats"));
-        lore.add(Lore.line(ChatColor.LIGHT_PURPLE, "and more of them."));
-        lore.add("");
-        lore.add(Lore.section(ChatColor.YELLOW, "Level"));
-        StringBuilder levels = new StringBuilder();
-        String[] roman = {"I", "II", "III", "IV", "V"};
-        for (int level = 1; level <= 5; level++) {
-            if (level > 1) levels.append(ChatColor.DARK_GRAY).append("  ");
-            levels.append(ChatColor.GRAY).append(roman[level - 1]).append(" ")
-                    .append(ChatColor.WHITE).append(Math.round(perks.levelChance(level) * 100)).append("%");
+        lore.add(Lore.section(ChatColor.LIGHT_PURPLE, "Tiers"));
+        for (Rarity tier : Rarity.values()) {
+            int count = perks.statCountFor(tier);
+            lore.add(Lore.mark(ChatColor.GRAY) + plugin.getRarityManager().style(tier, tier.displayName())
+                    + ChatColor.DARK_GRAY + "  " + ChatColor.WHITE + PerkLore.rangeText(perks, tier)
+                    + ChatColor.DARK_GRAY + "  " + ChatColor.GRAY + count + (count == 1 ? " stat" : " stats"));
         }
-        lore.add(Lore.mark(ChatColor.YELLOW) + levels);
-        lore.add(Lore.line(ChatColor.YELLOW, "Level V is five times level I."));
+        lore.add(Lore.line(ChatColor.LIGHT_PURPLE, "Each stat rolls its own value."));
         lore.add("");
-        lore.add(Lore.section(ChatColor.GREEN, "Types"));
-        for (PerkType type : PerkType.values()) {
-            lore.add(Lore.mark(type.colour()) + type.colour() + type.label()
-                    + ChatColor.DARK_GRAY + "  " + ChatColor.GRAY + type.description());
+        lore.add(Lore.section(ChatColor.GREEN, "Stats"));
+        for (PerkStat stat : perks.pool()) {
+            lore.add(Lore.mark(stat.colour()) + stat.colour() + stat.label()
+                    + ChatColor.DARK_GRAY + "  " + ChatColor.GRAY + stat.description());
         }
+        lore.add(Lore.line(ChatColor.GREEN, "The same stat on two perks adds up."));
         meta.setLore(lore);
         item.setItemMeta(meta);
         return item;

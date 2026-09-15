@@ -256,6 +256,16 @@ public final class ConfigMigrator {
             applied.add(patch.id());
             changed = true;
         }
+        // V133: Common, Uncommon and Rare odds no longer overlap on their labels.
+        if (!applied.contains("band-odds-no-overlap")) {
+            List<Map<?, ?>> items = disk.getMapList("items");
+            if (com.spacerng.solrng.rarity.OddsBands.remapItems(items)) {
+                disk.set("items", items);
+                plugin.getLogger().info("Config patch band-odds-no-overlap: Common, Uncommon and Rare odds respaced");
+            }
+            applied.add("band-odds-no-overlap");
+            changed = true;
+        }
         for (TextPatch patch : TEXT_PATCHES) {
             if (applied.contains(patch.id())) continue;
             List<?> list = disk.getList(patch.path());

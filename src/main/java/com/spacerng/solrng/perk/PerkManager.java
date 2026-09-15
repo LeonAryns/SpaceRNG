@@ -6,9 +6,13 @@ import com.spacerng.solrng.rarity.Rarity;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.logging.Logger;
 
@@ -17,22 +21,44 @@ import java.util.logging.Logger;
  * "what does this player's loadout add up to" question that StatSources
  * asks whenever it computes a stat.
  *
- * The whole roll table is data-driven: costs, tier chances, level
- * chances, tier and level multipliers, and stat ceilings all come from
- * config so retuning is a config change rather than a recompile.
+ * A perk is a tier and one to three stats from the pool. Each stat rolls
+ * its own bonus inside the tier's range, weighted toward the low end by
+ * roll-curve, so a roll near the top of a range stays something to chase.
+ * Costs, tier chances, ranges and stat counts all come from config.
  */
 public class PerkManager {
 
     /** One buyable Roll button in /perks. */
     public record RollTier(Rarity costRarity, int costAmount, Map<Rarity, Double> tierChances) { }
 
+    /** Bonus ranges (0.1 is 1.1x) for a config that names none, and for converting old perks. */
+    static final Map<Rarity, double[]> DEFAULT_RANGES = new EnumMap<>(Rarity.class);
+
+    static {
+        DEFAULT_RANGES.put(Rarity.COMMON, new double[]{0.10, 0.50});
+        DEFAULT_RANGES.put(Rarity.UNCOMMON, new double[]{0.15, 0.75});
+        DEFAULT_RANGES.put(Rarity.RARE, new double[]{0.20, 1.00});
+        DEFAULT_RANGES.put(Rarity.EPIC, new double[]{0.25, 1.25});
+        DEFAULT_RANGES.put(Rarity.LEGENDARY, new double[]{0.30, 1.50});
+        DEFAULT_RANGES.put(Rarity.MYTHICAL, new double[]{0.40, 2.00});
+        DEFAULT_RANGES.put(Rarity.DIVINE, new double[]{0.50, 3.00});
+    }
+
+    /** One stat up to Rare, two for Epic and Legendary, three from Mythical. */
+    static int defaultStatCount(Rarity tier) {
+        return switch (tier) {
+            case COMMON, UNCOMMON, RARE -> 1;
+            case EPIC, LEGENDARY -> 2;
+            default -> 3;
+        };
+    }
+
     private final Logger logger;
     private final Map<Rarity, RollTier> rolls = new LinkedHashMap<>();
-    private final Map<Rarity, Double> tierMultipliers = new EnumMap<>(Rarity.class);
-    private final double[] levelMultipliers = new double[5];
-    private final double[] levelChances = new double[5];
     private final Map<Rarity, Integer> statCount = new EnumMap<>(Rarity.class);
-    private final Map<PerkStat, Double> statCeilings = new EnumMap<>(PerkStat.class);
+    private final Map<Rarity, double[]> ranges = new EnumMap<>(Rarity.class);
+    private final List<PerkStat> pool = new ArrayList<>();
+    private double rollCurve = 2.0;
     private int loadoutSlots = 3;
     private long saveCost = 1L;
 
@@ -42,48 +68,39 @@ public class PerkManager {
 
     public void load(FileConfiguration config) {
         rolls.clear();
-        tierMultipliers.clear();
         statCount.clear();
-        statCeilings.clear();
+        ranges.clear();
+        pool.clear();
 
         loadoutSlots = Math.max(1, config.getInt("perks.loadout-slots", 3));
         saveCost = Math.max(0L, config.getLong("perks.save-cost-credits", 1L));
+        rollCurve = Math.max(0.1, config.getDouble("perks.roll-curve", 2.0));
 
-        // Level chances - the piramid for I..V.
-        var lc = config.getDoubleList("perks.level-chances");
-        for (int i = 0; i < 5; i++) {
-            levelChances[i] = i < lc.size() ? lc.get(i) : (i == 0 ? 1.0 : 0.0);
+        for (String name : config.getStringList("perks.stat-pool")) {
+            try {
+                PerkStat stat = PerkStat.valueOf(name);
+                if (!pool.contains(stat)) pool.add(stat);
+            } catch (IllegalArgumentException ignored) { }
         }
-        var lm = config.getDoubleList("perks.level-multipliers");
-        for (int i = 0; i < 5; i++) {
-            levelMultipliers[i] = i < lm.size() ? lm.get(i) : (i + 1) * 0.2;
-        }
-
-        ConfigurationSection tm = config.getConfigurationSection("perks.tier-multipliers");
-        if (tm != null) {
-            for (String key : tm.getKeys(false)) {
-                try {
-                    tierMultipliers.put(Rarity.valueOf(key), tm.getDouble(key));
-                } catch (IllegalArgumentException ignored) { }
-            }
-        }
+        if (pool.isEmpty()) pool.addAll(PerkStat.rollableStats());
 
         ConfigurationSection sc = config.getConfigurationSection("perks.stat-count");
         if (sc != null) {
             for (String key : sc.getKeys(false)) {
                 try {
-                    statCount.put(Rarity.valueOf(key), sc.getInt(key, 1));
+                    statCount.put(Rarity.valueOf(key), Math.max(1, sc.getInt(key, 1)));
                 } catch (IllegalArgumentException ignored) { }
             }
         }
 
-        ConfigurationSection ceil = config.getConfigurationSection("perks.stat-ceilings");
-        if (ceil != null) {
-            for (String key : ceil.getKeys(false)) {
-                try {
-                    statCeilings.put(PerkStat.valueOf(key), ceil.getDouble(key));
-                } catch (IllegalArgumentException ignored) { }
-            }
+        // Written in config as multipliers ([1.1, 1.5]), kept here as bonuses.
+        ConfigurationSection rs = config.getConfigurationSection("perks.stat-ranges");
+        for (Rarity tier : Rarity.values()) {
+            double[] fallback = DEFAULT_RANGES.get(tier);
+            List<Double> pair = rs == null ? List.of() : rs.getDoubleList(tier.name());
+            double low = pair.size() > 0 ? pair.get(0) - 1.0 : fallback[0];
+            double high = pair.size() > 1 ? pair.get(1) - 1.0 : fallback[1];
+            ranges.put(tier, new double[]{Math.max(0.0, Math.min(low, high)), Math.max(0.0, Math.max(low, high))});
         }
 
         ConfigurationSection rollsSection = config.getConfigurationSection("perks.rolls");
@@ -118,101 +135,94 @@ public class PerkManager {
             }
         }
 
-        logger.info("Loaded " + rolls.size() + " perk roll tiers with "
-                + statCeilings.size() + " stats and " + tierMultipliers.size() + " tier multipliers.");
+        logger.info("Loaded " + rolls.size() + " perk roll tiers over " + pool.size() + " stats.");
     }
 
     public int loadoutSlots() { return loadoutSlots; }
 
-    /** What a stat is worth on a Divine V perk, the most any one perk gives. */
-    public double ceilingOf(PerkStat stat) {
-        return statCeilings.getOrDefault(stat, 0.0);
+    /** Credits one save roll costs. */
+    public long saveCost() { return saveCost; }
+
+    public Map<Rarity, RollTier> getRolls() { return rolls; }
+
+    public RollTier getRoll(Rarity tier) { return rolls.get(tier); }
+
+    /** The stats perks roll from, in config order. */
+    public List<PerkStat> pool() { return Collections.unmodifiableList(pool); }
+
+    public int statCountFor(Rarity tier) {
+        return Math.min(pool.size(), statCount.getOrDefault(tier, defaultStatCount(tier)));
     }
 
-    /** Level chances I to V, as fractions of their total. */
-    public double levelChance(int level) {
+    /** The lowest and highest bonus a stat can roll at a tier. */
+    public double[] rangeOf(Rarity tier) {
+        return ranges.getOrDefault(tier, DEFAULT_RANGES.get(tier));
+    }
+
+    /** Where a bonus sits in its tier's range: 0 the floor, 1 the ceiling. */
+    public double quality(Rarity tier, double bonus) {
+        double[] range = rangeOf(tier);
+        if (range[1] <= range[0]) return 1.0;
+        return Math.max(0.0, Math.min(1.0, (bonus - range[0]) / (range[1] - range[0])));
+    }
+
+    public double valueOf(PerkInstance perk, PerkStat stat) {
+        return perk.stats().getOrDefault(stat, 0.0);
+    }
+
+    /** Every stat a perk grants, and how much. */
+    public Map<PerkStat, Double> statsOf(PerkInstance perk) {
+        return perk.stats();
+    }
+
+    /** One stat's bonus across every equipped perk, added up. */
+    public double totalOf(PlayerData data, PerkStat stat) {
         double total = 0.0;
-        for (double v : levelChances) total += v;
-        int i = Math.max(1, Math.min(5, level)) - 1;
-        return total <= 0.0 ? 0.0 : levelChances[i] / total;
+        for (PerkInstance perk : data.getEquippedPerks()) {
+            total += perk.stats().getOrDefault(stat, 0.0);
+        }
+        return total;
     }
 
-    /** Chance one roll of this tier lands on one exact type and tier. */
+    /** Chance one roll of this tier lands on a perk of the given tier. */
     public double chanceOf(Rarity rollTier, Rarity resultTier) {
         RollTier roll = rolls.get(rollTier);
         if (roll == null) return 0.0;
         double total = 0.0;
         for (double v : roll.tierChances().values()) total += v;
         if (total <= 0.0) return 0.0;
-        return roll.tierChances().getOrDefault(resultTier, 0.0) / total / PerkType.values().length;
+        return roll.tierChances().getOrDefault(resultTier, 0.0) / total;
     }
 
-    public Map<Rarity, RollTier> getRolls() { return rolls; }
-
-    public RollTier getRoll(Rarity tier) { return rolls.get(tier); }
-
-    public int statCountFor(Rarity tier) {
-        return statCount.getOrDefault(tier, 1);
-    }
-
-    public double tierMultiplierFor(Rarity tier) {
-        return tierMultipliers.getOrDefault(tier, 0.0);
-    }
-
-    public double levelMultiplier(int level) {
-        int i = Math.max(1, Math.min(5, level)) - 1;
-        return levelMultipliers[i];
+    /** Chance one roll gives a perk of the given tier that carries this stat. */
+    public double chanceOf(Rarity rollTier, Rarity resultTier, PerkStat stat) {
+        if (!pool.contains(stat) || pool.isEmpty()) return 0.0;
+        return chanceOf(rollTier, resultTier) * statCountFor(resultTier) / (double) pool.size();
     }
 
     /**
-     * The effective value one perk grants for one stat, folded through
-     * the tier and level curves.
-     */
-    public double valueOf(PerkInstance perk, PerkStat stat) {
-        Double ceiling = statCeilings.get(stat);
-        if (ceiling == null) return 0.0;
-        return ceiling * tierMultiplierFor(perk.tier()) * levelMultiplier(perk.level());
-    }
-
-    /** Every stat a perk grants, and how much. */
-    public Map<PerkStat, Double> statsOf(PerkInstance perk) {
-        Map<PerkStat, Double> out = new EnumMap<>(PerkStat.class);
-        for (PerkStat stat : perk.type().statsFor(statCountFor(perk.tier()))) {
-            out.merge(stat, valueOf(perk, stat), Double::sum);
-        }
-        return out;
-    }
-
-    /** Sums one stat across every equipped perk. */
-    public double totalOf(PlayerData data, PerkStat stat) {
-        double total = 0.0;
-        for (PerkInstance perk : data.getEquippedPerks()) {
-            for (var entry : statsOf(perk).entrySet()) {
-                if (entry.getKey() == stat) total += entry.getValue();
-            }
-        }
-        return total;
-    }
-
-    /**
-     * Rolls a fresh perk from one of the roll tiers.
-     *
-     * Tier and level roll independently against their own tables; type
-     * is uniform across the five (there is no "better" type). Returns
-     * null when the roll table is empty, so a bad config still fails
-     * loudly rather than silently handing out a Common every time.
+     * Rolls a fresh perk from one of the roll tiers: a tier from the roll's
+     * table, then that tier's number of different stats, each with a bonus
+     * inside the tier's range. Null when the roll table is empty, so a bad
+     * config fails loudly rather than handing out a Common every time.
      */
     public PerkInstance rollFrom(Rarity rollTier) {
         RollTier roll = rolls.get(rollTier);
-        if (roll == null || roll.tierChances().isEmpty()) return null;
+        if (roll == null || roll.tierChances().isEmpty() || pool.isEmpty()) return null;
 
         Rarity resultTier = pickTier(roll.tierChances());
         if (resultTier == null) return null;
 
-        int level = pickLevel();
-        PerkType type = PerkType.values()[ThreadLocalRandom.current().nextInt(PerkType.values().length)];
-
-        return PerkInstance.freshly(type, resultTier, level);
+        ThreadLocalRandom random = ThreadLocalRandom.current();
+        List<PerkStat> shuffled = new ArrayList<>(pool);
+        Collections.shuffle(shuffled, random);
+        double[] range = rangeOf(resultTier);
+        Map<PerkStat, Double> stats = new EnumMap<>(PerkStat.class);
+        for (int i = 0; i < statCountFor(resultTier); i++) {
+            double bonus = range[0] + (range[1] - range[0]) * Math.pow(random.nextDouble(), rollCurve);
+            stats.put(shuffled.get(i), Math.round(bonus * 100.0) / 100.0);
+        }
+        return new PerkInstance(UUID.randomUUID(), resultTier, stats);
     }
 
     private Rarity pickTier(Map<Rarity, Double> chances) {
@@ -230,20 +240,6 @@ public class PerkManager {
         Rarity last = null;
         for (Rarity r : chances.keySet()) last = r;
         return last;
-    }
-
-    private int pickLevel() {
-        double total = 0.0;
-        for (double v : levelChances) total += v;
-        if (total <= 0.0) return 1;
-
-        double roll = ThreadLocalRandom.current().nextDouble() * total;
-        double cumulative = 0.0;
-        for (int i = 0; i < levelChances.length; i++) {
-            cumulative += levelChances[i];
-            if (roll <= cumulative) return i + 1;
-        }
-        return levelChances.length;
     }
 
     /**
@@ -284,19 +280,14 @@ public class PerkManager {
         return true;
     }
 
-    /** Credits it costs to move the waiting perk into the vault. */
-    public long saveCost() {
-        return saveCost;
-    }
-
     /**
-     * Moves the waiting perk into the vault for {@link #saveCost()} Credits.
-     * Null when there is no perk waiting or the player can't pay.
+     * Moves the waiting perk into the vault for a save roll, or for
+     * {@link #saveCost()} Credits when there are none. Null when there is
+     * no perk waiting or the player can't pay.
      */
     public PerkInstance save(PlayerData data) {
         PerkInstance pending = data.getPendingPerk();
         if (pending == null) return null;
-        // A save roll first, Credits only when there are none.
         if (data.getPerkSaveRolls() > 0) {
             data.setPerkSaveRolls(data.getPerkSaveRolls() - 1);
         } else if (!data.spendPoints(saveCost)) {

@@ -191,6 +191,20 @@ public class CrateManager {
         }
     }
 
+    /** Picks up the crates of a world that loaded after the plugin did. */
+    public void resolveWorld(World world) {
+        for (java.util.Iterator<String> it = unresolved.iterator(); it.hasNext(); ) {
+            String[] parts = it.next().split(";");
+            if (parts.length != 5 || !parts[0].equals(world.getName())) continue;
+            try {
+                placed.put(new Location(world, Integer.parseInt(parts[1]), Integer.parseInt(parts[2]),
+                        Integer.parseInt(parts[3])), parts[4].toLowerCase(Locale.ROOT));
+                it.remove();
+            } catch (NumberFormatException ignored) {
+            }
+        }
+    }
+
     private void savePlacements() {
         YamlConfiguration yml = new YamlConfiguration();
         List<String> lines = new ArrayList<>(unresolved);

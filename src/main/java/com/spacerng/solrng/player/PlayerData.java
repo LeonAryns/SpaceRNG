@@ -1191,23 +1191,28 @@ public class PlayerData {
 
     // Perk index: the best level ever rolled for each type and tier, keyed
     // "TYPE:TIER". Kept apart from the vault so a discarded perk stays found.
-    private final Map<String, Integer> perkIndex = new HashMap<>();
+    // Since V133 keyed "STAT:TIER" and holding the best bonus rolled.
+    private final Map<String, Double> perkIndex = new HashMap<>();
 
-    public Map<String, Integer> getPerkIndex() {
+    public Map<String, Double> getPerkIndex() {
         return perkIndex;
     }
 
-    /** Best level found for a type and tier, 0 when never rolled. */
-    public int bestPerkLevel(com.spacerng.solrng.perk.PerkType type, com.spacerng.solrng.rarity.Rarity tier) {
-        return perkIndex.getOrDefault(type.name() + ":" + tier.name(), 0);
+    /** Best bonus rolled for a stat at a tier, 0 when never rolled. */
+    public double bestPerkValue(com.spacerng.solrng.perk.PerkStat stat, com.spacerng.solrng.rarity.Rarity tier) {
+        return perkIndex.getOrDefault(stat.name() + ":" + tier.name(), 0.0);
     }
 
-    /** Records a perk in the index. True when this type and tier is new. */
+    /** Records every stat of a perk in the index. True when any stat is new at that tier. */
     public boolean recordPerk(PerkInstance perk) {
-        String key = perk.type().name() + ":" + perk.tier().name();
-        Integer before = perkIndex.get(key);
-        if (before == null || perk.level() > before) perkIndex.put(key, perk.level());
-        return before == null;
+        boolean fresh = false;
+        for (var entry : perk.stats().entrySet()) {
+            String key = entry.getKey().name() + ":" + perk.tier().name();
+            Double before = perkIndex.get(key);
+            if (before == null) fresh = true;
+            if (before == null || entry.getValue() > before) perkIndex.put(key, entry.getValue());
+        }
+        return fresh;
     }
 
     /** Removes a perk from the vault whether it is equipped or not. */

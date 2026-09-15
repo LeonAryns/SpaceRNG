@@ -104,8 +104,6 @@ public final class StatSources {
                 data.getFlatLuck(), Op.ADD));
         parts.add(new Part("Potions", "Draughts from /potion",
                 data.getPotionLuck(), Op.ADD));
-        parts.add(new Part("Perks", "Equip perks in /perks",
-                plugin.getPerkManager().totalOf(data, PerkStat.LUCK_PERCENT), Op.ADD));
         parts.add(new Part("Linked account", "Link with /discord link",
                 plugin.getLinkedAccountManager().bonusFor(data.getUuid(), PerkStat.LUCK_PERCENT),
                 Op.ADD));
@@ -129,6 +127,9 @@ public final class StatSources {
         parts.add(new Part("Prestige upgrades", "Spend Prestige Points in /prestige",
                 plugin.getPrestigeManager().upgradeMultiplier(data, PrestigeUpgrade.Effect.LUCK_BONUS),
                 Op.MULTIPLY));
+        // A perk's 1.5x Luck is a multiplier; two perks' bonuses add before it multiplies.
+        parts.add(new Part("Perks", "Equip perks in /perks",
+                1.0 + plugin.getPerkManager().totalOf(data, PerkStat.LUCK_PERCENT), Op.MULTIPLY));
 
         parts.add(new Part("Server boost", "Active for everyone, from /boosts",
                 plugin.getBoostManager().multiplier(), Op.MULTIPLY));
@@ -178,7 +179,7 @@ public final class StatSources {
                         ? plugin.getSkillTreeManager().totalOf(data, SkillNode.Effect.AUTOPILOT) : 0.0,
                 Op.ADD));
         parts.add(new Part("Perks", "Equip perks in /perks",
-                plugin.getPerkManager().totalOf(data, PerkStat.ROLL_SPEED_FLAT), Op.ADD));
+                1.0 + plugin.getPerkManager().totalOf(data, PerkStat.ROLL_SPEED_FLAT), Op.MULTIPLY));
         parts.add(new Part("Ability", "Shift-right-click a late Starforge",
                 data.boostMultiplier("SPEED"), Op.MULTIPLY));
 
