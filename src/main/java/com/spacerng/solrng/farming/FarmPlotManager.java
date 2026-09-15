@@ -568,6 +568,8 @@ public class FarmPlotManager {
         // is a real choice against raising every crop a little.
         double cropYield = plugin.getSkillTreeManager()
                 .multiplierOf(data, com.spacerng.solrng.player.SkillNode.Effect.CROP_YIELD, crop.getId());
+        // A Crop Yield perk raises every crop at once.
+        cropYield *= 1.0 + plugin.getPerkManager().totalOf(data, com.spacerng.solrng.perk.PerkStat.CROP_YIELD_PERCENT);
         multiplier *= cropYield;
         long tokens = Math.round(crop.getTokens() * multiplier);
 
@@ -1081,8 +1083,9 @@ public class FarmPlotManager {
 
     /** What a golden crop is worth, skills included. */
     public double goldenMultiplierFor(PlayerData data) {
-        return goldenMultiplier + plugin.getSkillTreeManager()
-                .totalOf(data, com.spacerng.solrng.player.SkillNode.Effect.GOLDEN_CROP);
+        return (goldenMultiplier + plugin.getSkillTreeManager()
+                .totalOf(data, com.spacerng.solrng.player.SkillNode.Effect.GOLDEN_CROP))
+                * (1.0 + plugin.getPerkManager().totalOf(data, com.spacerng.solrng.perk.PerkStat.GOLDEN_CROP_PERCENT));
     }
 
     public void forgetGolden(UUID uuid) {

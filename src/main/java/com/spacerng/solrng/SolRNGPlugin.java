@@ -538,6 +538,10 @@ public final class SolRNGPlugin extends JavaPlugin {
         // notice the silence and take the Momentum bar down.
         getServer().getScheduler().runTaskTimer(this, () -> farmPlotManager.expireMomentum(), 40L, 40L);
 
+        // Hide Other Farmers, checked once a second.
+        var farmVisibility = new com.spacerng.solrng.farming.FarmVisibility(this);
+        getServer().getScheduler().runTaskTimer(this, farmVisibility::tick, 20L, 20L);
+
         // One sweep covers every milestone track for everyone. A tier
         // landing a second late is invisible, and this can't miss a value
         // change the way per-event hooks can.

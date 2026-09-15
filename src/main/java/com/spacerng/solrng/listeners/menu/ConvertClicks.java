@@ -181,7 +181,8 @@ final class ConvertClicks {
                 // converting a stack of 64 pays the average instead of an
                 // all-or-nothing double.
                 double refinery = plugin.getSkillTreeManager()
-                        .totalOf(data, com.spacerng.solrng.player.SkillNode.Effect.CONVERT_BONUS);
+                        .totalOf(data, com.spacerng.solrng.player.SkillNode.Effect.CONVERT_BONUS)
+                        + plugin.getPerkManager().totalOf(data, com.spacerng.solrng.perk.PerkStat.CONVERT_PERCENT);
                 long extra = 0L;
                 for (long i = 0; refinery > 0 && i < amount; i++) {
                     if (Math.random() < refinery) extra++;

@@ -17,39 +17,42 @@ import java.util.List;
  */
 public enum PerkType {
 
-    MONEY("Money Perk", ChatColor.GOLD, Material.GOLD_INGOT,
+    MONEY("Money Perk", ChatColor.GOLD, Material.GOLD_INGOT, "For rolling rich.",
             List.of(PerkStat.MONEY_PERCENT, PerkStat.COINS_PERCENT,
                     PerkStat.DUPLICATE_PERCENT, PerkStat.CONVERT_PERCENT)),
 
-    LUCK("Luck Perk", ChatColor.GREEN, Material.RABBIT_FOOT,
+    LUCK("Luck Perk", ChatColor.GREEN, Material.RABBIT_FOOT, "For chasing rarer drops.",
             List.of(PerkStat.LUCK_PERCENT, PerkStat.SHINY_PERCENT,
                     PerkStat.RARE_BAND_PUSH, PerkStat.MONEY_PERCENT)),
 
-    SPEED("Speed Perk", ChatColor.YELLOW, Material.SUGAR,
+    SPEED("Speed Perk", ChatColor.YELLOW, Material.SUGAR, "For more rolls per minute.",
             List.of(PerkStat.ROLL_SPEED_FLAT, PerkStat.BONUS_ROLL_PERCENT,
                     PerkStat.INSTANT_ROLL_PERCENT, PerkStat.LUCK_PERCENT)),
 
-    FARM("Farm Perk", ChatColor.DARK_GREEN, Material.WHEAT,
+    FARM("Farm Perk", ChatColor.DARK_GREEN, Material.WHEAT, "For time on the farm.",
             List.of(PerkStat.COINS_PERCENT, PerkStat.GOLDEN_CROP_PERCENT,
                     PerkStat.CROP_YIELD_PERCENT, PerkStat.ENCHANT_PROC_PERCENT)),
 
-    UNIVERSAL("Universal Perk", ChatColor.LIGHT_PURPLE, Material.NETHER_STAR,
+    UNIVERSAL("Universal Perk", ChatColor.LIGHT_PURPLE, Material.NETHER_STAR, "A little of everything.",
             List.of(PerkStat.LUCK_PERCENT, PerkStat.MONEY_PERCENT,
                     PerkStat.SHINY_PERCENT, PerkStat.BONUS_ROLL_PERCENT));
 
     private final String label;
     private final ChatColor colour;
     private final Material icon;
+    private final String description;
     private final List<PerkStat> pool;
 
-    PerkType(String label, ChatColor colour, Material icon, List<PerkStat> pool) {
+    PerkType(String label, ChatColor colour, Material icon, String description, List<PerkStat> pool) {
         this.label = label;
         this.colour = colour;
         this.icon = icon;
+        this.description = description;
         this.pool = pool;
     }
 
     public String label() { return label; }
+    public String description() { return description; }
     public ChatColor colour() { return colour; }
     public Material icon() { return icon; }
     public List<PerkStat> pool() { return pool; }

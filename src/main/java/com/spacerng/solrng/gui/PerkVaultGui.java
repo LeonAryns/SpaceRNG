@@ -3,9 +3,7 @@ package com.spacerng.solrng.gui;
 import com.spacerng.solrng.SolRNGPlugin;
 import com.spacerng.solrng.perk.PerkInstance;
 import com.spacerng.solrng.perk.PerkManager;
-import com.spacerng.solrng.perk.PerkStat;
 import com.spacerng.solrng.player.PlayerData;
-import com.spacerng.solrng.rarity.Rarity;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -17,6 +15,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -26,23 +25,30 @@ import java.util.UUID;
  *
  * Layout, distinct from every other menu in the plugin so a player
  * knows at a glance where they are:
- *   Row 1: the equipped loadout, one clickable slot per loadout position
- *          plus a Roll button, on a magenta glass rail.
+ *   Row 1: what the loadout adds up to, the equipped loadout, and the
+ *          Roller link, on a magenta glass rail.
  *   Row 2: divider of light-blue glass panes.
- *   Rows 3-5: paginated grid of vaulted perks. Clicking one equips or
- *          unequips it.
- *   Row 6: prev / next / back-to-roller.
+ *   Rows 3-5: paginated grid of vaulted perks, best first. Clicking one
+ *          equips or unequips it.
+ *   Row 6: prev / perk index / next.
  */
 public class PerkVaultGui {
 
     private static final int SIZE = 54;
-    private static final int LOADOUT_ROW = 0;
+    private static final int SUMMARY_SLOT = 0;
     private static final int ROLLER_SLOT = 8;
     private static final int VAULT_START = 18;
     private static final int VAULT_END = 44;
     private static final int PAGE_SIZE = VAULT_END - VAULT_START + 1;
     private static final int PREV_SLOT = 45;
+    private static final int INDEX_SLOT = 49;
     private static final int NEXT_SLOT = 53;
+
+    /** Best tier first, then highest level, so the good ones are on page one. */
+    private static final Comparator<PerkInstance> BEST_FIRST = Comparator
+            .comparing((PerkInstance p) -> p.tier().ordinal()).reversed()
+            .thenComparing(Comparator.comparingInt(PerkInstance::level).reversed())
+            .thenComparing(p -> p.type().ordinal());
 
     public static NamespacedKey perkIdKey(SolRNGPlugin plugin) {
         return SolRNGPlugin.key("solrng_perk_id");
@@ -51,6 +57,8 @@ public class PerkVaultGui {
     public static int prevSlot() { return PREV_SLOT; }
     public static int nextSlot() { return NEXT_SLOT; }
     public static int rollerSlot() { return ROLLER_SLOT; }
+    public static int indexSlot() { return INDEX_SLOT; }
+
     public static Inventory build(SolRNGPlugin plugin, Player player, int page) {
         PerkVaultHolder holder = new PerkVaultHolder();
         holder.setPage(page);
@@ -60,6 +68,7 @@ public class PerkVaultGui {
 
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         PerkManager perks = plugin.getPerkManager();
+        String style = PerkLore.style(plugin);
 
         // Rails: row 1 magenta, row 2 aqua divider, row 6 dark magenta.
         ItemStack magenta = pane(Material.MAGENTA_STAINED_GLASS_PANE);
@@ -71,20 +80,22 @@ public class PerkVaultGui {
         for (int i = 45; i < 54; i++) inv.setItem(i, purple);
         for (int i = 18; i < 45; i++) inv.setItem(i, filler);
 
-        // Equipped loadout row: N slots centred on 1..7, with Roll on 8.
+        // Equipped loadout row: N slots centred, the total on 0, Roll on 8.
+        inv.setItem(SUMMARY_SLOT, PerkLore.loadoutSummary(plugin, data));
         int slots = perks.loadoutSlots();
         int start = Math.max(1, (9 - slots) / 2);
         List<PerkInstance> equipped = data.getEquippedPerks();
-        for (int i = 0; i < slots; i++) {
-            int slot = start + i;
+        for (int i = 0; i < slots && start + i < ROLLER_SLOT; i++) {
             PerkInstance perk = i < equipped.size() ? equipped.get(i) : null;
-            inv.setItem(slot, perk == null ? emptySlotIcon(i + 1)
-                    : perkIcon(plugin, perk, true, false));
+            inv.setItem(start + i, perk == null ? emptySlotIcon(i + 1)
+                    : perkIcon(plugin, perk, true, false, style));
         }
         inv.setItem(ROLLER_SLOT, rollerLinkIcon(data));
 
-        // Vault contents
-        List<PerkInstance> vault = data.getPerkVault();
+        // Vault contents, best first. Clicks go by perk id, so the order
+        // shown never has to match the order saved.
+        List<PerkInstance> vault = new ArrayList<>(data.getPerkVault());
+        vault.sort(BEST_FIRST);
         int totalPages = Math.max(1, (int) Math.ceil(vault.size() / (double) PAGE_SIZE));
         page = Math.max(0, Math.min(page, totalPages - 1));
         int from = page * PAGE_SIZE;
@@ -92,7 +103,7 @@ public class PerkVaultGui {
         for (int i = from; i < to; i++) {
             PerkInstance perk = vault.get(i);
             boolean equippedFlag = data.isPerkEquipped(perk.id());
-            inv.setItem(VAULT_START + (i - from), perkIcon(plugin, perk, equippedFlag, true));
+            inv.setItem(VAULT_START + (i - from), perkIcon(plugin, perk, equippedFlag, true, style));
         }
         if (vault.isEmpty()) {
             inv.setItem(31, emptyVaultIcon());
@@ -103,37 +114,20 @@ public class PerkVaultGui {
                 "Previous", "Page " + page + " / " + totalPages));
         if (page < totalPages - 1) inv.setItem(NEXT_SLOT, navIcon(Material.ARROW,
                 "Next", "Page " + (page + 2) + " / " + totalPages));
+        inv.setItem(INDEX_SLOT, indexLinkIcon(data));
 
         return inv;
     }
 
     private static ItemStack perkIcon(SolRNGPlugin plugin, PerkInstance perk,
-                                      boolean equipped, boolean inVault) {
-        PerkManager perks = plugin.getPerkManager();
-        ItemStack item = new ItemStack(perk.type().icon());
+                                      boolean equipped, boolean inVault, String style) {
+        ItemStack item = PerkLore.item(plugin, perk, style);
         ItemMeta meta = item.getItemMeta();
-
-        String name = plugin.getRarityManager().style(perk.tier(), perk.display())
-                + ChatColor.GRAY + " " + perk.roman();
-        meta.setDisplayName(ChatColor.DARK_GRAY + "「 " + ChatColor.RESET
-                + ChatColor.BOLD + name + ChatColor.RESET + ChatColor.DARK_GRAY + " 」");
-
-        List<String> lore = new ArrayList<>();
-        lore.add(Lore.section(perk.type().colour(), perk.type().label()));
-        for (var entry : perks.statsOf(perk).entrySet()) {
-            PerkStat stat = entry.getKey();
-            lore.add(stat.colour() + Lore.BULLET + " " + ChatColor.GRAY + stat.label() + ": "
-                    + ChatColor.WHITE + stat.format(entry.getValue()));
-        }
-        lore.add("");
-        lore.add(Lore.section(ChatColor.AQUA, "Details"));
-        lore.add(Lore.stat(perk.tier() == Rarity.DIVINE ? ChatColor.LIGHT_PURPLE : ChatColor.AQUA,
-                "Tier", perk.tier().displayName()));
-        lore.add(Lore.stat(ChatColor.YELLOW, "Level", perk.roman()));
+        List<String> lore = new ArrayList<>(meta.getLore() == null ? List.of() : meta.getLore());
         lore.add("");
         if (equipped) {
-            lore.add(ChatColor.GREEN + "" + ChatColor.BOLD
-                    + (inVault ? "Equipped - click to unequip" : "Equipped"));
+            lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "Equipped");
+            lore.add(Lore.footnote("Click to unequip."));
         } else if (inVault) {
             lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to equip");
             lore.add(Lore.footnote("Shift-click to discard."));
@@ -171,8 +165,23 @@ public class PerkVaultGui {
         return item;
     }
 
+    static ItemStack indexLinkIcon(PlayerData data) {
+        ItemStack item = new ItemStack(Material.KNOWLEDGE_BOOK);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(Lore.title(ChatColor.LIGHT_PURPLE, "Perk Index"));
+        int total = com.spacerng.solrng.perk.PerkType.values().length
+                * com.spacerng.solrng.rarity.Rarity.values().length;
+        meta.setLore(List.of(
+                Lore.line(ChatColor.GRAY, "Every perk you can roll."),
+                Lore.stat(ChatColor.GREEN, "Found", data.getPerkIndex().size() + " / " + total),
+                "",
+                ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to open"));
+        item.setItemMeta(meta);
+        return item;
+    }
+
     private static ItemStack emptyVaultIcon() {
-        ItemStack item = new ItemStack(Material.GRAY_DYE);
+        ItemStack item = new ItemStack(Material.STONE_BUTTON);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(Lore.title(ChatColor.DARK_GRAY, "Empty"));
         meta.setLore(List.of(

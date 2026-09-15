@@ -96,6 +96,7 @@ public class PlayerDataManager {
         data.setWornAurasVisible(yml.getBoolean("worn-auras-visible", true));
         data.setOwnAuraView(yml.getString("own-aura-view", "ground"));
         data.setFarmSoundEnabled(yml.getBoolean("farm-sound-enabled", true));
+        data.setFarmHidePlayers(yml.getBoolean("farm-hide-players", false));
         data.setEnchantSoundEnabled(yml.getBoolean("enchant-sound-enabled", true));
         data.setRollCharges(yml.getLong("roll-charges", 0L), yml.getDouble("roll-charge-multiplier", 1.0));
         data.addBonusSpeed(yml.getDouble("bonus-speed", 0.0));
@@ -241,6 +242,12 @@ public class PlayerDataManager {
         for (var perk : data.getPerkVault()) {
             if (equippedIds.contains(perk.id())) data.getEquippedPerks().add(perk);
         }
+        var perkIndex = yml.getConfigurationSection("perk-index");
+        if (perkIndex != null) {
+            for (String key : perkIndex.getKeys(false)) data.getPerkIndex().put(key, perkIndex.getInt(key));
+        }
+        // Players who rolled perks before the index existed get what they still own.
+        for (var perk : data.getPerkVault()) data.recordPerk(perk);
 
         return data;
     }
@@ -326,6 +333,7 @@ public class PlayerDataManager {
         yml.set("worn-auras-visible", data.isWornAurasVisible());
         yml.set("own-aura-view", data.getOwnAuraView());
         yml.set("farm-sound-enabled", data.isFarmSoundEnabled());
+        yml.set("farm-hide-players", data.isFarmHidePlayers());
         yml.set("enchant-sound-enabled", data.isEnchantSoundEnabled());
         yml.set("roll-charges", data.getRollCharges());
         yml.set("potion-luck", data.getPotionLuck());
@@ -403,6 +411,8 @@ public class PlayerDataManager {
         java.util.List<String> equippedIds = new java.util.ArrayList<>();
         for (var perk : data.getEquippedPerks()) equippedIds.add(perk.id().toString());
         yml.set("perk-equipped", equippedIds);
+        yml.set("perk-index", null);
+        for (var entry : data.getPerkIndex().entrySet()) yml.set("perk-index." + entry.getKey(), entry.getValue());
 
         // The index mirrors the save, so it can never be staler than the
         // file it describes.

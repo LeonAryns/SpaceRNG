@@ -557,7 +557,8 @@ public class RollListener implements Listener {
 
     /** Instant Roll: the whole animation collapses to a single tick. */
     private boolean rollsInstantly(PlayerData data) {
-        double chance = plugin.getSkillTreeManager().totalOf(data, SkillNode.Effect.INSTANT_ROLL);
+        double chance = plugin.getSkillTreeManager().totalOf(data, SkillNode.Effect.INSTANT_ROLL)
+                + plugin.getPerkManager().totalOf(data, com.spacerng.solrng.perk.PerkStat.INSTANT_ROLL_PERCENT);
         return chance > 0.0 && random.nextDouble() < chance;
     }
 
@@ -649,7 +650,8 @@ public class RollListener implements Listener {
         // Double Roll skill tree branch: a chance to immediately chain into
         // another free roll, no click required.
         double bonusChance = data.getBonusRollChance()
-                + plugin.getSkillTreeManager().totalOf(data, SkillNode.Effect.BONUS_ROLL_CHANCE);
+                + plugin.getSkillTreeManager().totalOf(data, SkillNode.Effect.BONUS_ROLL_CHANCE)
+                + plugin.getPerkManager().totalOf(data, com.spacerng.solrng.perk.PerkStat.BONUS_ROLL_PERCENT);
         if (bonusChance > 0.0 && random.nextDouble() < bonusChance) {
             if (!auto) {
                 player.sendMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "Bonus Roll! " + ChatColor.RESET
@@ -805,6 +807,7 @@ public class RollListener implements Listener {
         double multiplier = com.spacerng.solrng.stats.StatSources.money(plugin, data).total();
         double dupe = duplicate
                 ? plugin.getSkillTreeManager().multiplierOf(data, SkillNode.Effect.DUPLICATE_BONUS)
+                        + plugin.getPerkManager().totalOf(data, com.spacerng.solrng.perk.PerkStat.DUPLICATE_PERCENT)
                 : 1.0;
 
         // Explorer: a drop new to the index pays more.

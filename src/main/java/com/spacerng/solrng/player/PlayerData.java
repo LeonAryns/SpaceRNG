@@ -100,6 +100,16 @@ public class PlayerData {
     // Farming's own two, toggled from the hoe menu rather than /options -
     // they belong next to the thing that makes the noise.
     private boolean farmSoundEnabled = true;
+    // Hide Other Farmers: other players vanish for this player near the farm.
+    private boolean farmHidePlayers = false;
+
+    public boolean isFarmHidePlayers() {
+        return farmHidePlayers;
+    }
+
+    public void setFarmHidePlayers(boolean farmHidePlayers) {
+        this.farmHidePlayers = farmHidePlayers;
+    }
     private boolean enchantSoundEnabled = true;
     // Timed boosts from potions, keyed by effect: {multiplier, expiry millis}.
     // One entry per effect rather than a list, so drinking a second potion
@@ -1146,6 +1156,27 @@ public class PlayerData {
             if (perk.id().equals(perkId)) return true;
         }
         return false;
+    }
+
+    // Perk index: the best level ever rolled for each type and tier, keyed
+    // "TYPE:TIER". Kept apart from the vault so a discarded perk stays found.
+    private final Map<String, Integer> perkIndex = new HashMap<>();
+
+    public Map<String, Integer> getPerkIndex() {
+        return perkIndex;
+    }
+
+    /** Best level found for a type and tier, 0 when never rolled. */
+    public int bestPerkLevel(com.spacerng.solrng.perk.PerkType type, com.spacerng.solrng.rarity.Rarity tier) {
+        return perkIndex.getOrDefault(type.name() + ":" + tier.name(), 0);
+    }
+
+    /** Records a perk in the index. True when this type and tier is new. */
+    public boolean recordPerk(PerkInstance perk) {
+        String key = perk.type().name() + ":" + perk.tier().name();
+        Integer before = perkIndex.get(key);
+        if (before == null || perk.level() > before) perkIndex.put(key, perk.level());
+        return before == null;
     }
 
     /** Removes a perk from the vault whether it is equipped or not. */

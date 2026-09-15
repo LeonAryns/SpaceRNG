@@ -70,7 +70,7 @@ public final class Lore {
     }
 
     /** What starts a fact line in the current theme, in the fact's colour. */
-    private static String mark(ChatColor colour) {
+    public static String mark(ChatColor colour) {
         return switch (theme) {
             case CLASSIC -> colour + BULLET + " ";
             case CLEAN -> "  ";

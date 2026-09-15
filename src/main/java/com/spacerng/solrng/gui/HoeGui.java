@@ -45,6 +45,11 @@ public class HoeGui {
     private static final int COINS_SLOT = 49;
     private static final int FARM_SOUND_SLOT = 47;
     private static final int ENCHANT_SOUND_SLOT = 51;
+    private static final int HIDE_PLAYERS_SLOT = 53;
+
+    public static int hidePlayersSlot() {
+        return HIDE_PLAYERS_SLOT;
+    }
 
     public static NamespacedKey enchantKey(SolRNGPlugin plugin) {
         return SolRNGPlugin.key( "solrng_hoe_enchant");
@@ -101,6 +106,8 @@ public class HoeGui {
                 data.isFarmSoundEnabled(), "The click of a crop coming up."));
         inv.setItem(ENCHANT_SOUND_SLOT, buildToggle(Material.BELL, "Enchant Sounds",
                 data.isEnchantSoundEnabled(), "The chime when an enchant fires."));
+        inv.setItem(HIDE_PLAYERS_SLOT, buildToggle(Material.ENDER_EYE, "Hide Other Farmers",
+                data.isFarmHidePlayers(), "Other players vanish while you're on the farm."));
         return inv;
     }
 

@@ -122,6 +122,29 @@ public class PerkManager {
 
     public int loadoutSlots() { return loadoutSlots; }
 
+    /** What a stat is worth on a Divine V perk, the most any one perk gives. */
+    public double ceilingOf(PerkStat stat) {
+        return statCeilings.getOrDefault(stat, 0.0);
+    }
+
+    /** Level chances I to V, as fractions of their total. */
+    public double levelChance(int level) {
+        double total = 0.0;
+        for (double v : levelChances) total += v;
+        int i = Math.max(1, Math.min(5, level)) - 1;
+        return total <= 0.0 ? 0.0 : levelChances[i] / total;
+    }
+
+    /** Chance one roll of this tier lands on one exact type and tier. */
+    public double chanceOf(Rarity rollTier, Rarity resultTier) {
+        RollTier roll = rolls.get(rollTier);
+        if (roll == null) return 0.0;
+        double total = 0.0;
+        for (double v : roll.tierChances().values()) total += v;
+        if (total <= 0.0) return 0.0;
+        return roll.tierChances().getOrDefault(resultTier, 0.0) / total / PerkType.values().length;
+    }
+
     public Map<Rarity, RollTier> getRolls() { return rolls; }
 
     public RollTier getRoll(Rarity tier) { return rolls.get(tier); }

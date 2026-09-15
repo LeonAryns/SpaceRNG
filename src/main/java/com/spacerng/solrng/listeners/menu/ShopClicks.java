@@ -73,6 +73,10 @@ final class ShopClicks {
             player.openInventory(com.spacerng.solrng.gui.PerkRollerGui.build(plugin, player));
             return;
         }
+        if (slot == com.spacerng.solrng.gui.PerkVaultGui.indexSlot()) {
+            player.openInventory(com.spacerng.solrng.gui.PerkIndexGui.build(plugin, player));
+            return;
+        }
         if (slot == com.spacerng.solrng.gui.PerkVaultGui.prevSlot()) {
             player.openInventory(com.spacerng.solrng.gui.PerkVaultGui.build(plugin, player,
                     Math.max(0, holder.getPage() - 1)));
@@ -142,6 +146,10 @@ final class ShopClicks {
             player.openInventory(com.spacerng.solrng.gui.PerkVaultGui.build(plugin, player, 0));
             return;
         }
+        if (event.getRawSlot() == com.spacerng.solrng.gui.PerkRollerGui.indexSlot()) {
+            player.openInventory(com.spacerng.solrng.gui.PerkIndexGui.build(plugin, player));
+            return;
+        }
 
         var clicked = event.getCurrentItem();
         if (clicked == null || clicked.getItemMeta() == null) return;
@@ -166,9 +174,14 @@ final class ShopClicks {
             return;
         }
 
+        boolean newInIndex = data.recordPerk(perk);
         String tierColored = plugin.getRarityManager().style(perk.tier(), perk.display());
         player.sendMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "New perk: "
                 + ChatColor.RESET + tierColored + ChatColor.GRAY + " " + perk.roman());
+        if (newInIndex) {
+            player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "New in your perk index! "
+                    + ChatColor.RESET + ChatColor.GRAY + data.getPerkIndex().size() + " found. See /perks index");
+        }
         // Reveal cue: a short one-frame flourish matching the tier.
         org.bukkit.Sound sound = switch (perk.tier()) {
             case DIVINE -> org.bukkit.Sound.UI_TOAST_CHALLENGE_COMPLETE;
@@ -180,6 +193,20 @@ final class ShopClicks {
         };
         player.playSound(player.getLocation(), sound, 0.9f, 1.2f);
         player.openInventory(com.spacerng.solrng.gui.PerkRollerGui.build(plugin, player));
+    }
+
+    /** Perk index: read-only, apart from the links to the roller and the vault. */
+    void handlePerkIndexClick(InventoryClickEvent event) {
+        event.setCancelled(true);
+        if (event.getClickedInventory() == null
+                || !(event.getClickedInventory().getHolder()
+                        instanceof com.spacerng.solrng.gui.PerkIndexHolder)) return;
+        Player player = (Player) event.getWhoClicked();
+        if (event.getRawSlot() == com.spacerng.solrng.gui.PerkIndexGui.backSlot()) {
+            player.openInventory(com.spacerng.solrng.gui.PerkRollerGui.build(plugin, player));
+        } else if (event.getRawSlot() == com.spacerng.solrng.gui.PerkIndexGui.vaultSlot()) {
+            player.openInventory(com.spacerng.solrng.gui.PerkVaultGui.build(plugin, player, 0));
+        }
     }
 
     void handleBuyClick(InventoryClickEvent event) {

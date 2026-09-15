@@ -201,6 +201,13 @@ final class PlayerMenuClicks {
             return;
         }
 
+        if (event.getRawSlot() == HoeGui.hidePlayersSlot()) {
+            data.setFarmHidePlayers(!data.isFarmHidePlayers());
+            player.openInventory(HoeGui.build(plugin, player));
+            player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.7f,
+                    data.isFarmHidePlayers() ? 1.5f : 0.8f);
+            return;
+        }
         if (event.getRawSlot() == HoeGui.farmSoundSlot()) {
             data.setFarmSoundEnabled(!data.isFarmSoundEnabled());
             player.openInventory(HoeGui.build(plugin, player));

@@ -33,6 +33,8 @@ public class PerkCommand implements CommandExecutor {
         }
         if (args.length > 0 && args[0].equalsIgnoreCase("vault")) {
             Menus.open(plugin, player, () -> PerkVaultGui.build(plugin, player, 0));
+        } else if (args.length > 0 && args[0].equalsIgnoreCase("index")) {
+            Menus.open(plugin, player, () -> com.spacerng.solrng.gui.PerkIndexGui.build(plugin, player));
         } else {
             Menus.open(plugin, player, () -> PerkRollerGui.build(plugin, player));
         }
