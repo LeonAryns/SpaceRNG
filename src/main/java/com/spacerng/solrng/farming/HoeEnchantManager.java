@@ -60,6 +60,10 @@ public class HoeEnchantManager {
         }
 
         for (String id : section.getKeys(false)) {
+            // Speed was taken off the hoe at Leon's request (V123); Growth
+            // nodes carry regrow speed. Skipped here too so a live config
+            // that still lists it doesn't show a locked card forever.
+            if (id.equalsIgnoreCase("SPEED")) continue;
             ConfigurationSection e = section.getConfigurationSection(id);
             if (e == null) continue;
             enchants.put(id.toUpperCase(), new Enchant(

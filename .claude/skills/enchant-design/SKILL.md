@@ -39,9 +39,9 @@ Decide which one an enchant is before writing a line of it, because the
 whole shape of its numbers follows.
 
 **Always-on.** The value is added to a number, every harvest, with no
-roll. Coin Greed, Speed, Momentum. `isProc()` must return false for
-these. `per-level` is a fraction of that number: `0.001` means "+0.1% per
-level".
+roll. Coin Greed, Momentum. `per-level` is a fraction of that number:
+`0.001` means "+0.1% per level". (Speed was one until V123 took it off
+the hoe; Growth nodes in /farmtree carry regrow speed now.)
 
 **Proc.** The value IS a probability, rolled once per crop. Gem Greed,
 TNT Blast, Key Finder. `per-level` is a chance per level, so
@@ -158,9 +158,10 @@ Read the enchant's power with `hoe.powerOf(data, "ID")`, which already
 folds in the level, the mastery cap and the global `ENCHANT_PROC`
 multiplier. Never read levels directly.
 
-`HoeEnchantManager.isProc(id)` decides how the number is presented, and
-`describePower` is what the menus quote. Both need a case for any enchant
-whose number is not a plain percentage.
+`describePower` in `HoeEnchantManager` is what the menus quote, and needs
+a case for any enchant whose number is not a plain percentage. (An
+`isProc` helper existed for the same job but nothing called it, and V119
+removed it.)
 
 ## Safety, which is not optional
 
@@ -218,6 +219,6 @@ An enchant nobody notices firing might as well not exist.
    it should follow, plus `ENCHANT_CAP` mastery if it needs the full
    range.
 7. Wire the effect at the right hook in `FarmPlotManager`.
-8. Add a case to `isProc` and, if the number is unusual, `describePower`.
+8. If the number is unusual, add a case to `describePower`.
 9. Give it a sound, and a particle if it is loud.
 10. Rebuild the hoe lore mentally: does the tooltip still fit on screen?

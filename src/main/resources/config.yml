@@ -8,7 +8,7 @@
 # their fresh defaults in on top of whatever is on disk, so a server
 # owner never has to delete the whole file to pick up a structural
 # change. Item table, prices and cosmetic tweaks are untouched.
-config-version: 8
+config-version: 9
 
 # One-off value changes the plugin has already made to this file, so none
 # is ever made twice. Managed by the plugin; leave it alone.
@@ -290,21 +290,6 @@ farming:
   # a season.
   enchants:
     # ---- Always on ----
-    SPEED:
-      display: "Speed"
-      icon: SUGAR
-      base-cost: 500
-      cost-linear: 84.08408408408408
-      cost-step: 0.23284915731139
-      cost-power: 2.0
-      description: "Your crops regrow faster."
-      color: "&a"
-      max-level: 1000
-      base-cap: 100
-      per-level: 0.0007
-      # 70% of crops at the ceiling. Level 1 costs 584, level 1,000 costs 317,433,
-      # 120,000,000 Coins for all of it.
-
     TOKEN_GREED:
       display: "Coin Greed"
       icon: GOLD_NUGGET
@@ -3366,259 +3351,36 @@ consumables:
 #                 the base-cap of 100 toward the hard 1000
 #   HOE_TIER      walks the hoe itself up farming.hoe-tiers
 farmtree:
-  reserved: ["2,1", "3,1", "4,1", "5,1", "6,1", "7,1", "8,1",
-             "2,2", "3,2", "4,2", "5,2", "6,2", "7,2", "8,2",
-             "2,3", "3,3", "4,3", "5,3", "6,3", "7,3", "8,3",
-             "2,4", "3,4", "4,4", "5,4", "6,4", "7,4", "8,4",
-             "2,5", "3,5", "4,5", "5,5", "6,5", "7,5", "8,5",
-             "2,6", "3,6", "4,6", "5,6", "6,6", "7,6", "8,6"]
+  # Three pages on the same 24 slot frame as /skilltree. On every page:
+  #   middle line  the page's first crop at the root, its yield, Golden
+  #                Harvest, Growth, then the page's second crop at row 2
+  #                and what hangs off it
+  #   left line    the hoe: three enchants for the first crop, a tool
+  #                upgrade, three enchants for the second crop, and one
+  #                more off the side
+  #   right line   the harvest: Coins, Gems, Growth and Proc Chance
+  #
+  # The second crop also needs the third enchant and the first Gems node
+  # (requires-all), so a new crop means climbing half the page on all
+  # three lines, not two clicks up the middle.
+  #
+  # Prices follow depth from the page's root: base x 1.62^depth. Enchant
+  # unlocks cost 8x a skill at the same depth, because each one opens a
+  # Coin sink on the hoe; the second crop costs 3x. Each page's base is 30x
+  # the last: 4,000, then 120,000, then 3,600,000.
+  #
+  # The Speed enchant is gone at Leon's request; Growth V and VI carry
+  # regrow speed instead.
+  reserved: []
   pages: 3
   page-names: ["Cultivation", "Abundance", "Uncharted"]
-  # Rebuilt so the enchants sit AMONG the farm skills rather than
-  # in one block at the end, and so every price follows how deep the
-  # node is: cost = 4000 x 1.62^depth.
   nodes:
-    enchant_green_thumb:
-      display: "Speed"
-      page: 1
-      slot: "2,6"
-      icon: "BONE_BLOCK"
-      cost-money: 72300
-      requires: "tokens_3"
-      effect: "UNLOCK_ENCHANT"
-      value: 0
-      target: "SPEED"
 
-    enchant_token_greed:
-      display: "Coin Greed"
-      page: 1
-      slot: "3,5"
-      icon: "GOLD_NUGGET"
-      cost-money: 117100
-      requires: "enchant_green_thumb"
-      effect: "UNLOCK_ENCHANT"
-      value: 0
-      target: "TOKEN_GREED"
+    # ====================================================================
+    #  PAGE 1 - CULTIVATION: Wheat and Carrots
+    # ====================================================================
 
-    yield_potatoes:
-      display: "Potato Yield"
-      page: 1
-      slot: "5,1"
-      icon: "COMPOSTER"
-      cost-money: 44600
-      cost-growth: 1.3
-      requires: "crop_potatoes"
-      effect: "CROP_YIELD"
-      value: 0.15
-      max-level: 10
-      target: "POTATOES"
-
-    enchant_shard_greed:
-      display: "Gem Greed"
-      page: 1
-      slot: "2,4"
-      icon: "PRISMARINE_CRYSTALS"
-      cost-money: 189700
-      requires: "enchant_token_greed"
-      effect: "UNLOCK_ENCHANT"
-      value: 0
-      target: "SHARD_GREED"
-
-    enchant_fortune:
-      display: "Key Finder"
-      page: 1
-      slot: "3,3"
-      icon: "EMERALD"
-      cost-money: 307400
-      requires: "enchant_shard_greed"
-      effect: "UNLOCK_ENCHANT"
-      value: 0
-      target: "KEY_FINDER"
-
-    tokens_3:
-      display: "Coins III"
-      page: 1
-      slot: "4,2"
-      icon: "HAY_BLOCK"
-      cost-money: 44600
-      cost-growth: 1.3
-      requires: "crop_potatoes"
-      effect: "TOKEN_GAIN"
-      value: 0.35
-      max-level: 10
-
-    crop_potatoes:
-      display: "Potatoes"
-      page: 1
-      slot: "5,2"
-      icon: "POTATO"
-      cost-money: 27500
-      requires: "yield_carrots"
-      effect: "UNLOCK_CROP"
-      value: 0
-      target: "POTATOES"
-
-    gems_2:
-      display: "Gems II"
-      page: 1
-      slot: "6,2"
-      icon: "DIAMOND"
-      cost-money: 44600
-      cost-growth: 1.28
-      requires: "crop_potatoes"
-      effect: "GEM_MULTIPLIER"
-      value: 0.2
-      max-level: 10
-
-    growth_2:
-      display: "Growth II"
-      page: 1
-      slot: "7,2"
-      icon: "BONE_MEAL"
-      cost-money: 72300
-      cost-growth: 1.28
-      requires: "gems_2"
-      effect: "FARM_SPEED"
-      value: 0.03
-      max-level: 10
-
-    hoe_tier_1:
-      display: "Tool Upgrade"
-      page: 1
-      slot: "8,2"
-      icon: "SMITHING_TABLE"
-      cost-money: 117100
-      cost-growth: 2.2
-      requires: "growth_2"
-      effect: "HOE_TIER"
-      value: 1
-      max-level: 3
-
-    enchant_blast:
-      display: "Blast Harvest"
-      page: 1
-      slot: "2,2"
-      icon: "TNT"
-      cost-money: 498000
-      requires: "enchant_fortune"
-      effect: "UNLOCK_ENCHANT"
-      value: 0
-      target: "BLAST_HARVEST"
-
-    enchant_momentum:
-      display: "Momentum"
-      page: 1
-      slot: "3,2"
-      icon: "FEATHER"
-      cost-money: 806700
-      requires: "enchant_blast"
-      effect: "UNLOCK_ENCHANT"
-      value: 0
-      target: "MOMENTUM"
-
-    yield_carrots:
-      display: "Carrot Yield"
-      page: 1
-      slot: "5,3"
-      icon: "COMPOSTER"
-      cost-money: 17000
-      cost-growth: 1.28
-      requires: "crop_carrots"
-      effect: "CROP_YIELD"
-      value: 0.12
-      max-level: 10
-      target: "CARROTS"
-
-    enchant_potion_finder:
-      display: "Potion Finder"
-      page: 1
-      slot: "2,1"
-      icon: "BREWING_STAND"
-      cost-money: 1306900
-      requires: "enchant_momentum"
-      effect: "UNLOCK_ENCHANT"
-      value: 0
-      target: "POTION_FINDER"
-
-    enchant_lightning:
-      display: "Lightning"
-      page: 1
-      slot: "3,1"
-      icon: "LIGHTNING_ROD"
-      cost-money: 2117200
-      requires: "enchant_potion_finder"
-      effect: "UNLOCK_ENCHANT"
-      value: 0
-      target: "LIGHTNING"
-
-    tokens_2:
-      display: "Coins II"
-      page: 1
-      slot: "4,4"
-      icon: "HAY_BLOCK"
-      cost-money: 17000
-      cost-growth: 1.28
-      requires: "crop_carrots"
-      effect: "TOKEN_GAIN"
-      value: 0.2
-      max-level: 10
-
-    crop_carrots:
-      display: "Carrots"
-      page: 1
-      slot: "5,4"
-      icon: "CARROT"
-      cost-money: 10500
-      requires: "yield_wheat"
-      effect: "UNLOCK_CROP"
-      value: 0
-      target: "CARROTS"
-
-    gems_1:
-      display: "Gems I"
-      page: 1
-      slot: "6,4"
-      icon: "DIAMOND"
-      cost-money: 17000
-      cost-growth: 1.26
-      requires: "crop_carrots"
-      effect: "GEM_MULTIPLIER"
-      value: 0.1
-      max-level: 10
-
-    proc_1:
-      display: "Proc Chance I"
-      page: 1
-      slot: "7,4"
-      icon: "FIREWORK_STAR"
-      cost-money: 27500
-      requires: "gems_1"
-      effect: "ENCHANT_PROC"
-      value: 0.1
-
-    farming_shards:
-      display: "Gem Harvest"
-      page: 1
-      slot: "8,4"
-      icon: "AMETHYST_CLUSTER"
-      cost-money: 44600
-      requires: "proc_1"
-      effect: "UNLOCK_SHARDS"
-      value: 0
-
-    yield_wheat:
-      display: "Wheat Yield"
-      page: 1
-      slot: "5,5"
-      icon: "COMPOSTER"
-      cost-money: 6500
-      cost-growth: 1.26
-      requires: "crop_wheat"
-      effect: "CROP_YIELD"
-      value: 0.1
-      max-level: 10
-      target: "WHEAT"
-
+    # -- Middle line --
     crop_wheat:
       display: "Wheat Field"
       page: 1
@@ -3630,10 +3392,191 @@ farmtree:
       value: 0
       target: "WHEAT"
 
+    yield_wheat:
+      display: "Wheat Yield"
+      page: 1
+      slot: "5,5"
+      icon: "COMPOSTER"
+      cost-money: 6500
+      cost-growth: 1.25
+      requires: "crop_wheat"
+      effect: "CROP_YIELD"
+      value: 0.1
+      max-level: 10
+      target: "WHEAT"
+
+    golden_crop:
+      display: "Golden Harvest I"
+      page: 1
+      slot: "5,4"
+      icon: "GOLD_NUGGET"
+      cost-money: 10500
+      cost-growth: 1.55
+      requires: "yield_wheat"
+      effect: "GOLDEN_CROP"
+      value: 2
+      max-level: 10
+
+    growth_1:
+      display: "Growth I"
+      page: 1
+      slot: "5,3"
+      icon: "BONE_MEAL"
+      cost-money: 17000
+      cost-growth: 1.25
+      requires: "golden_crop"
+      effect: "FARM_SPEED"
+      value: 0.02
+      max-level: 10
+
+    crop_carrots:
+      display: "Carrots"
+      page: 1
+      slot: "5,2"
+      icon: "CARROT"
+      cost-money: 82700
+      requires: "growth_1"
+      requires-all: ["enchant_momentum", "gems_1"]
+      effect: "UNLOCK_CROP"
+      value: 0
+      target: "CARROTS"
+
+    yield_carrots:
+      display: "Carrot Yield"
+      page: 1
+      slot: "5,1"
+      icon: "COMPOSTER"
+      cost-money: 44600
+      cost-growth: 1.25
+      requires: "crop_carrots"
+      effect: "CROP_YIELD"
+      value: 0.12
+      max-level: 10
+      target: "CARROTS"
+
+    yield_wheat_2:
+      display: "Wheat Yield II"
+      page: 1
+      slot: "4,2"
+      icon: "COMPOSTER"
+      cost-money: 44600
+      cost-growth: 1.25
+      requires: "crop_carrots"
+      effect: "CROP_YIELD"
+      value: 0.1
+      max-level: 10
+      target: "WHEAT"
+
+    yield_carrots_2:
+      display: "Carrot Yield II"
+      page: 1
+      slot: "6,2"
+      icon: "COMPOSTER"
+      cost-money: 44600
+      cost-growth: 1.25
+      requires: "crop_carrots"
+      effect: "CROP_YIELD"
+      value: 0.12
+      max-level: 10
+      target: "CARROTS"
+
+    # -- Left line: the hoe --
+    enchant_token_greed:
+      display: "Coin Greed"
+      page: 1
+      slot: "4,5"
+      icon: "GOLD_NUGGET"
+      cost-money: 51800
+      requires: "crop_wheat"
+      effect: "UNLOCK_ENCHANT"
+      value: 0
+      target: "TOKEN_GREED"
+
+    enchant_shard_greed:
+      display: "Gem Greed"
+      page: 1
+      slot: "3,5"
+      icon: "PRISMARINE_CRYSTALS"
+      cost-money: 84000
+      requires: "enchant_token_greed"
+      effect: "UNLOCK_ENCHANT"
+      value: 0
+      target: "SHARD_GREED"
+
+    enchant_momentum:
+      display: "Momentum"
+      page: 1
+      slot: "2,5"
+      icon: "FEATHER"
+      cost-money: 136000
+      requires: "enchant_shard_greed"
+      effect: "UNLOCK_ENCHANT"
+      value: 0
+      target: "MOMENTUM"
+
+    hoe_tier_1:
+      display: "Tool Upgrade"
+      page: 1
+      slot: "2,4"
+      icon: "SMITHING_TABLE"
+      cost-money: 27600
+      cost-growth: 2.2
+      requires: "enchant_momentum"
+      effect: "HOE_TIER"
+      value: 1
+      max-level: 3
+
+    enchant_fortune:
+      display: "Key Finder"
+      page: 1
+      slot: "2,3"
+      icon: "EMERALD"
+      cost-money: 357000
+      requires: "hoe_tier_1"
+      requires-all: ["crop_carrots"]
+      effect: "UNLOCK_ENCHANT"
+      value: 0
+      target: "KEY_FINDER"
+
+    enchant_blast:
+      display: "Blast Harvest"
+      page: 1
+      slot: "2,2"
+      icon: "TNT"
+      cost-money: 578400
+      requires: "enchant_fortune"
+      effect: "UNLOCK_ENCHANT"
+      value: 0
+      target: "BLAST_HARVEST"
+
+    enchant_potion_finder:
+      display: "Potion Finder"
+      page: 1
+      slot: "2,1"
+      icon: "BREWING_STAND"
+      cost-money: 937000
+      requires: "enchant_blast"
+      effect: "UNLOCK_ENCHANT"
+      value: 0
+      target: "POTION_FINDER"
+
+    enchant_lightning:
+      display: "Lightning"
+      page: 1
+      slot: "3,3"
+      icon: "LIGHTNING_ROD"
+      cost-money: 1518000
+      requires: "enchant_fortune"
+      requires-all: ["enchant_potion_finder"]
+      effect: "UNLOCK_ENCHANT"
+      value: 0
+      target: "LIGHTNING"
+
+    # -- Right line: the harvest --
     tokens_1:
       display: "Coins I"
       page: 1
-      slot: "6,6"
+      slot: "6,5"
       icon: "HAY_BLOCK"
       cost-money: 6500
       cost-growth: 1.25
@@ -3642,25 +3585,199 @@ farmtree:
       value: 0.1
       max-level: 10
 
-    growth_1:
-      display: "Growth I"
+    farming_shards:
+      display: "Gem Harvest"
       page: 1
-      slot: "7,6"
-      icon: "BONE_MEAL"
+      slot: "7,5"
+      icon: "AMETHYST_CLUSTER"
       cost-money: 10500
-      cost-growth: 1.25
       requires: "tokens_1"
-      effect: "FARM_SPEED"
-      value: 0.02
+      effect: "UNLOCK_SHARDS"
+      value: 0
+
+    gems_1:
+      display: "Gems I"
+      page: 1
+      slot: "8,5"
+      icon: "DIAMOND"
+      cost-money: 17000
+      cost-growth: 1.25
+      requires: "farming_shards"
+      effect: "GEM_MULTIPLIER"
+      value: 0.1
       max-level: 10
 
+    growth_2:
+      display: "Growth II"
+      page: 1
+      slot: "8,4"
+      icon: "BONE_MEAL"
+      cost-money: 27600
+      cost-growth: 1.25
+      requires: "gems_1"
+      effect: "FARM_SPEED"
+      value: 0.03
+      max-level: 10
+
+    tokens_2:
+      display: "Coins II"
+      page: 1
+      slot: "8,3"
+      icon: "HAY_BLOCK"
+      cost-money: 44600
+      cost-growth: 1.25
+      requires: "growth_2"
+      effect: "TOKEN_GAIN"
+      value: 0.2
+      max-level: 10
+
+    gems_2:
+      display: "Gems II"
+      page: 1
+      slot: "8,2"
+      icon: "DIAMOND"
+      cost-money: 72300
+      cost-growth: 1.25
+      requires: "tokens_2"
+      effect: "GEM_MULTIPLIER"
+      value: 0.2
+      max-level: 10
+
+    tokens_3:
+      display: "Coins III"
+      page: 1
+      slot: "8,1"
+      icon: "HAY_BLOCK"
+      cost-money: 117100
+      cost-growth: 1.25
+      requires: "gems_2"
+      effect: "TOKEN_GAIN"
+      value: 0.35
+      max-level: 10
+
+    proc_1:
+      display: "Proc Chance I"
+      page: 1
+      slot: "7,3"
+      icon: "FIREWORK_STAR"
+      cost-money: 72300
+      requires: "tokens_2"
+      effect: "ENCHANT_PROC"
+      value: 0.1
+
+    # ====================================================================
+    #  PAGE 2 - ABUNDANCE: Potatoes and Beetroot
+    # ====================================================================
+
+    # -- Middle line --
+    crop_potatoes:
+      display: "Potatoes"
+      page: 2
+      slot: "5,6"
+      icon: "POTATO"
+      cost-money: 120000
+      requires: "yield_carrots"
+      requires-all: ["enchant_potion_finder", "tokens_3"]
+      effect: "UNLOCK_CROP"
+      value: 0
+      target: "POTATOES"
+
+    yield_potatoes:
+      display: "Potato Yield"
+      page: 2
+      slot: "5,5"
+      icon: "COMPOSTER"
+      cost-money: 194400
+      cost-growth: 1.3
+      requires: "crop_potatoes"
+      effect: "CROP_YIELD"
+      value: 0.15
+      max-level: 10
+      target: "POTATOES"
+
+    golden_crop_2:
+      display: "Golden Harvest II"
+      page: 2
+      slot: "5,4"
+      icon: "GOLD_NUGGET"
+      cost-money: 314900
+      cost-growth: 1.55
+      requires: "yield_potatoes"
+      effect: "GOLDEN_CROP"
+      value: 3
+      max-level: 10
+
+    growth_3:
+      display: "Growth III"
+      page: 2
+      slot: "5,3"
+      icon: "BONE_MEAL"
+      cost-money: 510200
+      cost-growth: 1.3
+      requires: "golden_crop_2"
+      effect: "FARM_SPEED"
+      value: 0.04
+      max-level: 10
+
+    crop_beetroot:
+      display: "Beetroot"
+      page: 2
+      slot: "5,2"
+      icon: "BEETROOT"
+      cost-money: 2479500
+      requires: "growth_3"
+      requires-all: ["enchant_prospector", "gems_3"]
+      effect: "UNLOCK_CROP"
+      value: 0
+      target: "BEETROOTS"
+
+    yield_beetroot:
+      display: "Beetroot Yield"
+      page: 2
+      slot: "5,1"
+      icon: "COMPOSTER"
+      cost-money: 1338900
+      cost-growth: 1.3
+      requires: "crop_beetroot"
+      effect: "CROP_YIELD"
+      value: 0.18
+      max-level: 10
+      target: "BEETROOTS"
+
+    yield_potatoes_2:
+      display: "Potato Yield II"
+      page: 2
+      slot: "4,2"
+      icon: "COMPOSTER"
+      cost-money: 1338900
+      cost-growth: 1.3
+      requires: "crop_beetroot"
+      effect: "CROP_YIELD"
+      value: 0.15
+      max-level: 10
+      target: "POTATOES"
+
+    yield_beetroot_2:
+      display: "Beetroot Yield II"
+      page: 2
+      slot: "6,2"
+      icon: "COMPOSTER"
+      cost-money: 1338900
+      cost-growth: 1.3
+      requires: "crop_beetroot"
+      effect: "CROP_YIELD"
+      value: 0.18
+      max-level: 10
+      target: "BEETROOTS"
+
+    # -- Left line: the hoe --
     nova_finder:
       display: "Nova Finder"
       page: 2
-      slot: "2,6"
+      slot: "4,5"
       icon: "HEART_OF_THE_SEA"
-      cost-money: 3429800
-      requires: "enchant_lightning"
+      cost-money: 1555200
+      requires: "crop_potatoes"
       effect: "UNLOCK_ENCHANT"
       value: 0
       target: "NOVA_FINDER"
@@ -3670,100 +3787,53 @@ farmtree:
       page: 2
       slot: "3,5"
       icon: "HOPPER"
-      cost-money: 5556300
+      cost-money: 2519500
       requires: "nova_finder"
       effect: "UNLOCK_ENCHANT"
       value: 0
       target: "COIN_FACTORY"
 
-    yield_berries:
-      display: "Sweet Berry Yield"
-      page: 2
-      slot: "5,1"
-      icon: "COMPOSTER"
-      cost-money: 806700
-      cost-growth: 1.34
-      requires: "crop_berries"
-      effect: "CROP_YIELD"
-      value: 0.25
-      max-level: 10
-      target: "SWEET_BERRIES"
-
     enchant_prospector:
       display: "Prospector"
       page: 2
-      slot: "2,4"
+      slot: "2,5"
       icon: "RAW_GOLD"
-      cost-money: 9001200
+      cost-money: 4081500
       requires: "enchant_coin_factory"
       effect: "UNLOCK_ENCHANT"
       value: 0
       target: "PROSPECTOR"
 
-    growth_4:
-      display: "Growth IV"
+    hoe_tier_2:
+      display: "Tool Mastery"
       page: 2
-      slot: "7,2"
-      icon: "BONE_MEAL"
-      cost-money: 1306900
-      cost-growth: 1.32
-      requires: "tokens_6"
-      effect: "FARM_SPEED"
-      value: 0.05
-      max-level: 10
+      slot: "2,4"
+      icon: "SMITHING_TABLE"
+      cost-money: 826500
+      cost-growth: 2.5
+      requires: "enchant_prospector"
+      effect: "HOE_TIER"
+      value: 1
+      max-level: 2
 
     enchant_golden_touch:
       display: "Golden Touch"
       page: 2
-      slot: "3,3"
+      slot: "2,3"
       icon: "GOLDEN_HOE"
-      cost-money: 14581900
-      requires: "enchant_prospector"
+      cost-money: 10711300
+      requires: "hoe_tier_2"
+      requires-all: ["crop_beetroot"]
       effect: "UNLOCK_ENCHANT"
       value: 0
       target: "GOLDEN_TOUCH"
-
-    tokens_6:
-      display: "Coins VI"
-      page: 2
-      slot: "4,2"
-      icon: "HAY_BLOCK"
-      cost-money: 806700
-      cost-growth: 1.36
-      requires: "crop_berries"
-      effect: "TOKEN_GAIN"
-      value: 1
-      max-level: 10
-
-    crop_berries:
-      display: "Sweet Berries"
-      page: 2
-      slot: "5,2"
-      icon: "SWEET_BERRIES"
-      cost-money: 498000
-      requires: "yield_netherwart"
-      effect: "UNLOCK_CROP"
-      value: 0
-      target: "SWEET_BERRIES"
-
-    gems_5:
-      display: "Gems V"
-      page: 2
-      slot: "6,2"
-      icon: "DIAMOND"
-      cost-money: 806700
-      cost-growth: 1.34
-      requires: "crop_berries"
-      effect: "GEM_MULTIPLIER"
-      value: 0.75
-      max-level: 10
 
     enchant_gem_rush:
       display: "Gem Rush"
       page: 2
       slot: "2,2"
       icon: "AMETHYST_CLUSTER"
-      cost-money: 23622700
+      cost-money: 17352600
       requires: "enchant_golden_touch"
       effect: "UNLOCK_ENCHANT"
       value: 0
@@ -3772,184 +3842,242 @@ farmtree:
     enchant_harvest_echo:
       display: "Harvest Echo"
       page: 2
-      slot: "3,2"
+      slot: "2,1"
       icon: "SCULK_SENSOR"
-      cost-money: 38268800
+      cost-money: 28111000
       requires: "enchant_gem_rush"
       effect: "UNLOCK_ENCHANT"
       value: 0
       target: "HARVEST_ECHO"
 
-    golden_crop:
-      display: "Golden Harvest"
+    enchant_alchemy:
+      display: "Alchemy"
       page: 2
-      slot: "4,3"
-      icon: "GOLD_NUGGET"
-      cost-money: 498000
-      cost-growth: 1.55
-      requires: "tokens_5"
-      effect: "GOLDEN_CROP"
-      value: 2
+      slot: "3,3"
+      icon: "BREWING_STAND"
+      cost-money: 45542400
+      requires: "enchant_golden_touch"
+      requires-all: ["enchant_harvest_echo"]
+      effect: "UNLOCK_ENCHANT"
+      value: 0
+      target: "ALCHEMY"
+
+    # -- Right line: the harvest --
+    tokens_4:
+      display: "Coins IV"
+      page: 2
+      slot: "6,5"
+      icon: "HAY_BLOCK"
+      cost-money: 194400
+      cost-growth: 1.3
+      requires: "crop_potatoes"
+      effect: "TOKEN_GAIN"
+      value: 0.5
       max-level: 10
+
+    proc_2:
+      display: "Proc Chance II"
+      page: 2
+      slot: "7,5"
+      icon: "FIREWORK_STAR"
+      cost-money: 314900
+      requires: "tokens_4"
+      effect: "ENCHANT_PROC"
+      value: 0.1
+
+    gems_3:
+      display: "Gems III"
+      page: 2
+      slot: "8,5"
+      icon: "DIAMOND"
+      cost-money: 510200
+      cost-growth: 1.3
+      requires: "proc_2"
+      effect: "GEM_MULTIPLIER"
+      value: 0.35
+      max-level: 10
+
+    growth_4:
+      display: "Growth IV"
+      page: 2
+      slot: "8,4"
+      icon: "BONE_MEAL"
+      cost-money: 826500
+      cost-growth: 1.3
+      requires: "gems_3"
+      effect: "FARM_SPEED"
+      value: 0.05
+      max-level: 10
+
+    tokens_5:
+      display: "Coins V"
+      page: 2
+      slot: "8,3"
+      icon: "HAY_BLOCK"
+      cost-money: 1338900
+      cost-growth: 1.3
+      requires: "growth_4"
+      effect: "TOKEN_GAIN"
+      value: 0.75
+      max-level: 10
+
+    gems_4:
+      display: "Gems IV"
+      page: 2
+      slot: "8,2"
+      icon: "DIAMOND"
+      cost-money: 2169100
+      cost-growth: 1.3
+      requires: "tokens_5"
+      effect: "GEM_MULTIPLIER"
+      value: 0.5
+      max-level: 10
+
+    tokens_6:
+      display: "Coins VI"
+      page: 2
+      slot: "8,1"
+      icon: "HAY_BLOCK"
+      cost-money: 3513900
+      cost-growth: 1.3
+      requires: "gems_4"
+      effect: "TOKEN_GAIN"
+      value: 1
+      max-level: 10
+
+    gems_5:
+      display: "Gems V"
+      page: 2
+      slot: "7,3"
+      icon: "DIAMOND"
+      cost-money: 2169100
+      cost-growth: 1.3
+      requires: "tokens_5"
+      effect: "GEM_MULTIPLIER"
+      value: 0.75
+      max-level: 10
+
+    # ====================================================================
+    #  PAGE 3 - UNCHARTED: Nether Wart and Sweet Berries
+    # ====================================================================
+
+    # -- Middle line --
+    crop_netherwart:
+      display: "Nether Wart"
+      page: 3
+      slot: "5,6"
+      icon: "NETHER_WART"
+      cost-money: 3600000
+      requires: "yield_beetroot"
+      requires-all: ["enchant_harvest_echo", "tokens_6"]
+      effect: "UNLOCK_CROP"
+      value: 0
+      target: "NETHER_WART"
 
     yield_netherwart:
       display: "Nether Wart Yield"
-      page: 2
-      slot: "5,3"
+      page: 3
+      slot: "5,5"
       icon: "COMPOSTER"
-      cost-money: 307400
-      cost-growth: 1.32
+      cost-money: 5832000
+      cost-growth: 1.35
       requires: "crop_netherwart"
       effect: "CROP_YIELD"
       value: 0.22
       max-level: 10
       target: "NETHER_WART"
 
-    enchant_alchemy:
-      display: "Alchemy"
-      page: 2
-      slot: "2,1"
-      icon: "BREWING_STAND"
-      cost-money: 61995500
-      requires: "enchant_harvest_echo"
+    golden_crop_3:
+      display: "Golden Harvest III"
+      page: 3
+      slot: "5,4"
+      icon: "GOLD_NUGGET"
+      cost-money: 9447800
+      cost-growth: 1.55
+      requires: "yield_netherwart"
+      effect: "GOLDEN_CROP"
+      value: 4
+      max-level: 10
+
+    growth_5:
+      display: "Growth V"
+      page: 3
+      slot: "5,3"
+      icon: "BONE_MEAL"
+      cost-money: 15305400
+      cost-growth: 1.35
+      requires: "golden_crop_3"
+      effect: "FARM_SPEED"
+      value: 0.06
+      max-level: 10
+
+    crop_berries:
+      display: "Sweet Berries"
+      page: 3
+      slot: "5,2"
+      icon: "SWEET_BERRIES"
+      cost-money: 74385000
+      requires: "growth_5"
+      requires-all: ["enchant_meteor", "gems_6"]
+      effect: "UNLOCK_CROP"
+      value: 0
+      target: "SWEET_BERRIES"
+
+    enchant_supernova:
+      display: "Supernova"
+      page: 3
+      slot: "5,1"
+      icon: "NETHER_STAR"
+      cost-money: 2213000000
+      requires: "crop_berries"
+      requires-all: ["enchant_nuke"]
       effect: "UNLOCK_ENCHANT"
       value: 0
-      target: "ALCHEMY"
+      target: "SUPERNOVA"
 
+    yield_berries:
+      display: "Sweet Berry Yield"
+      page: 3
+      slot: "4,2"
+      icon: "COMPOSTER"
+      cost-money: 40167700
+      cost-growth: 1.35
+      requires: "crop_berries"
+      effect: "CROP_YIELD"
+      value: 0.25
+      max-level: 10
+      target: "SWEET_BERRIES"
+
+    mastery_1:
+      display: "Enchant Mastery I"
+      page: 3
+      slot: "6,2"
+      icon: "ENCHANTED_BOOK"
+      cost-money: 4764259500
+      cost-growth: 1.55
+      requires: "crop_berries"
+      effect: "ENCHANT_CAP"
+      value: 90.0
+      max-level: 5
+
+    # -- Left line: the hoe --
     enchant_gem_cascade:
       display: "Gem Cascade"
-      page: 2
-      slot: "3,1"
+      page: 3
+      slot: "4,5"
       icon: "PRISMARINE_SHARD"
-      cost-money: 100432700
-      requires: "enchant_alchemy"
+      cost-money: 46656000
+      requires: "crop_netherwart"
       effect: "UNLOCK_ENCHANT"
       value: 0
       target: "GEM_CASCADE"
 
-    tokens_5:
-      display: "Coins V"
-      page: 2
-      slot: "4,4"
-      icon: "HAY_BLOCK"
-      cost-money: 307400
-      cost-growth: 1.34
-      requires: "crop_netherwart"
-      effect: "TOKEN_GAIN"
-      value: 0.75
-      max-level: 10
-
-    crop_netherwart:
-      display: "Nether Wart"
-      page: 2
-      slot: "5,4"
-      icon: "NETHER_WART"
-      cost-money: 189700
-      requires: "yield_beetroot"
-      effect: "UNLOCK_CROP"
-      value: 0
-      target: "NETHER_WART"
-
-    gems_4:
-      display: "Gems IV"
-      page: 2
-      slot: "6,4"
-      icon: "DIAMOND"
-      cost-money: 307400
-      cost-growth: 1.32
-      requires: "crop_netherwart"
-      effect: "GEM_MULTIPLIER"
-      value: 0.5
-      max-level: 10
-
-    hoe_tier_2:
-      display: "Tool Mastery"
-      page: 2
-      slot: "7,4"
-      icon: "SMITHING_TABLE"
-      cost-money: 498000
-      cost-growth: 2.5
-      requires: "gems_4"
-      effect: "HOE_TIER"
-      value: 1
-      max-level: 2
-
-    yield_beetroot:
-      display: "Beetroot Yield"
-      page: 2
-      slot: "5,5"
-      icon: "COMPOSTER"
-      cost-money: 117100
-      cost-growth: 1.3
-      requires: "crop_beetroot"
-      effect: "CROP_YIELD"
-      value: 0.18
-      max-level: 10
-      target: "BEETROOTS"
-
-    tokens_4:
-      display: "Coins IV"
-      page: 2
-      slot: "4,6"
-      icon: "HAY_BLOCK"
-      cost-money: 117100
-      cost-growth: 1.32
-      requires: "crop_beetroot"
-      effect: "TOKEN_GAIN"
-      value: 0.5
-      max-level: 10
-
-    crop_beetroot:
-      display: "Beetroot"
-      page: 2
-      slot: "5,6"
-      icon: "BEETROOT"
-      cost-money: 72300
-      requires: "yield_potatoes"
-      effect: "UNLOCK_CROP"
-      value: 0
-      target: "BEETROOTS"
-
-    gems_3:
-      display: "Gems III"
-      page: 2
-      slot: "6,6"
-      icon: "DIAMOND"
-      cost-money: 117100
-      cost-growth: 1.3
-      requires: "crop_beetroot"
-      effect: "GEM_MULTIPLIER"
-      value: 0.35
-      max-level: 10
-
-    growth_3:
-      display: "Growth III"
-      page: 2
-      slot: "7,6"
-      icon: "BONE_MEAL"
-      cost-money: 189700
-      cost-growth: 1.3
-      requires: "gems_3"
-      effect: "FARM_SPEED"
-      value: 0.04
-      max-level: 10
-
-    proc_2:
-      display: "Proc Chance II"
-      page: 2
-      slot: "8,6"
-      icon: "FIREWORK_STAR"
-      cost-money: 307400
-      requires: "growth_3"
-      effect: "ENCHANT_PROC"
-      value: 0.1
-
     enchant_coin_storm:
       display: "Coin Storm"
       page: 3
-      slot: "2,6"
+      slot: "3,5"
       icon: "GOLD_BLOCK"
-      cost-money: 162701000
+      cost-money: 75582700
       requires: "enchant_gem_cascade"
       effect: "UNLOCK_ENCHANT"
       value: 0
@@ -3958,21 +4086,34 @@ farmtree:
     enchant_meteor:
       display: "Meteor"
       page: 3
-      slot: "3,5"
+      slot: "2,5"
       icon: "MAGMA_CREAM"
-      cost-money: 263575700
+      cost-money: 122443400
       requires: "enchant_coin_storm"
       effect: "UNLOCK_ENCHANT"
       value: 0
       target: "METEOR"
 
+    hoe_tier_3:
+      display: "Tool Perfection"
+      page: 3
+      slot: "2,4"
+      icon: "SMITHING_TABLE"
+      cost-money: 24795000
+      cost-growth: 2.8
+      requires: "enchant_meteor"
+      effect: "HOE_TIER"
+      value: 1
+      max-level: 2
+
     enchant_credit_finder:
       display: "Credit Finder"
       page: 3
-      slot: "4,5"
+      slot: "2,3"
       icon: "AMETHYST_SHARD"
-      cost-money: 426992600
-      requires: "enchant_meteor"
+      cost-money: 321341400
+      requires: "hoe_tier_3"
+      requires-all: ["crop_berries"]
       effect: "UNLOCK_ENCHANT"
       value: 0
       target: "CREDIT_FINDER"
@@ -3980,9 +4121,9 @@ farmtree:
     enchant_gamba:
       display: "Gamba"
       page: 3
-      slot: "4,4"
+      slot: "2,2"
       icon: "SUNFLOWER"
-      cost-money: 691728000
+      cost-money: 520574400
       requires: "enchant_credit_finder"
       effect: "UNLOCK_ENCHANT"
       value: 0
@@ -3991,9 +4132,9 @@ farmtree:
     enchant_black_hole:
       display: "Black Hole"
       page: 3
-      slot: "5,3"
+      slot: "2,1"
       icon: "ENDER_EYE"
-      cost-money: 1120599400
+      cost-money: 843330400
       requires: "enchant_gamba"
       effect: "UNLOCK_ENCHANT"
       value: 0
@@ -4002,45 +4143,107 @@ farmtree:
     enchant_nuke:
       display: "Nuke"
       page: 3
-      slot: "6,3"
+      slot: "3,3"
       icon: "FIRE_CHARGE"
-      cost-money: 1815371000
-      requires: "enchant_black_hole"
+      cost-money: 1366272000
+      requires: "enchant_credit_finder"
+      requires-all: ["enchant_black_hole"]
       effect: "UNLOCK_ENCHANT"
       value: 0
       target: "NUKE"
 
-    enchant_supernova:
-      display: "Supernova"
+    # -- Right line: the harvest --
+    tokens_7:
+      display: "Coins VII"
       page: 3
-      slot: "6,2"
-      icon: "NETHER_STAR"
-      cost-money: 2940901000
-      requires: "enchant_nuke"
-      effect: "UNLOCK_ENCHANT"
-      value: 0
-      target: "SUPERNOVA"
+      slot: "6,5"
+      icon: "HAY_BLOCK"
+      cost-money: 5832000
+      cost-growth: 1.35
+      requires: "crop_netherwart"
+      effect: "TOKEN_GAIN"
+      value: 1.4
+      max-level: 10
+
+    proc_3:
+      display: "Proc Chance III"
+      page: 3
+      slot: "7,5"
+      icon: "FIREWORK_STAR"
+      cost-money: 9447800
+      requires: "tokens_7"
+      effect: "ENCHANT_PROC"
+      value: 0.1
+
+    gems_6:
+      display: "Gems VI"
+      page: 3
+      slot: "8,5"
+      icon: "DIAMOND"
+      cost-money: 15305400
+      cost-growth: 1.35
+      requires: "proc_3"
+      effect: "GEM_MULTIPLIER"
+      value: 1
+      max-level: 10
+
+    growth_6:
+      display: "Growth VI"
+      page: 3
+      slot: "8,4"
+      icon: "BONE_MEAL"
+      cost-money: 24795000
+      cost-growth: 1.35
+      requires: "gems_6"
+      effect: "FARM_SPEED"
+      value: 0.07
+      max-level: 10
+
+    tokens_8:
+      display: "Coins VIII"
+      page: 3
+      slot: "8,3"
+      icon: "HAY_BLOCK"
+      cost-money: 40167700
+      cost-growth: 1.35
+      requires: "growth_6"
+      effect: "TOKEN_GAIN"
+      value: 2
+      max-level: 10
+
+    gems_7:
+      display: "Gems VII"
+      page: 3
+      slot: "8,2"
+      icon: "DIAMOND"
+      cost-money: 65071800
+      cost-growth: 1.35
+      requires: "tokens_8"
+      effect: "GEM_MULTIPLIER"
+      value: 1.4
+      max-level: 10
+
+    tokens_9:
+      display: "Coins IX"
+      page: 3
+      slot: "8,1"
+      icon: "HAY_BLOCK"
+      cost-money: 105416300
+      cost-growth: 1.35
+      requires: "gems_7"
+      effect: "TOKEN_GAIN"
+      value: 2.8
+      max-level: 10
 
     mastery_2:
       display: "Enchant Mastery II"
       page: 3
-      slot: "8,1"
+      slot: "7,3"
       icon: "ENCHANTED_BOOK"
       cost-money: 7718100500
       cost-growth: 1.6
-      requires: "mastery_1"
-      effect: "ENCHANT_CAP"
-      value: 90.0
-      max-level: 5
-
-    mastery_1:
-      display: "Enchant Mastery I"
-      page: 3
-      slot: "7,1"
-      icon: "ENCHANTED_BOOK"
-      cost-money: 4764259500
-      cost-growth: 1.55
-      requires: "enchant_supernova"
+      requires: "tokens_8"
+      requires-all: ["mastery_1"]
       effect: "ENCHANT_CAP"
       value: 90.0
       max-level: 5
