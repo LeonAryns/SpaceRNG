@@ -846,6 +846,9 @@ public class RollListener implements Listener {
     }
 
     private void maybeBroadcast(Player player, RollableItem result, ItemStack previewItem, boolean shiny) {
+        // Discord has its own list of rarities, so it's asked before the in-game threshold.
+        plugin.getDiscordWebhook().drop(player.getName(), result, shiny);
+
         String minRarityName = plugin.getConfig().getString("broadcast.min-rarity-to-broadcast", "EPIC");
         Rarity minRarity;
         try {

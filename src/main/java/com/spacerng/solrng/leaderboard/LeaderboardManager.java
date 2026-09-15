@@ -293,6 +293,7 @@ public class LeaderboardManager {
         List<Entry> winners = top("farming", payouts.size());
 
         List<String> banner = new ArrayList<>();
+        List<String> discord = new ArrayList<>();
         banner.add("");
         banner.add(ChatColor.GOLD + "" + ChatColor.BOLD + "★ FARMING PAYOUTS ★");
         boolean any = false;
@@ -307,6 +308,9 @@ public class LeaderboardManager {
                     + ChatColor.GRAY + "  " + Currency.CREDITS.colour() + "+"
                     + Currency.CREDITS.amount(reward));
             awardCredits(entry.uuid(), reward);
+            discord.add("**#" + (i + 1) + "** " + entry.name() + ": "
+                    + String.format("%,d", entry.farmedPeriod()) + " farmed, +"
+                    + String.format("%,d", reward) + " Credits");
         }
         if (!any) {
             banner.add(ChatColor.GRAY + "Nobody farmed anything this period.");
@@ -318,6 +322,7 @@ public class LeaderboardManager {
             online.playSound(online.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0f, 1.0f);
         }
 
+        plugin.getDiscordWebhook().payout(discord);
         resetPeriod();
     }
 

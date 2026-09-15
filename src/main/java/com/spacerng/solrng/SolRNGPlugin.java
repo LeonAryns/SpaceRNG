@@ -65,6 +65,8 @@ public final class SolRNGPlugin extends JavaPlugin {
     private com.spacerng.solrng.firsts.FirstTenManager firstTenManager;
     private com.spacerng.solrng.aura.AuraManager auraManager;
     private com.spacerng.solrng.crate.CrateManager crateManager;
+    private com.spacerng.solrng.discord.DiscordWebhook discordWebhook;
+    private com.spacerng.solrng.holo.HoloManager holoManager;
     private com.spacerng.solrng.leaderboard.TopHeadManager topHeadManager;
     private com.spacerng.solrng.pass.PassManager passManager;
     private com.spacerng.solrng.farming.MomentumBar momentumBar;
@@ -161,6 +163,8 @@ public final class SolRNGPlugin extends JavaPlugin {
         this.consumableManager = new com.spacerng.solrng.consumable.ConsumableManager(this);
         this.welcomeManager = new com.spacerng.solrng.welcome.WelcomeManager(this);
         this.crateManager = new com.spacerng.solrng.crate.CrateManager(this);
+        this.discordWebhook = new com.spacerng.solrng.discord.DiscordWebhook(this);
+        this.holoManager = new com.spacerng.solrng.holo.HoloManager(this);
         this.topHeadManager = new com.spacerng.solrng.leaderboard.TopHeadManager(this);
         this.perkManager = new com.spacerng.solrng.perk.PerkManager(getLogger());
         this.floatingItemManager = new com.spacerng.solrng.decor.FloatingItemManager(this);
@@ -221,6 +225,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         startArmorRefreshTask();
         registerPlaceholderExpansion();
         topHeadManager.start();
+        holoManager.start();
         auraManager.start();
         floatingItemManager.start();
         linkedAccountManager.start();
@@ -236,6 +241,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         // is inside the save file rather than lost with the server.
         if (crateManager != null) crateManager.finishAll();
         if (topHeadManager != null) topHeadManager.stop();
+        if (holoManager != null) holoManager.stop();
         if (auraManager != null) auraManager.stop();
         if (floatingItemManager != null) floatingItemManager.stop();
         if (linkedAccountManager != null) linkedAccountManager.stop();
@@ -312,6 +318,8 @@ public final class SolRNGPlugin extends JavaPlugin {
         consumableManager.load(getConfig());
         welcomeManager.load(getConfig());
         crateManager.load(getConfig());
+        discordWebhook.load(getConfig());
+        holoManager.load(getConfig());
         topHeadManager.load(getConfig());
         perkManager.load(getConfig());
         floatingItemManager.load(getConfig());
@@ -412,6 +420,14 @@ public final class SolRNGPlugin extends JavaPlugin {
 
     public com.spacerng.solrng.crate.CrateManager getCrateManager() {
         return crateManager;
+    }
+
+    public com.spacerng.solrng.discord.DiscordWebhook getDiscordWebhook() {
+        return discordWebhook;
+    }
+
+    public com.spacerng.solrng.holo.HoloManager getHoloManager() {
+        return holoManager;
     }
 
     public com.spacerng.solrng.leaderboard.TopHeadManager getTopHeadManager() {

@@ -211,6 +211,7 @@ public final class FirstTenManager {
             }
         }
         Bukkit.getConsoleSender().sendMessage(banner);
+        if (!preview) plugin.getDiscordWebhook().firstTen(name, item, shiny, place, slots);
         new Rain(rarity).start();
     }
 

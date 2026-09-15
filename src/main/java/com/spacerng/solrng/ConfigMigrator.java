@@ -43,6 +43,9 @@ public final class ConfigMigrator {
     private static final List<String> STRUCTURAL = List.of(
             "skilltree", "farmtree", "shiny", "perks", "linked-account");
 
+    /** Top-level sections copied from the jar whenever the server's config has none yet. */
+    private static final List<String> ADDED_SECTIONS = List.of("discord", "holograms");
+
     private record Patch(String id, String path, Object oldDefault, Object newDefault) {
     }
 
@@ -117,7 +120,18 @@ public final class ConfigMigrator {
         }
         int jarVersion = defaults.getInt("config-version", 1);
 
-        if (diskVersion >= jarVersion) return false;
+        // A whole new section never merges into an existing config.yml on
+        // its own, so copy each across the first time the jar ships it.
+        boolean added = false;
+        for (String section : ADDED_SECTIONS) {
+            if (!disk.contains(section) && defaults.contains(section)) {
+                disk.set(section, defaults.get(section));
+                plugin.getLogger().info("Config: added the new section " + section + ".");
+                added = true;
+            }
+        }
+
+        if (diskVersion >= jarVersion) return added;
 
         plugin.getLogger().info("Config on disk is version " + diskVersion
                 + ", jar is version " + jarVersion

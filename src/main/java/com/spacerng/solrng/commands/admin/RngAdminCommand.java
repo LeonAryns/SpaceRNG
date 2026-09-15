@@ -40,7 +40,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             "reload", "setspawn", "starforge", "reset", "give", "drops",
             "bank", "aura", "roll", "unlock", "unlockall", "lockall", "odds", "farmblock", "farmscan",
             "hoe", "consumable", "gradient", "welcome", "crops", "farmclear",
-            "milestones", "farmfill", "boost", "nova", "placeholders", "payout", "crate", "tophead", "floatingitem", "shiny", "firsts", "lorestyles", "tagstyles", "auratest", "help");
+            "milestones", "farmfill", "boost", "nova", "placeholders", "payout", "crate", "tophead", "floatingitem", "shiny", "firsts", "lorestyles", "tagstyles", "auratest", "holo", "help");
     private static final List<String> CURRENCIES = List.of("money", "coins", "gems", "credits");
 
     private final SolRNGPlugin plugin;
@@ -100,6 +100,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             case "placeholders" -> showcase.doPlaceholders(sender);
             case "payout" -> world.doPayout(sender);
             case "crate" -> world.doCrate(sender, args);
+            case "holo" -> world.doHolo(sender, args);
             case "tophead" -> world.doTopHead(sender, args);
             case "floatingitem" -> world.doFloatingItem(sender, args);
             default -> {
@@ -140,7 +141,8 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         line(sender, "nova", "<tier> [player]", "Set a Nova Core tier");
         line(sender, "placeholders", "", "What every %spacerng_% placeholder resolves to right now");
         line(sender, "payout", "", "Run the farming payout now and reset the period");
-        line(sender, "crate", "<set|remove|list|key|preview>", "Place crates and hand out keys");
+        line(sender, "crate", "<place|set|remove|list|key|preview>", "Place crates and hand out keys");
+        line(sender, "holo", "<panel|board|remove|list>", "NPC text panels and leaderboard walls");
         line(sender, "floatingitem", "<add|remove|list>", "Rotating item displays anchored at a spot");
         line(sender, "tophead", "<set|podium|remove|clear|list>", "Floating heads for a leaderboard");
         line(sender, "shiny", "[player]", "Make the next roll shiny");
@@ -160,8 +162,8 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         List<String> ids = new ArrayList<>(plugin.getCrateManager().getAll().keySet());
         String action = args.length >= 2 ? args[1].toLowerCase(Locale.ROOT) : "";
         return switch (args.length) {
-            case 2 -> partial(args[1], List.of("set", "remove", "list", "key", "preview"));
-            case 3 -> List.of("set", "key", "preview").contains(action) ? partial(args[2], ids) : List.of();
+            case 2 -> partial(args[1], List.of("place", "set", "remove", "list", "key", "preview"));
+            case 3 -> List.of("place", "set", "key", "preview").contains(action) ? partial(args[2], ids) : List.of();
             case 4 -> action.equals("key") ? partial(args[3], List.of("1", "5", "10")) : List.of();
             case 5 -> action.equals("key") ? partial(args[4], playerNames()) : List.of();
             default -> List.of();
@@ -203,6 +205,16 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         String sub = args[0].toLowerCase(Locale.ROOT);
         if (sub.equals("crate")) return crateTab(args);
         if (sub.equals("tophead")) return topHeadTab(args);
+        if (sub.equals("holo")) {
+            if (args.length == 2) return partial(args[1], List.of("panel", "board", "remove", "list"));
+            if (args.length == 3 && args[1].equalsIgnoreCase("panel")) {
+                return partial(args[2], new ArrayList<>(plugin.getHoloManager().panelIds()));
+            }
+            if (args.length == 3 && args[1].equalsIgnoreCase("board")) {
+                return partial(args[2], com.spacerng.solrng.leaderboard.LeaderboardManager.BOARDS);
+            }
+            return List.of();
+        }
         if (args.length == 2) {
             return switch (sub) {
                 case "give" -> partial(args[1], CURRENCIES);

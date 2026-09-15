@@ -215,9 +215,48 @@ final class WorldAdmin extends AdminTools {
                     return true;
                 }
                 org.bukkit.block.Block block = player.getTargetBlockExact(6);
-                sender.sendMessage(block != null && crates.remove(block)
-                        ? ChatColor.GREEN + "Crate removed. The block itself stays."
-                        : ChatColor.RED + "The block you are looking at is not a crate.");
+                if (block == null || !crates.remove(block)) {
+                    sender.sendMessage(ChatColor.RED + "The block you are looking at is not a crate.");
+                } else if (plugin.getHoloManager().removeCrate(block)) {
+                    sender.sendMessage(ChatColor.GREEN + "Crate removed, with its head and text.");
+                } else {
+                    sender.sendMessage(ChatColor.GREEN + "Crate removed. The block itself stays.");
+                }
+            }
+            case "place" -> {
+                if (!(sender instanceof Player player)) {
+                    sender.sendMessage(ChatColor.RED + "Stand in game, hold a head and look at a block.");
+                    return true;
+                }
+                var crate = args.length >= 3 ? crates.get(args[2]) : null;
+                if (crate == null) {
+                    sender.sendMessage(ChatColor.RED + "Usage: /rngadmin crate place <crate>");
+                    sender.sendMessage(ChatColor.DARK_GRAY + "Crates: " + String.join(", ", crates.getAll().keySet()));
+                    return true;
+                }
+                ItemStack held = player.getInventory().getItemInMainHand();
+                if (held.getType() != org.bukkit.Material.PLAYER_HEAD) {
+                    sender.sendMessage(ChatColor.RED + "Hold the player head the crate should look like.");
+                    return true;
+                }
+                org.bukkit.block.Block target = player.getTargetBlockExact(6);
+                if (target == null || target.getType().isAir()) {
+                    sender.sendMessage(ChatColor.RED + "Look at the block the crate should stand on.");
+                    return true;
+                }
+                org.bukkit.block.Block block = target.getRelative(org.bukkit.block.BlockFace.UP);
+                if (!block.getType().isAir()) {
+                    sender.sendMessage(ChatColor.RED + "The space on top of that block has to be empty.");
+                    return true;
+                }
+                // An invisible barrier takes the clicks; the head and the text float over it.
+                block.setType(org.bukkit.Material.BARRIER);
+                crates.place(block, crate);
+                ItemStack head = held.clone();
+                head.setAmount(1);
+                plugin.getHoloManager().placeCrate(crate.id(), block, player.getLocation().getYaw() + 180f, head);
+                sender.sendMessage(ChatColor.GREEN + "Placed the " + crates.styledName(crate) + ChatColor.GREEN
+                        + ". Right-click opens it, left-click shows the rewards.");
             }
             case "list" -> {
                 if (crates.placements().isEmpty()) {
@@ -275,6 +314,7 @@ final class WorldAdmin extends AdminTools {
                 player.openInventory(com.spacerng.solrng.crate.CratePreviewGui.build(plugin, player, crate));
             }
             default -> {
+                line(sender, "crate place", "<crate>", "Hold a head, look at a block: a floating crate with text");
                 line(sender, "crate set", "<crate>", "Turn the block you are looking at into a crate");
                 line(sender, "crate remove", "", "Stop the block you are looking at being a crate");
                 line(sender, "crate list", "", "Every placed crate");
@@ -422,6 +462,74 @@ final class WorldAdmin extends AdminTools {
             }
             default -> sender.sendMessage(ChatColor.RED
                     + "Unknown subcommand. Try add / remove / list.");
+        }
+        return true;
+    }
+
+    /** Floating text: NPC panels from config, live leaderboards, and taking either down. */
+    boolean doHolo(CommandSender sender, String[] args) {
+        var holo = plugin.getHoloManager();
+        String action = args.length >= 2 ? args[1].toLowerCase(Locale.ROOT) : "";
+        if (!action.equals("list") && !(sender instanceof Player)) {
+            sender.sendMessage(ChatColor.RED + "Stand in game where the text should go.");
+            return true;
+        }
+        switch (action) {
+            case "panel" -> {
+                Player player = (Player) sender;
+                String id = args.length >= 3 ? args[2].toLowerCase(Locale.ROOT) : "";
+                if (!holo.panelIds().contains(id)) {
+                    sender.sendMessage(ChatColor.RED + "Usage: /rngadmin holo panel <panel>");
+                    sender.sendMessage(ChatColor.DARK_GRAY + "Panels: " + String.join(", ", holo.panelIds()));
+                    return true;
+                }
+                holo.placePanel(id, player.getLocation());
+                sender.sendMessage(ChatColor.GREEN + "Placed the " + id + " panel above where you stand. "
+                        + ChatColor.GRAY + "Edit its text under holograms.panels, then /rngadmin reload.");
+            }
+            case "board" -> {
+                Player player = (Player) sender;
+                String board = args.length >= 3 ? args[2].toLowerCase(Locale.ROOT) : "";
+                if (!com.spacerng.solrng.leaderboard.LeaderboardManager.BOARDS.contains(board)) {
+                    sender.sendMessage(ChatColor.RED + "Usage: /rngadmin holo board <board>");
+                    sender.sendMessage(ChatColor.DARK_GRAY + "Boards: "
+                            + String.join(", ", com.spacerng.solrng.leaderboard.LeaderboardManager.BOARDS));
+                    return true;
+                }
+                holo.placeBoard(board, player.getEyeLocation());
+                sender.sendMessage(ChatColor.GREEN + "Placed the " + board + " board in front of you, facing you.");
+            }
+            case "remove" -> {
+                Player player = (Player) sender;
+                double radius = 4.0;
+                if (args.length >= 3) {
+                    try {
+                        radius = Math.max(0.5, Math.min(32.0, Double.parseDouble(args[2])));
+                    } catch (NumberFormatException ex) {
+                        sender.sendMessage(ChatColor.RED + "Radius must be a number.");
+                        return true;
+                    }
+                }
+                int removed = holo.removeNear(player.getLocation(), radius);
+                sender.sendMessage(removed > 0
+                        ? ChatColor.GREEN + "Removed " + removed + (removed == 1 ? " panel or board." : " panels and boards.")
+                        : ChatColor.RED + "No panel or board within " + radius + " blocks. Crates go with /rngadmin crate remove.");
+            }
+            case "list" -> {
+                if (holo.list().isEmpty()) sender.sendMessage(ChatColor.GRAY + "Nothing placed yet.");
+                for (var spot : holo.list()) {
+                    var at = spot.at();
+                    sender.sendMessage(ChatColor.YELLOW + spot.kind().name().toLowerCase(Locale.ROOT) + " "
+                            + spot.key() + ChatColor.GRAY + " at " + (at.getWorld() == null ? "?" : at.getWorld().getName())
+                            + " " + at.getBlockX() + ", " + at.getBlockY() + ", " + at.getBlockZ());
+                }
+            }
+            default -> {
+                line(sender, "holo panel", "<panel>", "NPC text from holograms.panels, above where you stand");
+                line(sender, "holo board", "<board>", "A leaderboard with heads, in front of you");
+                line(sender, "holo remove", "[radius]", "Take down panels and boards near you");
+                line(sender, "holo list", "", "Everything placed");
+            }
         }
         return true;
     }

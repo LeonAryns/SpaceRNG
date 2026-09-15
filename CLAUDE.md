@@ -58,6 +58,19 @@ Packages are by feature under `com.spacerng.solrng`. Where new things go:
   `ShowcaseAdmin` or `WorldAdmin` under `commands/admin/`, shared parsing
   in `AdminTools`, and a route, a help line and tab completion in
   `RngAdminCommand`.
+- **Floating text in the world.** `holo/HoloManager`: panels over NPCs
+  (text in `holograms.panels`), leaderboard walls with player heads drawn
+  inside the text, and crates placed with `/rngadmin crate place` (a big
+  head over an invisible barrier that is registered as the crate). One
+  TextDisplay per piece, spots in `holograms.yml`, never saved to chunks.
+  Leon has FancyHolograms and FancyNpcs; NPCs stay in FancyNpcs, the text
+  is ours.
+- **Discord.** `discord/DiscordWebhook` posts rare drops, shinies, First
+  10 and the farming payout to a webhook URL. DiscordSRV only relays chat
+  and handles /discord link; our broadcasts never pass through chat.
+- **A new top-level config section** reaches the live server only if it
+  is listed in `ConfigMigrator.ADDED_SECTIONS`, which copies it across
+  once when the server's config lacks it.
 - **Saving.** Player data autosaves every five minutes and on quit.
   Anything with its own file (First 10, crates, plots, top heads) saves
   when it changes.

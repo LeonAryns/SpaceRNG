@@ -3118,6 +3118,10 @@ crates:
       colors: ["#FFE082", "#FF8F00"]
       key: crate_key
       key-source: "Farm Keys are dug up by the Key Finder enchant on your hoe."
+      # The text over this crate when it's placed with /rngadmin crate place.
+      description:
+        - "<white>Right-click with a <#FFD54F>Farm Key</#FFD54F> to open"
+        - "<gray>Left-click to see what's inside"
       jackpot-below: 0.03
       rewards:
         - { weight: 30, coins: 25000 }
@@ -3138,6 +3142,9 @@ crates:
       colors: ["#E1BEE7", "#7C4DFF", "#40C4FF"]
       key: cosmic_key
       key-source: "Cosmic Keys are the rare find from Key Finder, about one key in twelve."
+      description:
+        - "<white>Right-click with a <#B388FF>Cosmic Key</#B388FF> to open"
+        - "<gray>Left-click to see what's inside"
       jackpot-below: 0.04
       rewards:
         - { weight: 25, coins: 250000 }
@@ -3150,6 +3157,61 @@ crates:
         - { weight: 3, drop: EPIC }
         - { weight: 2.5, consumable: luck_50 }
         - { weight: 0.5, consumable: luck_250 }
+
+# Floating text drawn by the plugin: panels over NPCs, live leaderboards
+# with player heads, and the text over crates placed with
+# /rngadmin crate place <crate> (hold the head the crate should be).
+#   /rngadmin holo panel <panel>    stand where the NPC stands
+#   /rngadmin holo board <board>    stand in front of where it should hang
+#   /rngadmin holo remove [radius]  /rngadmin holo list
+# Text is MiniMessage: <gold>, <#FFD54F>, <gradient:#A:#B>, <b> and so on.
+# After editing, /rngadmin reload redraws everything. Spots live in
+# holograms.yml; nothing is saved into the world.
+holograms:
+  view-range: 1.0
+  title-scale: 2.4
+  text-scale: 1.1
+  # How far above the admin's feet a panel starts, clear of an NPC's head.
+  panel-height: 2.3
+  board-refresh-seconds: 60
+  crate-head-scale: 2.0
+  crate-head-offset: 1.0
+  click: "<#FFD54F>→→→</#FFD54F> <white>Click Here</white> <#FFD54F>←←←</#FFD54F>"
+  panels:
+    prestige:
+      title: "<gradient:#FFE082:#FFB300><b>PRESTIGE</b></gradient>"
+      lines:
+        - "<white>Spend your money and levels"
+        - "<white>on prestiges for <#FFD54F>multipliers</#FFD54F>"
+    skilltree:
+      title: "<gradient:#E1BEE7:#AB47BC><b>SKILL TREE</b></gradient>"
+      lines:
+        - "<white>Unlock <#CE93D8>Auto Roll</#CE93D8>, Luck, Speed"
+        - "<white>and everything after it"
+    shop:
+      title: "<gradient:#FFE0B2:#FF9800><b>SHOPS</b></gradient>"
+      lines:
+        - "<white>Armor, Starforges, potions"
+        - "<white>and the <#FFD54F>Store</#FFD54F>"
+    farm:
+      title: "<gradient:#DCEDC8:#8BC34A><b>FARMING</b></gradient>"
+      lines:
+        - "<white>Harvest crops for <#FFD54F>Coins</#FFD54F>"
+        - "<white>and climb the <#AED581>farm tree</#AED581>"
+    crates:
+      title: "<gradient:#B3E5FC:#29B6F6><b>CRATES</b></gradient>"
+      lines:
+        - "<white>Open <#FFD54F>crates</#FFD54F> for amazing"
+        - "<white>and unique rewards"
+  # Optional per board: title, color and unit. Boards: index, shiny, rolls,
+  # coins, money, farming_total, farming, prestige.
+  boards:
+    prestige:
+      color: "#CE93D8"
+    money:
+      color: "#A5D6A7"
+    coins:
+      color: "#FFD54F"
 
 # Floating heads on a leaderboard. Place them in game:
 #   /rngadmin tophead podium farming_total   (#1, #2, #3 around you)
@@ -4816,6 +4878,22 @@ linked-account:
     money: 0
   link-message: "&5&lLinked to Discord! &7Bonuses are active while your account stays linked."
   unlink-message: "&cUnlinked from Discord. &7Bonuses removed."
+
+# Discord announcements through a webhook. In Discord: Edit Channel,
+# Integrations, Webhooks, New Webhook, Copy Webhook URL, then paste it
+# below and run /rngadmin reload. Empty turns announcements off. No bot or
+# DiscordSRV is needed for this part; DiscordSRV still does chat relay and
+# /discord link.
+discord:
+  webhook-url: ""
+  username: "SpaceRNG"
+  announce:
+    # Drops of these rarities are posted. Shinies are posted at any rarity
+    # while shiny is true.
+    drop-rarities: [MYTHICAL, DIVINE]
+    shiny: true
+    first-ten: true
+    farming-payout: true
 
 # Perks are a second progression layer bought with drops, not Money.
 # A roll trades a fixed number of drops of one tier for one random perk
