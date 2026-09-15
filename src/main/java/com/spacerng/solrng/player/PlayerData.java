@@ -1,6 +1,5 @@
 package com.spacerng.solrng.player;
 
-import com.spacerng.solrng.perk.PerkInstance;
 import com.spacerng.solrng.rarity.Rarity;
 
 import java.util.ArrayList;
@@ -205,11 +204,6 @@ public class PlayerData {
     // costs 1 shiny, second costs 2, and so on - stored so the price is
     // an ever-climbing decision instead of a one-time toll.
     private int respecCount = 0;
-    // Perks the player owns. Split into a small equipped list (max
-    // loadout-slots from config) and an unlimited vault. Both are drawn
-    // from at read time; only equipped perks feed StatSources.
-    private final List<PerkInstance> equippedPerks = new ArrayList<>();
-    private final List<PerkInstance> perkVault = new ArrayList<>();
     // Whether the one-time Discord-linked gift has been handed out. Stays
     // true after unlinking so a relink cannot farm the gift a second time.
     private boolean claimedLinkGift = false;
@@ -1142,88 +1136,53 @@ public class PlayerData {
 
     // -------------------------------------------------------------- perks
 
-    public List<PerkInstance> getEquippedPerks() {
-        return equippedPerks;
+    // One perk at a time, kept as its id and level. A null type means none.
+    private String activePerkType;
+    private int activePerkLevel = 1;
+    // Perk Tickets, bought with Credits. One is one roll.
+    private long perkTickets = 0L;
+    // Rolls in a row without a Mythical or better, for Pity Luck.
+    private int perkPity = 0;
+    // "type:level" keys that ask before a roll replaces them.
+    private final Set<String> perkConfirm = new HashSet<>();
+    // "type:level" keys this player has ever rolled, for the perk index.
+    private final Set<String> perkFound = new HashSet<>();
+
+    public String getActivePerkType() {
+        return activePerkType;
     }
 
-    public List<PerkInstance> getPerkVault() {
-        return perkVault;
+    public int getActivePerkLevel() {
+        return activePerkLevel;
     }
 
-    /** Whether a specific perk is currently equipped. */
-    public boolean isPerkEquipped(UUID perkId) {
-        for (PerkInstance perk : equippedPerks) {
-            if (perk.id().equals(perkId)) return true;
-        }
-        return false;
+    public void setActivePerk(String type, int level) {
+        this.activePerkType = type;
+        this.activePerkLevel = Math.max(1, Math.min(5, level));
     }
 
-    // The last rolled perk, waiting in the roller until it is saved to the
-    // vault. The next roll replaces it. Null when there is nothing to save.
-    private PerkInstance pendingPerk;
-
-    public PerkInstance getPendingPerk() {
-        return pendingPerk;
+    public long getPerkTickets() {
+        return perkTickets;
     }
 
-    public void setPendingPerk(PerkInstance pendingPerk) {
-        this.pendingPerk = pendingPerk;
+    public void setPerkTickets(long tickets) {
+        this.perkTickets = Math.max(0L, tickets);
     }
 
-    // Save rolls: bought with Credits. With auto save on, every perk roll
-    // uses one and goes straight to the vault; with none left the roller
-    // refuses to roll rather than throw a perk away.
-    private long perkSaveRolls = 0L;
-    private boolean perkAutoSave = false;
-    // How many save rolls the buy button buys at once.
-    private int perkSaveAmount = 1;
-    // Rolling over an unsaved perk of this tier or higher asks first. Null is never.
-    private com.spacerng.solrng.rarity.Rarity perkConfirmFrom = com.spacerng.solrng.rarity.Rarity.LEGENDARY;
-
-    public long getPerkSaveRolls() { return perkSaveRolls; }
-    public void setPerkSaveRolls(long rolls) { this.perkSaveRolls = Math.max(0L, rolls); }
-    public boolean isPerkAutoSave() { return perkAutoSave; }
-    public void setPerkAutoSave(boolean on) { this.perkAutoSave = on; }
-    public int getPerkSaveAmount() { return perkSaveAmount; }
-    public void setPerkSaveAmount(int amount) { this.perkSaveAmount = Math.max(1, amount); }
-    public com.spacerng.solrng.rarity.Rarity getPerkConfirmFrom() { return perkConfirmFrom; }
-    public void setPerkConfirmFrom(com.spacerng.solrng.rarity.Rarity tier) { this.perkConfirmFrom = tier; }
-
-    // Perk index: the best level ever rolled for each type and tier, keyed
-    // "TYPE:TIER". Kept apart from the vault so a discarded perk stays found.
-    // Since V133 keyed "STAT:TIER" and holding the best bonus rolled.
-    private final Map<String, Double> perkIndex = new HashMap<>();
-
-    public Map<String, Double> getPerkIndex() {
-        return perkIndex;
+    public int getPerkPity() {
+        return perkPity;
     }
 
-    /** Best bonus rolled for a stat at a tier, 0 when never rolled. */
-    public double bestPerkValue(com.spacerng.solrng.perk.PerkStat stat, com.spacerng.solrng.rarity.Rarity tier) {
-        return perkIndex.getOrDefault(stat.name() + ":" + tier.name(), 0.0);
+    public void setPerkPity(int pity) {
+        this.perkPity = Math.max(0, pity);
     }
 
-    /** Records every stat of a perk in the index. True when any stat is new at that tier. */
-    public boolean recordPerk(PerkInstance perk) {
-        boolean fresh = false;
-        for (var entry : perk.stats().entrySet()) {
-            String key = entry.getKey().name() + ":" + perk.tier().name();
-            Double before = perkIndex.get(key);
-            if (before == null) fresh = true;
-            if (before == null || entry.getValue() > before) perkIndex.put(key, entry.getValue());
-        }
-        return fresh;
+    public Set<String> getPerkConfirm() {
+        return perkConfirm;
     }
 
-    /** Removes a perk from the vault whether it is equipped or not. */
-    public PerkInstance takePerkById(UUID perkId) {
-        equippedPerks.removeIf(p -> p.id().equals(perkId));
-        for (int i = 0; i < perkVault.size(); i++) {
-            if (perkVault.get(i).id().equals(perkId)) {
-                return perkVault.remove(i);
-            }
-        }
-        return null;
+    public Set<String> getPerkFound() {
+        return perkFound;
     }
 
     public boolean hasClaimedLinkGift() {

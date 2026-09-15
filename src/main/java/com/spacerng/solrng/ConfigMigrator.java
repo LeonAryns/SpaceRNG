@@ -148,7 +148,16 @@ public final class ConfigMigrator {
                     "&3▎ &e▸ &7Claim your streak every day with &e/daily&7. Miss one and it resets."),
             new TextPatch("tip-dash-pass", "announcements.messages",
                     "&3▎ &e▸ &6/pass&7 pays out for every roll and every harvest " + DASH + " rarer rolls are worth more XP.",
-                    "&3▎ &e▸ &6/pass&7 pays out for every roll and every harvest. Rarer rolls are worth more XP."));
+                    "&3▎ &e▸ &6/pass&7 pays out for every roll and every harvest. Rarer rolls are worth more XP."),
+            // V136: perks are rolled with Perk Tickets and there is no loadout any more.
+            new TextPatch("panel-perks-1", "holograms.panels.perks.lines", "<white>Roll perks with your drops",
+                    "<white>Roll a perk with <#B39DDB>Perk Tickets</#B39DDB>"),
+            new TextPatch("panel-perks-2", "holograms.panels.perks.lines",
+                    "<white>and equip your best <#B39DDB>loadout</#B39DDB>",
+                    "<white>and chase the <#B39DDB>Universe</#B39DDB> perk"),
+            new TextPatch("tip-perks-v136", "announcements.messages",
+                    "&3▎ &e▸ &7Trade drops for perks in &d/perks&7. Keep the good ones with save rolls.",
+                    "&3▎ &e▸ &7Roll a perk in &d/perks&7 with Perk Tickets. Every 100 rolls promise a Mythical."));
 
     private ConfigMigrator() {
     }

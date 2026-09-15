@@ -40,8 +40,8 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             "reload", "setspawn", "starforge", "reset", "give", "drops",
             "bank", "aura", "roll", "unlock", "unlockall", "lockall", "odds", "farmblock", "farmscan",
             "hoe", "consumable", "gradient", "welcome", "crops", "farmclear",
-            "milestones", "farmfill", "boost", "nova", "placeholders", "payout", "crate", "tophead", "floatingitem", "shiny", "firsts", "lorestyles", "tagstyles", "menustyles", "hoestyles", "standingstyles", "enchantstyles", "novastyles", "perkstyles", "auratest", "holo", "help");
-    private static final List<String> CURRENCIES = List.of("money", "coins", "gems", "credits", "luck", "speed");
+            "milestones", "farmfill", "boost", "nova", "placeholders", "payout", "crate", "tophead", "floatingitem", "shiny", "firsts", "lorestyles", "tagstyles", "menustyles", "hoestyles", "standingstyles", "enchantstyles", "novastyles", "auratest", "holo", "help");
+    private static final List<String> CURRENCIES = List.of("money", "coins", "gems", "credits", "luck", "speed", "tickets");
 
     private final SolRNGPlugin plugin;
     private final PlayerAdmin players;
@@ -85,7 +85,6 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             case "standingstyles" -> showcase.doStandingStyles(sender, args);
             case "enchantstyles" -> showcase.doEnchantStyles(sender, args);
             case "novastyles" -> showcase.doNovaStyles(sender, args);
-            case "perkstyles" -> showcase.doPerkStyles(sender, args);
             case "auratest" -> showcase.doAuraTest(sender, args);
             case "unlock" -> players.doUnlock(sender, args);
             case "unlockall" -> players.doUnlockAll(sender, args);
@@ -161,7 +160,6 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         line(sender, "standingstyles", "[style]", "Your standings card in /leaderboards in every style");
         line(sender, "enchantstyles", "[style] [enchant]", "An enchant card in every style");
         line(sender, "novastyles", "[style] [consumable]", "The Nova Core and other consumables in every style");
-        line(sender, "perkstyles", "[style]", "Your best perk in every perk style");
         line(sender, "auratest", "<look|off|list> [rarity] [accent]", "Wear a worn aura look to test it");
     }
 
@@ -254,7 +252,6 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
                 case "standingstyles" -> partial(args[1], com.spacerng.solrng.gui.LeaderboardGui.STANDINGS_STYLES);
                 case "enchantstyles" -> partial(args[1], com.spacerng.solrng.gui.HoeGui.ENCHANT_STYLES);
                 case "novastyles" -> partial(args[1], com.spacerng.solrng.consumable.ConsumableManager.CONSUMABLE_STYLES);
-                case "perkstyles" -> partial(args[1], com.spacerng.solrng.gui.PerkLore.PERK_STYLES);
                 case "auratest" -> partial(args[1], java.util.stream.Stream.concat(com.spacerng.solrng.aura.AuraConcepts.KEYS.stream(), java.util.stream.Stream.of("off", "list")).toList());
                 case "roll", "odds" -> partial(args[1], rarityNames());
                 case "unlock" -> partial(args[1], withAll(nodeIds()));

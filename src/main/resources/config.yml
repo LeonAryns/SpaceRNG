@@ -8,7 +8,7 @@
 # their fresh defaults in on top of whatever is on disk, so a server
 # owner never has to delete the whole file to pick up a structural
 # change. Item table, prices and cosmetic tweaks are untouched.
-config-version: 14
+config-version: 15
 
 # One-off value changes the plugin has already made to this file, so none
 # is ever made twice. Managed by the plugin; leave it alone.
@@ -3178,7 +3178,7 @@ announcements:
       - "&3\u258e &e\u25b8 &7Respec any time for a few &fshinies&7 - the price climbs one per respec."
     - - "&3▎ &e▸ &7Join our &9&lDiscord&7 for giveaways, news and updates."
       - "&3▎ &e▸ &7Click to join: &b&ndiscord.gg/spacerng"
-    - - "&3▎ &e▸ &7Trade drops for perks in &d/perks&7. Keep the good ones with save rolls."
+    - - "&3▎ &e▸ &7Roll a perk in &d/perks&7 with Perk Tickets. Every 100 rolls promise a Mythical."
       - "&3▎ &e▸ &7Every perk you have found is listed in &d/perks index&7."
 
 # The daily streak (/daily). No checkpoints on purpose: the whole tension
@@ -3609,8 +3609,8 @@ holograms:
     perks:
       title: "<gradient:#D1C4E9:#7E57C2><b>PERKS</b></gradient>"
       lines:
-        - "<white>Roll perks with your drops"
-        - "<white>and equip your best <#B39DDB>loadout</#B39DDB>"
+        - "<white>Roll a perk with <#B39DDB>Perk Tickets</#B39DDB>"
+        - "<white>and chase the <#B39DDB>Universe</#B39DDB> perk"
     index:
       title: "<gradient:#B2EBF2:#26C6DA><b>INDEX</b></gradient>"
       lines:
@@ -5354,121 +5354,87 @@ discord:
 # So a Divine V perk is 100% of the top figure and a Common I perk is
 # 1% of it. Both tier and level curves can be retuned here.
 perks:
-  # Maximum perks equipped at once. Rest sit in the vault, still owned.
-  loadout-slots: 3
-  # A rolled perk waits in the roller until you save it to the vault, and
-  # rolling again replaces an unsaved one. Save rolls cost this many
-  # Credits each; with saving switched on, every roll uses one and goes
-  # straight to the vault.
-  save-cost-credits: 1
-  # Every perk is a tier and one to three different stats from this pool,
-  # each rolling its own value inside the tier's range. The same stat on
-  # two equipped perks adds up: 1.5x and 1.3x Luck make 1.8x.
-  stat-pool: [LUCK_PERCENT, MONEY_PERCENT, COINS_PERCENT, SHINY_PERCENT, ROLL_SPEED_FLAT, ENCHANT_PROC_PERCENT]
-  # How many stats a perk of each tier carries.
-  stat-count:
-    COMMON: 1
-    UNCOMMON: 1
-    RARE: 1
-    EPIC: 2
-    LEGENDARY: 2
-    MYTHICAL: 3
-    DIVINE: 3
-  # The lowest and highest multiplier one stat can roll at each tier.
-  stat-ranges:
-    COMMON: [1.1, 1.5]
-    UNCOMMON: [1.15, 1.75]
-    RARE: [1.2, 2.0]
-    EPIC: [1.25, 2.25]
-    LEGENDARY: [1.3, 2.5]
-    MYTHICAL: [1.4, 3.0]
-    DIVINE: [1.5, 4.0]
-  # How hard a high roll is. 1.0 is even across the range; at 2.0 a roll
-  # in the top tenth of the range lands about one time in twenty.
-  roll-curve: 2.0
-  # The Roll buttons in /perks. Each is one drop tier you trade in, and
-  # every roll can land on any perk tier. A Divine Roll has a 1% shot at a
-  # Divine perk and each roll below it a smaller one. Every table sums to
-  # 1. Write small chances as plain decimals, never 1e-06.
-  rolls:
-    COMMON:
-      cost-rarity: COMMON
-      cost-amount: 100
-      # Chance a rolled perk lands at each tier.
-      tier-chances:
-        COMMON: 0.92
-        UNCOMMON: 0.07
-        RARE: 0.0085
-        EPIC: 0.0013
-        LEGENDARY: 0.00017
-        MYTHICAL: 0.000029
-        DIVINE: 0.000001
-    UNCOMMON:
-      cost-rarity: UNCOMMON
-      cost-amount: 50
-      tier-chances:
-        COMMON: 0.85
-        UNCOMMON: 0.12
-        RARE: 0.025
-        EPIC: 0.0045
-        LEGENDARY: 0.00045
-        MYTHICAL: 0.000045
-        DIVINE: 0.000005
-    RARE:
-      cost-rarity: RARE
-      cost-amount: 20
-      tier-chances:
-        COMMON: 0.75
-        UNCOMMON: 0.17
-        RARE: 0.06
-        EPIC: 0.017
-        LEGENDARY: 0.0027
-        MYTHICAL: 0.00028
-        DIVINE: 0.00002
-    EPIC:
-      cost-rarity: EPIC
-      cost-amount: 5
-      tier-chances:
-        COMMON: 0.5999
-        UNCOMMON: 0.25
-        RARE: 0.10
-        EPIC: 0.04
-        LEGENDARY: 0.009
-        MYTHICAL: 0.001
-        DIVINE: 0.0001
-    LEGENDARY:
-      cost-rarity: LEGENDARY
-      cost-amount: 5
-      tier-chances:
-        COMMON: 0.25
-        UNCOMMON: 0.30
-        RARE: 0.25
-        EPIC: 0.12
-        LEGENDARY: 0.06
-        MYTHICAL: 0.0195
-        DIVINE: 0.0005
-    MYTHICAL:
-      cost-rarity: MYTHICAL
-      cost-amount: 3
-      tier-chances:
-        COMMON: 0.10
-        UNCOMMON: 0.15
-        RARE: 0.25
-        EPIC: 0.25
-        LEGENDARY: 0.15
-        MYTHICAL: 0.098
-        DIVINE: 0.002
-    DIVINE:
-      cost-rarity: DIVINE
-      cost-amount: 1
-      tier-chances:
-        COMMON: 0.05
-        UNCOMMON: 0.10
-        RARE: 0.15
-        EPIC: 0.25
-        LEGENDARY: 0.25
-        MYTHICAL: 0.19
-        DIVINE: 0.01
+  # One perk at a time. A roll costs one Perk Ticket, lands on a perk by
+  # its chance and a level from I to V, and replaces the perk you had,
+  # unless that perk and level has confirmation switched on in
+  # /perks index, which asks first.
+  # Perk Tickets per purchase and what that many cost in Credits.
+  ticket-prices:
+    1: 35
+    10: 320
+    25: 750
+  # The level a roll lands on, I to V.
+  level-chances: [0.40, 0.30, 0.18, 0.09, 0.03]
+  # This many rolls in a row without a Mythical or better make the next one
+  # Mythical or Divine, picked by these chances.
+  pity-rolls: 100
+  pity-chances:
+    MYTHICAL: 0.8
+    DIVINE: 0.2
+  # Every perk: its rarity, the chance a roll lands on it, and what each
+  # stat gives at level I and at level V (0.5 is +50%). The levels between
+  # step evenly. Stats: LUCK_PERCENT, MONEY_PERCENT, COINS_PERCENT,
+  # ROLL_SPEED_FLAT, ENCHANT_PROC_PERCENT. Chances are weights and need
+  # not add up to 1.
+  types:
+    money:
+      display: "Money Perk"
+      rarity: COMMON
+      icon: GOLD_INGOT
+      chance: 0.45
+      stats:
+        MONEY_PERCENT: [0.10, 0.50]
+    coins:
+      display: "Coin Perk"
+      rarity: UNCOMMON
+      icon: SUNFLOWER
+      chance: 0.25
+      stats:
+        COINS_PERCENT: [0.10, 0.50]
+    speed:
+      display: "Speed Perk"
+      rarity: RARE
+      icon: SUGAR
+      chance: 0.15
+      stats:
+        ROLL_SPEED_FLAT: [0.05, 0.25]
+        MONEY_PERCENT: [0.10, 0.50]
+    enchant:
+      display: "Enchant Perk"
+      rarity: EPIC
+      icon: ENCHANTED_BOOK
+      chance: 0.09
+      stats:
+        ENCHANT_PROC_PERCENT: [0.10, 0.50]
+        COINS_PERCENT: [0.15, 0.75]
+    fortune:
+      display: "Fortune Perk"
+      rarity: LEGENDARY
+      icon: RABBIT_FOOT
+      chance: 0.045
+      stats:
+        LUCK_PERCENT: [0.20, 1.00]
+        MONEY_PERCENT: [0.30, 1.50]
+    nova:
+      display: "Nova Perk"
+      rarity: MYTHICAL
+      icon: HEART_OF_THE_SEA
+      chance: 0.012
+      stats:
+        MONEY_PERCENT: [0.40, 2.00]
+        COINS_PERCENT: [0.40, 2.00]
+        ROLL_SPEED_FLAT: [0.10, 0.50]
+    universe:
+      display: "Universe"
+      rarity: DIVINE
+      icon: NETHER_STAR
+      chance: 0.003
+      stats:
+        MONEY_PERCENT: [0.50, 2.50]
+        COINS_PERCENT: [0.50, 2.50]
+        ROLL_SPEED_FLAT: [0.15, 0.75]
+        ENCHANT_PROC_PERCENT: [0.30, 1.50]
+        LUCK_PERCENT: [0.25, 1.25]
 
 # Rolls of this rarity or higher get broadcast to the whole server.
 broadcast:

@@ -1,157 +1,127 @@
 package com.spacerng.solrng.gui;
 
 import com.spacerng.solrng.SolRNGPlugin;
-import com.spacerng.solrng.perk.PerkInstance;
 import com.spacerng.solrng.perk.PerkManager;
 import com.spacerng.solrng.perk.PerkStat;
+import com.spacerng.solrng.perk.PerkType;
+import com.spacerng.solrng.player.PlayerData;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.StringJoiner;
 
 /**
- * How a perk reads on a tooltip, shared by the vault, the roller and the
- * perk index. The style comes from {@code perk-style} in config and
- * {@code /rngadmin perkstyles} shows every one on hover.
- *
- * Each style returns the body only (stats and range); the menu adds its
- * own footer, so an equipped perk and an index entry can share a look.
+ * How a perk reads on a tooltip, shared by the perk menu and the perk
+ * index: the name in its rarity's colours, what it boosts, and then every
+ * level from I to V with its values, as Leon's reference showed it.
  */
 public final class PerkLore {
 
-    public static final List<String> PERK_STYLES = List.of("card", "classic", "compact", "detailed", "meter");
-
     private PerkLore() { }
 
-    public static String style(SolRNGPlugin plugin) {
-        String raw = plugin.getConfig().getString("perk-style", "card").toLowerCase(Locale.ROOT);
-        return PERK_STYLES.contains(raw) ? raw : "card";
+    public static String name(SolRNGPlugin plugin, PerkType type) {
+        return plugin.getRarityManager().styleBold(type.rarity(), type.display());
     }
 
-    /** 「 Legendary Perk 」 in the tier's own colours. */
-    public static String name(SolRNGPlugin plugin, PerkInstance perk) {
-        return ChatColor.DARK_GRAY + "「 " + ChatColor.RESET + ChatColor.BOLD
-                + plugin.getRarityManager().style(perk.tier(), perk.display())
-                + ChatColor.RESET + ChatColor.DARK_GRAY + " 」";
-    }
-
-    /** "1.37x Luck, 1.2x Money" for chat lines. */
-    public static String shortStats(PerkInstance perk) {
+    /** "Money +50%, Coins +50%" for chat lines. */
+    public static String shortStats(PerkType type, int level) {
         StringJoiner out = new StringJoiner(ChatColor.DARK_GRAY + ", ");
-        perk.stats().forEach((stat, bonus) ->
-                out.add(stat.colour() + stat.format(bonus) + " " + ChatColor.GRAY + stat.label()));
+        for (PerkStat stat : type.stats().keySet()) {
+            out.add(ChatColor.WHITE + stat.label() + " " + stat.colour() + stat.format(type.valueAt(stat, level)));
+        }
         return out.toString();
     }
 
-    /** "1.3x to 2.5x" for a tier. */
-    public static String rangeText(PerkManager perks, com.spacerng.solrng.rarity.Rarity tier) {
-        double[] range = perks.rangeOf(tier);
-        return PerkStat.multiplier(1.0 + range[0]) + " to " + PerkStat.multiplier(1.0 + range[1]);
+    /** "Money/Coins/Speed" in white with grey slashes. */
+    private static String statNames(PerkType type) {
+        StringJoiner out = new StringJoiner(ChatColor.GRAY + "/" + ChatColor.WHITE);
+        for (PerkStat stat : type.stats().keySet()) out.add(stat.label());
+        return ChatColor.WHITE + out.toString();
     }
 
-    /** A perk as a plain tooltip item: name and body, no footer. */
-    public static ItemStack item(SolRNGPlugin plugin, PerkInstance perk, String style) {
-        PerkStat strongest = perk.strongest();
-        ItemStack item = new ItemStack(strongest == null ? Material.NETHER_STAR : strongest.icon());
+    /** A perk with all five levels and each level's confirmation, as the perk index shows it. */
+    public static ItemStack indexItem(SolRNGPlugin plugin, PlayerData data, PerkType type) {
+        PerkManager perks = plugin.getPerkManager();
+        ItemStack item = new ItemStack(type.icon());
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(name(plugin, perk));
-        meta.setLore(body(plugin, perk, style));
+        meta.setDisplayName(name(plugin, type));
+        List<String> lore = new ArrayList<>();
+        lore.add(ChatColor.DARK_GRAY + type.rarity().displayName() + " perk");
+        lore.add("");
+        lore.add(ChatColor.GRAY + "This perk gives you an extra");
+        lore.add(statNames(type) + ChatColor.GRAY + " boost.");
+        lore.add("");
+        int found = 0;
+        for (int level = 1; level <= 5; level++) {
+            String key = type.key(level);
+            boolean has = data.getPerkFound().contains(key);
+            if (has) found++;
+            String head = plugin.getRarityManager().style(type.rarity(), PerkType.roman(level))
+                    + (has ? ChatColor.GREEN + " " + Lore.TICK : "") + ChatColor.DARK_GRAY + "  ";
+            List<String> parts = new ArrayList<>();
+            for (PerkStat stat : type.stats().keySet()) {
+                parts.add(ChatColor.WHITE + stat.label() + " " + ChatColor.GRAY + stat.format(type.valueAt(stat, level)));
+            }
+            String status = data.getPerkConfirm().contains(key)
+                    ? ChatColor.GREEN + "Confirmation on" : ChatColor.DARK_GRAY + "Confirmation off";
+            if (parts.size() <= 3) {
+                lore.add(head + String.join("  ", parts) + "  " + status);
+            } else {
+                lore.add(head + String.join("  ", parts.subList(0, 3)));
+                lore.add("      " + String.join("  ", parts.subList(3, parts.size())) + "  " + status);
+            }
+        }
+        lore.add("");
+        lore.add(Lore.stat(ChatColor.AQUA, "Chance per roll", PerkIndexGui.percent(perks.chanceOf(type))));
+        lore.add("");
+        lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Press 1 to 5 to switch a level");
+        lore.add(Lore.footnote("Click to switch all five. A level with"));
+        lore.add(Lore.footnote("confirmation on asks before a roll replaces it."));
+        meta.setLore(lore);
+        if (found >= 5) meta.setEnchantmentGlintOverride(Boolean.TRUE);
+        meta.getPersistentDataContainer().set(PerkIndexGui.typeKey(), PersistentDataType.STRING, type.id());
         item.setItemMeta(meta);
         return item;
     }
 
-    public static List<String> body(SolRNGPlugin plugin, PerkInstance perk, String style) {
-        PerkManager perks = plugin.getPerkManager();
-        String range = rangeText(perks, perk.tier());
-        List<String> lore = new ArrayList<>();
-        switch (style) {
-            case "classic" -> {
-                lore.add(Lore.section(ChatColor.AQUA, "Stats"));
-                for (var entry : perk.stats().entrySet()) {
-                    PerkStat stat = entry.getKey();
-                    lore.add(Lore.stat(stat.colour(), stat.label(), stat.format(entry.getValue())));
-                }
-                lore.add("");
-                lore.add(Lore.section(ChatColor.AQUA, "Details"));
-                lore.add(Lore.stat(ChatColor.AQUA, "Tier", perk.tier().displayName()));
-                lore.add(Lore.stat(ChatColor.AQUA, "Range", range));
-            }
-            case "compact" -> {
-                for (var entry : perk.stats().entrySet()) {
-                    PerkStat stat = entry.getKey();
-                    lore.add(Lore.mark(stat.colour()) + stat.colour() + stat.format(entry.getValue())
-                            + " " + ChatColor.GRAY + stat.label());
-                }
-            }
-            case "detailed" -> {
-                for (var entry : perk.stats().entrySet()) {
-                    PerkStat stat = entry.getKey();
-                    long roll = Math.round(perks.quality(perk.tier(), entry.getValue()) * 100);
-                    lore.add(Lore.stat(stat.colour(), stat.label(), stat.format(entry.getValue())));
-                    lore.add("  " + ChatColor.DARK_GRAY + stat.description());
-                    lore.add("  " + ChatColor.DARK_GRAY + "Rolled " + ChatColor.GRAY + roll + "%"
-                            + ChatColor.DARK_GRAY + " of the way up its range");
-                }
-                lore.add("");
-                lore.add(Lore.stat(ChatColor.AQUA, "Range", range));
-                lore.add(Lore.stat(ChatColor.AQUA, "Stats", String.valueOf(perk.stats().size())));
-            }
-            case "meter" -> {
-                for (var entry : perk.stats().entrySet()) {
-                    PerkStat stat = entry.getKey();
-                    double quality = perks.quality(perk.tier(), entry.getValue());
-                    lore.add(Lore.stat(stat.colour(), stat.label(), stat.format(entry.getValue())));
-                    lore.add("  " + Lore.bar(quality) + ChatColor.DARK_GRAY + " "
-                            + Math.round(quality * 100) + "% of the range");
-                }
-                lore.add("");
-                lore.add(Lore.stat(ChatColor.AQUA, "Range", range));
-            }
-            default -> { // card
-                for (var entry : perk.stats().entrySet()) {
-                    PerkStat stat = entry.getKey();
-                    lore.add(Lore.mark(stat.colour()) + stat.colour() + ChatColor.BOLD + stat.format(entry.getValue())
-                            + ChatColor.RESET + " " + ChatColor.GRAY + stat.label());
-                    lore.add("  " + ChatColor.DARK_GRAY + stat.description());
-                }
-                lore.add("");
-                lore.add(Lore.stat(ChatColor.AQUA, "Range", range));
-            }
+    /** The perk the player has now, with what it gives at their level. */
+    public static ItemStack activeItem(SolRNGPlugin plugin, PlayerData data) {
+        PerkType type = plugin.getPerkManager().activeType(data);
+        if (type == null) {
+            ItemStack item = new ItemStack(Material.STONE_BUTTON);
+            ItemMeta meta = item.getItemMeta();
+            meta.setDisplayName(Lore.title(ChatColor.DARK_GRAY, "No perk yet"));
+            meta.setLore(List.of(
+                    Lore.line(ChatColor.GRAY, "Roll one with a Perk Ticket."),
+                    Lore.line(ChatColor.GRAY, "It boosts you until you roll again.")));
+            item.setItemMeta(meta);
+            return item;
         }
-        return lore;
-    }
-
-    /** Sums every equipped perk into one tooltip: the loadout at a glance. */
-    public static ItemStack loadoutSummary(SolRNGPlugin plugin, com.spacerng.solrng.player.PlayerData data) {
-        PerkManager perks = plugin.getPerkManager();
-        ItemStack item = new ItemStack(Material.BEACON);
+        int level = data.getActivePerkLevel();
+        ItemStack item = new ItemStack(type.icon());
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(Lore.title(ChatColor.LIGHT_PURPLE, "Your Loadout"));
+        meta.setDisplayName(name(plugin, type) + " " + plugin.getRarityManager().styleBold(type.rarity(), PerkType.roman(level)));
         List<String> lore = new ArrayList<>();
-        lore.add(Lore.stat(ChatColor.AQUA, "Equipped",
-                data.getEquippedPerks().size() + " / " + perks.loadoutSlots()));
+        lore.add(ChatColor.DARK_GRAY + type.rarity().displayName() + " perk, level " + PerkType.roman(level));
         lore.add("");
-        boolean any = false;
-        for (PerkStat stat : PerkStat.values()) {
-            double total = perks.totalOf(data, stat);
-            if (total <= 0.0) continue;
-            if (!any) lore.add(Lore.section(ChatColor.GREEN, "All perks together"));
-            any = true;
-            lore.add(Lore.mark(stat.colour()) + stat.colour() + stat.format(total) + " " + ChatColor.GRAY + stat.label());
+        lore.add(Lore.section(ChatColor.GOLD, "Your boost"));
+        for (PerkStat stat : type.stats().keySet()) {
+            lore.add(Lore.stat(stat.colour(), stat.label(), stat.format(type.valueAt(stat, level))));
         }
-        if (!any) {
-            lore.add(Lore.line(ChatColor.GRAY, "Nothing equipped yet."));
-            lore.add(Lore.footnote("Equip a perk in the vault."));
+        lore.add("");
+        if (data.getPerkConfirm().contains(type.key(level))) {
+            lore.add(Lore.line(ChatColor.GREEN, "Confirmation on: a roll asks first."));
         } else {
-            lore.add("");
-            lore.add(Lore.footnote("The same stat on two perks adds up."));
+            lore.add(Lore.line(ChatColor.DARK_GRAY, "Confirmation off for this level."));
         }
+        lore.add(Lore.footnote("A new roll replaces this perk."));
         meta.setLore(lore);
+        meta.setEnchantmentGlintOverride(Boolean.TRUE);
         item.setItemMeta(meta);
         return item;
     }

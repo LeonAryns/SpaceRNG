@@ -2,41 +2,38 @@ package com.spacerng.solrng.gui;
 
 import com.spacerng.solrng.SolRNGPlugin;
 import com.spacerng.solrng.perk.PerkManager;
-import com.spacerng.solrng.perk.PerkStat;
+import com.spacerng.solrng.perk.PerkType;
 import com.spacerng.solrng.player.PlayerData;
-import com.spacerng.solrng.rarity.Rarity;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Every stat a perk can roll, one row per stat and one column per tier,
- * and which of them this player has rolled. A found cell shows the best
- * roll so far and where it sits in the range; an unfound one says which
- * rolls can give it. The right-hand column links back to the roller and
- * the vault.
- *
- * Found is remembered apart from the vault, so discarding a perk never
- * takes it out of the index.
+ * Every perk and what each of its five levels gives, and which of them this
+ * player has rolled. It is also where confirmation is set: hovering a perk
+ * and pressing 1 to 5 switches that level, clicking switches all five. A
+ * perk and level with confirmation on asks before a roll replaces it.
  */
 public class PerkIndexGui {
 
-    private static final int SIZE = 54;
-    private static final int BACK_SLOT = 8;
-    private static final int PROGRESS_SLOT = 17;
-    private static final int VAULT_SLOT = 26;
-    // A roll this close to the top of its range counts as perfect.
-    private static final double PERFECT = 0.95;
+    private static final int SIZE = 45;
+    private static final int BACK_SLOT = 0;
+    private static final int INFO_SLOT = 4;
+    private static final int[] TYPE_SLOTS = {19, 20, 21, 22, 23, 24, 25, 28, 29, 30, 31, 32, 33, 34};
 
     public static int backSlot() { return BACK_SLOT; }
-    public static int vaultSlot() { return VAULT_SLOT; }
+
+    public static NamespacedKey typeKey() {
+        return SolRNGPlugin.key("solrng_perk_type");
+    }
 
     public static Inventory build(SolRNGPlugin plugin, Player player) {
         PerkIndexHolder holder = new PerkIndexHolder();
@@ -49,148 +46,62 @@ public class PerkIndexGui {
 
         ItemStack filler = pane(Material.BLACK_STAINED_GLASS_PANE);
         ItemStack rail = pane(Material.MAGENTA_STAINED_GLASS_PANE);
-        for (int i = 0; i < SIZE; i++) inv.setItem(i, i % 9 == 8 ? rail : filler);
+        for (int i = 0; i < SIZE; i++) inv.setItem(i, i < 9 ? rail : filler);
 
-        List<PerkStat> pool = perks.pool();
-        Rarity[] tiers = Rarity.values();
-        int rows = Math.min(6, pool.size());
-        int columns = Math.min(7, tiers.length);
-        int found = 0;
-        int perfect = 0;
-        for (int row = 0; row < rows; row++) {
-            PerkStat stat = pool.get(row);
-            int base = row * 9;
-            int statFound = 0;
-            for (int col = 0; col < columns; col++) {
-                Rarity tier = tiers[col];
-                double best = data.bestPerkValue(stat, tier);
-                if (best > 0.0) {
-                    found++;
-                    statFound++;
-                    if (perks.quality(tier, best) >= PERFECT) perfect++;
-                }
-                inv.setItem(base + 1 + col, best > 0.0
-                        ? foundIcon(plugin, stat, tier, best)
-                        : unfoundIcon(plugin, stat, tier));
+        int index = 0;
+        int confirmations = 0;
+        for (PerkType type : perks.types()) {
+            if (index >= TYPE_SLOTS.length) break;
+            inv.setItem(TYPE_SLOTS[index++], PerkLore.indexItem(plugin, data, type));
+            for (int level = 1; level <= 5; level++) {
+                if (data.getPerkConfirm().contains(type.key(level))) confirmations++;
             }
-            inv.setItem(base, statIcon(plugin, stat, statFound, columns));
+        }
+        int total = perks.types().size() * 5;
+        int found = 0;
+        for (PerkType type : perks.types()) {
+            for (int level = 1; level <= 5; level++) {
+                if (data.getPerkFound().contains(type.key(level))) found++;
+            }
         }
 
-        int total = rows * columns;
-        inv.setItem(BACK_SLOT, link(Material.SPECTRAL_ARROW, "Perk Roller", "Trade drops for perks."));
-        inv.setItem(PROGRESS_SLOT, progressIcon(found, perfect, total));
-        inv.setItem(VAULT_SLOT, link(Material.ENDER_CHEST, "Perk Vault", "See and equip your perks."));
+        inv.setItem(BACK_SLOT, back());
+        inv.setItem(INFO_SLOT, info(found, total, confirmations));
         return inv;
     }
 
-    private static String cellName(SolRNGPlugin plugin, PerkStat stat, Rarity tier) {
-        return plugin.getRarityManager().style(tier, tier.displayName() + " " + stat.label());
-    }
-
-    private static ItemStack foundIcon(SolRNGPlugin plugin, PerkStat stat, Rarity tier, double best) {
-        PerkManager perks = plugin.getPerkManager();
-        double quality = perks.quality(tier, best);
-        ItemStack item = new ItemStack(stat.icon());
-        ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(ChatColor.DARK_GRAY + "「 " + ChatColor.RESET + ChatColor.BOLD
-                + cellName(plugin, stat, tier) + ChatColor.RESET + ChatColor.DARK_GRAY + " 」");
-        List<String> lore = new ArrayList<>();
-        lore.add(Lore.line(stat.colour(), stat.description()));
-        lore.add("");
-        lore.add(Lore.stat(stat.colour(), "Best roll", stat.format(best)));
-        lore.add("  " + Lore.bar(quality) + ChatColor.DARK_GRAY + " " + Math.round(quality * 100) + "%");
-        lore.add(Lore.stat(ChatColor.AQUA, "Range", PerkLore.rangeText(perks, tier)));
-        lore.add("");
-        if (quality >= PERFECT) {
-            lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "Found, a perfect roll");
-            meta.setEnchantmentGlintOverride(Boolean.TRUE);
-        } else {
-            lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "Found");
-            lore.add(Lore.footnote("Your best so far. A higher roll can still land."));
-        }
-        meta.setLore(lore);
-        item.setItemMeta(meta);
-        return item;
-    }
-
-    private static ItemStack unfoundIcon(SolRNGPlugin plugin, PerkStat stat, Rarity tier) {
-        PerkManager perks = plugin.getPerkManager();
-        ItemStack item = new ItemStack(Material.STONE_BUTTON);
-        ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(ChatColor.DARK_GRAY + "???");
-        List<String> lore = new ArrayList<>();
-        lore.add(Lore.mark(ChatColor.DARK_GRAY) + cellName(plugin, stat, tier));
-        lore.add(Lore.stat(ChatColor.AQUA, "Range", PerkLore.rangeText(perks, tier)));
-        lore.add("");
-        boolean anyRoll = false;
-        for (Rarity rollTier : perks.getRolls().keySet()) {
-            double chance = perks.chanceOf(rollTier, tier, stat);
-            if (chance <= 0.0) continue;
-            if (!anyRoll) lore.add(Lore.section(ChatColor.LIGHT_PURPLE, "Rolls from"));
-            anyRoll = true;
-            lore.add(Lore.stat(ChatColor.LIGHT_PURPLE, rollTier.displayName() + " Roll", percent(chance)));
-        }
-        if (anyRoll) {
-            lore.add("");
-            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Not found yet");
-            lore.add(Lore.line(ChatColor.GRAY, "Roll it in /perks"));
-        } else {
-            lore.add(Lore.line(ChatColor.GRAY, "No roll gives this yet."));
-            lore.add("");
-            lore.add(ChatColor.DARK_GRAY + "" + ChatColor.BOLD + "Coming soon");
-        }
-        meta.setLore(lore);
-        item.setItemMeta(meta);
-        return item;
-    }
-
-    private static ItemStack statIcon(SolRNGPlugin plugin, PerkStat stat, int statFound, int tiers) {
-        PerkManager perks = plugin.getPerkManager();
-        ItemStack item = new ItemStack(stat.icon());
-        ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(Lore.title(stat.colour(), stat.label()));
-        List<String> lore = new ArrayList<>();
-        lore.add(Lore.line(stat.colour(), stat.description()));
-        lore.add("");
-        lore.add(Lore.section(ChatColor.AQUA, "Ranges"));
-        for (Rarity tier : Rarity.values()) {
-            lore.add(Lore.mark(ChatColor.GRAY) + plugin.getRarityManager().style(tier, tier.displayName())
-                    + ChatColor.DARK_GRAY + "  " + ChatColor.WHITE + PerkLore.rangeText(perks, tier));
-        }
-        lore.add("");
-        lore.add(Lore.stat(ChatColor.GREEN, "Found", statFound + " / " + tiers));
-        meta.setLore(lore);
-        if (statFound >= tiers) meta.setEnchantmentGlintOverride(Boolean.TRUE);
-        item.setItemMeta(meta);
-        return item;
-    }
-
-    private static ItemStack progressIcon(int found, int perfect, int total) {
+    private static ItemStack info(int found, int total, int confirmations) {
         ItemStack item = new ItemStack(Material.KNOWLEDGE_BOOK);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(Lore.title(ChatColor.LIGHT_PURPLE, "Perk Index"));
         meta.setLore(List.of(
-                Lore.line(ChatColor.GRAY, "Every stat at every tier."),
+                Lore.line(ChatColor.GRAY, "Every perk and what each level gives."),
                 "",
                 Lore.stat(ChatColor.GREEN, "Found", found + " / " + total),
                 "  " + Lore.bar(total == 0 ? 0.0 : (double) found / total),
-                Lore.stat(ChatColor.GOLD, "Perfect rolls", perfect + " / " + total),
+                Lore.stat(ChatColor.GOLD, "Confirmation on", String.valueOf(confirmations)),
                 "",
-                Lore.footnote("A discarded perk stays found.")));
+                Lore.footnote("Hover a perk and press 1 to 5 to switch a level.")));
         item.setItemMeta(meta);
         return item;
     }
 
-    private static ItemStack link(Material material, String name, String description) {
-        ItemStack item = new ItemStack(material);
+    private static ItemStack back() {
+        ItemStack item = new ItemStack(Material.SPECTRAL_ARROW);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(Lore.title(ChatColor.LIGHT_PURPLE, name));
+        meta.setDisplayName(Lore.title(ChatColor.LIGHT_PURPLE, "Perks"));
         meta.setLore(List.of(
-                Lore.line(ChatColor.GRAY, description),
+                Lore.line(ChatColor.GRAY, "Roll a perk and buy Perk Tickets."),
                 "",
                 ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to open"));
         item.setItemMeta(meta);
         return item;
+    }
+
+    /** The perk id on a clicked index item, or null. */
+    public static String clickedType(ItemStack item) {
+        if (item == null || item.getItemMeta() == null) return null;
+        return item.getItemMeta().getPersistentDataContainer().get(typeKey(), PersistentDataType.STRING);
     }
 
     /** 12.5%, 0.4%, 0.0001%: two significant digits, never scientific, never zero. */

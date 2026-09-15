@@ -142,7 +142,7 @@ final class PlayerAdmin extends AdminTools {
     /** /rngadmin give &lt;currency&gt; &lt;amount&gt; [player] */
     boolean doGive(CommandSender sender, String[] args) {
         if (args.length < 3) {
-            sender.sendMessage(ChatColor.RED + "Usage: /rngadmin give <money|coins|gems|credits|luck|speed> <amount> [player]");
+            sender.sendMessage(ChatColor.RED + "Usage: /rngadmin give <money|coins|gems|credits|luck|speed|tickets> <amount> [player]");
             return true;
         }
         Long amount = parseAmount(sender, args[2]);
@@ -170,8 +170,9 @@ final class PlayerAdmin extends AdminTools {
             // Permanent stats, in percent: "give luck 50" is +50% Luck, "give speed 25" is +0.25x Speed.
             case "luck" -> data.addBonusLuck(amount / 100.0);
             case "speed" -> data.addBonusSpeed(amount / 100.0);
+            case "tickets" -> data.setPerkTickets(data.getPerkTickets() + amount);
             default -> {
-                sender.sendMessage(ChatColor.RED + "Unknown type. Use money, coins, gems, credits, luck or speed.");
+                sender.sendMessage(ChatColor.RED + "Unknown type. Use money, coins, gems, credits, luck, speed or tickets.");
                 return true;
             }
         }

@@ -112,8 +112,6 @@ public class GuiListener implements Listener {
             shops.handlePotionClick(event);
         } else if (topInventory.getHolder() instanceof HoeHolder) {
             playerMenus.handleHoeClick(event);
-        } else if (topInventory.getHolder() instanceof com.spacerng.solrng.gui.PerkVaultHolder) {
-            shops.handlePerkVaultClick(event);
         } else if (topInventory.getHolder() instanceof com.spacerng.solrng.gui.PerkRollerHolder) {
             shops.handlePerkRollerClick(event);
         } else if (topInventory.getHolder() instanceof com.spacerng.solrng.gui.PerkIndexHolder) {

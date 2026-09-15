@@ -2,8 +2,8 @@ package com.spacerng.solrng.commands;
 
 import com.spacerng.solrng.SolRNGPlugin;
 import com.spacerng.solrng.gui.Menus;
+import com.spacerng.solrng.gui.PerkIndexGui;
 import com.spacerng.solrng.gui.PerkRollerGui;
-import com.spacerng.solrng.gui.PerkVaultGui;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -11,11 +11,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * {@code /perks} opens the Roller. {@code /perks vault} opens the
- * vault, since players who just want to reshuffle a loadout should not
- * have to walk through the roller to reach it.
- */
+/** {@code /perks} opens the perk menu, {@code /perks index} the perk index. */
 public class PerkCommand implements CommandExecutor {
 
     private final SolRNGPlugin plugin;
@@ -31,10 +27,8 @@ public class PerkCommand implements CommandExecutor {
             sender.sendMessage(ChatColor.RED + "Only players can open the perks menu.");
             return true;
         }
-        if (args.length > 0 && args[0].equalsIgnoreCase("vault")) {
-            Menus.open(plugin, player, () -> PerkVaultGui.build(plugin, player, 0));
-        } else if (args.length > 0 && args[0].equalsIgnoreCase("index")) {
-            Menus.open(plugin, player, () -> com.spacerng.solrng.gui.PerkIndexGui.build(plugin, player));
+        if (args.length > 0 && args[0].equalsIgnoreCase("index")) {
+            Menus.open(plugin, player, () -> PerkIndexGui.build(plugin, player));
         } else {
             Menus.open(plugin, player, () -> PerkRollerGui.build(plugin, player));
         }

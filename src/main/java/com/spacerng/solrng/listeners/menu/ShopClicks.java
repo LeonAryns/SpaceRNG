@@ -57,84 +57,7 @@ final class ShopClicks {
         this.plugin = plugin;
     }
 
-    /**
-     * Vault: click a vault perk to equip/unequip; click an equipped
-     * slot to unequip; shift-click a vault perk to discard it.
-     */
-    void handlePerkVaultClick(InventoryClickEvent event) {
-        event.setCancelled(true);
-        if (event.getClickedInventory() == null
-                || !(event.getClickedInventory().getHolder()
-                        instanceof com.spacerng.solrng.gui.PerkVaultHolder holder)) return;
-
-        Player player = (Player) event.getWhoClicked();
-        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
-        int slot = event.getRawSlot();
-
-        if (slot == com.spacerng.solrng.gui.PerkVaultGui.rollerSlot()) {
-            player.openInventory(com.spacerng.solrng.gui.PerkRollerGui.build(plugin, player));
-            return;
-        }
-        if (slot == com.spacerng.solrng.gui.PerkVaultGui.indexSlot()) {
-            player.openInventory(com.spacerng.solrng.gui.PerkIndexGui.build(plugin, player));
-            return;
-        }
-        if (slot == com.spacerng.solrng.gui.PerkVaultGui.prevSlot()) {
-            player.openInventory(com.spacerng.solrng.gui.PerkVaultGui.build(plugin, player,
-                    Math.max(0, holder.getPage() - 1)));
-            return;
-        }
-        if (slot == com.spacerng.solrng.gui.PerkVaultGui.nextSlot()) {
-            player.openInventory(com.spacerng.solrng.gui.PerkVaultGui.build(plugin, player,
-                    holder.getPage() + 1));
-            return;
-        }
-
-        java.util.UUID perkId = com.spacerng.solrng.gui.PerkVaultGui.clickedId(
-                plugin, event.getCurrentItem());
-        if (perkId == null) return;
-
-        // Loadout row (0..8): a click here just unequips.
-        if (slot < 9) {
-            data.getEquippedPerks().removeIf(p -> p.id().equals(perkId));
-            player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.7f, 0.9f);
-            player.openInventory(com.spacerng.solrng.gui.PerkVaultGui.build(plugin, player, holder.getPage()));
-            return;
-        }
-
-        // Vault row: shift-click discards, plain click toggles equip.
-        if (event.isShiftClick()) {
-            data.takePerkById(perkId);
-            player.sendMessage(ChatColor.GRAY + "Perk discarded.");
-            player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_ITEM_BREAK, 0.6f, 1.2f);
-            player.openInventory(com.spacerng.solrng.gui.PerkVaultGui.build(plugin, player, holder.getPage()));
-            return;
-        }
-        boolean equipped = data.isPerkEquipped(perkId);
-        if (equipped) {
-            data.getEquippedPerks().removeIf(p -> p.id().equals(perkId));
-            player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.7f, 0.9f);
-        } else {
-            int max = plugin.getPerkManager().loadoutSlots();
-            if (data.getEquippedPerks().size() >= max) {
-                player.sendMessage(ChatColor.RED + "Loadout is full. Unequip one first.");
-                player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.7f, 1.0f);
-                return;
-            }
-            for (var perk : data.getPerkVault()) {
-                if (perk.id().equals(perkId)) {
-                    data.getEquippedPerks().add(perk);
-                    break;
-                }
-            }
-            player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_BEACON_ACTIVATE, 0.5f, 1.4f);
-        }
-        plugin.getScoreboardManager().update(player);
-        plugin.getLuckBarManager().update(player);
-        player.openInventory(com.spacerng.solrng.gui.PerkVaultGui.build(plugin, player, holder.getPage()));
-    }
-
-    /** Roller: one of four buttons - or the vault link. */
+    /** /perks: roll a perk, buy Perk Tickets, or open the perk index. */
     void handlePerkRollerClick(InventoryClickEvent event) {
         event.setCancelled(true);
         if (event.getClickedInventory() == null
@@ -143,145 +66,81 @@ final class ShopClicks {
 
         Player player = (Player) event.getWhoClicked();
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+        var perks = plugin.getPerkManager();
+        int slot = event.getRawSlot();
 
-        if (event.getRawSlot() == com.spacerng.solrng.gui.PerkRollerGui.vaultSlot()) {
-            player.openInventory(com.spacerng.solrng.gui.PerkVaultGui.build(plugin, player, 0));
-            return;
-        }
-        if (event.getRawSlot() == com.spacerng.solrng.gui.PerkRollerGui.indexSlot()) {
+        if (slot == com.spacerng.solrng.gui.PerkRollerGui.indexSlot()) {
             player.openInventory(com.spacerng.solrng.gui.PerkIndexGui.build(plugin, player));
             return;
         }
-        int slot = event.getRawSlot();
-        if (slot == com.spacerng.solrng.gui.PerkRollerGui.autoSaveSlot()) {
-            data.setPerkAutoSave(!data.isPerkAutoSave());
-            player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.7f,
-                    data.isPerkAutoSave() ? 1.5f : 0.8f);
-            player.openInventory(com.spacerng.solrng.gui.PerkRollerGui.build(plugin, player));
-            return;
-        }
-        if (slot == com.spacerng.solrng.gui.PerkRollerGui.amountSlot()) {
-            int[] amounts = com.spacerng.solrng.gui.PerkRollerGui.SAVE_AMOUNTS;
-            int at = 0;
-            for (int i = 0; i < amounts.length; i++) {
-                if (amounts[i] == data.getPerkSaveAmount()) at = i;
-            }
-            int next = Math.floorMod(at + (event.isRightClick() ? -1 : 1), amounts.length);
-            data.setPerkSaveAmount(amounts[next]);
-            player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.6f, 1.2f);
-            player.openInventory(com.spacerng.solrng.gui.PerkRollerGui.build(plugin, player));
-            return;
-        }
-        if (slot == com.spacerng.solrng.gui.PerkRollerGui.buySlot()) {
-            int amount = data.getPerkSaveAmount();
-            if (!plugin.getPerkManager().buySaveRolls(data, amount)) {
-                player.sendMessage(ChatColor.RED + "You need "
-                        + Currency.CREDITS.amount(amount * plugin.getPerkManager().saveCost())
-                        + ChatColor.RED + " for " + amount + " save rolls.");
+
+        Integer bundle = com.spacerng.solrng.gui.PerkRollerGui.buyAmountAt(plugin, slot);
+        if (bundle != null) {
+            long price = perks.ticketPrices().getOrDefault(bundle, 0L);
+            if (!perks.buyTickets(data, bundle)) {
+                player.sendMessage(ChatColor.RED + "You need " + Currency.CREDITS.amount(price)
+                        + ChatColor.RED + " for " + bundle + " Perk Tickets.");
                 player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
                 return;
             }
-            player.sendMessage(ChatColor.GREEN + "Bought " + amount + " save rolls. You have "
-                    + String.format("%,d", data.getPerkSaveRolls()) + ".");
+            player.sendMessage(ChatColor.GREEN + "Bought " + bundle + " Perk Tickets. You have "
+                    + String.format("%,d", data.getPerkTickets()) + ".");
             player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.7f, 1.3f);
             plugin.getScoreboardManager().update(player);
             player.openInventory(com.spacerng.solrng.gui.PerkRollerGui.build(plugin, player));
             return;
         }
-        if (slot == com.spacerng.solrng.gui.PerkRollerGui.confirmSlot()) {
-            com.spacerng.solrng.rarity.Rarity[] tiers = com.spacerng.solrng.rarity.Rarity.values();
-            // Positions 0..6 are the tiers, 7 is "never ask".
-            int at = data.getPerkConfirmFrom() == null ? tiers.length : data.getPerkConfirmFrom().ordinal();
-            int next = Math.floorMod(at + (event.isRightClick() ? -1 : 1), tiers.length + 1);
-            data.setPerkConfirmFrom(next == tiers.length ? null : tiers[next]);
-            player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_NOTE_BLOCK_BELL, 0.6f, 1.2f);
-            player.openInventory(com.spacerng.solrng.gui.PerkRollerGui.build(plugin, player));
-            return;
-        }
-        if (slot == com.spacerng.solrng.gui.PerkRollerGui.pendingSlot()) {
-            if (data.getPendingPerk() == null) return;
-            var saved = plugin.getPerkManager().save(data);
-            if (saved == null) {
-                player.sendMessage(ChatColor.RED + "You need "
-                        + Currency.CREDITS.amount(plugin.getPerkManager().saveCost())
-                        + ChatColor.RED + " or a save roll to save this perk.");
-                player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
-                return;
-            }
-            player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "Saved: " + ChatColor.RESET
-                    + plugin.getRarityManager().style(saved.tier(), saved.display()) + ChatColor.GRAY + " ("
-                    + com.spacerng.solrng.gui.PerkLore.shortStats(saved) + ChatColor.GRAY + ") is in your vault.");
-            player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_ENDER_CHEST_CLOSE, 0.7f, 1.2f);
-            plugin.getScoreboardManager().update(player);
-            player.openInventory(com.spacerng.solrng.gui.PerkRollerGui.build(plugin, player));
-            return;
-        }
 
-        var clicked = event.getCurrentItem();
-        if (clicked == null || clicked.getItemMeta() == null) return;
-        String tierName = clicked.getItemMeta().getPersistentDataContainer()
-                .get(com.spacerng.solrng.gui.PerkRollerGui.rollTierKey(plugin),
-                        PersistentDataType.STRING);
-        if (tierName == null) return;
-
-        com.spacerng.solrng.rarity.Rarity tier;
-        try {
-            tier = com.spacerng.solrng.rarity.Rarity.valueOf(tierName);
-        } catch (IllegalArgumentException ex) { return; }
-
-        // Auto save with nothing left to save with: the menu shows why, and nothing rolls.
-        if (com.spacerng.solrng.gui.PerkRollerGui.outOfSaves(data)) {
+        if (slot != com.spacerng.solrng.gui.PerkRollerGui.rollSlot()) return;
+        if (data.getPerkTickets() < 1) {
+            player.sendMessage(ChatColor.RED + "You need a Perk Ticket. Buy them along the bottom.");
             player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
-            player.openInventory(com.spacerng.solrng.gui.PerkRollerGui.build(plugin, player));
             return;
         }
 
-        // An unsaved perk at or above the player's chosen tier takes a second click to throw away.
-        var waiting = data.getPendingPerk();
-        var askFrom = data.getPerkConfirmFrom();
-        if (!data.isPerkAutoSave() && waiting != null && askFrom != null
-                && waiting.tier().ordinal() >= askFrom.ordinal()) {
+        // A perk and level with confirmation on takes a second click to replace.
+        var current = perks.activeType(data);
+        if (current != null && data.getPerkConfirm().contains(current.key(data.getActivePerkLevel()))) {
             Long asked = replaceConfirm.get(player.getUniqueId());
             long now = System.currentTimeMillis();
             if (asked == null || now - asked > 5000L) {
                 replaceConfirm.put(player.getUniqueId(), now);
-                player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Careful: " + ChatColor.RESET
-                        + ChatColor.GRAY + "your unsaved "
-                        + plugin.getRarityManager().style(waiting.tier(), waiting.display())
-                        + ChatColor.GRAY + " will be lost. Click again within 5 seconds to roll anyway.");
+                player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "Careful: " + ChatColor.RESET
+                        + ChatColor.GRAY + "your " + com.spacerng.solrng.gui.PerkLore.name(plugin, current) + " "
+                        + plugin.getRarityManager().style(current.rarity(),
+                        com.spacerng.solrng.perk.PerkType.roman(data.getActivePerkLevel()))
+                        + ChatColor.GRAY + " has confirmation on. Click again within 5 seconds to roll it away.");
                 player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_NOTE_BLOCK_BASS, 0.8f, 0.6f);
                 return;
             }
         }
         replaceConfirm.remove(player.getUniqueId());
 
-        var perk = plugin.getPerkManager().purchase(plugin, player, data, tier);
-        if (perk == null) {
-            var roll = plugin.getPerkManager().getRoll(tier);
-            String need = roll == null ? "drops" : (roll.costAmount() + "x "
-                    + plugin.getRarityManager().style(roll.costRarity(), roll.costRarity().displayName())
-                    + ChatColor.RED + " drops");
-            player.sendMessage(ChatColor.RED + "Not enough. You need " + need + ChatColor.RED + ".");
-            player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
+        boolean fresh;
+        data.setPerkTickets(data.getPerkTickets() - 1);
+        int foundBefore = data.getPerkFound().size();
+        var result = perks.roll(data);
+        if (result == null) {
+            data.setPerkTickets(data.getPerkTickets() + 1);
+            player.sendMessage(ChatColor.RED + "There are no perks set up yet.");
             return;
         }
+        fresh = data.getPerkFound().size() > foundBefore;
 
-        boolean newInIndex = data.recordPerk(perk);
-        String tierColored = plugin.getRarityManager().style(perk.tier(), perk.display());
-        player.sendMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "New perk: "
-                + ChatColor.RESET + tierColored + ChatColor.GRAY + "  " + com.spacerng.solrng.gui.PerkLore.shortStats(perk));
-        if (data.getPendingPerk() == perk) {
-            player.sendMessage(ChatColor.GRAY + "Save it in the roller, or your next roll replaces it.");
-        } else {
-            player.sendMessage(ChatColor.GREEN + "Saved to your vault. " + ChatColor.GRAY
-                    + String.format("%,d", data.getPerkSaveRolls()) + " save rolls left.");
+        var type = result.type();
+        String roman = com.spacerng.solrng.perk.PerkType.roman(result.level());
+        player.sendMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "New perk: " + ChatColor.RESET
+                + com.spacerng.solrng.gui.PerkLore.name(plugin, type) + " "
+                + plugin.getRarityManager().styleBold(type.rarity(), roman));
+        player.sendMessage(ChatColor.GRAY + "  " + com.spacerng.solrng.gui.PerkLore.shortStats(type, result.level()));
+        if (result.pity()) {
+            player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "Pity Luck! " + ChatColor.RESET
+                    + ChatColor.GRAY + "This one was guaranteed Mythical or better.");
         }
-        if (newInIndex) {
-            player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "New in your perk index! "
-                    + ChatColor.RESET + ChatColor.GRAY + data.getPerkIndex().size() + " found. See /perks index");
+        if (fresh) {
+            player.sendMessage(ChatColor.GREEN + "New in your perk index! " + ChatColor.GRAY + "See /perks index");
         }
-        // Reveal cue: a short one-frame flourish matching the tier.
-        org.bukkit.Sound sound = switch (perk.tier()) {
+        org.bukkit.Sound sound = switch (type.rarity()) {
             case DIVINE -> org.bukkit.Sound.UI_TOAST_CHALLENGE_COMPLETE;
             case MYTHICAL -> org.bukkit.Sound.ITEM_TRIDENT_THUNDER;
             case LEGENDARY -> org.bukkit.Sound.ENTITY_PLAYER_LEVELUP;
@@ -290,21 +149,42 @@ final class ShopClicks {
             default -> org.bukkit.Sound.ENTITY_EXPERIENCE_ORB_PICKUP;
         };
         player.playSound(player.getLocation(), sound, 0.9f, 1.2f);
+        plugin.getScoreboardManager().update(player);
+        plugin.getLuckBarManager().update(player);
         player.openInventory(com.spacerng.solrng.gui.PerkRollerGui.build(plugin, player));
     }
 
-    /** Perk index: read-only, apart from the links to the roller and the vault. */
+    /** Perk index: press 1 to 5 on a perk to switch that level's confirmation, click to switch all five. */
     void handlePerkIndexClick(InventoryClickEvent event) {
         event.setCancelled(true);
         if (event.getClickedInventory() == null
                 || !(event.getClickedInventory().getHolder()
                         instanceof com.spacerng.solrng.gui.PerkIndexHolder)) return;
         Player player = (Player) event.getWhoClicked();
+        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         if (event.getRawSlot() == com.spacerng.solrng.gui.PerkIndexGui.backSlot()) {
             player.openInventory(com.spacerng.solrng.gui.PerkRollerGui.build(plugin, player));
-        } else if (event.getRawSlot() == com.spacerng.solrng.gui.PerkIndexGui.vaultSlot()) {
-            player.openInventory(com.spacerng.solrng.gui.PerkVaultGui.build(plugin, player, 0));
+            return;
         }
+        String typeId = com.spacerng.solrng.gui.PerkIndexGui.clickedType(event.getCurrentItem());
+        if (typeId == null) return;
+        if (event.getClick() == org.bukkit.event.inventory.ClickType.NUMBER_KEY) {
+            int level = event.getHotbarButton() + 1;
+            if (level < 1 || level > 5) return;
+            String key = typeId + ":" + level;
+            if (!data.getPerkConfirm().remove(key)) data.getPerkConfirm().add(key);
+        } else {
+            boolean allOn = true;
+            for (int level = 1; level <= 5; level++) {
+                if (!data.getPerkConfirm().contains(typeId + ":" + level)) allOn = false;
+            }
+            for (int level = 1; level <= 5; level++) {
+                if (allOn) data.getPerkConfirm().remove(typeId + ":" + level);
+                else data.getPerkConfirm().add(typeId + ":" + level);
+            }
+        }
+        player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.6f, 1.2f);
+        player.openInventory(com.spacerng.solrng.gui.PerkIndexGui.build(plugin, player));
     }
 
     void handleBuyClick(InventoryClickEvent event) {

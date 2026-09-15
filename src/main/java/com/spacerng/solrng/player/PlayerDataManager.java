@@ -227,44 +227,23 @@ public class PlayerDataManager {
 
         data.setRespecCount(yml.getInt("respec-count", 0));
         data.setClaimedLinkGift(yml.getBoolean("claimed-link-gift", false));
-        for (String raw : yml.getStringList("perk-vault")) {
-            var perk = com.spacerng.solrng.perk.PerkInstance.decode(raw);
-            if (perk != null) data.getPerkVault().add(perk);
+        String activePerk = yml.getString("perk-active", "");
+        if (activePerk.contains(":")) {
+            try {
+                data.setActivePerk(activePerk.substring(0, activePerk.indexOf(':')),
+                        Integer.parseInt(activePerk.substring(activePerk.indexOf(':') + 1)));
+            } catch (NumberFormatException ignored) { }
         }
-        // Equipped list is decoded FROM the vault after both are loaded,
-        // so equipped perks share their identity with the vault entries
-        // and can never drift out of sync with them.
-        java.util.Set<java.util.UUID> equippedIds = new java.util.HashSet<>();
-        for (String raw : yml.getStringList("perk-equipped")) {
-            try { equippedIds.add(java.util.UUID.fromString(raw)); }
-            catch (IllegalArgumentException ignored) { }
+        data.setPerkTickets(yml.getLong("perk-tickets", 0L));
+        data.setPerkPity(yml.getInt("perk-pity", 0));
+        data.getPerkConfirm().addAll(yml.getStringList("perk-confirm"));
+        data.getPerkFound().addAll(yml.getStringList("perk-found"));
+        // Before V136 perks sat in a vault. Converted once: the best one becomes the
+        // player's perk and unused save rolls come back as Credits.
+        if (!yml.contains("perk-active")) {
+            plugin.getPerkManager().migrateOldVault(data, yml.getStringList("perk-vault"),
+                    yml.getLong("perk-save-rolls", 0L));
         }
-        for (var perk : data.getPerkVault()) {
-            if (equippedIds.contains(perk.id())) data.getEquippedPerks().add(perk);
-        }
-        data.setPendingPerk(com.spacerng.solrng.perk.PerkInstance.decode(yml.getString("perk-pending")));
-        data.setPerkSaveRolls(yml.getLong("perk-save-rolls", 0L));
-        data.setPerkAutoSave(yml.getBoolean("perk-auto-save", false));
-        data.setPerkSaveAmount(yml.getInt("perk-save-amount", 1));
-        String confirmFrom = yml.getString("perk-confirm-from", "LEGENDARY");
-        try {
-            data.setPerkConfirmFrom("OFF".equalsIgnoreCase(confirmFrom) ? null
-                    : com.spacerng.solrng.rarity.Rarity.valueOf(confirmFrom));
-        } catch (IllegalArgumentException ignored) { }
-        var perkIndex = yml.getConfigurationSection("perk-index");
-        if (perkIndex != null) {
-            for (String key : perkIndex.getKeys(false)) {
-                // Before V133 the index was keyed by perk type and held a level; those keys are dropped
-                // and the vault below fills the index back in.
-                String stat = key.contains(":") ? key.substring(0, key.indexOf(':')) : key;
-                try {
-                    com.spacerng.solrng.perk.PerkStat.valueOf(stat);
-                    data.getPerkIndex().put(key, perkIndex.getDouble(key));
-                } catch (IllegalArgumentException ignored) { }
-            }
-        }
-        // Players who rolled perks before the index existed get what they still own.
-        for (var perk : data.getPerkVault()) data.recordPerk(perk);
 
         return data;
     }
@@ -422,19 +401,17 @@ public class PlayerDataManager {
 
         yml.set("respec-count", data.getRespecCount());
         yml.set("claimed-link-gift", data.hasClaimedLinkGift());
-        java.util.List<String> vaultEncoded = new java.util.ArrayList<>();
-        for (var perk : data.getPerkVault()) vaultEncoded.add(perk.encode());
-        yml.set("perk-vault", vaultEncoded);
-        java.util.List<String> equippedIds = new java.util.ArrayList<>();
-        for (var perk : data.getEquippedPerks()) equippedIds.add(perk.id().toString());
-        yml.set("perk-equipped", equippedIds);
-        yml.set("perk-pending", data.getPendingPerk() == null ? null : data.getPendingPerk().encode());
-        yml.set("perk-save-rolls", data.getPerkSaveRolls());
-        yml.set("perk-auto-save", data.isPerkAutoSave());
-        yml.set("perk-save-amount", data.getPerkSaveAmount());
-        yml.set("perk-confirm-from", data.getPerkConfirmFrom() == null ? "OFF" : data.getPerkConfirmFrom().name());
-        yml.set("perk-index", null);
-        for (var entry : data.getPerkIndex().entrySet()) yml.set("perk-index." + entry.getKey(), entry.getValue());
+        // Always written, even empty, so the vault conversion on load only ever runs once.
+        yml.set("perk-active", data.getActivePerkType() == null ? ""
+                : data.getActivePerkType() + ":" + data.getActivePerkLevel());
+        yml.set("perk-tickets", data.getPerkTickets());
+        yml.set("perk-pity", data.getPerkPity());
+        yml.set("perk-confirm", new java.util.ArrayList<>(data.getPerkConfirm()));
+        yml.set("perk-found", new java.util.ArrayList<>(data.getPerkFound()));
+        for (String old : java.util.List.of("perk-vault", "perk-equipped", "perk-pending", "perk-save-rolls",
+                "perk-auto-save", "perk-save-amount", "perk-confirm-from", "perk-index")) {
+            yml.set(old, null);
+        }
 
         // The index mirrors the save, so it can never be staler than the
         // file it describes.
