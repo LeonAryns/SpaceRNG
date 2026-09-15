@@ -312,6 +312,13 @@ public class IndexGui {
         return button;
     }
 
+    /** How many players have this drop in their index. */
+    private static String foundBy(SolRNGPlugin plugin, RollableItem item) {
+        int count = plugin.getFoundCounts().count(item.getDisplayName());
+        return Lore.statArrow(ChatColor.AQUA, "Found by",
+                count == 1 ? "1 player" : String.format("%,d", count) + " players");
+    }
+
     private static ItemStack buildEntry(SolRNGPlugin plugin, PlayerData data, RollableItem item,
                                         boolean shinyView) {
         boolean shiny = data.hasDiscoveredShiny(item.getDisplayName());
@@ -336,6 +343,7 @@ public class IndexGui {
                     ? ChatColor.AQUA + Lore.BULLET + " " + ChatColor.GRAY + "Shiny found  "
                             + ChatColor.AQUA + Lore.SPARK
                     : ChatColor.DARK_GRAY + Lore.BULLET + " Shiny not found");
+            lore.add(foundBy(plugin, item));
             lore.add("");
             lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to equip as your tag");
 
@@ -353,6 +361,7 @@ public class IndexGui {
             lore.add(Lore.statArrow(ChatColor.AQUA, "Chance", RollFormat.chance(item.getOdds())));
             lore.add(Lore.statArrow(ChatColor.AQUA, "Tag Luck",
                     String.format("%.2f", item.getLuckMultiplier()) + "x"));
+            lore.add(foundBy(plugin, item));
             lore.add("");
             lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Not yet discovered");
             lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " Shiny not found");

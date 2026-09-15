@@ -20,7 +20,7 @@ menu-style: classic
 # The hoe's tooltip, the enchant cards in the hoe menu and consumable items
 # like the Nova Core have their own styles: /rngadmin hoestyles,
 # enchantstyles and novastyles show and switch them.
-hoe-style: classic
+hoe-style: attributes
 enchant-style: classic
 consumable-style: card
 # Your own standings card in /leaderboards: summary, list, ranked, meter or
@@ -3034,6 +3034,12 @@ skilltree:
 # can't drift: prestige and index size already live on the player, and
 # playtime comes straight from the vanilla statistic.
 milestones:
+  # Credits paid on top of a tier's own reward, by track and the tier's
+  # threshold. Credits are what the store sells, so keep these rare.
+  credit-rewards:
+    prestige: {10: 25, 25: 50, 50: 100, 100: 250}
+    rarity: {70: 15, 105: 30, 130: 60, 144: 150}
+    farming: {10000: 25, 100000: 50, 1000000: 150}
   tracks:
     prestige:
       verb: "Reach"
@@ -3138,7 +3144,7 @@ leaderboard:
     # else Credits come from the store, but a daily board worth real
     # money is the reason to come back tomorrow, and that's worth more
     # than keeping the currency pure.
-    credit-payouts: [150, 75, 25]
+    credit-payouts: [150, 100, 50]
 
 # Rotating server tips. These rotate in ORDER, not at random: random
 # repeats itself and leaves some tips unseen for ages, which is exactly
@@ -3536,8 +3542,8 @@ holograms:
   crate-bob: 0.12
   # The podium from /rngadmin holo leader: how big the three heads are
   # and how far #2 and #3 stand from #1.
-  podium-head-scale: 1.3
-  podium-spacing: 1.9
+  podium-head-scale: 1.8
+  podium-spacing: 2.5
   click: "<#FFD54F>→→→</#FFD54F> <white>Click Here</white> <#FFD54F>←←←</#FFD54F>"
   panels:
     prestige:

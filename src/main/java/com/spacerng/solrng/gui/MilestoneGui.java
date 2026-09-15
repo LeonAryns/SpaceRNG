@@ -171,13 +171,13 @@ public class MilestoneGui {
         boolean claimable = reached && !claimed;
         ChatColor accent = claimed ? ChatColor.GREEN : claimable ? ChatColor.YELLOW : ChatColor.RED;
 
-        // Three states, three icons: a lodestone for a rung still out of
-        // reach, a lime pane for one earned and waiting, a green pane for
-        // one already spent. A claimable rung also glints, so a full menu
-        // shows what there is to collect without reading anything.
+        // Three states in the colours Leon picked: red glass for a rung still
+        // out of reach, yellow for one earned and waiting, green for one
+        // already claimed. A claimable rung also glints, so a full menu shows
+        // what there is to collect without reading anything.
         ItemStack pane = new ItemStack(claimed
-                ? Material.GREEN_STAINED_GLASS_PANE
-                : claimable ? Material.LIME_STAINED_GLASS_PANE : Material.LODESTONE);
+                ? Material.LIME_STAINED_GLASS_PANE
+                : claimable ? Material.YELLOW_STAINED_GLASS_PANE : Material.RED_STAINED_GLASS_PANE);
         ItemMeta meta = pane.getItemMeta();
         meta.setDisplayName(Lore.title(accent,
                 String.format("%,d", tier.threshold()) + " " + track.getUnit()));
@@ -190,8 +190,12 @@ public class MilestoneGui {
         // Consumables count as a reward too. They were left out of this
         // check, so a rung paying a potion or a voucher showed no reward at
         // all until it was already claimed.
-        if (tier.tokens() > 0 || tier.shards() > 0 || tier.money() > 0 || !tier.consumable().isEmpty()) {
+        if (tier.tokens() > 0 || tier.shards() > 0 || tier.money() > 0 || tier.credits() > 0
+                || !tier.consumable().isEmpty()) {
             lore.add(Lore.section(ChatColor.GOLD, "Reward"));
+            if (tier.credits() > 0) {
+                lore.add(Currency.CREDITS.colour() + Lore.BULLET + " " + Currency.CREDITS.amount(tier.credits()));
+            }
             if (tier.tokens() > 0) {
                 lore.add(Currency.COINS.colour() + Lore.BULLET + " " + Currency.COINS.amount(tier.tokens()));
             }

@@ -126,7 +126,7 @@ public class LeaderboardManager {
 
         List<Long> configured = new ArrayList<>();
         for (Object value : config.getList("leaderboard.farming.credit-payouts",
-                List.of(150, 75, 25))) {
+                List.of(150, 100, 50))) {
             try {
                 configured.add(Long.parseLong(String.valueOf(value)));
             } catch (NumberFormatException ignored) {

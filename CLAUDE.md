@@ -26,8 +26,8 @@ so items already in players' inventories keep working (see
   the dash character and never collapse whitespace; doing that once
   re-indented every YAML list item in config.yml.
 - **Credits are Leon's call.** Never change how Credits are earned
-  without asking. The daily farming payout of 150 / 75 / 25 Credits is
-  intentional. (V58 swapped it to Coins unasked; Leon rejected it and V66
+  without asking. The daily farming payout of 150 / 100 / 50 Credits is
+  intentional (Leon raised it from 150 / 75 / 25 in V135). (V58 swapped it to Coins unasked; Leon rejected it and V66
   reverted it.) If a Credits payout looks off, say so in one sentence and
   keep building.
 - **No ALL CAPS inside a menu item**: not the name, the footer or the

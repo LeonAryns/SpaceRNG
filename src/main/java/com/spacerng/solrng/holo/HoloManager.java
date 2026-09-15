@@ -106,8 +106,13 @@ public final class HoloManager {
     // A podium's three heads, name tags and whose heads they show, indexed by rank (#1, #2, #3).
     private static final double PODIUM_YOU_Y = 0.1;
     private static final double PODIUM_READ_RANGE = 48.0;
-    private float podiumHeadScale = 1.3f;
-    private double podiumSpacing = 1.9;
+    // How much bigger than panel text the podium's pieces are, and how far #1 stands above #2 and #3.
+    private static final double PODIUM_TAG = 1.45;
+    private static final double PODIUM_TEXT = 1.25;
+    private static final double PODIUM_TITLE = 1.8;
+    private static final double PODIUM_FIRST_LIFT = 0.9;
+    private float podiumHeadScale = 1.8f;
+    private double podiumSpacing = 2.5;
     private final Map<String, ItemDisplay[]> podiumHeads = new HashMap<>();
     private final Map<String, TextDisplay[]> podiumTags = new HashMap<>();
     private final Map<String, java.util.UUID[]> podiumShown = new HashMap<>();
@@ -137,8 +142,8 @@ public final class HoloManager {
         // Past about 170 degrees an update, interpolation takes the short way round and spins backwards.
         crateSpinDegrees = Math.max(0.0, Math.min(170.0, config.getDouble("holograms.crate-spin-degrees", 90.0)));
         crateBob = config.getDouble("holograms.crate-bob", 0.12);
-        podiumHeadScale = (float) config.getDouble("holograms.podium-head-scale", 1.3);
-        podiumSpacing = config.getDouble("holograms.podium-spacing", 1.9);
+        podiumHeadScale = (float) config.getDouble("holograms.podium-head-scale", 1.8);
+        podiumSpacing = config.getDouble("holograms.podium-spacing", 2.5);
         boardRefreshTicks = Math.max(200L, config.getLong("holograms.board-refresh-seconds", 60L) * 20L);
         // New text only reaches entities drawn after it, so take everything
         // down and let the next frame draw it fresh.
@@ -498,16 +503,19 @@ public final class HoloManager {
         String board = spot.key();
         Vector right = podiumRight(spot);
         List<LeaderboardManager.Entry> top = podiumTop(board);
-        double timerY = PODIUM_YOU_Y + 2 * LINE * textScale;
-        double titleY = timerY + LINE * textScale + GAP;
-        double headY = titleY + LINE * textScale * 1.25 + 0.1 + podiumHeadScale / 2.0;
+        double small = textScale * PODIUM_TEXT;
+        double timerY = PODIUM_YOU_Y + 2 * LINE * small;
+        double titleY = timerY + LINE * small + GAP;
+        double headY = titleY + LINE * textScale * PODIUM_TITLE + 0.15 + podiumHeadScale / 2.0;
 
         ItemDisplay[] heads = new ItemDisplay[3];
         TextDisplay[] tags = new TextDisplay[3];
         java.util.UUID[] shown = new java.util.UUID[3];
         for (int rank = 0; rank < 3; rank++) {
             double side = rank == 0 ? 0.0 : rank == 1 ? podiumSpacing : -podiumSpacing;
-            Location centre = spot.at().clone().add(right.clone().multiply(side)).add(0, headY, 0);
+            // #1 stands a step above the other two, like the top of a podium.
+            Location centre = spot.at().clone().add(right.clone().multiply(side))
+                    .add(0, headY + (rank == 0 ? PODIUM_FIRST_LIFT : 0.0), 0);
             centre.setYaw(spot.yaw());
             centre.setPitch(0f);
             LeaderboardManager.Entry entry = rank < top.size() ? top.get(rank) : null;
@@ -525,9 +533,9 @@ public final class HoloManager {
             pieces.add(head);
             heads[rank] = head;
             shown[rank] = uuid;
-            // A head fills the lower half of its box, so its top sits at the display. The #1 tag rides higher.
-            Location tagAt = centre.clone().add(0, 0.15 + (rank == 0 ? 0.3 : 0.0), 0);
-            TextDisplay tag = text(spot, tagAt, podiumTag(board, rank, entry), textScale);
+            // A head fills the lower half of its box, so its top sits at the display.
+            Location tagAt = centre.clone().add(0, 0.2, 0);
+            TextDisplay tag = text(spot, tagAt, podiumTag(board, rank, entry), textScale * (float) PODIUM_TAG);
             pieces.add(tag);
             tags[rank] = tag;
         }
@@ -535,10 +543,11 @@ public final class HoloManager {
         podiumTags.put(spot.id(), tags);
         podiumShown.put(spot.id(), shown);
 
-        TextDisplay timer = text(spot, spot.at().clone().add(0, timerY, 0), podiumTimer(board), textScale);
+        TextDisplay timer = text(spot, spot.at().clone().add(0, timerY, 0), podiumTimer(board), (float) small);
         pieces.add(timer);
         podiumTimers.put(spot.id(), timer);
-        pieces.add(text(spot, spot.at().clone().add(0, titleY, 0), parse(podiumTitle(board)), textScale * 1.25f));
+        pieces.add(text(spot, spot.at().clone().add(0, titleY, 0), parse(podiumTitle(board)),
+                textScale * (float) PODIUM_TITLE));
     }
 
     /** Once a second: the countdown, now and then the top three, and every reader's own line. */
@@ -585,7 +594,8 @@ public final class HoloManager {
             Component content = podiumYouLine(spot.key(), reader, places);
             TextDisplay line = lines.get(reader.getUniqueId());
             if (line == null || !line.isValid()) {
-                line = privateText(spot, spot.at().clone().add(0, PODIUM_YOU_Y, 0), content, textScale);
+                line = privateText(spot, spot.at().clone().add(0, PODIUM_YOU_Y, 0), content,
+                        textScale * (float) PODIUM_TEXT);
                 reader.showEntity(plugin, line);
                 lines.put(reader.getUniqueId(), line);
             } else {

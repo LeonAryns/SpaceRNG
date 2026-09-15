@@ -433,7 +433,10 @@ public class CrateManager {
                     break;
                 }
             }
-            if (!data.hasDiscovered(drop.getDisplayName())) data.markDiscovered(drop.getDisplayName());
+            if (!data.hasDiscovered(drop.getDisplayName())) {
+                data.markDiscovered(drop.getDisplayName());
+                plugin.getFoundCounts().record(drop.getDisplayName());
+            }
             ItemStack item = plugin.getRollListener().buildTaggedItem(drop);
             com.spacerng.solrng.player.Stash.give(plugin, player, item);
         }

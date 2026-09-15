@@ -74,8 +74,12 @@ public class MilestoneManager {
                             ? "" : String.valueOf(entry.get("consumable"));
                     int consumableAmount = entry.get("consumable-amount") == null
                             ? 1 : Integer.parseInt(String.valueOf(entry.get("consumable-amount")));
+                    // Credits come from the tier itself or from milestones.credit-rewards,
+                    // keyed by track and threshold, so they can be added to a live config.
+                    long credits = (entry.get("credits") == null ? 0L : Long.parseLong(String.valueOf(entry.get("credits"))))
+                            + plugin.getConfig().getLong("milestones.credit-rewards." + id + "." + threshold, 0L);
                     tiers.add(new MilestoneTrack.Tier(index++, threshold, tokens, shards, money,
-                            consumable, consumableAmount));
+                            consumable, consumableAmount, credits));
                 } catch (RuntimeException ex) {
                     plugin.getLogger().warning("Skipped a malformed milestone tier in '" + id + "': " + entry);
                 }
@@ -188,6 +192,7 @@ public class MilestoneManager {
         // reaches it, so nothing in the trees scales what it pays.
         if (tier.tokens() > 0) data.addTokens(tier.tokens());
         if (tier.shards() > 0) data.addShards(tier.shards());
+        if (tier.credits() > 0) data.addPoints(tier.credits());
         if (tier.money() > 0) {
             var registration = Bukkit.getServicesManager().getRegistration(Economy.class);
             if (registration != null) {
@@ -242,6 +247,9 @@ public class MilestoneManager {
         }
         if (tier.shards() > 0) {
             parts.add(ChatColor.AQUA + String.format("%,d", tier.shards()) + " Gems");
+        }
+        if (tier.credits() > 0) {
+            parts.add(ChatColor.LIGHT_PURPLE + String.format("%,d", tier.credits()) + " Credits");
         }
         if (tier.money() > 0) {
             parts.add(ChatColor.DARK_GREEN + "$" + String.format("%,.0f", tier.money()));

@@ -274,7 +274,7 @@ public class FarmingManager {
     }
 
     /** The looks the hoe's tooltip can take, picked with hoe-style. */
-    public static final java.util.List<String> HOE_STYLES = java.util.List.of("classic", "card", "compact", "ladder");
+    public static final java.util.List<String> HOE_STYLES = java.util.List.of("attributes", "classic", "card", "compact", "ladder");
 
     /**
      * The hoe's tooltip in one style. Every style carries the same facts:
@@ -319,6 +319,42 @@ public class FarmingManager {
 
         java.util.List<String> lore = new java.util.ArrayList<>();
         switch (style == null ? "" : style.toLowerCase(java.util.Locale.ROOT)) {
+            case "attributes" -> {
+                // The upgrade card Leon picked: what it does, the attributes with
+                // what the next tier adds in green, then tier and cost.
+                String rule = ChatColor.GOLD + "" + ChatColor.STRIKETHROUGH + " ".repeat(46);
+                double coinStep = next == null ? 0.0 : next.coinMultiplier() - tier.coinMultiplier();
+                double procStep = next == null ? 0.0 : next.procMultiplier() - tier.procMultiplier();
+                lore.add(ChatColor.DARK_GRAY + "Farming tool");
+                lore.add("");
+                lore.add(ChatColor.GRAY + "Upgrade your hoe with drops to raise");
+                lore.add(ChatColor.GRAY + "the attributes listed below.");
+                lore.add("");
+                lore.add(rule);
+                lore.add(ChatColor.GOLD + "" + ChatColor.BOLD + "Attribute statistics" + ChatColor.GOLD + ":");
+                lore.add(ChatColor.GRAY + " × Coins: " + ChatColor.YELLOW + coins
+                        + (coinStep > 0 ? ChatColor.GREEN + "" + ChatColor.BOLD + " +"
+                        + String.format("%.2f", coinStep) + "x" : ""));
+                lore.add(ChatColor.GRAY + " × Enchant proc: " + ChatColor.LIGHT_PURPLE + proc
+                        + (procStep > 0 ? ChatColor.GREEN + "" + ChatColor.BOLD + " +"
+                        + String.format("%.2f", procStep) + "x" : ""));
+                lore.add(ChatColor.GRAY + " × Coin Greed: " + ChatColor.GOLD + fromEnchants);
+                for (Owned o : owned) {
+                    lore.add(ChatColor.GRAY + " × " + o.name() + ": " + o.colour() + o.level()
+                            + ChatColor.DARK_GRAY + " / " + o.cap());
+                }
+                lore.add(rule);
+                lore.add("");
+                lore.add(ChatColor.GOLD + " | " + ChatColor.GRAY + "Tier: " + ChatColor.GREEN + (index + 1)
+                        + ChatColor.DARK_GRAY + " / " + ChatColor.RED + hoeTiers.size());
+                if (costs.isEmpty()) {
+                    lore.add(ChatColor.GOLD + " | " + ChatColor.GREEN + "Maxed");
+                } else {
+                    for (String cost : costs) lore.add(ChatColor.GOLD + " | " + ChatColor.GRAY + "Cost: " + cost);
+                }
+                lore.add("");
+                lore.add(ChatColor.GOLD + "" + ChatColor.BOLD + "[Right-click to upgrade your tool]");
+            }
             case "card" -> {
                 String title = "  " + ChatColor.GOLD + ChatColor.BOLD + "Farming tool"
                         + ChatColor.DARK_GRAY + "  Tier " + ChatColor.YELLOW + tierText;

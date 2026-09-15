@@ -180,6 +180,8 @@ public final class SolRNGPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new FarmingListener(this), this);
         getServer().getPluginManager().registerEvents(new com.spacerng.solrng.farming.FarmPlotListener(this), this);
         getServer().getPluginManager().registerEvents(new com.spacerng.solrng.listeners.WorldLoadListener(this), this);
+        foundCounts = new com.spacerng.solrng.player.FoundCounts(this);
+        foundCounts.load();
         getServer().getPluginManager().registerEvents(
                 new com.spacerng.solrng.consumable.ConsumableListener(this), this);
         getServer().getPluginManager().registerEvents(
@@ -241,6 +243,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         // Before saving: a crate still spinning pays out now, so the reward
         // is inside the save file rather than lost with the server.
         if (crateManager != null) crateManager.finishAll();
+        if (foundCounts != null) foundCounts.save();
         if (topHeadManager != null) topHeadManager.stop();
         if (holoManager != null) holoManager.stop();
         if (auraManager != null) auraManager.stop();
@@ -427,6 +430,13 @@ public final class SolRNGPlugin extends JavaPlugin {
 
     public com.spacerng.solrng.discord.DiscordWebhook getDiscordWebhook() {
         return discordWebhook;
+    }
+
+    private com.spacerng.solrng.player.FoundCounts foundCounts;
+
+    /** How many players have found each drop, for /index. */
+    public com.spacerng.solrng.player.FoundCounts getFoundCounts() {
+        return foundCounts;
     }
 
     public com.spacerng.solrng.holo.HoloManager getHoloManager() {

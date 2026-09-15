@@ -259,12 +259,12 @@ public class LeaderboardGui {
                 List<String> top = new ArrayList<>();
                 List<String> rest = new ArrayList<>();
                 for (Standing s : standings) {
-                    // Every board says which place you hold, then your number.
-                    String name = s.card().accent() + s.card().name() + ChatColor.GRAY + ":";
-                    String value = ChatColor.WHITE + "  " + Lore.shorten(s.value());
+                    // Every board shows your number, then the place you hold behind it.
+                    String name = s.card().accent() + s.card().name() + ChatColor.GRAY + ": ";
+                    String value = ChatColor.WHITE + Lore.shorten(s.value());
                     if (!s.ranked()) rest.add(s.card().accent() + s.card().name());
-                    else if (s.place() == 1) first.add(name + ChatColor.GOLD + " #1" + value);
-                    else top.add(name + ChatColor.YELLOW + " #" + String.format("%,d", s.place()) + value);
+                    else if (s.place() == 1) first.add(name + value + ChatColor.GOLD + "  #1");
+                    else top.add(name + value + ChatColor.YELLOW + "  #" + String.format("%,d", s.place()));
                 }
                 if (!first.isEmpty()) {
                     lore.add(Lore.section(ChatColor.GOLD, "First place"));

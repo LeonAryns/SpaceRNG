@@ -55,7 +55,9 @@ public final class ConfigMigrator {
             "holograms.panels.farmtree", "holograms.panels.daily", "holograms.panels.leaderboards",
             "holograms.panels.stash",
             // V132: a Vote and a Nebula crate, with their keys.
-            "crates.types.vote", "crates.types.nebula", "consumables.vote_key", "consumables.nebula_key");
+            "crates.types.vote", "crates.types.nebula", "consumables.vote_key", "consumables.nebula_key",
+            // V135: Credits on some milestone tiers.
+            "milestones.credit-rewards");
 
     private record Patch(String id, String path, Object oldDefault, Object newDefault) {
     }
@@ -79,6 +81,11 @@ public final class ConfigMigrator {
             new Patch("common-luck-factor-negative", "rarities.COMMON.luck-factor", 0.0, -0.25),
             // V132: Cosmic is a store crate, so Key Finder's rare find is a Nebula Key.
             new Patch("key-finder-rare-nebula", "farming.procs.key-finder-rare-reward", "cosmic_key", "nebula_key"),
+            // V135: Leon raised the daily farming payout to 150, 100 and 50 Credits.
+            new Patch("farming-payouts-150-100-50", "leaderboard.farming.credit-payouts",
+                    List.of(150, 75, 25), List.of(150, 100, 50)),
+            // V135: Leon picked the attribute card for the hoe.
+            new Patch("hoe-style-attributes", "hoe-style", "classic", "attributes"),
             new Patch("cosmic-key-source-store", "crates.types.cosmic.key-source",
                     "Cosmic Keys are the rare find from Key Finder, about one key in twelve.",
                     "Cosmic Keys come from the store."));

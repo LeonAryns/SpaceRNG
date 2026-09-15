@@ -841,7 +841,10 @@ public class RollListener implements Listener {
         boolean newShiny = shiny && !data.hasDiscoveredShiny(result.getDisplayName());
         if (!newBase && !newShiny) return;
 
-        if (newBase) data.markDiscovered(result.getDisplayName());
+        if (newBase) {
+            data.markDiscovered(result.getDisplayName());
+            plugin.getFoundCounts().record(result.getDisplayName());
+        }
         if (newShiny) data.markShinyDiscovered(result.getDisplayName());
         if (silent) return;
 

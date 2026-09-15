@@ -16,7 +16,7 @@ public class MilestoneTrack {
 
     /** One rung of the ladder. */
     public record Tier(int index, long threshold, long tokens, long shards, double money,
-                       String consumable, int consumableAmount) {
+                       String consumable, int consumableAmount, long credits) {
     }
 
     private final String id;
