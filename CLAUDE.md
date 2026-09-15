@@ -12,8 +12,9 @@ so items already in players' inventories keep working (see
   Dutch and English messages. Reply in the language he wrote in.
 - For every change: implement, compile, bump `<version>` in `pom.xml` by
   1, commit with a detailed message that says why, push to `main`, wait
-  for GitHub Actions to go green, then report concisely with the jar name
-  `Space RNG V<n>.jar`.
+  for GitHub Actions to go green, then report concisely with the version
+  (`SpaceRNG.jar`, V<n>). The jar is always named `SpaceRNG.jar` so an
+  upload on Minehut replaces the old file.
 - Explain why a bug happened, briefly and technically.
 - When he asks for commands, give commands. Do not overbuild.
 
@@ -169,7 +170,7 @@ Packages are by feature under `com.spacerng.solrng`. Where new things go:
 
 `mvn -B clean package` with JDK 21. Maven is not installed locally, so
 CI (`.github/workflows/build.yml`) builds the jar and uploads the
-artifact `space-rng-jar`. For a local compile check, the VS Code Java
+artifact `SpaceRNG` (a zip holding `SpaceRNG.jar`). For a local compile check, the VS Code Java
 extension ships a JDK 21 at
 `~/.vscode/extensions/redhat.java-*/jre/*/bin/javac.exe`; put every jar
 in `~/.m2/repository` on the classpath (skip the old adventure 4.13.1

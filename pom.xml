@@ -6,7 +6,7 @@
 
     <groupId>com.spacerng</groupId>
     <artifactId>sol-rng</artifactId>
-    <version>133</version>
+    <version>134</version>
     <packaging>jar</packaging>
 
     <properties>
@@ -58,7 +58,8 @@
     </dependencies>
 
     <build>
-        <finalName>Space RNG V${project.version}</finalName>
+        <!-- Always SpaceRNG.jar, so a new upload on Minehut replaces the old file. -->
+        <finalName>SpaceRNG</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
