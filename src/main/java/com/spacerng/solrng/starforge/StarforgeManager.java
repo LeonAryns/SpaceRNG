@@ -213,7 +213,7 @@ public class StarforgeManager {
         }
         player.getInventory().setContents(contents);
         if (!replacedAny) {
-            player.getInventory().addItem(create(tier));
+            com.spacerng.solrng.player.Stash.give(plugin, player, create(tier));
         }
     }
 

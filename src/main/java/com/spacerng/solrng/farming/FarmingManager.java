@@ -53,6 +53,9 @@ public class FarmingManager {
      * other multiplier they own; "+14% Coins" disappears into a pile of
      * additive percentages where nobody can tell what it did.
      */
+    // Tiers per band of the ladder, which is also when the hoe's material changes.
+    private int tiersPerBand = 10;
+
     public record HoeTier(String display, double coinMultiplier, double procMultiplier,
                           Map<com.spacerng.solrng.rarity.Rarity, Long> costs) {
     }
@@ -120,6 +123,7 @@ public class FarmingManager {
     private void buildLadder(FileConfiguration config) {
         var rarities = com.spacerng.solrng.rarity.Rarity.values();
         int perBand = Math.max(1, config.getInt("farming.hoe-ladder.tiers-per-band", 10));
+        this.tiersPerBand = perBand;
         int bands = Math.max(1, Math.min(rarities.length,
                 config.getInt("farming.hoe-ladder.bands", 5)));
         long costStep = Math.max(1L, config.getLong("farming.hoe-ladder.cost-step", 2L));
@@ -255,7 +259,7 @@ public class FarmingManager {
     public ItemStack createBoundHoe(com.spacerng.solrng.player.PlayerData data) {
         HoeTier tier = tierOf(data);
 
-        ItemStack hoe = new ItemStack(Material.WOODEN_HOE);
+        ItemStack hoe = new ItemStack(hoeMaterial(tierIndexOf(data)));
         ItemMeta meta = hoe.getItemMeta();
         meta.setDisplayName(ChatColor.GOLD + hoeName + " " + ChatColor.DARK_GRAY + "["
                 + ChatColor.YELLOW + tier.display() + ChatColor.DARK_GRAY + "]");
@@ -270,7 +274,6 @@ public class FarmingManager {
         // the tooltip is answering "what is this hoe worth", not "where did
         // each percent come from".
         double tokenBonus = data == null ? 0.0 : enchants.powerOf(data, "TOKEN_GREED");
-        double speedBonus = data == null ? 0.0 : enchants.powerOf(data, "SPEED");
 
         lore.add(com.spacerng.solrng.gui.Lore.section(ChatColor.GOLD, "The tool"));
         lore.add(com.spacerng.solrng.gui.Lore.stat(ChatColor.YELLOW, "Tier",
@@ -281,8 +284,6 @@ public class FarmingManager {
                         + "% from enchants"));
         lore.add(com.spacerng.solrng.gui.Lore.stat(ChatColor.LIGHT_PURPLE, "Enchant proc",
                 String.format("%.2f", tier.procMultiplier()) + "x"));
-        lore.add(com.spacerng.solrng.gui.Lore.stat(ChatColor.AQUA, "Speed",
-                "+" + String.format("%,.0f", speedBonus * 100.0) + "%"));
         lore.add("");
 
         lore.add(com.spacerng.solrng.gui.Lore.section(ChatColor.GOLD, "Enchants"));
@@ -332,6 +333,17 @@ public class FarmingManager {
             }
         }
         player.getInventory().setContents(contents);
+    }
+
+    /** The hoe's look climbs every band of tiers: wood, stone, gold, diamond, then netherite. */
+    public Material hoeMaterial(int tierIndex) {
+        return switch (tierIndex / tiersPerBand) {
+            case 0 -> Material.WOODEN_HOE;
+            case 1 -> Material.STONE_HOE;
+            case 2 -> Material.GOLDEN_HOE;
+            case 3 -> Material.DIAMOND_HOE;
+            default -> Material.NETHERITE_HOE;
+        };
     }
 
     /** A real converter, because the ladder runs well past X. */

@@ -102,6 +102,9 @@ commands:
     description: See your Discord link status and its bonuses
     usage: /linked
     aliases: [link, discordlink]
+  stash:
+    description: Collect items that didn't fit in your inventory
+    usage: /stash
   rngadmin:
     description: Admin tools for SpaceRNG
     usage: /rngadmin <subcommand>, or /rngadmin alone for the full list

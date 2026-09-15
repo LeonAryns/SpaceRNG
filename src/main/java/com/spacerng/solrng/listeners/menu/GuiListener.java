@@ -59,7 +59,10 @@ public class GuiListener implements Listener {
     private final PlayerMenuClicks playerMenus;
     private final ShopClicks shops;
 
+    private final SolRNGPlugin plugin;
+
     public GuiListener(SolRNGPlugin plugin) {
+        this.plugin = plugin;
         this.convert = new ConvertClicks(plugin);
         this.skillTree = new SkillTreeClicks(plugin);
         this.progression = new ProgressionClicks(plugin);
@@ -113,6 +116,8 @@ public class GuiListener implements Listener {
             shops.handlePerkVaultClick(event);
         } else if (topInventory.getHolder() instanceof com.spacerng.solrng.gui.PerkRollerHolder) {
             shops.handlePerkRollerClick(event);
+        } else if (topInventory.getHolder() instanceof com.spacerng.solrng.gui.StashHolder) {
+            playerMenus.handleStashClick(event);
         } else if (topInventory.getHolder() instanceof com.spacerng.solrng.gui.MenuHolder) {
             // A menu with no handler yet is still never a chest.
             event.setCancelled(true);
@@ -169,9 +174,7 @@ public class GuiListener implements Listener {
             if (stack == null || stack.getType() == Material.AIR) continue;
 
             top.setItem(slot, null);
-            for (ItemStack leftover : player.getInventory().addItem(stack).values()) {
-                player.getWorld().dropItemNaturally(player.getLocation(), leftover);
-            }
+            com.spacerng.solrng.player.Stash.give(plugin, player, stack);
         }
     }
 }

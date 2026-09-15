@@ -309,4 +309,51 @@ final class PlayerMenuClicks {
         Rarity newFilter = holder.getFilter() == clicked ? null : clicked;
         player.openInventory(IndexGui.build(plugin, player, newFilter, 0, holder.isShinyView()));
     }
+
+    /** /stash: click a stack to take it, or the hopper to take as much as fits. */
+    void handleStashClick(InventoryClickEvent event) {
+        event.setCancelled(true);
+        if (event.getClickedInventory() == null
+                || !(event.getClickedInventory().getHolder() instanceof com.spacerng.solrng.gui.StashHolder)) return;
+
+        Player player = (Player) event.getWhoClicked();
+        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+        java.util.List<ItemStack> stash = data.getStash();
+        int slot = event.getRawSlot();
+        boolean full = false;
+
+        if (slot == com.spacerng.solrng.gui.StashGui.TAKE_ALL_SLOT) {
+            java.util.List<ItemStack> kept = new java.util.ArrayList<>();
+            for (ItemStack stack : stash) {
+                if (full) {
+                    kept.add(stack);
+                    continue;
+                }
+                java.util.Map<Integer, ItemStack> left = player.getInventory().addItem(stack.clone());
+                if (!left.isEmpty()) {
+                    kept.addAll(left.values());
+                    full = true;
+                }
+            }
+            stash.clear();
+            stash.addAll(kept);
+        } else if (slot >= 0 && slot < com.spacerng.solrng.gui.StashGui.ITEM_SLOTS && slot < stash.size()) {
+            java.util.Map<Integer, ItemStack> left = player.getInventory().addItem(stash.get(slot).clone());
+            if (left.isEmpty()) {
+                stash.remove(slot);
+            } else {
+                stash.set(slot, left.values().iterator().next());
+                full = true;
+            }
+        } else {
+            return;
+        }
+
+        if (full) {
+            player.sendMessage(ChatColor.RED + "Your inventory is full. The rest stays in your stash.");
+        } else {
+            player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_ITEM_PICKUP, 0.6f, 1.2f);
+        }
+        player.openInventory(com.spacerng.solrng.gui.StashGui.build(plugin, player));
+    }
 }

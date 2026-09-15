@@ -153,7 +153,7 @@ final class SkillTreeClicks {
             }
 
             if (nodeId.equals("farming_unlock")) {
-                player.getInventory().addItem(plugin.getFarmingManager().createBoundHoe(data));
+                com.spacerng.solrng.player.Stash.give(plugin, player, plugin.getFarmingManager().createBoundHoe(data));
                 player.sendMessage(ChatColor.GREEN + "You received a Farmer's Hoe - bound to you!");
             }
 

@@ -124,7 +124,7 @@ public class HoeGui {
         int index = farming.tierIndexOf(data);
         List<FarmingManager.HoeTier> tiers = farming.getHoeTiers();
 
-        ItemStack item = new ItemStack(Material.WOODEN_HOE);
+        ItemStack item = new ItemStack(farming.hoeMaterial(index));
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(Lore.title(ChatColor.GOLD, farming.getHoeName() + " " + tier.display()));
 

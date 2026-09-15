@@ -421,8 +421,7 @@ public class CrateManager {
             }
             if (!data.hasDiscovered(drop.getDisplayName())) data.markDiscovered(drop.getDisplayName());
             ItemStack item = plugin.getRollListener().buildTaggedItem(drop);
-            player.getInventory().addItem(item).values()
-                    .forEach(left -> player.getWorld().dropItemNaturally(player.getLocation(), left));
+            com.spacerng.solrng.player.Stash.give(plugin, player, item);
         }
     }
 

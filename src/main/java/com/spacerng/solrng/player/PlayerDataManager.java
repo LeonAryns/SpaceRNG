@@ -166,6 +166,9 @@ public class PlayerDataManager {
         data.setPassXp(yml.getLong("pass-xp", 0L));
         data.setPassPremium(yml.getBoolean("pass-premium", false));
         data.getPassClaimed().addAll(yml.getStringList("pass-claimed"));
+        for (Object raw : yml.getList("stash", java.util.List.of())) {
+            if (raw instanceof org.bukkit.inventory.ItemStack stack) data.getStash().add(stack);
+        }
         data.setPrestigePoints(yml.getInt("prestige-points", 0));
         org.bukkit.configuration.ConfigurationSection upgrades = yml.getConfigurationSection("prestige-upgrades");
         if (upgrades != null) {
@@ -376,6 +379,7 @@ public class PlayerDataManager {
             yml.set("node-levels." + entry.getKey(), entry.getValue());
         }
         yml.set("discovered-items", new java.util.ArrayList<>(data.getDiscoveredItems()));
+        yml.set("stash", new java.util.ArrayList<>(data.getStash()));
 
         java.util.List<String> rarityNames = new java.util.ArrayList<>();
         for (Rarity r : data.getAutoConvertRarities()) {

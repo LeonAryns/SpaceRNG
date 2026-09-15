@@ -135,8 +135,7 @@ public class ArmorManager {
             item = worn;
         }
 
-        Map<Integer, ItemStack> overflow = inv.addItem(item);
-        overflow.values().forEach(leftover -> player.getWorld().dropItemNaturally(player.getLocation(), leftover));
+        Stash.give(plugin, player, item);
     }
 
     private static org.bukkit.inventory.EquipmentSlot slotOf(ArmorPiece piece) {

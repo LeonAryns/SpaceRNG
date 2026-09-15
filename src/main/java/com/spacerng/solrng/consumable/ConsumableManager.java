@@ -298,8 +298,7 @@ public class ConsumableManager {
     public void give(Player player, Consumable consumable, int amount) {
         if (consumable == null || amount <= 0) return;
         ItemStack item = build(consumable, amount);
-        player.getInventory().addItem(item).values().forEach(leftover ->
-                player.getWorld().dropItemNaturally(player.getLocation(), leftover));
+        com.spacerng.solrng.player.Stash.give(plugin, player, item);
     }
 
     /** "2x", "1.5x" - whole numbers without a pointless ".00". */

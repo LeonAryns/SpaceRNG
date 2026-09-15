@@ -206,6 +206,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         getCommand("linked").setExecutor(new com.spacerng.solrng.commands.LinkedCommand(this));
         getCommand("potion").setExecutor(new com.spacerng.solrng.commands.PotionCommand(this));
         getCommand("shop").setExecutor(new com.spacerng.solrng.commands.ShopCommand(this));
+        getCommand("stash").setExecutor(new com.spacerng.solrng.commands.StashCommand(this));
         getCommand("leaderboards").setExecutor(
                 new com.spacerng.solrng.commands.LeaderboardsCommand(this));
         getCommand("stats").setExecutor(new com.spacerng.solrng.commands.StatsCommand(this));

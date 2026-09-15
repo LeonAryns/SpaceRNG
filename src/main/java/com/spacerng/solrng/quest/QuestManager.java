@@ -201,7 +201,7 @@ public class QuestManager {
         if (pool.isEmpty()) return;
 
         var drop = pool.get(java.util.concurrent.ThreadLocalRandom.current().nextInt(pool.size()));
-        player.getInventory().addItem(plugin.getRollListener().buildTaggedItem(drop));
+        com.spacerng.solrng.player.Stash.give(plugin, player, plugin.getRollListener().buildTaggedItem(drop));
         player.sendMessage(ChatColor.GRAY + "  A guaranteed "
                 + plugin.getRarityManager().style(rarity, rarity.displayName())
                 + ChatColor.GRAY + " drop, for your first Starforge.");

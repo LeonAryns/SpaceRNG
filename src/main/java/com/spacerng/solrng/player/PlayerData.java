@@ -184,6 +184,13 @@ public class PlayerData {
     // Rewards already taken, keyed "F:12" / "P:12" for the free and
     // premium track of level 12.
     private final Set<String> passClaimed = new HashSet<>();
+
+    // Items the plugin handed over while the inventory was full. See /stash.
+    private final java.util.List<org.bukkit.inventory.ItemStack> stash = new java.util.ArrayList<>();
+
+    public java.util.List<org.bukkit.inventory.ItemStack> getStash() {
+        return stash;
+    }
     // How many times the skill tree has been respec'd. First respec
     // costs 1 shiny, second costs 2, and so on - stored so the price is
     // an ever-climbing decision instead of a one-time toll.
