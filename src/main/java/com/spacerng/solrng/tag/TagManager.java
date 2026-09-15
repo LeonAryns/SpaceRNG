@@ -223,8 +223,9 @@ public class TagManager {
     private void spawnHologram(Player player, String itemNameColored, String oddsText) {
         removeDisplays(player.getUniqueId());
 
-        TextDisplay oddsDisplay = spawnLine(player, oddsText, TOP_OFFSET);
-        TextDisplay nameDisplay = spawnLine(player, itemNameColored, BOTTOM_OFFSET);
+        // The drop's name on top, its odds underneath.
+        TextDisplay oddsDisplay = spawnLine(player, oddsText, BOTTOM_OFFSET);
+        TextDisplay nameDisplay = spawnLine(player, itemNameColored, TOP_OFFSET);
 
         player.addPassenger(oddsDisplay);
         player.addPassenger(nameDisplay);

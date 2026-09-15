@@ -157,7 +157,7 @@ public class RarityManager {
      * you a rarer drop to equip, and equipping it is what cashes it in.
      */
     public double tagMultiplierFor(com.spacerng.solrng.player.PlayerData data) {
-        // Gated behind the Index Luck skill - until that's bought the
+        // Gated behind the Tag Luck skill - until that's bought the
         // equipped tag is cosmetic and the multiplier reads a flat 1.00x.
         if (!data.hasUnlocked("index_luck")) return 1.0;
 
@@ -210,7 +210,7 @@ public class RarityManager {
      * tiers multiply rather than add - and completing all of them in shiny
      * is meant to be the largest number in the plugin.
      *
-     * Gated behind the same Index Luck skill the equipped tag is: until
+     * Gated behind the same Tag Luck skill the equipped tag is: until
      * that's bought, the index is a collection log and nothing more.
      */
     public double completionMultiplier(com.spacerng.solrng.player.PlayerData data,

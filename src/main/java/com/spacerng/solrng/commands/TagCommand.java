@@ -81,7 +81,7 @@ public class TagCommand implements CommandExecutor {
         // and quietly get 1.00x reads as a bug rather than a lock.
         if (!data.hasUnlocked(INDEX_LUCK_NODE)) {
             player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "LOCKED "
-                    + ChatColor.RESET + ChatColor.GRAY + "Unlock " + ChatColor.YELLOW + "Index Luck"
+                    + ChatColor.RESET + ChatColor.GRAY + "Unlock " + ChatColor.YELLOW + "Tag Luck"
                     + ChatColor.GRAY + " in " + ChatColor.YELLOW + "/skilltree" + ChatColor.GRAY
                     + " to equip a tag.");
             player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.9f, 1.0f);

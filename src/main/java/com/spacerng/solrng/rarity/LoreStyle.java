@@ -8,7 +8,7 @@ import java.util.List;
 
 /**
  * Interchangeable layouts for a drop's tooltip. Every style carries the
- * same facts, rarity, odds, Index Luck and whether it is shiny, and only
+ * same facts, rarity, odds, Tag Luck and whether it is shiny, and only
  * changes how they read. Chosen with roll-item.lore-style; /rngadmin
  * lorestyles hands out one sample of each so they can be compared.
  *
@@ -72,14 +72,14 @@ public enum LoreStyle {
                 }
                 lore.add(ChatColor.GRAY + "Rarity: " + word);
                 lore.add(ChatColor.GRAY + "Chance: " + rarities.style(rarity, odds));
-                lore.add(ChatColor.GRAY + "Index Luck: " + ChatColor.DARK_AQUA + luck);
+                lore.add(ChatColor.GRAY + "Tag Luck: " + ChatColor.DARK_AQUA + luck);
             }
             case PIPE -> {
                 String bar = rarities.style(rarity, "|");
                 lore.add(rarities.style(rarity, "| Drop"));
                 lore.add(bar + " " + ChatColor.GRAY + "Rarity " + word);
                 lore.add(bar + " " + ChatColor.GRAY + "Odds " + ChatColor.WHITE + odds);
-                lore.add(bar + " " + ChatColor.GRAY + "Index Luck " + ChatColor.DARK_AQUA + luck);
+                lore.add(bar + " " + ChatColor.GRAY + "Tag Luck " + ChatColor.DARK_AQUA + luck);
                 if (shiny) {
                     lore.add("");
                     lore.add(ChatColor.AQUA + "| Shiny");
@@ -88,14 +88,14 @@ public enum LoreStyle {
             }
             case COMPACT -> {
                 lore.add(word + ChatColor.DARK_GRAY + "  ·  " + ChatColor.GRAY + odds);
-                lore.add(ChatColor.DARK_AQUA + luck + ChatColor.GRAY + " Index Luck"
+                lore.add(ChatColor.DARK_AQUA + luck + ChatColor.GRAY + " Tag Luck"
                         + (shiny ? ChatColor.DARK_GRAY + "  ·  " + ChatColor.AQUA + "✦ Shiny" : ""));
             }
             case STATS -> {
                 String bullet = rarities.style(rarity, "▎");
                 lore.add(bullet + " " + ChatColor.GRAY + "Rarity: " + word);
                 lore.add(bullet + " " + ChatColor.GRAY + "Odds: " + ChatColor.WHITE + odds);
-                lore.add(bullet + " " + ChatColor.GRAY + "Index Luck: " + ChatColor.DARK_AQUA + luck);
+                lore.add(bullet + " " + ChatColor.GRAY + "Tag Luck: " + ChatColor.DARK_AQUA + luck);
                 if (shiny) {
                     lore.add(ChatColor.AQUA + "▎ " + ChatColor.GRAY + "Shiny: " + ChatColor.AQUA + shinyOdds);
                 }
@@ -110,7 +110,7 @@ public enum LoreStyle {
                 String bullet = rarities.style(rarity, "▎");
                 List<String> rows = new ArrayList<>();
                 rows.add(bullet + " " + ChatColor.GRAY + "Odds  " + rarities.style(rarity, odds));
-                rows.add(bullet + " " + ChatColor.GRAY + "Index Luck  " + rarities.style(rarity, luck));
+                rows.add(bullet + " " + ChatColor.GRAY + "Tag Luck  " + rarities.style(rarity, luck));
                 if (shiny) {
                     rows.add(ChatColor.AQUA + "▎ " + ChatColor.GRAY + "Shiny  " + ChatColor.AQUA + shinyOdds + " drops");
                 }
@@ -138,7 +138,7 @@ public enum LoreStyle {
                         + ChatColor.DARK_GRAY + "▬".repeat(Math.max(0, steps - filled));
                 lore.add(word + "  " + ladder);
                 lore.add(ChatColor.GRAY + odds + ChatColor.DARK_GRAY + "  ·  "
-                        + ChatColor.DARK_AQUA + luck + ChatColor.GRAY + " Index Luck");
+                        + ChatColor.DARK_AQUA + luck + ChatColor.GRAY + " Tag Luck");
                 if (shiny) {
                     lore.add(ChatColor.AQUA + "✦ Shiny " + ChatColor.DARK_GRAY + shinyOdds + " drops");
                 }
@@ -147,7 +147,7 @@ public enum LoreStyle {
                 String article = "AEIOU".indexOf(rarity.name().charAt(0)) >= 0 ? "An " : "A ";
                 lore.add(ChatColor.GRAY + article + word + ChatColor.GRAY + " drop,");
                 lore.add(ChatColor.GRAY + "found at odds of " + ChatColor.WHITE + odds + ChatColor.GRAY + ".");
-                lore.add(ChatColor.GRAY + "Adds " + ChatColor.DARK_AQUA + luck + ChatColor.GRAY + " to your Index Luck.");
+                lore.add(ChatColor.GRAY + "Adds " + ChatColor.DARK_AQUA + luck + ChatColor.GRAY + " to your Tag Luck.");
                 if (shiny) {
                     lore.add(ChatColor.AQUA + "And it is shiny, " + ChatColor.GRAY + shinyOdds + " drops.");
                 }

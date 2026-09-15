@@ -383,11 +383,10 @@ public class RollListener implements Listener {
         final long preTicks = shiny ? ShinyPreRoll.TICKS : 0L;
         final long totalTicks = preTicks + rollTicks;
         final ShinyPreRoll preRoll = shiny ? new ShinyPreRoll(plugin, player) : null;
-        // Auto Roll reports on the action bar only. A title reel and a chat
-        // line every few seconds, forever, is noise; a big drop still gets
-        // its full reel, aura and title.
+        // Auto Roll reports on the action bar instead of chat. The reel,
+        // the item and the title still play; roll animation in /options is
+        // the one switch for those.
         final boolean auto = data.isAutoRollEnabled();
-        final boolean reel = !auto || RollAura.isBigDrop(result.getRarity());
         final RollShowcase[] showcase = {null};
         final RollAura[] aura = {null};
         final boolean[] auraStarted = {false};
@@ -448,7 +447,7 @@ public class RollListener implements Listener {
                     player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.8f, 1.2f);
                     chimedOnLanding.add(player.getUniqueId());
                 }
-                if (reel && data.isRollAnimationEnabled()) {
+                if (data.isRollAnimationEnabled()) {
                     boolean landed = step >= 19;
                     RollableItem shown = landed ? result : teaser(data, result, step);
                     // A candidate stays up until the next one replaces it, so
@@ -614,7 +613,7 @@ public class RollListener implements Listener {
         // the player is handed, shiny markers included. For a big drop the
         // title waits a moment: dropping it over the detonation on the same
         // tick hides the burst the player just sat through the build-up for.
-        if (data.isRollAnimationEnabled() && (!auto || RollAura.isBigDrop(result.getRarity()))) {
+        if (data.isRollAnimationEnabled()) {
             long titleDelay = RollAura.titleDelayTicks(result.getRarity());
             if (titleDelay <= 0) {
                 showRollTitle(player, result, shiny, 1500L);

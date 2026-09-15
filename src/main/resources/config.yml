@@ -8,7 +8,7 @@
 # their fresh defaults in on top of whatever is on disk, so a server
 # owner never has to delete the whole file to pick up a structural
 # change. Item table, prices and cosmetic tweaks are untouched.
-config-version: 7
+config-version: 8
 
 # One-off value changes the plugin has already made to this file, so none
 # is ever made twice. Managed by the plugin; leave it alone.
@@ -209,6 +209,9 @@ starforge:
 #   %solrng_level_number%   raw level
 tag:
   manage-nametag: true
+  # How the odds line under a tag looks: gradient, flat, split, soft or
+  # bold. /rngadmin tagstyles shows them side by side and switches live.
+  odds-style: gradient
 
 # Farm crops (a shared field everyone harvests together) - breaking a
 # fully-grown crop listed here pays Tokens on top of its normal drop,
@@ -1777,7 +1780,7 @@ index:
   # A rarity you've completed in shiny pays the bigger number INSTEAD of
   # the smaller one, not on top of it.
   #
-  # Gated behind the same Index Luck skill the tag multiplier is: until
+  # Gated behind the same Tag Luck skill the tag multiplier is: until
   # that's bought, the index is a collection log and nothing more.
   completion:
     per-rarity: 2.0
@@ -1902,23 +1905,23 @@ skilltree:
     luck_2:
       display: "Luck II"
       page: 1
-      slot: "5,3"
+      slot: "5,2"
       icon: RABBIT_FOOT
       cost-money: 28700
       cost-growth: 1.24
-      requires: "index_luck"
+      requires: "curator_1"
       effect: LUCK
       value: 0.08
       max-level: 10
 
     curator_1:
-      display: "Curator I"
+      display: "Index Luck I"
       page: 1
-      slot: "4,2"
+      slot: "5,3"
       icon: BOOKSHELF
       cost-money: 28700
       cost-growth: 1.3
-      requires: "shiny_chance_1"
+      requires: "index_luck"
       effect: LUCK_PER_DISCOVERY
       value: 0.002
       max-level: 10
@@ -1926,7 +1929,7 @@ skilltree:
     shiny_chance_1:
       display: "Shiny Chance I"
       page: 1
-      slot: "5,2"
+      slot: "4,2"
       icon: PRISMARINE_CRYSTALS
       cost-money: 50300
       cost-growth: 1.3
@@ -1942,7 +1945,7 @@ skilltree:
       icon: SMITHING_TABLE
       cost-money: 154000
       cost-growth: 1.3
-      requires: "shiny_chance_1"
+      requires: "luck_2"
       effect: STARFORGE_POWER
       value: 0.05
       max-level: 10
@@ -1967,7 +1970,7 @@ skilltree:
       icon: SUGAR
       cost-money: 88000
       cost-growth: 1.24
-      requires: "bonus_roll_1"
+      requires: "convert_unlock"
       effect: ROLL_SPEED
       value: 0.03
       max-level: 10
@@ -1975,11 +1978,11 @@ skilltree:
     bonus_roll_1:
       display: "Double Roll I"
       page: 1
-      slot: "3,5"
+      slot: "3,3"
       icon: ECHO_SHARD
       cost-money: 6560
       cost-growth: 1.3
-      requires: "speed_skill"
+      requires: "pass_unlock"
       effect: BONUS_ROLL_CHANCE
       value: 0.01
       max-level: 10
@@ -2113,10 +2116,10 @@ skilltree:
     convert_unlock:
       display: "Convert"
       page: 1
-      slot: "3,3"
+      slot: "3,5"
       icon: CHEST
       cost-money: 1220
-      requires: "pass_unlock"
+      requires: "speed_skill"
       effect: UNLOCK_CONVERT
       value: 0
 
@@ -2131,7 +2134,7 @@ skilltree:
       value: 0
 
     index_luck:
-      display: "Index Luck"
+      display: "Tag Luck"
       page: 1
       slot: "5,4"
       icon: KNOWLEDGE_BOOK
@@ -2146,7 +2149,7 @@ skilltree:
       slot: "6,2"
       icon: AMETHYST_SHARD
       cost-money: 6560
-      requires: "shiny_chance_1"
+      requires: "luck_2"
       effect: UNLOCK_SHINY
       value: 0
 
@@ -2215,7 +2218,7 @@ skilltree:
       max-level: 10
 
     curator_2:
-      display: "Curator II"
+      display: "Index Luck II"
       page: 2
       slot: "5,1"
       icon: BOOKSHELF
@@ -2856,8 +2859,8 @@ announcements:
   messages:
     - - "&3\u258e &e\u25b8 &fLeft-click&7 your Starforge to toggle &bAuto Roll&7."
       - "&3\u258e &e\u25b8 &7Put spare drops in &e/convert&7 to buy armor and Starforges."
-    - - "&3\u258e &e\u25b8 &7Every drop has its own &bIndex Luck&7 \u2014 equip the best in &e/index&7."
-      - "&3\u258e &e\u25b8 &7Unlock &fIndex Luck&7 in &e/skilltree&7 before you can wear one."
+    - - "&3\u258e &e\u25b8 &7Every drop has its own &bTag Luck&7, equip the best in &e/index&7."
+      - "&3\u258e &e\u25b8 &7Unlock &fTag Luck&7 in &e/skilltree&7 before you can wear one."
     - - "&3\u258e &e\u25b8 &d/novacore&7 is the fourth way to raise your Luck \u2014 after skills, armor and prestige."
       - "&3\u258e &e\u25b8 &7Forge it a tier at a time with &6Coins&7. Every tier you hold is a permanent multiplier on &fLuck&7, &aMoney&7 and &6Coins&7 alike."
     - - "&3\u258e &e\u25b8 &a/farmtree&7 has crops, hoe enchants and Coin multipliers."
@@ -2981,7 +2984,7 @@ guide:
       goal: STARFORGE_TIER
       amount: 1
     - id: index_luck
-      display: "Unlock Index Luck"
+      display: "Unlock Tag Luck"
       hint: "In /skilltree, right above Luck I. It's what lets you equip a tag."
       goal: HAS_NODE
       target: index_luck
@@ -4763,7 +4766,7 @@ auras:
       concept: galaxy-grand
       accent: sparkle
     MYTHICAL:
-      concept: nova-grand
+      concept: singularity-lite
       accent: trails
     DIVINE:
       concept: atom-grand

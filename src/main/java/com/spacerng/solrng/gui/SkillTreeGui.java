@@ -449,7 +449,7 @@ public class SkillTreeGui {
             case UNLOCK_ARMOR -> gate("Unlocks the /armor shop");
             case UNLOCK_POTION -> gate("Unlocks the Potion system (coming soon)");
             case UNLOCK_SHINY -> gate("Unlocks Shiny drops - 1 in 100 rolls");
-            case UNLOCK_INDEX_LUCK -> gate("Lets you equip a tag for its Index Luck");
+            case UNLOCK_INDEX_LUCK -> gate("Lets you equip a tag and use its Tag Luck");
             case UNLOCK_ARTIFACT -> gate("Unlocks the Artifact shop (coming soon)");
             case UNLOCK_PRIVATE_VAULT -> gate("Unlocks your Private Vault - /pv");
             case UNLOCK_PASS -> gate("Unlocks the Battle Pass - /pass");

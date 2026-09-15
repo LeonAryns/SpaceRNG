@@ -45,6 +45,7 @@ final class MassiveConcepts {
 
     static void describe(Map<String, String> d) {
         d.put("singularity", "a twelve block galaxy: star rings, nether stars, lanterns, a beacon (heavy)");
+        d.put("singularity-lite", "singularity at seventy percent, the Mythical tag's look");
         d.put("titan", "three nested atoms, lanterns a block wide, star rings below (heavy)");
         d.put("supernova", "star rings bursting eight blocks out, a beacon and a lantern crown (heavy)");
     }
@@ -61,6 +62,18 @@ final class MassiveConcepts {
                     new GrandConcepts.FlatOrbit(Material.SEA_LANTERN, false, FEET + 0.9f,
                             new float[]{3.5f}, 6, 0.6f, 2, 5.0),
                     new Column(Material.END_ROD, 0.6f, 3, 1.2f),
+                    new GrandConcepts.RodHalo());
+            // The Mythical tag's look: singularity at about seventy percent, so
+            // it reads as the same galaxy without filling a whole room.
+            case "singularity-lite" -> new AuraConcepts.Combined(
+                    new GrandConcepts.StarRing(color, FEET + 0.02f, 7, 1.9f, 3, 15, 1, "✦"),
+                    new GrandConcepts.StarRing(color, FEET + 0.01f, 14, 2.4f, 4, 30, -1, "✦"),
+                    new GrandConcepts.StarRing(soft, FEET, 24, 2.8f, 5, 45, 1, "✧"),
+                    new GrandConcepts.FlatOrbit(Material.NETHER_STAR, true, FEET + 0.5f,
+                            new float[]{1.8f, 3.3f}, 4, 0.8f, 2, 8.0),
+                    new GrandConcepts.FlatOrbit(Material.SEA_LANTERN, false, FEET + 0.75f,
+                            new float[]{2.5f}, 6, 0.45f, 2, 7.0),
+                    new Column(Material.END_ROD, 0.6f, 2, 1.0f),
                     new GrandConcepts.RodHalo());
             case "titan" -> new AuraConcepts.Combined(
                     new AuraConcepts.SolidAtom(Material.SEA_LANTERN, -0.4f, 4.8f, 1.0f, false, 0, 2, 8.0),

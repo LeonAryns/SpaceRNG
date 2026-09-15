@@ -417,4 +417,41 @@ final class ShowcaseAdmin extends AdminTools {
         sender.sendMessage(ChatColor.GRAY + "Empty is normal for tag placeholders with no tag equipped.");
         return true;
     }
+
+    /**
+     * Every tag odds style for one sample drop of each rarity, as the name
+     * and odds lines would read above a head. With a style name, switches
+     * the server to it and rebuilds every tag that is showing.
+     */
+    boolean doTagStyles(CommandSender sender, String[] args) {
+        String pick = args.length >= 2 ? args[1].toLowerCase(Locale.ROOT) : "";
+        if (RollFormat.TAG_ODDS_STYLES.contains(pick)) {
+            plugin.getConfig().set("tag.odds-style", pick);
+            plugin.saveConfig();
+            for (Player online : Bukkit.getOnlinePlayers()) {
+                PlayerData data = plugin.getPlayerDataManager().get(online.getUniqueId());
+                RollableItem tagged = data.getEquippedTagItemKey() == null ? null
+                        : plugin.getRarityManager().findByDisplayName(data.getEquippedTagItemKey());
+                if (tagged == null) continue;
+                plugin.getTagManager().showHologram(online, RollFormat.displayName(plugin, tagged),
+                        RollFormat.tagOdds(plugin, tagged));
+            }
+            sender.sendMessage(ChatColor.GREEN + "Tag odds now use the " + pick + " style.");
+            return true;
+        }
+
+        String current = plugin.getConfig().getString("tag.odds-style", "gradient");
+        sender.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "Tag odds styles");
+        for (String style : RollFormat.TAG_ODDS_STYLES) {
+            sender.sendMessage(ChatColor.YELLOW + style + (style.equals(current) ? ChatColor.GREEN + " (current)" : ""));
+            for (Rarity rarity : Rarity.values()) {
+                RollableItem sample = randomItemOf(rarity);
+                if (sample == null) continue;
+                sender.sendMessage("  " + RollFormat.displayName(plugin, sample) + ChatColor.DARK_GRAY + "  /  "
+                        + RollFormat.tagOdds(rarity, sample.getOdds(), style));
+            }
+        }
+        sender.sendMessage(ChatColor.GRAY + "Pick one with " + ChatColor.YELLOW + "/rngadmin tagstyles <style>");
+        return true;
+    }
 }

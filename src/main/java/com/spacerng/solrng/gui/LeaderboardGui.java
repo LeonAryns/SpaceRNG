@@ -17,11 +17,11 @@ import java.util.List;
 /**
  * /leaderboards - the six standings that never reset.
  *
- * The DAILY farming board is deliberately not here. It resets every
+ * The DAILY farming board is deliberately not a card here. It resets every
  * night and pays out, which makes it a race rather than a standing, so it
- * keeps /top and the hologram at spawn. What's here is the long game -
- * what you've found, what you've earned - and it belongs somewhere you
- * can read all of it at once rather than one chat command at a time.
+ * keeps /top and the hologram at spawn, and this menu only points at it.
+ * What's here is the long game - what you've found, what you've earned -
+ * readable all at once rather than one chat command at a time.
  */
 public class LeaderboardGui {
 
@@ -33,14 +33,14 @@ public class LeaderboardGui {
                         String unit, String blurb) {
     }
 
-    // Top row: what you've found. Bottom row: what you've earned. The
-    // player's own head sits between them.
+    // Upper row: what you've found. Lower row: what you've earned. The two
+    // rows are staggered so every card has room around it.
     private static final Card[] CARDS = {
-            new Card(11, Material.ENCHANTED_BOOK, ChatColor.AQUA, "Total Index", "index", "drops",
+            new Card(20, Material.ENCHANTED_BOOK, ChatColor.AQUA, "Total Index", "index", "drops",
                     "Every drop you've discovered."),
-            new Card(13, Material.AMETHYST_SHARD, ChatColor.LIGHT_PURPLE, "Shiny Index", "shiny", "shinies",
+            new Card(22, Material.AMETHYST_SHARD, ChatColor.LIGHT_PURPLE, "Shiny Index", "shiny", "shinies",
                     "Shiny drops you've discovered."),
-            new Card(15, Material.NETHER_STAR, ChatColor.YELLOW, "Rolls", "rolls", "rolls",
+            new Card(24, Material.NETHER_STAR, ChatColor.YELLOW, "Rolls", "rolls", "rolls",
                     "Every roll you've ever made."),
             new Card(29, Material.GOLD_INGOT, ChatColor.GOLD, "Coins", "coins", "Coins",
                     "Coins in hand, from farming."),
@@ -50,10 +50,11 @@ public class LeaderboardGui {
                     "Crops broken, all time."),
     };
 
-    private static final int ROWS = 5;
+    private static final int ROWS = 6;
     private static final int SIZE = ROWS * 9;
-    private static final int SELF_SLOT = 22;
-    private static final int SHOWN = 5;
+    private static final int SELF_SLOT = 49;
+    private static final int DAILY_SLOT = 47;
+    private static final int SHOWN = 10;
 
     public static Inventory build(SolRNGPlugin plugin, Player player) {
         LeaderboardHolder holder = new LeaderboardHolder();
@@ -74,6 +75,7 @@ public class LeaderboardGui {
         for (Card card : CARDS) {
             inv.setItem(card.slot(), buildCard(boards, player, card));
         }
+        inv.setItem(DAILY_SLOT, buildDaily());
         inv.setItem(SELF_SLOT, buildSelf(boards, player));
         return inv;
     }
@@ -100,7 +102,7 @@ public class LeaderboardGui {
             any = true;
             lore.add(placeColour(i) + Lore.BULLET + " #" + (i + 1) + " "
                     + ChatColor.WHITE + entry.name()
-                    + ChatColor.DARK_GRAY + " · " + card.accent() + Lore.shorten(value)
+                    + ChatColor.DARK_GRAY + "  ·  " + card.accent() + Lore.shorten(value)
                     + ChatColor.GRAY + " " + card.unit());
         }
         if (!any) {
@@ -112,9 +114,43 @@ public class LeaderboardGui {
         int place = boards.positionOf(card.board(), player.getUniqueId());
         LeaderboardManager.Entry mine = boards.entryOf(player.getUniqueId());
         long value = mine == null ? 0L : LeaderboardManager.valueOf(card.board(), mine);
-        lore.add(Lore.stat(ChatColor.YELLOW, "Place", value <= 0 ? "unranked" : "#" + place));
-        lore.add(Lore.stat(card.accent(), card.unit(), Lore.shorten(value)));
+        boolean ranked = value > 0 && place > 0;
+        lore.add(Lore.stat(ChatColor.YELLOW, "Place", ranked ? "#" + place + " of " + boards.size() : "unranked"));
+        lore.add(Lore.stat(card.accent(), capitalise(card.unit()), Lore.shorten(value)));
 
+        // The one thing worth knowing after where you are: how far the next
+        // place is, or that there is no next place.
+        boolean first = ranked && place == 1;
+        if (first) {
+            lore.add(ChatColor.GREEN + Lore.BULLET + " " + ChatColor.GREEN + "You hold first place");
+        } else if (ranked) {
+            List<LeaderboardManager.Entry> above = boards.top(card.board(), place - 1);
+            if (above.size() >= place - 1) {
+                LeaderboardManager.Entry next = above.get(place - 2);
+                long gap = Math.max(1L, LeaderboardManager.valueOf(card.board(), next) - value + 1);
+                lore.add(ChatColor.AQUA + Lore.BULLET + " " + ChatColor.WHITE + Lore.shorten(gap) + " "
+                        + ChatColor.AQUA + card.unit() + " to pass " + ChatColor.WHITE + next.name());
+            }
+        } else {
+            lore.add(ChatColor.AQUA + Lore.BULLET + " " + ChatColor.AQUA + "Earn your first to join this board");
+        }
+
+        meta.setLore(lore);
+        meta.setEnchantmentGlintOverride(first ? Boolean.TRUE : null);
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    /** Where the daily race lives, since it isn't a card of its own. */
+    private static ItemStack buildDaily() {
+        ItemStack item = new ItemStack(Material.CLOCK);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(Lore.title(ChatColor.GOLD, "Daily Farming Race"));
+        List<String> lore = new ArrayList<>();
+        lore.add(Lore.line(ChatColor.GOLD, "Resets every night."));
+        lore.add(Lore.line(ChatColor.GOLD, "The top three are paid Credits."));
+        lore.add("");
+        lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "See it with /top farming");
         meta.setLore(lore);
         item.setItemMeta(meta);
         return item;
@@ -138,13 +174,15 @@ public class LeaderboardGui {
         for (Card card : CARDS) {
             long value = mine == null ? 0L : LeaderboardManager.valueOf(card.board(), mine);
             int place = boards.positionOf(card.board(), player.getUniqueId());
+            String standing = value <= 0 ? ChatColor.DARK_GRAY + "unranked"
+                    : (place == 1 ? ChatColor.GOLD : ChatColor.YELLOW) + "#" + place;
             lore.add(card.accent() + Lore.BULLET + " " + ChatColor.GRAY + card.name() + ": "
-                    + ChatColor.WHITE + (value <= 0 ? "unranked" : "#" + place)
-                    + ChatColor.DARK_GRAY + " · " + ChatColor.GRAY + Lore.shorten(value));
+                    + standing + ChatColor.DARK_GRAY + "  ·  " + card.accent() + Lore.shorten(value));
         }
         lore.add("");
-        lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " Farming has its own board: /top farming");
-        lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " " + boards.size() + " players tracked");
+        int tracked = boards.size();
+        lore.add(ChatColor.AQUA + Lore.BULLET + " " + ChatColor.WHITE + tracked
+                + ChatColor.AQUA + (tracked == 1 ? " player" : " players") + " on the boards");
         meta.setLore(lore);
         item.setItemMeta(meta);
         return item;
@@ -161,6 +199,10 @@ public class LeaderboardGui {
      */
     private static ChatColor placeColour(int index) {
         return index == 0 ? ChatColor.GOLD : ChatColor.WHITE;
+    }
+
+    private static String capitalise(String text) {
+        return text.isEmpty() ? text : Character.toUpperCase(text.charAt(0)) + text.substring(1);
     }
 
     private static ItemStack pane(Material material) {

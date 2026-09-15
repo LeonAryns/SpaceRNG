@@ -131,9 +131,12 @@ public final class AuraConcepts {
     private static AuraConcept grand(Rarity rarity, Color color) {
         Material light = lantern(rarity);
         return switch (rarity) {
+            // Divine also gets supernova's stars bursting out along the
+            // ground, kept a little shorter than supernova's own.
             case DIVINE -> new Combined(
                     new SolidAtom(light, -0.6f, 2.8f, 0.5f, false, 0, 2, 16.0),
                     new SolidAtom(Material.END_ROD, -0.8f, 1.45f, 0.35f, false, 90, 2, 24.0),
+                    new MassiveConcepts.WideRipple(color, 28, 3.2f, 20, 3),
                     new RuneRing(color));
             case MYTHICAL -> new Combined(
                     new SolidAtom(light, -0.8f, 1.85f, 0.36f, false, 0, 2, 20.0), new RuneRing(color));

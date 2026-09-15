@@ -194,7 +194,11 @@ public final class FirstTenManager {
                 continue;
             }
             online.sendMessage(banner);
-            online.playSound(online.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.6f, 1.0f);
+            // The whole server hears it: a far boom, the beacon swelling and
+            // the toast on top, loud enough to cut through anything else.
+            online.playSound(online.getLocation(), Sound.ITEM_TRIDENT_THUNDER, 0.6f, 1.3f);
+            online.playSound(online.getLocation(), Sound.BLOCK_BEACON_ACTIVATE, 1.0f, 0.8f);
+            online.playSound(online.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0f, 1.0f);
             if (own) {
                 online.showTitle(Title.title(
                         LegacyComponentSerializer.legacySection()
@@ -226,9 +230,12 @@ public final class FirstTenManager {
 
     /**
      * The server-wide part. Every online player who hasn't muted the rarity
-     * or switched its aura off gets its colour drifting down around them,
-     * and anyone within 96 blocks of spawn also sees a pillar there. Sent
-     * per viewer, so each client only receives its own particles.
+     * or switched its aura off gets a sky of its colour falling about fifty
+     * blocks in every direction, with fireworks bursting somewhere in it
+     * once a second, and anyone within 96 blocks of spawn also sees a
+     * pillar there. Sent per viewer, so each client only receives its own
+     * particles; the far ones are forced, since a client otherwise draws
+     * particles only within 32 blocks.
      */
     private final class Rain {
         private final Rarity rarity;
@@ -278,10 +285,12 @@ public final class FirstTenManager {
                     PlayerData data = plugin.getPlayerDataManager().get(viewer.getUniqueId());
                     if (!data.isBroadcastEnabled(rarity) || !data.isAuraEnabled(rarity)) continue;
 
-                    Location above = viewer.getLocation().add(0, 7, 0);
-                    viewer.spawnParticle(Particle.FALLING_DUST, above, count, 6.0, 1.5, 6.0, 0.0, fall);
-                    viewer.spawnParticle(Particle.DUST, above.clone().add(0, -2.5, 0),
-                            Math.max(1, count / 2), 5.0, 2.0, 5.0, 0.0, dust);
+                    Location at = viewer.getLocation();
+                    viewer.spawnParticle(Particle.FALLING_DUST, at.clone().add(0, 18, 0), count * 6,
+                            25.0, 4.0, 25.0, 0.0, fall, true);
+                    viewer.spawnParticle(Particle.DUST, at.clone().add(0, 8, 0), count * 3,
+                            25.0, 6.0, 25.0, 0.0, dust, true);
+                    if (frame % 20 == 0) burst(viewer, at);
 
                     if (spawn != null && spawn.getWorld() != null && spawn.getWorld().equals(viewer.getWorld())
                             && spawn.distanceSquared(viewer.getLocation()) < 96.0 * 96.0) {
@@ -292,6 +301,19 @@ public final class FirstTenManager {
                 task.cancel();
                 plugin.getLogger().warning("First 10 event failed: " + ex);
             }
+        }
+
+        /** Three fireworks in the rarity's colour somewhere in the fifty block sky. */
+        private void burst(Player viewer, Location at) {
+            java.util.concurrent.ThreadLocalRandom random = java.util.concurrent.ThreadLocalRandom.current();
+            for (int i = 0; i < 3; i++) {
+                Location pop = at.clone().add(random.nextDouble(-45, 45), random.nextDouble(14, 26),
+                        random.nextDouble(-45, 45));
+                viewer.spawnParticle(Particle.FIREWORK, pop, 60, 0.0, 0.0, 0.0, 0.35, null, true);
+                viewer.spawnParticle(Particle.DUST, pop, 40, 2.5, 2.5, 2.5, 0.0, dust, true);
+            }
+            viewer.playSound(at, Sound.ENTITY_FIREWORK_ROCKET_LARGE_BLAST_FAR, 0.8f,
+                    0.8f + random.nextFloat() * 0.4f);
         }
 
         private void pillar(Player viewer, Location spawn) {

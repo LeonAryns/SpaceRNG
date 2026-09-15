@@ -120,8 +120,37 @@ public class ArmorManager {
         meta.getPersistentDataContainer().set(tierKey, PersistentDataType.STRING, tier.getId());
         item.setItemMeta(meta);
 
-        Map<Integer, ItemStack> overflow = player.getInventory().addItem(item);
+        // Straight onto the body when it beats what's there: an empty slot,
+        // or an older piece of plugin armor, which goes back in the bag.
+        // Anything else in the slot, an elytra or a pumpkin, is left alone.
+        PlayerInventory inv = player.getInventory();
+        org.bukkit.inventory.EquipmentSlot slot = slotOf(piece);
+        ItemStack worn = inv.getItem(slot);
+        boolean empty = worn == null || worn.getType().isAir();
+        ArmorTier wornTier = empty ? null : tiers.get(tierOf(worn));
+        if (empty || (wornTier != null && rank(wornTier) < rank(tier))) {
+            inv.setItem(slot, item);
+            player.sendMessage(ChatColor.GREEN + "Equipped " + ChatColor.AQUA + tier.pieceDisplay(piece));
+            if (empty) return;
+            item = worn;
+        }
+
+        Map<Integer, ItemStack> overflow = inv.addItem(item);
         overflow.values().forEach(leftover -> player.getWorld().dropItemNaturally(player.getLocation(), leftover));
+    }
+
+    private static org.bukkit.inventory.EquipmentSlot slotOf(ArmorPiece piece) {
+        return switch (piece) {
+            case HELMET -> org.bukkit.inventory.EquipmentSlot.HEAD;
+            case CHESTPLATE -> org.bukkit.inventory.EquipmentSlot.CHEST;
+            case LEGGINGS -> org.bukkit.inventory.EquipmentSlot.LEGS;
+            case BOOTS -> org.bukkit.inventory.EquipmentSlot.FEET;
+        };
+    }
+
+    /** Which of two tiers is better: more Luck, then more Speed. */
+    private static double rank(ArmorTier tier) {
+        return tier.getLuckBonus() * 1000.0 + tier.getSpeedBonus();
     }
 
     /** The "When Worn" block - shared by the shop icon and the real item. */

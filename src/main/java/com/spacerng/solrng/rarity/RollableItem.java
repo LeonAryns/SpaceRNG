@@ -20,7 +20,7 @@ public class RollableItem {
     // This item's own look (gradient/bold/etc). Null = fall back to the
     // material's natural color - styling lives per item, not per rarity.
     private final RarityStyle style;
-    // Index Luck multiplier, filled in by RarityManager once every item
+    // Tag Luck multiplier, filled in by RarityManager once every item
     // is loaded (it's relative to the other items in the same rarity).
     private double luckMultiplier = 1.0;
 

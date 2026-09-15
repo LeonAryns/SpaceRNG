@@ -40,7 +40,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             "reload", "setspawn", "starforge", "reset", "give", "drops",
             "bank", "aura", "roll", "unlock", "unlockall", "lockall", "odds", "farmblock", "farmscan",
             "hoe", "consumable", "gradient", "welcome", "crops", "farmclear",
-            "milestones", "farmfill", "boost", "nova", "placeholders", "payout", "crate", "tophead", "floatingitem", "shiny", "firsts", "lorestyles", "auratest", "help");
+            "milestones", "farmfill", "boost", "nova", "placeholders", "payout", "crate", "tophead", "floatingitem", "shiny", "firsts", "lorestyles", "tagstyles", "auratest", "help");
     private static final List<String> CURRENCIES = List.of("money", "coins", "gems", "credits");
 
     private final SolRNGPlugin plugin;
@@ -79,6 +79,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             case "shiny" -> showcase.doShiny(sender, args);
             case "firsts" -> showcase.doFirsts(sender, args);
             case "lorestyles" -> showcase.doLoreStyles(sender, args);
+            case "tagstyles" -> showcase.doTagStyles(sender, args);
             case "auratest" -> showcase.doAuraTest(sender, args);
             case "unlock" -> players.doUnlock(sender, args);
             case "unlockall" -> players.doUnlockAll(sender, args);
@@ -145,6 +146,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         line(sender, "shiny", "[player]", "Make the next roll shiny");
         line(sender, "firsts", "<list|reset|preview> [rarity]", "Server First 10 spots");
         line(sender, "lorestyles", "[rarity] [shiny]", "One sample drop in every lore style");
+        line(sender, "tagstyles", "[style]", "Tag odds styles side by side, or switch to one");
         line(sender, "auratest", "<look|off|list> [rarity] [accent]", "Wear a worn aura look to test it");
     }
 
@@ -209,6 +211,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
                 case "shiny" -> partial(args[1], playerNames());
                 case "firsts" -> partial(args[1], List.of("list", "reset", "preview"));
                 case "lorestyles" -> partial(args[1], rarityNames());
+                case "tagstyles" -> partial(args[1], RollFormat.TAG_ODDS_STYLES);
                 case "auratest" -> partial(args[1], java.util.stream.Stream.concat(com.spacerng.solrng.aura.AuraConcepts.KEYS.stream(), java.util.stream.Stream.of("off", "list")).toList());
                 case "roll", "odds" -> partial(args[1], rarityNames());
                 case "unlock" -> partial(args[1], withAll(nodeIds()));

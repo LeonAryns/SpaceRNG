@@ -1,6 +1,7 @@
 package com.spacerng.solrng.rarity;
 
 import com.spacerng.solrng.SolRNGPlugin;
+import com.spacerng.solrng.roll.RollAura;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 
@@ -251,14 +252,44 @@ public final class RollFormat {
         return "1 in " + String.format("%,d", odds);
     }
 
-    /**
-     * The floating tag's odds line: "★ 1 in 1,700 ★" in the item's flat
-     * rarity color. Uses ★ rather than a true emoji - Minecraft's default
-     * font has no emoji glyphs, so anything outside its character set
-     * would render as a missing-glyph box without a resource pack.
-     */
+    /** The looks the odds line under a tag can take, picked with tag.odds-style. */
+    public static final List<String> TAG_ODDS_STYLES = List.of("gradient", "flat", "split", "soft", "bold");
+
+    /** The floating tag's odds line, "1 in 1,700", in the configured style. */
     public static String tagOdds(SolRNGPlugin plugin, RollableItem item) {
-        return plugin.getRarityManager().style(item.getRarity(), "★ " + chance(item.getOdds()) + " ★");
+        return tagOdds(item.getRarity(), item.getOdds(), plugin.getConfig().getString("tag.odds-style", "gradient"));
+    }
+
+    /**
+     * The odds line in one style. Colours come from the rarity's aura colour,
+     * except Common, which reads grey: white odds under a white name was
+     * the one combination that looked unfinished.
+     */
+    public static String tagOdds(Rarity rarity, long odds, String style) {
+        String text = chance(odds);
+        int[] base = rarity == Rarity.COMMON ? new int[]{170, 170, 170} : rgb(RollAura.colorFor(rarity));
+        int[] light = towardWhite(base, 0.55);
+        return switch (style == null ? "" : style.toLowerCase(java.util.Locale.ROOT)) {
+            case "flat" -> paint(text, false, base);
+            case "split" -> ChatColor.DARK_GRAY + "1 in " + paint(String.format("%,d", odds), false, base, light);
+            case "soft" -> paint(text, false, towardWhite(base, 0.4));
+            case "bold" -> paint(text, true, base, light);
+            default -> paint(text, false, base, light);
+        };
+    }
+
+    private static String paint(String text, boolean bold, int[]... stops) {
+        return new RarityStyle(List.of(stops), bold, false, false).apply(text);
+    }
+
+    private static int[] rgb(org.bukkit.Color color) {
+        return new int[]{color.getRed(), color.getGreen(), color.getBlue()};
+    }
+
+    private static int[] towardWhite(int[] rgb, double amount) {
+        int[] out = new int[3];
+        for (int i = 0; i < 3; i++) out[i] = (int) Math.round(rgb[i] + (255 - rgb[i]) * amount);
+        return out;
     }
 
     /**

@@ -52,7 +52,9 @@ public final class ConfigMigrator {
             // V118: tags wear the looks Leon picked, built from ground stars, sea lanterns and nether stars.
             new Patch("tag-aura-legendary", "auras.tag.LEGENDARY.concept", "celestial", "galaxy-grand"),
             new Patch("tag-aura-mythical", "auras.tag.MYTHICAL.concept", "cosmos", "nova-grand"),
-            new Patch("tag-aura-divine", "auras.tag.DIVINE.concept", "seraph", "atom-grand"));
+            new Patch("tag-aura-divine", "auras.tag.DIVINE.concept", "seraph", "atom-grand"),
+            // V121: Mythical wears a smaller singularity. Runs after the V118 patch above.
+            new Patch("tag-aura-mythical-lite", "auras.tag.MYTHICAL.concept", "nova-grand", "singularity-lite"));
 
     /** Like a Patch, for one field of the entry with a given id inside a list of maps. */
     private record EntryPatch(String id, String list, String entryId, String field, Object oldDefault,
@@ -69,7 +71,10 @@ public final class ConfigMigrator {
                     "Buy Armor in /skilltree, right after Money I."),
             new EntryPatch("guide-hint-farming", "guide.quests", "farming_unlock", "hint",
                     "Buy Farming Unlocked in /skilltree to get the Farmer's Hoe.",
-                    "Buy Farming in /skilltree, right after Armor, to get the Farmer's Hoe."));
+                    "Buy Farming in /skilltree, right after Armor, to get the Farmer's Hoe."),
+            // V121: the tag gate is called Tag Luck, and Index Luck is the per entry skill.
+            new EntryPatch("guide-display-tag-luck", "guide.quests", "index_luck", "display",
+                    "Unlock Index Luck", "Unlock Tag Luck"));
 
     private ConfigMigrator() {
     }

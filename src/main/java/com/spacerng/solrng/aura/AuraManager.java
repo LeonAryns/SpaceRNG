@@ -51,7 +51,7 @@ public final class AuraManager {
     private static final Map<Rarity, String[]> DEFAULT_TAG_AURAS = new EnumMap<>(Map.of(
             Rarity.EPIC, new String[]{"runes", "none"},
             Rarity.LEGENDARY, new String[]{"galaxy-grand", "sparkle"},
-            Rarity.MYTHICAL, new String[]{"nova-grand", "trails"},
+            Rarity.MYTHICAL, new String[]{"singularity-lite", "trails"},
             Rarity.DIVINE, new String[]{"atom-grand", "all"}));
 
     private static final class Worn {

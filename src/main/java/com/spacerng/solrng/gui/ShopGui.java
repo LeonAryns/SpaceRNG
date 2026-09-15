@@ -60,7 +60,7 @@ public class ShopGui {
             new Entry(33, Material.WRITABLE_BOOK, ChatColor.GOLD, "Battle Pass", "pass_unlock", "pass",
                     new String[]{"A season of rewards, earned",
                                  "by rolling and by farming."}),
-            new Entry(35, Material.SUNFLOWER, ChatColor.LIGHT_PURPLE, "Store", "", "buy",
+            new Entry(53, Material.SUNFLOWER, ChatColor.LIGHT_PURPLE, "Store", "", "buy",
                     new String[]{"Spend Credits on a global",
                                  "Luck boost or the premium pass."}),
     };
