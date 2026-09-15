@@ -216,6 +216,13 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         String sub = args[0].toLowerCase(Locale.ROOT);
         if (sub.equals("crate")) return crateTab(args);
         if (sub.equals("tophead")) return topHeadTab(args);
+        if (sub.equals("menustyles") && args.length >= 3 && args[1].equalsIgnoreCase("preview")) {
+            if (args.length == 3) {
+                return partial(args[2], java.util.Arrays.stream(com.spacerng.solrng.gui.Lore.Theme.values())
+                        .map(com.spacerng.solrng.gui.Lore.Theme::key).toList());
+            }
+            return args.length == 4 ? partial(args[3], ShowcaseAdmin.PREVIEW_MENUS) : List.of();
+        }
         if (sub.equals("holo")) {
             if (args.length == 2) return partial(args[1], List.of("panel", "board", "leader", "remove", "list"));
             if (args.length == 3 && args[1].equalsIgnoreCase("leader")) {
@@ -238,8 +245,9 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
                 case "firsts" -> partial(args[1], List.of("list", "reset", "preview"));
                 case "lorestyles" -> partial(args[1], rarityNames());
                 case "tagstyles" -> partial(args[1], RollFormat.TAG_ODDS_STYLES);
-                case "menustyles" -> partial(args[1], java.util.Arrays.stream(com.spacerng.solrng.gui.Lore.Theme.values())
-                        .map(com.spacerng.solrng.gui.Lore.Theme::key).toList());
+                case "menustyles" -> partial(args[1], java.util.stream.Stream.concat(
+                        java.util.Arrays.stream(com.spacerng.solrng.gui.Lore.Theme.values())
+                                .map(com.spacerng.solrng.gui.Lore.Theme::key), java.util.stream.Stream.of("preview")).toList());
                 case "hoestyles" -> partial(args[1], com.spacerng.solrng.farming.FarmingManager.HOE_STYLES);
                 case "standingstyles" -> partial(args[1], com.spacerng.solrng.gui.LeaderboardGui.STANDINGS_STYLES);
                 case "enchantstyles" -> partial(args[1], com.spacerng.solrng.gui.HoeGui.ENCHANT_STYLES);

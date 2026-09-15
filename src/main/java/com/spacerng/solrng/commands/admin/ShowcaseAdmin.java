@@ -622,6 +622,11 @@ final class ShowcaseAdmin extends AdminTools {
                 null);
     }
 
+    /** Every menu /rngadmin menustyles preview can open in a theme. */
+    static final List<String> PREVIEW_MENUS = List.of("skilltree", "farmtree", "prestige", "index", "pass", "shop",
+            "leaderboards", "options", "hoe", "novacore", "daily", "armor", "starforge", "crops", "buy", "potion",
+            "perks", "stash");
+
     /**
      * Opens a real menu built in one theme, so the difference shows on a
      * whole screen instead of one card. Anything clicked inside rebuilds in
@@ -635,13 +640,32 @@ final class ShowcaseAdmin extends AdminTools {
         var current = com.spacerng.solrng.gui.Lore.theme();
         var theme = args.length >= 3 ? com.spacerng.solrng.gui.Lore.Theme.parse(args[2]) : current;
         String menu = args.length >= 4 ? args[3].toLowerCase(Locale.ROOT) : "skilltree";
+        if (!PREVIEW_MENUS.contains(menu)) {
+            sender.sendMessage(ChatColor.RED + "Menus: " + String.join(", ", PREVIEW_MENUS));
+            return true;
+        }
         org.bukkit.inventory.Inventory inventory;
         com.spacerng.solrng.gui.Lore.setTheme(theme);
         try {
             inventory = switch (menu) {
-                case "index" -> com.spacerng.solrng.gui.IndexGui.build(plugin, player, null, 0);
+                case "farmtree" -> com.spacerng.solrng.gui.SkillTreeGui.build(plugin, player, "farmtree", 0);
                 case "prestige" -> com.spacerng.solrng.gui.PrestigeGui.build(plugin, player);
-                default -> com.spacerng.solrng.gui.SkillTreeGui.build(plugin, player, "skilltree", 1);
+                case "index" -> com.spacerng.solrng.gui.IndexGui.build(plugin, player, null, 0);
+                case "pass" -> com.spacerng.solrng.gui.PassGui.build(plugin, player, 0);
+                case "shop" -> com.spacerng.solrng.gui.ShopGui.build(plugin, player);
+                case "leaderboards" -> com.spacerng.solrng.gui.LeaderboardGui.build(plugin, player);
+                case "options" -> com.spacerng.solrng.gui.OptionsGui.build(plugin, player);
+                case "hoe" -> com.spacerng.solrng.gui.HoeGui.build(plugin, player);
+                case "novacore" -> com.spacerng.solrng.gui.NovaCoreGui.build(plugin, player);
+                case "daily" -> com.spacerng.solrng.gui.DailyGui.build(plugin, player);
+                case "armor" -> com.spacerng.solrng.gui.ArmorGui.build(plugin, player);
+                case "starforge" -> com.spacerng.solrng.gui.StarforgeGui.build(plugin, player);
+                case "crops" -> com.spacerng.solrng.gui.CropsGui.build(plugin, player);
+                case "buy" -> com.spacerng.solrng.gui.BuyGui.build(plugin, player);
+                case "potion" -> com.spacerng.solrng.gui.PotionGui.build(plugin, player);
+                case "perks" -> com.spacerng.solrng.gui.PerkRollerGui.build(plugin, player);
+                case "stash" -> com.spacerng.solrng.gui.StashGui.build(plugin, player);
+                default -> com.spacerng.solrng.gui.SkillTreeGui.build(plugin, player, "skilltree", 0);
             };
         } finally {
             com.spacerng.solrng.gui.Lore.setTheme(current);

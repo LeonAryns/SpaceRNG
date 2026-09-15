@@ -31,7 +31,9 @@ public final class Lore {
         CLASSIC("framed titles and a coloured bar before every fact"),
         CLEAN("plain bold titles and indented facts, no bars"),
         BOXED("heavy rules around sections and a rail down the left"),
-        MINIMAL("quiet titles, dot bullets and values in colour");
+        MINIMAL("quiet titles, dot bullets and values in colour"),
+        NEON("chevron titles, diamond sections, arrow facts with bright labels"),
+        ROYAL("gold star titles, ornament sections, hollow diamond facts");
 
         private final String summary;
 
@@ -74,6 +76,8 @@ public final class Lore {
             case CLEAN -> "  ";
             case BOXED -> colour + "│ ";
             case MINIMAL -> ChatColor.DARK_GRAY + "· ";
+            case NEON -> colour + "» ";
+            case ROYAL -> colour + "◇ ";
         };
     }
 
@@ -233,6 +237,10 @@ public final class Lore {
             case CLEAN -> colour + "" + ChatColor.BOLD + text;
             case BOXED -> ChatColor.DARK_GRAY + "▍ " + colour + ChatColor.BOLD + text;
             case MINIMAL -> colour + text;
+            case NEON -> ChatColor.DARK_GRAY + "« " + colour + ChatColor.BOLD + text + ChatColor.RESET
+                    + ChatColor.DARK_GRAY + " »";
+            case ROYAL -> ChatColor.GOLD + "✦ " + colour + ChatColor.BOLD + text + ChatColor.RESET
+                    + ChatColor.GOLD + " ✦";
         };
     }
 
@@ -248,6 +256,8 @@ public final class Lore {
             case CLEAN -> colour + text;
             case BOXED -> ChatColor.DARK_GRAY + "━━ " + colour + ChatColor.BOLD + text + ChatColor.DARK_GRAY + " ━━";
             case MINIMAL -> ChatColor.DARK_GRAY + text;
+            case NEON -> colour + "◆ " + ChatColor.WHITE + ChatColor.BOLD + text;
+            case ROYAL -> ChatColor.GOLD + "❖ " + colour + text;
         };
     }
 
@@ -263,6 +273,8 @@ public final class Lore {
             case CLEAN -> mark(colour) + ChatColor.GRAY + label + "  " + ChatColor.WHITE + value;
             case BOXED -> mark(colour) + ChatColor.GRAY + label + ChatColor.DARK_GRAY + " » " + ChatColor.WHITE + value;
             case MINIMAL -> mark(colour) + ChatColor.GRAY + label + " " + colour + value;
+            case NEON -> mark(colour) + ChatColor.WHITE + label + ChatColor.DARK_GRAY + ": " + colour + value;
+            case ROYAL -> mark(colour) + ChatColor.GRAY + label + ChatColor.GOLD + " » " + ChatColor.WHITE + value;
         };
     }
 
