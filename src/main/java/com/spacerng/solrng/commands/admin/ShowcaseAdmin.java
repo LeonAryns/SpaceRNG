@@ -454,4 +454,152 @@ final class ShowcaseAdmin extends AdminTools {
         sender.sendMessage(ChatColor.GRAY + "Pick one with " + ChatColor.YELLOW + "/rngadmin tagstyles <style>");
         return true;
     }
+
+    /**
+     * One chat line per menu theme; hovering it shows a sample skill card
+     * written in that theme. With a theme name, switches every menu to it.
+     */
+    boolean doMenuStyles(CommandSender sender, String[] args) {
+        String pick = args.length >= 2 ? args[1].toLowerCase(Locale.ROOT) : "";
+        for (com.spacerng.solrng.gui.Lore.Theme theme : com.spacerng.solrng.gui.Lore.Theme.values()) {
+            if (!theme.key().equals(pick)) continue;
+            plugin.getConfig().set("menu-style", theme.key());
+            plugin.saveConfig();
+            com.spacerng.solrng.gui.Lore.setTheme(theme);
+            sender.sendMessage(ChatColor.GREEN + "Menus now use the " + theme.key() + " style. Reopen a menu to see it.");
+            return true;
+        }
+
+        var current = com.spacerng.solrng.gui.Lore.theme();
+        sender.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "Menu styles " + ChatColor.GRAY + "(hover a style)");
+        for (com.spacerng.solrng.gui.Lore.Theme theme : com.spacerng.solrng.gui.Lore.Theme.values()) {
+            ItemStack sample;
+            com.spacerng.solrng.gui.Lore.setTheme(theme);
+            try {
+                sample = sampleSkillCard();
+            } finally {
+                com.spacerng.solrng.gui.Lore.setTheme(current);
+            }
+            String text = ChatColor.YELLOW + theme.key() + ChatColor.GRAY + "  " + theme.summary()
+                    + (theme == current ? ChatColor.GREEN + "  (current)" : "");
+            sender.sendMessage(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection()
+                    .deserialize(text).hoverEvent(sample.asHoverEvent()));
+        }
+        sender.sendMessage(ChatColor.GRAY + "Pick one with " + ChatColor.YELLOW + "/rngadmin menustyles <style>");
+        return true;
+    }
+
+    /** A made-up skill card using every shared text shape, for comparing themes. */
+    private static ItemStack sampleSkillCard() {
+        ItemStack item = new ItemStack(org.bukkit.Material.RABBIT_FOOT);
+        org.bukkit.inventory.meta.ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(com.spacerng.solrng.gui.Lore.title(ChatColor.GREEN, "Luck II"));
+        List<String> lines = new ArrayList<>();
+        lines.add(com.spacerng.solrng.gui.Lore.section(ChatColor.GREEN, "Effect"));
+        lines.add(com.spacerng.solrng.gui.Lore.stat(ChatColor.GREEN, "Per level", "+8% Luck"));
+        lines.add(com.spacerng.solrng.gui.Lore.stat(ChatColor.AQUA, "Level", "3 / 10"));
+        lines.add(com.spacerng.solrng.gui.Lore.upgrade(ChatColor.GREEN, "Total", "+24%", "+32%"));
+        lines.add("");
+        lines.add(com.spacerng.solrng.gui.Lore.section(ChatColor.YELLOW, "Requirements"));
+        lines.add(com.spacerng.solrng.gui.Lore.requirement("Money", "12K", "28K", false));
+        lines.add(com.spacerng.solrng.gui.Lore.line(ChatColor.AQUA, "Unlocks Shiny Chance I next."));
+        lines.add("");
+        lines.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to upgrade");
+        lines.add(com.spacerng.solrng.gui.Lore.footnote("Shift-click buys as many as you can"));
+        meta.setLore(lines);
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    /** The hoe's tooltip in every style, built from your own hoe. */
+    boolean doHoeStyles(CommandSender sender, String[] args) {
+        var farming = plugin.getFarmingManager();
+        PlayerData data = sender instanceof Player p ? plugin.getPlayerDataManager().get(p.getUniqueId()) : null;
+        return styleSamples(sender, args, "Hoe", "hoe-style", "hoestyles",
+                com.spacerng.solrng.farming.FarmingManager.HOE_STYLES,
+                style -> {
+                    ItemStack hoe = farming.createBoundHoe(data);
+                    var meta = hoe.getItemMeta();
+                    meta.setLore(farming.hoeLore(data, style));
+                    hoe.setItemMeta(meta);
+                    return hoe;
+                },
+                () -> {
+                    for (Player online : Bukkit.getOnlinePlayers()) {
+                        farming.refreshHoe(online, plugin.getPlayerDataManager().get(online.getUniqueId()));
+                    }
+                });
+    }
+
+    /** One enchant card in every style, built from your own levels. */
+    boolean doEnchantStyles(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(ChatColor.RED + "Run this in game; the samples use your own enchants.");
+            return true;
+        }
+        var hoe = plugin.getHoeEnchantManager();
+        var enchant = hoe.get(args.length >= 3 ? args[2] : "TOKEN_GREED");
+        if (enchant == null) enchant = hoe.getEnchants().values().iterator().next();
+        final var shown = enchant;
+        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+        return styleSamples(sender, args, "Enchant card", "enchant-style", "enchantstyles",
+                com.spacerng.solrng.gui.HoeGui.ENCHANT_STYLES,
+                style -> {
+                    org.bukkit.Material icon = org.bukkit.Material.matchMaterial(shown.icon());
+                    ItemStack item = new ItemStack(icon == null ? org.bukkit.Material.ENCHANTED_BOOK : icon);
+                    var meta = item.getItemMeta();
+                    meta.setDisplayName(com.spacerng.solrng.gui.Lore.title(ChatColor.YELLOW, shown.display()));
+                    meta.setLore(com.spacerng.solrng.gui.HoeGui.enchantLore(plugin, data, hoe, shown, style));
+                    item.setItemMeta(meta);
+                    return item;
+                }, null);
+    }
+
+    /** The Nova Core item in every consumable style; keys and potions follow the same style. */
+    boolean doNovaStyles(CommandSender sender, String[] args) {
+        var consumables = plugin.getConsumableManager();
+        var core = consumables.get(args.length >= 3 ? args[2] : "nova_core");
+        if (core == null) {
+            sender.sendMessage(ChatColor.RED + "No consumable called " + (args.length >= 3 ? args[2] : "nova_core") + ".");
+            return true;
+        }
+        return styleSamples(sender, args, "Consumable", "consumable-style", "novastyles",
+                com.spacerng.solrng.consumable.ConsumableManager.CONSUMABLE_STYLES,
+                style -> {
+                    ItemStack item = consumables.build(core, 1);
+                    var meta = item.getItemMeta();
+                    meta.setLore(consumables.itemLore(core, style));
+                    item.setItemMeta(meta);
+                    return item;
+                }, null);
+    }
+
+    /**
+     * Shared by every *styles command: one chat line per style that shows
+     * the sample item on hover, or with a style name, switch the server to it.
+     */
+    private boolean styleSamples(CommandSender sender, String[] args, String what, String configKey, String command,
+                                 List<String> styles, java.util.function.Function<String, ItemStack> sample,
+                                 Runnable onSwitch) {
+        String pick = args.length >= 2 ? args[1].toLowerCase(Locale.ROOT) : "";
+        if (styles.contains(pick)) {
+            plugin.getConfig().set(configKey, pick);
+            plugin.saveConfig();
+            if (onSwitch != null) onSwitch.run();
+            sender.sendMessage(ChatColor.GREEN + what + " tooltips now use the " + pick
+                    + " style. New items and reopened menus show it.");
+            return true;
+        }
+        String current = plugin.getConfig().getString(configKey, "classic");
+        sender.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + what + " styles " + ChatColor.GRAY + "(hover a style)");
+        for (String style : styles) {
+            String text = ChatColor.YELLOW + style + (style.equals(current) ? ChatColor.GREEN + "  (current)" : "")
+                    + ChatColor.AQUA + "  [hover]";
+            var line = net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().deserialize(text);
+            ItemStack item = sample.apply(style);
+            sender.sendMessage(item == null ? line : line.hoverEvent(item.asHoverEvent()));
+        }
+        sender.sendMessage(ChatColor.GRAY + "Pick one with " + ChatColor.YELLOW + "/rngadmin " + command + " <style>");
+        return true;
+    }
 }

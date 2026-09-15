@@ -264,64 +264,155 @@ public class FarmingManager {
         meta.setDisplayName(ChatColor.GOLD + hoeName + " " + ChatColor.DARK_GRAY + "["
                 + ChatColor.YELLOW + tier.display() + ChatColor.DARK_GRAY + "]");
 
-        java.util.List<String> lore = new java.util.ArrayList<>();
-        lore.add(ChatColor.DARK_GRAY + "Farming Tool");
-        lore.add("");
-
-        var enchants = plugin.getHoeEnchantManager();
-        // The tool's own tier and its Token Greed both raise Tokens; Green
-        // Thumb and the tier both raise Speed. They're summed here because
-        // the tooltip is answering "what is this hoe worth", not "where did
-        // each percent come from".
-        double tokenBonus = data == null ? 0.0 : enchants.powerOf(data, "TOKEN_GREED");
-
-        lore.add(com.spacerng.solrng.gui.Lore.section(ChatColor.GOLD, "The tool"));
-        lore.add(com.spacerng.solrng.gui.Lore.stat(ChatColor.YELLOW, "Tier",
-                tier.display() + ChatColor.DARK_GRAY + " / " + roman(hoeTiers.size())));
-        lore.add(com.spacerng.solrng.gui.Lore.stat(ChatColor.GOLD, "Coins",
-                String.format("%.2f", tier.coinMultiplier()) + "x"
-                        + ChatColor.DARK_GRAY + "  +" + String.format("%,.0f", tokenBonus * 100.0)
-                        + "% from enchants"));
-        lore.add(com.spacerng.solrng.gui.Lore.stat(ChatColor.LIGHT_PURPLE, "Enchant proc",
-                String.format("%.2f", tier.procMultiplier()) + "x"));
-        lore.add("");
-
-        lore.add(com.spacerng.solrng.gui.Lore.section(ChatColor.GOLD, "Enchants"));
-        boolean any = false;
-        if (data != null) {
-            for (var enchant : enchants.getEnchants().values()) {
-                int level = enchants.levelOf(data, enchant.id());
-                if (level <= 0) continue;
-                lore.add(enchant.colour() + com.spacerng.solrng.gui.Lore.BULLET + " "
-                        + ChatColor.GRAY + enchant.display() + ": "
-                        + ChatColor.WHITE + level
-                        + ChatColor.DARK_GRAY + " / " + enchants.maxLevelFor(data, enchant));
-                any = true;
-            }
-        }
-        if (!any) {
-            lore.add(ChatColor.DARK_GRAY + com.spacerng.solrng.gui.Lore.BULLET + " None yet");
-        }
-        lore.add("");
-
-        HoeTier next = data == null ? null : nextTier(data);
-        if (next != null && !next.costs().isEmpty()) {
-            lore.add(com.spacerng.solrng.gui.Lore.section(ChatColor.AQUA, "Next tier"));
-            for (var cost : next.costs().entrySet()) {
-                lore.add(ChatColor.AQUA + com.spacerng.solrng.gui.Lore.BULLET + " "
-                        + ChatColor.WHITE + cost.getValue() + " "
-                        + plugin.getRarityManager().style(cost.getKey(),
-                                cost.getKey().displayName()));
-            }
-            lore.add("");
-        }
-        lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Right-click to upgrade");
+        java.util.List<String> lore = hoeLore(data, plugin.getConfig().getString("hoe-style", "classic"));
 
         meta.setLore(lore);
         meta.setUnbreakable(true);
         meta.getPersistentDataContainer().set(boundKey, PersistentDataType.BYTE, (byte) 1);
         hoe.setItemMeta(meta);
         return hoe;
+    }
+
+    /** The looks the hoe's tooltip can take, picked with hoe-style. */
+    public static final java.util.List<String> HOE_STYLES = java.util.List.of("classic", "card", "compact", "ladder");
+
+    /**
+     * The hoe's tooltip in one style. Every style carries the same facts:
+     * tier, the Coin and proc multipliers, owned enchants and what the next
+     * tier costs. /rngadmin hoestyles shows them side by side.
+     */
+    public java.util.List<String> hoeLore(com.spacerng.solrng.player.PlayerData data, String style) {
+        HoeTier tier = tierOf(data);
+        int index = tierIndexOf(data);
+        var enchants = plugin.getHoeEnchantManager();
+        // The tool's own tier and its Coin Greed both raise Coins. They're
+        // shown together because the tooltip answers "what is this hoe
+        // worth", not "where did each percent come from".
+        double tokenBonus = data == null ? 0.0 : enchants.powerOf(data, "TOKEN_GREED");
+        String coins = String.format("%.2f", tier.coinMultiplier()) + "x";
+        String proc = String.format("%.2f", tier.procMultiplier()) + "x";
+        String fromEnchants = "+" + String.format("%,.0f", tokenBonus * 100.0) + "%";
+        String tierText = tier.display() + ChatColor.DARK_GRAY + " / " + roman(hoeTiers.size());
+
+        record Owned(String colour, String name, int level, int cap) {
+        }
+        java.util.List<Owned> owned = new java.util.ArrayList<>();
+        if (data != null) {
+            for (var enchant : enchants.getEnchants().values()) {
+                int level = enchants.levelOf(data, enchant.id());
+                if (level > 0) {
+                    owned.add(new Owned(String.valueOf(enchant.colour()), enchant.display(), level,
+                            enchants.maxLevelFor(data, enchant)));
+                }
+            }
+        }
+        java.util.List<String> costs = new java.util.ArrayList<>();
+        HoeTier next = data == null ? null : nextTier(data);
+        if (next != null) {
+            for (var cost : next.costs().entrySet()) {
+                costs.add(ChatColor.WHITE + "" + cost.getValue() + " "
+                        + plugin.getRarityManager().style(cost.getKey(), cost.getKey().displayName()));
+            }
+        }
+        String bullet = com.spacerng.solrng.gui.Lore.BULLET;
+        String footer = ChatColor.YELLOW + "" + ChatColor.BOLD + "Right-click to upgrade";
+
+        java.util.List<String> lore = new java.util.ArrayList<>();
+        switch (style == null ? "" : style.toLowerCase(java.util.Locale.ROOT)) {
+            case "card" -> {
+                String title = "  " + ChatColor.GOLD + ChatColor.BOLD + "Farming tool"
+                        + ChatColor.DARK_GRAY + "  Tier " + ChatColor.YELLOW + tierText;
+                java.util.List<String> rows = new java.util.ArrayList<>();
+                rows.add(ChatColor.GOLD + bullet + " " + ChatColor.GRAY + "Coins  " + ChatColor.WHITE + coins
+                        + ChatColor.DARK_GRAY + "  " + fromEnchants + " from enchants");
+                rows.add(ChatColor.LIGHT_PURPLE + bullet + " " + ChatColor.GRAY + "Proc  " + ChatColor.WHITE + proc);
+                for (Owned o : owned) {
+                    rows.add(o.colour() + bullet + " " + ChatColor.GRAY + o.name() + "  " + ChatColor.WHITE + o.level()
+                            + ChatColor.DARK_GRAY + "/" + o.cap());
+                }
+                if (!costs.isEmpty()) {
+                    rows.add(ChatColor.AQUA + bullet + " " + ChatColor.GRAY + "Next  "
+                            + String.join(ChatColor.DARK_GRAY + ", ", costs));
+                }
+                int widest = com.spacerng.solrng.rarity.LoreStyle.pixelWidth(title);
+                for (String row : rows) widest = Math.max(widest, com.spacerng.solrng.rarity.LoreStyle.pixelWidth(row));
+                String rule = ChatColor.GOLD + "" + ChatColor.STRIKETHROUGH + " ".repeat(widest / 4 + 2);
+                lore.add(rule);
+                lore.add(title);
+                lore.add(rule);
+                lore.addAll(rows);
+                lore.add(rule);
+                lore.add(footer);
+            }
+            case "compact" -> {
+                lore.add(ChatColor.YELLOW + "Tier " + tierText + ChatColor.DARK_GRAY + "  ·  " + ChatColor.GOLD + coins
+                        + ChatColor.GRAY + " Coins" + ChatColor.DARK_GRAY + "  ·  " + ChatColor.LIGHT_PURPLE + proc
+                        + ChatColor.GRAY + " proc");
+                if (owned.isEmpty()) {
+                    lore.add(ChatColor.DARK_GRAY + "No enchants yet");
+                }
+                for (int i = 0; i < owned.size(); i += 2) {
+                    StringBuilder row = new StringBuilder();
+                    for (int j = i; j < Math.min(i + 2, owned.size()); j++) {
+                        Owned o = owned.get(j);
+                        if (j > i) row.append(ChatColor.DARK_GRAY).append("  ·  ");
+                        row.append(o.colour()).append(o.name()).append(" ").append(ChatColor.WHITE).append(o.level());
+                    }
+                    lore.add(row.toString());
+                }
+                if (!costs.isEmpty()) {
+                    lore.add(ChatColor.AQUA + "Next: " + String.join(ChatColor.DARK_GRAY + ", ", costs));
+                }
+                lore.add("");
+                lore.add(footer);
+            }
+            case "ladder" -> {
+                lore.add(ChatColor.YELLOW + "Tier " + tierText);
+                lore.add(com.spacerng.solrng.gui.Lore.bar(hoeTiers.size() <= 1 ? 1.0
+                        : (double) index / (hoeTiers.size() - 1)));
+                lore.add("");
+                lore.add(com.spacerng.solrng.gui.Lore.stat(ChatColor.GOLD, "Coins",
+                        coins + ChatColor.DARK_GRAY + "  " + fromEnchants + " from enchants"));
+                lore.add(com.spacerng.solrng.gui.Lore.stat(ChatColor.LIGHT_PURPLE, "Enchant proc", proc));
+                lore.add("");
+                for (Owned o : owned) {
+                    int filled = o.cap() <= 0 ? 0 : (int) Math.round(10.0 * o.level() / o.cap());
+                    lore.add(o.colour() + "▬".repeat(filled) + ChatColor.DARK_GRAY + "▬".repeat(10 - filled)
+                            + " " + ChatColor.GRAY + o.name() + " " + ChatColor.WHITE + o.level());
+                }
+                if (owned.isEmpty()) lore.add(ChatColor.DARK_GRAY + "No enchants yet");
+                if (!costs.isEmpty()) {
+                    lore.add("");
+                    lore.add(ChatColor.AQUA + "Next tier: " + String.join(ChatColor.DARK_GRAY + ", ", costs));
+                }
+                lore.add("");
+                lore.add(footer);
+            }
+            default -> {
+                lore.add(ChatColor.DARK_GRAY + "Farming Tool");
+                lore.add("");
+                lore.add(com.spacerng.solrng.gui.Lore.section(ChatColor.GOLD, "The tool"));
+                lore.add(com.spacerng.solrng.gui.Lore.stat(ChatColor.YELLOW, "Tier", tierText));
+                lore.add(com.spacerng.solrng.gui.Lore.stat(ChatColor.GOLD, "Coins",
+                        coins + ChatColor.DARK_GRAY + "  " + fromEnchants + " from enchants"));
+                lore.add(com.spacerng.solrng.gui.Lore.stat(ChatColor.LIGHT_PURPLE, "Enchant proc", proc));
+                lore.add("");
+                lore.add(com.spacerng.solrng.gui.Lore.section(ChatColor.GOLD, "Enchants"));
+                for (Owned o : owned) {
+                    lore.add(o.colour() + bullet + " " + ChatColor.GRAY + o.name() + ": " + ChatColor.WHITE + o.level()
+                            + ChatColor.DARK_GRAY + " / " + o.cap());
+                }
+                if (owned.isEmpty()) lore.add(ChatColor.DARK_GRAY + bullet + " None yet");
+                lore.add("");
+                if (!costs.isEmpty()) {
+                    lore.add(com.spacerng.solrng.gui.Lore.section(ChatColor.AQUA, "Next tier"));
+                    for (String cost : costs) lore.add(ChatColor.AQUA + bullet + " " + cost);
+                    lore.add("");
+                }
+                lore.add(footer);
+            }
+        }
+        return lore;
     }
 
     /** Rewrites a held hoe in place so its lore matches what's been bought. */

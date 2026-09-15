@@ -173,7 +173,7 @@ public enum LoreStyle {
      * few narrow glyphs less, bold adds one per glyph, and anything outside
      * ASCII is counted generously so a rule is never shorter than the text.
      */
-    static int pixelWidth(String legacy) {
+    public static int pixelWidth(String legacy) {
         int width = 0;
         boolean bold = false;
         for (int i = 0; i < legacy.length(); i++) {

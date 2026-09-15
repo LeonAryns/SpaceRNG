@@ -22,6 +22,62 @@ public final class Lore {
     public static final String BULLET = "▎";
 
     /**
+     * How every menu writes its text, picked with menu-style in config or
+     * /rngadmin menustyles. A theme only changes the shapes: titles,
+     * section labels and what starts a fact line. The words and colours
+     * each menu chooses stay the same, so a colour still means one thing.
+     */
+    public enum Theme {
+        CLASSIC("framed titles and a coloured bar before every fact"),
+        CLEAN("plain bold titles and indented facts, no bars"),
+        BOXED("heavy rules around sections and a rail down the left"),
+        MINIMAL("quiet titles, dot bullets and values in colour");
+
+        private final String summary;
+
+        Theme(String summary) {
+            this.summary = summary;
+        }
+
+        public String key() {
+            return name().toLowerCase(java.util.Locale.ROOT);
+        }
+
+        public String summary() {
+            return summary;
+        }
+
+        public static Theme parse(String raw) {
+            if (raw != null) {
+                for (Theme theme : values()) {
+                    if (theme.key().equalsIgnoreCase(raw.trim())) return theme;
+                }
+            }
+            return CLASSIC;
+        }
+    }
+
+    private static volatile Theme theme = Theme.CLASSIC;
+
+    public static void setTheme(Theme chosen) {
+        theme = chosen == null ? Theme.CLASSIC : chosen;
+    }
+
+    public static Theme theme() {
+        return theme;
+    }
+
+    /** What starts a fact line in the current theme, in the fact's colour. */
+    private static String mark(ChatColor colour) {
+        return switch (theme) {
+            case CLASSIC -> colour + BULLET + " ";
+            case CLEAN -> "  ";
+            case BOXED -> colour + "│ ";
+            case MINIMAL -> ChatColor.DARK_GRAY + "· ";
+        };
+    }
+
+    /**
      * The closing-note grey.
      *
      * Not a third brightness of grey but a different hue: a slate that
@@ -33,7 +89,7 @@ public final class Lore {
 
     /** A closing note: a dim bullet and the slate. */
     public static String footnote(String text) {
-        return ChatColor.DARK_GRAY + BULLET + " " + FOOT + text;
+        return mark(ChatColor.DARK_GRAY) + FOOT + text;
     }
     public static final String ARROW = "➜";
     public static final String TICK = "✔";
@@ -171,8 +227,13 @@ public final class Lore {
 
     /** 「 Prestige 4 」 - the framed name a headline item carries. */
     public static String title(ChatColor colour, String text) {
-        return ChatColor.DARK_GRAY + "「 " + colour + ChatColor.BOLD + text + ChatColor.RESET
-                + ChatColor.DARK_GRAY + " 」";
+        return switch (theme) {
+            case CLASSIC -> ChatColor.DARK_GRAY + "「 " + colour + ChatColor.BOLD + text + ChatColor.RESET
+                    + ChatColor.DARK_GRAY + " 」";
+            case CLEAN -> colour + "" + ChatColor.BOLD + text;
+            case BOXED -> ChatColor.DARK_GRAY + "▍ " + colour + ChatColor.BOLD + text;
+            case MINIMAL -> colour + text;
+        };
     }
 
     /** [ascend] - the small state tag under a title. */
@@ -182,29 +243,39 @@ public final class Lore {
 
     /** A coloured section label: "Requirements:" */
     public static String section(ChatColor colour, String text) {
-        return colour + "" + ChatColor.BOLD + text + ":";
+        return switch (theme) {
+            case CLASSIC -> colour + "" + ChatColor.BOLD + text + ":";
+            case CLEAN -> colour + text;
+            case BOXED -> ChatColor.DARK_GRAY + "━━ " + colour + ChatColor.BOLD + text + ChatColor.DARK_GRAY + " ━━";
+            case MINIMAL -> ChatColor.DARK_GRAY + text;
+        };
     }
 
     /** ▎ one fact, the bar carrying the colour. */
     public static String line(ChatColor colour, String text) {
-        return colour + BULLET + " " + ChatColor.GRAY + text;
+        return mark(colour) + ChatColor.GRAY + text;
     }
 
     /** ▎ Label: value - the most common shape. */
     public static String stat(ChatColor colour, String label, String value) {
-        return colour + BULLET + " " + ChatColor.GRAY + label + ": " + ChatColor.WHITE + value;
+        return switch (theme) {
+            case CLASSIC -> mark(colour) + ChatColor.GRAY + label + ": " + ChatColor.WHITE + value;
+            case CLEAN -> mark(colour) + ChatColor.GRAY + label + "  " + ChatColor.WHITE + value;
+            case BOXED -> mark(colour) + ChatColor.GRAY + label + ChatColor.DARK_GRAY + " » " + ChatColor.WHITE + value;
+            case MINIMAL -> mark(colour) + ChatColor.GRAY + label + " " + colour + value;
+        };
     }
 
     /** A requirement line with a tick or a cross on the end. */
     public static String requirement(String label, String have, String need, boolean met) {
-        return (met ? ChatColor.GREEN : ChatColor.RED) + BULLET + " " + ChatColor.GRAY + label + " "
+        return mark(met ? ChatColor.GREEN : ChatColor.RED) + ChatColor.GRAY + label + " "
                 + (met ? ChatColor.GREEN : ChatColor.YELLOW) + have + ChatColor.DARK_GRAY + " / "
                 + ChatColor.WHITE + need + "  " + (met ? ChatColor.GREEN + TICK : ChatColor.RED + CROSS);
     }
 
     /** "1.75x ➜ 2x" - what an upgrade turns a number into. */
     public static String upgrade(ChatColor colour, String label, String from, String to) {
-        return colour + BULLET + " " + ChatColor.GRAY + label + " " + ChatColor.YELLOW + from
+        return mark(colour) + ChatColor.GRAY + label + " " + ChatColor.YELLOW + from
                 + ChatColor.DARK_GRAY + " " + ARROW + " " + ChatColor.GREEN + ChatColor.BOLD + to;
     }
 

@@ -177,10 +177,6 @@ public class HoeGui {
                                           HoeEnchantManager.Enchant enchant) {
         boolean unlocked = hoe.isUnlocked(data, enchant.id());
         int level = hoe.levelOf(data, enchant.id());
-        int cap = hoe.maxLevelFor(data, enchant);
-        boolean maxed = level >= cap;
-        long cost = hoe.costFor(enchant, level);
-        boolean affordable = data.getTokens() >= cost;
 
         Material material = Material.matchMaterial(enchant.icon());
         if (material == null) material = Material.ENCHANTED_BOOK;
@@ -191,49 +187,117 @@ public class HoeGui {
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(Lore.title(unlocked ? ChatColor.YELLOW : ChatColor.DARK_GRAY, enchant.display()));
 
-        List<String> lore = new ArrayList<>();
-        lore.add(Lore.section(ChatColor.AQUA, "What it does"));
-        for (String line : wrap(enchant.description())) {
-            lore.add(Lore.line(ChatColor.AQUA, line));
-        }
-        lore.add("");
-        lore.add(Lore.section(ChatColor.AQUA, "Information"));
-        lore.add(Lore.stat(ChatColor.GREEN, "Right now", hoe.describePower(data, enchant.id())));
-        lore.add(Lore.stat(ChatColor.AQUA, "Level", String.format("%,d", level) + " / " + String.format("%,d", cap)));
-        lore.add(Lore.bar(cap <= 0 ? 0.0 : level / (double) cap));
-        if (cap < enchant.maxLevel()) {
-            lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " Enchant Mastery raises the cap toward "
-                    + String.format("%,d", enchant.maxLevel()) + ".");
-        }
-        if (unlocked && !maxed) {
-            lore.add((affordable ? ChatColor.YELLOW : ChatColor.RED) + Lore.BULLET + " "
-                    + ChatColor.GRAY + "Cost: " + Currency.COINS.price(cost, affordable));
-        }
-        lore.add("");
-
-        if (!unlocked) {
-            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Locked");
-            lore.add(ChatColor.RED + Lore.BULLET + " " + ChatColor.GRAY + "Unlock it in "
-                    + ChatColor.YELLOW + "/farmtree");
-        } else if (maxed) {
-            lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + (cap >= enchant.maxLevel() ? "Maxed" : "At the cap"));
-            if (cap < enchant.maxLevel()) {
-                lore.add(ChatColor.GREEN + Lore.BULLET + " " + ChatColor.GRAY + "Buy Enchant Mastery in "
-                        + ChatColor.YELLOW + "/farmtree");
-            }
-        } else if (affordable) {
-            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to upgrade");
-            lore.add(Lore.footnote("Shift for 100, right-click for all you can afford"));
-            lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " Shift-click buys ten.");
-        } else {
-            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Not enough Coins");
-        }
-
-        meta.setLore(lore);
+        meta.setLore(enchantLore(plugin, data, hoe, enchant, plugin.getConfig().getString("enchant-style", "classic")));
         meta.setEnchantmentGlintOverride(unlocked && level > 0 ? Boolean.TRUE : null);
         meta.getPersistentDataContainer().set(enchantKey(plugin), PersistentDataType.STRING, enchant.id());
         item.setItemMeta(meta);
         return item;
+    }
+
+    /** The looks an enchant card can take, picked with enchant-style. */
+    public static final List<String> ENCHANT_STYLES = List.of("classic", "card", "compact", "stats");
+
+    /**
+     * An enchant card's tooltip in one style. Every style carries the same
+     * facts: what it does, its power now, level and cap, the price, and the
+     * one action footer that says what a click does or why it can't.
+     */
+    public static List<String> enchantLore(SolRNGPlugin plugin, PlayerData data, HoeEnchantManager hoe,
+                                           HoeEnchantManager.Enchant enchant, String style) {
+        boolean unlocked = hoe.isUnlocked(data, enchant.id());
+        int level = hoe.levelOf(data, enchant.id());
+        int cap = hoe.maxLevelFor(data, enchant);
+        boolean maxed = level >= cap;
+        long cost = hoe.costFor(enchant, level);
+        boolean affordable = data.getTokens() >= cost;
+        String colour = String.valueOf(enchant.colour());
+        String power = hoe.describePower(data, enchant.id());
+        String levelText = String.format("%,d", level) + " / " + String.format("%,d", cap);
+        double filled = cap <= 0 ? 0.0 : level / (double) cap;
+        String price = unlocked && !maxed ? Currency.COINS.price(cost, affordable) : null;
+
+        List<String> actions = new ArrayList<>();
+        if (!unlocked) {
+            actions.add(ChatColor.RED + "" + ChatColor.BOLD + "Locked");
+            actions.add(ChatColor.RED + Lore.BULLET + " " + ChatColor.GRAY + "Unlock it in "
+                    + ChatColor.YELLOW + "/farmtree");
+        } else if (maxed) {
+            actions.add(ChatColor.GREEN + "" + ChatColor.BOLD + (cap >= enchant.maxLevel() ? "Maxed" : "At the cap"));
+            if (cap < enchant.maxLevel()) {
+                actions.add(ChatColor.GREEN + Lore.BULLET + " " + ChatColor.GRAY + "Buy Enchant Mastery in "
+                        + ChatColor.YELLOW + "/farmtree");
+            }
+        } else if (affordable) {
+            actions.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to upgrade");
+            actions.add(Lore.footnote("Shift for 100, right-click for all you can afford"));
+        } else {
+            actions.add(ChatColor.RED + "" + ChatColor.BOLD + "Not enough Coins");
+        }
+
+        List<String> lore = new ArrayList<>();
+        switch (style == null ? "" : style.toLowerCase(java.util.Locale.ROOT)) {
+            case "card" -> {
+                List<String> top = new ArrayList<>();
+                for (String line : wrap(enchant.description())) top.add("  " + ChatColor.GRAY + line);
+                List<String> rows = new ArrayList<>();
+                rows.add(ChatColor.GREEN + Lore.BULLET + " " + ChatColor.GRAY + "Now  " + ChatColor.WHITE + power);
+                rows.add(ChatColor.AQUA + Lore.BULLET + " " + ChatColor.GRAY + "Level  " + ChatColor.WHITE + levelText);
+                if (price != null) {
+                    rows.add((affordable ? ChatColor.YELLOW : ChatColor.RED) + Lore.BULLET + " "
+                            + ChatColor.GRAY + "Cost  " + price);
+                }
+                int widest = 0;
+                for (String line : top) widest = Math.max(widest, com.spacerng.solrng.rarity.LoreStyle.pixelWidth(line));
+                for (String row : rows) widest = Math.max(widest, com.spacerng.solrng.rarity.LoreStyle.pixelWidth(row));
+                String rule = colour + ChatColor.STRIKETHROUGH + " ".repeat(widest / 4 + 2);
+                lore.add(rule);
+                lore.addAll(top);
+                lore.add(rule);
+                lore.addAll(rows);
+                lore.add(rule);
+                lore.addAll(actions);
+            }
+            case "compact" -> {
+                for (String line : wrap(enchant.description())) lore.add(ChatColor.GRAY + line);
+                lore.add("");
+                lore.add(ChatColor.GREEN + power);
+                int bars = (int) Math.round(filled * 10);
+                lore.add(ChatColor.WHITE + levelText + "  " + colour + "▬".repeat(bars)
+                        + ChatColor.DARK_GRAY + "▬".repeat(10 - bars));
+                if (price != null) lore.add(ChatColor.GRAY + "Cost " + price);
+                lore.add("");
+                lore.addAll(actions);
+            }
+            case "stats" -> {
+                for (String line : wrap(enchant.description())) lore.add(Lore.line(ChatColor.AQUA, line));
+                lore.add(Lore.stat(ChatColor.GREEN, "Right now", power));
+                lore.add(Lore.stat(ChatColor.AQUA, "Level", levelText));
+                lore.add(Lore.bar(filled));
+                if (price != null) lore.add(Lore.stat(affordable ? ChatColor.YELLOW : ChatColor.RED, "Cost", price));
+                lore.add("");
+                lore.addAll(actions);
+            }
+            default -> {
+                lore.add(Lore.section(ChatColor.AQUA, "What it does"));
+                for (String line : wrap(enchant.description())) lore.add(Lore.line(ChatColor.AQUA, line));
+                lore.add("");
+                lore.add(Lore.section(ChatColor.AQUA, "Information"));
+                lore.add(Lore.stat(ChatColor.GREEN, "Right now", power));
+                lore.add(Lore.stat(ChatColor.AQUA, "Level", levelText));
+                lore.add(Lore.bar(filled));
+                if (cap < enchant.maxLevel()) {
+                    lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " Enchant Mastery raises the cap toward "
+                            + String.format("%,d", enchant.maxLevel()) + ".");
+                }
+                if (price != null) {
+                    lore.add((affordable ? ChatColor.YELLOW : ChatColor.RED) + Lore.BULLET + " "
+                            + ChatColor.GRAY + "Cost: " + price);
+                }
+                lore.add("");
+                lore.addAll(actions);
+            }
+        }
+        return lore;
     }
 
     private static ItemStack buildCoins(PlayerData data) {

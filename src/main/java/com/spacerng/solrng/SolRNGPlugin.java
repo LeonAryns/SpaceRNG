@@ -318,6 +318,8 @@ public final class SolRNGPlugin extends JavaPlugin {
         consumableManager.load(getConfig());
         welcomeManager.load(getConfig());
         crateManager.load(getConfig());
+        com.spacerng.solrng.gui.Lore.setTheme(
+                com.spacerng.solrng.gui.Lore.Theme.parse(getConfig().getString("menu-style", "classic")));
         discordWebhook.load(getConfig());
         holoManager.load(getConfig());
         topHeadManager.load(getConfig());

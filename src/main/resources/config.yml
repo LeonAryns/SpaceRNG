@@ -14,6 +14,16 @@ config-version: 9
 # is ever made twice. Managed by the plugin; leave it alone.
 applied-patches: [common-label-white]
 
+# How every menu writes its text: classic, clean, boxed or minimal.
+# /rngadmin menustyles shows each one on hover and switches live.
+menu-style: classic
+# The hoe's tooltip, the enchant cards in the hoe menu and consumable items
+# like the Nova Core have their own styles: /rngadmin hoestyles,
+# enchantstyles and novastyles show and switch them.
+hoe-style: classic
+enchant-style: classic
+consumable-style: classic
+
 # The sidebar's fixed text. Colour codes use "&".
 scoreboard:
   title: "&5&l\u2726 ѕᴘᴀᴄᴇʀɴɢ \u2726"

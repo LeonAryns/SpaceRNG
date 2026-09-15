@@ -40,7 +40,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             "reload", "setspawn", "starforge", "reset", "give", "drops",
             "bank", "aura", "roll", "unlock", "unlockall", "lockall", "odds", "farmblock", "farmscan",
             "hoe", "consumable", "gradient", "welcome", "crops", "farmclear",
-            "milestones", "farmfill", "boost", "nova", "placeholders", "payout", "crate", "tophead", "floatingitem", "shiny", "firsts", "lorestyles", "tagstyles", "auratest", "holo", "help");
+            "milestones", "farmfill", "boost", "nova", "placeholders", "payout", "crate", "tophead", "floatingitem", "shiny", "firsts", "lorestyles", "tagstyles", "menustyles", "hoestyles", "enchantstyles", "novastyles", "auratest", "holo", "help");
     private static final List<String> CURRENCIES = List.of("money", "coins", "gems", "credits");
 
     private final SolRNGPlugin plugin;
@@ -80,6 +80,10 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             case "firsts" -> showcase.doFirsts(sender, args);
             case "lorestyles" -> showcase.doLoreStyles(sender, args);
             case "tagstyles" -> showcase.doTagStyles(sender, args);
+            case "menustyles" -> showcase.doMenuStyles(sender, args);
+            case "hoestyles" -> showcase.doHoeStyles(sender, args);
+            case "enchantstyles" -> showcase.doEnchantStyles(sender, args);
+            case "novastyles" -> showcase.doNovaStyles(sender, args);
             case "auratest" -> showcase.doAuraTest(sender, args);
             case "unlock" -> players.doUnlock(sender, args);
             case "unlockall" -> players.doUnlockAll(sender, args);
@@ -149,6 +153,10 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         line(sender, "firsts", "<list|reset|preview> [rarity]", "Server First 10 spots");
         line(sender, "lorestyles", "[rarity] [shiny]", "One sample drop in every lore style");
         line(sender, "tagstyles", "[style]", "Tag odds styles side by side, or switch to one");
+        line(sender, "menustyles", "[style]", "Hover each menu theme to compare, or switch to one");
+        line(sender, "hoestyles", "[style]", "The hoe's tooltip in every style");
+        line(sender, "enchantstyles", "[style] [enchant]", "An enchant card in every style");
+        line(sender, "novastyles", "[style] [consumable]", "The Nova Core and other consumables in every style");
         line(sender, "auratest", "<look|off|list> [rarity] [accent]", "Wear a worn aura look to test it");
     }
 
@@ -224,6 +232,11 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
                 case "firsts" -> partial(args[1], List.of("list", "reset", "preview"));
                 case "lorestyles" -> partial(args[1], rarityNames());
                 case "tagstyles" -> partial(args[1], RollFormat.TAG_ODDS_STYLES);
+                case "menustyles" -> partial(args[1], java.util.Arrays.stream(com.spacerng.solrng.gui.Lore.Theme.values())
+                        .map(com.spacerng.solrng.gui.Lore.Theme::key).toList());
+                case "hoestyles" -> partial(args[1], com.spacerng.solrng.farming.FarmingManager.HOE_STYLES);
+                case "enchantstyles" -> partial(args[1], com.spacerng.solrng.gui.HoeGui.ENCHANT_STYLES);
+                case "novastyles" -> partial(args[1], com.spacerng.solrng.consumable.ConsumableManager.CONSUMABLE_STYLES);
                 case "auratest" -> partial(args[1], java.util.stream.Stream.concat(com.spacerng.solrng.aura.AuraConcepts.KEYS.stream(), java.util.stream.Stream.of("off", "list")).toList());
                 case "roll", "odds" -> partial(args[1], rarityNames());
                 case "unlock" -> partial(args[1], withAll(nodeIds()));

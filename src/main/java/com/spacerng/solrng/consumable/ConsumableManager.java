@@ -142,24 +142,70 @@ public class ConsumableManager {
 
         meta.setDisplayName(styledName(consumable));
 
-        List<String> lore = new ArrayList<>();
-        lore.add(Lore.section(ChatColor.AQUA, "What it does"));
-        if (!consumable.description().isEmpty()) {
-            lore.add(Lore.line(ChatColor.AQUA, consumable.description()));
-        }
-        lore.addAll(describe(consumable));
-        lore.add("");
-        lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD
-                + ("nova_core".equals(consumable.id()) ? "Right click to forge"
-                        : plugin.getCrateManager() != null
-                                && plugin.getCrateManager().crateForKey(consumable.id()) != null
-                                ? "Right click a crate to open" : "Right click to use"));
-
-        meta.setLore(lore);
+        meta.setLore(itemLore(consumable, plugin.getConfig().getString("consumable-style", "classic")));
         meta.setEnchantmentGlintOverride(Boolean.TRUE);
         meta.getPersistentDataContainer().set(idKey, PersistentDataType.STRING, consumable.id());
         item.setItemMeta(meta);
         return item;
+    }
+
+    /** The looks a consumable's tooltip can take, picked with consumable-style. */
+    public static final List<String> CONSUMABLE_STYLES = List.of("classic", "card", "compact", "story");
+
+    /**
+     * A consumable's tooltip in one style: the Nova Core, crate keys,
+     * potions and grants all share it. Every style carries the description,
+     * the effect lines and what a right click does.
+     */
+    public List<String> itemLore(Consumable consumable, String style) {
+        String action = "nova_core".equals(consumable.id()) ? "Right click to forge"
+                : plugin.getCrateManager() != null && plugin.getCrateManager().crateForKey(consumable.id()) != null
+                        ? "Right click a crate to open" : "Right click to use";
+        String footer = ChatColor.YELLOW + "" + ChatColor.BOLD + action;
+        List<String> effects = describe(consumable);
+        String description = consumable.description();
+
+        List<String> lore = new ArrayList<>();
+        switch (style == null ? "" : style.toLowerCase(java.util.Locale.ROOT)) {
+            case "card" -> {
+                String accent = consumable.colors().isEmpty() ? ChatColor.LIGHT_PURPLE.toString()
+                        : net.md_5.bungee.api.ChatColor.of(consumable.colors().get(0)).toString();
+                List<String> top = new ArrayList<>();
+                if (!description.isEmpty()) top.add("  " + ChatColor.GRAY + description);
+                int widest = 0;
+                for (String line : top) widest = Math.max(widest, com.spacerng.solrng.rarity.LoreStyle.pixelWidth(line));
+                for (String line : effects) widest = Math.max(widest, com.spacerng.solrng.rarity.LoreStyle.pixelWidth(line));
+                String rule = accent + ChatColor.STRIKETHROUGH + " ".repeat(Math.max(widest, 120) / 4 + 2);
+                lore.add(rule);
+                lore.addAll(top);
+                if (!top.isEmpty() && !effects.isEmpty()) lore.add(rule);
+                lore.addAll(effects);
+                lore.add(rule);
+                lore.add(footer);
+            }
+            case "compact" -> {
+                if (!description.isEmpty()) lore.add(ChatColor.GRAY + description);
+                lore.addAll(effects);
+                lore.add(footer);
+            }
+            case "story" -> {
+                if (!description.isEmpty()) lore.add(ChatColor.GRAY + "" + ChatColor.ITALIC + description);
+                if (!effects.isEmpty()) {
+                    lore.add("");
+                    lore.addAll(effects);
+                }
+                lore.add("");
+                lore.add(ChatColor.DARK_GRAY + action + ".");
+            }
+            default -> {
+                lore.add(Lore.section(ChatColor.AQUA, "What it does"));
+                if (!description.isEmpty()) lore.add(Lore.line(ChatColor.AQUA, description));
+                lore.addAll(effects);
+                lore.add("");
+                lore.add(footer);
+            }
+        }
+        return lore;
     }
 
     /** The consumable's name in its own gradient, as its item shows it. */
