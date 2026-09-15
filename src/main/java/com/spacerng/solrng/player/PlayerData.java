@@ -220,6 +220,17 @@ public class PlayerData {
         this.bonusLuck += amount;
     }
 
+    // Permanent flat Speed, the Speed twin of bonusLuck (/rngadmin give speed).
+    private double bonusSpeed = 0.0;
+
+    public double getBonusSpeed() {
+        return bonusSpeed;
+    }
+
+    public void addBonusSpeed(double amount) {
+        this.bonusSpeed += amount;
+    }
+
     public long getPoints() {
         return points;
     }

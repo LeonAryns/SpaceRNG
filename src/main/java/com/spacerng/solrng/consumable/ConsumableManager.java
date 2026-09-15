@@ -142,7 +142,7 @@ public class ConsumableManager {
 
         meta.setDisplayName(styledName(consumable));
 
-        meta.setLore(itemLore(consumable, plugin.getConfig().getString("consumable-style", "classic")));
+        meta.setLore(itemLore(consumable, plugin.getConfig().getString("consumable-style", "card")));
         meta.setEnchantmentGlintOverride(Boolean.TRUE);
         meta.getPersistentDataContainer().set(idKey, PersistentDataType.STRING, consumable.id());
         item.setItemMeta(meta);

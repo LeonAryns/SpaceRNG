@@ -460,7 +460,12 @@ public class RarityManager {
                 effectiveWeights[i] = 0.0;
                 continue;
             }
-            double factor = 1.0 + (luck * luckFactorFor(item.getRarity()));
+            // A positive luck-factor grows a rarity with Luck; a negative one
+            // shrinks it by the same curve. Common used to sit at 0, so it
+            // kept its whole 94.5% of band rolls however much Luck a player
+            // had, and 2,500% Luck still rolled Commons 78% of the time.
+            double f = luckFactorFor(item.getRarity());
+            double factor = f >= 0.0 ? 1.0 + luck * f : 1.0 / (1.0 + luck * -f);
             double weight = item.getRollWeight() * factor;
             effectiveWeights[i] = weight;
             totalWeight += weight;

@@ -253,11 +253,11 @@ public final class RollFormat {
     }
 
     /** The looks the odds line under a tag can take, picked with tag.odds-style. */
-    public static final List<String> TAG_ODDS_STYLES = List.of("gradient", "flat", "split", "soft", "bold");
+    public static final List<String> TAG_ODDS_STYLES = List.of("dots", "squares", "diamonds", "compact", "split");
 
     /** The floating tag's odds line, "1 in 1,700", in the configured style. */
     public static String tagOdds(SolRNGPlugin plugin, RollableItem item) {
-        return tagOdds(item.getRarity(), item.getOdds(), plugin.getConfig().getString("tag.odds-style", "gradient"));
+        return tagOdds(item.getRarity(), item.getOdds(), plugin.getConfig().getString("tag.odds-style", "dots"));
     }
 
     /**
@@ -267,14 +267,20 @@ public final class RollFormat {
      */
     public static String tagOdds(Rarity rarity, long odds, String style) {
         String text = chance(odds);
+        String number = String.format("%,d", odds);
         int[] base = rarity == Rarity.COMMON ? new int[]{170, 170, 170} : rgb(RollAura.colorFor(rarity));
         int[] light = towardWhite(base, 0.55);
+        // Every style has a small mark on both sides, and each changes the
+        // mark, the number's format and how the colour is laid on, so no
+        // two read alike.
+        String square = paint("▪", false, base);
+        String diamond = paint("◆", false, base);
         return switch (style == null ? "" : style.toLowerCase(java.util.Locale.ROOT)) {
-            case "flat" -> paint(text, false, base);
-            case "split" -> ChatColor.DARK_GRAY + "1 in " + paint(String.format("%,d", odds), false, base, light);
-            case "soft" -> paint(text, false, towardWhite(base, 0.4));
-            case "bold" -> paint(text, true, base, light);
-            default -> paint(text, false, base, light);
+            case "squares" -> square + " " + ChatColor.WHITE + "1 in " + paint(number, true, base) + " " + square;
+            case "diamonds" -> diamond + " " + paint(text, false, light) + " " + diamond;
+            case "compact" -> square + " " + paint(compactOdds(odds), true, base, light) + " " + square;
+            case "split" -> ChatColor.DARK_GRAY + "▪ 1 in " + paint(number, true, base, light) + ChatColor.DARK_GRAY + " ▪";
+            default -> ChatColor.GRAY + "• " + paint(text, false, base, light) + ChatColor.GRAY + " •";
         };
     }
 

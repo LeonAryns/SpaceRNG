@@ -98,8 +98,11 @@ public final class HoloManager {
     private float titleScale = 2.4f;
     private float textScale = 1.1f;
     private double panelHeight = 2.3;
-    private float crateHeadScale = 2.0f;
-    private double crateHeadOffset = 1.0;
+    private float crateHeadScale = 2.6f;
+    private double crateHeadLift = 0.15;
+    private double crateSpinDegrees = 90.0;
+    private double crateBob = 0.12;
+    private final Map<String, ItemDisplay> crateHeads = new HashMap<>();
     private long boardRefreshTicks = 1200L;
 
     private BukkitTask task;
@@ -118,8 +121,11 @@ public final class HoloManager {
         titleScale = (float) config.getDouble("holograms.title-scale", 2.4);
         textScale = (float) config.getDouble("holograms.text-scale", 1.1);
         panelHeight = config.getDouble("holograms.panel-height", 2.3);
-        crateHeadScale = (float) config.getDouble("holograms.crate-head-scale", 2.0);
-        crateHeadOffset = config.getDouble("holograms.crate-head-offset", 1.0);
+        crateHeadScale = (float) config.getDouble("holograms.crate-head-scale", 2.6);
+        crateHeadLift = config.getDouble("holograms.crate-head-lift", 0.15);
+        // Past about 170 degrees an update, interpolation takes the short way round and spins backwards.
+        crateSpinDegrees = Math.max(0.0, Math.min(170.0, config.getDouble("holograms.crate-spin-degrees", 90.0)));
+        crateBob = config.getDouble("holograms.crate-bob", 0.12);
         boardRefreshTicks = Math.max(200L, config.getLong("holograms.board-refresh-seconds", 60L) * 20L);
         // New text only reaches entities drawn after it, so take everything
         // down and let the next frame draw it fresh.
@@ -312,13 +318,32 @@ public final class HoloManager {
                     TextDisplay body = boardBodies.get(spot.id());
                     if (body != null && body.isValid()) body.text(boardBody(spot.key()));
                 }
+                if (spot.kind() == Kind.CRATE) spinCrate(spot.id());
             }
         } catch (RuntimeException ex) {
             plugin.getLogger().warning("Hologram frame failed: " + ex);
         }
     }
 
+    /**
+     * One step of a crate head's float: a turn and a bob, set once a frame
+     * with the client gliding between them, so it moves smoothly at the
+     * cost of one update a second.
+     */
+    private void spinCrate(String id) {
+        ItemDisplay head = crateHeads.get(id);
+        if (head == null || !head.isValid()) return;
+        double seconds = ticks / 20.0;
+        float angle = (float) Math.toRadians((seconds * crateSpinDegrees) % 360.0);
+        float bob = (float) (Math.sin(seconds * Math.PI / 4.0) * crateBob);
+        head.setInterpolationDelay(0);
+        head.setInterpolationDuration((int) FRAME_TICKS);
+        head.setTransformation(new Transformation(new Vector3f(0f, bob, 0f), new Quaternionf().rotateY(angle),
+                new Vector3f(crateHeadScale, crateHeadScale, crateHeadScale), new Quaternionf()));
+    }
+
     private void despawn(String id) {
+        crateHeads.remove(id);
         List<Display> pieces = drawn.remove(id);
         if (pieces != null) {
             for (Display piece : pieces) {
@@ -358,7 +383,10 @@ public final class HoloManager {
     }
 
     private void drawCrate(Spot spot, List<Display> pieces) {
-        Location centre = spot.at().clone().add(0, crateHeadOffset, 0);
+        // A head model sits in the lower half of its box, so at scale s its
+        // bottom is s/2 below the display: lift by that much, plus the float.
+        double headY = crateHeadScale / 2.0 + crateHeadLift;
+        Location centre = spot.at().clone().add(0, headY, 0);
         centre.setYaw(spot.yaw());
         centre.setPitch(0f);
         ItemStack head = spot.head() == null ? new ItemStack(Material.PLAYER_HEAD) : spot.head().clone();
@@ -374,6 +402,7 @@ public final class HoloManager {
             d.getPersistentDataContainer().set(tagKey, PersistentDataType.STRING, spot.id());
         });
         pieces.add(display);
+        crateHeads.put(spot.id(), display);
 
         Crate crate = plugin.getCrateManager().get(spot.key());
         String name = crate == null ? spot.key() : crate.display();
@@ -387,7 +416,7 @@ public final class HoloManager {
         }
         for (String line : raw) lines.add(parse(line));
         String click = plugin.getConfig().getString("holograms.click", "");
-        stack(spot, spot.at().clone().add(0, crateHeadOffset + 0.3, 0), parse(title), lines,
+        stack(spot, spot.at().clone().add(0, headY + crateBob + 0.3, 0), parse(title), lines,
                 click == null || click.isBlank() ? null : parse(click), pieces);
     }
 
@@ -444,7 +473,11 @@ public final class HoloManager {
                     .append(Component.text(unit.isEmpty() ? "" : " " + unit, NamedTextColor.GRAY))
                     .build());
         }
-        if (rows.isEmpty()) rows.add(Component.text("Nobody on this board yet", NamedTextColor.DARK_GRAY));
+        // Always ten rows, so a new board already stands at its full height
+        // instead of starting as one line near the ground and growing.
+        for (int empty = place + 1; empty <= 10; empty++) {
+            rows.add(Component.text("#" + empty + "  ...", NamedTextColor.DARK_GRAY));
+        }
         return Component.join(JoinConfiguration.newlines(), rows);
     }
 

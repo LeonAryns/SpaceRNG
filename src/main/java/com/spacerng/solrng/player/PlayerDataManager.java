@@ -98,6 +98,7 @@ public class PlayerDataManager {
         data.setFarmSoundEnabled(yml.getBoolean("farm-sound-enabled", true));
         data.setEnchantSoundEnabled(yml.getBoolean("enchant-sound-enabled", true));
         data.setRollCharges(yml.getLong("roll-charges", 0L), yml.getDouble("roll-charge-multiplier", 1.0));
+        data.addBonusSpeed(yml.getDouble("bonus-speed", 0.0));
         data.setPotion(yml.getDouble("potion-luck", 0.0), yml.getDouble("potion-speed", 0.0),
                 yml.getLong("potion-rolls", 0L));
         org.bukkit.configuration.ConfigurationSection boosts = yml.getConfigurationSection("boosts");
@@ -304,6 +305,7 @@ public class PlayerDataManager {
     public void save(PlayerData data) {
         YamlConfiguration yml = new YamlConfiguration();
         yml.set("luck", data.getFlatLuck());
+        yml.set("bonus-speed", data.getBonusSpeed());
         yml.set("derived-skills", true);
         yml.set("points", data.getPoints());
         yml.set("tokens", data.getTokens());

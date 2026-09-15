@@ -43,8 +43,17 @@ public final class ConfigMigrator {
     private static final List<String> STRUCTURAL = List.of(
             "skilltree", "farmtree", "shiny", "perks", "linked-account");
 
-    /** Top-level sections copied from the jar whenever the server's config has none yet. */
-    private static final List<String> ADDED_SECTIONS = List.of("discord", "holograms");
+    /**
+     * Sections copied from the jar whenever the server's config has none
+     * yet. A dotted path works too, for a new entry inside a section the
+     * server already has, like one more hologram panel.
+     */
+    private static final List<String> ADDED_SECTIONS = List.of("discord", "holograms",
+            "holograms.panels.armor", "holograms.panels.starforge", "holograms.panels.potion",
+            "holograms.panels.convert", "holograms.panels.pass", "holograms.panels.store",
+            "holograms.panels.novacore", "holograms.panels.perks", "holograms.panels.index",
+            "holograms.panels.farmtree", "holograms.panels.daily", "holograms.panels.leaderboards",
+            "holograms.panels.stash");
 
     private record Patch(String id, String path, Object oldDefault, Object newDefault) {
     }
@@ -57,7 +66,15 @@ public final class ConfigMigrator {
             new Patch("tag-aura-mythical", "auras.tag.MYTHICAL.concept", "cosmos", "nova-grand"),
             new Patch("tag-aura-divine", "auras.tag.DIVINE.concept", "seraph", "atom-grand"),
             // V121: Mythical wears a smaller singularity. Runs after the V118 patch above.
-            new Patch("tag-aura-mythical-lite", "auras.tag.MYTHICAL.concept", "nova-grand", "singularity-lite"));
+            new Patch("tag-aura-mythical-lite", "auras.tag.MYTHICAL.concept", "nova-grand", "singularity-lite"),
+            // V126: Leon picked the card style for the Nova Core and other consumables.
+            new Patch("consumable-style-card", "consumable-style", "classic", "card"),
+            // V126: the tag odds styles were redrawn with marks on both sides.
+            new Patch("tag-odds-dots", "tag.odds-style", "gradient", "dots"),
+            // V126: a bigger crate head.
+            new Patch("crate-head-bigger", "holograms.crate-head-scale", 2.0, 2.6),
+            // V126: Luck now thins Commons out instead of leaving them at 94.5% of band rolls forever.
+            new Patch("common-luck-factor-negative", "rarities.COMMON.luck-factor", 0.0, -0.25));
 
     /** Like a Patch, for one field of the entry with a given id inside a list of maps. */
     private record EntryPatch(String id, String list, String entryId, String field, Object oldDefault,
@@ -77,7 +94,11 @@ public final class ConfigMigrator {
                     "Buy Farming in /skilltree, right after Armor, to get the Farmer's Hoe."),
             // V121: the tag gate is called Tag Luck, and Index Luck is the per entry skill.
             new EntryPatch("guide-display-tag-luck", "guide.quests", "index_luck", "display",
-                    "Unlock Index Luck", "Unlock Tag Luck"));
+                    "Unlock Index Luck", "Unlock Tag Luck"),
+            // V126: Index Luck I moved in front of Tag Luck.
+            new EntryPatch("guide-hint-tag-luck-after-index", "guide.quests", "index_luck", "hint",
+                    "In /skilltree, right above Luck I. It's what lets you equip a tag.",
+                    "In /skilltree, right after Index Luck I. It's what lets you equip a tag."));
 
     private ConfigMigrator() {
     }

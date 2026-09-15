@@ -41,7 +41,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             "bank", "aura", "roll", "unlock", "unlockall", "lockall", "odds", "farmblock", "farmscan",
             "hoe", "consumable", "gradient", "welcome", "crops", "farmclear",
             "milestones", "farmfill", "boost", "nova", "placeholders", "payout", "crate", "tophead", "floatingitem", "shiny", "firsts", "lorestyles", "tagstyles", "menustyles", "hoestyles", "enchantstyles", "novastyles", "auratest", "holo", "help");
-    private static final List<String> CURRENCIES = List.of("money", "coins", "gems", "credits");
+    private static final List<String> CURRENCIES = List.of("money", "coins", "gems", "credits", "luck", "speed");
 
     private final SolRNGPlugin plugin;
     private final PlayerAdmin players;
@@ -122,7 +122,8 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         line(sender, "setspawn", "", "Set the join/spawn point to where you stand");
         line(sender, "starforge", "[tier] [player]", "Give a Starforge (defaults to the tier they own)");
         line(sender, "reset", "<player> confirm", "Wipe a player back to a brand-new account");
-        line(sender, "give", "<money|coins|gems|credits> <amount> [player]", "Top up a currency");
+        line(sender, "give", "<money|coins|gems|credits|luck|speed> <amount> [player]",
+                "Top up a currency, or add permanent Luck or Speed in percent");
         line(sender, "drops", "<rarity|all> <amount> [player]", "Physical rolled drops in the inventory");
         line(sender, "bank", "<rarity|all> <amount> [player]", "Stored drops (the /convert bank)");
         line(sender, "aura", "<epic|legendary|mythical|divine> [player]", "Replay the full reveal build-up + burst");

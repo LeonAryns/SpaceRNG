@@ -440,7 +440,7 @@ final class ShowcaseAdmin extends AdminTools {
             return true;
         }
 
-        String current = plugin.getConfig().getString("tag.odds-style", "gradient");
+        String current = plugin.getConfig().getString("tag.odds-style", "dots");
         sender.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "Tag odds styles");
         for (String style : RollFormat.TAG_ODDS_STYLES) {
             sender.sendMessage(ChatColor.YELLOW + style + (style.equals(current) ? ChatColor.GREEN + " (current)" : ""));

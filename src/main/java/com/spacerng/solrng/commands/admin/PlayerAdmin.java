@@ -142,7 +142,7 @@ final class PlayerAdmin extends AdminTools {
     /** /rngadmin give &lt;currency&gt; &lt;amount&gt; [player] */
     boolean doGive(CommandSender sender, String[] args) {
         if (args.length < 3) {
-            sender.sendMessage(ChatColor.RED + "Usage: /rngadmin give <money|coins|gems|credits> <amount> [player]");
+            sender.sendMessage(ChatColor.RED + "Usage: /rngadmin give <money|coins|gems|credits|luck|speed> <amount> [player]");
             return true;
         }
         Long amount = parseAmount(sender, args[2]);
@@ -167,15 +167,21 @@ final class PlayerAdmin extends AdminTools {
             case "coins", "tokens" -> data.addTokens(amount);
             case "gems", "shards" -> data.addShards(amount);
             case "credits" -> data.addPoints(amount);
+            // Permanent stats, in percent: "give luck 50" is +50% Luck, "give speed 25" is +0.25x Speed.
+            case "luck" -> data.addBonusLuck(amount / 100.0);
+            case "speed" -> data.addBonusSpeed(amount / 100.0);
             default -> {
-                sender.sendMessage(ChatColor.RED + "Unknown currency. Use money, coins, gems or credits.");
+                sender.sendMessage(ChatColor.RED + "Unknown type. Use money, coins, gems, credits, luck or speed.");
                 return true;
             }
         }
 
         plugin.getScoreboardManager().update(target);
+        plugin.getLuckBarManager().update(target);
+        boolean stat = currency.equals("luck") || currency.equals("speed");
         sender.sendMessage(ChatColor.GREEN + "Gave " + target.getName() + " "
-                + String.format("%,d", amount) + " " + currency + ".");
+                + (stat ? "+" + String.format("%,d", amount) + "% " + currency + ", permanently"
+                        : String.format("%,d", amount) + " " + currency) + ".");
         return true;
     }
 

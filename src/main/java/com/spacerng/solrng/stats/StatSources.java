@@ -85,11 +85,16 @@ public final class StatSources {
                 Op.ADD));
         parts.add(new Part("Skills", "Luck nodes in /skilltree",
                 skills.skillLuck(data), Op.ADD));
-        parts.add(new Part("Index", "Every drop discovered, no skill needed",
-                plugin.getConfig().getDouble("index.luck-per-discovery", 0.01)
-                        * data.getDiscoveredItems().size(),
+        // The base Luck per discovered drop is the Index Luck I skill's to
+        // turn on, so it reads as a purchase instead of a freebie nobody
+        // notices. Its levels then add more on top.
+        parts.add(new Part("Index", "Buy Index Luck I in /skilltree",
+                data.hasUnlocked("curator_1")
+                        ? plugin.getConfig().getDouble("index.luck-per-discovery", 0.01)
+                                * data.getDiscoveredItems().size()
+                        : 0.0,
                 Op.ADD));
-        parts.add(new Part("Curator", "MORE Luck per drop, from /skilltree",
+        parts.add(new Part("Index Luck skill", "More Luck per drop, from /skilltree",
                 skills.totalOf(data, SkillNode.Effect.LUCK_PER_DISCOVERY) * data.getDiscoveredItems().size(),
                 Op.ADD));
         parts.add(new Part("Affinity", "Luck per prestige, from /skilltree",
@@ -164,6 +169,8 @@ public final class StatSources {
                 data.getStarforgeSpeedBonus(), Op.ADD));
         parts.add(new Part("Potions", "Draughts from /potion",
                 data.getPotionSpeed(), Op.ADD));
+        parts.add(new Part("Permanent", "Speed rewards that stay",
+                data.getBonusSpeed(), Op.ADD));
         parts.add(new Part("Perks", "Equip perks in /perks",
                 plugin.getPerkManager().totalOf(data, PerkStat.ROLL_SPEED_FLAT), Op.ADD));
         parts.add(new Part("Ability", "Shift-right-click a late Starforge",
