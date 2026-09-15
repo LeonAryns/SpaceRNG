@@ -8,7 +8,7 @@
 # their fresh defaults in on top of whatever is on disk, so a server
 # owner never has to delete the whole file to pick up a structural
 # change. Item table, prices and cosmetic tweaks are untouched.
-config-version: 11
+config-version: 12
 
 # One-off value changes the plugin has already made to this file, so none
 # is ever made twice. Managed by the plugin; leave it alone.
@@ -2538,11 +2538,11 @@ skilltree:
     luck_7:
       display: "Luck VII"
       page: 3
-      slot: "5,4"
+      slot: "5,3"
       icon: RABBIT_FOOT
       cost-money: 287000000
       cost-growth: 1.34
-      requires: "luck_6"
+      requires: "prestige_luck_2"
       effect: LUCK
       value: 0.5
       max-level: 10
@@ -2550,11 +2550,11 @@ skilltree:
     luck_8:
       display: "Luck VIII"
       page: 3
-      slot: "5,3"
+      slot: "4,2"
       icon: RABBIT_FOOT
       cost-money: 2690000000
       cost-growth: 1.36
-      requires: "luck_7"
+      requires: "supercharge_2"
       effect: LUCK
       value: 0.75
       max-level: 10
@@ -2562,11 +2562,11 @@ skilltree:
     prestige_luck_2:
       display: "Prestige Affinity II"
       page: 3
-      slot: "5,2"
+      slot: "5,4"
       icon: TOTEM_OF_UNDYING
       cost-money: 93800000
       cost-growth: 1.34
-      requires: "luck_8"
+      requires: "luck_6"
       effect: LUCK_PER_PRESTIGE
       value: 0.04
       max-level: 10
@@ -2577,7 +2577,7 @@ skilltree:
       slot: "5,1"
       icon: NETHER_STAR
       cost-money: 10000000000
-      requires: "prestige_luck_2"
+      requires: "luck_8"
       effect: LUCK
       value: 2.5
 
@@ -2597,11 +2597,11 @@ skilltree:
     speed_6:
       display: "Speed VI"
       page: 3
-      slot: "3,5"
+      slot: "2,5"
       icon: SUGAR
       cost-money: 287000000
       cost-growth: 1.32
-      requires: "speed_5"
+      requires: "bonus_roll_3"
       effect: ROLL_SPEED
       value: 0.1
       max-level: 10
@@ -2609,11 +2609,11 @@ skilltree:
     speed_7:
       display: "Speed VII"
       page: 3
-      slot: "2,5"
+      slot: "2,3"
       icon: SUGAR
       cost-money: 2690000000
       cost-growth: 1.34
-      requires: "speed_6"
+      requires: "instant_roll_3"
       effect: ROLL_SPEED
       value: 0.15
       max-level: 10
@@ -2621,11 +2621,11 @@ skilltree:
     bonus_roll_3:
       display: "Double Roll III"
       page: 3
-      slot: "2,4"
+      slot: "3,5"
       icon: ECHO_SHARD
       cost-money: 30600000
       cost-growth: 1.34
-      requires: "speed_7"
+      requires: "speed_5"
       effect: BONUS_ROLL_CHANCE
       value: 0.02
       max-level: 10
@@ -2633,11 +2633,11 @@ skilltree:
     bonus_roll_4:
       display: "Double Roll IV"
       page: 3
-      slot: "2,3"
+      slot: "2,2"
       icon: ECHO_SHARD
       cost-money: 503000000
       cost-growth: 1.36
-      requires: "bonus_roll_3"
+      requires: "speed_7"
       effect: BONUS_ROLL_CHANCE
       value: 0.025
       max-level: 10
@@ -2645,11 +2645,11 @@ skilltree:
     instant_roll_3:
       display: "Instant Roll III"
       page: 3
-      slot: "2,2"
+      slot: "2,4"
       icon: FIREWORK_ROCKET
       cost-money: 53600000
       cost-growth: 1.38
-      requires: "bonus_roll_4"
+      requires: "speed_6"
       effect: INSTANT_ROLL
       value: 0.02
       max-level: 10
@@ -2660,7 +2660,7 @@ skilltree:
       slot: "2,1"
       icon: FIREWORK_ROCKET
       cost-money: 10000000000
-      requires: "instant_roll_3"
+      requires: "bonus_roll_4"
       effect: ROLL_SPEED
       value: 0.75
 
@@ -2680,11 +2680,11 @@ skilltree:
     coins_6:
       display: "Money VI"
       page: 3
-      slot: "7,5"
+      slot: "8,5"
       icon: GOLD_INGOT
       cost-money: 503000000
       cost-growth: 1.34
-      requires: "coins_5"
+      requires: "refine_3"
       effect: MONEY_MULTIPLIER
       value: 1.0
       max-level: 10
@@ -2692,11 +2692,11 @@ skilltree:
     refine_3:
       display: "Refinery III"
       page: 3
-      slot: "8,5"
+      slot: "7,5"
       icon: BLAST_FURNACE
       cost-money: 164000000
       cost-growth: 1.34
-      requires: "coins_6"
+      requires: "coins_5"
       effect: CONVERT_BONUS
       value: 0.1
       max-level: 10
@@ -2708,7 +2708,7 @@ skilltree:
       icon: EXPERIENCE_BOTTLE
       cost-money: 164000000
       cost-growth: 1.32
-      requires: "refine_3"
+      requires: "coins_6"
       effect: PASS_XP
       value: 0.3
       max-level: 10
@@ -2755,7 +2755,7 @@ skilltree:
       icon: PRISMARINE_CRYSTALS
       cost-money: 53600000
       cost-growth: 1.34
-      requires: "bonus_roll_4"
+      requires: "speed_7"
       effect: SHINY_CHANCE
       value: 0.25
       max-level: 10
@@ -2775,10 +2775,10 @@ skilltree:
     supercharge_2:
       display: "Supercharge II"
       page: 3
-      slot: "4,2"
+      slot: "5,2"
       icon: NETHER_STAR
       cost-money: 47100000
-      requires: "prestige_luck_2"
+      requires: "luck_7"
       effect: SUPERCHARGE
       value: 100.0
       interval: 1000
@@ -2789,7 +2789,7 @@ skilltree:
       slot: "6,2"
       icon: NETHER_STAR
       cost-money: 4710000000
-      requires: "prestige_luck_2"
+      requires: "supercharge_2"
       effect: SUPERCHARGE
       value: 1000.0
       interval: 5000
@@ -5293,6 +5293,9 @@ discord:
 perks:
   # Maximum perks equipped at once. Rest sit in the vault, still owned.
   loadout-slots: 3
+  # A rolled perk waits in the roller until you save it to the vault.
+  # Rolling again replaces an unsaved one. Saving costs this many Credits.
+  save-cost-credits: 1
   # Per level (I to V) the roll picks. Same for every tier.
   level-chances: [0.40, 0.30, 0.20, 0.08, 0.02]
   # How much each level of a perk scales its top-tier ceiling.

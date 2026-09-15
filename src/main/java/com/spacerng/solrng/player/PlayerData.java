@@ -1158,6 +1158,18 @@ public class PlayerData {
         return false;
     }
 
+    // The last rolled perk, waiting in the roller until it is saved to the
+    // vault. The next roll replaces it. Null when there is nothing to save.
+    private PerkInstance pendingPerk;
+
+    public PerkInstance getPendingPerk() {
+        return pendingPerk;
+    }
+
+    public void setPendingPerk(PerkInstance pendingPerk) {
+        this.pendingPerk = pendingPerk;
+    }
+
     // Perk index: the best level ever rolled for each type and tier, keyed
     // "TYPE:TIER". Kept apart from the vault so a discarded perk stays found.
     private final Map<String, Integer> perkIndex = new HashMap<>();

@@ -50,6 +50,8 @@ import org.bukkit.persistence.PersistentDataType;
 final class ShopClicks {
 
     private final SolRNGPlugin plugin;
+    // When each player was last warned that a roll would replace an unsaved perk.
+    private final java.util.Map<java.util.UUID, Long> replaceConfirm = new java.util.HashMap<>();
 
     ShopClicks(SolRNGPlugin plugin) {
         this.plugin = plugin;
@@ -150,6 +152,24 @@ final class ShopClicks {
             player.openInventory(com.spacerng.solrng.gui.PerkIndexGui.build(plugin, player));
             return;
         }
+        if (event.getRawSlot() == com.spacerng.solrng.gui.PerkRollerGui.pendingSlot()) {
+            if (data.getPendingPerk() == null) return;
+            var saved = plugin.getPerkManager().save(data);
+            if (saved == null) {
+                player.sendMessage(ChatColor.RED + "You need "
+                        + Currency.CREDITS.amount(plugin.getPerkManager().saveCost())
+                        + ChatColor.RED + " to save this perk.");
+                player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
+                return;
+            }
+            player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "Saved: " + ChatColor.RESET
+                    + plugin.getRarityManager().style(saved.tier(), saved.display()) + ChatColor.GRAY + " "
+                    + saved.roman() + ChatColor.GRAY + " is in your vault.");
+            player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_ENDER_CHEST_CLOSE, 0.7f, 1.2f);
+            plugin.getScoreboardManager().update(player);
+            player.openInventory(com.spacerng.solrng.gui.PerkRollerGui.build(plugin, player));
+            return;
+        }
 
         var clicked = event.getCurrentItem();
         if (clicked == null || clicked.getItemMeta() == null) return;
@@ -162,6 +182,23 @@ final class ShopClicks {
         try {
             tier = com.spacerng.solrng.rarity.Rarity.valueOf(tierName);
         } catch (IllegalArgumentException ex) { return; }
+
+        // An unsaved Legendary or better takes a second click to throw away.
+        var waiting = data.getPendingPerk();
+        if (waiting != null && waiting.tier().ordinal() >= com.spacerng.solrng.rarity.Rarity.LEGENDARY.ordinal()) {
+            Long asked = replaceConfirm.get(player.getUniqueId());
+            long now = System.currentTimeMillis();
+            if (asked == null || now - asked > 5000L) {
+                replaceConfirm.put(player.getUniqueId(), now);
+                player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Careful: " + ChatColor.RESET
+                        + ChatColor.GRAY + "your unsaved "
+                        + plugin.getRarityManager().style(waiting.tier(), waiting.display())
+                        + ChatColor.GRAY + " will be lost. Click again within 5 seconds to roll anyway.");
+                player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_NOTE_BLOCK_BASS, 0.8f, 0.6f);
+                return;
+            }
+        }
+        replaceConfirm.remove(player.getUniqueId());
 
         var perk = plugin.getPerkManager().purchase(plugin, player, data, tier);
         if (perk == null) {
@@ -178,6 +215,8 @@ final class ShopClicks {
         String tierColored = plugin.getRarityManager().style(perk.tier(), perk.display());
         player.sendMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "New perk: "
                 + ChatColor.RESET + tierColored + ChatColor.GRAY + " " + perk.roman());
+        player.sendMessage(ChatColor.GRAY + "Save it for " + Currency.CREDITS.amount(plugin.getPerkManager().saveCost())
+                + ChatColor.GRAY + " in the roller, or your next roll replaces it.");
         if (newInIndex) {
             player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "New in your perk index! "
                     + ChatColor.RESET + ChatColor.GRAY + data.getPerkIndex().size() + " found. See /perks index");

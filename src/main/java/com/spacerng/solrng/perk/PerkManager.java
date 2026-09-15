@@ -34,6 +34,7 @@ public class PerkManager {
     private final Map<Rarity, Integer> statCount = new EnumMap<>(Rarity.class);
     private final Map<PerkStat, Double> statCeilings = new EnumMap<>(PerkStat.class);
     private int loadoutSlots = 3;
+    private long saveCost = 1L;
 
     public PerkManager(Logger logger) {
         this.logger = logger;
@@ -46,6 +47,7 @@ public class PerkManager {
         statCeilings.clear();
 
         loadoutSlots = Math.max(1, config.getInt("perks.loadout-slots", 3));
+        saveCost = Math.max(0L, config.getLong("perks.save-cost-credits", 1L));
 
         // Level chances - the piramid for I..V.
         var lc = config.getDoubleList("perks.level-chances");
@@ -261,9 +263,27 @@ public class PerkManager {
 
         spendDrops(plugin, player, data, roll.costRarity(), roll.costAmount());
 
+        // The perk waits in the roller; an unsaved one from before is gone.
         PerkInstance perk = rollFrom(rollTier);
-        if (perk != null) data.getPerkVault().add(perk);
+        if (perk != null) data.setPendingPerk(perk);
         return perk;
+    }
+
+    /** Credits it costs to move the waiting perk into the vault. */
+    public long saveCost() {
+        return saveCost;
+    }
+
+    /**
+     * Moves the waiting perk into the vault for {@link #saveCost()} Credits.
+     * Null when there is no perk waiting or the player can't pay.
+     */
+    public PerkInstance save(PlayerData data) {
+        PerkInstance pending = data.getPendingPerk();
+        if (pending == null || !data.spendPoints(saveCost)) return null;
+        data.getPerkVault().add(pending);
+        data.setPendingPerk(null);
+        return pending;
     }
 
     private long countPhysicalDrops(SolRNGPlugin plugin, org.bukkit.entity.Player player, Rarity rarity) {

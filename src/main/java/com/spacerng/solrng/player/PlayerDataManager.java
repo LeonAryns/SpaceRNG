@@ -242,6 +242,7 @@ public class PlayerDataManager {
         for (var perk : data.getPerkVault()) {
             if (equippedIds.contains(perk.id())) data.getEquippedPerks().add(perk);
         }
+        data.setPendingPerk(com.spacerng.solrng.perk.PerkInstance.decode(yml.getString("perk-pending")));
         var perkIndex = yml.getConfigurationSection("perk-index");
         if (perkIndex != null) {
             for (String key : perkIndex.getKeys(false)) data.getPerkIndex().put(key, perkIndex.getInt(key));
@@ -411,6 +412,7 @@ public class PlayerDataManager {
         java.util.List<String> equippedIds = new java.util.ArrayList<>();
         for (var perk : data.getEquippedPerks()) equippedIds.add(perk.id().toString());
         yml.set("perk-equipped", equippedIds);
+        yml.set("perk-pending", data.getPendingPerk() == null ? null : data.getPendingPerk().encode());
         yml.set("perk-index", null);
         for (var entry : data.getPerkIndex().entrySet()) yml.set("perk-index." + entry.getKey(), entry.getValue());
 
