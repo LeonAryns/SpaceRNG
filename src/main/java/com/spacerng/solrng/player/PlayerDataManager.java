@@ -251,6 +251,8 @@ public class PlayerDataManager {
         data.setPerkPity(yml.getInt("perk-pity", 0));
         data.setRank(yml.getString("rank"));
         data.setAuraChoice(yml.getString("aura-choice"));
+        data.getOwnedPets().addAll(yml.getStringList("pets-owned"));
+        data.getEquippedPets().addAll(yml.getStringList("pets-equipped"));
         data.setKeyallAt(yml.getLong("keyall-at", 0L));
         data.setNick(yml.getString("nick"));
         data.setPlayerSize(yml.getDouble("player-size", 1.0));
@@ -428,6 +430,8 @@ public class PlayerDataManager {
                 : data.getActivePerkType() + ":" + data.getActivePerkLevel());
         yml.set("rank", data.getRank());
         yml.set("aura-choice", data.getAuraChoice());
+        yml.set("pets-owned", new java.util.ArrayList<>(data.getOwnedPets()));
+        yml.set("pets-equipped", new java.util.ArrayList<>(data.getEquippedPets()));
         yml.set("keyall-at", data.getKeyallAt());
         yml.set("nick", data.getNick());
         yml.set("player-size", data.getPlayerSize());

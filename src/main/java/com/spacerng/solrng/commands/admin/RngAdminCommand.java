@@ -40,7 +40,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             "reload", "setspawn", "starforge", "reset", "give", "drops",
             "bank", "rank", "aura", "roll", "unlock", "unlockall", "lockall", "odds", "farmblock", "farmscan",
             "hoe", "consumable", "gradient", "welcome", "crops", "farmclear",
-            "milestones", "farmfill", "boost", "nova", "placeholders", "payout", "crate", "tophead", "floatingitem", "boss", "shiny", "firsts", "lorestyles", "tagstyles", "menustyles", "hoestyles", "standingstyles", "enchantstyles", "novastyles", "auratest", "holo", "help");
+            "milestones", "farmfill", "boost", "nova", "placeholders", "payout", "crate", "tophead", "floatingitem", "boss", "pet", "shiny", "firsts", "lorestyles", "tagstyles", "menustyles", "hoestyles", "standingstyles", "enchantstyles", "novastyles", "auratest", "holo", "help");
     private static final List<String> CURRENCIES = List.of("money", "coins", "gems", "credits", "luck", "speed", "tickets");
 
     private final SolRNGPlugin plugin;
@@ -110,6 +110,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             case "tophead" -> world.doTopHead(sender, args);
             case "floatingitem" -> world.doFloatingItem(sender, args);
             case "boss" -> world.doBoss(sender, args);
+            case "pet" -> players.doPet(sender, args);
             default -> {
                 sendHelp(sender);
                 yield true;
@@ -154,6 +155,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         line(sender, "holo", "<panel|board|leader|remove|list>", "NPC text, leaderboard walls and #1 heads");
         line(sender, "floatingitem", "<add|remove|list>", "Rotating item displays anchored at a spot");
         line(sender, "boss", "<here|start|stop|process> [type]", "The boss spot, one by hand, and the timer");
+        line(sender, "pet", "<give|take|list> <pet|all> [player]", "Hand out a pet, until they can be earned");
         line(sender, "tophead", "<set|podium|remove|clear|list>", "Floating heads for a leaderboard");
         line(sender, "shiny", "[player]", "Make the next roll shiny");
         line(sender, "firsts", "<list|reset|preview> [rarity]", "Server First 10 spots");
@@ -219,6 +221,16 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         }
         String sub = args[0].toLowerCase(Locale.ROOT);
         if (sub.equals("crate")) return crateTab(args);
+        if (sub.equals("pet")) {
+            if (args.length == 2) return partial(args[1], List.of("give", "take", "list"));
+            if (args.length == 3) {
+                List<String> ids = new ArrayList<>(plugin.getPetManager().getTypes().keySet());
+                ids.add("all");
+                return partial(args[2], ids);
+            }
+            if (args.length == 4) return partial(args[3], playerNames());
+            return List.of();
+        }
         if (sub.equals("boss")) {
             if (args.length == 2) return partial(args[1], List.of("here", "start", "stop", "process"));
             if (args.length == 3 && args[1].equalsIgnoreCase("process")) {

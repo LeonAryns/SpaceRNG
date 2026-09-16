@@ -1153,6 +1153,24 @@ public class PlayerData {
         return auraChoice;
     }
 
+    // Pets. Owned is everything found, equipped is the at most three that
+    // ride in the aura slots and pay their boost. Equipped is a list
+    // because the slot order is what the orbit draws.
+    private final Set<String> ownedPets = new HashSet<>();
+    private final List<String> equippedPets = new ArrayList<>();
+
+    public Set<String> getOwnedPets() {
+        return ownedPets;
+    }
+
+    public List<String> getEquippedPets() {
+        return equippedPets;
+    }
+
+    public boolean ownsPet(String id) {
+        return ownedPets.contains(id);
+    }
+
     public void setAuraChoice(String auraChoice) {
         this.auraChoice = auraChoice;
     }

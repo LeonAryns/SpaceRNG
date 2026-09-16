@@ -133,6 +133,9 @@ commands:
   boss:
     description: See the boss that is up and who is hurting it
     usage: /boss
+  pets:
+    description: Your pet slots and every pet
+    usage: /pets
   rngadmin:
     description: Admin tools for SpaceRNG
     usage: /rngadmin <subcommand>, or /rngadmin alone for the full list

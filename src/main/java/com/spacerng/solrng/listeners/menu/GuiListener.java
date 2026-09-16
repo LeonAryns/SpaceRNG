@@ -122,6 +122,8 @@ public class GuiListener implements Listener {
             shops.handleRanksClick(event);
         } else if (topInventory.getHolder() instanceof com.spacerng.solrng.gui.AuraHolder) {
             playerMenus.handleAuraClick(event);
+        } else if (topInventory.getHolder() instanceof com.spacerng.solrng.gui.PetsHolder) {
+            playerMenus.handlePetsClick(event);
         } else if (topInventory.getHolder() instanceof com.spacerng.solrng.gui.PrivateVaultHolder) {
             vaults.handleClick(event);
         } else if (topInventory.getHolder() instanceof com.spacerng.solrng.gui.StashHolder) {

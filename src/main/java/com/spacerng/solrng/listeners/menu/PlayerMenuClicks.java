@@ -202,6 +202,51 @@ final class PlayerMenuClicks {
         player.openInventory(com.spacerng.solrng.gui.AuraGui.build(plugin, player));
     }
 
+    /** /pets: put a pet in a slot, or take one out. */
+    void handlePetsClick(InventoryClickEvent event) {
+        event.setCancelled(true);
+        if (event.getClickedInventory() == null
+                || !(event.getClickedInventory().getHolder()
+                        instanceof com.spacerng.solrng.gui.PetsHolder)) return;
+        Player player = (Player) event.getWhoClicked();
+        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+        String id = com.spacerng.solrng.gui.PetsGui.clickedPet(event.getCurrentItem());
+        if (id == null) return;
+
+        var pets = plugin.getPetManager();
+        var pet = pets.get(id);
+        if (pet == null) return;
+
+        switch (pets.toggle(data, pet)) {
+            case EQUIPPED -> {
+                player.sendMessage(ChatColor.GREEN + "Wearing " + ChatColor.RESET
+                        + com.spacerng.solrng.gui.Lore.gradient(pet.display(), true, pet.stops())
+                        + ChatColor.GREEN + ". " + ChatColor.GRAY + pet.boostText() + ".");
+                player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_BEACON_ACTIVATE, 0.5f, 1.6f);
+            }
+            case UNEQUIPPED -> {
+                player.sendMessage(ChatColor.GRAY + "Took off " + ChatColor.RESET
+                        + com.spacerng.solrng.gui.Lore.gradient(pet.display(), true, pet.stops())
+                        + ChatColor.GRAY + ".");
+                player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_BEACON_DEACTIVATE, 0.5f, 1.4f);
+            }
+            case FULL -> {
+                player.sendMessage(ChatColor.RED + "All three slots are full. Take one off first.");
+                player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
+                return;
+            }
+            case LOCKED -> {
+                player.sendMessage(ChatColor.RED + "You have not found that pet yet.");
+                player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
+                return;
+            }
+        }
+        // The pieces are part of the aura, so the aura is what rebuilds.
+        plugin.getPetManager().refresh(player);
+        plugin.getScoreboardManager().update(player);
+        player.openInventory(com.spacerng.solrng.gui.PetsGui.build(plugin, player));
+    }
+
     void handleHoeClick(InventoryClickEvent event) {
         event.setCancelled(true);
         if (event.getClickedInventory() == null

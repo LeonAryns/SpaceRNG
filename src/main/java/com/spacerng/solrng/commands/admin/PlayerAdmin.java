@@ -541,4 +541,54 @@ final class PlayerAdmin extends AdminTools {
                 + String.format("%.2f", plugin.getNovaCoreManager().multiplierAt(clamped)) + "x Luck).");
         return true;
     }
+
+    /**
+     * Pets, until they have a way of being earned.
+     *
+     * give and take are the whole thing: the menu shows the rest as
+     * locked, and nothing in the game hands one out yet on purpose.
+     */
+    boolean doPet(CommandSender sender, String[] args) {
+        var pets = plugin.getPetManager();
+        String action = args.length >= 2 ? args[1].toLowerCase(Locale.ROOT) : "";
+        if (action.equals("list")) {
+            sender.sendMessage(ChatColor.YELLOW + "Pets: " + ChatColor.GRAY
+                    + String.join(", ", pets.getTypes().keySet()));
+            return true;
+        }
+        if (!action.equals("give") && !action.equals("take")) {
+            sender.sendMessage(ChatColor.YELLOW + "/rngadmin pet <give|take> <pet|all> [player]");
+            sender.sendMessage(ChatColor.YELLOW + "/rngadmin pet list");
+            return true;
+        }
+        String id = args.length >= 3 ? args[2].toLowerCase(Locale.ROOT) : "";
+        Player target = resolve(sender, args.length >= 4 ? args[3] : null);
+        if (target == null) return true;
+        var data = plugin.getPlayerDataManager().get(target.getUniqueId());
+
+        java.util.List<com.spacerng.solrng.pet.PetType> chosen = new java.util.ArrayList<>();
+        if (id.equals("all")) {
+            chosen.addAll(pets.getTypes().values());
+        } else {
+            var pet = pets.get(id);
+            if (pet == null) {
+                sender.sendMessage(ChatColor.RED + "Unknown pet. Try /rngadmin pet list.");
+                return true;
+            }
+            chosen.add(pet);
+        }
+
+        int changed = 0;
+        for (var pet : chosen) {
+            if (action.equals("give") ? pets.give(data, pet) : pets.take(data, pet)) changed++;
+        }
+        pets.refresh(target);
+        plugin.getScoreboardManager().update(target);
+        sender.sendMessage(ChatColor.GREEN + (action.equals("give") ? "Gave " : "Took ") + changed
+                + " pet(s) " + (action.equals("give") ? "to " : "from ") + target.getName() + ".");
+        if (changed > 0 && action.equals("give")) {
+            target.sendMessage(ChatColor.GREEN + "A pet was added to your collection. " + ChatColor.YELLOW + "/pets");
+        }
+        return true;
+    }
 }

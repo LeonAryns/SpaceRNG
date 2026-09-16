@@ -5683,3 +5683,97 @@ boss:
         - { weight: 3, drop: LEGENDARY }
         - { weight: 2, consumable: cosmic_key }
         - { weight: 1, consumable: luck_50 }
+
+# =====================================================================
+# Pets
+#
+# A pet is a relic that rides in one of the three aura slots and pays a
+# percentage on one stat. One stat each on purpose: a pet that gives a
+# bit of everything cannot be compared against the next one, and picking
+# three should be a choice.
+#
+# Three slots because that is the look budget. They sit at 120 degrees
+# around the hips, so a player can never be surrounded by a pile of them
+# and they cost about what one more aura costs.
+#
+# How a pet is earned is NOT decided yet. Until it is, hand them out with
+# /rngadmin pet give <pet|all> [player] and /pets shows the rest locked.
+#
+# stat is one of LUCK, SPEED, MONEY, COINS, ENCHANT, SHINY.
+# percent is a fraction: 0.05 is +5%, and it reads in /stats as 1.05x.
+# =====================================================================
+pets:
+  enabled: true
+  types:
+    dust_mote:
+      display: "Dust Mote"
+      colors: ["#B0BEC5", "#78909C"]
+      icon: PRISMARINE_CRYSTALS
+      rarity: COMMON
+      stat: COINS
+      percent: 0.02
+      blurb: "A speck of the old nebula."
+    cinder_spark:
+      display: "Cinder Spark"
+      colors: ["#FFAB91", "#FF7043"]
+      icon: FIRE_CHARGE
+      rarity: COMMON
+      stat: MONEY
+      percent: 0.02
+      blurb: "Still warm from something that burned out."
+    glass_shard:
+      display: "Glass Shard"
+      colors: ["#CE93D8", "#AB47BC"]
+      icon: AMETHYST_SHARD
+      rarity: UNCOMMON
+      stat: LUCK
+      percent: 0.03
+      blurb: "Cut from a sky that cracked."
+    tide_pearl:
+      display: "Tide Pearl"
+      colors: ["#80DEEA", "#00ACC1"]
+      icon: HEART_OF_THE_SEA
+      rarity: RARE
+      stat: COINS
+      percent: 0.05
+      blurb: "It pulls at whatever it is near."
+    watcher_eye:
+      display: "Watcher Eye"
+      colors: ["#A5D6A7", "#43A047"]
+      icon: ENDER_EYE
+      rarity: EPIC
+      stat: LUCK
+      percent: 0.05
+      blurb: "It looks where you are about to."
+    echo_fragment:
+      display: "Echo Fragment"
+      colors: ["#90A4AE", "#546E7A"]
+      icon: ECHO_SHARD
+      rarity: LEGENDARY
+      stat: ENCHANT
+      percent: 0.08
+      blurb: "It repeats what your hoe does."
+    void_shell:
+      display: "Void Shell"
+      colors: ["#B39DDB", "#673AB7"]
+      icon: SHULKER_SHELL
+      rarity: MYTHICAL
+      stat: SPEED
+      percent: 0.10
+      blurb: "Empty, and lighter than it should be."
+    prism_core:
+      display: "Prism Core"
+      colors: ["#F48FB1", "#EC407A"]
+      icon: END_CRYSTAL
+      rarity: MYTHICAL
+      stat: SHINY
+      percent: 0.10
+      blurb: "It splits an ordinary drop into colours."
+    starheart:
+      display: "Starheart"
+      colors: ["#FFF8E1", "#FFD54F"]
+      icon: NETHER_STAR
+      rarity: DIVINE
+      stat: LUCK
+      percent: 0.15
+      blurb: "The last thing a star leaves behind."

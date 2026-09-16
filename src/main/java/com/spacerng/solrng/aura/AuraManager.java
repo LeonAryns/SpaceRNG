@@ -63,13 +63,17 @@ public final class AuraManager {
         final Color color;
         final AuraAccent accent;
         final boolean test;
+        // What the pet slots held when this was built. A pet put on or
+        // taken off has to rebuild the pieces, and nothing else does.
+        final String petKey;
         List<Display> displays = List.of();
         long frame = 0L;
         boolean paused = false;
         float lastYaw = Float.NaN;
 
         Worn(String key, String wanted, AuraConcept concept, Rarity rarity, Color color, AuraAccent accent,
-             boolean test) {
+             boolean test, String petKey) {
+            this.petKey = petKey;
             this.key = key;
             this.wanted = wanted;
             this.concept = concept;
@@ -135,35 +139,46 @@ public final class AuraManager {
 
         com.spacerng.solrng.player.PlayerData data =
                 plugin.getPlayerDataManager().get(player.getUniqueId());
+
+        // Pets ride in the same pieces but are not a Linked perk and do
+        // not need a tag, so they are worked out before the aura and can
+        // end up being the only thing worn.
+        String petKey = plugin.getPetManager().signature(data);
+        PetOrbit pets = plugin.getPetManager().orbit(data);
+
+        Rarity rarity = null;
+        String[] look = null;
         // Auras are a Linked perk: no Discord link, no aura.
-        if (plugin.getConfig().getBoolean("auras.require-linked", true)
-                && plugin.getRankManager().rankOf(data) == null) {
-            hide(player.getUniqueId());
-            return;
-        }
-        Rarity rarity = tagRarity(player);
-        String[] look = rarity == null || !plugin.getConfig().getBoolean("auras.enabled", true)
-                ? null : lookFor(rarity);
-        // A look picked in /aura wins over the one the tag would give.
-        String choice = data.getAuraChoice();
-        if (choice != null && !choice.isEmpty() && owns(data, choice)) {
-            Rarity chosen = rarityOf(choice);
-            if (chosen != null) {
-                rarity = chosen;
-                look = choice.endsWith(":shiny") ? shinyLookFor(chosen) : lookFor(chosen);
+        boolean linked = !plugin.getConfig().getBoolean("auras.require-linked", true)
+                || plugin.getRankManager().rankOf(data) != null;
+        if (linked) {
+            rarity = tagRarity(player);
+            look = rarity == null || !plugin.getConfig().getBoolean("auras.enabled", true)
+                    ? null : lookFor(rarity);
+            // A look picked in /aura wins over the one the tag would give.
+            String choice = data.getAuraChoice();
+            if (choice != null && !choice.isEmpty() && owns(data, choice)) {
+                Rarity chosen = rarityOf(choice);
+                if (chosen != null) {
+                    rarity = chosen;
+                    look = choice.endsWith(":shiny") ? shinyLookFor(chosen) : lookFor(chosen);
+                }
             }
         }
-        if (look == null) {
+        if (look == null && pets == null) {
             hide(player.getUniqueId());
             return;
         }
-        AuraAccent accent = AuraAccent.parse(look[1]);
+        AuraAccent accent = look == null ? AuraAccent.NONE : AuraAccent.parse(look[1]);
         if (accent == null) accent = AuraAccent.NONE;
-        if (current != null && current.rarity == rarity && current.wanted.equals(look[0]) && current.accent == accent) {
+        String wanted = look == null ? "" : look[0];
+        if (current != null && current.rarity == rarity && current.wanted.equals(wanted)
+                && current.accent == accent && current.petKey.equals(petKey)) {
             return;
         }
-        if (!wear(player, look[0], rarity, accent, false)) {
-            plugin.getLogger().warning("auras.tag." + rarity.name() + " names an unknown concept: " + look[0]);
+        if (!wear(player, wanted, wanted, rarity, accent, false, pets, petKey)) {
+            plugin.getLogger().warning("auras.tag." + (rarity == null ? "?" : rarity.name())
+                    + " names an unknown concept: " + wanted);
         }
     }
 
@@ -216,12 +231,22 @@ public final class AuraManager {
 
     private boolean wear(Player player, String conceptKey, String wanted, Rarity rarity, AuraAccent accent,
                          boolean test) {
-        Color color = RollAura.colorFor(rarity);
-        AuraConcept concept = AuraConcepts.create(conceptKey, rarity, color);
+        return wear(player, conceptKey, wanted, rarity, accent, test, null, "");
+    }
+
+    private boolean wear(Player player, String conceptKey, String wanted, Rarity rarity, AuraAccent accent,
+                         boolean test, PetOrbit pets, String petKey) {
+        // Somebody wearing pets and no aura still needs a colour for the
+        // accents that will never run, so Common stands in.
+        Color color = RollAura.colorFor(rarity == null ? Rarity.COMMON : rarity);
+        AuraConcept look = conceptKey == null || conceptKey.isEmpty()
+                ? null : AuraConcepts.create(conceptKey, rarity, color);
+        if (look == null && conceptKey != null && !conceptKey.isEmpty()) return false;
+        AuraConcept concept = pets == null ? look : PetOrbit.with(look, pets);
         if (concept == null) return false;
         hide(player.getUniqueId());
         Worn aura = new Worn(conceptKey, wanted, concept, rarity, color,
-                accent == null ? AuraAccent.NONE : accent, test);
+                accent == null ? AuraAccent.NONE : accent, test, petKey);
         worn.put(player.getUniqueId(), aura);
         mount(player, aura);
         return true;

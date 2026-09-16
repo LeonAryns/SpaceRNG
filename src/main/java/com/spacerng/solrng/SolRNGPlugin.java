@@ -171,6 +171,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         this.linkedAccountManager = new com.spacerng.solrng.discord.LinkedAccountManager(this);
         this.rankManager = new com.spacerng.solrng.rank.RankManager(this);
         this.bossManager = new com.spacerng.solrng.boss.BossManager(this);
+        this.petManager = new com.spacerng.solrng.pet.PetManager(this);
 
         reloadAll();
 
@@ -226,6 +227,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         getCommand("nick").setExecutor(new com.spacerng.solrng.commands.NickCommand(this));
         getCommand("size").setExecutor(new com.spacerng.solrng.commands.SizeCommand(this));
         getCommand("boss").setExecutor(new com.spacerng.solrng.commands.BossCommand(this));
+        getCommand("pets").setExecutor(new com.spacerng.solrng.commands.PetsCommand(this));
         getCommand("stash").setExecutor(new com.spacerng.solrng.commands.StashCommand(this));
         getCommand("leaderboards").setExecutor(
                 new com.spacerng.solrng.commands.LeaderboardsCommand(this));
@@ -349,6 +351,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         linkedAccountManager.load(getConfig());
         rankManager.load(getConfig());
         bossManager.load(getConfig());
+        petManager.load(getConfig());
     }
 
     /**
@@ -454,6 +457,12 @@ public final class SolRNGPlugin extends JavaPlugin {
     private com.spacerng.solrng.player.FoundCounts foundCounts;
     private com.spacerng.solrng.rank.RankManager rankManager;
     private com.spacerng.solrng.boss.BossManager bossManager;
+    private com.spacerng.solrng.pet.PetManager petManager;
+
+    /** Pets: what a player owns, what they wear and what it pays. */
+    public com.spacerng.solrng.pet.PetManager getPetManager() {
+        return petManager;
+    }
 
     /** The boss event: what is up, who has hurt it, what it pays. */
     public com.spacerng.solrng.boss.BossManager getBossManager() {
