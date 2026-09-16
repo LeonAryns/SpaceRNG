@@ -610,12 +610,12 @@ public class FarmPlotManager {
             // have to be remembered as they happen.
             data.trackCoins(tokens);
             lastCropTokens = tokens;
-            // A boss takes the same number as damage, so a better hoe hits
-            // harder without the event needing a stat of its own.
-            plugin.getBossManager().onHarvest(player, tokens);
         }
         if (shards > 0) data.addShards(shards);
         data.addCropsHarvested(1L);
+        // A boss is measured in crops, so it moves with the same counter
+        // rather than with the Coins the crop happened to pay.
+        plugin.getBossManager().onHarvest(player, 1L);
         plugin.getPassManager().awardHarvest(player, data, 1L);
 
         // The break event was cancelled, and a cancelled BlockBreakEvent
@@ -842,6 +842,7 @@ public class FarmPlotManager {
             data.addTokens(paid);
             data.trackCoins(paid);
             data.addCropsHarvested(nukeCrops);
+            plugin.getBossManager().onHarvest(player, nukeCrops);
             plugin.getPassManager().awardHarvest(player, data, nukeCrops);
             player.getWorld().createExplosion(plot.clone().add(0.5, 1.0, 0.5), 3.0f, false, false);
             player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Nuke  "

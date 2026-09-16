@@ -59,9 +59,9 @@ public class JoinQuitListener implements Listener {
 
         plugin.getScoreboardManager().setup(event.getPlayer());
         plugin.getLuckBarManager().show(event.getPlayer());
-        // Somebody joining mid-fight gets the boss bar straight away,
-        // otherwise the event is invisible until they open /boss.
-        plugin.getBossManager().showBar(event.getPlayer());
+        // Somebody joining mid-event gets their own copy of the boss and
+        // whatever time is left, otherwise the event is invisible to them.
+        plugin.getBossManager().onJoin(event.getPlayer());
         plugin.getQuestManager().check(event.getPlayer());
         plugin.getFarmPlotManager().render(event.getPlayer());
         plugin.getAuraManager().refreshVisibility(event.getPlayer());

@@ -153,7 +153,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         line(sender, "crate", "<place|set|remove|list|key|keyall|preview>", "Place crates and hand out keys");
         line(sender, "holo", "<panel|board|leader|remove|list>", "NPC text, leaderboard walls and #1 heads");
         line(sender, "floatingitem", "<add|remove|list>", "Rotating item displays anchored at a spot");
-        line(sender, "boss", "<here|start|stop> [type]", "Where the boss stands, and starting one by hand");
+        line(sender, "boss", "<here|start|stop|process> [type]", "The boss spot, one by hand, and the timer");
         line(sender, "tophead", "<set|podium|remove|clear|list>", "Floating heads for a leaderboard");
         line(sender, "shiny", "[player]", "Make the next roll shiny");
         line(sender, "firsts", "<list|reset|preview> [rarity]", "Server First 10 spots");
@@ -220,7 +220,10 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         String sub = args[0].toLowerCase(Locale.ROOT);
         if (sub.equals("crate")) return crateTab(args);
         if (sub.equals("boss")) {
-            if (args.length == 2) return partial(args[1], List.of("here", "start", "stop"));
+            if (args.length == 2) return partial(args[1], List.of("here", "start", "stop", "process"));
+            if (args.length == 3 && args[1].equalsIgnoreCase("process")) {
+                return partial(args[2], List.of("start", "stop"));
+            }
             if (args.length == 3 && args[1].equalsIgnoreCase("start")) {
                 return partial(args[2], new ArrayList<>(plugin.getBossManager().getTypes().keySet()));
             }

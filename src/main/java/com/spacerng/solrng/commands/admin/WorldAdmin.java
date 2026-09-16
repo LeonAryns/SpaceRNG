@@ -617,6 +617,29 @@ final class WorldAdmin extends AdminTools {
                 }
                 sender.sendMessage(ChatColor.GREEN + "Started " + type.display() + ".");
             }
+            case "process" -> {
+                String what = args.length >= 3 ? args[2].toLowerCase(Locale.ROOT) : "";
+                if (what.equals("start")) {
+                    if (!boss.startProcess()) {
+                        sender.sendMessage(ChatColor.RED + "The boss process is already running.");
+                        return true;
+                    }
+                    sender.sendMessage(ChatColor.GREEN + "Boss process started. The first one is due in "
+                            + boss.minutesToNext() + " minutes, and it keeps going across restarts.");
+                } else if (what.equals("stop")) {
+                    if (!boss.stopProcess()) {
+                        sender.sendMessage(ChatColor.RED + "The boss process is not running.");
+                        return true;
+                    }
+                    sender.sendMessage(ChatColor.GREEN + "Boss process stopped. No more bosses until you start it.");
+                } else {
+                    sender.sendMessage(boss.isRunning()
+                            ? ChatColor.GREEN + "The boss process is running. Next one in "
+                                    + boss.minutesToNext() + " minutes."
+                            : ChatColor.RED + "The boss process is off.");
+                    sender.sendMessage(ChatColor.YELLOW + "/rngadmin boss process <start|stop>");
+                }
+            }
             case "stop" -> {
                 if (!boss.cancel()) {
                     sender.sendMessage(ChatColor.RED + "No boss is up.");
@@ -631,10 +654,13 @@ final class WorldAdmin extends AdminTools {
                         + ChatColor.GRAY + " - start one now");
                 sender.sendMessage(ChatColor.YELLOW + "/rngadmin boss stop"
                         + ChatColor.GRAY + " - end the one that is up");
+                sender.sendMessage(ChatColor.YELLOW + "/rngadmin boss process <start|stop>"
+                        + ChatColor.GRAY + " - the timer, kept across restarts");
                 sender.sendMessage(ChatColor.DARK_GRAY + "Types: "
                         + String.join(", ", boss.getTypes().keySet()));
                 sender.sendMessage(ChatColor.DARK_GRAY + (boss.hasSpot()
-                        ? "A spot is set." : "No spot set, the server spawn is used."));
+                        ? "A spot is set." : "No spot set, the server spawn is used.")
+                        + (boss.isRunning() ? " The process is running." : " The process is off."));
             }
         }
         return true;

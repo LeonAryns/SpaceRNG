@@ -5583,87 +5583,103 @@ auras:
 # =====================================================================
 # Bosses
 #
-# A boss is a server event, not a mob. It stands over the spot picked
-# with /rngadmin boss here (the server spawn when none is set) and loses
-# health to what everybody is already doing: a harvested crop takes off
-# the Coins it paid, a landed roll takes off its rarity below. Nobody
-# hits it, so a better hoe and a rarer drop are the whole skill curve.
+# A boss is a server event, not a mob, and everybody fights their own
+# copy of it. One appears for the whole server, and from that moment
+# every player has the same job: take its health down inside the window.
+# Health is counted in CROPS, so 8000 health is 8000 crops, whatever
+# your hoe pays for them, and a landed roll is worth its rarity below.
 #
-# Damage is remembered per player for the fight. When the boss falls,
-# everyone past min-share-percent gets the base reward and the top three
-# get their own entry instead of it. Only players still online are paid.
-# A boss that runs out of time leaves and pays nobody.
+# Per player rather than shared on purpose: with one health pool the
+# best farmer ends the event before anybody else has started, and the
+# rest are watching a bar. This way nobody can spoil it for the others.
+#
+# Beat yours in time and you pull from the boss's reward table, which is
+# written exactly like a crate's and paid out by the same code. Miss the
+# window and you get nothing.
+#
+# The process that spawns them is started once with
+# /rngadmin boss process start and remembered in boss.yml, so it keeps
+# running across a jar update.
 # =====================================================================
 boss:
   enabled: true
-  # Minutes between bosses. 0 turns the timer off and leaves them to
-  # /rngadmin boss start.
-  every-minutes: 180
+  # Minutes between bosses, counted from the moment one starts.
+  every-minutes: 120
   # The timer waits rather than burning a boss on an empty server.
-  min-players: 2
-  # The share of total health you need for the base reward, in percent.
-  min-share-percent: 1.0
-  # Damage per Coin a crop paid. 1.0 means a 900 Coin crop hits for 900.
-  harvest-damage-per-coin: 1.0
-  # What one landed roll takes off. Roughly a few seconds of farming for
-  # a Common, a real contribution for a Legendary and up.
+  min-players: 1
+  # Health taken off by one harvested crop.
+  damage-per-crop: 1
+  # Tell the server when somebody beats theirs.
+  announce-kills: true
+  # What one landed roll is worth, in crops.
   roll-damage:
-    COMMON: 500
-    UNCOMMON: 1500
-    RARE: 5000
-    EPIC: 25000
-    LEGENDARY: 100000
-    MYTHICAL: 250000
-    DIVINE: 600000
+    COMMON: 5
+    UNCOMMON: 10
+    RARE: 25
+    EPIC: 100
+    LEGENDARY: 400
+    MYTHICAL: 1000
+    DIVINE: 2500
   types:
     comet_hound:
       display: "Comet Hound"
       colors: ["#7DD3FC", "#38BDF8"]
       icon: PRISMARINE_SHARD
-      health: 400000
+      health: 4000
+      duration-minutes: 8
       weight: 50
-      duration-minutes: 10
+      # How many times the table is rolled for somebody who beats it.
+      reward-rolls: 1
+      # A pull rarer than this is announced to the server.
+      jackpot-below: 0.05
       rewards:
-        credits: 5
-        perk-tickets: 1
-        coins: 50000
-        crate: vote
-        keys: 1
-        top:
-          - { credits: 20, perk-tickets: 3, coins: 250000, crate: nebula, keys: 1 }
-          - { credits: 12, perk-tickets: 2, coins: 150000, crate: vote, keys: 2 }
-          - { credits: 8, perk-tickets: 1, coins: 100000, crate: vote, keys: 1 }
+        - { weight: 30, coins: 250000 }
+        - { weight: 20, gems: 100 }
+        - { weight: 15, money: 100000 }
+        - { weight: 12, consumable: coin_potion }
+        - { weight: 10, consumable: vote_key }
+        - { weight: 6, drop: RARE, amount: 2 }
+        - { weight: 4, consumable: luck_potion }
+        - { weight: 2, consumable: nebula_key }
+        - { weight: 1, consumable: roll_10x }
     void_colossus:
       display: "Void Colossus"
       colors: ["#C77DFF", "#7C3AED"]
       icon: CRYING_OBSIDIAN
-      health: 1500000
+      health: 8000
+      duration-minutes: 10
       weight: 35
-      duration-minutes: 15
+      reward-rolls: 1
+      jackpot-below: 0.05
       rewards:
-        credits: 10
-        perk-tickets: 2
-        coins: 150000
-        crate: vote
-        keys: 2
-        top:
-          - { credits: 40, perk-tickets: 5, coins: 750000, crate: nebula, keys: 2 }
-          - { credits: 25, perk-tickets: 3, coins: 500000, crate: nebula, keys: 1 }
-          - { credits: 15, perk-tickets: 2, coins: 300000, crate: vote, keys: 2 }
+        - { weight: 26, coins: 750000 }
+        - { weight: 18, gems: 250 }
+        - { weight: 14, money: 300000 }
+        - { weight: 12, consumable: nebula_key }
+        - { weight: 10, consumable: enchant_potion }
+        - { weight: 8, drop: EPIC }
+        - { weight: 6, consumable: nova_core }
+        - { weight: 4, credits: 10 }
+        - { weight: 1.5, consumable: free_skill }
+        - { weight: 0.5, consumable: luck_50 }
     solar_wyrm:
       display: "Solar Wyrm"
       colors: ["#FFD54F", "#FF8F00"]
       icon: MAGMA_BLOCK
-      health: 4000000
+      health: 15000
+      duration-minutes: 15
       weight: 15
-      duration-minutes: 20
+      reward-rolls: 2
+      jackpot-below: 0.05
       rewards:
-        credits: 20
-        perk-tickets: 3
-        coins: 400000
-        crate: nebula
-        keys: 1
-        top:
-          - { credits: 80, perk-tickets: 8, coins: 2000000, crate: cosmic, keys: 1 }
-          - { credits: 50, perk-tickets: 5, coins: 1200000, crate: nebula, keys: 2 }
-          - { credits: 30, perk-tickets: 3, coins: 800000, crate: nebula, keys: 1 }
+        - { weight: 24, coins: 2000000 }
+        - { weight: 16, gems: 600 }
+        - { weight: 14, money: 750000 }
+        - { weight: 12, consumable: nebula_key, amount: 2 }
+        - { weight: 10, drop: EPIC, amount: 2 }
+        - { weight: 8, consumable: nova_core }
+        - { weight: 6, credits: 25 }
+        - { weight: 4, consumable: luck_potion }
+        - { weight: 3, drop: LEGENDARY }
+        - { weight: 2, consumable: cosmic_key }
+        - { weight: 1, consumable: luck_50 }

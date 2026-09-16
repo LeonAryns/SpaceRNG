@@ -116,7 +116,12 @@ public class CrateManager {
         plugin.getLogger().info("Loaded " + crates.size() + " crates.");
     }
 
-    private CrateReward parseReward(Map<?, ?> raw) {
+    /**
+     * One reward line. Public because the boss event pays out of a
+     * table written in exactly this vocabulary, and two parsers for
+     * one format is how the two drift apart.
+     */
+    public CrateReward parseReward(Map<?, ?> raw) {
         double weight = number(raw.get("weight"), 0.0);
         if (weight <= 0.0) return null;
         long amount = Math.max(1L, (long) number(raw.get("amount"), 1.0));

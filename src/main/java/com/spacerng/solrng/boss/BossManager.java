@@ -1,10 +1,9 @@
 package com.spacerng.solrng.boss;
 
 import com.spacerng.solrng.SolRNGPlugin;
-import com.spacerng.solrng.consumable.Consumable;
 import com.spacerng.solrng.crate.Crate;
+import com.spacerng.solrng.crate.CrateReward;
 import com.spacerng.solrng.gui.Lore;
-import com.spacerng.solrng.player.PlayerData;
 import com.spacerng.solrng.rarity.Rarity;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
@@ -37,7 +36,6 @@ import org.joml.Vector3f;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -48,41 +46,58 @@ import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * Bosses: a server event rather than a mob.
+ * Bosses: a server event that every player fights on their own.
  *
- * Nobody swings at it. A boss stands over the spot an admin picked and
- * loses health to the two things everybody is already doing: every crop
- * harvested takes off the Coins it paid, and every roll takes off its
- * rarity's damage. A farmer and a roller both take part without learning
- * anything new, and there is no combat code, no pathfinding and no mob
- * that can be griefed or led away.
+ * One boss appears for everybody at once, but each player gets their own
+ * copy of it with its own health and its own clock: beat 8000 crops
+ * worth of it inside ten minutes and it is yours. That is deliberate.
+ * Shared health means the top farmer takes the boss down before anybody
+ * else has found their hoe, and everyone else is watching a bar move.
+ * Per player, the event asks the same thing of everybody and nobody can
+ * spoil it for the rest.
  *
- * Damage is tracked per player for the whole fight, and when the boss
- * falls the rewards follow it: everyone past a minimum share gets the
- * base reward, the top three get their own instead. A boss that runs out
- * of time simply leaves and pays nobody.
+ * Health is counted in crops, so a harvest is one point whatever the hoe
+ * pays for it, and a landed roll is worth its rarity from config. Nobody
+ * swings at anything: there is no combat code, no pathfinding, and no mob
+ * that can be led away or griefed.
  *
- * The body is two display entities, an item and a text panel, both
- * non-persistent so neither can ever be written into a chunk. The bar is
- * one keyed boss bar per player, because the title carries that player's
- * own damage.
+ * Whoever beats theirs in time pulls from the boss's reward table, which
+ * is written in the same vocabulary as a crate and paid out by the same
+ * code. Everyone gets the same table and the same chances, so the reward
+ * is luck rather than a race.
+ *
+ * The process that spawns one every couple of hours is started with a
+ * command and remembered in boss.yml, so it survives a jar update.
  */
 public class BossManager {
 
     private static final double VIEW = 64.0;
 
+    /** One player's own copy of the boss that is up. */
+    private static final class Fight {
+        final long max;
+        long health;
+        boolean beaten;
+
+        Fight(long max) {
+            this.max = max;
+            this.health = max;
+        }
+    }
+
     private final SolRNGPlugin plugin;
     private final Map<String, BossType> types = new LinkedHashMap<>();
     private final Map<Rarity, Long> rollDamage = new EnumMap<>(Rarity.class);
     private final Map<UUID, BossBar> bars = new HashMap<>();
+    private final Map<UUID, Fight> fights = new HashMap<>();
     private final File file;
     private final NamespacedKey tagKey = SolRNGPlugin.key("boss");
 
     private boolean enabled = true;
-    private int everyMinutes = 180;
-    private int minPlayers = 2;
-    private double harvestPerCoin = 1.0;
-    private double minSharePercent = 1.0;
+    private int everyMinutes = 120;
+    private int minPlayers = 1;
+    private long damagePerCrop = 1L;
+    private boolean announceKills = true;
 
     // The spot is kept as a world NAME plus coordinates, never as a
     // resolved Location. A Multiverse world loads after this plugin
@@ -95,24 +110,27 @@ public class BossManager {
     private double spotZ;
     private float spotYaw;
 
+    // The recurring process. Both of these live in boss.yml so a jar
+    // update, which is a restart, picks the schedule back up instead of
+    // quietly stopping it.
+    private boolean running;
+    private long nextSpawn;
+
     private BossType active;
-    private long maxHealth;
-    private long health;
-    private long endsAt;
+    private long eventEndsAt;
+    private int beaten;
+    private int joined;
     private Location at;
     private ItemDisplay body;
     private TextDisplay panel;
-    private final Map<UUID, Long> damage = new HashMap<>();
-    private int lastMilestone = 100;
     private long frame;
     private BukkitTask task;
     private BukkitTask timer;
-    private long nextSpawn;
 
     public BossManager(SolRNGPlugin plugin) {
         this.plugin = plugin;
         this.file = new File(plugin.getDataFolder(), "boss.yml");
-        loadSpot();
+        loadState();
     }
 
     // ---------------------------------------------------------------
@@ -123,10 +141,10 @@ public class BossManager {
         types.clear();
         rollDamage.clear();
         enabled = config.getBoolean("boss.enabled", true);
-        everyMinutes = Math.max(0, config.getInt("boss.every-minutes", 180));
-        minPlayers = Math.max(1, config.getInt("boss.min-players", 2));
-        harvestPerCoin = Math.max(0.0, config.getDouble("boss.harvest-damage-per-coin", 1.0));
-        minSharePercent = Math.max(0.0, config.getDouble("boss.min-share-percent", 1.0));
+        everyMinutes = Math.max(1, config.getInt("boss.every-minutes", 120));
+        minPlayers = Math.max(1, config.getInt("boss.min-players", 1));
+        damagePerCrop = Math.max(0L, config.getLong("boss.damage-per-crop", 1L));
+        announceKills = config.getBoolean("boss.announce-kills", true);
 
         for (Rarity rarity : Rarity.values()) {
             rollDamage.put(rarity, Math.max(0L, config.getLong("boss.roll-damage." + rarity.name(), 0L)));
@@ -137,57 +155,56 @@ public class BossManager {
             for (String id : section.getKeys(false)) {
                 ConfigurationSection t = section.getConfigurationSection(id);
                 if (t == null) continue;
+                String key = id.toLowerCase(Locale.ROOT);
                 List<String> colors = t.getStringList("colors");
                 if (colors.isEmpty()) colors = List.of("#FFD54F");
                 Material icon = Material.matchMaterial(t.getString("icon", "NETHER_STAR"));
                 if (icon == null) icon = Material.NETHER_STAR;
-                List<BossReward> top = new ArrayList<>();
-                for (Map<?, ?> raw : t.getMapList("rewards.top")) {
-                    top.add(reward(raw));
+
+                List<CrateReward> rewards = new ArrayList<>();
+                int line = 0;
+                for (Map<?, ?> raw : t.getMapList("rewards")) {
+                    line++;
+                    try {
+                        CrateReward reward = plugin.getCrateManager().parseReward(raw);
+                        if (reward == null) {
+                            plugin.getLogger().warning("Boss '" + key + "' reward " + line
+                                    + " has no weight or no reward type, skipped.");
+                        } else {
+                            rewards.add(reward);
+                        }
+                    } catch (Exception ex) {
+                        plugin.getLogger().warning("Boss '" + key + "' reward " + line
+                                + " is malformed: " + ex.getMessage());
+                    }
                 }
-                types.put(id.toLowerCase(Locale.ROOT), new BossType(
-                        id.toLowerCase(Locale.ROOT),
-                        t.getString("display", id),
-                        colors, icon,
-                        Math.max(1L, t.getLong("health", 500_000L)),
+                String display = t.getString("display", id);
+                // A loot table with a name and colours. Nothing is placed,
+                // nothing is opened, but the payout, the wording and the
+                // rare-drop announcement are the crate ones for free.
+                Crate table = new Crate(key, display, colors, "", "", List.copyOf(rewards),
+                        t.getDouble("jackpot-below", 0.05));
+
+                types.put(key, new BossType(key, display, colors, icon,
+                        Math.max(1L, t.getLong("health", 8000L)),
                         Math.max(0.0, t.getDouble("weight", 1.0)),
-                        Math.max(1, t.getInt("duration-minutes", 15)),
-                        new BossReward(
-                                Math.max(0L, t.getLong("rewards.credits", 0L)),
-                                Math.max(0L, t.getLong("rewards.perk-tickets", 0L)),
-                                Math.max(0L, t.getLong("rewards.coins", 0L)),
-                                t.getString("rewards.crate", "").toLowerCase(Locale.ROOT),
-                                Math.max(0, t.getInt("rewards.keys", 0))),
-                        top));
+                        Math.max(1, t.getInt("duration-minutes", 10)),
+                        Math.max(1, t.getInt("reward-rolls", 1)),
+                        table));
             }
         }
         plugin.getLogger().info("Loaded " + types.size() + " boss types.");
-    }
-
-    /** One entry of the top-three list, which arrives as a raw map. */
-    private BossReward reward(Map<?, ?> raw) {
-        return new BossReward(
-                number(raw.get("credits")),
-                number(raw.get("perk-tickets")),
-                number(raw.get("coins")),
-                raw.get("crate") == null ? "" : String.valueOf(raw.get("crate")).toLowerCase(Locale.ROOT),
-                (int) number(raw.get("keys")));
-    }
-
-    private long number(Object value) {
-        return value instanceof Number n ? Math.max(0L, n.longValue()) : 0L;
     }
 
     // ---------------------------------------------------------------
     // Lifecycle
     // ---------------------------------------------------------------
 
-    /** Sweeps anything a reload left standing, then starts the timer. */
+    /** Sweeps anything a reload left standing, then watches the clock. */
     public void start() {
         sweep();
         if (timer != null) timer.cancel();
-        scheduleNext();
-        timer = plugin.getServer().getScheduler().runTaskTimer(plugin, this::considerSpawn, 200L, 200L);
+        timer = plugin.getServer().getScheduler().runTaskTimer(plugin, this::considerSpawn, 100L, 100L);
     }
 
     public void stop() {
@@ -196,26 +213,51 @@ public class BossManager {
         if (task != null) task.cancel();
         task = null;
         active = null;
+        fights.clear();
         clear();
         for (UUID uuid : List.copyOf(bars.keySet())) hideBar(uuid);
     }
 
-    private void scheduleNext() {
-        nextSpawn = everyMinutes <= 0 ? 0L : System.currentTimeMillis() + everyMinutes * 60_000L;
+    /** Starts the recurring process and remembers that it is on. */
+    public boolean startProcess() {
+        if (running) return false;
+        running = true;
+        nextSpawn = System.currentTimeMillis() + everyMinutes * 60_000L;
+        saveState();
+        return true;
+    }
+
+    public boolean stopProcess() {
+        if (!running) return false;
+        running = false;
+        nextSpawn = 0L;
+        saveState();
+        return true;
+    }
+
+    public boolean isRunning() {
+        return running;
     }
 
     private void considerSpawn() {
-        if (!enabled || active != null || everyMinutes <= 0) return;
-        if (nextSpawn <= 0L || System.currentTimeMillis() < nextSpawn) return;
+        if (!enabled || !running || active != null) return;
+        if (nextSpawn <= 0L) {
+            nextSpawn = System.currentTimeMillis() + everyMinutes * 60_000L;
+            saveState();
+            return;
+        }
+        if (System.currentTimeMillis() < nextSpawn) return;
         if (Bukkit.getOnlinePlayers().size() < minPlayers) {
-            // Not enough people to make a dent in it. Wait rather than
-            // burn the event on an empty server, and look again shortly.
+            // Nobody to fight it. Look again in a minute rather than burn
+            // the event on an empty server.
             nextSpawn = System.currentTimeMillis() + 60_000L;
+            saveState();
             return;
         }
         BossType type = pick();
         if (type == null) {
-            scheduleNext();
+            nextSpawn = System.currentTimeMillis() + everyMinutes * 60_000L;
+            saveState();
             return;
         }
         spawn(type);
@@ -235,7 +277,7 @@ public class BossManager {
     }
 
     // ---------------------------------------------------------------
-    // The fight
+    // The event
     // ---------------------------------------------------------------
 
     public boolean isActive() {
@@ -247,8 +289,8 @@ public class BossManager {
     }
 
     public long minutesToNext() {
-        if (nextSpawn <= 0L) return -1L;
-        return Math.max(0L, (nextSpawn - System.currentTimeMillis()) / 60_000L);
+        if (!running || nextSpawn <= 0L) return -1L;
+        return Math.max(0L, (nextSpawn - System.currentTimeMillis() + 59_999L) / 60_000L);
     }
 
     /** Starts a boss now. False when there is nowhere to put it. */
@@ -262,30 +304,49 @@ public class BossManager {
 
         active = type;
         at = spot;
-        maxHealth = type.health();
-        health = maxHealth;
-        endsAt = System.currentTimeMillis() + type.durationMinutes() * 60_000L;
-        damage.clear();
-        lastMilestone = 100;
+        eventEndsAt = System.currentTimeMillis() + type.durationMinutes() * 60_000L;
+        fights.clear();
+        beaten = 0;
+        joined = 0;
         frame = 0L;
+
+        for (Player online : Bukkit.getOnlinePlayers()) enrol(online);
 
         draw(type, spot);
         announceArrival(type);
 
+        // The next one is scheduled the moment this one starts, so a long
+        // fight never eats into the gap and a restart mid-fight still
+        // knows when the following boss is due.
+        if (running) {
+            nextSpawn = System.currentTimeMillis() + everyMinutes * 60_000L;
+            saveState();
+        }
+
         task = plugin.getServer().getScheduler().runTaskTimer(plugin, this::tick, 2L, 2L);
         return true;
+    }
+
+    /** Gives one player their own copy, with whatever time is left. */
+    private void enrol(Player player) {
+        if (active == null || fights.containsKey(player.getUniqueId())) return;
+        fights.put(player.getUniqueId(), new Fight(active.health()));
+        joined++;
+    }
+
+    /** A player joining mid-event still gets a boss and the time left. */
+    public void onJoin(Player player) {
+        if (active == null) return;
+        enrol(player);
+        showBar(player);
     }
 
     private void tick() {
         if (active == null) return;
         try {
             frame += 2L;
-            if (health <= 0L) {
-                finish(true);
-                return;
-            }
-            if (System.currentTimeMillis() >= endsAt) {
-                finish(false);
+            if (System.currentTimeMillis() >= eventEndsAt) {
+                finish();
                 return;
             }
             spin();
@@ -297,14 +358,14 @@ public class BossManager {
         } catch (Exception ex) {
             // One bad frame must not throw ten times a second forever.
             plugin.getLogger().warning("Boss frame failed, ending the event: " + ex.getMessage());
-            finish(false);
+            finish();
         }
     }
 
-    /** A harvested crop hits for the Coins it paid. */
-    public void onHarvest(Player player, long coins) {
-        if (active == null || coins <= 0L || harvestPerCoin <= 0.0) return;
-        hit(player, Math.round(coins * harvestPerCoin));
+    /** Crops harvested hit the player's own copy. */
+    public void onHarvest(Player player, long crops) {
+        if (active == null || crops <= 0L || damagePerCrop <= 0L) return;
+        hit(player, crops * damagePerCrop);
     }
 
     /** A landed roll hits for its rarity. */
@@ -314,157 +375,87 @@ public class BossManager {
     }
 
     private void hit(Player player, long amount) {
-        if (amount <= 0L || health <= 0L) return;
-        long dealt = Math.min(amount, health);
-        health -= dealt;
-        damage.merge(player.getUniqueId(), dealt, Long::sum);
+        if (amount <= 0L) return;
+        Fight fight = fights.get(player.getUniqueId());
+        if (fight == null || fight.beaten) return;
 
-        int percent = (int) Math.floor(health * 100.0 / maxHealth);
-        for (int mark : new int[]{75, 50, 25}) {
-            if (lastMilestone > mark && percent <= mark) {
-                lastMilestone = mark;
-                announceMilestone(mark);
-                break;
-            }
-        }
-        if (health <= 0L) finish(true);
+        fight.health = Math.max(0L, fight.health - amount);
+        if (fight.health > 0L) return;
+
+        fight.beaten = true;
+        beaten++;
+        reward(player);
+        showBar(player);
+        refreshPanel();
     }
 
-    private void finish(boolean killed) {
+    private void reward(Player player) {
+        BossType type = active;
+        if (type == null) return;
+
+        player.sendMessage("");
+        player.sendMessage("  " + Lore.gradient(type.display().toUpperCase(Locale.ROOT), true, type.stops())
+                + ChatColor.RESET + " " + ChatColor.GRAY + ChatColor.BOLD + "BEATEN");
+        player.playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_DEATH, 0.5f, 1.4f);
+        player.playSound(player.getLocation(), Sound.BLOCK_BEACON_POWER_SELECT, 0.8f, 1.5f);
+
+        if (type.rewards().rewards().isEmpty()) {
+            player.sendMessage(ChatColor.DARK_GRAY + "  This boss pays nothing yet.");
+            player.sendMessage("");
+            return;
+        }
+        for (int i = 0; i < type.rewardRolls(); i++) {
+            CrateReward reward = type.rewards().pick();
+            // Paid by the crate code, so a boss and a crate can never pay
+            // the same line two different ways. The announcement for a
+            // rare pull comes with it.
+            plugin.getCrateManager().grant(player, type.rewards(), reward, false);
+            player.sendMessage("  " + ChatColor.GRAY + "You won " + ChatColor.RESET
+                    + plugin.getCrateManager().label(reward));
+        }
+        player.sendMessage("");
+
+        if (announceKills) {
+            String line = "  " + Lore.gradient(active.display(), true, active.stops())
+                    + ChatColor.RESET + ChatColor.GRAY + " was beaten by "
+                    + ChatColor.WHITE + player.getName() + ChatColor.GRAY + ".";
+            for (Player online : Bukkit.getOnlinePlayers()) {
+                if (!online.equals(player)) online.sendMessage(line);
+            }
+        }
+    }
+
+    private void finish() {
         BossType type = active;
         if (type == null) return;
         active = null;
         if (task != null) task.cancel();
         task = null;
 
-        if (killed) {
-            payOut(type);
-        } else {
-            String name = Lore.gradient(type.display(), true, type.stops());
-            Bukkit.broadcastMessage("");
-            Bukkit.broadcastMessage("  " + name + ChatColor.RESET + ChatColor.GRAY + " left with "
-                    + ChatColor.WHITE + Lore.shorten(health) + ChatColor.GRAY + " health still standing.");
-            Bukkit.broadcastMessage(ChatColor.DARK_GRAY + "  Nobody is paid for a boss that walks away.");
-            Bukkit.broadcastMessage("");
-            for (Player online : Bukkit.getOnlinePlayers()) {
-                online.playSound(online.getLocation(), Sound.BLOCK_CONDUIT_DEACTIVATE, 0.7f, 0.8f);
-            }
+        String name = Lore.gradient(type.display(), true, type.stops());
+        Bukkit.broadcastMessage("");
+        Bukkit.broadcastMessage("  " + name + ChatColor.RESET + ChatColor.GRAY + " is gone. "
+                + ChatColor.WHITE + beaten + ChatColor.GRAY + " of " + ChatColor.WHITE + joined
+                + ChatColor.GRAY + (joined == 1 ? " fighter beat it." : " fighters beat it."));
+        long minutes = minutesToNext();
+        if (minutes >= 0) {
+            Bukkit.broadcastMessage(ChatColor.DARK_GRAY + "  The next one is due in " + minutes + " minutes.");
+        }
+        Bukkit.broadcastMessage("");
+        for (Player online : Bukkit.getOnlinePlayers()) {
+            online.playSound(online.getLocation(), Sound.BLOCK_CONDUIT_DEACTIVATE, 0.7f, 0.8f);
         }
 
         clear();
+        fights.clear();
         for (UUID uuid : List.copyOf(bars.keySet())) hideBar(uuid);
-        damage.clear();
-        scheduleNext();
     }
 
-    /** Ends the event with no reward, for an admin. */
+    /** Ends the event early, for an admin. */
     public boolean cancel() {
         if (active == null) return false;
-        finish(false);
+        finish();
         return true;
-    }
-
-    // ---------------------------------------------------------------
-    // Rewards
-    // ---------------------------------------------------------------
-
-    private void payOut(BossType type) {
-        List<Map.Entry<UUID, Long>> ranked = new ArrayList<>(damage.entrySet());
-        ranked.sort(Comparator.<Map.Entry<UUID, Long>>comparingLong(Map.Entry::getValue).reversed());
-
-        long floor = Math.round(maxHealth * (minSharePercent / 100.0));
-        String name = Lore.gradient(type.display().toUpperCase(Locale.ROOT), true, type.stops());
-
-        Bukkit.broadcastMessage("");
-        Bukkit.broadcastMessage("        " + Lore.SPARK + " " + name + ChatColor.RESET
-                + " " + ChatColor.GRAY + ChatColor.BOLD + "HAS FALLEN " + ChatColor.RESET + Lore.SPARK);
-        Bukkit.broadcastMessage("");
-
-        int paid = 0;
-        for (int i = 0; i < ranked.size(); i++) {
-            Map.Entry<UUID, Long> entry = ranked.get(i);
-            long dealt = entry.getValue();
-            if (dealt < floor) continue;
-            BossReward reward = i < type.top().size() ? type.top().get(i) : type.base();
-            if (reward.isEmpty()) continue;
-            Player player = Bukkit.getPlayer(entry.getKey());
-            // Only players still online are paid. A key is a real item and
-            // an item needs somewhere to land, so paying somebody who left
-            // would need a queue this event does not have.
-            if (player == null) continue;
-            give(player, reward);
-            paid++;
-
-            if (i < 3) {
-                double share = dealt * 100.0 / maxHealth;
-                Bukkit.broadcastMessage("  " + place(i) + " " + ChatColor.WHITE + player.getName()
-                        + ChatColor.DARK_GRAY + "  " + Lore.BULLET + "  "
-                        + ChatColor.GRAY + Lore.shorten(dealt) + " damage"
-                        + ChatColor.DARK_GRAY + " (" + String.format("%.1f", share) + "%)");
-            }
-        }
-
-        if (paid > 3) {
-            Bukkit.broadcastMessage(ChatColor.DARK_GRAY + "  and " + (paid - 3) + " more fighters were paid.");
-        } else if (paid == 0) {
-            Bukkit.broadcastMessage(ChatColor.DARK_GRAY + "  Nobody did enough damage to be paid.");
-        }
-        Bukkit.broadcastMessage("");
-
-        for (Player online : Bukkit.getOnlinePlayers()) {
-            online.playSound(online.getLocation(), Sound.ENTITY_ENDER_DRAGON_DEATH, 0.6f, 1.2f);
-            online.playSound(online.getLocation(), Sound.BLOCK_BEACON_POWER_SELECT, 0.8f, 1.4f);
-        }
-        if (at != null) {
-            Location burst = at.clone().add(0, 2.2, 0);
-            for (Player viewer : viewers()) {
-                viewer.spawnParticle(Particle.EXPLOSION_EMITTER, burst, 2, 0.6, 0.4, 0.6, 0.0);
-                viewer.spawnParticle(Particle.FIREWORK, burst, 80, 0.8, 0.8, 0.8, 0.35);
-            }
-        }
-    }
-
-    private String place(int index) {
-        return switch (index) {
-            case 0 -> ChatColor.GOLD + "" + ChatColor.BOLD + "1.";
-            case 1 -> ChatColor.WHITE + "" + ChatColor.BOLD + "2.";
-            case 2 -> ChatColor.GOLD + "3.";
-            default -> ChatColor.DARK_GRAY + "" + (index + 1) + ".";
-        };
-    }
-
-    private void give(Player player, BossReward reward) {
-        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
-        List<String> got = new ArrayList<>();
-
-        if (reward.credits() > 0) {
-            data.addPoints(reward.credits());
-            got.add(ChatColor.LIGHT_PURPLE + String.format("%,d", reward.credits()) + " Credits");
-        }
-        if (reward.perkTickets() > 0) {
-            data.setPerkTickets(data.getPerkTickets() + reward.perkTickets());
-            got.add(ChatColor.AQUA + String.format("%,d", reward.perkTickets()) + " Perk Tickets");
-        }
-        if (reward.coins() > 0) {
-            data.addTokens(reward.coins());
-            got.add(ChatColor.GOLD + Lore.shorten(reward.coins()) + " Coins");
-        }
-        if (reward.keys() > 0 && !reward.crate().isBlank()) {
-            Crate crate = plugin.getCrateManager().get(reward.crate());
-            Consumable key = crate == null ? null : plugin.getConsumableManager().get(crate.keyId());
-            if (key != null) {
-                plugin.getConsumableManager().give(player, key, reward.keys());
-                got.add(ChatColor.YELLOW + String.valueOf(reward.keys()) + "x "
-                        + plugin.getCrateManager().keyName(crate));
-            }
-        }
-
-        plugin.getScoreboardManager().update(player);
-        if (got.isEmpty()) return;
-        player.sendMessage("");
-        player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "Boss reward  " + ChatColor.RESET
-                + ChatColor.GRAY + String.join(ChatColor.DARK_GRAY + ", " + ChatColor.GRAY, got));
-        player.sendMessage("");
     }
 
     // ---------------------------------------------------------------
@@ -476,31 +467,17 @@ public class BossManager {
         Bukkit.broadcastMessage("");
         Bukkit.broadcastMessage("        " + Lore.SPARK + " " + name + ChatColor.RESET
                 + " " + ChatColor.GRAY + ChatColor.BOLD + "HAS APPEARED " + ChatColor.RESET + Lore.SPARK);
-        Bukkit.broadcastMessage(ChatColor.GRAY + "  " + Lore.shorten(maxHealth) + " health"
-                + ChatColor.DARK_GRAY + "  " + Lore.BULLET + "  "
-                + ChatColor.GRAY + type.durationMinutes() + " minutes"
-                + ChatColor.DARK_GRAY + "  " + Lore.BULLET + "  "
-                + ChatColor.GRAY + "at spawn");
-        Bukkit.broadcastMessage(ChatColor.GRAY + "  Every crop you harvest and every roll you land hurts it.");
-        Bukkit.broadcastMessage(ChatColor.DARK_GRAY + "  The rewards follow your damage. "
+        Bukkit.broadcastMessage(ChatColor.GRAY + "  Everyone fights their own. "
+                + ChatColor.WHITE + String.format("%,d", type.health()) + ChatColor.GRAY + " crops in "
+                + ChatColor.WHITE + type.durationMinutes() + ChatColor.GRAY + " minutes.");
+        Bukkit.broadcastMessage(ChatColor.GRAY + "  Every crop you harvest and every roll you land hurts yours.");
+        Bukkit.broadcastMessage(ChatColor.DARK_GRAY + "  Beat it in time and the loot is yours. "
                 + ChatColor.YELLOW + "/boss");
         Bukkit.broadcastMessage("");
 
         for (Player online : Bukkit.getOnlinePlayers()) {
             online.playSound(online.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 0.7f, 0.6f);
             showBar(online);
-        }
-    }
-
-    private void announceMilestone(int percent) {
-        if (active == null) return;
-        String name = Lore.gradient(active.display(), true, active.stops());
-        String line = "  " + name + ChatColor.RESET + ChatColor.GRAY + " is down to "
-                + ChatColor.WHITE + percent + "%" + ChatColor.GRAY + " health.";
-        for (Player online : Bukkit.getOnlinePlayers()) {
-            online.sendMessage(line);
-            online.playSound(online.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL,
-                    0.5f, percent <= 25 ? 1.2f : 0.8f);
         }
     }
 
@@ -519,33 +496,31 @@ public class BossManager {
             return lines;
         }
 
-        double fraction = Math.max(0.0, (double) health / maxHealth);
-        long mine = damage.getOrDefault(player.getUniqueId(), 0L);
+        Fight fight = fights.get(player.getUniqueId());
         lines.add("");
         lines.add("  " + Lore.gradient(active.display().toUpperCase(Locale.ROOT), true, active.stops()));
-        lines.add("  " + Lore.bar(active.accent(), fraction) + ChatColor.GRAY + "  "
-                + Lore.shorten(health) + ChatColor.DARK_GRAY + " / " + ChatColor.GRAY + Lore.shorten(maxHealth));
-        lines.add(ChatColor.GRAY + "  " + timeLeft() + " left"
-                + ChatColor.DARK_GRAY + "  " + Lore.BULLET + "  "
-                + ChatColor.GRAY + damage.size() + " fighting");
-        lines.add("");
-        lines.add(ChatColor.WHITE + "  Your damage  " + ChatColor.GRAY + Lore.shorten(mine)
-                + ChatColor.DARK_GRAY + " (" + String.format("%.1f", mine * 100.0 / maxHealth) + "%)");
-
-        List<Map.Entry<UUID, Long>> ranked = new ArrayList<>(damage.entrySet());
-        ranked.sort(Comparator.<Map.Entry<UUID, Long>>comparingLong(Map.Entry::getValue).reversed());
-        for (int i = 0; i < Math.min(3, ranked.size()); i++) {
-            Map.Entry<UUID, Long> entry = ranked.get(i);
-            String who = Bukkit.getOfflinePlayer(entry.getKey()).getName();
-            lines.add("  " + place(i) + " " + ChatColor.GRAY + (who == null ? "?" : who)
-                    + ChatColor.DARK_GRAY + "  " + Lore.shorten(entry.getValue()));
+        if (fight == null) {
+            lines.add(ChatColor.GRAY + "  You are not in this one. The next boss is yours.");
+            lines.add("");
+            return lines;
         }
+
+        double fraction = Math.max(0.0, (double) fight.health / fight.max);
+        lines.add("  " + Lore.bar(active.accent(), fraction) + ChatColor.GRAY + "  "
+                + String.format("%,d", fight.health) + ChatColor.DARK_GRAY + " / "
+                + ChatColor.GRAY + String.format("%,d", fight.max));
+        lines.add(fight.beaten
+                ? ChatColor.GREEN + "  You beat it. Your loot is paid."
+                : ChatColor.GRAY + "  " + timeLeft() + " left"
+                        + ChatColor.DARK_GRAY + "  " + Lore.BULLET + "  "
+                        + ChatColor.GRAY + String.format("%,d", fight.health) + " crops to go");
+        lines.add(ChatColor.DARK_GRAY + "  " + beaten + " of " + joined + " have beaten theirs.");
         lines.add("");
         return lines;
     }
 
     private String timeLeft() {
-        long seconds = Math.max(0L, (endsAt - System.currentTimeMillis()) / 1000L);
+        long seconds = Math.max(0L, (eventEndsAt - System.currentTimeMillis()) / 1000L);
         return seconds / 60 + ":" + String.format("%02d", seconds % 60);
     }
 
@@ -566,10 +541,12 @@ public class BossManager {
 
     public void showBar(Player player) {
         if (active == null) return;
+        Fight fight = fights.get(player.getUniqueId());
+        if (fight == null) return;
         BossBar bar = bars.computeIfAbsent(player.getUniqueId(),
                 uuid -> Bukkit.createBossBar(barKey(uuid), "", BarColor.RED, BarStyle.SEGMENTED_20));
         if (!bar.getPlayers().contains(player)) bar.addPlayer(player);
-        refreshBar(player, bar);
+        refreshBar(fight, bar);
     }
 
     public void hideBar(UUID uuid) {
@@ -582,18 +559,20 @@ public class BossManager {
         for (Player online : Bukkit.getOnlinePlayers()) showBar(online);
     }
 
-    private void refreshBar(Player player, BossBar bar) {
-        double fraction = Math.max(0.0, Math.min(1.0, (double) health / maxHealth));
-        long mine = damage.getOrDefault(player.getUniqueId(), 0L);
-        bar.setProgress(fraction);
-        bar.setColor(fraction > 0.5 ? BarColor.RED : fraction > 0.25 ? BarColor.YELLOW : BarColor.WHITE);
-        bar.setTitle(Lore.gradient(active.display().toUpperCase(Locale.ROOT), true, active.stops())
-                + ChatColor.RESET + ChatColor.DARK_GRAY + "  |  "
-                + ChatColor.WHITE + Lore.shorten(health) + ChatColor.GRAY + " / " + Lore.shorten(maxHealth)
-                + ChatColor.DARK_GRAY + "  |  "
-                + ChatColor.GRAY + "you " + ChatColor.WHITE + Lore.shorten(mine)
-                + ChatColor.DARK_GRAY + "  |  "
-                + ChatColor.GRAY + timeLeft());
+    private void refreshBar(Fight fight, BossBar bar) {
+        double fraction = Math.max(0.0, Math.min(1.0, (double) fight.health / fight.max));
+        bar.setProgress(fight.beaten ? 1.0 : fraction);
+        bar.setColor(fight.beaten ? BarColor.GREEN
+                : fraction > 0.5 ? BarColor.RED : fraction > 0.25 ? BarColor.YELLOW : BarColor.WHITE);
+        String name = Lore.gradient(active.display().toUpperCase(Locale.ROOT), true, active.stops());
+        bar.setTitle(fight.beaten
+                ? name + ChatColor.RESET + ChatColor.DARK_GRAY + "  |  "
+                        + ChatColor.GREEN + "beaten" + ChatColor.DARK_GRAY + "  |  "
+                        + ChatColor.GRAY + beaten + " of " + joined + " done"
+                : name + ChatColor.RESET + ChatColor.DARK_GRAY + "  |  "
+                        + ChatColor.WHITE + String.format("%,d", fight.health)
+                        + ChatColor.GRAY + " crops left"
+                        + ChatColor.DARK_GRAY + "  |  " + ChatColor.GRAY + timeLeft());
         bar.setVisible(true);
     }
 
@@ -638,14 +617,16 @@ public class BossManager {
         refreshPanel();
     }
 
+    /**
+     * The panel carries the event, not one player's health: every fighter
+     * has different numbers and one display cannot say two things.
+     */
     private void refreshPanel() {
         if (panel == null || !panel.isValid() || active == null) return;
-        double fraction = Math.max(0.0, (double) health / maxHealth);
         String text = Lore.gradient(active.display().toUpperCase(Locale.ROOT), true, active.stops())
-                + "\n" + Lore.bar(active.accent(), fraction)
-                + "\n" + ChatColor.WHITE + Lore.shorten(health) + ChatColor.GRAY + " / " + Lore.shorten(maxHealth)
-                + "\n" + ChatColor.DARK_GRAY + damage.size() + " fighting  " + Lore.BULLET + "  "
-                + timeLeft() + " left";
+                + "\n" + ChatColor.GRAY + String.format("%,d", active.health()) + " crops each"
+                + "\n" + ChatColor.WHITE + timeLeft() + ChatColor.GRAY + " left"
+                + "\n" + ChatColor.DARK_GRAY + beaten + " of " + joined + " have beaten theirs";
         panel.text(LegacyComponentSerializer.legacySection().deserialize(text));
     }
 
@@ -727,7 +708,7 @@ public class BossManager {
     }
 
     // ---------------------------------------------------------------
-    // The spot
+    // The spot and the schedule, both in boss.yml
     // ---------------------------------------------------------------
 
     public void setSpot(Location location) {
@@ -736,24 +717,14 @@ public class BossManager {
         spotY = location.getY();
         spotZ = location.getZ();
         spotYaw = location.getYaw();
-        YamlConfiguration yml = new YamlConfiguration();
-        yml.set("world", spotWorld);
-        yml.set("x", spotX);
-        yml.set("y", spotY);
-        yml.set("z", spotZ);
-        yml.set("yaw", (double) spotYaw);
-        try {
-            yml.save(file);
-        } catch (IOException ex) {
-            plugin.getLogger().warning("Failed to save the boss spot: " + ex.getMessage());
-        }
+        saveState();
     }
 
     public boolean hasSpot() {
         return spotWorld != null;
     }
 
-    private void loadSpot() {
+    private void loadState() {
         if (!file.exists()) return;
         YamlConfiguration yml = YamlConfiguration.loadConfiguration(file);
         spotWorld = yml.getString("world");
@@ -761,6 +732,26 @@ public class BossManager {
         spotY = yml.getDouble("y");
         spotZ = yml.getDouble("z");
         spotYaw = (float) yml.getDouble("yaw");
+        running = yml.getBoolean("running", false);
+        nextSpawn = yml.getLong("next", 0L);
+    }
+
+    private void saveState() {
+        YamlConfiguration yml = new YamlConfiguration();
+        if (spotWorld != null) {
+            yml.set("world", spotWorld);
+            yml.set("x", spotX);
+            yml.set("y", spotY);
+            yml.set("z", spotZ);
+            yml.set("yaw", (double) spotYaw);
+        }
+        yml.set("running", running);
+        yml.set("next", nextSpawn);
+        try {
+            yml.save(file);
+        } catch (IOException ex) {
+            plugin.getLogger().warning("Failed to save boss.yml: " + ex.getMessage());
+        }
     }
 
     /** The spot as a Location, or the server spawn when none is set. */
