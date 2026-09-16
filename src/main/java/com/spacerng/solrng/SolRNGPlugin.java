@@ -170,6 +170,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         this.floatingItemManager = new com.spacerng.solrng.decor.FloatingItemManager(this);
         this.linkedAccountManager = new com.spacerng.solrng.discord.LinkedAccountManager(this);
         this.rankManager = new com.spacerng.solrng.rank.RankManager(this);
+        this.bossManager = new com.spacerng.solrng.boss.BossManager(this);
 
         reloadAll();
 
@@ -224,6 +225,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         getCommand("fly").setExecutor(new com.spacerng.solrng.commands.FlyCommand(this));
         getCommand("nick").setExecutor(new com.spacerng.solrng.commands.NickCommand(this));
         getCommand("size").setExecutor(new com.spacerng.solrng.commands.SizeCommand(this));
+        getCommand("boss").setExecutor(new com.spacerng.solrng.commands.BossCommand(this));
         getCommand("stash").setExecutor(new com.spacerng.solrng.commands.StashCommand(this));
         getCommand("leaderboards").setExecutor(
                 new com.spacerng.solrng.commands.LeaderboardsCommand(this));
@@ -244,6 +246,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         floatingItemManager.start();
         linkedAccountManager.start();
         rankManager.start();
+        bossManager.start();
 
         getLogger().info("SpaceRNG enabled.");
     }
@@ -262,6 +265,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         if (floatingItemManager != null) floatingItemManager.stop();
         if (linkedAccountManager != null) linkedAccountManager.stop();
         if (rankManager != null) rankManager.stop();
+        if (bossManager != null) bossManager.stop();
         if (momentumBar != null) momentumBar.removeAll();
         if (playerDataManager != null) {
             playerDataManager.saveAll();
@@ -344,6 +348,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         floatingItemManager.load(getConfig());
         linkedAccountManager.load(getConfig());
         rankManager.load(getConfig());
+        bossManager.load(getConfig());
     }
 
     /**
@@ -448,6 +453,12 @@ public final class SolRNGPlugin extends JavaPlugin {
 
     private com.spacerng.solrng.player.FoundCounts foundCounts;
     private com.spacerng.solrng.rank.RankManager rankManager;
+    private com.spacerng.solrng.boss.BossManager bossManager;
+
+    /** The boss event: what is up, who has hurt it, what it pays. */
+    public com.spacerng.solrng.boss.BossManager getBossManager() {
+        return bossManager;
+    }
 
     /** Ranks, their multipliers and what they unlock. */
     public com.spacerng.solrng.rank.RankManager getRankManager() {

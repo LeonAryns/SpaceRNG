@@ -579,4 +579,64 @@ final class WorldAdmin extends AdminTools {
         }
         return true;
     }
+
+    /**
+     * The boss event: where it stands, and starting or ending one by hand.
+     *
+     * The spot is a world name plus coordinates in boss.yml rather than a
+     * resolved Location, so a Multiverse world that loads after the plugin
+     * is still found when a boss actually starts.
+     */
+    boolean doBoss(CommandSender sender, String[] args) {
+        var boss = plugin.getBossManager();
+        String action = args.length >= 2 ? args[1].toLowerCase(Locale.ROOT) : "";
+        switch (action) {
+            case "here" -> {
+                if (!(sender instanceof Player player)) {
+                    sender.sendMessage(ChatColor.RED + "Stand where the boss should appear.");
+                    return true;
+                }
+                boss.setSpot(player.getLocation());
+                sender.sendMessage(ChatColor.GREEN + "Boss spot set. The next boss stands here.");
+            }
+            case "start" -> {
+                if (boss.isActive()) {
+                    sender.sendMessage(ChatColor.RED + "A boss is already up. End it with /rngadmin boss stop.");
+                    return true;
+                }
+                String id = args.length >= 3 ? args[2].toLowerCase(Locale.ROOT) : "";
+                com.spacerng.solrng.boss.BossType type = boss.getTypes().get(id);
+                if (type == null) {
+                    sender.sendMessage(ChatColor.RED + "Unknown boss. Types: "
+                            + String.join(", ", boss.getTypes().keySet()));
+                    return true;
+                }
+                if (!boss.spawn(type)) {
+                    sender.sendMessage(ChatColor.RED + "No spot set and no spawn either. Run /rngadmin boss here.");
+                    return true;
+                }
+                sender.sendMessage(ChatColor.GREEN + "Started " + type.display() + ".");
+            }
+            case "stop" -> {
+                if (!boss.cancel()) {
+                    sender.sendMessage(ChatColor.RED + "No boss is up.");
+                    return true;
+                }
+                sender.sendMessage(ChatColor.GREEN + "Boss ended. Nobody was paid.");
+            }
+            default -> {
+                sender.sendMessage(ChatColor.YELLOW + "/rngadmin boss here"
+                        + ChatColor.GRAY + " - put the boss where you stand");
+                sender.sendMessage(ChatColor.YELLOW + "/rngadmin boss start <type>"
+                        + ChatColor.GRAY + " - start one now");
+                sender.sendMessage(ChatColor.YELLOW + "/rngadmin boss stop"
+                        + ChatColor.GRAY + " - end the one that is up");
+                sender.sendMessage(ChatColor.DARK_GRAY + "Types: "
+                        + String.join(", ", boss.getTypes().keySet()));
+                sender.sendMessage(ChatColor.DARK_GRAY + (boss.hasSpot()
+                        ? "A spot is set." : "No spot set, the server spawn is used."));
+            }
+        }
+        return true;
+    }
 }

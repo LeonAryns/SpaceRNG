@@ -610,6 +610,9 @@ public class FarmPlotManager {
             // have to be remembered as they happen.
             data.trackCoins(tokens);
             lastCropTokens = tokens;
+            // A boss takes the same number as damage, so a better hoe hits
+            // harder without the event needing a stat of its own.
+            plugin.getBossManager().onHarvest(player, tokens);
         }
         if (shards > 0) data.addShards(shards);
         data.addCropsHarvested(1L);

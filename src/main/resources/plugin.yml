@@ -130,6 +130,9 @@ commands:
   size:
     description: Change how big you are, for the top rank
     usage: /size <0.5 to 1.5|reset>
+  boss:
+    description: See the boss that is up and who is hurting it
+    usage: /boss
   rngadmin:
     description: Admin tools for SpaceRNG
     usage: /rngadmin <subcommand>, or /rngadmin alone for the full list

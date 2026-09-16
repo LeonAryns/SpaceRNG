@@ -642,6 +642,10 @@ public class RollListener implements Listener {
         // still hand over a plain drop, or the other way round.
         grantRoll(player, data, result, false, shiny, auto);
 
+        // A live boss takes the rarity's damage from the same landing, so
+        // rolling counts towards the event exactly like farming does.
+        plugin.getBossManager().onRoll(player, result.getRarity());
+
         // Server First 10 hangs off the real roll path only, so an admin
         // roll can never take a spot. The event waits for the reveal.
         plugin.getFirstTenManager().onRoll(player, result, shiny,

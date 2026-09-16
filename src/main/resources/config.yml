@@ -5579,3 +5579,91 @@ auras:
     DIVINE:
       concept: atom-grand
       accent: all
+
+# =====================================================================
+# Bosses
+#
+# A boss is a server event, not a mob. It stands over the spot picked
+# with /rngadmin boss here (the server spawn when none is set) and loses
+# health to what everybody is already doing: a harvested crop takes off
+# the Coins it paid, a landed roll takes off its rarity below. Nobody
+# hits it, so a better hoe and a rarer drop are the whole skill curve.
+#
+# Damage is remembered per player for the fight. When the boss falls,
+# everyone past min-share-percent gets the base reward and the top three
+# get their own entry instead of it. Only players still online are paid.
+# A boss that runs out of time leaves and pays nobody.
+# =====================================================================
+boss:
+  enabled: true
+  # Minutes between bosses. 0 turns the timer off and leaves them to
+  # /rngadmin boss start.
+  every-minutes: 180
+  # The timer waits rather than burning a boss on an empty server.
+  min-players: 2
+  # The share of total health you need for the base reward, in percent.
+  min-share-percent: 1.0
+  # Damage per Coin a crop paid. 1.0 means a 900 Coin crop hits for 900.
+  harvest-damage-per-coin: 1.0
+  # What one landed roll takes off. Roughly a few seconds of farming for
+  # a Common, a real contribution for a Legendary and up.
+  roll-damage:
+    COMMON: 500
+    UNCOMMON: 1500
+    RARE: 5000
+    EPIC: 25000
+    LEGENDARY: 100000
+    MYTHICAL: 250000
+    DIVINE: 600000
+  types:
+    comet_hound:
+      display: "Comet Hound"
+      colors: ["#7DD3FC", "#38BDF8"]
+      icon: PRISMARINE_SHARD
+      health: 400000
+      weight: 50
+      duration-minutes: 10
+      rewards:
+        credits: 5
+        perk-tickets: 1
+        coins: 50000
+        crate: vote
+        keys: 1
+        top:
+          - { credits: 20, perk-tickets: 3, coins: 250000, crate: nebula, keys: 1 }
+          - { credits: 12, perk-tickets: 2, coins: 150000, crate: vote, keys: 2 }
+          - { credits: 8, perk-tickets: 1, coins: 100000, crate: vote, keys: 1 }
+    void_colossus:
+      display: "Void Colossus"
+      colors: ["#C77DFF", "#7C3AED"]
+      icon: CRYING_OBSIDIAN
+      health: 1500000
+      weight: 35
+      duration-minutes: 15
+      rewards:
+        credits: 10
+        perk-tickets: 2
+        coins: 150000
+        crate: vote
+        keys: 2
+        top:
+          - { credits: 40, perk-tickets: 5, coins: 750000, crate: nebula, keys: 2 }
+          - { credits: 25, perk-tickets: 3, coins: 500000, crate: nebula, keys: 1 }
+          - { credits: 15, perk-tickets: 2, coins: 300000, crate: vote, keys: 2 }
+    solar_wyrm:
+      display: "Solar Wyrm"
+      colors: ["#FFD54F", "#FF8F00"]
+      icon: MAGMA_BLOCK
+      health: 4000000
+      weight: 15
+      duration-minutes: 20
+      rewards:
+        credits: 20
+        perk-tickets: 3
+        coins: 400000
+        crate: nebula
+        keys: 1
+        top:
+          - { credits: 80, perk-tickets: 8, coins: 2000000, crate: cosmic, keys: 1 }
+          - { credits: 50, perk-tickets: 5, coins: 1200000, crate: nebula, keys: 2 }
+          - { credits: 30, perk-tickets: 3, coins: 800000, crate: nebula, keys: 1 }

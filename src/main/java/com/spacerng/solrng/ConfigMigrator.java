@@ -61,7 +61,9 @@ public final class ConfigMigrator {
             // V137: ranks.
             "ranks",
             // V138: what one Credit Finder proc pays.
-            "farming.procs.credit-finder-amount");
+            "farming.procs.credit-finder-amount",
+            // V140: the boss event.
+            "boss");
 
     private record Patch(String id, String path, Object oldDefault, Object newDefault) {
     }

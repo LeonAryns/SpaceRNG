@@ -59,6 +59,9 @@ public class JoinQuitListener implements Listener {
 
         plugin.getScoreboardManager().setup(event.getPlayer());
         plugin.getLuckBarManager().show(event.getPlayer());
+        // Somebody joining mid-fight gets the boss bar straight away,
+        // otherwise the event is invisible until they open /boss.
+        plugin.getBossManager().showBar(event.getPlayer());
         plugin.getQuestManager().check(event.getPlayer());
         plugin.getFarmPlotManager().render(event.getPlayer());
         plugin.getAuraManager().refreshVisibility(event.getPlayer());
@@ -75,6 +78,7 @@ public class JoinQuitListener implements Listener {
         plugin.getFarmPlotManager().forgetGolden(event.getPlayer().getUniqueId());
         plugin.getWelcomeManager().forget(event.getPlayer().getUniqueId());
         plugin.getLuckBarManager().hide(event.getPlayer().getUniqueId());
+        plugin.getBossManager().hideBar(event.getPlayer().getUniqueId());
         plugin.getQuestManager().hide(event.getPlayer().getUniqueId());
         plugin.getPlayerDataManager().unload(event.getPlayer().getUniqueId());
     }

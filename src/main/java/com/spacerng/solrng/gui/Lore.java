@@ -349,6 +349,24 @@ public final class Lore {
         return out.append(ChatColor.DARK_GRAY).append("]").toString();
     }
 
+    /**
+     * The same bar filled in one colour of the caller's choosing.
+     *
+     * A meter that belongs to something with its own colour, a boss's
+     * health, should read as that thing rather than as the generic
+     * red-to-green ramp, which means the opposite here anyway: a full
+     * health bar is good news and the ramp would paint it green only
+     * once the boss is nearly dead.
+     */
+    public static String bar(String hex, double fraction) {
+        int filled = (int) Math.round(Math.max(0.0, Math.min(1.0, fraction)) * BAR_LENGTH);
+        StringBuilder out = new StringBuilder(ChatColor.DARK_GRAY + "[");
+        for (int i = 0; i < BAR_LENGTH; i++) {
+            out.append(i < filled ? of(hex) : ChatColor.DARK_GRAY.toString()).append(BAR_FULL);
+        }
+        return out.append(ChatColor.DARK_GRAY).append("]").toString();
+    }
+
     private static ChatColor rampColour(double t) {
         if (t < 0.25) return ChatColor.RED;
         if (t < 0.45) return ChatColor.GOLD;
