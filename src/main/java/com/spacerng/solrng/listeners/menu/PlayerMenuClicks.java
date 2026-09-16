@@ -171,6 +171,37 @@ final class PlayerMenuClicks {
         player.openInventory(CropsGui.build(plugin, player));
     }
 
+    /** /aura: pick a look, or go back to following the tag. */
+    void handleAuraClick(InventoryClickEvent event) {
+        event.setCancelled(true);
+        if (event.getClickedInventory() == null
+                || !(event.getClickedInventory().getHolder()
+                        instanceof com.spacerng.solrng.gui.AuraHolder)) return;
+        Player player = (Player) event.getWhoClicked();
+        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+        String choice = com.spacerng.solrng.gui.AuraGui.clickedChoice(event.getCurrentItem());
+        if (choice == null) return;
+
+        if (plugin.getRankManager().rankOf(data) == null
+                && plugin.getConfig().getBoolean("auras.require-linked", true)) {
+            player.sendMessage(ChatColor.RED + "Auras need a linked Discord. Use /discord link.");
+            player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
+            return;
+        }
+        if (!choice.isEmpty() && !plugin.getAuraManager().owns(data, choice)) {
+            player.sendMessage(ChatColor.RED + "You have not found that one yet.");
+            player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
+            return;
+        }
+        // Clicking the one already worn puts it back to following the tag.
+        String wanted = choice.equalsIgnoreCase(data.getAuraChoice()) ? "" : choice;
+        data.setAuraChoice(wanted);
+        plugin.getAuraManager().hide(player.getUniqueId());
+        plugin.getAuraManager().applyTag(player);
+        player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_BEACON_ACTIVATE, 0.5f, 1.4f);
+        player.openInventory(com.spacerng.solrng.gui.AuraGui.build(plugin, player));
+    }
+
     void handleHoeClick(InventoryClickEvent event) {
         event.setCancelled(true);
         if (event.getClickedInventory() == null

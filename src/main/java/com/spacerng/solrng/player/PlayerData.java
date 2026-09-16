@@ -1136,6 +1136,61 @@ public class PlayerData {
 
     // -------------------------------------------------------------- perks
 
+    // The aura picked in /aura, as "RARITY" or "RARITY:shiny". Empty or
+    // null means follow whatever tag is equipped.
+    private String auraChoice;
+
+    public String getAuraChoice() {
+        return auraChoice;
+    }
+
+    public void setAuraChoice(String auraChoice) {
+        this.auraChoice = auraChoice;
+    }
+
+    // ------------------------------------------------------------- ranks
+
+    // The rank bought with Credits. Linked comes from the Discord link
+    // instead, so it is never stored here.
+    private String rank;
+    // When this player last started a key all, for the cooldown.
+    private long keyallAt = 0L;
+    // The name a rank with /nick set, and the size a rank with /size set.
+    private String nick;
+    private double playerSize = 1.0;
+
+    public String getRank() {
+        return rank;
+    }
+
+    public void setRank(String rank) {
+        this.rank = rank;
+    }
+
+    public long getKeyallAt() {
+        return keyallAt;
+    }
+
+    public void setKeyallAt(long keyallAt) {
+        this.keyallAt = keyallAt;
+    }
+
+    public String getNick() {
+        return nick;
+    }
+
+    public void setNick(String nick) {
+        this.nick = nick;
+    }
+
+    public double getPlayerSize() {
+        return playerSize;
+    }
+
+    public void setPlayerSize(double size) {
+        this.playerSize = size;
+    }
+
     // One perk at a time, kept as its id and level. A null type means none.
     private String activePerkType;
     private int activePerkLevel = 1;

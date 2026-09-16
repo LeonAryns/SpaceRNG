@@ -169,6 +169,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         this.perkManager = new com.spacerng.solrng.perk.PerkManager(getLogger());
         this.floatingItemManager = new com.spacerng.solrng.decor.FloatingItemManager(this);
         this.linkedAccountManager = new com.spacerng.solrng.discord.LinkedAccountManager(this);
+        this.rankManager = new com.spacerng.solrng.rank.RankManager(this);
 
         reloadAll();
 
@@ -213,6 +214,12 @@ public final class SolRNGPlugin extends JavaPlugin {
         getCommand("linked").setExecutor(new com.spacerng.solrng.commands.LinkedCommand(this));
         getCommand("potion").setExecutor(new com.spacerng.solrng.commands.PotionCommand(this));
         getCommand("shop").setExecutor(new com.spacerng.solrng.commands.ShopCommand(this));
+        getCommand("ranks").setExecutor(new com.spacerng.solrng.commands.RanksCommand(this));
+        getCommand("aura").setExecutor(new com.spacerng.solrng.commands.AuraCommand(this));
+        getCommand("keyall").setExecutor(new com.spacerng.solrng.commands.KeyAllCommand(this));
+        getCommand("fly").setExecutor(new com.spacerng.solrng.commands.FlyCommand(this));
+        getCommand("nick").setExecutor(new com.spacerng.solrng.commands.NickCommand(this));
+        getCommand("size").setExecutor(new com.spacerng.solrng.commands.SizeCommand(this));
         getCommand("stash").setExecutor(new com.spacerng.solrng.commands.StashCommand(this));
         getCommand("leaderboards").setExecutor(
                 new com.spacerng.solrng.commands.LeaderboardsCommand(this));
@@ -232,6 +239,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         auraManager.start();
         floatingItemManager.start();
         linkedAccountManager.start();
+        rankManager.start();
 
         getLogger().info("SpaceRNG enabled.");
     }
@@ -249,6 +257,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         if (auraManager != null) auraManager.stop();
         if (floatingItemManager != null) floatingItemManager.stop();
         if (linkedAccountManager != null) linkedAccountManager.stop();
+        if (rankManager != null) rankManager.stop();
         if (momentumBar != null) momentumBar.removeAll();
         if (playerDataManager != null) {
             playerDataManager.saveAll();
@@ -330,6 +339,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         perkManager.load(getConfig());
         floatingItemManager.load(getConfig());
         linkedAccountManager.load(getConfig());
+        rankManager.load(getConfig());
     }
 
     /**
@@ -433,6 +443,12 @@ public final class SolRNGPlugin extends JavaPlugin {
     }
 
     private com.spacerng.solrng.player.FoundCounts foundCounts;
+    private com.spacerng.solrng.rank.RankManager rankManager;
+
+    /** Ranks, their multipliers and what they unlock. */
+    public com.spacerng.solrng.rank.RankManager getRankManager() {
+        return rankManager;
+    }
 
     /** How many players have found each drop, for /index. */
     public com.spacerng.solrng.player.FoundCounts getFoundCounts() {

@@ -40,6 +40,11 @@ public class JoinQuitListener implements Listener {
 
         // Rebuilds the equipped-tag team prefix (empty if none equipped).
         plugin.getTagManager().refreshPrefix(event.getPlayer(), data);
+        // The rank name in tab, and the size a /size rank picked, come back on join.
+        plugin.getRankManager().refreshName(event.getPlayer());
+        if (Math.abs(data.getPlayerSize() - 1.0) > 0.01) {
+            com.spacerng.solrng.commands.SizeCommand.apply(plugin, event.getPlayer(), data.getPlayerSize());
+        }
 
         if (data.getEquippedTagItemKey() != null && data.getEquippedTagRarity() != null) {
             reattachHologram(event.getPlayer(), data);

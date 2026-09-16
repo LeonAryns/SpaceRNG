@@ -130,6 +130,8 @@ public final class StatSources {
         // A perk's 1.5x Luck is a multiplier; two perks' bonuses add before it multiplies.
         parts.add(new Part("Perks", "Equip perks in /perks",
                 1.0 + plugin.getPerkManager().totalOf(data, PerkStat.LUCK_PERCENT), Op.MULTIPLY));
+        parts.add(new Part("Rank", "Buy a rank in /ranks",
+                plugin.getRankManager().multiplierOf(data), Op.MULTIPLY));
 
         parts.add(new Part("Server boost", "Active for everyone, from /boosts",
                 plugin.getBoostManager().multiplier(), Op.MULTIPLY));
@@ -180,6 +182,8 @@ public final class StatSources {
                 Op.ADD));
         parts.add(new Part("Perks", "Equip perks in /perks",
                 1.0 + plugin.getPerkManager().totalOf(data, PerkStat.ROLL_SPEED_FLAT), Op.MULTIPLY));
+        parts.add(new Part("Rank", "Buy a rank in /ranks",
+                plugin.getRankManager().multiplierOf(data), Op.MULTIPLY));
         parts.add(new Part("Ability", "Shift-right-click a late Starforge",
                 data.boostMultiplier("SPEED"), Op.MULTIPLY));
 
@@ -213,6 +217,8 @@ public final class StatSources {
         parts.add(new Part("Linked account", "Link with /discord link",
                 1.0 + plugin.getLinkedAccountManager().bonusFor(data.getUuid(), PerkStat.MONEY_PERCENT),
                 Op.MULTIPLY));
+        parts.add(new Part("Rank", "Buy a rank in /ranks",
+                plugin.getRankManager().multiplierOf(data), Op.MULTIPLY));
 
         return new Stat(Id.MONEY, "Money",
                 "What rolling pays. Rarer drops pay more of it.",

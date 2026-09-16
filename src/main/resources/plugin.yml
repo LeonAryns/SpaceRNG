@@ -95,8 +95,8 @@ commands:
     usage: /boosts
     aliases: [effects]
   perks:
-    description: Roll perks with drops, and equip a loadout
-    usage: /perks [vault]
+    description: Roll a perk with Perk Tickets
+    usage: /perks [index]
     aliases: [perk, perkroll]
   linked:
     description: See your Discord link status and its bonuses
@@ -105,6 +105,27 @@ commands:
   stash:
     description: Collect items that didn't fit in your inventory
     usage: /stash
+  aura:
+    description: Pick which aura you wear
+    usage: /aura
+    aliases: [auras]
+  ranks:
+    description: See the rank ladder and buy a rank with Credits
+    usage: /ranks
+    aliases: [rank]
+  keyall:
+    description: Give every online player keys, once every cooldown
+    usage: /keyall
+  fly:
+    description: Toggle flight, for the ranks that carry it
+    usage: /fly
+  nick:
+    description: Set the name shown in tab and chat
+    usage: /nick <name|off>
+    aliases: [nickname]
+  size:
+    description: Change how big you are, for the top rank
+    usage: /size <0.5 to 1.5|reset>
   rngadmin:
     description: Admin tools for SpaceRNG
     usage: /rngadmin <subcommand>, or /rngadmin alone for the full list

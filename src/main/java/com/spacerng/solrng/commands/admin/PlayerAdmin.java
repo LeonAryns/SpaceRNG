@@ -187,6 +187,54 @@ final class PlayerAdmin extends AdminTools {
     }
 
     /**
+     * /rngadmin rank set <rank> [player] and /rngadmin rank clear [player].
+     *
+     * This is what a web store calls after a purchase, so it works from the
+     * console and says plainly what it did.
+     */
+    boolean doRank(CommandSender sender, String[] args) {
+        var ranks = plugin.getRankManager();
+        List<String> ids = new ArrayList<>();
+        for (var tier : ranks.tiers()) ids.add(tier.id());
+        if (args.length < 2) {
+            sender.sendMessage(ChatColor.RED + "Usage: /rngadmin rank <set|clear> [rank] [player]");
+            sender.sendMessage(ChatColor.DARK_GRAY + "Ranks: " + String.join(", ", ids));
+            return true;
+        }
+        String action = args[1].toLowerCase(Locale.ROOT);
+        if (action.equals("clear")) {
+            Player target = resolve(sender, args.length >= 3 ? args[2] : null);
+            if (target == null) return true;
+            PlayerData data = plugin.getPlayerDataManager().get(target.getUniqueId());
+            data.setRank(null);
+            ranks.refreshName(target);
+            plugin.getScoreboardManager().update(target);
+            target.sendMessage(ChatColor.GRAY + "Your bought rank was cleared.");
+            sender.sendMessage(ChatColor.GREEN + "Cleared the rank of " + target.getName() + ".");
+            return true;
+        }
+        if (!action.equals("set") || args.length < 3) {
+            sender.sendMessage(ChatColor.RED + "Usage: /rngadmin rank <set|clear> [rank] [player]");
+            return true;
+        }
+        var tier = ranks.tier(args[2]);
+        if (tier == null) {
+            sender.sendMessage(ChatColor.RED + "Unknown rank. Use: " + String.join(", ", ids));
+            return true;
+        }
+        Player target = resolve(sender, args.length >= 4 ? args[3] : null);
+        if (target == null) return true;
+        PlayerData data = plugin.getPlayerDataManager().get(target.getUniqueId());
+        data.setRank(tier.id());
+        ranks.refreshName(target);
+        plugin.getScoreboardManager().update(target);
+        plugin.getLuckBarManager().update(target);
+        target.sendMessage(ChatColor.GREEN + "You are now " + ranks.styled(tier) + ChatColor.GREEN + ".");
+        sender.sendMessage(ChatColor.GREEN + "Set " + target.getName() + " to " + tier.display() + ".");
+        return true;
+    }
+
+    /**
      * /rngadmin drops - real items in the inventory.
      * /rngadmin bank  - stored drops in the /convert bank.
      */

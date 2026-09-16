@@ -51,8 +51,9 @@ public final class AuraParts {
      * RGB colour, which is what gives every rarity its own aura colour.
      */
     public TextDisplay text(Player player, String text, Color color, Transformation pose) {
+        Transformation scaled = withPlayerSize(player, pose);
         return player.getWorld().spawn(level(player), TextDisplay.class, display -> {
-            common(display, pose);
+            common(display, scaled);
             display.setBillboard(Display.Billboard.FIXED);
             display.setBackgroundColor(Color.fromARGB(0, 0, 0, 0));
             display.setShadowed(false);
@@ -65,8 +66,9 @@ public final class AuraParts {
 
     /** A fullbright item or block model, centred on its own origin so it can tumble in place. */
     public ItemDisplay item(Player player, Material material, Transformation pose) {
+        Transformation scaled = withPlayerSize(player, pose);
         return player.getWorld().spawn(level(player), ItemDisplay.class, display -> {
-            common(display, pose);
+            common(display, scaled);
             display.setItemStack(new ItemStack(material));
             display.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
         });
@@ -84,6 +86,23 @@ public final class AuraParts {
      * pitch of where it spawns, and an aura put on while looking down would
      * otherwise hang tilted for as long as it was worn.
      */
+    /**
+     * The same pose scaled to the player wearing it, so a /size player wears
+     * an aura that grows and shrinks with them. A passenger already rides
+     * higher on a bigger player, so only the piece itself needs scaling.
+     */
+    private static Transformation withPlayerSize(Player player, Transformation pose) {
+        var attribute = player.getAttribute(org.bukkit.attribute.Attribute.SCALE);
+        double size = attribute == null ? 1.0 : attribute.getValue();
+        if (Math.abs(size - 1.0) < 0.01) return pose;
+        float factor = (float) size;
+        return new Transformation(
+                new Vector3f(pose.getTranslation()).mul(factor),
+                pose.getLeftRotation(),
+                new Vector3f(pose.getScale()).mul(factor),
+                pose.getRightRotation());
+    }
+
     private static Location level(Player player) {
         Location at = player.getLocation();
         at.setYaw(0f);

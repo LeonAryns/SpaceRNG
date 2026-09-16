@@ -5436,6 +5436,80 @@ perks:
         ENCHANT_PROC_PERCENT: [0.30, 1.50]
         LUCK_PERCENT: [0.25, 1.25]
 
+
+# Ranks. Linked comes free with a Discord link; Comet, Nova and Supernova
+# are bought with Credits in /ranks, or granted from the store with
+#   rngadmin rank set <rank> <player>
+# A rank multiplies Money, Luck and Speed, opens private vault pages, and
+# unlocks commands. Switch a command off below when another plugin already
+# has it. The order of tiers is the ladder.
+ranks:
+  enabled: true
+  keyall-cooldown-hours: 8
+  commands:
+    fly: true
+    nick: true
+    size: true
+  size:
+    min: 0.5
+    max: 1.5
+  tiers:
+    linked:
+      display: "Linked"
+      colors: ["#7289DA", "#B9BBBE"]
+      tag: "✔"
+      icon: NAME_TAG
+      price-credits: 0
+      multiplier: 1.0
+      keyall-crate: ""
+      keyall-amount: 0
+      vault-pages: 1
+      fly: false
+      nick: false
+      size: false
+      rgb-name: false
+    comet:
+      display: "Comet"
+      colors: ["#81D4FA", "#0288D1"]
+      tag: "★"
+      icon: FIREWORK_ROCKET
+      price-credits: 1000
+      multiplier: 1.2
+      keyall-crate: vote
+      keyall-amount: 1
+      vault-pages: 3
+      fly: false
+      nick: false
+      size: false
+      rgb-name: false
+    nova:
+      display: "Nova"
+      colors: ["#FFE082", "#FF8F00"]
+      tag: "✦"
+      icon: BLAZE_POWDER
+      price-credits: 2500
+      multiplier: 1.5
+      keyall-crate: nebula
+      keyall-amount: 1
+      vault-pages: 5
+      fly: true
+      nick: true
+      size: false
+      rgb-name: false
+    supernova:
+      display: "Supernova"
+      colors: ["#E1BEE7", "#7C4DFF", "#40C4FF"]
+      tag: "⚡"
+      icon: NETHER_STAR
+      price-credits: 4500
+      multiplier: 2.0
+      keyall-crate: nebula
+      keyall-amount: 3
+      vault-pages: 8
+      fly: true
+      nick: true
+      size: true
+      rgb-name: true
 # Rolls of this rarity or higher get broadcast to the whole server.
 broadcast:
   min-rarity-to-broadcast: EPIC
@@ -5465,6 +5539,23 @@ first-ten:
 auras:
   enabled: true
   farm-pause-radius: 10
+  # Auras are a Linked perk: no Discord link, no aura.
+  require-linked: true
+  # The shiny look of a rarity, unlocked by rolling a shiny of it and worn
+  # from /aura. Leave a concept out to have no shiny look for that rarity.
+  shiny:
+    EPIC:
+      concept: helix
+      accent: sparkle
+    LEGENDARY:
+      concept: nova-grand
+      accent: sparkle
+    MYTHICAL:
+      concept: titan
+      accent: enchant
+    DIVINE:
+      concept: supernova
+      accent: all
   # The heavy looks (singularity, titan, supernova) cost about a hundred
   # updates a second for each player watching. Only max-nearby of them run
   # within radius blocks of each other; whoever put one on later wears the

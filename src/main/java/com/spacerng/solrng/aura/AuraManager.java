@@ -133,9 +133,26 @@ public final class AuraManager {
         Worn current = worn.get(player.getUniqueId());
         if (current != null && current.test) return;
 
+        com.spacerng.solrng.player.PlayerData data =
+                plugin.getPlayerDataManager().get(player.getUniqueId());
+        // Auras are a Linked perk: no Discord link, no aura.
+        if (plugin.getConfig().getBoolean("auras.require-linked", true)
+                && plugin.getRankManager().rankOf(data) == null) {
+            hide(player.getUniqueId());
+            return;
+        }
         Rarity rarity = tagRarity(player);
         String[] look = rarity == null || !plugin.getConfig().getBoolean("auras.enabled", true)
                 ? null : lookFor(rarity);
+        // A look picked in /aura wins over the one the tag would give.
+        String choice = data.getAuraChoice();
+        if (choice != null && !choice.isEmpty() && owns(data, choice)) {
+            Rarity chosen = rarityOf(choice);
+            if (chosen != null) {
+                rarity = chosen;
+                look = choice.endsWith(":shiny") ? shinyLookFor(chosen) : lookFor(chosen);
+            }
+        }
         if (look == null) {
             hide(player.getUniqueId());
             return;
@@ -148,6 +165,38 @@ public final class AuraManager {
         if (!wear(player, look[0], rarity, accent, false)) {
             plugin.getLogger().warning("auras.tag." + rarity.name() + " names an unknown concept: " + look[0]);
         }
+    }
+
+    /** The rarity part of an /aura choice, or null when it does not parse. */
+    public static Rarity rarityOf(String choice) {
+        if (choice == null || choice.isEmpty()) return null;
+        try {
+            return Rarity.valueOf(choice.split(":")[0].toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException ex) {
+            return null;
+        }
+    }
+
+    /**
+     * Whether a player has earned an /aura choice: the plain one comes with
+     * finding any drop of that rarity, the shiny one with finding a shiny of
+     * it.
+     */
+    public boolean owns(com.spacerng.solrng.player.PlayerData data, String choice) {
+        Rarity rarity = rarityOf(choice);
+        if (rarity == null) return false;
+        boolean shiny = choice.endsWith(":shiny");
+        if (shiny && shinyLookFor(rarity) == null) return false;
+        if (!shiny && lookFor(rarity) == null) return false;
+        return plugin.getRarityManager().foundIn(data, rarity, shiny) > 0;
+    }
+
+    /** The shiny look for a rarity, from auras.shiny in config. Null means there is none. */
+    public String[] shinyLookFor(Rarity rarity) {
+        String path = "auras.shiny." + rarity.name();
+        String concept = plugin.getConfig().getString(path + ".concept");
+        if (concept == null || concept.equalsIgnoreCase("none")) return null;
+        return new String[]{concept.toLowerCase(Locale.ROOT), plugin.getConfig().getString(path + ".accent", "sparkle")};
     }
 
     /** The tag came off: take its aura off too, unless a test aura is being worn. */
@@ -189,7 +238,7 @@ public final class AuraManager {
     }
 
     /** Concept and accent for a tag rarity, from config with the defaults underneath. Null means no aura. */
-    private String[] lookFor(Rarity rarity) {
+    public String[] lookFor(Rarity rarity) {
         String path = "auras.tag." + rarity.name();
         String[] fallback = DEFAULT_TAG_AURAS.get(rarity);
         String concept = plugin.getConfig().getString(path + ".concept", fallback == null ? null : fallback[0]);

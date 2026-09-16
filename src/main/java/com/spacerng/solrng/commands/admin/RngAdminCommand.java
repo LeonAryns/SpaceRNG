@@ -38,7 +38,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
 
     private static final List<String> SUBCOMMANDS = List.of(
             "reload", "setspawn", "starforge", "reset", "give", "drops",
-            "bank", "aura", "roll", "unlock", "unlockall", "lockall", "odds", "farmblock", "farmscan",
+            "bank", "rank", "aura", "roll", "unlock", "unlockall", "lockall", "odds", "farmblock", "farmscan",
             "hoe", "consumable", "gradient", "welcome", "crops", "farmclear",
             "milestones", "farmfill", "boost", "nova", "placeholders", "payout", "crate", "tophead", "floatingitem", "shiny", "firsts", "lorestyles", "tagstyles", "menustyles", "hoestyles", "standingstyles", "enchantstyles", "novastyles", "auratest", "holo", "help");
     private static final List<String> CURRENCIES = List.of("money", "coins", "gems", "credits", "luck", "speed", "tickets");
@@ -72,6 +72,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             case "starforge" -> players.doStarforge(sender, args);
             case "reset" -> players.doReset(sender, args);
             case "give" -> players.doGive(sender, args);
+            case "rank" -> players.doRank(sender, args);
             case "drops" -> players.doDrops(sender, args, false);
             case "bank" -> players.doDrops(sender, args, true);
             case "aura" -> showcase.doAura(sender, args);
@@ -125,6 +126,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         line(sender, "reset", "<player> confirm", "Wipe a player back to a brand-new account");
         line(sender, "give", "<money|coins|gems|credits|luck|speed> <amount> [player]",
                 "Top up a currency, or add permanent Luck or Speed in percent");
+        line(sender, "rank", "<set|clear> [rank] [player]", "Grant or clear a rank, for store purchases");
         line(sender, "drops", "<rarity|all> <amount> [player]", "Physical rolled drops in the inventory");
         line(sender, "bank", "<rarity|all> <amount> [player]", "Stored drops (the /convert bank)");
         line(sender, "aura", "<epic|legendary|mythical|divine> [player]", "Replay the full reveal build-up + burst");
@@ -239,6 +241,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         if (args.length == 2) {
             return switch (sub) {
                 case "give" -> partial(args[1], CURRENCIES);
+                case "rank" -> partial(args[1], List.of("set", "clear"));
                 case "drops", "bank" -> partial(args[1], withAll(rarityNames()));
                 case "aura" -> partial(args[1], List.of("epic", "legendary", "mythical", "divine"));
                 case "shiny" -> partial(args[1], playerNames());

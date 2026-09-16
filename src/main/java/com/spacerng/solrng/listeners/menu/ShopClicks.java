@@ -187,6 +187,40 @@ final class ShopClicks {
         player.openInventory(com.spacerng.solrng.gui.PerkIndexGui.build(plugin, player));
     }
 
+    /** /ranks: buy the clicked rank with Credits. */
+    void handleRanksClick(InventoryClickEvent event) {
+        event.setCancelled(true);
+        if (event.getClickedInventory() == null
+                || !(event.getClickedInventory().getHolder()
+                        instanceof com.spacerng.solrng.gui.RanksHolder)) return;
+        Player player = (Player) event.getWhoClicked();
+        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+        String id = com.spacerng.solrng.gui.RanksGui.clickedRank(event.getCurrentItem());
+        if (id == null) return;
+        var ranks = plugin.getRankManager();
+        var tier = ranks.tier(id);
+        if (tier == null) return;
+        var current = ranks.rankOf(data);
+        if (current != null && ranks.indexOf(current) >= ranks.indexOf(tier)) {
+            player.sendMessage(ChatColor.GRAY + "You already have that rank or better.");
+            return;
+        }
+        if (tier.price() <= 0) {
+            player.sendMessage(ChatColor.GRAY + "Linked is free: use " + ChatColor.YELLOW + "/discord link"
+                    + ChatColor.GRAY + ".");
+            return;
+        }
+        if (!ranks.buy(player, data, tier)) {
+            player.sendMessage(ChatColor.RED + "You need " + Currency.CREDITS.amount(tier.price())
+                    + ChatColor.RED + " for that rank.");
+            player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
+            return;
+        }
+        plugin.getScoreboardManager().update(player);
+        plugin.getLuckBarManager().update(player);
+        player.openInventory(com.spacerng.solrng.gui.RanksGui.build(plugin, player));
+    }
+
     void handleBuyClick(InventoryClickEvent event) {
         event.setCancelled(true);
         if (event.getClickedInventory() == null

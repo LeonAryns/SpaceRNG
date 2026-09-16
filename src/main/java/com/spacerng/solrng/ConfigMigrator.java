@@ -57,7 +57,9 @@ public final class ConfigMigrator {
             // V132: a Vote and a Nebula crate, with their keys.
             "crates.types.vote", "crates.types.nebula", "consumables.vote_key", "consumables.nebula_key",
             // V135: Credits on some milestone tiers.
-            "milestones.credit-rewards");
+            "milestones.credit-rewards",
+            // V137: ranks.
+            "ranks");
 
     private record Patch(String id, String path, Object oldDefault, Object newDefault) {
     }

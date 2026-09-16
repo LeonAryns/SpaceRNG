@@ -236,6 +236,11 @@ public class PlayerDataManager {
         }
         data.setPerkTickets(yml.getLong("perk-tickets", 0L));
         data.setPerkPity(yml.getInt("perk-pity", 0));
+        data.setRank(yml.getString("rank"));
+        data.setAuraChoice(yml.getString("aura-choice"));
+        data.setKeyallAt(yml.getLong("keyall-at", 0L));
+        data.setNick(yml.getString("nick"));
+        data.setPlayerSize(yml.getDouble("player-size", 1.0));
         data.getPerkConfirm().addAll(yml.getStringList("perk-confirm"));
         data.getPerkFound().addAll(yml.getStringList("perk-found"));
         // Before V136 perks sat in a vault. Converted once: the best one becomes the
@@ -404,6 +409,11 @@ public class PlayerDataManager {
         // Always written, even empty, so the vault conversion on load only ever runs once.
         yml.set("perk-active", data.getActivePerkType() == null ? ""
                 : data.getActivePerkType() + ":" + data.getActivePerkLevel());
+        yml.set("rank", data.getRank());
+        yml.set("aura-choice", data.getAuraChoice());
+        yml.set("keyall-at", data.getKeyallAt());
+        yml.set("nick", data.getNick());
+        yml.set("player-size", data.getPlayerSize());
         yml.set("perk-tickets", data.getPerkTickets());
         yml.set("perk-pity", data.getPerkPity());
         yml.set("perk-confirm", new java.util.ArrayList<>(data.getPerkConfirm()));
