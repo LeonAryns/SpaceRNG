@@ -6,6 +6,17 @@ GitHub Actions on every push. The Java package is still
 so items already in players' inventories keep working (see
 `SolRNGPlugin.key`).
 
+## Start here
+
+`STATUS.md` holds the current state: which version shipped, what has
+never been tested in game, the agreed step plan and the questions still
+open. Read it before proposing work, and update it at the end of a
+session. It is in the repo on purpose, because the conversation and the
+memory folder do not travel to another machine and it does.
+
+One subject per jar. Nothing new is started until Leon confirms the last
+thing works in game.
+
 ## How Leon works
 
 - He tests every jar in game and reports bugs and requests in long, mixed
