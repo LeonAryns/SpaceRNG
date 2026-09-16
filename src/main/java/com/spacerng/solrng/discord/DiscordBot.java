@@ -118,19 +118,25 @@ public class DiscordBot extends ListenerAdapter implements BotHooks {
                 plugin.getLogger().warning("Discord bot: DiscordSRV has no main guild, no commands registered.");
                 return;
             }
-            CommandData stats = new CommandData("stats", "Somebody's SpaceRNG stats")
-                    .addOption(OptionType.STRING, "player", "Whose stats, defaults to your own", false);
-            CommandData top = new CommandData("top", "A SpaceRNG leaderboard")
-                    .addOption(OptionType.STRING, "board", "Which board, defaults to farming", false);
-            guild.updateCommands()
-                    .addCommands(stats, top,
-                            new CommandData("online", "Who is playing right now"),
-                            new CommandData("boss", "The boss event, and when the next one is"),
-                            new CommandData("link", "How to link your Minecraft account"))
-                    .queue(ok -> plugin.getLogger().info("Discord bot: slash commands registered."),
-                            error -> plugin.getLogger().warning("Discord bot: could not register commands ("
-                                    + error.getMessage()
-                                    + "). The bot needs the applications.commands scope on its invite."));
+            List<CommandData> commands = List.of(
+                    new CommandData("stats", "Somebody's SpaceRNG stats")
+                            .addOption(OptionType.STRING, "player", "Whose stats, defaults to your own", false),
+                    new CommandData("top", "A SpaceRNG leaderboard")
+                            .addOption(OptionType.STRING, "board", "Which board, defaults to farming", false),
+                    new CommandData("online", "Who is playing right now"),
+                    new CommandData("boss", "The boss event, and when the next one is"),
+                    new CommandData("link", "How to link your Minecraft account"));
+            // Upserted one at a time rather than updateCommands(), which
+            // REPLACES the guild's whole command list: on a bot shared with
+            // anything else that registers commands, that would quietly
+            // delete theirs every time this server starts.
+            for (CommandData command : commands) {
+                guild.upsertCommand(command).queue(null,
+                        error -> plugin.getLogger().warning("Discord bot: could not register /"
+                                + command.getName() + " (" + error.getMessage()
+                                + "). The bot needs the applications.commands scope on its invite."));
+            }
+            plugin.getLogger().info("Discord bot: " + commands.size() + " slash commands sent to Discord.");
             commandsRegistered = true;
             syncAll();
         } catch (Throwable t) {
