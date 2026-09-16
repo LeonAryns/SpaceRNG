@@ -104,6 +104,10 @@ public final class ConfigMigrator {
             // V148: Leon wants the farming podium read from across the spawn.
             new Patch("podium-heads-bigger", "holograms.podium-head-scale", 1.8, 3.2),
             new Patch("podium-spacing-wider", "holograms.podium-spacing", 2.5, 4.5),
+            // V150: still too small in game, so bigger again.
+            new Patch("podium-heads-bigger-2", "holograms.podium-head-scale", 3.2, 4.5),
+            new Patch("podium-text-bigger-2", "holograms.podium-text-scale", 2.0, 3.2),
+            new Patch("podium-spacing-wider-2", "holograms.podium-spacing", 4.5, 6.5),
             new Patch("cosmic-key-source-store", "crates.types.cosmic.key-source",
                     "Cosmic Keys are the rare find from Key Finder, about one key in twelve.",
                     "Cosmic Keys come from the store."));
@@ -236,7 +240,26 @@ public final class ConfigMigrator {
         // its own, so copy each across the first time the jar ships it.
         boolean added = false;
         for (String section : ADDED_SECTIONS) {
-            if (!disk.contains(section) && defaults.contains(section)) {
+            // contains(path, true) IGNORES defaults, and that is the whole
+            // point here. plugin.getConfig() carries the jar's config.yml
+            // as its defaults, so plain contains() answers true for every
+            // section the jar ships whether the server has it or not, and
+            // nothing was ever copied. Worse, a later
+            // getConfigurationSection() on a path that lives only in the
+            // defaults hands back a new EMPTY section rather than the
+            // default one, which is why boss.types and pets.types loaded
+            // as zero entries on a server whose file predates them.
+            if (!defaults.contains(section)) continue;
+            boolean missing = !disk.contains(section, true);
+            // And an EMPTY section counts as missing. Reading a path that
+            // lived only in the defaults created a blank section in memory,
+            // and the next save wrote that blank section to disk, which
+            // would otherwise lock the real one out forever.
+            if (!missing && disk.get(section) instanceof org.bukkit.configuration.ConfigurationSection existing
+                    && existing.getKeys(false).isEmpty()) {
+                missing = true;
+            }
+            if (missing) {
                 disk.set(section, defaults.get(section));
                 plugin.getLogger().info("Config: added the new section " + section + ".");
                 added = true;

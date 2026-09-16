@@ -129,7 +129,8 @@ public final class FirstTenManager {
         UUID roller = player.getUniqueId();
         String name = player.getName();
         plugin.getServer().getScheduler().runTaskLater(plugin,
-                () -> buildUpThen(rarity, roller, () -> announce(roller, name, item, shiny, place, false)),
+                () -> buildUpThen(rarity, item.getMaterial(), roller,
+                        () -> announce(roller, name, item, shiny, place, false)),
                 Math.max(1L, delayTicks));
     }
 
@@ -138,13 +139,14 @@ public final class FirstTenManager {
         int place = Math.min(slots(), entries.getOrDefault(item.getRarity(), List.of()).size() + 1);
         UUID roller = viewer == null ? null : viewer.getUniqueId();
         String name = viewer == null ? "Console" : viewer.getName();
-        buildUpThen(item.getRarity(), roller, () -> announce(roller, name, item, shiny, place, true));
+        buildUpThen(item.getRarity(), item.getMaterial(), roller,
+                () -> announce(roller, name, item, shiny, place, true));
     }
 
     /** The build-up is for Legendary and up; anything below goes straight to the banner. */
-    private void buildUpThen(Rarity rarity, UUID roller, Runnable event) {
+    private void buildUpThen(Rarity rarity, org.bukkit.Material drop, UUID roller, Runnable event) {
         if (rarity.ordinal() >= Rarity.LEGENDARY.ordinal()) {
-            new FirstTenBuildUp(plugin, rarity, roller, event).start();
+            new FirstTenBuildUp(plugin, rarity, drop, roller, event).start();
         } else {
             event.run();
         }
@@ -205,37 +207,49 @@ public final class FirstTenManager {
                 continue;
             }
             online.sendMessage(banner);
-            // The whole server hears it: a far boom, the beacon swelling and
-            // the toast on top, loud enough to cut through anything else.
-            online.playSound(online.getLocation(), Sound.ITEM_TRIDENT_THUNDER, 0.6f, 1.3f);
-            online.playSound(online.getLocation(), Sound.BLOCK_BEACON_ACTIVATE, 1.0f, 0.8f);
-            online.playSound(online.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0f, 1.0f);
-            // The burst itself: a flash of the rarity's colour right in front of the eyes.
+            // Three sounds at once, spread across the range so they read as
+            // one large sound rather than as three: the hit low, the body
+            // in the middle, the sparkle on top.
+            online.playSound(online.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1.0f, 0.5f);
+            online.playSound(online.getLocation(), Sound.ITEM_TRIDENT_THUNDER, 0.8f, 0.7f);
+            online.playSound(online.getLocation(), Sound.BLOCK_BEACON_ACTIVATE, 1.0f, 1.4f);
+            plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+                if (!online.isOnline()) return;
+                online.playSound(online.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0f, 1.0f);
+                online.playSound(online.getLocation(), Sound.BLOCK_CONDUIT_ACTIVATE, 0.7f, 1.6f);
+            }, 12L);
+
             if (plugin.getPlayerDataManager().get(online.getUniqueId()).isAuraEnabled(rarity)) {
+                // Half a second of dark, so the flash lands on nothing and
+                // the title arrives out of it. Short enough that nobody
+                // standing in the farm loses a harvest over it.
+                online.addPotionEffect(new org.bukkit.potion.PotionEffect(
+                        org.bukkit.potion.PotionEffectType.BLINDNESS, 10, 0, false, false, false));
                 online.spawnParticle(Particle.FLASH,
                         online.getEyeLocation().add(online.getLocation().getDirection().multiply(2.0)),
                         1, 0.0, 0.0, 0.0, 0.0, RollAura.colorFor(rarity), true);
             }
-            if (own) {
+
+            // Two titles, not one. The first says what happened, the second
+            // says who and what, and a title that tries to say all of it at
+            // once is a title nobody finishes reading.
+            String place1 = rarities.styleBold(rarity, "#" + place + " of " + slots);
+            online.showTitle(Title.title(
+                    LegacyComponentSerializer.legacySection().deserialize(place1),
+                    LegacyComponentSerializer.legacySection().deserialize(
+                            rarities.styleBold(rarity, rarity.displayName().toUpperCase(Locale.ROOT))
+                                    + ChatColor.GRAY + "  server first"),
+                    Title.Times.times(Duration.ofMillis(150), Duration.ofMillis(1600), Duration.ofMillis(300))));
+
+            String who = own ? ChatColor.GREEN + "You found it" : ChatColor.YELLOW + name;
+            plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+                if (!online.isOnline()) return;
                 online.showTitle(Title.title(
+                        LegacyComponentSerializer.legacySection().deserialize(who),
                         LegacyComponentSerializer.legacySection()
-                                .deserialize(rarities.styleBold(rarity, "✦ First " + slots + " ✦")),
-                        LegacyComponentSerializer.legacySection()
-                                .deserialize(ChatColor.GRAY + "You are " + rarities.styleBold(rarity, "#" + place)
-                                        + ChatColor.GRAY + " to find " + article
-                                        + rarities.style(rarity, rarity.displayName())),
-                        Title.Times.times(Duration.ofMillis(200), Duration.ofMillis(2500), Duration.ofMillis(400))));
-            } else {
-                // Everyone else is told on their screen who it was.
-                online.showTitle(Title.title(
-                        LegacyComponentSerializer.legacySection()
-                                .deserialize(rarities.styleBold(rarity, "✦ Server First " + slots + " ✦")),
-                        LegacyComponentSerializer.legacySection()
-                                .deserialize(ChatColor.YELLOW + name + ChatColor.GRAY + " is "
-                                        + rarities.styleBold(rarity, "#" + place) + ChatColor.GRAY + " to find "
-                                        + article + rarities.style(rarity, rarity.displayName())),
-                        Title.Times.times(Duration.ofMillis(200), Duration.ofMillis(3000), Duration.ofMillis(400))));
-            }
+                                .deserialize(RollFormat.displayName(plugin, item, shiny)),
+                        Title.Times.times(Duration.ofMillis(200), Duration.ofMillis(2400), Duration.ofMillis(400))));
+            }, 42L);
         }
         Bukkit.getConsoleSender().sendMessage(banner);
         if (!preview) plugin.getDiscordWebhook().firstTen(name, item, shiny, place, slots);

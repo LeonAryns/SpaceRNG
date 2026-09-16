@@ -111,8 +111,8 @@ public final class HoloManager {
     private static final double PODIUM_TEXT = 1.25;
     private static final double PODIUM_TITLE = 1.8;
     private static final double PODIUM_FIRST_LIFT = 0.9;
-    private float podiumHeadScale = 3.2f;
-    private float podiumTextScale = 2.0f;
+    private float podiumHeadScale = 4.5f;
+    private float podiumTextScale = 3.2f;
     private double podiumSpacing = 2.5;
     private final Map<String, ItemDisplay[]> podiumHeads = new HashMap<>();
     private final Map<String, TextDisplay[]> podiumTags = new HashMap<>();
@@ -143,12 +143,12 @@ public final class HoloManager {
         // Past about 170 degrees an update, interpolation takes the short way round and spins backwards.
         crateSpinDegrees = Math.max(0.0, Math.min(170.0, config.getDouble("holograms.crate-spin-degrees", 90.0)));
         crateBob = config.getDouble("holograms.crate-bob", 0.12);
-        podiumHeadScale = (float) config.getDouble("holograms.podium-head-scale", 3.2);
+        podiumHeadScale = (float) config.getDouble("holograms.podium-head-scale", 4.5);
         // The podium has its own text size. It is read from across the
         // whole spawn rather than from in front of an NPC, so tying it to
         // the panel size meant one of the two was always wrong.
-        podiumTextScale = (float) config.getDouble("holograms.podium-text-scale", 2.0);
-        podiumSpacing = config.getDouble("holograms.podium-spacing", 4.5);
+        podiumTextScale = (float) config.getDouble("holograms.podium-text-scale", 3.2);
+        podiumSpacing = config.getDouble("holograms.podium-spacing", 6.5);
         boardRefreshTicks = Math.max(200L, config.getLong("holograms.board-refresh-seconds", 60L) * 20L);
         // New text only reaches entities drawn after it, so take everything
         // down and let the next frame draw it fresh.

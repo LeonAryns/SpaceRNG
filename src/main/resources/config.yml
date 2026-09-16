@@ -3542,7 +3542,7 @@ crates:
         - { weight: 24, credits: 5 }
         - { weight: 18, tickets: 1 }
         - { weight: 14, boost: LUCK, percent: 25, minutes: 30 }
-        - { weight: 12, boost: TOKENS, percent: 50, minutes: 30 }
+        - { weight: 12, boost: MONEY, percent: 50, minutes: 30 }
         - { weight: 10, credits: 15 }
         - { weight: 8, tickets: 3 }
         - { weight: 6, boost: LUCK, percent: 50, minutes: 30 }
@@ -3550,11 +3550,10 @@ crates:
         - { weight: 2.5, credits: 40 }
         - { weight: 1.5, tickets: 8 }
         - { weight: 0.5, boost: LUCK, percent: 100, minutes: 20 }
-        # Forever, and rare on purpose: a boss comes back every couple of
-        # hours, so anything permanent in here is power creep with no
-        # ceiling. Raise the weights if you want them to show up more.
-        - { weight: 0.4, permanent: LUCK, percent: 1 }
-        - { weight: 0.4, permanent: SPEED, points: 2 }
+        # Forever. A boss runs every couple of hours, so these are the
+        # slow, permanent half of the box: about one box in nine pays one.
+        - { weight: 4, permanent: LUCK, percent: 10 }
+        - { weight: 3, permanent: SPEED, points: 10 }
 
 holograms:
   view-range: 1.0
@@ -3573,9 +3572,9 @@ holograms:
   # how big its text is, and how far #2 and #3 stand from #1. The podium
   # has its own text size because it is read from across the spawn
   # rather than from in front of an NPC.
-  podium-head-scale: 3.2
-  podium-text-scale: 2.0
-  podium-spacing: 4.5
+  podium-head-scale: 4.5
+  podium-text-scale: 3.2
+  podium-spacing: 6.5
   click: "<#FFD54F>→→→</#FFD54F> <white>Click Here</white> <#FFD54F>←←←</#FFD54F>"
   panels:
     prestige:

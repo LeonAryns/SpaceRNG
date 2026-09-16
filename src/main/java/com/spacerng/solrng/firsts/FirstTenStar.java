@@ -45,8 +45,13 @@ final class FirstTenStar {
     private final Location centre;
     private final List<ItemDisplay> pieces = new ArrayList<>();
     private final List<Vector3f> home = new ArrayList<>();
+    // The drop itself, held in the middle of the star. The whole server
+    // should be able to see WHAT was found, not only that something was.
+    private final Material drop;
+    private ItemDisplay centrepiece;
 
-    FirstTenStar(SolRNGPlugin plugin, Rarity rarity, Location origin, double height, double radius) {
+    FirstTenStar(SolRNGPlugin plugin, Rarity rarity, Material drop, Location origin, double height, double radius) {
+        this.drop = drop;
         this.plugin = plugin;
         this.rarity = rarity;
         Location at = origin.clone().add(0, height, 0);
@@ -88,6 +93,20 @@ final class FirstTenStar {
      * kept by the biggest thing in the plugin as well.
      */
     void start() {
+        if (drop != null) {
+            ItemStack held = new ItemStack(drop);
+            centrepiece = centre.getWorld().spawn(centre, ItemDisplay.class, d -> {
+                d.setPersistent(false);
+                d.setVisibleByDefault(false);
+                d.setItemStack(held);
+                d.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
+                d.setBrightness(new Display.Brightness(15, 15));
+                d.setViewRange(6.0f);
+                d.setShadowRadius(0f);
+                d.setTransformation(new Transformation(new Vector3f(), new Quaternionf(),
+                        new Vector3f(0.01f, 0.01f, 0.01f), new Quaternionf()));
+            });
+        }
         ItemStack block = new ItemStack(glass());
         for (Vector3f ignored : home) {
             ItemDisplay display = centre.getWorld().spawn(centre, ItemDisplay.class, d -> {
@@ -115,6 +134,10 @@ final class FirstTenStar {
                 if (allowed) viewer.showEntity(plugin, piece);
                 else viewer.hideEntity(plugin, piece);
             }
+            if (centrepiece != null && centrepiece.isValid()) {
+                if (allowed) viewer.showEntity(plugin, centrepiece);
+                else viewer.hideEntity(plugin, centrepiece);
+            }
         }
     }
 
@@ -135,6 +158,14 @@ final class FirstTenStar {
         float cos = (float) Math.cos(spin);
         float sin = (float) Math.sin(spin);
 
+        if (centrepiece != null && centrepiece.isValid()) {
+            float held = 0.01f + 2.6f * eased;
+            centrepiece.setInterpolationDelay(0);
+            centrepiece.setInterpolationDuration(ticks);
+            centrepiece.setTransformation(new Transformation(new Vector3f(),
+                    new Quaternionf().rotateY((float) (spin * 2)),
+                    new Vector3f(held, held, held), new Quaternionf()));
+        }
         for (int i = 0; i < pieces.size(); i++) {
             ItemDisplay piece = pieces.get(i);
             if (!piece.isValid()) continue;
@@ -148,8 +179,25 @@ final class FirstTenStar {
         }
     }
 
-    /** One last shove outward, then gone with the burst. */
+    /**
+     * The star blows outward, and the drop is left hanging there.
+     *
+     * The banner says what was found in words; this is the thing itself,
+     * twice the size, turning over the spot for six seconds so anybody who
+     * looked up because of the noise still sees it.
+     */
     void finish() {
+        if (centrepiece != null && centrepiece.isValid()) {
+            centrepiece.setInterpolationDelay(0);
+            centrepiece.setInterpolationDuration(20);
+            centrepiece.setTransformation(new Transformation(new Vector3f(0f, 1.5f, 0f), new Quaternionf(),
+                    new Vector3f(5.0f, 5.0f, 5.0f), new Quaternionf()));
+            ItemDisplay held = centrepiece;
+            centrepiece = null;
+            plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+                if (held.isValid()) held.remove();
+            }, 120L);
+        }
         for (int i = 0; i < pieces.size(); i++) {
             ItemDisplay piece = pieces.get(i);
             if (!piece.isValid()) continue;
@@ -168,6 +216,8 @@ final class FirstTenStar {
             if (piece.isValid()) piece.remove();
         }
         pieces.clear();
+        if (centrepiece != null && centrepiece.isValid()) centrepiece.remove();
+        centrepiece = null;
     }
 
     /**

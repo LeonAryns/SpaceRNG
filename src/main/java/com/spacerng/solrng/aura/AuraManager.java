@@ -297,10 +297,6 @@ public final class AuraManager {
      * orbits across their view in first person.
      */
     private boolean ownerSees(Player owner, Worn aura, int index) {
-        // A test aura is worn to be looked at. Hiding most of it behind the
-        // wearer's own-aura setting, which defaults to feet only, is why
-        // /rngadmin auratest looked like it did nothing at all.
-        if (aura.test) return true;
         var data = plugin.getPlayerDataManager().get(owner.getUniqueId());
         if (!data.isWornAurasVisible()) return false;
         return switch (data.getOwnAuraView()) {

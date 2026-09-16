@@ -225,6 +225,8 @@ public final class StatSources {
                 Op.MULTIPLY));
         parts.add(new Part("Rank", "Buy a rank in /ranks",
                 plugin.getRankManager().multiplierOf(data), Op.MULTIPLY));
+        parts.add(new Part("Your boost", "A Money boost from a Boss Box",
+                data.boostMultiplier("MONEY"), Op.MULTIPLY));
 
         return new Stat(Id.MONEY, "Money",
                 "What rolling pays. Rarer drops pay more of it.",

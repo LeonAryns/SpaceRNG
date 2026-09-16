@@ -41,6 +41,7 @@ final class FirstTenBuildUp {
 
     private final SolRNGPlugin plugin;
     private final Rarity rarity;
+    private final org.bukkit.Material drop;
     private final UUID finder;
     private final Runnable burst;
     private final long length;
@@ -56,9 +57,10 @@ final class FirstTenBuildUp {
     // distance; a star does not.
     private FirstTenStar star;
 
-    FirstTenBuildUp(SolRNGPlugin plugin, Rarity rarity, UUID finder, Runnable burst) {
+    FirstTenBuildUp(SolRNGPlugin plugin, Rarity rarity, org.bukkit.Material drop, UUID finder, Runnable burst) {
         this.plugin = plugin;
         this.rarity = rarity;
+        this.drop = drop;
         this.finder = finder;
         this.burst = burst;
         this.length = switch (rarity) {
@@ -92,11 +94,11 @@ final class FirstTenBuildUp {
             // from further away than a Legendary without either of them
             // having to be louder.
             double radius = switch (rarity) {
-                case DIVINE -> 12.0;
-                case MYTHICAL -> 10.0;
-                default -> 8.0;
+                case DIVINE -> 20.0;
+                case MYTHICAL -> 17.0;
+                default -> 14.0;
             };
-            star = new FirstTenStar(plugin, rarity, origin, 16.0 + radius, radius);
+            star = new FirstTenStar(plugin, rarity, drop, origin, 18.0 + radius, radius);
             star.start();
         }
         task = plugin.getServer().getScheduler().runTaskTimer(plugin, this::tick, 0L, 2L);
