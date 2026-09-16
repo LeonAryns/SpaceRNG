@@ -297,6 +297,10 @@ public final class AuraManager {
      * orbits across their view in first person.
      */
     private boolean ownerSees(Player owner, Worn aura, int index) {
+        // A test aura is worn to be looked at. Hiding most of it behind the
+        // wearer's own-aura setting, which defaults to feet only, is why
+        // /rngadmin auratest looked like it did nothing at all.
+        if (aura.test) return true;
         var data = plugin.getPlayerDataManager().get(owner.getUniqueId());
         if (!data.isWornAurasVisible()) return false;
         return switch (data.getOwnAuraView()) {
@@ -338,7 +342,10 @@ public final class AuraManager {
                 // Over the farm the aura steps aside: a field of players each
                 // wearing one is exactly where it would cost the most.
                 if (frame % 10 == 0) {
-                    aura.paused = pauseRadius > 0
+                    // A test aura is never paused. Standing anywhere near
+                    // the field would otherwise make every /rngadmin
+                    // auratest silently show nothing.
+                    aura.paused = !aura.test && pauseRadius > 0
                             && plugin.getFarmPlotManager().isNearPlot(player.getLocation(), pauseRadius);
                 }
                 if (aura.paused) {
