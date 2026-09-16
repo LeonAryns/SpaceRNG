@@ -1,6 +1,5 @@
 package com.spacerng.solrng.boss;
 
-import com.spacerng.solrng.crate.Crate;
 import org.bukkit.Material;
 
 import java.util.List;
@@ -12,13 +11,14 @@ import java.util.List;
  * the window, whatever your hoe pays for them. Everyone fights their own
  * copy, so this number is one player's job and not the server's.
  *
- * The reward table is held as a Crate because it is written in the crate
- * vocabulary and paid out by the crate code. Nothing is ever placed or
- * opened, it is only a loot table with a name and colours.
+ * Beating one pays Boss Boxes rather than loot straight into the
+ * inventory. The box is a crate like any other, so what is inside it is
+ * tuned in one place for every boss and opening it is the same show as
+ * every other crate.
  */
 public record BossType(String id, String display, List<String> colors, Material icon,
                        long health, double weight, int durationMinutes,
-                       int rewardRolls, Crate rewards) {
+                       String boxCrate, int boxes) {
 
     /** The gradient stops in the shape Lore wants them. */
     public String[] stops() {

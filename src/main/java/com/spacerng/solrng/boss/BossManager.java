@@ -2,7 +2,7 @@ package com.spacerng.solrng.boss;
 
 import com.spacerng.solrng.SolRNGPlugin;
 import com.spacerng.solrng.crate.Crate;
-import com.spacerng.solrng.crate.CrateReward;
+import com.spacerng.solrng.consumable.Consumable;
 import com.spacerng.solrng.gui.Lore;
 import com.spacerng.solrng.rarity.Rarity;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
@@ -161,36 +161,12 @@ public class BossManager {
                 Material icon = Material.matchMaterial(t.getString("icon", "NETHER_STAR"));
                 if (icon == null) icon = Material.NETHER_STAR;
 
-                List<CrateReward> rewards = new ArrayList<>();
-                int line = 0;
-                for (Map<?, ?> raw : t.getMapList("rewards")) {
-                    line++;
-                    try {
-                        CrateReward reward = plugin.getCrateManager().parseReward(raw);
-                        if (reward == null) {
-                            plugin.getLogger().warning("Boss '" + key + "' reward " + line
-                                    + " has no weight or no reward type, skipped.");
-                        } else {
-                            rewards.add(reward);
-                        }
-                    } catch (Exception ex) {
-                        plugin.getLogger().warning("Boss '" + key + "' reward " + line
-                                + " is malformed: " + ex.getMessage());
-                    }
-                }
-                String display = t.getString("display", id);
-                // A loot table with a name and colours. Nothing is placed,
-                // nothing is opened, but the payout, the wording and the
-                // rare-drop announcement are the crate ones for free.
-                Crate table = new Crate(key, display, colors, "", "", List.copyOf(rewards),
-                        t.getDouble("jackpot-below", 0.05));
-
-                types.put(key, new BossType(key, display, colors, icon,
+                types.put(key, new BossType(key, t.getString("display", id), colors, icon,
                         Math.max(1L, t.getLong("health", 8000L)),
                         Math.max(0.0, t.getDouble("weight", 1.0)),
                         Math.max(1, t.getInt("duration-minutes", 10)),
-                        Math.max(1, t.getInt("reward-rolls", 1)),
-                        table));
+                        t.getString("box", "boss").toLowerCase(Locale.ROOT),
+                        Math.max(1, t.getInt("boxes", 1))));
             }
         }
         plugin.getLogger().info("Loaded " + types.size() + " boss types.");
@@ -399,20 +375,22 @@ public class BossManager {
         player.playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_DEATH, 0.5f, 1.4f);
         player.playSound(player.getLocation(), Sound.BLOCK_BEACON_POWER_SELECT, 0.8f, 1.5f);
 
-        if (type.rewards().rewards().isEmpty()) {
+        // The loot is a box rather than the loot itself: what is inside is
+        // tuned in one place for every boss, and opening it is the same
+        // show as every other crate.
+        Crate box = plugin.getCrateManager().get(type.boxCrate());
+        Consumable key = box == null ? null : plugin.getConsumableManager().get(box.keyId());
+        if (key == null) {
+            plugin.getLogger().warning("Boss '" + type.id() + "' pays the box '" + type.boxCrate()
+                    + "', which has no crate or no key.");
             player.sendMessage(ChatColor.DARK_GRAY + "  This boss pays nothing yet.");
             player.sendMessage("");
             return;
         }
-        for (int i = 0; i < type.rewardRolls(); i++) {
-            CrateReward reward = type.rewards().pick();
-            // Paid by the crate code, so a boss and a crate can never pay
-            // the same line two different ways. The announcement for a
-            // rare pull comes with it.
-            plugin.getCrateManager().grant(player, type.rewards(), reward, false);
-            player.sendMessage("  " + ChatColor.GRAY + "You won " + ChatColor.RESET
-                    + plugin.getCrateManager().label(reward));
-        }
+        plugin.getConsumableManager().give(player, key, type.boxes());
+        player.sendMessage("  " + ChatColor.GRAY + "You won " + ChatColor.WHITE + type.boxes() + "x "
+                + ChatColor.RESET + plugin.getConsumableManager().styledName(key));
+        player.sendMessage(ChatColor.DARK_GRAY + "  Right click it to open it.");
         player.sendMessage("");
 
         if (announceKills) {

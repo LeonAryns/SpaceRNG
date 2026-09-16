@@ -134,6 +134,21 @@ public class CrateManager {
         if (raw.containsKey("credits")) {
             return currency(CrateReward.Type.CREDITS, raw.get("credits"), weight, icon, name);
         }
+        if (raw.containsKey("tickets")) {
+            return new CrateReward(CrateReward.Type.TICKETS, "",
+                    Math.max(1L, (long) number(raw.get("tickets"), 1.0)), weight, icon, name);
+        }
+        // A boost is three numbers in one line: which stat, how much, and
+        // for how long. The stat and the percentage share `target` so the
+        // record does not grow a field only one type would ever use.
+        if (raw.containsKey("boost")) {
+            String stat = String.valueOf(raw.get("boost")).toUpperCase(Locale.ROOT);
+            double percent = number(raw.get("percent"), 0.0);
+            long minutes = Math.max(1L, (long) number(raw.get("minutes"), 15.0));
+            if (percent <= 0.0) return null;
+            return new CrateReward(CrateReward.Type.BOOST, stat + ":" + trimPercent(percent),
+                    minutes, weight, icon, name);
+        }
         if (raw.containsKey("consumable")) {
             return new CrateReward(CrateReward.Type.CONSUMABLE,
                     String.valueOf(raw.get("consumable")).toLowerCase(Locale.ROOT), amount, weight, icon, name);
@@ -143,6 +158,14 @@ public class CrateManager {
             return new CrateReward(CrateReward.Type.DROP, rarity.name(), amount, weight, icon, name);
         }
         return null;
+    }
+
+    /** "20" rather than "20.0", so the label reads like a person wrote it. */
+    private static String trimPercent(double value) {
+        String text = String.format("%.2f", value);
+        while (text.endsWith("0")) text = text.substring(0, text.length() - 1);
+        if (text.endsWith(".")) text = text.substring(0, text.length() - 1);
+        return text;
     }
 
     private static CrateReward currency(CrateReward.Type type, Object value, double weight,
@@ -311,6 +334,21 @@ public class CrateManager {
     // ------------------------------------------------------------ opening
 
     public void open(Player player, Block block, Crate crate) {
+        open(player, block.getLocation().add(0.5, 1.0, 0.5), crate);
+    }
+
+    /** True once this crate stands somewhere in the world. */
+    public boolean isPlaced(Crate crate) {
+        return placed.containsValue(crate.id());
+    }
+
+    /**
+     * The same opening, at a point rather than at a block.
+     *
+     * A box handed out by an event has to be openable where the player is
+     * standing, or a reward nobody can reach is not a reward.
+     */
+    public void open(Player player, org.bukkit.Location at, Crate crate) {
         if (spins.containsKey(player.getUniqueId())) {
             player.sendMessage(ChatColor.RED + "Finish the crate you are already opening first.");
             return;
@@ -323,7 +361,7 @@ public class CrateManager {
         // for a result that already exists, so nothing the menu does can
         // change what comes out.
         CrateSpin spin = new CrateSpin(plugin, this, player, crate, crate.pick(),
-                block.getLocation().add(0.5, 1.0, 0.5), spinSteps, slowestGap);
+                at, spinSteps, slowestGap);
         spins.put(player.getUniqueId(), spin);
         spin.start();
     }
@@ -392,6 +430,9 @@ public class CrateManager {
                             + reward.target() + "'.");
                 }
             }
+            case TICKETS -> data.setPerkTickets(data.getPerkTickets() + reward.amount());
+            case BOOST -> data.applyBoost(reward.boostStat(),
+                    1.0 + reward.boostPercent() / 100.0, reward.amount() * 60_000L);
             case DROP -> giveDrops(player, data, Rarity.valueOf(reward.target()), reward.amount());
         }
 
@@ -465,6 +506,10 @@ public class CrateManager {
             case GEMS -> Currency.GEMS.amount(reward.amount());
             case MONEY -> Currency.MONEY.amount(reward.amount());
             case CREDITS -> Currency.CREDITS.amount(reward.amount());
+            case TICKETS -> ChatColor.AQUA + "" + reward.amount()
+                    + (reward.amount() == 1 ? " Perk Ticket" : " Perk Tickets");
+            case BOOST -> ChatColor.GREEN + "+" + trimPercent(reward.boostPercent()) + "% "
+                    + boostName(reward.boostStat()) + ChatColor.GRAY + " for " + reward.amount() + "m";
             case CONSUMABLE -> {
                 Consumable consumable = plugin.getConsumableManager().get(reward.target());
                 String name = consumable == null
@@ -517,6 +562,8 @@ public class CrateManager {
             case GEMS -> "Paid straight into your Gems.";
             case MONEY -> "Paid straight into your Money.";
             case CREDITS -> "Paid straight into your Credits.";
+            case TICKETS -> "Perk rolls, spent in /perks.";
+            case BOOST -> "Runs on top of everything else you have.";
             case CONSUMABLE -> consumable == null || consumable.description().isEmpty()
                     ? "Lands in your inventory." : consumable.description();
             case DROP -> "Random drops of that rarity, logged in your index.";
@@ -529,6 +576,8 @@ public class CrateManager {
             case GEMS -> Material.PRISMARINE_CRYSTALS;
             case MONEY -> Material.EMERALD;
             case CREDITS -> Material.AMETHYST_SHARD;
+            case TICKETS -> Material.NAME_TAG;
+            case BOOST -> Material.EXPERIENCE_BOTTLE;
             case CONSUMABLE -> Material.PAPER;
             case DROP -> switch (Rarity.valueOf(reward.target())) {
                 case COMMON -> Material.COBBLESTONE;
@@ -543,6 +592,18 @@ public class CrateManager {
     }
 
     /** A fraction as a percentage with only the decimals it needs: 12.5%, 0.4%, 0.05%. */
+    /** The boost system's key as a player reads it. */
+    public static String boostName(String stat) {
+        return switch (stat) {
+            case "TOKENS" -> "Coins";
+            case "GEMS" -> "Gems";
+            case "ENCHANT_PROC" -> "Enchant Proc";
+            case "MONEY" -> "Money";
+            case "SPEED" -> "Speed";
+            default -> "Luck";
+        };
+    }
+
     public static String chanceText(double fraction) {
         double shown = fraction * 100.0;
         if (shown <= 0.0) return "0%";

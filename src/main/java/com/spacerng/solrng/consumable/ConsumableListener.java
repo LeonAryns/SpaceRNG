@@ -53,9 +53,18 @@ public class ConsumableListener implements Listener {
         // effect and deleted, which is the one way a key could be wasted.
         var crate = plugin.getCrateManager().crateForKey(consumable.id());
         if (crate != null) {
-            event.getPlayer().sendMessage(ChatColor.GRAY + "This key opens the "
-                    + plugin.getCrateManager().styledName(crate) + ChatColor.GRAY
-                    + ". Right click the crate with it.");
+            // A crate standing in the world is where its key belongs. One
+            // that was never placed, like a box an event hands out, opens
+            // where the player is instead, because a reward nobody can
+            // reach is not a reward.
+            if (plugin.getCrateManager().isPlaced(crate)) {
+                event.getPlayer().sendMessage(ChatColor.GRAY + "This key opens the "
+                        + plugin.getCrateManager().styledName(crate) + ChatColor.GRAY
+                        + ". Right click the crate with it.");
+            } else {
+                plugin.getCrateManager().open(event.getPlayer(),
+                        event.getPlayer().getLocation().add(0, 1.0, 0), crate);
+            }
             return;
         }
 

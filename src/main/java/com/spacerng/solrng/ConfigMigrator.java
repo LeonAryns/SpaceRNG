@@ -68,7 +68,9 @@ public final class ConfigMigrator {
             "pets",
             // V143: the Discord server card. A dotted path, because every
             // server already has a discord section.
-            "discord.info");
+            "discord.info",
+            // V144: the Boss Box and the item that opens it.
+            "crates.types.boss", "consumables.boss_box");
 
     private record Patch(String id, String path, Object oldDefault, Object newDefault) {
     }

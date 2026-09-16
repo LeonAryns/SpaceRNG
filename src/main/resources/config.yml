@@ -3529,6 +3529,28 @@ crates:
 # Text is MiniMessage: <gold>, <#FFD54F>, <gradient:#A:#B>, <b> and so on.
 # After editing, /rngadmin reload redraws everything. Spots live in
 # holograms.yml; nothing is saved into the world.
+    boss:
+      display: "Boss Box"
+      colors: ["#FF8A80", "#FF5252", "#D50000"]
+      key: boss_box
+      key-source: "Boss Boxes come from beating a boss, every couple of hours."
+      description:
+        - "<white>Right-click the box in your hand to open it"
+        - "<gray>Left-click here to see what's inside"
+      jackpot-below: 0.04
+      rewards:
+        - { weight: 24, credits: 5 }
+        - { weight: 18, tickets: 1 }
+        - { weight: 14, boost: LUCK, percent: 25, minutes: 30 }
+        - { weight: 12, boost: TOKENS, percent: 50, minutes: 30 }
+        - { weight: 10, credits: 15 }
+        - { weight: 8, tickets: 3 }
+        - { weight: 6, boost: LUCK, percent: 50, minutes: 30 }
+        - { weight: 4, boost: ENCHANT_PROC, percent: 40, minutes: 30 }
+        - { weight: 2.5, credits: 40 }
+        - { weight: 1.5, tickets: 8 }
+        - { weight: 0.5, boost: LUCK, percent: 100, minutes: 20 }
+
 holograms:
   view-range: 1.0
   title-scale: 2.4
@@ -3806,6 +3828,11 @@ consumables:
     material: TRIPWIRE_HOOK
     colors: ["#80D8FF", "#448AFF", "#B388FF"]
     description: "Opens the Nebula Crate. Right click the crate with it."
+  boss_box:
+    display: "Boss Box"
+    material: ENDER_CHEST
+    colors: ["#FF8A80", "#FF5252", "#D50000"]
+    description: "Won by beating a boss. Right click it to open it."
   nova_core:
     display: "Nova Core"
     material: HEART_OF_THE_SEA
@@ -5653,20 +5680,9 @@ boss:
       health: 4000
       duration-minutes: 8
       weight: 50
-      # How many times the table is rolled for somebody who beats it.
-      reward-rolls: 1
-      # A pull rarer than this is announced to the server.
-      jackpot-below: 0.05
-      rewards:
-        - { weight: 30, coins: 250000 }
-        - { weight: 20, gems: 100 }
-        - { weight: 15, money: 100000 }
-        - { weight: 12, consumable: coin_potion }
-        - { weight: 10, consumable: vote_key }
-        - { weight: 6, drop: RARE, amount: 2 }
-        - { weight: 4, consumable: luck_potion }
-        - { weight: 2, consumable: nebula_key }
-        - { weight: 1, consumable: roll_10x }
+      # Which crate the box is, and how many of them beating it pays.
+      box: boss
+      boxes: 1
     void_colossus:
       display: "Void Colossus"
       colors: ["#C77DFF", "#7C3AED"]
@@ -5674,19 +5690,8 @@ boss:
       health: 8000
       duration-minutes: 10
       weight: 35
-      reward-rolls: 1
-      jackpot-below: 0.05
-      rewards:
-        - { weight: 26, coins: 750000 }
-        - { weight: 18, gems: 250 }
-        - { weight: 14, money: 300000 }
-        - { weight: 12, consumable: nebula_key }
-        - { weight: 10, consumable: enchant_potion }
-        - { weight: 8, drop: EPIC }
-        - { weight: 6, consumable: nova_core }
-        - { weight: 4, credits: 10 }
-        - { weight: 1.5, consumable: free_skill }
-        - { weight: 0.5, consumable: luck_50 }
+      box: boss
+      boxes: 2
     solar_wyrm:
       display: "Solar Wyrm"
       colors: ["#FFD54F", "#FF8F00"]
@@ -5694,20 +5699,8 @@ boss:
       health: 15000
       duration-minutes: 15
       weight: 15
-      reward-rolls: 2
-      jackpot-below: 0.05
-      rewards:
-        - { weight: 24, coins: 2000000 }
-        - { weight: 16, gems: 600 }
-        - { weight: 14, money: 750000 }
-        - { weight: 12, consumable: nebula_key, amount: 2 }
-        - { weight: 10, drop: EPIC, amount: 2 }
-        - { weight: 8, consumable: nova_core }
-        - { weight: 6, credits: 25 }
-        - { weight: 4, consumable: luck_potion }
-        - { weight: 3, drop: LEGENDARY }
-        - { weight: 2, consumable: cosmic_key }
-        - { weight: 1, consumable: luck_50 }
+      box: boss
+      boxes: 3
 
 # =====================================================================
 # Pets
