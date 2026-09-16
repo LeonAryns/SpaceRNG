@@ -3550,6 +3550,11 @@ crates:
         - { weight: 2.5, credits: 40 }
         - { weight: 1.5, tickets: 8 }
         - { weight: 0.5, boost: LUCK, percent: 100, minutes: 20 }
+        # Forever, and rare on purpose: a boss comes back every couple of
+        # hours, so anything permanent in here is power creep with no
+        # ceiling. Raise the weights if you want them to show up more.
+        - { weight: 0.4, permanent: LUCK, percent: 1 }
+        - { weight: 0.4, permanent: SPEED, points: 2 }
 
 holograms:
   view-range: 1.0

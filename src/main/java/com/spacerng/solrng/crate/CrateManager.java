@@ -149,6 +149,15 @@ public class CrateManager {
             return new CrateReward(CrateReward.Type.BOOST, stat + ":" + trimPercent(percent),
                     minutes, weight, icon, name);
         }
+        // Forever, not for a while. Luck is a percentage, Speed is the
+        // flat points the rest of the plugin counts Speed in.
+        if (raw.containsKey("permanent")) {
+            String stat = String.valueOf(raw.get("permanent")).toUpperCase(Locale.ROOT);
+            double value = number(raw.get("percent"), number(raw.get("points"), 0.0));
+            if (value <= 0.0) return null;
+            return new CrateReward(CrateReward.Type.PERMANENT, stat + ":" + trimPercent(value),
+                    1L, weight, icon, name);
+        }
         if (raw.containsKey("consumable")) {
             return new CrateReward(CrateReward.Type.CONSUMABLE,
                     String.valueOf(raw.get("consumable")).toLowerCase(Locale.ROOT), amount, weight, icon, name);
@@ -433,6 +442,15 @@ public class CrateManager {
             case TICKETS -> data.setPerkTickets(data.getPerkTickets() + reward.amount());
             case BOOST -> data.applyBoost(reward.boostStat(),
                     1.0 + reward.boostPercent() / 100.0, reward.amount() * 60_000L);
+            case PERMANENT -> {
+                if (reward.permanentStat().equals("SPEED")) {
+                    data.addBonusSpeed(reward.permanentAmount());
+                } else {
+                    // Luck is written as a percentage and stored as the
+                    // fraction the flat Luck pile is kept in.
+                    data.addBonusLuck(reward.permanentAmount() / 100.0);
+                }
+            }
             case DROP -> giveDrops(player, data, Rarity.valueOf(reward.target()), reward.amount());
         }
 
@@ -510,6 +528,9 @@ public class CrateManager {
                     + (reward.amount() == 1 ? " Perk Ticket" : " Perk Tickets");
             case BOOST -> ChatColor.GREEN + "+" + trimPercent(reward.boostPercent()) + "% "
                     + boostName(reward.boostStat()) + ChatColor.GRAY + " for " + reward.amount() + "m";
+            case PERMANENT -> ChatColor.LIGHT_PURPLE + "+" + trimPercent(reward.permanentAmount())
+                    + (reward.permanentStat().equals("SPEED") ? " Speed" : "% Luck")
+                    + ChatColor.GRAY + " permanently";
             case CONSUMABLE -> {
                 Consumable consumable = plugin.getConsumableManager().get(reward.target());
                 String name = consumable == null
@@ -564,6 +585,7 @@ public class CrateManager {
             case CREDITS -> "Paid straight into your Credits.";
             case TICKETS -> "Perk rolls, spent in /perks.";
             case BOOST -> "Runs on top of everything else you have.";
+            case PERMANENT -> "Yours forever, on top of everything else.";
             case CONSUMABLE -> consumable == null || consumable.description().isEmpty()
                     ? "Lands in your inventory." : consumable.description();
             case DROP -> "Random drops of that rarity, logged in your index.";
@@ -578,6 +600,7 @@ public class CrateManager {
             case CREDITS -> Material.AMETHYST_SHARD;
             case TICKETS -> Material.NAME_TAG;
             case BOOST -> Material.EXPERIENCE_BOTTLE;
+            case PERMANENT -> Material.NETHER_STAR;
             case CONSUMABLE -> Material.PAPER;
             case DROP -> switch (Rarity.valueOf(reward.target())) {
                 case COMMON -> Material.COBBLESTONE;

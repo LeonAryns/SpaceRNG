@@ -63,8 +63,15 @@ public class DiscordBot extends ListenerAdapter implements BotHooks {
     private final Map<String, String> rankRoles = new LinkedHashMap<>();
     private boolean removeOldRoles = true;
 
+    // Roles this plugin made itself, kept in their own file. Writing them
+    // back into config.yml would mean rewriting it, and Bukkit's writer
+    // throws away every comment in the file when it does that.
+    private final java.io.File file;
+    private final Map<String, String> madeRoles = new LinkedHashMap<>();
+
     public DiscordBot(SolRNGPlugin plugin) {
         this.plugin = plugin;
+        this.file = new java.io.File(plugin.getDataFolder(), "discord.yml");
         load();
     }
 
@@ -75,6 +82,23 @@ public class DiscordBot extends ListenerAdapter implements BotHooks {
         linkedRole = config.getString("discord.bot.linked-role", "").trim();
         removeOldRoles = config.getBoolean("discord.bot.remove-old-roles", true);
         rankRoles.clear();
+        madeRoles.clear();
+        // What /rngadmin discord setup made, first, so a rank that has no
+        // id in config still has one.
+        if (file.exists()) {
+            var yml = org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(file);
+            var made = yml.getConfigurationSection("rank-roles");
+            if (made != null) {
+                for (String rank : made.getKeys(false)) {
+                    String id = made.getString(rank, "").trim();
+                    if (!id.isEmpty()) madeRoles.put(rank.toLowerCase(Locale.ROOT), id);
+                }
+            }
+            rankRoles.putAll(madeRoles);
+            String linked = yml.getString("linked-role", "").trim();
+            if (!linked.isEmpty() && linkedRole.isEmpty()) linkedRole = linked;
+        }
+        // Anything written by hand in config wins over what was made.
         ConfigurationSection section = config.getConfigurationSection("discord.bot.rank-roles");
         if (section != null) {
             for (String rank : section.getKeys(false)) {
@@ -82,6 +106,75 @@ public class DiscordBot extends ListenerAdapter implements BotHooks {
                 if (!id.isEmpty()) rankRoles.put(rank.toLowerCase(Locale.ROOT), id);
             }
         }
+    }
+
+    private void saveMade() {
+        var yml = new org.bukkit.configuration.file.YamlConfiguration();
+        for (Map.Entry<String, String> entry : madeRoles.entrySet()) {
+            yml.set("rank-roles." + entry.getKey(), entry.getValue());
+        }
+        try {
+            yml.save(file);
+        } catch (java.io.IOException ex) {
+            plugin.getLogger().warning("Discord bot: could not save discord.yml (" + ex.getMessage() + ").");
+        }
+    }
+
+    /**
+     * Makes the rank roles in Discord and remembers their ids.
+     *
+     * This exists so nobody has to turn on Developer Mode and copy four
+     * ids by hand. A role that already exists by name is adopted rather
+     * than duplicated, so running it twice is safe.
+     *
+     * Discord's own rule still applies and cannot be worked around from
+     * here: a bot can only hand out roles that sit BELOW its own in the
+     * list. If the roles come out above it, drag the bot's role up once.
+     */
+    public void setupRoles(java.util.function.Consumer<String> say) {
+        if (!commandsRegistered) {
+            say.accept("The bot is not connected to Discord yet. Wait a few seconds and try again.");
+            return;
+        }
+        Guild guild = DiscordSRV.getPlugin().getMainGuild();
+        if (guild == null) {
+            say.accept("DiscordSRV has no main guild set.");
+            return;
+        }
+        Member self = guild.getSelfMember();
+        if (!self.hasPermission(github.scarsz.discordsrv.dependencies.jda.api.Permission.MANAGE_ROLES)) {
+            say.accept("The bot has no Manage Roles permission in Discord.");
+            return;
+        }
+
+        for (var tier : plugin.getRankManager().tiers()) {
+            String id = tier.id();
+            if (rankRoles.containsKey(id)) {
+                Role existing = guild.getRoleById(rankRoles.get(id));
+                if (existing != null) {
+                    say.accept("Already have a role for " + id + ": " + existing.getName());
+                    continue;
+                }
+            }
+            String name = strip(tier.display());
+            List<Role> byName = guild.getRolesByName(name, true);
+            if (!byName.isEmpty()) {
+                adopt(id, byName.get(0), say, "adopted");
+                continue;
+            }
+            int colour = colourOf(tier.colors().isEmpty() ? "#FFFFFF" : tier.colors().get(0));
+            guild.createRole().setName(name).setColor(colour).setHoisted(true).queue(
+                    role -> adopt(id, role, say, "created"),
+                    error -> say.accept("Could not create the role for " + id + ": " + error.getMessage()));
+        }
+    }
+
+    private void adopt(String rank, Role role, java.util.function.Consumer<String> say, String what) {
+        rankRoles.put(rank, role.getId());
+        madeRoles.put(rank, role.getId());
+        saveMade();
+        say.accept(what + " the role " + role.getName() + " for " + rank + ".");
+        syncAll();
     }
 
     /**

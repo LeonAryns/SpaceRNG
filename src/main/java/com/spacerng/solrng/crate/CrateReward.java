@@ -15,7 +15,20 @@ public record CrateReward(Type type, String target, long amount, double weight,
                           Material icon, String name) {
 
     public enum Type {
-        COINS, GEMS, MONEY, CREDITS, TICKETS, BOOST, CONSUMABLE, DROP
+        COINS, GEMS, MONEY, CREDITS, TICKETS, BOOST, PERMANENT, CONSUMABLE, DROP
+    }
+
+    /** The stat a PERMANENT line adds to: LUCK or SPEED. */
+    public String permanentStat() {
+        return boostStat();
+    }
+
+    /**
+     * How much it adds, forever. Luck counts in percent, Speed in the flat
+     * points every other Speed source is measured in.
+     */
+    public double permanentAmount() {
+        return boostPercent();
     }
 
     /** The stat a BOOST lifts, as the boost system names it. */

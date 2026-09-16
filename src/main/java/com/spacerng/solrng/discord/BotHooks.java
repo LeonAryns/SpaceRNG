@@ -19,5 +19,12 @@ public interface BotHooks {
     /** Same, for everybody online. */
     void syncAll();
 
+    /**
+     * Makes the rank roles in Discord and remembers their ids, so nobody
+     * has to turn on Developer Mode and copy four of them by hand. Every
+     * message goes back to the caller through {@code say}.
+     */
+    void setupRoles(java.util.function.Consumer<String> say);
+
     void shutdown();
 }
