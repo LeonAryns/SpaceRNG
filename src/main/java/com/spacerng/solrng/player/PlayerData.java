@@ -194,6 +194,15 @@ public class PlayerData {
     // premium track of level 12.
     private final Set<String> passClaimed = new HashSet<>();
 
+    // Private vault pages, keyed by page number. How many a player may open
+    // comes from their rank; what is inside stays whatever the rank is.
+    private final java.util.Map<Integer, java.util.List<org.bukkit.inventory.ItemStack>> vaults =
+            new java.util.HashMap<>();
+
+    public java.util.Map<Integer, java.util.List<org.bukkit.inventory.ItemStack>> getVaults() {
+        return vaults;
+    }
+
     // Items the plugin handed over while the inventory was full. See /stash.
     private final java.util.List<org.bukkit.inventory.ItemStack> stash = new java.util.ArrayList<>();
 

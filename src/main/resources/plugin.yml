@@ -109,6 +109,10 @@ commands:
     description: Pick which aura you wear
     usage: /aura
     aliases: [auras]
+  pv:
+    description: Open your private vault pages
+    usage: /pv [page]
+    aliases: [vault, pvault]
   ranks:
     description: See the rank ladder and buy a rank with Credits
     usage: /ranks

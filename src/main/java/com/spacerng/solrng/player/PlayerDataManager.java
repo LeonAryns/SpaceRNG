@@ -168,6 +168,19 @@ public class PlayerDataManager {
         data.setPassXp(yml.getLong("pass-xp", 0L));
         data.setPassPremium(yml.getBoolean("pass-premium", false));
         data.getPassClaimed().addAll(yml.getStringList("pass-claimed"));
+        org.bukkit.configuration.ConfigurationSection vaults = yml.getConfigurationSection("vaults");
+        if (vaults != null) {
+            for (String page : vaults.getKeys(false)) {
+                try {
+                    java.util.List<org.bukkit.inventory.ItemStack> items = new java.util.ArrayList<>();
+                    for (Object raw : vaults.getList(page, java.util.List.of())) {
+                        items.add(raw instanceof org.bukkit.inventory.ItemStack stack ? stack : null);
+                    }
+                    data.getVaults().put(Integer.parseInt(page), items);
+                } catch (NumberFormatException ignored) {
+                }
+            }
+        }
         for (Object raw : yml.getList("stash", java.util.List.of())) {
             if (raw instanceof org.bukkit.inventory.ItemStack stack) data.getStash().add(stack);
         }
@@ -391,6 +404,10 @@ public class PlayerDataManager {
         }
         yml.set("discovered-items", new java.util.ArrayList<>(data.getDiscoveredItems()));
         yml.set("stash", new java.util.ArrayList<>(data.getStash()));
+        yml.set("vaults", null);
+        for (var entry : data.getVaults().entrySet()) {
+            yml.set("vaults." + entry.getKey(), entry.getValue());
+        }
 
         java.util.List<String> rarityNames = new java.util.ArrayList<>();
         for (Rarity r : data.getAutoConvertRarities()) {

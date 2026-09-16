@@ -58,6 +58,7 @@ public class GuiListener implements Listener {
     private final ProgressionClicks progression;
     private final PlayerMenuClicks playerMenus;
     private final ShopClicks shops;
+    private final VaultClicks vaults;
 
     private final SolRNGPlugin plugin;
 
@@ -68,6 +69,7 @@ public class GuiListener implements Listener {
         this.progression = new ProgressionClicks(plugin);
         this.playerMenus = new PlayerMenuClicks(plugin);
         this.shops = new ShopClicks(plugin);
+        this.vaults = new VaultClicks(plugin);
     }
 
     @EventHandler
@@ -120,6 +122,8 @@ public class GuiListener implements Listener {
             shops.handleRanksClick(event);
         } else if (topInventory.getHolder() instanceof com.spacerng.solrng.gui.AuraHolder) {
             playerMenus.handleAuraClick(event);
+        } else if (topInventory.getHolder() instanceof com.spacerng.solrng.gui.PrivateVaultHolder) {
+            vaults.handleClick(event);
         } else if (topInventory.getHolder() instanceof com.spacerng.solrng.gui.StashHolder) {
             playerMenus.handleStashClick(event);
         } else if (topInventory.getHolder() instanceof com.spacerng.solrng.gui.MenuHolder) {
@@ -132,6 +136,18 @@ public class GuiListener implements Listener {
     @EventHandler
     public void onDrag(InventoryDragEvent event) {
         Inventory top = event.getView().getTopInventory();
+        if (top.getHolder() instanceof com.spacerng.solrng.gui.PrivateVaultHolder holder) {
+            // A vault page is real storage. Only the button bar is off limits,
+            // and the selector is off limits entirely.
+            for (int slot : event.getRawSlots()) {
+                if (slot < top.getSize()
+                        && (holder.isSelector() || slot >= com.spacerng.solrng.gui.PrivateVaultGui.PAGE_SLOTS)) {
+                    event.setCancelled(true);
+                    return;
+                }
+            }
+            return;
+        }
         if (!(top.getHolder() instanceof ConvertHolder)) {
             // Every other menu is click only. A drag across one used to drop
             // the stack into the menu, where it vanished when the menu closed.
@@ -170,8 +186,15 @@ public class GuiListener implements Listener {
     @EventHandler
     public void onClose(InventoryCloseEvent event) {
         Inventory top = event.getInventory();
-        if (!(top.getHolder() instanceof ConvertHolder)) return;
         if (!(event.getPlayer() instanceof Player player)) return;
+
+        if (top.getHolder() instanceof com.spacerng.solrng.gui.PrivateVaultHolder vault) {
+            // The page inventory is virtual: what is in it when the window
+            // closes only survives if it is written back onto the player.
+            if (!vault.isSelector()) vaults.save(player, top, vault.getPage());
+            return;
+        }
+        if (!(top.getHolder() instanceof ConvertHolder)) return;
 
         for (int slot : ConvertHolder.INPUT_SLOTS) {
             ItemStack stack = top.getItem(slot);
