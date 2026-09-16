@@ -239,6 +239,11 @@ public class BossManager {
         spawn(type);
     }
 
+    /** A weighted random type, for the timer and for a bare boss start. */
+    public BossType randomType() {
+        return pick();
+    }
+
     private BossType pick() {
         double total = 0.0;
         for (BossType type : types.values()) total += type.weight();

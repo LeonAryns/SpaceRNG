@@ -38,6 +38,24 @@ public class RarityManager {
     private final List<RollableItem> items = new ArrayList<>();
     private final Map<String, RollableItem> byName = new java.util.HashMap<>();
     private final Map<Rarity, Double> luckFactors = new EnumMap<>(Rarity.class);
+    private final Map<Rarity, Double> luckExponents = new EnumMap<>(Rarity.class);
+    private boolean exponentCurve = true;
+
+    /**
+     * How hard each rarity bends with Luck on the exponent curve.
+     *
+     * Defaults live here rather than only in config so a server that has
+     * never seen this key still gets the curve: a missing key falls back
+     * to its code default, a whole new section would not.
+     */
+    private static final Map<Rarity, Double> DEFAULT_EXPONENTS = new EnumMap<>(Map.of(
+            Rarity.COMMON, -0.6,
+            Rarity.UNCOMMON, 0.15,
+            Rarity.RARE, 0.45,
+            Rarity.EPIC, 0.8,
+            Rarity.LEGENDARY, 1.05,
+            Rarity.MYTHICAL, 1.3,
+            Rarity.DIVINE, 1.6));
     // Rarities that roll at exactly their label, and the band shares the
     // rest divide up. See assignRollWeights.
     private final Map<Rarity, Boolean> trueOdds = new EnumMap<>(Rarity.class);
@@ -60,6 +78,8 @@ public class RarityManager {
         styles.clear();
         symbolFlair.clear();
 
+        exponentCurve = !"linear".equalsIgnoreCase(config.getString("luck-curve", "exponent"));
+
         ConfigurationSection raritySection = config.getConfigurationSection("rarities");
         if (raritySection != null) {
             for (String key : raritySection.getKeys(false)) {
@@ -69,6 +89,8 @@ public class RarityManager {
                 if (r == null) continue;
 
                 luckFactors.put(rarity, r.getDouble("luck-factor", 0.0));
+                luckExponents.put(rarity, r.getDouble("luck-exponent",
+                        DEFAULT_EXPONENTS.getOrDefault(rarity, 0.0)));
                 trueOdds.put(rarity, r.getBoolean("true-odds", false));
                 if (r.contains("share")) shares.put(rarity, r.getDouble("share"));
                 styles.put(rarity, parseStyle(r.getStringList("colors"),
@@ -377,6 +399,33 @@ public class RarityManager {
         return luckFactors.getOrDefault(rarity, 0.0);
     }
 
+    public double luckExponentFor(Rarity rarity) {
+        return luckExponents.getOrDefault(rarity, DEFAULT_EXPONENTS.getOrDefault(rarity, 0.0));
+    }
+
+    /**
+     * What one rarity's weight is multiplied by at this much Luck.
+     *
+     * The exponent curve is the one that keeps working. On the old linear
+     * curve every rarity's weight grew in a straight line with Luck, so
+     * past roughly 100,000% the ratios between them stopped moving
+     * altogether: Uncommon sat at 86% of rolls and Divine at 1 in 35,000
+     * whether you had ten thousand percent Luck or twenty billion. Raising
+     * each rarity to its own power instead means the gap between two
+     * rarities keeps widening for as long as Luck keeps climbing, which is
+     * what a player with an absurd Luck number expects to see.
+     *
+     * Both curves are identical at zero Luck and close through the early
+     * game, so nothing about a new account changes.
+     */
+    public double luckWeightFactor(Rarity rarity, double luck) {
+        if (exponentCurve) {
+            return Math.pow(1.0 + Math.max(0.0, luck), luckExponentFor(rarity));
+        }
+        double f = luckFactorFor(rarity);
+        return f >= 0.0 ? 1.0 + luck * f : 1.0 / (1.0 + luck * -f);
+    }
+
     /**
      * Turns the labels into the weights the roll uses.
      *
@@ -468,13 +517,7 @@ public class RarityManager {
                 effectiveWeights[i] = 0.0;
                 continue;
             }
-            // A positive luck-factor grows a rarity with Luck; a negative one
-            // shrinks it by the same curve. Common used to sit at 0, so it
-            // kept its whole 94.5% of band rolls however much Luck a player
-            // had, and 2,500% Luck still rolled Commons 78% of the time.
-            double f = luckFactorFor(item.getRarity());
-            double factor = f >= 0.0 ? 1.0 + luck * f : 1.0 / (1.0 + luck * -f);
-            double weight = item.getRollWeight() * factor;
+            double weight = item.getRollWeight() * luckWeightFactor(item.getRarity(), luck);
             effectiveWeights[i] = weight;
             totalWeight += weight;
         }

@@ -3569,10 +3569,13 @@ holograms:
   crate-head-lift: 0.15
   crate-spin-degrees: 90
   crate-bob: 0.12
-  # The podium from /rngadmin holo leader: how big the three heads are
-  # and how far #2 and #3 stand from #1.
-  podium-head-scale: 1.8
-  podium-spacing: 2.5
+  # The podium from /rngadmin holo leader: how big the three heads are,
+  # how big its text is, and how far #2 and #3 stand from #1. The podium
+  # has its own text size because it is read from across the spawn
+  # rather than from in front of an NPC.
+  podium-head-scale: 3.2
+  podium-text-scale: 2.0
+  podium-spacing: 4.5
   click: "<#FFD54F>→→→</#FFD54F> <white>Click Here</white> <#FFD54F>←←←</#FFD54F>"
   panels:
     prestige:

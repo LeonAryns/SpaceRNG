@@ -1155,8 +1155,11 @@ public class FarmPlotManager {
     }
 
     private void sendActionBar(Player player, String text) {
-        player.spigot().sendMessage(net.md_5.bungee.api.ChatMessageType.ACTION_BAR,
-                new net.md_5.bungee.api.chat.TextComponent(text));
+        // A real component, not legacy text: the client's own legacy
+        // reader takes the six hex digits of a gradient colour for six
+        // separate old colour codes and paints the line in them.
+        player.sendActionBar(net.kyori.adventure.text.serializer.legacy
+                .LegacyComponentSerializer.legacySection().deserialize(text));
     }
 
     public void forget(UUID uuid) {

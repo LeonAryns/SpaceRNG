@@ -152,8 +152,8 @@ public class StarforgeManager {
 
             if (!holding && data.isAutoRollEnabled()) {
                 data.setAutoRollEnabled(false);
-                player.spigot().sendMessage(net.md_5.bungee.api.ChatMessageType.ACTION_BAR,
-                        new net.md_5.bungee.api.chat.TextComponent(
+                player.sendActionBar(net.kyori.adventure.text.serializer.legacy
+                        .LegacyComponentSerializer.legacySection().deserialize(
                                 ChatColor.RED + "" + ChatColor.BOLD + "Auto Roll OFF "
                                         + ChatColor.RESET + ChatColor.GRAY + "(Starforge put away)"));
             }

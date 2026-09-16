@@ -52,6 +52,9 @@ final class FirstTenBuildUp {
     private final Component bar;
     private long frame = 0L;
     private BukkitTask task;
+    // The shape over the whole thing. Particles read as weather from a
+    // distance; a star does not.
+    private FirstTenStar star;
 
     FirstTenBuildUp(SolRNGPlugin plugin, Rarity rarity, UUID finder, Runnable burst) {
         this.plugin = plugin;
@@ -84,6 +87,18 @@ final class FirstTenBuildUp {
     }
 
     void start() {
+        if (origin != null) {
+            // Bigger and higher the rarer it is, so a Divine is visible
+            // from further away than a Legendary without either of them
+            // having to be louder.
+            double radius = switch (rarity) {
+                case DIVINE -> 12.0;
+                case MYTHICAL -> 10.0;
+                default -> 8.0;
+            };
+            star = new FirstTenStar(plugin, rarity, origin, 16.0 + radius, radius);
+            star.start();
+        }
         task = plugin.getServer().getScheduler().runTaskTimer(plugin, this::tick, 0L, 2L);
     }
 
@@ -96,6 +111,12 @@ final class FirstTenBuildUp {
         try {
             double progress = (double) frame / length;
             boolean hush = progress > 0.9;
+            if (star != null) {
+                star.tick(progress, 4);
+                // People walk in and out of range, and somebody who just
+                // turned the rarity back on should see the rest of it.
+                if (frame % 20 == 0) star.refreshAudience();
+            }
             long half = (length / 4) * 2;
             long threeQuarters = (length * 3 / 8) * 2;
             for (Player viewer : Bukkit.getOnlinePlayers()) {
@@ -197,6 +218,10 @@ final class FirstTenBuildUp {
         if (task == null) return;
         task.cancel();
         task = null;
+        if (star != null) {
+            star.finish();
+            star = null;
+        }
         burst.run();
     }
 }

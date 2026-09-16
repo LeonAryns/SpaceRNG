@@ -604,8 +604,20 @@ final class WorldAdmin extends AdminTools {
                     sender.sendMessage(ChatColor.RED + "A boss is already up. End it with /rngadmin boss stop.");
                     return true;
                 }
+                if (boss.getTypes().isEmpty()) {
+                    // Almost always a server whose config.yml predates the
+                    // boss section: it is added on the first start with the
+                    // new jar, not by a reload.
+                    sender.sendMessage(ChatColor.RED + "No boss types are loaded.");
+                    sender.sendMessage(ChatColor.GRAY + "Your config.yml has no "
+                            + ChatColor.YELLOW + "boss:" + ChatColor.GRAY
+                            + " section yet. Restart the server once with this jar and it is written for you.");
+                    return true;
+                }
                 String id = args.length >= 3 ? args[2].toLowerCase(Locale.ROOT) : "";
-                com.spacerng.solrng.boss.BossType type = boss.getTypes().get(id);
+                // No name given: a random one, the same way the timer picks.
+                com.spacerng.solrng.boss.BossType type = id.isEmpty()
+                        ? boss.randomType() : boss.getTypes().get(id);
                 if (type == null) {
                     sender.sendMessage(ChatColor.RED + "Unknown boss. Types: "
                             + String.join(", ", boss.getTypes().keySet()));
@@ -707,6 +719,90 @@ final class WorldAdmin extends AdminTools {
             return true;
         }
         sender.sendMessage(ChatColor.GREEN + "Card posted.");
+        return true;
+    }
+
+    private static final String PACK = "spacerng_no_advancements";
+
+    /**
+     * Turns the vanilla advancement toasts off, and keeps them off.
+     *
+     * Two things have to happen and only one of them is a gamerule.
+     * announceAdvancements stops the chat lines, but the toast in the
+     * corner is the client drawing an advancement it was just granted, and
+     * the only way to stop that is for the advancement not to exist. A
+     * data pack whose whole content is a filter hides every vanilla
+     * advancement from the game, which is why this writes one into the
+     * world folder rather than telling Leon to find one.
+     *
+     * supported_formats rather than a pack_format number: a pack whose
+     * format does not match the server's exact version is disabled on
+     * sight, and that number moves with every Minecraft release.
+     */
+    boolean doAdvancements(CommandSender sender, String[] args) {
+        String action = args.length >= 2 ? args[1].toLowerCase(Locale.ROOT) : "";
+        if (!action.equals("off") && !action.equals("on")) {
+            sender.sendMessage(ChatColor.YELLOW + "/rngadmin advancements <off|on>");
+            sender.sendMessage(ChatColor.DARK_GRAY + "Off hides every vanilla advancement, toasts included.");
+            return true;
+        }
+        boolean off = action.equals("off");
+
+        for (org.bukkit.World world : plugin.getServer().getWorlds()) {
+            world.setGameRule(org.bukkit.GameRule.ANNOUNCE_ADVANCEMENTS, !off);
+        }
+
+        java.io.File worldFolder = plugin.getServer().getWorlds().isEmpty()
+                ? null : plugin.getServer().getWorlds().get(0).getWorldFolder();
+        if (worldFolder == null) {
+            sender.sendMessage(ChatColor.RED + "No world is loaded yet.");
+            return true;
+        }
+        java.io.File pack = new java.io.File(new java.io.File(worldFolder, "datapacks"), PACK);
+        java.io.File meta = new java.io.File(pack, "pack.mcmeta");
+
+        if (!off) {
+            if (meta.exists()) meta.delete();
+            java.io.File data = new java.io.File(pack, "data");
+            if (data.exists()) data.delete();
+            if (pack.exists()) pack.delete();
+            sender.sendMessage(ChatColor.GREEN + "Advancements are back on.");
+            sender.sendMessage(ChatColor.GRAY + "Run " + ChatColor.YELLOW + "/minecraft:reload"
+                    + ChatColor.GRAY + " or restart to finish it.");
+            return true;
+        }
+
+        if (!pack.exists() && !pack.mkdirs()) {
+            sender.sendMessage(ChatColor.RED + "Could not make the data pack folder.");
+            return true;
+        }
+        // An empty data folder, so the pack is a pack even where a bare
+        // pack.mcmeta is not enough.
+        new java.io.File(pack, "data").mkdirs();
+        String json = """
+                {
+                  "pack": {
+                    "description": "SpaceRNG: no vanilla advancements",
+                    "pack_format": 61,
+                    "supported_formats": { "min_inclusive": 4, "max_inclusive": 200 }
+                  },
+                  "filter": {
+                    "block": [ { "namespace": "minecraft", "path": "advancements?/.*" } ]
+                  }
+                }
+                """;
+        try (java.io.Writer writer = new java.io.OutputStreamWriter(
+                new java.io.FileOutputStream(meta), java.nio.charset.StandardCharsets.UTF_8)) {
+            writer.write(json);
+        } catch (java.io.IOException ex) {
+            sender.sendMessage(ChatColor.RED + "Could not write the data pack: " + ex.getMessage());
+            return true;
+        }
+
+        sender.sendMessage(ChatColor.GREEN + "Advancements are off and will stay off.");
+        sender.sendMessage(ChatColor.GRAY + "Written to " + ChatColor.WHITE + "world/datapacks/" + PACK);
+        sender.sendMessage(ChatColor.GRAY + "Run " + ChatColor.YELLOW + "/minecraft:reload"
+                + ChatColor.GRAY + " once, or restart, and the toasts are gone for good.");
         return true;
     }
 }

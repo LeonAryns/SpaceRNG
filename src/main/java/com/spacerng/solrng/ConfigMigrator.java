@@ -69,6 +69,8 @@ public final class ConfigMigrator {
             // V143: the Discord cards, and V145 the bot. Dotted paths,
             // because every server already has a discord section.
             "discord.cards", "discord.bot",
+            // V148: the podium's own text size.
+            "holograms.podium-text-scale",
             // V144: the Boss Box and the item that opens it.
             "crates.types.boss", "consumables.boss_box");
 
@@ -99,6 +101,9 @@ public final class ConfigMigrator {
                     List.of(150, 75, 25), List.of(150, 100, 50)),
             // V135: Leon picked the attribute card for the hoe.
             new Patch("hoe-style-attributes", "hoe-style", "classic", "attributes"),
+            // V148: Leon wants the farming podium read from across the spawn.
+            new Patch("podium-heads-bigger", "holograms.podium-head-scale", 1.8, 3.2),
+            new Patch("podium-spacing-wider", "holograms.podium-spacing", 2.5, 4.5),
             new Patch("cosmic-key-source-store", "crates.types.cosmic.key-source",
                     "Cosmic Keys are the rare find from Key Finder, about one key in twelve.",
                     "Cosmic Keys come from the store."));

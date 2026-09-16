@@ -375,19 +375,28 @@ public final class Lore {
         return ChatColor.AQUA;
     }
 
-    /** "12.4K" - short numbers for tight lore lines. */
     /**
-     * Whole units, not decimals.
+     * "1.1K" - short numbers for tight lore lines.
      *
-     * "4.89K" makes the eye stop and parse; "5K" is read at a glance, and
-     * a shortened number exists to be glanced at. Anywhere the exact
-     * figure matters, print the exact figure instead of shortening it.
+     * One decimal, and never a trailing ".0", so 1000 reads as 1K and
+     * 1100 as 1.1K. Whole units alone rounded 1,100 and 1,400 to the same
+     * 1K, which hid real differences in prices and payouts. The same rule
+     * as RollFormat.abbreviate, so a number does not change shape between
+     * a wallet and a tooltip. Anywhere the exact figure matters, print the
+     * exact figure instead of shortening it.
      */
     public static String shorten(double value) {
+        if (value < 0) return "-" + shorten(-value);
         if (value < 1_000) return String.format("%.0f", value);
-        if (value < 1_000_000) return Math.round(value / 1_000.0) + "K";
-        if (value < 1_000_000_000L) return Math.round(value / 1_000_000.0) + "M";
-        return Math.round(value / 1_000_000_000.0) + "B";
+        if (value < 1_000_000) return oneDecimal(value / 1_000.0) + "K";
+        if (value < 1_000_000_000L) return oneDecimal(value / 1_000_000.0) + "M";
+        if (value < 1_000_000_000_000L) return oneDecimal(value / 1_000_000_000.0) + "B";
+        return oneDecimal(value / 1_000_000_000_000.0) + "T";
+    }
+
+    private static String oneDecimal(double value) {
+        String text = String.format("%.1f", value);
+        return text.endsWith(".0") ? text.substring(0, text.length() - 2) : text;
     }
 
     private static String trim(double value) {

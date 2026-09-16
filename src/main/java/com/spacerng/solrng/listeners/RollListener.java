@@ -680,7 +680,15 @@ public class RollListener implements Listener {
     }
 
     private void sendActionBar(Player player, String text) {
-        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(text));
+        // Sent as a real component rather than as legacy text.
+        // TextComponent carries the section codes through untouched, and
+        // the client's own legacy reader does not understand the hex form
+        // a gradient is written in: it read each of the six hex digits as
+        // its own old colour code, which is why a gradient name came out
+        // of the action bar in the wrong colours while the same name was
+        // right everywhere else.
+        player.sendActionBar(net.kyori.adventure.text.serializer.legacy
+                .LegacyComponentSerializer.legacySection().deserialize(text));
     }
 
     private void clearActionBar(Player player) {
