@@ -59,7 +59,9 @@ public final class ConfigMigrator {
             // V135: Credits on some milestone tiers.
             "milestones.credit-rewards",
             // V137: ranks.
-            "ranks");
+            "ranks",
+            // V138: what one Credit Finder proc pays.
+            "farming.procs.credit-finder-amount");
 
     private record Patch(String id, String path, Object oldDefault, Object newDefault) {
     }

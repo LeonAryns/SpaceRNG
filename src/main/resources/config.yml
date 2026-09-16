@@ -8,7 +8,7 @@
 # their fresh defaults in on top of whatever is on disk, so a server
 # owner never has to delete the whole file to pick up a structural
 # change. Item table, prices and cosmetic tweaks are untouched.
-config-version: 15
+config-version: 16
 
 # One-off value changes the plugin has already made to this file, so none
 # is ever made twice. Managed by the plugin; leave it alone.
@@ -680,6 +680,8 @@ farming:
     nuke-crops: 10000
     gamba-multiplier: 3.0
     gamba-seconds: 60
+    # What one Credit Finder proc pays.
+    credit-finder-amount: 1
     key-finder-reward: crate_key
     # Now and then the key Key Finder turns up is the rare one instead.
     # Cosmic Keys are store only, so the rare find is a Nebula Key.

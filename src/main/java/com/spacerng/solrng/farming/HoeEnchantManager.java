@@ -102,6 +102,11 @@ public class HoeEnchantManager {
      * choices apart from a Token sink you return to constantly.
      */
     public boolean isUnlocked(PlayerData data, String enchantId) {
+        // An enchant with no node in the tree can say so itself, so a new one
+        // can ship before there is room for it on a farmtree page.
+        if (plugin.getConfig().getBoolean("farming.enchants." + enchantId + ".always-unlocked", false)) {
+            return true;
+        }
         for (SkillNode node : plugin.getSkillTreeManager().getNodes("farmtree").values()) {
             if (node.getTarget() == null || !node.getTarget().equalsIgnoreCase(enchantId)) continue;
             if (node.getEffect() != SkillNode.Effect.UNLOCK_ENCHANT) continue;

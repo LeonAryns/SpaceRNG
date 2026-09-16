@@ -906,10 +906,14 @@ public class FarmPlotManager {
 
         double credit = hoe.powerOf(data, "CREDIT_FINDER");
         if (credit > 0 && ThreadLocalRandom.current().nextDouble() < credit) {
-            data.addPoints(1L);
-            player.sendMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "Credit found  "
-                    + ChatColor.RESET + ChatColor.GRAY + "+1 Credit from the soil.");
+            // What a proc pays is config, since Credits are the store currency.
+            long amount = Math.max(1L, plugin.getConfig().getLong("farming.procs.credit-finder-amount", 1L));
+            data.addPoints(amount);
+            player.sendMessage(Currency.CREDITS.colour() + "" + ChatColor.BOLD + "Credit found  "
+                    + ChatColor.RESET + ChatColor.GRAY + "worth "
+                    + Currency.CREDITS.amount(amount) + ChatColor.GRAY + ", straight out of the soil.");
             playProc(player, data, 1.2f);
+            plugin.getScoreboardManager().update(player);
         }
 
         double nova = hoe.powerOf(data, "NOVA_FINDER");
