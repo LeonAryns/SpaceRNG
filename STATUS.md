@@ -66,6 +66,44 @@ running. In rough order of risk:
   (1 + Luck), so Luck never saturates. `luck-curve: linear` restores the
   old behaviour.
 
+## What was added, V140 to V150
+
+One or two lines each. The commit message for a version is the real
+record and says WHY, not only what: `git log` for the list,
+`git show <hash>` for one of them. The code and the comments in
+`config.yml` are the next layer down.
+
+- **V140** The boss event: a server event, not a mob, standing over a
+  spot and losing health to harvests and rolls. `/boss`.
+- **V141** Rebuilt per player. Everyone fights their own copy, health
+  counted in crops, and the timer became a command that survives a
+  restart because it lives in `boss.yml`.
+- **V142** Pets. Three slots in the aura at 120 degrees, a percentage on
+  one stat each, `/pets`, and `/rngadmin pet give` until there is a way
+  to earn them.
+- **V143** The Discord server card, posted to the webhook on command.
+- **V144** The Boss Box: the boss pays a box rather than loot, and
+  crates gained two reward types, `tickets:` and `boost:`. A key whose
+  crate was never placed now opens in the hand.
+- **V145** The Discord bot on DiscordSRV's own JDA: slash commands, and
+  roles that follow a rank or a link. `discord.info` became
+  `discord.cards`.
+- **V146** Slash commands registered one by one, so the guild's other
+  commands are not wiped.
+- **V147** `/rngadmin discord setup` makes the rank roles itself and
+  remembers the ids in `discord.yml`. The box can pay permanently.
+- **V148** Luck stopped saturating: each rarity takes its own power of
+  (1 + Luck). Action bars send real components, so gradients are not
+  read as six old colour codes. `Lore.shorten` carries one decimal. The
+  First 10 star. A bigger farming podium.
+  `/rngadmin advancements off`.
+- **V149** A test aura is no longer paused near the farm, which is why
+  every `auratest` looked like it did nothing.
+- **V150** The config migrator asked the jar's defaults instead of the
+  disk, so no added section was ever written and `boss.types` and
+  `pets.types` loaded empty. Boss Box pays Money and real permanents.
+  The First 10 holds the drop itself and lands on two titles.
+
 ## Open questions for Leon
 
 1. **How is a pet earned?** Eggs from rolls that hatch, straight from
