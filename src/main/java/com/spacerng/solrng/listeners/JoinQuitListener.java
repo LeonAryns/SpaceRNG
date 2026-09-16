@@ -42,6 +42,9 @@ public class JoinQuitListener implements Listener {
         plugin.getTagManager().refreshPrefix(event.getPlayer(), data);
         // The rank name in tab, and the size a /size rank picked, come back on join.
         plugin.getRankManager().refreshName(event.getPlayer());
+        // Their Discord roles catch up with whatever they bought or
+        // linked while they were away.
+        if (plugin.getDiscordBot() != null) plugin.getDiscordBot().syncRoles(event.getPlayer());
         if (Math.abs(data.getPlayerSize() - 1.0) > 0.01) {
             com.spacerng.solrng.commands.SizeCommand.apply(plugin, event.getPlayer(), data.getPlayerSize());
         }

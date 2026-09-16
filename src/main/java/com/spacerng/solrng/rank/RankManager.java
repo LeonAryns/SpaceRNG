@@ -174,6 +174,9 @@ public class RankManager {
         if (!data.spendPoints(tier.price())) return false;
         data.setRank(tier.id());
         refreshName(player);
+        // The Discord role follows the rank the moment it is bought,
+        // rather than the next time they log in.
+        if (plugin.getDiscordBot() != null) plugin.getDiscordBot().syncRoles(player);
         Bukkit.broadcastMessage(Lore.gradient("SpaceRNG", true, "#B388FF", "#40C4FF") + ChatColor.DARK_GRAY + " » "
                 + ChatColor.WHITE + player.getName() + ChatColor.GRAY + " is now "
                 + styled(tier) + ChatColor.GRAY + ".");

@@ -66,9 +66,9 @@ public final class ConfigMigrator {
             "boss",
             // V142: pets in the aura slots.
             "pets",
-            // V143: the Discord server card. A dotted path, because every
-            // server already has a discord section.
-            "discord.info",
+            // V143: the Discord cards, and V145 the bot. Dotted paths,
+            // because every server already has a discord section.
+            "discord.cards", "discord.bot",
             // V144: the Boss Box and the item that opens it.
             "crates.types.boss", "consumables.boss_box");
 

@@ -157,6 +157,10 @@ public class LinkedAccountManager {
             if (previous == null || previous == linked) continue;
             if (linked) onJustLinked(player);
             else onJustUnlinked(player);
+            // Linking is also what earns the Linked rank and its Discord
+            // role, so the roles are put right on the same transition
+            // rather than waiting for the next login.
+            if (plugin.getDiscordBot() != null) plugin.getDiscordBot().syncRoles(player);
         }
     }
 

@@ -110,23 +110,26 @@ public final class DiscordWebhook {
     }
 
     /**
-     * The server card: the embed with the IPs, the gamemodes and the vote
-     * links, posted on command rather than on an event.
+     * One of the cards: the server embed, the how-to-link embed, or
+     * anything else Leon writes under discord.cards, posted on command
+     * rather than on an event.
      *
      * Written straight out of config rather than out of code, because the
      * whole point of it is that Leon edits the wording and posts it again
      * without a new jar. Fields are Discord's own, which is what gives the
      * card its headed sections instead of one wall of text.
      */
-    public boolean info(FileConfiguration config) {
+    public boolean card(FileConfiguration config, String id) {
         if (!isEnabled()) return false;
-        String title = config.getString("discord.info.title", "SpaceRNG");
+        String path = "discord.cards." + id;
+        if (!config.contains(path)) return false;
+        String title = config.getString(path + ".title", "SpaceRNG");
         String description = String.join(String.valueOf(NEWLINE),
-                config.getStringList("discord.info.description"));
-        int colour = parseColour(config.getString("discord.info.color", "#3BA55D"));
+                config.getStringList(path + ".description"));
+        int colour = parseColour(config.getString(path + ".color", "#3BA55D"));
 
         StringBuilder fields = new StringBuilder();
-        for (Map<?, ?> raw : config.getMapList("discord.info.fields")) {
+        for (Map<?, ?> raw : config.getMapList(path + ".fields")) {
             Object name = raw.get("name");
             Object value = raw.get("value");
             if (name == null || value == null) continue;

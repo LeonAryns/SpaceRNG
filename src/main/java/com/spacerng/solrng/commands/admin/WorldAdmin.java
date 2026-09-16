@@ -674,17 +674,25 @@ final class WorldAdmin extends AdminTools {
      */
     boolean doDiscord(CommandSender sender, String[] args) {
         String action = args.length >= 2 ? args[1].toLowerCase(Locale.ROOT) : "";
-        if (!action.equals("info")) {
-            sender.sendMessage(ChatColor.YELLOW + "/rngadmin discord info"
-                    + ChatColor.GRAY + " - post the server card to the webhook");
-            sender.sendMessage(ChatColor.DARK_GRAY + "Edit it under discord.info in config.yml.");
+        var cards = plugin.getConfig().getConfigurationSection("discord.cards");
+        String ids = cards == null ? "" : String.join(", ", cards.getKeys(false));
+        if (!action.equals("card")) {
+            sender.sendMessage(ChatColor.YELLOW + "/rngadmin discord card <id>"
+                    + ChatColor.GRAY + " - post a card to the webhook");
+            sender.sendMessage(ChatColor.DARK_GRAY + "Cards: " + ids);
+            sender.sendMessage(ChatColor.DARK_GRAY + "Edit them under discord.cards in config.yml.");
             return true;
         }
-        if (!plugin.getDiscordWebhook().info(plugin.getConfig())) {
+        String id = args.length >= 3 ? args[2].toLowerCase(Locale.ROOT) : "";
+        if (cards == null || !cards.contains(id)) {
+            sender.sendMessage(ChatColor.RED + "Unknown card. There is: " + ids);
+            return true;
+        }
+        if (!plugin.getDiscordWebhook().card(plugin.getConfig(), id)) {
             sender.sendMessage(ChatColor.RED + "No webhook set. Fill in discord.webhook-url in config.yml.");
             return true;
         }
-        sender.sendMessage(ChatColor.GREEN + "Server card posted.");
+        sender.sendMessage(ChatColor.GREEN + "Card posted.");
         return true;
     }
 }

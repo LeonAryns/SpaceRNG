@@ -208,6 +208,7 @@ final class PlayerAdmin extends AdminTools {
             PlayerData data = plugin.getPlayerDataManager().get(target.getUniqueId());
             data.setRank(null);
             ranks.refreshName(target);
+            if (plugin.getDiscordBot() != null) plugin.getDiscordBot().syncRoles(target);
             plugin.getScoreboardManager().update(target);
             target.sendMessage(ChatColor.GRAY + "Your bought rank was cleared.");
             sender.sendMessage(ChatColor.GREEN + "Cleared the rank of " + target.getName() + ".");
@@ -227,6 +228,7 @@ final class PlayerAdmin extends AdminTools {
         PlayerData data = plugin.getPlayerDataManager().get(target.getUniqueId());
         data.setRank(tier.id());
         ranks.refreshName(target);
+        if (plugin.getDiscordBot() != null) plugin.getDiscordBot().syncRoles(target);
         plugin.getScoreboardManager().update(target);
         plugin.getLuckBarManager().update(target);
         target.sendMessage(ChatColor.GREEN + "You are now " + ranks.styled(tier) + ChatColor.GREEN + ".");

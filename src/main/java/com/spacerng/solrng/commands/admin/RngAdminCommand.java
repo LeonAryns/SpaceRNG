@@ -157,7 +157,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         line(sender, "floatingitem", "<add|remove|list>", "Rotating item displays anchored at a spot");
         line(sender, "boss", "<here|start|stop|process> [type]", "The boss spot, one by hand, and the timer");
         line(sender, "pet", "<give|take|list> <pet|all> [player]", "Hand out a pet, until they can be earned");
-        line(sender, "discord", "info", "Post the server card to the Discord webhook");
+        line(sender, "discord", "card <id>", "Post a Discord card, like the server or link one");
         line(sender, "tophead", "<set|podium|remove|clear|list>", "Floating heads for a leaderboard");
         line(sender, "shiny", "[player]", "Make the next roll shiny");
         line(sender, "firsts", "<list|reset|preview> [rarity]", "Server First 10 spots");
@@ -223,7 +223,14 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         }
         String sub = args[0].toLowerCase(Locale.ROOT);
         if (sub.equals("crate")) return crateTab(args);
-        if (sub.equals("discord")) return args.length == 2 ? partial(args[1], List.of("info")) : List.of();
+        if (sub.equals("discord")) {
+            if (args.length == 2) return partial(args[1], List.of("card"));
+            if (args.length == 3) {
+                var cards = plugin.getConfig().getConfigurationSection("discord.cards");
+                return cards == null ? List.of() : partial(args[2], new ArrayList<>(cards.getKeys(false)));
+            }
+            return List.of();
+        }
         if (sub.equals("pet")) {
             if (args.length == 2) return partial(args[1], List.of("give", "take", "list"));
             if (args.length == 3) {
