@@ -5339,6 +5339,31 @@ discord:
     shiny: true
     first-ten: true
     farming-payout: true
+  # The server card, posted with /rngadmin discord info. Everything here
+  # is text, so the wording, the IPs and the vote links change without a
+  # new jar. A field's value can be one line or a list of lines.
+  info:
+    title: "SpaceRNG"
+    color: "#C77DFF"
+    description:
+      - "**SpaceRNG** is a persistent RNG game: roll drops, farm the field,"
+      - "climb the trees and keep everything you find. Nothing ever resets."
+    fields:
+      - name: "What you do"
+        value:
+          - "**Roll** for drops from Common to Divine, and hunt shinies"
+          - "**Farm** the shared field with a hoe you upgrade yourself"
+          - "**Bosses** every couple of hours, everyone fights their own"
+        inline: false
+      - name: "Java IP"
+        value: "`spacerng.minehut.gg`"
+        inline: true
+      - name: "Bedrock"
+        value: "`spacerng.minehut.gg` port `19132`"
+        inline: true
+      - name: "Link your account"
+        value: "Type `/discord link` in game and follow the code."
+        inline: false
 
 # Perks are a second progression layer bought with drops, not Money.
 # A roll trades a fixed number of drops of one tier for one random perk

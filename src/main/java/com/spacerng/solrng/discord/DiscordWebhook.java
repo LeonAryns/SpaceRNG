@@ -16,6 +16,7 @@ import java.time.Duration;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -108,10 +109,69 @@ public final class DiscordWebhook {
         post("Daily farming payout", String.join(String.valueOf(NEWLINE), lines), 0xFFB300);
     }
 
+    /**
+     * The server card: the embed with the IPs, the gamemodes and the vote
+     * links, posted on command rather than on an event.
+     *
+     * Written straight out of config rather than out of code, because the
+     * whole point of it is that Leon edits the wording and posts it again
+     * without a new jar. Fields are Discord's own, which is what gives the
+     * card its headed sections instead of one wall of text.
+     */
+    public boolean info(FileConfiguration config) {
+        if (!isEnabled()) return false;
+        String title = config.getString("discord.info.title", "SpaceRNG");
+        String description = String.join(String.valueOf(NEWLINE),
+                config.getStringList("discord.info.description"));
+        int colour = parseColour(config.getString("discord.info.color", "#3BA55D"));
+
+        StringBuilder fields = new StringBuilder();
+        for (Map<?, ?> raw : config.getMapList("discord.info.fields")) {
+            Object name = raw.get("name");
+            Object value = raw.get("value");
+            if (name == null || value == null) continue;
+            String text = value instanceof List<?> lines
+                    ? String.join(String.valueOf(NEWLINE), lines.stream().map(String::valueOf).toList())
+                    : String.valueOf(value);
+            if (fields.length() > 0) fields.append(',');
+            fields.append('{').append(key("name")).append(json(String.valueOf(name))).append(',')
+                    .append(key("value")).append(json(text)).append(',')
+                    .append(key("inline")).append(raw.get("inline") == Boolean.TRUE).append('}');
+        }
+
+        StringBuilder embed = new StringBuilder("{")
+                .append(key("title")).append(json(title)).append(',')
+                .append(key("color")).append(colour);
+        if (!description.isBlank()) {
+            embed.append(',').append(key("description")).append(json(description));
+        }
+        if (fields.length() > 0) {
+            embed.append(',').append(key("fields")).append('[').append(fields).append(']');
+        }
+        embed.append('}');
+
+        send("{" + key("username") + json(username) + "," + key("embeds") + "[" + embed + "]}");
+        return true;
+    }
+
+    /** "#RRGGBB" or a plain number, falling back to Discord's green. */
+    private static int parseColour(String raw) {
+        String clean = raw == null ? "" : raw.trim();
+        if (clean.startsWith("#")) clean = clean.substring(1);
+        try {
+            return Integer.parseInt(clean, 16);
+        } catch (NumberFormatException ex) {
+            return 0x3BA55D;
+        }
+    }
+
     private void post(String title, String description, int colour) {
-        String body = "{" + key("username") + json(username) + "," + key("embeds") + "[{"
+        send("{" + key("username") + json(username) + "," + key("embeds") + "[{"
                 + key("title") + json(title) + "," + key("description") + json(description) + ","
-                + key("color") + colour + "}]}";
+                + key("color") + colour + "}]}");
+    }
+
+    private void send(String body) {
         HttpRequest request;
         try {
             request = HttpRequest.newBuilder(URI.create(url))

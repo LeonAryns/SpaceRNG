@@ -665,4 +665,26 @@ final class WorldAdmin extends AdminTools {
         }
         return true;
     }
+
+    /**
+     * Posts the server card to the Discord webhook.
+     *
+     * Everything on it is config, so the wording, the IPs and the vote
+     * links change without a new jar and the card is posted again.
+     */
+    boolean doDiscord(CommandSender sender, String[] args) {
+        String action = args.length >= 2 ? args[1].toLowerCase(Locale.ROOT) : "";
+        if (!action.equals("info")) {
+            sender.sendMessage(ChatColor.YELLOW + "/rngadmin discord info"
+                    + ChatColor.GRAY + " - post the server card to the webhook");
+            sender.sendMessage(ChatColor.DARK_GRAY + "Edit it under discord.info in config.yml.");
+            return true;
+        }
+        if (!plugin.getDiscordWebhook().info(plugin.getConfig())) {
+            sender.sendMessage(ChatColor.RED + "No webhook set. Fill in discord.webhook-url in config.yml.");
+            return true;
+        }
+        sender.sendMessage(ChatColor.GREEN + "Server card posted.");
+        return true;
+    }
 }

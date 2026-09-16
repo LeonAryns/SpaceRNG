@@ -40,7 +40,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             "reload", "setspawn", "starforge", "reset", "give", "drops",
             "bank", "rank", "aura", "roll", "unlock", "unlockall", "lockall", "odds", "farmblock", "farmscan",
             "hoe", "consumable", "gradient", "welcome", "crops", "farmclear",
-            "milestones", "farmfill", "boost", "nova", "placeholders", "payout", "crate", "tophead", "floatingitem", "boss", "pet", "shiny", "firsts", "lorestyles", "tagstyles", "menustyles", "hoestyles", "standingstyles", "enchantstyles", "novastyles", "auratest", "holo", "help");
+            "milestones", "farmfill", "boost", "nova", "placeholders", "payout", "crate", "tophead", "floatingitem", "boss", "pet", "discord", "shiny", "firsts", "lorestyles", "tagstyles", "menustyles", "hoestyles", "standingstyles", "enchantstyles", "novastyles", "auratest", "holo", "help");
     private static final List<String> CURRENCIES = List.of("money", "coins", "gems", "credits", "luck", "speed", "tickets");
 
     private final SolRNGPlugin plugin;
@@ -111,6 +111,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             case "floatingitem" -> world.doFloatingItem(sender, args);
             case "boss" -> world.doBoss(sender, args);
             case "pet" -> players.doPet(sender, args);
+            case "discord" -> world.doDiscord(sender, args);
             default -> {
                 sendHelp(sender);
                 yield true;
@@ -156,6 +157,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         line(sender, "floatingitem", "<add|remove|list>", "Rotating item displays anchored at a spot");
         line(sender, "boss", "<here|start|stop|process> [type]", "The boss spot, one by hand, and the timer");
         line(sender, "pet", "<give|take|list> <pet|all> [player]", "Hand out a pet, until they can be earned");
+        line(sender, "discord", "info", "Post the server card to the Discord webhook");
         line(sender, "tophead", "<set|podium|remove|clear|list>", "Floating heads for a leaderboard");
         line(sender, "shiny", "[player]", "Make the next roll shiny");
         line(sender, "firsts", "<list|reset|preview> [rarity]", "Server First 10 spots");
@@ -221,6 +223,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         }
         String sub = args[0].toLowerCase(Locale.ROOT);
         if (sub.equals("crate")) return crateTab(args);
+        if (sub.equals("discord")) return args.length == 2 ? partial(args[1], List.of("info")) : List.of();
         if (sub.equals("pet")) {
             if (args.length == 2) return partial(args[1], List.of("give", "take", "list"));
             if (args.length == 3) {

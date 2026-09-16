@@ -65,7 +65,10 @@ public final class ConfigMigrator {
             // V140: the boss event.
             "boss",
             // V142: pets in the aura slots.
-            "pets");
+            "pets",
+            // V143: the Discord server card. A dotted path, because every
+            // server already has a discord section.
+            "discord.info");
 
     private record Patch(String id, String path, Object oldDefault, Object newDefault) {
     }
