@@ -6,7 +6,7 @@
 
     <groupId>com.spacerng</groupId>
     <artifactId>sol-rng</artifactId>
-    <version>150</version>
+    <version>151</version>
     <packaging>jar</packaging>
 
     <properties>
@@ -78,6 +78,32 @@
     <build>
         <!-- Always SpaceRNG.jar, so a new upload on Minehut replaces the old file. -->
         <finalName>SpaceRNG</finalName>
+        <!--
+            plugin.yml is filtered so its version comes from <version> above
+            and /version SpaceRNG reports the real build. Since the jar name
+            carries no version any more, this is the only way to tell which
+            build a server is running.
+
+            Filtering is scoped to plugin.yml on purpose. config.yml is full
+            of glyphs and colour codes and must be copied through byte for
+            byte, so it goes in a second, unfiltered block.
+        -->
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>plugin.yml</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+                <excludes>
+                    <exclude>plugin.yml</exclude>
+                </excludes>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

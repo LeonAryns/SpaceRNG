@@ -1,5 +1,5 @@
 name: SpaceRNG
-version: '1.0.0'
+version: '${project.version}'
 main: com.spacerng.solrng.SolRNGPlugin
 api-version: '1.21'
 author: LaLaLeon
