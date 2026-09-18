@@ -90,11 +90,31 @@ public class LinkedAccountManager {
                 "&5&lLinked to Discord! &7Bonuses are active while your account stays linked."));
         unlinkAnnounce = colour(config.getString("linked-account.unlink-message",
                 "&cUnlinked from Discord. &7Bonuses removed."));
+        broadcastEnabled = config.getBoolean("linked-account.broadcast.enabled", true);
+        broadcastTitle = config.getString("linked-account.broadcast.title", "DISCORD");
+        broadcastSubtitle = config.getString("linked-account.broadcast.subtitle", "COMMUNITY");
+        broadcastLines = config.getStringList("linked-account.broadcast.lines");
+        if (broadcastLines.isEmpty()) {
+            broadcastLines = java.util.List.of(
+                    "&f{player} &7linked their account",
+                    "&7and picked up the Linked rank and a gift!");
+        }
     }
 
     private String colour(String raw) {
         return raw == null ? "" : ChatColor.translateAlternateColorCodes('&', raw);
     }
+
+    // The banner everyone sees when somebody links. It fires once per
+    // player ever, off the same flag as the first-link gift, so nobody
+    // can put it in chat on a loop by unlinking and relinking.
+    private boolean broadcastEnabled = true;
+    private String broadcastTitle = "DISCORD";
+    private String broadcastSubtitle = "COMMUNITY";
+    private java.util.List<String> broadcastLines = java.util.List.of();
+
+    /** Discord's own blurple, and the older one under it. */
+    private static final String[] BLURPLE = {"#5865F2", "#7289DA"};
 
     public boolean isDiscordSrvPresent() {
         return available;
@@ -172,6 +192,7 @@ public class LinkedAccountManager {
         // loops, which is exactly the failure mode this gate covers.
         if (!data.hasClaimedLinkGift()) {
             data.setClaimedLinkGift(true);
+            broadcastLink(player);
             if (firstLinkCredits > 0) data.addPoints(firstLinkCredits);
             if (firstLinkCoins > 0) data.addTokens(firstLinkCoins);
             if (firstLinkMoney > 0) {
@@ -199,6 +220,34 @@ public class LinkedAccountManager {
             if (any) player.sendMessage(gift.toString());
             player.playSound(player.getLocation(),
                     org.bukkit.Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.7f, 1.4f);
+        }
+    }
+
+    /**
+     * The whole server hears about it.
+     *
+     * A link is worth announcing for the same reason the global boost is:
+     * it is one person doing something everybody else can copy, and a
+     * name in chat is a better advert for the Discord than a tip nobody
+     * reads. Once per player, never on a relink.
+     */
+    private void broadcastLink(Player player) {
+        if (!broadcastEnabled) return;
+
+        String title = com.spacerng.solrng.gui.Lore.gradient(broadcastTitle, true, BLURPLE);
+        String subtitle = ChatColor.DARK_GRAY + broadcastSubtitle;
+
+        for (Player online : Bukkit.getOnlinePlayers()) {
+            online.sendMessage("");
+            online.sendMessage(title);
+            online.sendMessage(subtitle);
+            online.sendMessage("");
+            for (String line : broadcastLines) {
+                online.sendMessage(colour(line.replace("{player}", player.getName())));
+            }
+            online.sendMessage("");
+            online.playSound(online.getLocation(),
+                    org.bukkit.Sound.ENTITY_PLAYER_LEVELUP, 0.6f, 1.6f);
         }
     }
 

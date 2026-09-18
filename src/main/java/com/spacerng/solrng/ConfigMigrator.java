@@ -125,7 +125,11 @@ public final class ConfigMigrator {
             // 4.5k, with the two under it spread to match.
             new Patch("rank-comet-1200", "ranks.tiers.comet.price-credits", 1000, 1200),
             new Patch("rank-nova-3200", "ranks.tiers.nova.price-credits", 2500, 3200),
-            new Patch("rank-supernova-7000", "ranks.tiers.supernova.price-credits", 4500, 7000));
+            new Patch("rank-supernova-7000", "ranks.tiers.supernova.price-credits", 4500, 7000),
+            // V156: the Linked tag wears Discord's current blurple. The old
+            // second stop was grey, which washed the name out halfway.
+            new Patch("rank-linked-blurple", "ranks.tiers.linked.colors",
+                    List.of("#7289DA", "#B9BBBE"), List.of("#5865F2", "#7289DA")));
 
     /** Like a Patch, for one field of the entry with a given id inside a list of maps. */
     private record EntryPatch(String id, String list, String entryId, String field, Object oldDefault,

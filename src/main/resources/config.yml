@@ -8,7 +8,7 @@
 # their fresh defaults in on top of whatever is on disk, so a server
 # owner never has to delete the whole file to pick up a structural
 # change. Item table, prices and cosmetic tweaks are untouched.
-config-version: 17
+config-version: 18
 
 # One-off value changes the plugin has already made to this file, so none
 # is ever made twice. Managed by the plugin; leave it alone.
@@ -5497,6 +5497,18 @@ shiny:
 #
 # Every field below is optional. Delete anything you don't want.
 linked-account:
+
+  # The banner the whole server sees when somebody links. Fires once per
+  # player ever, off the same flag as the first-link gift, so nobody can
+  # put it in chat on a loop by unlinking and relinking. {player} is the
+  # name of whoever linked.
+  broadcast:
+    enabled: true
+    title: "DISCORD"
+    subtitle: "COMMUNITY"
+    lines:
+      - "&f{player} &7linked their account"
+      - "&7and picked up the Linked rank and a gift!"
   enabled: true
   bonus:
     money-percent: 0.10
@@ -5713,7 +5725,11 @@ ranks:
   tiers:
     linked:
       display: "Linked"
-      colors: ["#7289DA", "#B9BBBE"]
+      # Discord's current blurple into the older one. The tag is a single
+      # character, so it takes the first stop; the second only shapes the
+      # name behind it. The old second colour was grey, which washed a
+      # linked player's name out halfway across.
+      colors: ["#5865F2", "#7289DA"]
       tag: "✔"
       icon: NAME_TAG
       price-credits: 0
