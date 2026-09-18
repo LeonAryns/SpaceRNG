@@ -687,9 +687,10 @@ public final class HoloManager {
 
         int peak = boards.getPeakPlayers();
         Component status = peak >= need
-                ? parse("<green>✔ Payout unlocked</green> <dark_gray>" + peak + " on today")
-                : parse("<red>✘ No payout yet</red> <gray>needs <white>" + need
-                        + "</white> on at once, best <white>" + peak + "</white>");
+                ? parse("<green>✔ Payout unlocked</green>   <dark_gray>"
+                        + peak + " players today")
+                : parse("<red>✘ Payout locked</red>   <white>" + peak + "/" + need
+                        + "</white> <gray>players today");
         return Component.join(JoinConfiguration.newlines(), countdown, status);
     }
 
