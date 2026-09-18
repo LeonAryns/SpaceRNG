@@ -5,7 +5,7 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V150**, 17 September 2026.
+Last updated at **V152**, 18 September 2026.
 
 ## The agreed way of working
 
@@ -19,8 +19,15 @@ asks for, then stop and wait for his answer rather than moving on.
 
 ## The step plan
 
-**Step 0, waiting on Leon: does the base work?** Nothing is built until
-this comes back. The checklist is below.
+**Step 0, waiting on Leon: does the base work?** Ranks came back
+working. The rest of the checklist below is still unanswered, and the
+pets half of it now has a whole system on top of it (V152), so a "no" on
+pets is worth more than it was.
+
+**Step 0b, new in V152: does the dust loop work?** `/rngadmin dust
+cosmic 100`, then `/pets` and the star in the top right. Make a pet,
+right click it, buy a rarity and try a tier. Then check the real drop
+rate by rolling with `cosmic_root` bought.
 
 **Step 1: make the Server First 10 show good.** One subject. He looks at
 a preview, says what is wrong, it gets changed, repeat. Nothing else in
@@ -50,8 +57,8 @@ A "no" on any of them is the next thing to fix, and only that.
 
 ## What shipped but has never been tested in game
 
-Everything from V140 to V150 was built and compiled but never seen
-running. In rough order of risk:
+Everything from V140 to V152 was built and compiled but never seen
+running, except ranks, which Leon confirmed working on 18 September. In rough order of risk:
 
 - **The Discord bot (V145 to V147).** Slash commands and role sync ride
   on DiscordSRV's JDA. It needs the bot invited with the
@@ -73,6 +80,17 @@ record and says WHY, not only what: `git log` for the list,
 `git show <hash>` for one of them. The code and the comments in
 `config.yml` are the next layer down.
 
+- **V151** plugin.yml reads `${project.version}`, so `/version SpaceRNG`
+  reports the real build. Since V134 the jar is always SpaceRNG.jar and
+  the version had disappeared from everywhere a person could see it.
+- **V152** Pets grow. Cosmic Dust falls while rolling (1 in 100 at the
+  `cosmic_root` skill), ten make a pet, and more buy rarity. Farm Dust
+  falls while harvesting (1 in 2000 at `farm_dust_root` in /farmtree) and
+  buys tiers, which can fail. Shiny needs a shiny of the pet's own
+  rarity. Slots start at 1 and climb to 3 in the tree. New pages:
+  skilltree 5 "Cosmic", farmtree 4 "Cosmic Soil". Bosses can now turn up
+  on their own (`boss.natural`) and the Boss Summoner consumable forces
+  one for everybody.
 - **V140** The boss event: a server event, not a mob, standing over a
   spot and losing health to harvests and rolls. `/boss`.
 - **V141** Rebuilt per player. Everyone fights their own copy, health
