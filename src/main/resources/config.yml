@@ -3206,6 +3206,8 @@ milestones:
 #   %solrng_top_farming_1_name%    %solrng_top_farming_1_value%
 #   %solrng_top_farming_1_reward%  %solrng_farm_reset%
 #   %solrng_farm_place%            %solrng_farm_value%
+#   %solrng_farm_peak%             %solrng_farm_needed%
+#   %solrng_farm_payout%           "unlocked" or "locked"
 # Boards: farming, farming_total, rolls, prestige, index
 leaderboard:
   timezone: "UTC"

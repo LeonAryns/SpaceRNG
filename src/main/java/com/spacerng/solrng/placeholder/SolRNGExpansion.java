@@ -175,6 +175,9 @@ public class SolRNGExpansion extends PlaceholderExpansion {
      *   %spacerng_farm_reset%                 "9h 15m 10s"
      *   %spacerng_farm_place%                 the viewer's DAILY place
      *   %spacerng_farm_value%                 the viewer's daily total
+     *   %spacerng_farm_peak%                  most players on at once today
+     *   %spacerng_farm_needed%                how many the payout needs
+     *   %spacerng_farm_payout%                "unlocked" or "locked"
      *
      * Names come back bare so a hologram can feed one straight into a
      * head line, and empty rather than "null" so an unfilled podium slot
@@ -189,6 +192,18 @@ public class SolRNGExpansion extends PlaceholderExpansion {
         if (params.equals("farm_place")) {
             int place = boards.positionOf("farming", player.getUniqueId());
             return place > 0 ? String.valueOf(place) : "-";
+        }
+        // Whether the daily payout is going to run at all. A farmer
+        // deserves to know that from a hologram rather than at midnight.
+        if (params.equals("farm_peak")) {
+            return String.valueOf(boards.getPeakPlayers());
+        }
+        if (params.equals("farm_needed")) {
+            return String.valueOf(boards.getMinPlayersForPayout());
+        }
+        if (params.equals("farm_payout")) {
+            int need = boards.getMinPlayersForPayout();
+            return need <= 0 || boards.getPeakPlayers() >= need ? "unlocked" : "locked";
         }
         if (params.equals("farm_value")) {
             var entry = boards.entryOf(player.getUniqueId());

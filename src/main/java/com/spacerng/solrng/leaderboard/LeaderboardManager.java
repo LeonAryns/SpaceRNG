@@ -298,6 +298,10 @@ public class LeaderboardManager {
 
     public void tick() {
         refreshOnline();
+        // Sampled here as well as on join. A join hook alone misses the
+        // count that is already standing when the plugin loads, which is
+        // exactly what happens on every reload of a busy server.
+        notePlayerCount(Bukkit.getOnlinePlayers().size());
 
         long today = todayEpochDay();
         if (lastPayoutDay == 0L) {

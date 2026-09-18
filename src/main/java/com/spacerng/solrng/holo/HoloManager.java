@@ -667,11 +667,30 @@ public final class HoloManager {
         return Component.join(JoinConfiguration.newlines(), rows);
     }
 
+    /**
+     * The line under the podium: the countdown, and whether the payout is
+     * going to happen at all.
+     *
+     * The payout needs the server to have hit a player count inside the
+     * period. Somebody farming all day has to be able to see that from
+     * the podium itself, not find out at midnight that nothing was paid.
+     */
     private Component podiumTimer(String board) {
         if (!board.equals("farming")) return Component.empty();
-        long seconds = plugin.getLeaderboardManager().secondsUntilReset();
-        return parse("<gray>Resets in <white>" + seconds / 3600 + "h " + (seconds % 3600) / 60 + "m "
-                + seconds % 60 + "s");
+        LeaderboardManager boards = plugin.getLeaderboardManager();
+        long seconds = boards.secondsUntilReset();
+        Component countdown = parse("<gray>Resets in <white>" + seconds / 3600 + "h "
+                + (seconds % 3600) / 60 + "m " + seconds % 60 + "s");
+
+        int need = boards.getMinPlayersForPayout();
+        if (need <= 0) return countdown;
+
+        int peak = boards.getPeakPlayers();
+        Component status = peak >= need
+                ? parse("<green>✔ Payout unlocked</green> <dark_gray>" + peak + " on today")
+                : parse("<red>✘ No payout yet</red> <gray>needs <white>" + need
+                        + "</white> on at once, best <white>" + peak + "</white>");
+        return Component.join(JoinConfiguration.newlines(), countdown, status);
     }
 
     /** "YOU: #4,951 Name: 0", for the reader alone. */
