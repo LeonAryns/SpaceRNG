@@ -40,7 +40,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             "reload", "setspawn", "starforge", "reset", "give", "drops",
             "bank", "rank", "aura", "roll", "unlock", "unlockall", "lockall", "odds", "farmblock", "farmscan",
             "hoe", "consumable", "gradient", "welcome", "crops", "farmclear",
-            "milestones", "farmfill", "boost", "nova", "placeholders", "payout", "crate", "tophead", "floatingitem", "boss", "pet", "dust", "discord", "advancements", "shiny", "firsts", "lorestyles", "tagstyles", "menustyles", "hoestyles", "standingstyles", "enchantstyles", "novastyles", "auratest", "holo", "help");
+            "milestones", "farmfill", "boost", "crowd", "nova", "placeholders", "payout", "crate", "tophead", "floatingitem", "boss", "pet", "dust", "discord", "advancements", "shiny", "firsts", "lorestyles", "tagstyles", "menustyles", "hoestyles", "standingstyles", "enchantstyles", "novastyles", "auratest", "holo", "help");
     private static final List<String> CURRENCIES = List.of("money", "coins", "gems", "credits", "luck", "speed", "tickets");
 
     private final SolRNGPlugin plugin;
@@ -102,6 +102,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             case "milestones" -> players.doMilestones(sender, args);
             case "farmfill" -> world.doFarmFill(sender, args);
             case "boost" -> players.doBoost(sender, args);
+            case "crowd" -> players.doCrowd(sender, args);
             case "nova" -> players.doNova(sender, args);
             case "placeholders" -> showcase.doPlaceholders(sender);
             case "payout" -> world.doPayout(sender);
@@ -151,6 +152,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         line(sender, "milestones", "<check|reset> [player]", "Force a check, or wipe claimed tiers");
         line(sender, "farmfill", "<radius> [confirm]", "Fill a square of farm plots around you");
         line(sender, "boost", "<level> [minutes]", "Force the global Luck boost on");
+        line(sender, "crowd", "[reset]", "Where the free 2x Luck bar sits");
         line(sender, "nova", "<tier> [player]", "Set a Nova Core tier");
         line(sender, "placeholders", "", "What every %spacerng_% placeholder resolves to right now");
         line(sender, "payout", "", "Run the farming payout now and reset the period");

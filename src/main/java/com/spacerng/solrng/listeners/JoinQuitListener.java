@@ -65,6 +65,10 @@ public class JoinQuitListener implements Listener {
         // Somebody joining mid-event gets their own copy of the boss and
         // whatever time is left, otherwise the event is invisible to them.
         plugin.getBossManager().onJoin(event.getPlayer());
+        // The day's peak decides whether the farming payout runs at all,
+        // and a peak concurrent count only ever rises on a join.
+        plugin.getLeaderboardManager().notePlayerCount(
+                org.bukkit.Bukkit.getOnlinePlayers().size());
         plugin.getQuestManager().check(event.getPlayer());
         plugin.getFarmPlotManager().render(event.getPlayer());
         plugin.getAuraManager().refreshVisibility(event.getPlayer());

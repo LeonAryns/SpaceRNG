@@ -108,6 +108,15 @@ public class LeaderboardManager {
     private List<Long> payouts = List.of(150L, 75L, 25L);
     private long lastPayoutDay = 0L;
 
+    // The payout only fires on a day the server actually had people on
+    // it. Credits are the currency real money buys, so a board that pays
+    // them out to whoever farmed alone overnight is a faucet with nobody
+    // watching it. The check is the day's PEAK, not the count at the
+    // rollover hour: the roll happens at midnight, when a healthy server
+    // is empty too.
+    private int minPlayersForPayout = 10;
+    private int peakPlayers = 0;
+
     public LeaderboardManager(SolRNGPlugin plugin) {
         this.plugin = plugin;
         this.file = new File(plugin.getDataFolder(), "leaderboard.yml");
@@ -133,12 +142,29 @@ public class LeaderboardManager {
             }
         }
         if (!configured.isEmpty()) payouts = configured;
+        minPlayersForPayout = Math.max(0, config.getInt("leaderboard.farming.min-players", 10));
 
         loadIndex();
     }
 
     public List<Long> getPayouts() {
         return payouts;
+    }
+
+    /**
+     * Records how busy the server got. Called on join, because a peak
+     * concurrent count only ever moves up when somebody arrives.
+     */
+    public void notePlayerCount(int online) {
+        if (online > peakPlayers) peakPlayers = online;
+    }
+
+    public int getPeakPlayers() {
+        return peakPlayers;
+    }
+
+    public int getMinPlayersForPayout() {
+        return minPlayersForPayout;
     }
 
     // ------------------------------------------------------------- index
@@ -290,6 +316,23 @@ public class LeaderboardManager {
 
     /** Awards the top places and clears everyone's period counter. */
     public void runPayout() {
+        // A day the server never filled up pays nothing, and the period
+        // still resets. Carrying the farming over to tomorrow instead
+        // would just hand the same person two days of crops on one board.
+        if (minPlayersForPayout > 0 && peakPlayers < minPlayersForPayout) {
+            plugin.getLogger().info("Farming payout skipped: the day peaked at " + peakPlayers
+                    + " players, and " + minPlayersForPayout + " are needed.");
+            org.bukkit.Bukkit.broadcast(net.kyori.adventure.text.serializer.legacy
+                    .LegacyComponentSerializer.legacySection().deserialize(
+                            ChatColor.GRAY + "No farming payout today. The server peaked at "
+                                    + ChatColor.WHITE + peakPlayers + ChatColor.GRAY + " of the "
+                                    + ChatColor.WHITE + minPlayersForPayout + ChatColor.GRAY
+                                    + " players it needs."));
+            resetPeriod();
+            peakPlayers = org.bukkit.Bukkit.getOnlinePlayers().size();
+            return;
+        }
+
         List<Entry> winners = top("farming", payouts.size());
 
         List<String> banner = new ArrayList<>();
@@ -324,6 +367,9 @@ public class LeaderboardManager {
 
         plugin.getDiscordWebhook().payout(discord);
         resetPeriod();
+        // The new day starts from whoever is on right now, not from zero,
+        // so a rollover during a busy evening does not throw the count away.
+        peakPlayers = Bukkit.getOnlinePlayers().size();
     }
 
     /**
@@ -369,6 +415,7 @@ public class LeaderboardManager {
 
         YamlConfiguration yml = YamlConfiguration.loadConfiguration(file);
         lastPayoutDay = yml.getLong("last-payout-day", 0L);
+        peakPlayers = yml.getInt("peak-players", 0);
 
         var section = yml.getConfigurationSection("players");
         if (section == null) return;
@@ -394,6 +441,7 @@ public class LeaderboardManager {
     public void saveIndex() {
         YamlConfiguration yml = new YamlConfiguration();
         yml.set("last-payout-day", lastPayoutDay);
+        yml.set("peak-players", peakPlayers);
         for (Entry entry : index.values()) {
             String path = "players." + entry.uuid();
             yml.set(path + ".name", entry.name());

@@ -494,6 +494,35 @@ final class PlayerAdmin extends AdminTools {
     }
 
     /** /rngadmin boost &lt;level&gt; [minutes] - force the global boost on for testing. */
+    /**
+     * /rngadmin crowd [reset]
+     *
+     * Where the free 2x Luck bar sits right now. The bar is not
+     * persisted, so this is also the quickest way to see whether a
+     * restart put it back to the starting number.
+     */
+    boolean doCrowd(CommandSender sender, String[] args) {
+        var crowd = plugin.getCrowdBoostManager();
+        if (args.length >= 2 && args[1].equalsIgnoreCase("reset")) {
+            crowd.reset();
+            sender.sendMessage(ChatColor.GREEN + "The crowd bar is back to its starting value.");
+            return true;
+        }
+        if (!crowd.isEnabled()) {
+            sender.sendMessage(ChatColor.GRAY + "Crowd boosts are off in config.");
+            return true;
+        }
+        int online = plugin.getServer().getOnlinePlayers().size();
+        sender.sendMessage(ChatColor.AQUA + "Free 2x Luck");
+        sender.sendMessage(ChatColor.GRAY + "  Online now: " + ChatColor.WHITE + online);
+        sender.sendMessage(ChatColor.GRAY + "  Next boost at: " + ChatColor.WHITE + crowd.nextThreshold()
+                + ChatColor.GRAY + " (" + crowd.playersShort() + " to go)");
+        long cooling = crowd.minutesLeft();
+        sender.sendMessage(ChatColor.GRAY + "  Cooldown: " + ChatColor.WHITE
+                + (cooling <= 0L ? "ready" : cooling + " min"));
+        return true;
+    }
+
     boolean doBoost(CommandSender sender, String[] args) {
         if (args.length < 2) {
             sender.sendMessage(ChatColor.GRAY + "Boost: " + ChatColor.LIGHT_PURPLE

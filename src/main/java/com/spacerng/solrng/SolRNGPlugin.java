@@ -55,6 +55,7 @@ public final class SolRNGPlugin extends JavaPlugin {
     private com.spacerng.solrng.farming.FarmPlotManager farmPlotManager;
     private com.spacerng.solrng.milestone.MilestoneManager milestoneManager;
     private com.spacerng.solrng.boost.BoostManager boostManager;
+    private com.spacerng.solrng.boost.CrowdBoostManager crowdBoostManager;
     private com.spacerng.solrng.boost.LuckBarManager luckBarManager;
     private com.spacerng.solrng.nova.NovaCoreManager novaCoreManager;
     private com.spacerng.solrng.farming.HoeEnchantManager hoeEnchantManager;
@@ -152,6 +153,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         this.farmPlotManager = new com.spacerng.solrng.farming.FarmPlotManager(this);
         this.milestoneManager = new com.spacerng.solrng.milestone.MilestoneManager(this);
         this.boostManager = new com.spacerng.solrng.boost.BoostManager(this);
+        this.crowdBoostManager = new com.spacerng.solrng.boost.CrowdBoostManager(this);
         this.luckBarManager = new com.spacerng.solrng.boost.LuckBarManager(this);
         this.novaCoreManager = new com.spacerng.solrng.nova.NovaCoreManager(this);
         this.hoeEnchantManager = new com.spacerng.solrng.farming.HoeEnchantManager(this);
@@ -260,6 +262,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         auraManager.start();
         floatingItemManager.start();
         linkedAccountManager.start();
+        crowdBoostManager.start();
         rankManager.start();
         bossManager.start();
 
@@ -278,6 +281,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         if (holoManager != null) holoManager.stop();
         if (auraManager != null) auraManager.stop();
         if (floatingItemManager != null) floatingItemManager.stop();
+        if (crowdBoostManager != null) crowdBoostManager.stop();
         if (linkedAccountManager != null) linkedAccountManager.stop();
         if (rankManager != null) rankManager.stop();
         if (bossManager != null) bossManager.stop();
@@ -345,6 +349,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         farmPlotManager.load(getConfig());
         milestoneManager.load(getConfig());
         boostManager.load(getConfig());
+        crowdBoostManager.load(getConfig());
         novaCoreManager.load(getConfig());
         hoeEnchantManager.load(getConfig());
         questManager.load(getConfig());
@@ -443,6 +448,10 @@ public final class SolRNGPlugin extends JavaPlugin {
 
     public com.spacerng.solrng.farming.FarmPlotManager getFarmPlotManager() {
         return farmPlotManager;
+    }
+
+    public com.spacerng.solrng.boost.CrowdBoostManager getCrowdBoostManager() {
+        return crowdBoostManager;
     }
 
     public com.spacerng.solrng.boost.BoostManager getBoostManager() {

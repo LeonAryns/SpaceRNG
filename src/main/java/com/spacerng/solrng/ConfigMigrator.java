@@ -79,7 +79,10 @@ public final class ConfigMigrator {
             "pets.base-slots", "pets.dust", "pets.upgrades",
             // V152: a boss that turns up on its own, and the item that
             // forces one for the whole server.
-            "boss.natural", "consumables.boss_summoner");
+            "boss.natural", "consumables.boss_summoner",
+            // V153: free 2x Luck when the server fills up, and the player
+            // count the farming payout now needs.
+            "boost.crowd", "leaderboard.farming.min-players");
 
     private record Patch(String id, String path, Object oldDefault, Object newDefault) {
     }
@@ -117,7 +120,12 @@ public final class ConfigMigrator {
             new Patch("podium-spacing-wider-2", "holograms.podium-spacing", 4.5, 6.5),
             new Patch("cosmic-key-source-store", "crates.types.cosmic.key-source",
                     "Cosmic Keys are the rare find from Key Finder, about one key in twelve.",
-                    "Cosmic Keys come from the store."));
+                    "Cosmic Keys come from the store."),
+            // V153: Leon wants the top rank around 7k Credits rather than
+            // 4.5k, with the two under it spread to match.
+            new Patch("rank-comet-1200", "ranks.tiers.comet.price-credits", 1000, 1200),
+            new Patch("rank-nova-3200", "ranks.tiers.nova.price-credits", 2500, 3200),
+            new Patch("rank-supernova-7000", "ranks.tiers.supernova.price-credits", 4500, 7000));
 
     /** Like a Patch, for one field of the entry with a given id inside a list of maps. */
     private record EntryPatch(String id, String list, String entryId, String field, Object oldDefault,

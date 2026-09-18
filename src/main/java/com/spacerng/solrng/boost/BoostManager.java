@@ -139,6 +139,42 @@ public class BoostManager {
         return true;
     }
 
+    /**
+     * A boost the server earned by filling up rather than one somebody
+     * bought. Always 2x, never a step up the paid ladder: a free boost
+     * that climbed the ladder would make the paid one cheaper for
+     * whoever bought next, and the ladder price is the whole reason the
+     * paid boost works.
+     *
+     * Refuses while anything is already running, so a crowd boost can
+     * never cut a paid one short or quietly replace it with something
+     * weaker.
+     */
+    public boolean grantCrowd(int online, int minutes) {
+        expireIfDue();
+        if (level > 0) return false;
+
+        level = 1;
+        expiresAtMillis = System.currentTimeMillis() + Math.max(1, minutes) * 60_000L;
+        boughtBy = null;
+
+        String banner = ChatColor.AQUA + "" + ChatColor.BOLD + "✦ THE SERVER IS BUSY ✦";
+        String line = ChatColor.WHITE + String.valueOf(online) + ChatColor.GRAY + " players online, so "
+                + ChatColor.AQUA + ChatColor.BOLD + "2x" + ChatColor.RESET + ChatColor.GRAY
+                + " Luck is on the house for " + ChatColor.WHITE + minutes + " minutes"
+                + ChatColor.GRAY + ".";
+
+        for (Player online2 : Bukkit.getOnlinePlayers()) {
+            online2.sendMessage("");
+            online2.sendMessage(banner);
+            online2.sendMessage(line);
+            online2.sendMessage("");
+            online2.playSound(online2.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0f, 1.4f);
+            plugin.getScoreboardManager().update(online2);
+        }
+        return true;
+    }
+
     /** Admin override - sets the boost directly, no Credits, no broadcast. */
     public void force(int level, int minutes, String by) {
         this.level = Math.max(0, Math.min(maxLevel, level));
