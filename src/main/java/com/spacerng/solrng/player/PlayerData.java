@@ -7,6 +7,7 @@ import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -1153,13 +1154,15 @@ public class PlayerData {
         return auraChoice;
     }
 
-    // Pets. Owned is everything found, equipped is the at most three that
-    // ride in the aura slots and pay their boost. Equipped is a list
-    // because the slot order is what the orbit draws.
-    private final Set<String> ownedPets = new HashSet<>();
+    // Pets. Owned is keyed by type because a player holds at most one of
+    // each: making one you already have raises its rarity instead of
+    // handing over a second copy nothing in the menu could tell apart.
+    // Equipped is a list of type ids because the slot order is what the
+    // orbit draws.
+    private final Map<String, com.spacerng.solrng.pet.PetInstance> ownedPets = new LinkedHashMap<>();
     private final List<String> equippedPets = new ArrayList<>();
 
-    public Set<String> getOwnedPets() {
+    public Map<String, com.spacerng.solrng.pet.PetInstance> getOwnedPets() {
         return ownedPets;
     }
 
@@ -1168,7 +1171,64 @@ public class PlayerData {
     }
 
     public boolean ownsPet(String id) {
-        return ownedPets.contains(id);
+        return id != null && ownedPets.containsKey(id);
+    }
+
+    /** The player's copy of a pet, or null when they don't have one. */
+    public com.spacerng.solrng.pet.PetInstance getPet(String id) {
+        return id == null ? null : ownedPets.get(id);
+    }
+
+    /** Writes a changed copy back, keyed by its own type. */
+    public void putPet(com.spacerng.solrng.pet.PetInstance pet) {
+        if (pet != null) ownedPets.put(pet.typeId(), pet);
+    }
+
+    // ------------------------------------------------------------- dust
+    //
+    // Two dusts, two sources, two trees. Cosmic Dust falls while rolling
+    // and is unlocked in /skilltree; Farm Dust falls while harvesting and
+    // is unlocked in /farmtree. Neither is spendable anywhere but pets,
+    // so they stay off the sidebar and live in /pets instead.
+
+    private long cosmicDust = 0L;
+    private long farmDust = 0L;
+
+    public long getCosmicDust() {
+        return cosmicDust;
+    }
+
+    public void setCosmicDust(long cosmicDust) {
+        this.cosmicDust = Math.max(0L, cosmicDust);
+    }
+
+    public void addCosmicDust(long amount) {
+        setCosmicDust(this.cosmicDust + amount);
+    }
+
+    /** Takes the dust if there is enough. False changes nothing. */
+    public boolean spendCosmicDust(long amount) {
+        if (amount <= 0L || cosmicDust < amount) return false;
+        cosmicDust -= amount;
+        return true;
+    }
+
+    public long getFarmDust() {
+        return farmDust;
+    }
+
+    public void setFarmDust(long farmDust) {
+        this.farmDust = Math.max(0L, farmDust);
+    }
+
+    public void addFarmDust(long amount) {
+        setFarmDust(this.farmDust + amount);
+    }
+
+    public boolean spendFarmDust(long amount) {
+        if (amount <= 0L || farmDust < amount) return false;
+        farmDust -= amount;
+        return true;
     }
 
     public void setAuraChoice(String auraChoice) {

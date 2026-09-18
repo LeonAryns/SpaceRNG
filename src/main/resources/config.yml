@@ -8,7 +8,7 @@
 # their fresh defaults in on top of whatever is on disk, so a server
 # owner never has to delete the whole file to pick up a structural
 # change. Item table, prices and cosmetic tweaks are untouched.
-config-version: 16
+config-version: 17
 
 # One-off value changes the plugin has already made to this file, so none
 # is ever made twice. Managed by the plugin; leave it alone.
@@ -1876,8 +1876,8 @@ skilltree:
   # every player needs, page 2 opens the mid-game power spikes, page 3
   # is the endgame with the three path capstones.
   reserved: []
-  pages: 4
-  page-names: ["Foundations", "Ascension", "Convergence", "Mastery"]
+  pages: 5
+  page-names: ["Foundations", "Ascension", "Convergence", "Mastery", "Cosmic"]
   nodes:
 
     # ====================================================================
@@ -3035,6 +3035,78 @@ skilltree:
 # Progress is read from live state rather than counted separately, so it
 # can't drift: prestige and index size already live on the player, and
 # playtime comes straight from the vanilla statistic.
+    # ====================================================================
+    #  PAGE 5 - COSMIC: pets
+    # ====================================================================
+    #
+    # This page is the roller's half of pets. Cosmic Dust falls while you
+    # roll and nowhere else, and none of it falls until the root here is
+    # bought, so the whole pet system has one door and this is it.
+    #
+    # The chance is written as one in N in the menu. The root is one in a
+    # hundred rolls and a pet costs ten dust, so a first pet is about a
+    # thousand rolls away at the bottom of this page and a few hundred at
+    # the top of it.
+
+    # Root of the page. Hangs off all three page 4 capstones, the same way
+    # Mastery hangs off page 3.
+    cosmic_root:
+      display: "Cosmic Dust"
+      page: 5
+      slot: "5,6"
+      icon: AMETHYST_SHARD
+      cost-money: 50000000000
+      requires: "luck_capstone_2"
+      requires-all: ["speed_capstone_2", "money_capstone_2"]
+      effect: COSMIC_DUST_CHANCE
+      value: 0.01
+
+    # -- The dust spine, up the middle --
+    cosmic_dust_2:
+      display: "Cosmic Dust II"
+      page: 5
+      slot: "5,5"
+      icon: AMETHYST_SHARD
+      cost-money: 90000000000
+      cost-growth: 1.30
+      requires: "cosmic_root"
+      effect: COSMIC_DUST_CHANCE
+      value: 0.005
+      max-level: 5
+
+    pet_slot_2:
+      display: "Pet Slot II"
+      page: 5
+      slot: "5,4"
+      icon: NETHER_STAR
+      cost-money: 240000000000
+      requires: "cosmic_dust_2"
+      effect: PET_SLOTS
+      value: 1
+
+    pet_slot_3:
+      display: "Pet Slot III"
+      page: 5
+      slot: "5,3"
+      icon: NETHER_STAR
+      cost-money: 900000000000
+      requires: "pet_slot_2"
+      effect: PET_SLOTS
+      value: 1
+
+    # -- Tier branch. Farm Dust buys tiers, this makes them stick. --
+    pet_tier_1:
+      display: "Steady Hands"
+      page: 5
+      slot: "4,5"
+      icon: WHEAT
+      cost-money: 140000000000
+      cost-growth: 1.35
+      requires: "cosmic_root"
+      effect: PET_TIER_CHANCE
+      value: 0.03
+      max-level: 5
+
 milestones:
   # Credits paid on top of a tier's own reward, by track and the tier's
   # threshold. Credits are what the store sells, so keep these rare.
@@ -3697,6 +3769,18 @@ top-heads:
   view-range: 1.0
 
 consumables:
+
+  # The Global Boss Respawn. Bought, then right clicked, and everybody
+  # online gets their own copy of the boss to fight. It is the one
+  # consumable whose effect lands on people who did not buy it, which is
+  # the whole point of selling it. Using one while a boss is already out
+  # gives the item back rather than burning it.
+  boss_summoner:
+    display: "Boss Summoner"
+    material: DRAGON_BREATH
+    colors: ["#FF8A80", "#D50000"]
+    boss-summons: 1
+    description: "Calls a boss for the whole server, right now."
   # ---- Draughts ----
   # Additive Luck and Speed, counted down in ROLLS rather than minutes.
   # `luck: 0.5` is +50% flat, joining the same pile the skill tree and
@@ -3891,6 +3975,8 @@ consumables:
 #   ENCHANT_CAP   raises the level ceiling on every hoe enchant, from
 #                 the base-cap of 100 toward the hard 1000
 #   HOE_TIER      walks the hoe itself up farming.hoe-tiers
+
+
 farmtree:
   # Three pages on the same 24 slot frame as /skilltree. On every page:
   #   middle line  the page's first crop at the root, its yield, Golden
@@ -3913,8 +3999,8 @@ farmtree:
   # The Speed enchant is gone at Leon's request; Growth V and VI carry
   # regrow speed instead.
   reserved: []
-  pages: 3
-  page-names: ["Cultivation", "Abundance", "Uncharted"]
+  pages: 4
+  page-names: ["Cultivation", "Abundance", "Uncharted", "Cosmic Soil"]
   nodes:
 
     # ====================================================================
@@ -4787,6 +4873,44 @@ farmtree:
       requires-all: ["mastery_1"]
       effect: "ENCHANT_CAP"
       value: 90.0
+      max-level: 5
+
+
+    # ====================================================================
+    #  PAGE 4 - COSMIC SOIL: Farm Dust
+    # ====================================================================
+    #
+    # The farmer's half of pets. Farm Dust buys pet tiers and falls only
+    # while harvesting, and like Cosmic Dust it does not fall at all until
+    # the root here is bought.
+    #
+    # The chance per crop is far smaller than the Cosmic Dust chance per
+    # roll, and that is deliberate. A good farmer takes eight thousand
+    # crops inside one boss window; at one in a hundred that is eighty
+    # dust an evening and the tier ladder would be finished in a day. One
+    # in two thousand puts a pet tier roughly where a pet rarity sits.
+
+    farm_dust_root:
+      display: "Cosmic Soil"
+      page: 4
+      slot: "5,6"
+      icon: "AMETHYST_SHARD"
+      cost-money: 20000000000
+      requires: "mastery_2"
+      requires-all: ["enchant_black_hole", "tokens_9"]
+      effect: "FARM_DUST_CHANCE"
+      value: 0.0005
+
+    farm_dust_2:
+      display: "Cosmic Soil II"
+      page: 4
+      slot: "5,5"
+      icon: "AMETHYST_SHARD"
+      cost-money: 40000000000
+      cost-growth: 1.30
+      requires: "farm_dust_root"
+      effect: "FARM_DUST_CHANCE"
+      value: 0.00025
       max-level: 5
 
 boost:
@@ -5705,6 +5829,7 @@ auras:
 # running across a jar update.
 # =====================================================================
 boss:
+
   enabled: true
   # Minutes between bosses, counted from the moment one starts.
   every-minutes: 120
@@ -5714,6 +5839,22 @@ boss:
   damage-per-crop: 1
   # Tell the server when somebody beats theirs.
   announce-kills: true
+
+  # A boss can turn up on its own off the back of one crop or one roll.
+  # Both chances are per event and both are tiny, and the cooldown is the
+  # real safety net: without it a per-crop chance means a boss every few
+  # minutes for whoever happens to be farming, and the event stops being
+  # an event. Zero on both keeps the timed spawn and nothing else.
+  natural:
+    # Written as one in N rather than as a decimal on purpose. A per crop
+    # chance small enough to be sane is 0.000004, and SnakeYAML writes
+    # that back out as 4.0E-6, which getDouble then reads as a String and
+    # silently answers with the default. Integers cannot go wrong that
+    # way, and "one in 250,000 crops" is the number Leon actually wants
+    # to think in. Zero on either turns that trigger off.
+    harvest-one-in: 250000
+    roll-one-in: 2500
+    cooldown-minutes: 45
   # What one landed roll is worth, in crops.
   roll-damage:
     COMMON: 5
@@ -5773,6 +5914,56 @@ boss:
 # =====================================================================
 pets:
   enabled: true
+
+  # How many pets a player wears before the skill tree opens more. The
+  # ceiling is three whatever this says, because three is the aura's look
+  # budget and a fourth orbiting piece is a frame cost on everybody who
+  # can see the player, not just on the owner.
+  base-slots: 1
+
+  dust:
+    # The action bar line when a dust falls. Rolling is fast and dust is
+    # rare, so it is a quiet line rather than a title in the way of the
+    # roll it landed on.
+    announce: true
+
+  # What rarity and tier do to a pet, what they cost, and how likely a
+  # tier is to take. A fresh pet is rarity 1 tier 1 and gives exactly the
+  # percent in pets.types below, so these only ever add on top.
+  upgrades:
+    max-rarity: 10
+    max-tier: 10
+
+    # One step, as a fraction of the base percent. A rarity 10 tier 10
+    # shiny pet lands on 3.25 x 2.35 x 1.10, which is why the cap exists.
+    rarity-step: 0.25
+    tier-step: 0.15
+    shiny-bonus: 0.10
+
+    # The ceiling on rarity, tier and shiny together. A Starheart at 15%
+    # Luck cannot pay more than 90% however long it is fed.
+    max-multiplier: 6.0
+
+    # Cosmic Dust, out of rolling.
+    make-cost: 10
+    rarity-base-cost: 8
+    rarity-cost-growth: 1.35
+    shiny-cost: 50
+
+    # Farm Dust, out of harvesting.
+    tier-base-cost: 25
+    tier-cost-growth: 1.40
+
+    # A tier attempt spends the dust whether or not it takes. The chance
+    # falls off as the tier climbs and the Steady Hands skill adds back
+    # onto it, but it never drops below tier-min-chance.
+    tier-base-chance: 0.80
+    tier-chance-falloff: 0.06
+    tier-min-chance: 0.15
+
+  # Which pet the forge makes. Weight is relative, so a weight of 8
+  # against a weight of 1 turns up eight times as often. Pets already at
+  # max rarity drop out of the draw.
   types:
     dust_mote:
       display: "Dust Mote"
@@ -5781,6 +5972,7 @@ pets:
       rarity: COMMON
       stat: COINS
       percent: 0.02
+      weight: 10.0
       blurb: "A speck of the old nebula."
     cinder_spark:
       display: "Cinder Spark"
@@ -5789,6 +5981,7 @@ pets:
       rarity: COMMON
       stat: MONEY
       percent: 0.02
+      weight: 10.0
       blurb: "Still warm from something that burned out."
     glass_shard:
       display: "Glass Shard"
@@ -5797,6 +5990,7 @@ pets:
       rarity: UNCOMMON
       stat: LUCK
       percent: 0.03
+      weight: 7.0
       blurb: "Cut from a sky that cracked."
     tide_pearl:
       display: "Tide Pearl"
@@ -5805,6 +5999,7 @@ pets:
       rarity: RARE
       stat: COINS
       percent: 0.05
+      weight: 4.0
       blurb: "It pulls at whatever it is near."
     watcher_eye:
       display: "Watcher Eye"
@@ -5813,6 +6008,7 @@ pets:
       rarity: EPIC
       stat: LUCK
       percent: 0.05
+      weight: 2.0
       blurb: "It looks where you are about to."
     echo_fragment:
       display: "Echo Fragment"
@@ -5821,6 +6017,7 @@ pets:
       rarity: LEGENDARY
       stat: ENCHANT
       percent: 0.08
+      weight: 1.2
       blurb: "It repeats what your hoe does."
     void_shell:
       display: "Void Shell"
@@ -5829,6 +6026,7 @@ pets:
       rarity: MYTHICAL
       stat: SPEED
       percent: 0.10
+      weight: 0.6
       blurb: "Empty, and lighter than it should be."
     prism_core:
       display: "Prism Core"
@@ -5837,6 +6035,7 @@ pets:
       rarity: MYTHICAL
       stat: SHINY
       percent: 0.10
+      weight: 0.6
       blurb: "It splits an ordinary drop into colours."
     starheart:
       display: "Starheart"
@@ -5845,4 +6044,5 @@ pets:
       rarity: DIVINE
       stat: LUCK
       percent: 0.15
+      weight: 0.2
       blurb: "The last thing a star leaves behind."

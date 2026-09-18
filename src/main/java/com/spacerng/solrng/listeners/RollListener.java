@@ -646,6 +646,15 @@ public class RollListener implements Listener {
         // rolling counts towards the event exactly like farming does.
         plugin.getBossManager().onRoll(player, result.getRarity());
 
+        // Cosmic Dust falls off the same landing, once the skill tree has
+        // unlocked it. It rides here rather than in grantRoll so an admin
+        // roll never pays it.
+        plugin.getDustManager().onRoll(player, data);
+
+        // A boss can also decide to turn up off the back of a roll.
+        plugin.getBossManager().maybeSpawnNaturally(
+                com.spacerng.solrng.boss.BossManager.Trigger.ROLL);
+
         // Server First 10 hangs off the real roll path only, so an admin
         // roll can never take a spot. The event waits for the reveal.
         plugin.getFirstTenManager().onRoll(player, result, shiny,

@@ -210,12 +210,45 @@ final class PlayerMenuClicks {
                         instanceof com.spacerng.solrng.gui.PetsHolder)) return;
         Player player = (Player) event.getWhoClicked();
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+        var pets = plugin.getPetManager();
+
+        // The forge star: ten Cosmic Dust becomes a pet, or a rarity on one
+        // you already have.
+        if (com.spacerng.solrng.gui.PetsGui.clickedForge(event.getCurrentItem())) {
+            var made = pets.make(data);
+            if (!made.happened()) {
+                player.sendMessage(ChatColor.RED + "Not enough Cosmic Dust, or every pet is already maxed.");
+                player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
+                return;
+            }
+            String shown = com.spacerng.solrng.gui.Lore.gradient(
+                    made.type().display(), true, made.type().stops());
+            if (made.isNew()) {
+                player.sendMessage(ChatColor.LIGHT_PURPLE + "A new pet took shape: " + ChatColor.RESET
+                        + shown + ChatColor.GRAY + ".");
+            } else {
+                player.sendMessage(ChatColor.LIGHT_PURPLE + "The dust went into " + ChatColor.RESET + shown
+                        + ChatColor.GRAY + ", now rarity " + made.pet().rarity() + ".");
+            }
+            player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_BEACON_POWER_SELECT, 0.7f, 1.4f);
+            plugin.getPetManager().refresh(player);
+            plugin.getScoreboardManager().update(player);
+            player.openInventory(com.spacerng.solrng.gui.PetsGui.build(plugin, player));
+            return;
+        }
+
         String id = com.spacerng.solrng.gui.PetsGui.clickedPet(event.getCurrentItem());
         if (id == null) return;
 
-        var pets = plugin.getPetManager();
         var pet = pets.get(id);
         if (pet == null) return;
+
+        // A right click opens the pet for upgrading instead of wearing it.
+        if (event.isRightClick() && data.ownsPet(pet.id())) {
+            player.openInventory(com.spacerng.solrng.gui.PetUpgradeGui.build(plugin, player, pet.id()));
+            player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.4f, 1.6f);
+            return;
+        }
 
         switch (pets.toggle(data, pet)) {
             case EQUIPPED -> {
@@ -231,7 +264,8 @@ final class PlayerMenuClicks {
                 player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_BEACON_DEACTIVATE, 0.5f, 1.4f);
             }
             case FULL -> {
-                player.sendMessage(ChatColor.RED + "All three slots are full. Take one off first.");
+                player.sendMessage(ChatColor.RED + "Your " + pets.slots(data)
+                        + " slot(s) are full. Take one off first.");
                 player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
                 return;
             }
@@ -245,6 +279,88 @@ final class PlayerMenuClicks {
         plugin.getPetManager().refresh(player);
         plugin.getScoreboardManager().update(player);
         player.openInventory(com.spacerng.solrng.gui.PetsGui.build(plugin, player));
+    }
+
+    /**
+     * The pet upgrade menu: rarity, tier and shiny.
+     *
+     * A failed tier attempt is the one outcome here that costs something
+     * and gives nothing back, so it gets its own line and its own sound.
+     * Being told plainly that it failed is the difference between a
+     * gamble and a bug report.
+     */
+    void handlePetUpgradeClick(InventoryClickEvent event) {
+        event.setCancelled(true);
+        if (event.getClickedInventory() == null
+                || !(event.getClickedInventory().getHolder()
+                        instanceof com.spacerng.solrng.gui.PetUpgradeHolder holder)) return;
+        Player player = (Player) event.getWhoClicked();
+        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+
+        if (com.spacerng.solrng.gui.PetUpgradeGui.isBack(event.getSlot())) {
+            player.openInventory(com.spacerng.solrng.gui.PetsGui.build(plugin, player));
+            player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.4f, 1.2f);
+            return;
+        }
+
+        String action = com.spacerng.solrng.gui.PetUpgradeGui.clickedAction(event.getCurrentItem());
+        if (action == null) return;
+        var pets = plugin.getPetManager();
+        var type = pets.get(holder.getPetId());
+        if (type == null) return;
+
+        var result = switch (action) {
+            case "rarity" -> pets.upgradeRarity(data, type.id());
+            case "tier" -> pets.upgradeTier(data, type.id());
+            case "shiny" -> pets.makeShiny(data, type.id());
+            default -> null;
+        };
+        if (result == null) return;
+
+        String shown = com.spacerng.solrng.gui.Lore.gradient(type.display(), true, type.stops());
+        switch (result) {
+            case DONE -> {
+                var pet = data.getPet(type.id());
+                String what = switch (action) {
+                    case "rarity" -> "is now rarity " + (pet == null ? "?" : pet.rarity());
+                    case "tier" -> "is now tier " + (pet == null ? "?" : pet.tier());
+                    default -> "is shiny";
+                };
+                player.sendMessage(ChatColor.GREEN + "" + ChatColor.RESET + shown
+                        + ChatColor.GREEN + " " + what + ".");
+                player.playSound(player.getLocation(),
+                        "shiny".equals(action)
+                                ? org.bukkit.Sound.BLOCK_AMETHYST_BLOCK_CHIME
+                                : org.bukkit.Sound.BLOCK_BEACON_POWER_SELECT, 0.7f, 1.5f);
+            }
+            case FAILED -> {
+                player.sendMessage(ChatColor.RED + "The tier did not take. " + ChatColor.GRAY
+                        + "The Farm Dust is spent.");
+                player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_FIRE_EXTINGUISH, 0.8f, 0.8f);
+            }
+            case TOO_POOR -> {
+                player.sendMessage(ChatColor.RED + "You do not have the dust for that.");
+                player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
+            }
+            case MAXED -> {
+                player.sendMessage(ChatColor.GRAY + "That is already as far as it goes.");
+                player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.6f, 1.2f);
+            }
+            case NO_SHINY -> {
+                player.sendMessage(ChatColor.RED + "Find a shiny " + type.rarity().displayName()
+                        + ChatColor.RED + " before you can make this one shiny.");
+                player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
+            }
+            case LOCKED -> {
+                player.sendMessage(ChatColor.RED + "You do not own that pet.");
+                player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
+            }
+        }
+        // A worn pet that just changed has to be redrawn, and /stats reads
+        // the new number straight away.
+        plugin.getPetManager().refresh(player);
+        plugin.getScoreboardManager().update(player);
+        player.openInventory(com.spacerng.solrng.gui.PetUpgradeGui.build(plugin, player, type.id()));
     }
 
     void handleHoeClick(InventoryClickEvent event) {

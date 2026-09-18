@@ -251,8 +251,17 @@ public class PlayerDataManager {
         data.setPerkPity(yml.getInt("perk-pity", 0));
         data.setRank(yml.getString("rank"));
         data.setAuraChoice(yml.getString("aura-choice"));
-        data.getOwnedPets().addAll(yml.getStringList("pets-owned"));
+        // "pets-owned" used to be a plain list of type ids. PetInstance.parse
+        // reads both that and the "id:rarity:tier:shiny" form, so a save file
+        // written before pets had rarity loads as Rarity 1 Tier 1 instead of
+        // being thrown away.
+        for (String raw : yml.getStringList("pets-owned")) {
+            com.spacerng.solrng.pet.PetInstance pet = com.spacerng.solrng.pet.PetInstance.parse(raw);
+            if (pet != null) data.putPet(pet);
+        }
         data.getEquippedPets().addAll(yml.getStringList("pets-equipped"));
+        data.setCosmicDust(yml.getLong("cosmic-dust", 0L));
+        data.setFarmDust(yml.getLong("farm-dust", 0L));
         data.setKeyallAt(yml.getLong("keyall-at", 0L));
         data.setNick(yml.getString("nick"));
         data.setPlayerSize(yml.getDouble("player-size", 1.0));
@@ -430,8 +439,14 @@ public class PlayerDataManager {
                 : data.getActivePerkType() + ":" + data.getActivePerkLevel());
         yml.set("rank", data.getRank());
         yml.set("aura-choice", data.getAuraChoice());
-        yml.set("pets-owned", new java.util.ArrayList<>(data.getOwnedPets()));
+        java.util.List<String> ownedPets = new java.util.ArrayList<>();
+        for (com.spacerng.solrng.pet.PetInstance pet : data.getOwnedPets().values()) {
+            ownedPets.add(pet.serialise());
+        }
+        yml.set("pets-owned", ownedPets);
         yml.set("pets-equipped", new java.util.ArrayList<>(data.getEquippedPets()));
+        yml.set("cosmic-dust", data.getCosmicDust());
+        yml.set("farm-dust", data.getFarmDust());
         yml.set("keyall-at", data.getKeyallAt());
         yml.set("nick", data.getNick());
         yml.set("player-size", data.getPlayerSize());

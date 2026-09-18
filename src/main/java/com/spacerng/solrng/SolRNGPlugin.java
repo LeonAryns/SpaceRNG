@@ -172,6 +172,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         this.rankManager = new com.spacerng.solrng.rank.RankManager(this);
         this.bossManager = new com.spacerng.solrng.boss.BossManager(this);
         this.petManager = new com.spacerng.solrng.pet.PetManager(this);
+        this.dustManager = new com.spacerng.solrng.pet.DustManager(this);
         // Only built when DiscordSRV is actually installed. The class
         // mentions its types, so touching it without the plugin present
         // would be a NoClassDefFoundError on startup.
@@ -365,6 +366,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         rankManager.load(getConfig());
         bossManager.load(getConfig());
         petManager.load(getConfig());
+        dustManager.load(getConfig());
     }
 
     /**
@@ -471,6 +473,7 @@ public final class SolRNGPlugin extends JavaPlugin {
     private com.spacerng.solrng.rank.RankManager rankManager;
     private com.spacerng.solrng.boss.BossManager bossManager;
     private com.spacerng.solrng.pet.PetManager petManager;
+    private com.spacerng.solrng.pet.DustManager dustManager;
     private com.spacerng.solrng.discord.BotHooks discordBot;
 
     /** The Discord bot, or null when DiscordSRV is not installed. */
@@ -479,6 +482,10 @@ public final class SolRNGPlugin extends JavaPlugin {
     }
 
     /** Pets: what a player owns, what they wear and what it pays. */
+    public com.spacerng.solrng.pet.DustManager getDustManager() {
+        return dustManager;
+    }
+
     public com.spacerng.solrng.pet.PetManager getPetManager() {
         return petManager;
     }

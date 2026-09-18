@@ -99,6 +99,15 @@ public class BossManager {
     private long damagePerCrop = 1L;
     private boolean announceKills = true;
 
+    // The chance a boss turns up on its own off the back of one crop or
+    // one roll, and how long the server is left alone afterwards. Both
+    // default to zero so a server that never configures them keeps the
+    // timed spawn it already had.
+    private double harvestSpawnChance = 0.0;
+    private double rollSpawnChance = 0.0;
+    private int naturalCooldownMinutes = 45;
+    private long naturalReadyAt = 0L;
+
     // The spot is kept as a world NAME plus coordinates, never as a
     // resolved Location. A Multiverse world loads after this plugin
     // enables, so anything resolved at load time is null for the wrong
@@ -145,6 +154,12 @@ public class BossManager {
         minPlayers = Math.max(1, config.getInt("boss.min-players", 1));
         damagePerCrop = Math.max(0L, config.getLong("boss.damage-per-crop", 1L));
         announceKills = config.getBoolean("boss.announce-kills", true);
+        // One in N, not a decimal: a chance small enough for a per crop
+        // roll only survives a config round trip as an integer. See the
+        // comment on boss.natural in config.yml.
+        harvestSpawnChance = oneIn(config.getLong("boss.natural.harvest-one-in", 0L));
+        rollSpawnChance = oneIn(config.getLong("boss.natural.roll-one-in", 0L));
+        naturalCooldownMinutes = Math.max(0, config.getInt("boss.natural.cooldown-minutes", 45));
 
         for (Rarity rarity : Rarity.values()) {
             rollDamage.put(rarity, Math.max(0L, config.getLong("boss.roll-damage." + rarity.name(), 0L)));
@@ -242,6 +257,62 @@ public class BossManager {
     /** A weighted random type, for the timer and for a bare boss start. */
     public BossType randomType() {
         return pick();
+    }
+
+    /** Turns "one in N" into a chance. N of zero means never. */
+    private static double oneIn(long n) {
+        return n <= 0L ? 0.0 : 1.0 / n;
+    }
+
+    /** What made a boss consider turning up on its own. */
+    public enum Trigger {
+        HARVEST, ROLL
+    }
+
+    /**
+     * Rolls for a boss off the back of one crop or one roll.
+     *
+     * Rare on purpose, and behind a cooldown on top of the chance. A crop
+     * is something a good farmer takes thousands of, so without the
+     * cooldown even a tiny per-crop chance means a boss every few minutes
+     * for whoever happens to be farming, and the event stops being an
+     * event. The cooldown also covers the case where both chances fire
+     * within the same minute.
+     */
+    public boolean maybeSpawnNaturally(Trigger trigger) {
+        if (!enabled || active != null || trigger == null) return false;
+        double chance = trigger == Trigger.HARVEST ? harvestSpawnChance : rollSpawnChance;
+        if (chance <= 0.0) return false;
+        long now = System.currentTimeMillis();
+        if (now < naturalReadyAt) return false;
+        if (Bukkit.getOnlinePlayers().size() < minPlayers) return false;
+        if (ThreadLocalRandom.current().nextDouble() >= chance) return false;
+
+        BossType type = pick();
+        if (type == null || !spawn(type)) return false;
+        naturalReadyAt = now + naturalCooldownMinutes * 60_000L;
+        return true;
+    }
+
+    /**
+     * The Global Boss Respawn: a bought item forcing a boss for everyone,
+     * right now.
+     *
+     * It ignores the natural cooldown, because somebody paid for it, but
+     * it cannot stack a second boss on a live one. The buyer's name goes
+     * in the broadcast, which is most of what makes the item worth
+     * buying twice.
+     */
+    public boolean summon(String byName) {
+        if (!enabled || active != null) return false;
+        BossType type = pick();
+        if (type == null || !spawn(type)) return false;
+        naturalReadyAt = System.currentTimeMillis() + naturalCooldownMinutes * 60_000L;
+        if (byName != null && !byName.isBlank()) {
+            Bukkit.broadcast(LegacyComponentSerializer.legacySection().deserialize(
+                    ChatColor.GRAY + "Summoned by " + ChatColor.WHITE + byName + ChatColor.GRAY + "."));
+        }
+        return true;
     }
 
     private BossType pick() {

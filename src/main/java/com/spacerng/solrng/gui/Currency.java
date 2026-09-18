@@ -30,7 +30,14 @@ public enum Currency {
     // Credits are the one currency real money buys, so they get the one
     // treatment nothing else in the plugin uses. colour() stays purple for
     // bullets and accents \u2014 a rainbow bullet would just look broken.
-    CREDITS("Credits", "\u272a", ChatColor.LIGHT_PURPLE, ChatColor.LIGHT_PURPLE, true);
+    CREDITS("Credits", "\u272a", ChatColor.LIGHT_PURPLE, ChatColor.LIGHT_PURPLE, true),
+    // The two pet dusts. They are materials rather than money: nothing in
+    // the plugin sells anything for them except a pet, so they stay off
+    // the sidebar and are only ever read inside /pets. The shapes are what
+    // tells them apart at a glance, the colours only say where they came
+    // from, purple out of a roll and green out of the ground.
+    COSMIC_DUST("Cosmic Dust", "\u2726", ChatColor.DARK_PURPLE, ChatColor.LIGHT_PURPLE, false),
+    FARM_DUST("Farm Dust", "\u25c7", ChatColor.DARK_GREEN, ChatColor.GREEN, false);
 
     private final String label;
     private final String icon;

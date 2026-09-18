@@ -26,7 +26,7 @@ public record Consumable(String id, String display, Material material, List<Stri
                          double luck, double speed, long rolls,
                          double coinMultiplier, double enchantMultiplier, long durationSeconds,
                          double rollLuckMultiplier, long charges,
-                         double permanentLuck, long freeSkills, long novaTiers,
+                         double permanentLuck, long freeSkills, long novaTiers, long bossSummons,
                          Map<com.spacerng.solrng.rarity.Rarity, Long> costs,
                          String description) {
 
@@ -58,6 +58,15 @@ public record Consumable(String id, String display, Material material, List<Stri
     /** A Nova Core: free tiers on the climb. */
     public boolean isNovaCore() {
         return novaTiers > 0;
+    }
+
+    /**
+     * The Global Boss Respawn. One of these forces a boss for the whole
+     * server, so it is the only consumable whose effect lands on people
+     * who did not buy it.
+     */
+    public boolean isBossSummon() {
+        return bossSummons > 0;
     }
 
     public boolean isForSale() {

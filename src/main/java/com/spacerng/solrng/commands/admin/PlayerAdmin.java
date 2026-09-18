@@ -550,6 +550,47 @@ final class PlayerAdmin extends AdminTools {
      * give and take are the whole thing: the menu shows the rest as
      * locked, and nothing in the game hands one out yet on purpose.
      */
+    /**
+     * /rngadmin dust <cosmic|farm> <amount> [player]
+     *
+     * The testing door for pets. Both dusts are meant to take hundreds of
+     * rolls or thousands of crops, which is right for a player and
+     * useless for checking that the menu adds up.
+     */
+    boolean doDust(CommandSender sender, String[] args) {
+        if (args.length < 3) {
+            sender.sendMessage(ChatColor.YELLOW + "/rngadmin dust <cosmic|farm> <amount> [player]");
+            return true;
+        }
+        String which = args[1].toLowerCase(Locale.ROOT);
+        if (!which.equals("cosmic") && !which.equals("farm")) {
+            sender.sendMessage(ChatColor.RED + "Say cosmic or farm.");
+            return true;
+        }
+        long amount;
+        try {
+            amount = Long.parseLong(args[2]);
+        } catch (NumberFormatException ex) {
+            sender.sendMessage(ChatColor.RED + "That is not a number.");
+            return true;
+        }
+        Player target = resolve(sender, args.length >= 4 ? args[3] : null);
+        if (target == null) return true;
+        var data = plugin.getPlayerDataManager().get(target.getUniqueId());
+
+        if (which.equals("cosmic")) {
+            data.addCosmicDust(amount);
+            sender.sendMessage(ChatColor.GREEN + "Gave " + amount + " Cosmic Dust to "
+                    + target.getName() + ", now " + data.getCosmicDust() + ".");
+        } else {
+            data.addFarmDust(amount);
+            sender.sendMessage(ChatColor.GREEN + "Gave " + amount + " Farm Dust to "
+                    + target.getName() + ", now " + data.getFarmDust() + ".");
+        }
+        plugin.getScoreboardManager().update(target);
+        return true;
+    }
+
     boolean doPet(CommandSender sender, String[] args) {
         var pets = plugin.getPetManager();
         String action = args.length >= 2 ? args[1].toLowerCase(Locale.ROOT) : "";

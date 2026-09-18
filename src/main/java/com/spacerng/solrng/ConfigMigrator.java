@@ -72,7 +72,14 @@ public final class ConfigMigrator {
             // V148: the podium's own text size.
             "holograms.podium-text-scale",
             // V144: the Boss Box and the item that opens it.
-            "crates.types.boss", "consumables.boss_box");
+            "crates.types.boss", "consumables.boss_box",
+            // V152: pets grow with dust. Dotted paths, because every server
+            // already has a pets section from V142 and a whole-section copy
+            // would never fire.
+            "pets.base-slots", "pets.dust", "pets.upgrades",
+            // V152: a boss that turns up on its own, and the item that
+            // forces one for the whole server.
+            "boss.natural", "consumables.boss_summoner");
 
     private record Patch(String id, String path, Object oldDefault, Object newDefault) {
     }

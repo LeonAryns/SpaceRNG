@@ -32,6 +32,11 @@ public class SkillNode {
         AUTOPILOT,          // +value Speed while Auto Roll is on
         KEY_ROLL,           // +value chance per roll to find a crate key
 
+        // --- general tree: pets ---
+        COSMIC_DUST_CHANCE, // +value chance per roll of one Cosmic Dust
+        PET_SLOTS,          // +value pets worn at once, capped at PetManager.MAX_SLOTS
+        PET_TIER_CHANCE,    // +value to the chance a Farm Dust tier upgrade takes
+
         // --- general tree: gates ---
         AUTO_ROLL,
         UNLOCK_CONVERT,
@@ -57,7 +62,8 @@ public class SkillNode {
         GOLDEN_CROP,        // +value to what the golden crop pays
         HOE_TIER,           // +value steps up farming.hoe-tiers
         TOKEN_MULTIPLIER,   // +value to the farm Token multiplier per level
-        FARM_SPEED          // -value regrow time per level
+        FARM_SPEED,         // -value regrow time per level
+        FARM_DUST_CHANCE    // +value chance per crop of one Farm Dust
     }
 
     private final String id;

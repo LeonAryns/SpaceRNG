@@ -15,16 +15,24 @@ import java.util.List;
  * one, and a player picking three of them should be making a choice.
  */
 public record PetType(String id, String display, List<String> colors, Material icon,
-                      Rarity rarity, StatSources.Id stat, double percent, String blurb) {
+                      Rarity rarity, StatSources.Id stat, double percent, double weight, String blurb) {
 
     /** The gradient stops in the shape Lore wants them. */
     public String[] stops() {
         return colors.toArray(new String[0]);
     }
 
-    /** What the boost reads as on a tooltip. */
+    /** What a fresh copy of this pet reads as on a tooltip. */
     public String boostText() {
-        return "+" + trim(percent * 100.0) + "% " + statName();
+        return boostText(1.0);
+    }
+
+    /**
+     * The same line for an owned copy, with its rarity and tier already
+     * folded in by {@link PetUpgrades}.
+     */
+    public String boostText(double multiplier) {
+        return "+" + trim(percent * multiplier * 100.0) + "% " + statName();
     }
 
     public String statName() {

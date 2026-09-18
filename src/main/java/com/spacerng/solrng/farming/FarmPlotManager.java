@@ -617,6 +617,10 @@ public class FarmPlotManager {
         // rather than with the Coins the crop happened to pay.
         plugin.getBossManager().onHarvest(player, 1L);
         plugin.getPassManager().awardHarvest(player, data, 1L);
+        // Farm Dust rides the same counter, once /farmtree has unlocked it.
+        plugin.getDustManager().onHarvest(player, data, 1L);
+        plugin.getBossManager().maybeSpawnNaturally(
+                com.spacerng.solrng.boss.BossManager.Trigger.HARVEST);
 
         // The break event was cancelled, and a cancelled BlockBreakEvent
         // makes the server re-send the real block to the client at the
@@ -844,6 +848,7 @@ public class FarmPlotManager {
             data.addCropsHarvested(nukeCrops);
             plugin.getBossManager().onHarvest(player, nukeCrops);
             plugin.getPassManager().awardHarvest(player, data, nukeCrops);
+            plugin.getDustManager().onHarvest(player, data, nukeCrops);
             player.getWorld().createExplosion(plot.clone().add(0.5, 1.0, 0.5), 3.0f, false, false);
             player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Nuke  "
                     + ChatColor.RESET + ChatColor.GRAY + String.format("%,d", nukeCrops)

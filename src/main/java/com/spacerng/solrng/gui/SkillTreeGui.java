@@ -382,6 +382,16 @@ public class SkillTreeGui {
      * per-level value and the running total, so a half-bought skill still
      * answers "what am I getting right now" without arithmetic.
      */
+    /**
+     * A chance written the way a player thinks about it: "1 in 100". A
+     * chance of zero has no such reading, so it says so instead of
+     * dividing by it.
+     */
+    private static String oneIn(double chance) {
+        if (chance <= 0.0) return "never";
+        return "1 in " + String.format("%,d", Math.max(1L, Math.round(1.0 / chance)));
+    }
+
     private static List<String> describeEffect(SkillNode node, int level) {
         boolean leveled = node.isLeveled();
         String target = node.getTarget() == null ? "" : prettify(node.getTarget());
@@ -432,6 +442,23 @@ public class SkillTreeGui {
                     pct(value * level) + "%", leveled);
             case PASS_XP -> scaled(ChatColor.GOLD,
                     "+" + pct(value) + "% Battle Pass XP", "+" + pct(value * level) + "%", leveled);
+
+            // The dust chances are written as one in N rather than as a
+            // percentage. "1%" reads as nothing to a player deciding whether
+            // to buy; "1 in 100 rolls" is the same number and says how long
+            // the wait actually is.
+            case COSMIC_DUST_CHANCE -> scaled(ChatColor.LIGHT_PURPLE,
+                    "Cosmic Dust on " + oneIn(value) + " rolls",
+                    oneIn(value * level), leveled);
+            case FARM_DUST_CHANCE -> scaled(ChatColor.GREEN,
+                    "Farm Dust on " + oneIn(value) + " crops",
+                    oneIn(value * level), leveled);
+            case PET_SLOTS -> scaled(ChatColor.AQUA,
+                    "+" + (long) value + " pet worn at once",
+                    "+" + (long) (value * level), leveled);
+            case PET_TIER_CHANCE -> scaled(ChatColor.GREEN,
+                    "+" + pct(value) + "% chance a pet tier takes",
+                    "+" + pct(value * level) + "%", leveled);
 
             case SUPERCHARGE -> List.of(
                     ChatColor.LIGHT_PURPLE + "▎ Every " + ChatColor.WHITE + String.format("%,d", node.getInterval())

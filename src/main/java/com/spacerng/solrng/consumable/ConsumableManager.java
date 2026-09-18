@@ -74,6 +74,7 @@ public class ConsumableManager {
                         c.getDouble("permanent-luck", 0.0),
                         c.getLong("free-skills", 0L),
                         c.getLong("nova-tiers", 0L),
+                        c.getLong("boss-summons", 0L),
                         parseCosts(c.getConfigurationSection("costs")),
                         c.getString("description", "")));
             } catch (Exception ex) {
@@ -289,6 +290,17 @@ public class ConsumableManager {
                     + "+" + consumable.novaTiers() + " Nova tier"
                     + (consumable.novaTiers() == 1 ? "" : "s")
                     + ChatColor.RESET + ChatColor.GRAY + "  straight up the climb.");
+        }
+        if (consumable.isBossSummon()) {
+            // The boss is a server event, so a summon that lands on a live
+            // one has to give the item back rather than quietly burning it.
+            if (!plugin.getBossManager().summon(player.getName())) {
+                player.sendMessage(ChatColor.RED + "A boss is already out. "
+                        + ChatColor.GRAY + "Your summoner was not used.");
+                return false;
+            }
+            player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "The call went out."
+                    + ChatColor.RESET + ChatColor.GRAY + "  Everyone online fights their own.");
         }
         if (consumable.isFreeSkill()) {
             data.addFreeSkills((int) consumable.freeSkills());

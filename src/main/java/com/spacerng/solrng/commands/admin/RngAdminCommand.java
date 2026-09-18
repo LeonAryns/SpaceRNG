@@ -40,7 +40,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             "reload", "setspawn", "starforge", "reset", "give", "drops",
             "bank", "rank", "aura", "roll", "unlock", "unlockall", "lockall", "odds", "farmblock", "farmscan",
             "hoe", "consumable", "gradient", "welcome", "crops", "farmclear",
-            "milestones", "farmfill", "boost", "nova", "placeholders", "payout", "crate", "tophead", "floatingitem", "boss", "pet", "discord", "advancements", "shiny", "firsts", "lorestyles", "tagstyles", "menustyles", "hoestyles", "standingstyles", "enchantstyles", "novastyles", "auratest", "holo", "help");
+            "milestones", "farmfill", "boost", "nova", "placeholders", "payout", "crate", "tophead", "floatingitem", "boss", "pet", "dust", "discord", "advancements", "shiny", "firsts", "lorestyles", "tagstyles", "menustyles", "hoestyles", "standingstyles", "enchantstyles", "novastyles", "auratest", "holo", "help");
     private static final List<String> CURRENCIES = List.of("money", "coins", "gems", "credits", "luck", "speed", "tickets");
 
     private final SolRNGPlugin plugin;
@@ -111,6 +111,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             case "floatingitem" -> world.doFloatingItem(sender, args);
             case "boss" -> world.doBoss(sender, args);
             case "pet" -> players.doPet(sender, args);
+            case "dust" -> players.doDust(sender, args);
             case "discord" -> world.doDiscord(sender, args);
             case "advancements" -> world.doAdvancements(sender, args);
             default -> {
@@ -158,6 +159,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         line(sender, "floatingitem", "<add|remove|list>", "Rotating item displays anchored at a spot");
         line(sender, "boss", "<here|start|stop|process> [type]", "The boss spot, one by hand, and the timer");
         line(sender, "pet", "<give|take|list> <pet|all> [player]", "Hand out a pet, until they can be earned");
+        line(sender, "dust", "<cosmic|farm> <amount> [player]", "Hand out pet dust, for testing");
         line(sender, "discord", "<setup|card <id>>", "Make the Discord roles, or post a card");
         line(sender, "advancements", "<off|on>", "Hide every vanilla advancement, toasts included");
         line(sender, "tophead", "<set|podium|remove|clear|list>", "Floating heads for a leaderboard");
