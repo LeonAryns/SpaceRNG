@@ -339,6 +339,45 @@ final class ShowcaseAdmin extends AdminTools {
      * equals 1.0 if the table was authored to add up, so this prints the
      * factor everything is off by, plus each tier's true share.
      */
+    /**
+     * "/rngadmin icon money" shows a sidebar icon as configured;
+     * "/rngadmin icon minecraft:items|minecraft:item/emerald" shows any
+     * sprite, so a new icon can be tried before it goes in the config.
+     * A missing sprite shows as the purple and black missing texture.
+     */
+    boolean doIcon(CommandSender sender, String[] args) {
+        if (args.length < 2) {
+            sender.sendMessage(ChatColor.RED + "Usage: /rngadmin icon <name|atlas|sprite>");
+            return true;
+        }
+        String spec = args[1];
+        net.kyori.adventure.text.Component icon;
+        if (spec.contains(":")) {
+            try {
+                String[] split = spec.split("\\|", 2);
+                icon = net.kyori.adventure.text.Component.object(split.length == 2
+                        ? net.kyori.adventure.text.object.ObjectContents.sprite(
+                                net.kyori.adventure.key.Key.key(split[0]), net.kyori.adventure.key.Key.key(split[1]))
+                        : net.kyori.adventure.text.object.ObjectContents.sprite(
+                                net.kyori.adventure.key.Key.key(split[0])));
+            } catch (Exception ex) {
+                sender.sendMessage(ChatColor.RED + "Not a valid sprite name: " + ex.getMessage());
+                return true;
+            }
+        } else {
+            icon = com.spacerng.solrng.gui.Icons.sprite(plugin, spec);
+            if (icon == null) {
+                sender.sendMessage(ChatColor.RED + "No icon called " + spec + " in scoreboard.icons.");
+                return true;
+            }
+        }
+        sender.sendMessage(net.kyori.adventure.text.Component.text("Icon: ",
+                net.kyori.adventure.text.format.NamedTextColor.WHITE).append(icon)
+                .append(net.kyori.adventure.text.Component.text("  " + spec,
+                        net.kyori.adventure.text.format.NamedTextColor.GRAY)));
+        return true;
+    }
+
     boolean doOdds(CommandSender sender, String[] args) {
         List<RollableItem> items = plugin.getRarityManager().getItems();
         if (items.isEmpty()) {

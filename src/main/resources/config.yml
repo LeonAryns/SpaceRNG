@@ -29,6 +29,20 @@ standings-style: summary
 
 # The sidebar's fixed text. Colour codes use "&".
 scoreboard:
+  # Game textures in front of the sidebar lines (V163). No resource pack:
+  # since Minecraft 1.21.9 text can draw any sprite the client already
+  # has. Written "atlas|sprite". Try one in chat first with
+  #   /rngadmin icon <atlas|sprite>
+  # A player on an older client just sees no icon.
+  icons-enabled: true
+  icons:
+    luck: "minecraft:mob_effects|minecraft:luck"
+    speed: "minecraft:mob_effects|minecraft:speed"
+    prestige: "minecraft:items|minecraft:item/nether_star"
+    money: "minecraft:items|minecraft:item/emerald"
+    coins: "minecraft:items|minecraft:item/gold_nugget"
+    gems: "minecraft:items|minecraft:item/diamond"
+    credits: "minecraft:items|minecraft:item/amethyst_shard"
   title: "&5&l\u2726 ѕᴘᴀᴄᴇʀɴɢ \u2726"
   # Paints the title as a per-character purple gradient instead of the
   # flat colour above. Turn it off to go back to the "&" codes in `title`.

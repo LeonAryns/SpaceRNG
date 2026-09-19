@@ -159,16 +159,16 @@ public class ScoreboardManager {
         lines.add(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Index: " + ChatColor.AQUA + discovered + ChatColor.GRAY + "/" + ChatColor.AQUA + totalItems
                 + ChatColor.WHITE + " ("
                 + String.format("%.2f", plugin.getRarityManager().tagMultiplierFor(data)) + "x)");
-        lines.add(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Luck: " + ChatColor.GREEN + "+" + String.format("%.2f", luckPercent) + "%");
-        lines.add(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Speed: " + ChatColor.YELLOW
+        lines.add(ChatColor.YELLOW + "| " + icon("luck") + ChatColor.WHITE + "Luck: " + ChatColor.GREEN + "+" + String.format("%.2f", luckPercent) + "%");
+        lines.add(ChatColor.YELLOW + "| " + icon("speed") + ChatColor.WHITE + "Speed: " + ChatColor.YELLOW
                 + Math.round(data.getEffectiveRollSpeedMultiplier() * 100));
-        lines.add(ChatColor.YELLOW + "| " + prestigeLine(data));
+        lines.add(ChatColor.YELLOW + "| " + icon("prestige") + prestigeLine(data));
         lines.add(""); // blank spacer
         lines.add(Lore.header("Your Wallet"));
         lines.add(balanceLine(player));
-        lines.add(walletLine(Currency.COINS, data.getTokens()));
-        lines.add(walletLine(Currency.GEMS, data.getShards()));
-        lines.add(walletLine(Currency.CREDITS, data.getPoints()));
+        lines.add(walletLine(Currency.COINS, data.getTokens(), "coins"));
+        lines.add(walletLine(Currency.GEMS, data.getShards(), "gems"));
+        lines.add(walletLine(Currency.CREDITS, data.getPoints(), "credits"));
 
         // The draught is shown in the tab list through %solrng_draught%,
         // not here (V158): Leon wants the sidebar to stay the same shape.
@@ -201,12 +201,24 @@ public class ScoreboardManager {
         return ChatColor.YELLOW + "| " + currency.amount(amount);
     }
 
+    private String walletLine(Currency currency, long amount, String icon) {
+        return ChatColor.YELLOW + "| " + icon(icon) + currency.amount(amount);
+    }
+
+    /**
+     * A game texture in front of a line (V163), with a space after it, or
+     * nothing when the icon is switched off. See gui/Icons.
+     */
+    private static String icon(String name) {
+        return com.spacerng.solrng.gui.Icons.of(name) + " ";
+    }
+
     private String balanceLine(Player player) {
         if (economy == null) {
             return ChatColor.YELLOW + "| " + ChatColor.GRAY + "N/A "
                     + Currency.MONEY.colour() + Currency.MONEY.label();
         }
-        return walletLine(Currency.MONEY, Math.round(economy.getBalance(player)));
+        return walletLine(Currency.MONEY, Math.round(economy.getBalance(player)), "money");
     }
 
     /**
@@ -218,7 +230,8 @@ public class ScoreboardManager {
         String entry = ChatColor.RESET.toString().repeat(index + 1); // unique, invisible placeholder
         Score score = objective.getScore(entry);
         score.setScore(order);
-        Component component = content.isEmpty() ? Component.empty() : LEGACY.deserialize(content);
+        Component component = content.isEmpty() ? Component.empty()
+                : com.spacerng.solrng.gui.Icons.render(plugin, content);
         score.customName(component);
         score.numberFormat(NumberFormat.blank());
     }
