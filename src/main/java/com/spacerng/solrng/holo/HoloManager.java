@@ -107,11 +107,13 @@ public final class HoloManager {
     private static final double PODIUM_YOU_Y = 0.1;
     private static final double PODIUM_READ_RANGE = 48.0;
     // How much bigger than panel text the podium's pieces are, and how far #1 stands above #2 and #3.
-    private static final double PODIUM_TAG = 1.45;
+    private static final double PODIUM_TAG = 1.0;
+    // The widest a tag line usually gets, in font pixels: a 16 letter name or the Credits line.
+    private static final double PODIUM_TAG_PIXELS = 115.0;
     private static final double PODIUM_TEXT = 1.25;
     private static final double PODIUM_TITLE = 1.8;
     private static final double PODIUM_FIRST_LIFT = 0.9;
-    private float podiumHeadScale = 4.5f;
+    private float podiumHeadScale = 6.0f;
     private float podiumTextScale = 3.2f;
     private double podiumSpacing = 2.5;
     private final Map<String, ItemDisplay[]> podiumHeads = new HashMap<>();
@@ -143,7 +145,7 @@ public final class HoloManager {
         // Past about 170 degrees an update, interpolation takes the short way round and spins backwards.
         crateSpinDegrees = Math.max(0.0, Math.min(170.0, config.getDouble("holograms.crate-spin-degrees", 90.0)));
         crateBob = config.getDouble("holograms.crate-bob", 0.12);
-        podiumHeadScale = (float) config.getDouble("holograms.podium-head-scale", 4.5);
+        podiumHeadScale = (float) config.getDouble("holograms.podium-head-scale", 6.0);
         // The podium has its own text size. It is read from across the
         // whole spawn rather than from in front of an NPC, so tying it to
         // the panel size meant one of the two was always wrong.
@@ -510,14 +512,19 @@ public final class HoloManager {
         List<LeaderboardManager.Entry> top = podiumTop(board);
         double small = podiumTextScale * PODIUM_TEXT;
         double timerY = PODIUM_YOU_Y + 2 * LINE * small;
-        double titleY = timerY + LINE * small + GAP;
+        // The farming timer is two lines since V154, the countdown and the
+        // payout lock. A text display grows upward from where it stands,
+        // so the title has to clear both or the second one runs into it.
+        int timerLines = board.equals("farming") ? 2 : 1;
+        double titleY = timerY + timerLines * LINE * small + GAP;
         double headY = titleY + LINE * podiumTextScale * PODIUM_TITLE + 0.15 + podiumHeadScale / 2.0;
+        double spacing = podiumSpacing(podiumTextScale * (float) PODIUM_TAG);
 
         ItemDisplay[] heads = new ItemDisplay[3];
         TextDisplay[] tags = new TextDisplay[3];
         java.util.UUID[] shown = new java.util.UUID[3];
         for (int rank = 0; rank < 3; rank++) {
-            double side = rank == 0 ? 0.0 : rank == 1 ? podiumSpacing : -podiumSpacing;
+            double side = rank == 0 ? 0.0 : rank == 1 ? spacing : -spacing;
             // #1 stands a step above the other two, like the top of a podium.
             Location centre = spot.at().clone().add(right.clone().multiply(side))
                     .add(0, headY + (rank == 0 ? PODIUM_FIRST_LIFT : 0.0), 0);
@@ -613,6 +620,22 @@ public final class HoloManager {
             if (entry.getValue().isValid()) entry.getValue().remove();
             return true;
         });
+    }
+
+    /**
+     * How far #2 and #3 stand from #1: the configured distance, but never
+     * so close that two name tags or two heads run into each other.
+     *
+     * The tags are the wide part. "+ 150 Credits (Daily)" is about 110
+     * pixels of font, and a text display draws 40 pixels to a block at
+     * scale 1, so at the podium's text size one tag is several blocks
+     * wide. Before V157 the spacing ignored that and the three tags were
+     * drawn on top of each other.
+     */
+    private double podiumSpacing(float tagScale) {
+        double tagWidth = PODIUM_TAG_PIXELS / 40.0 * tagScale;
+        double headWidth = podiumHeadScale * 0.5;
+        return Math.max(podiumSpacing, Math.max(tagWidth, headWidth) + 1.0);
     }
 
     /** The reader's right as they face the podium. */

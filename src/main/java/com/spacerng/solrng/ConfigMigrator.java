@@ -129,7 +129,14 @@ public final class ConfigMigrator {
             // V156: the Linked tag wears Discord's current blurple. The old
             // second stop was grey, which washed the name out halfway.
             new Patch("rank-linked-blurple", "ranks.tiers.linked.colors",
-                    List.of("#7289DA", "#B9BBBE"), List.of("#5865F2", "#7289DA")));
+                    List.of("#7289DA", "#B9BBBE"), List.of("#5865F2", "#7289DA")),
+            // V157: the heads were still small in game, so the live value is
+            // one of the older defaults. One patch per default it ever had,
+            // each firing only on an exact match, so a hand-picked size stays.
+            new Patch("podium-heads-6-from-1.3", "holograms.podium-head-scale", 1.3, 6.0),
+            new Patch("podium-heads-6-from-1.8", "holograms.podium-head-scale", 1.8, 6.0),
+            new Patch("podium-heads-6-from-3.2", "holograms.podium-head-scale", 3.2, 6.0),
+            new Patch("podium-heads-6-from-4.5", "holograms.podium-head-scale", 4.5, 6.0));
 
     /** Like a Patch, for one field of the entry with a given id inside a list of maps. */
     private record EntryPatch(String id, String list, String entryId, String field, Object oldDefault,

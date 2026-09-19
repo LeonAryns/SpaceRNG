@@ -324,7 +324,7 @@ public final class RollFormat {
 
     /**
      * The chat line every player sees for their own roll, e.g.
-     * "⚡ You rolled Sand [COMMON] (1/67)".
+     * "⚡ You rolled Sand [Common] (1/67)".
      */
     public static String personalRollLine(SolRNGPlugin plugin, RollableItem item) {
         return personalRollLine(plugin, item, false);
@@ -332,7 +332,7 @@ public final class RollFormat {
 
     public static String personalRollLine(SolRNGPlugin plugin, RollableItem item, boolean shiny) {
         return ChatColor.AQUA + "⚡ " + ChatColor.GRAY + "You rolled " + displayName(plugin, item, shiny) + " "
-                + ChatColor.GRAY + "[" + plugin.getRarityManager().style(item.getRarity(), item.getRarity().name()) + ChatColor.GRAY + "] "
+                + ChatColor.GRAY + "[" + plugin.getRarityManager().style(item.getRarity(), item.getRarity().displayName()) + ChatColor.GRAY + "] "
                 + ChatColor.GRAY + "(" + compactOdds(item.getOdds()) + ")";
     }
 

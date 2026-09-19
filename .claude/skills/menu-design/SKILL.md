@@ -97,6 +97,11 @@ Colour carries the state. It is never decoration:
 - **WHITE** - a value inside a `Lore.stat` line, and section headers on
   the sidebar
 
+Floating text in the world (holograms, the boss panel, the podium) is the
+exception: no grey description lines there, they are white. Grey on a
+text display against the sky reads as washed out, and Leon asked for
+white more than once (V157).
+
 The `▎` bullet carries the line's colour and the text after it stays
 grey. That way a lore block scans as a column of coloured marks and you
 can read its state without reading the words.

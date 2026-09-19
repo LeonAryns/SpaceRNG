@@ -568,7 +568,7 @@ public class BossManager {
                 : ChatColor.GRAY + "  " + timeLeft() + " left"
                         + ChatColor.DARK_GRAY + "  " + Lore.BULLET + "  "
                         + ChatColor.GRAY + String.format("%,d", fight.health) + " crops to go");
-        lines.add(ChatColor.DARK_GRAY + "  " + beaten + " of " + joined + " have beaten theirs.");
+        lines.add(ChatColor.WHITE + "  Beaten by " + beaten + "/" + joined + " players");
         lines.add("");
         return lines;
     }
@@ -678,9 +678,9 @@ public class BossManager {
     private void refreshPanel() {
         if (panel == null || !panel.isValid() || active == null) return;
         String text = Lore.gradient(active.display().toUpperCase(Locale.ROOT), true, active.stops())
-                + "\n" + ChatColor.GRAY + String.format("%,d", active.health()) + " crops each"
-                + "\n" + ChatColor.WHITE + timeLeft() + ChatColor.GRAY + " left"
-                + "\n" + ChatColor.DARK_GRAY + beaten + " of " + joined + " have beaten theirs";
+                + "\n" + ChatColor.WHITE + "Harvest " + String.format("%,d", active.health()) + " crops to beat it"
+                + "\n" + ChatColor.WHITE + "Ends in " + timeLeft()
+                + "\n" + ChatColor.WHITE + "Beaten by " + beaten + "/" + joined + " players";
         panel.text(LegacyComponentSerializer.legacySection().deserialize(text));
     }
 
