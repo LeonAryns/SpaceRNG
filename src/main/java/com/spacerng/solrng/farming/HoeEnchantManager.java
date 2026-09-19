@@ -193,6 +193,36 @@ public class HoeEnchantManager {
         return bought;
     }
 
+    /**
+     * What the next {@code count} levels cost in total, and how many of
+     * them there really are once the cap is reached. For the buy menu's
+     * +1, +10 and +100 buttons, so each can quote its price up front.
+     */
+    public long[] priceOfNext(PlayerData data, Enchant enchant, int count) {
+        int level = levelOf(data, enchant.id());
+        int room = Math.max(0, maxLevelFor(data, enchant) - level);
+        int levels = Math.min(count, room);
+        long total = 0L;
+        for (int i = 0; i < levels; i++) total += costFor(enchant, level + i);
+        return new long[]{levels, total};
+    }
+
+    /** How many levels the wallet covers right now, and what they cost together. */
+    public long[] affordable(PlayerData data, Enchant enchant) {
+        int level = levelOf(data, enchant.id());
+        int room = Math.max(0, maxLevelFor(data, enchant) - level);
+        long wallet = data.getTokens();
+        long total = 0L;
+        int levels = 0;
+        while (levels < room) {
+            long next = costFor(enchant, level + levels);
+            if (total + next > wallet) break;
+            total += next;
+            levels++;
+        }
+        return new long[]{levels, total};
+    }
+
     /** "12.5%" or "+1.80x" - how an enchant's power reads in its tooltip. */
     public String describePower(Enchant enchant, int level) {
         // Every enchant is a percentage now, so "level 400 of 1000" means

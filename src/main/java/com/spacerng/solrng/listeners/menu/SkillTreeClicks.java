@@ -147,6 +147,16 @@ final class SkillTreeClicks {
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
 
         com.spacerng.solrng.player.SkillNode node = plugin.getSkillTreeManager().get(nodeId);
+        // An enchant already unlocked opens its level screen (V161), the
+        // same one the hoe menu opens, so either place can level it.
+        if (node != null && node.getEffect() == com.spacerng.solrng.player.SkillNode.Effect.UNLOCK_ENCHANT
+                && data.hasUnlocked(nodeId) && node.getTarget() != null
+                && plugin.getHoeEnchantManager().get(node.getTarget()) != null) {
+            player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.6f, 1.3f);
+            player.openInventory(com.spacerng.solrng.gui.EnchantBuyGui.build(plugin, player,
+                    node.getTarget().toUpperCase(), holder.getTree(), holder.getPage()));
+            return;
+        }
         // Shift-click on a node with levels buys as many as you can afford (V159).
         boolean max = event.isShiftClick() && node != null && node.getMaxLevel() > 1;
         int bought = max ? plugin.getSkillTreeManager().purchaseMax(player, data, nodeId) : 0;

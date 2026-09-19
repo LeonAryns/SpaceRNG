@@ -181,7 +181,10 @@ public class SkillTreeGui {
                     + wallet.amount(balance));
         }
         lore.add("");
-        if (complete) {
+        if (complete && node.getEffect() == SkillNode.Effect.UNLOCK_ENCHANT) {
+            lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "Unlocked");
+            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to level it up");
+        } else if (complete) {
             lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + (leveled ? "Maxed" : "Unlocked"));
         } else if (affordable) {
             lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + (leveled ? "Click to upgrade" : "Click to unlock"));

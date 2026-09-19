@@ -235,10 +235,11 @@ public class HoeGui {
                         + ChatColor.YELLOW + "/farmtree");
             }
         } else if (affordable) {
-            actions.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to upgrade");
-            actions.add(Lore.footnote("Shift for 100, right-click for all you can afford"));
+            actions.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to level up");
+            actions.add(Lore.footnote("+1, +10, +100 or max"));
         } else {
             actions.add(ChatColor.RED + "" + ChatColor.BOLD + "Not enough Coins");
+            actions.add(Lore.footnote("Click to see the prices"));
         }
 
         List<String> lore = new ArrayList<>();

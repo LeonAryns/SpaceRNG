@@ -422,33 +422,73 @@ final class PlayerMenuClicks {
         if (id == null) return;
 
         var hoe = plugin.getHoeEnchantManager();
+        if (!hoe.isUnlocked(data, id)) {
+            player.sendMessage(ChatColor.RED + "Unlock that enchant in /farmtree first.");
+            player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
+            return;
+        }
+        // Levels are bought in their own screen now (V161): +1, +10, +100 or max.
+        player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.6f, 1.3f);
+        player.openInventory(com.spacerng.solrng.gui.EnchantBuyGui.build(plugin, player, id, null, 0));
+    }
 
-        int bought = 0;
-        // Ten thousand levels is unclickable one at a time. Left is one,
-        // shift is a hundred, right buys everything the wallet covers.
-        int attempts = event.isRightClick() ? 10_000 : event.isShiftClick() ? 100 : 1;
-        bought = hoe.buyMany(data, id, attempts);
+    /**
+     * The enchant level screen, opened from the hoe menu or /farmtree.
+     * Each button buys what it quoted; back returns to where it came from.
+     */
+    void handleEnchantBuyClick(InventoryClickEvent event) {
+        event.setCancelled(true);
+        if (!(event.getView().getTopInventory().getHolder()
+                instanceof com.spacerng.solrng.gui.EnchantBuyHolder holder)) return;
+        Player player = (Player) event.getWhoClicked();
+        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+        int slot = event.getRawSlot();
 
+        if (slot == com.spacerng.solrng.gui.EnchantBuyHolder.BACK_SLOT) {
+            player.openInventory(holder.getTree() == null
+                    ? HoeGui.build(plugin, player)
+                    : com.spacerng.solrng.gui.SkillTreeGui.build(plugin, player, holder.getTree(), holder.getPage()));
+            return;
+        }
+
+        int wanted;
+        if (slot == com.spacerng.solrng.gui.EnchantBuyHolder.ONE_SLOT) wanted = 1;
+        else if (slot == com.spacerng.solrng.gui.EnchantBuyHolder.TEN_SLOT) wanted = 10;
+        else if (slot == com.spacerng.solrng.gui.EnchantBuyHolder.HUNDRED_SLOT) wanted = 100;
+        else if (slot == com.spacerng.solrng.gui.EnchantBuyHolder.MAX_SLOT) wanted = 10_000;
+        else return;
+
+        var hoe = plugin.getHoeEnchantManager();
+        var enchant = hoe.get(holder.getEnchantId());
+        if (enchant == null) return;
+        // +10 and +100 are all or nothing, so the button never buys fewer
+        // levels than it said at the price it quoted. Max buys what it can.
+        if (wanted > 1 && wanted < 10_000) {
+            long[] quote = hoe.priceOfNext(data, enchant, wanted);
+            if (quote[0] == 0 || data.getTokens() < quote[1]) {
+                player.sendMessage(ChatColor.RED + "Not enough Coins for that.");
+                player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
+                return;
+            }
+        }
+        int bought = hoe.buyMany(data, enchant.id(), wanted);
         if (bought == 0) {
-            var enchant = hoe.get(id);
-            player.sendMessage(ChatColor.RED + (enchant != null && !hoe.isUnlocked(data, id)
-                    ? "Unlock that enchant in /farmtree first."
-                    : "You can't upgrade that right now."));
+            player.sendMessage(ChatColor.RED + (hoe.levelOf(data, enchant.id()) >= hoe.maxLevelFor(data, enchant)
+                    ? "That enchant is at its cap." : "Not enough Coins for that."));
             player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
             return;
         }
 
-        var enchant = hoe.get(id);
         player.sendMessage(ChatColor.GREEN + "Upgraded " + enchant.colour() + enchant.display()
-                + ChatColor.GREEN + " to level " + ChatColor.WHITE + hoe.levelOf(data, id)
-                + (bought > 1 ? ChatColor.DARK_GRAY + " (+" + bought + ")" : ""));
+                + ChatColor.GREEN + " to level " + ChatColor.WHITE + String.format("%,d", hoe.levelOf(data, enchant.id()))
+                + ChatColor.GREEN + " (+" + bought + ")");
         player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_ENCHANTMENT_TABLE_USE, 0.8f, 1.5f);
-
         // The hoe's lore is a snapshot, so it has to be rewritten whenever
         // what it describes changes.
         plugin.getFarmingManager().refreshHoe(player, data);
         plugin.getScoreboardManager().update(player);
-        player.openInventory(HoeGui.build(plugin, player));
+        player.openInventory(com.spacerng.solrng.gui.EnchantBuyGui.build(plugin, player,
+                enchant.id(), holder.getTree(), holder.getPage()));
     }
 
     void toggleAura(Player player, PlayerData data, com.spacerng.solrng.rarity.Rarity rarity) {
