@@ -653,6 +653,9 @@ farming:
   golden-crop:
     enabled: true
     multiplier: 10.0
+    # The chance a golden crop also drops one Farm Dust, once Farm Dust is
+    # unlocked in /farmtree. On top of the normal per-crop chance.
+    farm-dust-chance: 0.05
 
   # ---- What the procs actually do ----
   # Radii and counts are capped here rather than scaled off the level. A

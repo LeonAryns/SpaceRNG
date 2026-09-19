@@ -101,6 +101,21 @@ public class DustManager {
     }
 
     /**
+     * A golden crop is a Farm Dust find of its own (V160): on top of the
+     * normal per-crop roll it has farming.golden-crop.farm-dust-chance of
+     * dropping one. It needs Farm Dust unlocked in /farmtree like every
+     * other source, so it speeds the grind up without skipping the tree.
+     */
+    public long onGoldenCrop(Player player, PlayerData data) {
+        if (!plugin.getPetManager().isEnabled() || farmChance(data) <= 0.0) return 0L;
+        double chance = plugin.getConfig().getDouble("farming.golden-crop.farm-dust-chance", 0.05);
+        if (chance <= 0.0 || ThreadLocalRandom.current().nextDouble() >= chance) return 0L;
+        data.addFarmDust(1L);
+        found(player, Currency.FARM_DUST, data.getFarmDust());
+        return 1L;
+    }
+
+    /**
      * The line a player sees when dust falls. Quiet on purpose: dust is
      * rare but rolling is fast, and a title every time would be in the
      * way of the roll it interrupted.

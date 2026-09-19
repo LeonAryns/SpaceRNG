@@ -654,6 +654,7 @@ public class FarmPlotManager {
         }, regrow);
 
         if (wasGolden) {
+            plugin.getDustManager().onGoldenCrop(player, data);
             Location next = moveGolden(player.getUniqueId());
             EnchantFx.pulse(plugin, player, plot, false);
             player.playSound(plot, org.bukkit.Sound.BLOCK_AMETHYST_BLOCK_CHIME, 0.9f, 1.6f);
