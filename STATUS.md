@@ -5,7 +5,7 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V157**, 19 September 2026.
+Last updated at **V159**, 19 September 2026.
 
 ## The agreed way of working
 
@@ -111,6 +111,19 @@ record and says WHY, not only what: `git log` for the list,
 - **V157** Podium heads bigger (6.0) and spread so the tags never
   overlap; the payout line no longer runs into the title. Boss panel in
   white with new wording. Roll chat says [Common] rather than [COMMON].
+- **V158** Luck fixed: Epic and up are exactly (1 + Luck) times likelier;
+  Common is the remainder. Before, a negative Common exponent shrank the
+  total and inflated everything else about twice over. 10x Roll and
+  Supercharge multiply the chance, not the Luck number. Nerfs: armor Luck
+  per piece, Index Luck, index completion, Explorer. Ranks 1.1/1.25/1.5.
+  Nova Core Luck is a full multiplier. Index milestones from 80. Free
+  pass Credits. No hunger. /link links. One draught kind at a time.
+  `%solrng_draught%` for TAB. `/rngadmin odds [rarity] [luck%|me]`.
+- **V159** Enchants to level 10,000 (Credit Finder stays 1,000), chance
+  enchants bend toward `farming.proc-cap` (50%). Tool tiers give more
+  proc. Shift-click buys max in both trees. /convert rebuilt with Convert
+  all. Respec is its own confirmation screen. Page 1 skill prices
+  smoothed.
 - **V140** The boss event: a server event, not a mob, standing over a
   spot and losing health to harvests and rolls. `/boss`.
 - **V141** Rebuilt per player. Everyone fights their own copy, health

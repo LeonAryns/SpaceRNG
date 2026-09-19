@@ -237,8 +237,20 @@ public class HoeEnchantManager {
                 .multiplierOf(data, SkillNode.Effect.ENCHANT_PROC)
                 * data.boostMultiplier("ENCHANT_PROC")
                 * plugin.getFarmingManager().tierOf(data).procMultiplier();
-        return enchant.perLevel() * levelOf(data, enchantId) * proc;
+        double raw = enchant.perLevel() * levelOf(data, enchantId) * proc;
+        if (ALWAYS_ON.contains(enchant.id())) return raw;
+        // Everything else is a chance rolled per crop. With 10,000 levels
+        // (V159) the straight product ran past 100% on half of them, so it
+        // bends toward a ceiling instead: about the raw number while small,
+        // never above farming.proc-cap. A proc on every crop is noise, and
+        // at 100% it stops being a proc at all.
+        double cap = Math.max(0.01, Math.min(0.99,
+                plugin.getConfig().getDouble("farming.proc-cap", 0.5)));
+        return cap * (1.0 - Math.exp(-raw / cap));
     }
+
+    /** Enchants whose number is a bonus rather than a chance; they grow without a ceiling. */
+    private static final java.util.Set<String> ALWAYS_ON = java.util.Set.of("TOKEN_GREED", "MOMENTUM");
 
     /** The same figure the skill tree quotes, for one player. */
     public String describePower(PlayerData data, String enchantId) {

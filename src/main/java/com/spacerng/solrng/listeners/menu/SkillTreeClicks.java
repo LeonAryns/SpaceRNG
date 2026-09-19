@@ -61,46 +61,59 @@ final class SkillTreeClicks {
      * tree, and the message names exactly what was taken and what came
      * back so nothing is lost silently.
      */
+    /** The respec button in the tree opens its own confirmation screen (V159). */
     void handleRespecClick(Player player, SkillTreeHolder holder, InventoryClickEvent event) {
+        player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.6f, 1.2f);
+        player.openInventory(com.spacerng.solrng.gui.RespecGui.build(plugin, player,
+                holder.getTree(), holder.getPage()));
+    }
+
+    /**
+     * Clicks in the respec screen: confirm takes the shinies and refunds
+     * both trees, go back returns to the page the player came from. The
+     * message names exactly what came back, so nothing is lost silently.
+     */
+    void handleRespecMenuClick(InventoryClickEvent event) {
+        event.setCancelled(true);
+        if (!(event.getView().getTopInventory().getHolder() instanceof com.spacerng.solrng.gui.RespecHolder holder)) return;
+        Player player = (Player) event.getWhoClicked();
+        int slot = event.getRawSlot();
+        if (slot == com.spacerng.solrng.gui.RespecHolder.CANCEL_SLOT) {
+            player.openInventory(SkillTreeGui.build(plugin, player, holder.getTree(), holder.getPage()));
+            return;
+        }
+        if (slot != com.spacerng.solrng.gui.RespecHolder.CONFIRM_SLOT) return;
+
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         int cost = data.nextRespecCost();
-        int owned = 0;
         long money = plugin.getSkillTreeManager().totalMoneySpent(data);
         long coins = plugin.getSkillTreeManager().totalCoinsSpent(data);
+        int owned = 0;
         for (com.spacerng.solrng.player.SkillNode node
                 : plugin.getSkillTreeManager().getNodes().values()) {
-            if (!node.usesTokens()) owned += plugin.getSkillTreeManager().levelOf(data, node);
+            owned += plugin.getSkillTreeManager().levelOf(data, node);
         }
-
         if (owned == 0) {
-            player.sendMessage(ChatColor.GRAY + "Nothing to respec.");
+            player.sendMessage(ChatColor.RED + "Nothing to respec.");
             return;
         }
-        if (!event.isShiftClick()) {
-            player.sendMessage(ChatColor.YELLOW + "Shift-click to confirm the respec.");
-            player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.6f, 1.2f);
-            return;
-        }
-        if (data.totalShinies() < cost) {
+        if (data.totalShinies() < cost || !data.spendAnyShinies(cost)) {
             player.sendMessage(ChatColor.RED + "You need " + cost + " shinies for that.");
             player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
-            return;
-        }
-        if (!data.spendAnyShinies(cost)) {
-            player.sendMessage(ChatColor.RED + "The shinies didn't clear. Try again.");
             return;
         }
 
         plugin.getSkillTreeManager().respec(player, data);
         player.sendMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "Respec complete. "
-                + ChatColor.RESET + ChatColor.GRAY + "Refunded "
-                + Currency.MONEY.amount(money) + ChatColor.GRAY + " and "
-                + Currency.COINS.amount(coins) + ChatColor.GRAY + ". Next respec costs "
-                + ChatColor.LIGHT_PURPLE + data.nextRespecCost() + ChatColor.GRAY + " shinies.");
+                + ChatColor.RESET + ChatColor.WHITE + "Refunded "
+                + Currency.MONEY.amount(money) + ChatColor.WHITE + " and "
+                + Currency.COINS.amount(coins) + ChatColor.WHITE + ". The next one costs "
+                + ChatColor.LIGHT_PURPLE + data.nextRespecCost() + ChatColor.WHITE + " shinies.");
         player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_BEACON_POWER_SELECT, 1.0f, 1.4f);
         plugin.getScoreboardManager().update(player);
         plugin.getLuckBarManager().update(player);
-        player.openInventory(SkillTreeGui.build(plugin, player, holder.getTree(), holder.getPage()));
+        plugin.getFarmingManager().refreshHoe(player, data);
+        player.openInventory(SkillTreeGui.build(plugin, player, holder.getTree(), 0));
     }
 
     void handleSkillTreeClick(InventoryClickEvent event) {
@@ -134,9 +147,16 @@ final class SkillTreeClicks {
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
 
         com.spacerng.solrng.player.SkillNode node = plugin.getSkillTreeManager().get(nodeId);
-        boolean success = plugin.getSkillTreeManager().purchase(player, data, nodeId);
+        // Shift-click on a node with levels buys as many as you can afford (V159).
+        boolean max = event.isShiftClick() && node != null && node.getMaxLevel() > 1;
+        int bought = max ? plugin.getSkillTreeManager().purchaseMax(player, data, nodeId) : 0;
+        boolean success = max ? bought > 0 : plugin.getSkillTreeManager().purchase(player, data, nodeId);
         if (success) {
-            if (node != null && node.getMaxLevel() > 1) {
+            if (max) {
+                player.sendMessage(ChatColor.GREEN + "Bought " + bought + " level" + (bought == 1 ? "" : "s")
+                        + " of " + node.getDisplay() + ", now " + data.getNodeLevel(nodeId)
+                        + "/" + node.getMaxLevel() + ".");
+            } else if (node != null && node.getMaxLevel() > 1) {
                 player.sendMessage(ChatColor.GREEN + node.getDisplay() + " is now level "
                         + data.getNodeLevel(nodeId) + "/" + node.getMaxLevel() + "!");
             } else {

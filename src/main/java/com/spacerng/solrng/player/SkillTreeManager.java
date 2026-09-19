@@ -363,6 +363,21 @@ public class SkillTreeManager {
      * are one-way switches (a flag, a crop, a farm multiplier) get applied.
      */
     public boolean purchase(Player player, PlayerData data, String nodeId) {
+        return purchase(player, data, nodeId, true);
+    }
+
+    /**
+     * Buys as many levels of one node as the wallet covers, for the
+     * shift-click "max" in both trees. Free skills are left alone: a buy
+     * max would otherwise burn every saved one on a cheap node.
+     */
+    public int purchaseMax(Player player, PlayerData data, String nodeId) {
+        int bought = 0;
+        while (bought < 1000 && purchase(player, data, nodeId, false)) bought++;
+        return bought;
+    }
+
+    public boolean purchase(Player player, PlayerData data, String nodeId, boolean useFree) {
         SkillNode node = nodes.get(nodeId);
         if (node == null) return false;
 
@@ -377,7 +392,7 @@ public class SkillTreeManager {
         // A free purchase is spent before any currency is looked at, so it
         // covers a node the player could not otherwise afford. That is the
         // whole point of saving one.
-        if (data.getFreeSkills() > 0 && data.useFreeSkill()) {
+        if (useFree && data.getFreeSkills() > 0 && data.useFreeSkill()) {
             if (node.isLeveled()) {
                 data.setNodeLevel(nodeId, data.getNodeLevel(nodeId) + 1);
             } else {

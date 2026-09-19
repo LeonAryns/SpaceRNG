@@ -8,7 +8,7 @@
 # their fresh defaults in on top of whatever is on disk, so a server
 # owner never has to delete the whole file to pick up a structural
 # change. Item table, prices and cosmetic tweaks are untouched.
-config-version: 19
+config-version: 20
 
 # One-off value changes the plugin has already made to this file, so none
 # is ever made twice. Managed by the plugin; leave it alone.
@@ -312,7 +312,7 @@ farming:
       cost-power: 2.0
       description: "More Coins from every crop."
       color: "&e"
-      max-level: 1000
+      max-level: 10000
       base-cap: 100
       per-level: 0.01
       # +1000% at the ceiling. Level 1 costs 710, level 1,000 costs 385,680,
@@ -327,7 +327,7 @@ farming:
       cost-power: 2.0
       description: "An unbroken run of harvests builds a multiplier."
       color: "&2"
-      max-level: 1000
+      max-level: 10000
       base-cap: 100
       per-level: 0.004
 
@@ -344,7 +344,7 @@ farming:
       cost-power: 2.0
       description: "A chance at a bonus Gem."
       color: "&b"
-      max-level: 1000
+      max-level: 10000
       base-cap: 100
       per-level: 0.0008
       # 80% of crops at the ceiling. Level 1 costs 862, level 1,000 costs 468,603,
@@ -359,7 +359,7 @@ farming:
       cost-power: 2.0
       description: "A chance to turn up a crate key."
       color: "&6"
-      max-level: 1000
+      max-level: 10000
       base-cap: 100
       per-level: 0.00005
       # 5% of crops at the ceiling. Level 1 costs 1,048, level 1,000 costs 569,352,
@@ -374,7 +374,7 @@ farming:
       cost-power: 2.0
       description: "A chance to blow the neighbouring crops out too."
       color: "&c"
-      max-level: 1000
+      max-level: 10000
       base-cap: 100
       per-level: 0.0002
       # 20% of crops at the ceiling. Level 1 costs 1,274, level 1,000 costs 691,763,
@@ -389,7 +389,7 @@ farming:
       cost-power: 2.0
       description: "A chance to dig up a potion."
       color: "&d"
-      max-level: 1000
+      max-level: 10000
       base-cap: 100
       per-level: 0.00004
       # 4% of crops at the ceiling. Level 1 costs 1,880, level 1,000 costs 1,021,197,
@@ -404,7 +404,7 @@ farming:
       cost-power: 2.0
       description: "A chance to call bolts down on nearby crops."
       color: "&e"
-      max-level: 1000
+      max-level: 10000
       base-cap: 100
       per-level: 0.0001
       # 10% of crops at the ceiling. Level 1 costs 2,284, level 1,000 costs 1,240,757,
@@ -419,7 +419,7 @@ farming:
       cost-power: 2.0
       description: "A chance at a free Nova Core forge."
       color: "&b"
-      max-level: 1000
+      max-level: 10000
       base-cap: 100
       per-level: 0.00001
 
@@ -436,7 +436,7 @@ farming:
       cost-power: 2.0
       description: "A rare chance to level the whole field at once."
       color: "&4"
-      max-level: 1000
+      max-level: 10000
       base-cap: 100
       per-level: 0.0000005
       # 0.05% of crops at the ceiling. Level 1 costs 34,894, level 1,000 costs 18,956,329,
@@ -451,7 +451,7 @@ farming:
       cost-power: 2.0
       description: "A chance to be paid your last minute of Coins again."
       color: "&6"
-      max-level: 1000
+      max-level: 10000
       base-cap: 100
       per-level: 0.000015
       # 1.5% of crops at the ceiling. Level 1 costs 3,372, level 1,000 costs 1,831,635,
@@ -481,7 +481,7 @@ farming:
       cost-power: 2.0
       description: "A chance at 3x Coins, Gems or procs. You do not pick."
       color: "&6"
-      max-level: 1000
+      max-level: 10000
       base-cap: 100
       per-level: 0.000008
 
@@ -500,7 +500,7 @@ farming:
       cost-power: 2.0
       description: "A chance at Gems worth a slice of the crop."
       color: "&b"
-      max-level: 1000
+      max-level: 10000
       base-cap: 100
       per-level: 0.00003
       # 3% of crops at the ceiling. Level 1 costs 4,096, level 1,000 costs 2,225,437,
@@ -515,7 +515,7 @@ farming:
       cost-power: 2.0
       description: "A chance to double every Coin for a while."
       color: "&6"
-      max-level: 1000
+      max-level: 10000
       base-cap: 100
       per-level: 0.000006
       # 0.6% of crops at the ceiling. Level 1 costs 4,977, level 1,000 costs 2,703,905,
@@ -530,7 +530,7 @@ farming:
       cost-power: 2.0
       description: "A chance to triple every Gem for a while."
       color: "&b"
-      max-level: 1000
+      max-level: 10000
       base-cap: 100
       per-level: 0.000005
       # 0.5% of crops at the ceiling. Level 1 costs 6,048, level 1,000 costs 3,285,244,
@@ -545,7 +545,7 @@ farming:
       cost-power: 2.0
       description: "A chance for one crop to pay eight times over."
       color: "&6"
-      max-level: 1000
+      max-level: 10000
       base-cap: 100
       per-level: 0.00001
       # 1% of crops at the ceiling. Level 1 costs 7,347, level 1,000 costs 3,991,573,
@@ -560,7 +560,7 @@ farming:
       cost-power: 2.0
       description: "A chance to melt Coins down into Gems."
       color: "&d"
-      max-level: 1000
+      max-level: 10000
       base-cap: 100
       per-level: 0.000004
       # 0.4% of crops at the ceiling. Level 1 costs 8,927, level 1,000 costs 4,849,761,
@@ -575,7 +575,7 @@ farming:
       cost-power: 2.0
       description: "A chance to chain Gems from crop to crop."
       color: "&b"
-      max-level: 1000
+      max-level: 10000
       base-cap: 100
       per-level: 0.000008
       # 0.8% of crops at the ceiling. Level 1 costs 10,846, level 1,000 costs 5,892,460,
@@ -590,7 +590,7 @@ farming:
       cost-power: 2.0
       description: "A chance at a downpour of Coins."
       color: "&6"
-      max-level: 1000
+      max-level: 10000
       base-cap: 100
       per-level: 0.000003
       # 0.3% of crops at the ceiling. Level 1 costs 13,179, level 1,000 costs 7,159,338,
@@ -605,7 +605,7 @@ farming:
       cost-power: 2.0
       description: "A chance to call a meteor down on the field."
       color: "&c"
-      max-level: 1000
+      max-level: 10000
       base-cap: 100
       per-level: 0.000004
       # 0.4% of crops at the ceiling. Level 1 costs 16,012, level 1,000 costs 8,698,596,
@@ -620,7 +620,7 @@ farming:
       cost-power: 2.0
       description: "A chance to swallow the field whole."
       color: "&5"
-      max-level: 1000
+      max-level: 10000
       base-cap: 100
       per-level: 0.0000015
       # 0.15% of crops at the ceiling. Level 1 costs 28,719, level 1,000 costs 15,601,917,
@@ -635,7 +635,7 @@ farming:
       cost-power: 2.0
       description: "Nova Finder, several times over, and a fortune with it."
       color: "&6"
-      max-level: 1000
+      max-level: 10000
       base-cap: 100
       per-level: 0.0000003
       # 0.03% of crops at the ceiling. Level 1 costs 42,396, level 1,000 costs 23,031,941,
@@ -801,6 +801,11 @@ farming:
   #
   # Tier I is the hoe you are handed and grants nothing, so the ladder is
   # 50 bought tiers on top of it.
+  # The most any chance-based enchant can reach, however many levels it
+  # has. A proc's chance is about its raw number while small and bends
+  # toward this ceiling as it grows, so Blast at level 10,000 fires on
+  # about half the crops instead of every one.
+  proc-cap: 0.5
   hoe-ladder:
     bands: 5
     tiers-per-band: 10
@@ -808,7 +813,7 @@ farming:
     coin-bonus-step: 0.01
     # Enchant proc climbs far slower than Coins, because it lifts every
     # enchant at once: the same step would be worth many times more.
-    proc-share: 0.04
+    proc-share: 0.07
     blend-from: 8
 
   # ---- Sounds ----
@@ -1927,7 +1932,7 @@ skilltree:
       page: 1
       slot: "5,4"
       icon: BOOKSHELF
-      cost-money: 3750
+      cost-money: 10000
       cost-growth: 1.3
       requires: "luck_skill"
       effect: LUCK_PER_DISCOVERY
@@ -1951,7 +1956,7 @@ skilltree:
       page: 1
       slot: "5,1"
       icon: SMITHING_TABLE
-      cost-money: 154000
+      cost-money: 70000
       cost-growth: 1.3
       requires: "luck_2"
       effect: STARFORGE_POWER
@@ -1976,7 +1981,7 @@ skilltree:
       page: 1
       slot: "2,5"
       icon: SUGAR
-      cost-money: 88000
+      cost-money: 25000
       cost-growth: 1.24
       requires: "convert_unlock"
       effect: ROLL_SPEED
@@ -1988,7 +1993,7 @@ skilltree:
       page: 1
       slot: "3,3"
       icon: ECHO_SHARD
-      cost-money: 6560
+      cost-money: 20000
       cost-growth: 1.3
       requires: "pass_unlock"
       effect: BONUS_ROLL_CHANCE
@@ -2000,7 +2005,7 @@ skilltree:
       page: 1
       slot: "2,4"
       icon: FIREWORK_ROCKET
-      cost-money: 88000
+      cost-money: 35000
       cost-growth: 1.35
       requires: "speed_2"
       effect: INSTANT_ROLL
@@ -2022,7 +2027,7 @@ skilltree:
       page: 1
       slot: "2,2"
       icon: BLAST_FURNACE
-      cost-money: 154000
+      cost-money: 60000
       cost-growth: 1.3
       requires: "pass_unlock"
       effect: CONVERT_BONUS
@@ -2059,7 +2064,7 @@ skilltree:
       page: 1
       slot: "8,4"
       icon: GOLD_INGOT
-      cost-money: 269000
+      cost-money: 70000
       cost-growth: 1.28
       requires: "farming_unlock"
       effect: MONEY_MULTIPLIER
@@ -2081,7 +2086,7 @@ skilltree:
       page: 1
       slot: "8,1"
       icon: IRON_INGOT
-      cost-money: 269000
+      cost-money: 90000
       cost-growth: 1.3
       requires: "vault_unlock"
       effect: ARMOR_POWER
@@ -2170,7 +2175,7 @@ skilltree:
       page: 2
       slot: "5,6"
       icon: END_CRYSTAL
-      cost-money: 100000
+      cost-money: 350000
       requires: "forge_power_1"
       requires-all: ["dupe_1", "armor_power_1"]
       effect: LUCK
@@ -2255,7 +2260,7 @@ skilltree:
       page: 2
       slot: "2,5"
       icon: SUGAR
-      cost-money: 8800000
+      cost-money: 3000000
       cost-growth: 1.28
       requires: "explorer_1"
       effect: ROLL_SPEED
@@ -4686,7 +4691,7 @@ farmtree:
       cost-growth: 1.55
       requires: "crop_berries"
       effect: "ENCHANT_CAP"
-      value: 90.0
+      value: 990.0
       max-level: 5
 
     # -- Left line: the hoe --
@@ -4874,7 +4879,7 @@ farmtree:
       requires: "tokens_8"
       requires-all: ["mastery_1"]
       effect: "ENCHANT_CAP"
-      value: 90.0
+      value: 990.0
       max-level: 5
 
 

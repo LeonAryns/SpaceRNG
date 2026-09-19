@@ -185,6 +185,7 @@ public class SkillTreeGui {
             lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + (leveled ? "Maxed" : "Unlocked"));
         } else if (affordable) {
             lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + (leveled ? "Click to upgrade" : "Click to unlock"));
+            if (leveled) lore.add(ChatColor.YELLOW + "Shift-click to buy max");
         } else {
             lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Not enough " + wallet.label());
         }
@@ -282,8 +283,7 @@ public class SkillTreeGui {
         if (owned == 0) {
             lore.add(ChatColor.DARK_GRAY + "" + ChatColor.BOLD + "Nothing to refund");
         } else if (affordable) {
-            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Shift-click to confirm");
-            lore.add(Lore.footnote("Shift protects against misclicks."));
+            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to review");
         } else {
             lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Not enough shinies");
         }

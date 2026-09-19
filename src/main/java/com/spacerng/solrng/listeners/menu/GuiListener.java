@@ -77,6 +77,8 @@ public class GuiListener implements Listener {
         Inventory topInventory = event.getView().getTopInventory();
         if (topInventory.getHolder() instanceof SkillTreeHolder) {
             skillTree.handleSkillTreeClick(event);
+        } else if (topInventory.getHolder() instanceof com.spacerng.solrng.gui.RespecHolder) {
+            skillTree.handleRespecMenuClick(event);
         } else if (topInventory.getHolder() instanceof ConvertHolder) {
             convert.handleConvertClick(event);
         } else if (topInventory.getHolder() instanceof IndexHolder) {

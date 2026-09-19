@@ -131,7 +131,7 @@ public class FarmingManager {
         // Enchant proc climbs far slower than Coins on purpose: it lifts
         // every enchant at once, so the same step would be worth many
         // times more.
-        double procShare = config.getDouble("farming.hoe-ladder.proc-share", 0.04);
+        double procShare = config.getDouble("farming.hoe-ladder.proc-share", 0.07);
         int blendFrom = config.getInt("farming.hoe-ladder.blend-from", 8);
 
         hoeTiers.clear();

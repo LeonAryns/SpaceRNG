@@ -67,14 +67,7 @@ final class ConvertClicks {
      * Blocking only the obvious click leaves the other four wide open.
      */
     boolean isDrop(ItemStack stack) {
-        if (stack == null || stack.getType() == Material.AIR || stack.getItemMeta() == null) return false;
-        if (plugin.getStarforgeManager().isStarforge(stack)) return false;
-
-        var pdc = stack.getItemMeta().getPersistentDataContainer();
-        // Both keys: only an item this plugin rolled carries a roll name
-        // AND a rarity, which is what makes it convertible.
-        return pdc.has(plugin.getRollListener().getRollNameKey(), PersistentDataType.STRING)
-                && pdc.has(plugin.getRollListener().getRarityKey(), PersistentDataType.STRING);
+        return ConvertGui.isDrop(plugin, stack);
     }
 
     void rejectNonDrop(InventoryClickEvent event) {
@@ -132,6 +125,11 @@ final class ConvertClicks {
             return;
         }
 
+        if (rawSlot == ConvertHolder.CONVERT_ALL_SLOT) {
+            convertInventory(player);
+            return;
+        }
+
         if (rawSlot == ConvertHolder.SHINY_TOGGLE_SLOT) {
             PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
             if (!data.hasUnlocked("auto_convert")) {
@@ -150,74 +148,116 @@ final class ConvertClicks {
         }
     }
 
+    void convertInputSlots(Player player, Inventory top) {
+        java.util.List<ItemStack> stacks = new java.util.ArrayList<>();
+        java.util.List<Integer> slots = new java.util.ArrayList<>();
+        for (int slot : ConvertHolder.INPUT_SLOTS) {
+            ItemStack stack = top.getItem(slot);
+            if (!isDrop(stack)) continue; // left alone, and handed back on close
+            stacks.add(stack);
+            slots.add(slot);
+        }
+        bank(player, stacks, index -> top.setItem(slots.get(index), null),
+                "Place some rolled items in the top rows first.");
+    }
+
+    /**
+     * Convert all (V159): every rolled drop in the player's own inventory
+     * in one click. Shinies stay put, the same promise the shiny switch
+     * makes, because a shiny is the one drop nobody wants banked by accident.
+     */
+    void convertInventory(Player player) {
+        ItemStack[] contents = player.getInventory().getStorageContents();
+        java.util.List<ItemStack> stacks = new java.util.ArrayList<>();
+        java.util.List<Integer> slots = new java.util.ArrayList<>();
+        for (int slot = 0; slot < contents.length; slot++) {
+            ItemStack stack = contents[slot];
+            if (!isDrop(stack) || plugin.getRollListener().isShiny(stack)) continue;
+            stacks.add(stack);
+            slots.add(slot);
+        }
+        bank(player, stacks, index -> player.getInventory().setItem(slots.get(index), null),
+                "You are not carrying any rolled drops.");
+    }
+
     /**
      * Converting banks each item as a stored drop of its own rarity
      * rather than paying Credits - a Common in the bank buys exactly what
      * a Common in the inventory buys, so /armor and /starforge stay the
      * sinks for rolled loot and Credits stay reserved for the paid store.
+     *
+     * A stack only leaves the inventory when all of it fits in the vault.
+     * Clearing it regardless is how a full vault used to eat drops.
      */
-    void convertInputSlots(Player player, Inventory top) {
+    private void bank(Player player, java.util.List<ItemStack> stacks,
+                      java.util.function.IntConsumer clear, String nothing) {
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         NamespacedKey rarityKey = plugin.getRollListener().getRarityKey();
-
         java.util.Map<Rarity, Long> banked = new java.util.EnumMap<>(Rarity.class);
-        int itemsConverted = 0;
+        long itemsConverted = 0;
+        boolean full = false;
+        long cap = plugin.convertCap(data);
+        double refinery = plugin.getSkillTreeManager()
+                .totalOf(data, com.spacerng.solrng.player.SkillNode.Effect.CONVERT_BONUS)
+                + plugin.getPerkManager().totalOf(data, com.spacerng.solrng.perk.PerkStat.CONVERT_PERCENT);
 
-        for (int slot : ConvertHolder.INPUT_SLOTS) {
-            ItemStack stack = top.getItem(slot);
-            if (!isDrop(stack)) continue; // left alone, and handed back on close
-            ItemMeta meta = stack.getItemMeta();
-
-            String rarityName = meta.getPersistentDataContainer().get(rarityKey, PersistentDataType.STRING);
-            if (rarityName == null) continue;
-
+        for (int i = 0; i < stacks.size(); i++) {
+            ItemStack stack = stacks.get(i);
+            String rarityName = stack.getItemMeta().getPersistentDataContainer()
+                    .get(rarityKey, PersistentDataType.STRING);
+            Rarity rarity;
             try {
-                Rarity rarity = Rarity.valueOf(rarityName);
-                long amount = stack.getAmount();
-                banked.merge(rarity, amount, Long::sum);
-                itemsConverted += amount;
-                // Refinery: each drop independently gets a chance to bank
-                // twice. Rolled per item rather than once for the batch, so
-                // converting a stack of 64 pays the average instead of an
-                // all-or-nothing double.
-                double refinery = plugin.getSkillTreeManager()
-                        .totalOf(data, com.spacerng.solrng.player.SkillNode.Effect.CONVERT_BONUS)
-                        + plugin.getPerkManager().totalOf(data, com.spacerng.solrng.perk.PerkStat.CONVERT_PERCENT);
-                long extra = 0L;
-                for (long i = 0; refinery > 0 && i < amount; i++) {
-                    if (Math.random() < refinery) extra++;
-                }
-                if (plugin.getRollListener().isShiny(stack)) {
-                    data.addBankedShiny(rarity, amount + extra);
-                } else {
-                    long cap = plugin.convertCap(data);
-                    long fits = data.addBankedDrops(rarity, amount + extra, cap);
-                    if (fits < amount + extra) {
-                        player.sendMessage(ChatColor.RED + "Only " + fits
-                                + " fit. Your vault holds " + cap + " of each.");
-                    }
-                    data.addConverted(rarity, fits);
-                }
-                top.setItem(slot, null);
-            } catch (IllegalArgumentException ignored) {
+                rarity = Rarity.valueOf(rarityName);
+            } catch (IllegalArgumentException | NullPointerException ex) {
+                continue;
             }
+            long amount = stack.getAmount();
+            boolean shiny = plugin.getRollListener().isShiny(stack);
+            if (!shiny && data.getBankedDrops(rarity) + amount > cap) {
+                full = true;
+                continue;
+            }
+            // Refinery: each drop independently gets a chance to bank
+            // twice. Rolled per item rather than once for the batch, so
+            // converting a stack of 64 pays the average instead of an
+            // all-or-nothing double.
+            long extra = 0L;
+            for (long n = 0; refinery > 0 && n < amount; n++) {
+                if (Math.random() < refinery) extra++;
+            }
+            if (shiny) {
+                data.addBankedShiny(rarity, amount + extra);
+            } else {
+                long fits = data.addBankedDrops(rarity, amount + extra, cap);
+                data.addConverted(rarity, fits);
+            }
+            banked.merge(rarity, amount, Long::sum);
+            itemsConverted += amount;
+            clear.accept(i);
         }
 
         if (itemsConverted == 0) {
-            player.sendMessage(ChatColor.RED + "Place some rolled items in the top rows first.");
+            player.sendMessage(ChatColor.RED + (full
+                    ? "Your vault is full. It holds " + cap + " of each rarity."
+                    : nothing));
             return;
         }
 
         StringBuilder summary = new StringBuilder();
         for (java.util.Map.Entry<Rarity, Long> entry : banked.entrySet()) {
-            if (summary.length() > 0) summary.append(ChatColor.GRAY).append(", ");
+            if (summary.length() > 0) summary.append(ChatColor.WHITE).append(", ");
             summary.append(plugin.getRarityManager().style(entry.getKey(),
                     entry.getValue() + " " + entry.getKey().displayName()));
         }
 
         plugin.getScoreboardManager().update(player);
-        player.openInventory(ConvertGui.build(plugin, player)); // refresh the Stored Drops panel
-        player.sendMessage(ChatColor.GREEN + "Stored " + itemsConverted + " drop(s): " + summary);
+        player.openInventory(ConvertGui.build(plugin, player)); // refresh the vault panel
+        player.sendMessage(ChatColor.GREEN + "Stored " + String.format("%,d", itemsConverted)
+                + " drop" + (itemsConverted == 1 ? "" : "s") + ": " + summary);
+        if (full) {
+            player.sendMessage(ChatColor.RED + "Some stayed in your inventory: the vault holds "
+                    + cap + " of each rarity.");
+        }
     }
 
     void handleAutoToggleClick(Player player, int rawSlot) {
@@ -233,7 +273,7 @@ final class ConvertClicks {
 
         Rarity rarity = values[index];
         data.toggleAutoConvert(rarity);
-        player.sendMessage(ChatColor.YELLOW + "Auto-convert for " + rarity.name() + " is now "
+        player.sendMessage(ChatColor.YELLOW + "Auto convert for " + rarity.displayName() + " is now "
                 + (data.isAutoConverting(rarity) ? ChatColor.GREEN + "ON" : ChatColor.RED + "OFF"));
         player.openInventory(ConvertGui.build(plugin, player)); // refresh
     }

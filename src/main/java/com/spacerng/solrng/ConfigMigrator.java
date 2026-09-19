@@ -187,7 +187,19 @@ public final class ConfigMigrator {
             // V158: Leon's rank multipliers, on Luck, Speed and Money alike.
             new Patch("rank-comet-1.1", "ranks.tiers.comet.multiplier", 1.2, 1.1),
             new Patch("rank-nova-1.25", "ranks.tiers.nova.multiplier", 1.5, 1.25),
-            new Patch("rank-supernova-1.5", "ranks.tiers.supernova.multiplier", 2.0, 1.5));
+            new Patch("rank-supernova-1.5", "ranks.tiers.supernova.multiplier", 2.0, 1.5),
+            // V159: tool upgrades lift enchant procs a bit more.
+            new Patch("hoe-proc-share-up", "farming.hoe-ladder.proc-share", 0.04, 0.07));
+
+    // V159: every hoe enchant runs to level 10,000, except Credit Finder,
+    // which stays at 1,000 because it pays Credits.
+    private static final List<Patch> ENCHANT_PATCHES = java.util.stream.Stream.of(
+                    "TOKEN_GREED", "MOMENTUM", "SHARD_GREED", "KEY_FINDER", "BLAST_HARVEST",
+                    "POTION_FINDER", "LIGHTNING", "NOVA_FINDER", "NUKE", "COIN_FACTORY", "GAMBA",
+                    "PROSPECTOR", "GOLDEN_TOUCH", "GEM_RUSH", "HARVEST_ECHO", "ALCHEMY",
+                    "GEM_CASCADE", "COIN_STORM", "METEOR", "BLACK_HOLE", "SUPERNOVA")
+            .map(id -> new Patch("enchant-10k-" + id, "farming.enchants." + id + ".max-level", 1000, 10000))
+            .toList();
 
     /** Like a Patch, for one field of the entry with a given id inside a list of maps. */
     private record EntryPatch(String id, String list, String entryId, String field, Object oldDefault,
@@ -362,7 +374,9 @@ public final class ConfigMigrator {
     private static boolean applyPatches(SolRNGPlugin plugin, FileConfiguration disk) {
         List<String> applied = new ArrayList<>(disk.getStringList("applied-patches"));
         boolean changed = false;
-        for (Patch patch : PATCHES) {
+        List<Patch> allPatches = new ArrayList<>(PATCHES);
+        allPatches.addAll(ENCHANT_PATCHES);
+        for (Patch patch : allPatches) {
             if (applied.contains(patch.id())) continue;
             // A map-shaped value comes back from disk as a section, so it is
             // compared by its entries (keys as strings) rather than as an object.
