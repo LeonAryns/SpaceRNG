@@ -132,7 +132,12 @@ public class PrestigeManager {
      * compares it against lifetime rolls.
      */
     public long rollsNeededForNextLevel(PlayerData data) {
-        int level = Math.max(1, data.getLevel());
+        return rollsNeededForLevel(data.getLevel());
+    }
+
+    /** Lifetime rolls needed to leave the given level. */
+    public long rollsNeededForLevel(int level) {
+        level = Math.max(1, level);
         if (levelCostGrowth <= 1.0) return (long) level * rollsPerLevel;
         return Math.round(rollsPerLevel
                 * (Math.pow(levelCostGrowth, level) - 1.0) / (levelCostGrowth - 1.0));
@@ -160,6 +165,7 @@ public class PrestigeManager {
         if (!canPrestige(data)) return false;
         data.setPrestige(data.getPrestige() + 1);
         data.setLevel(1);
+        data.setRollsThisPrestige(0L);
         data.addPrestigePoints(pointsPerPrestige);
         return true;
     }

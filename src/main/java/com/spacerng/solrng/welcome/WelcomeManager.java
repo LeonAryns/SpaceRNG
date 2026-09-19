@@ -205,4 +205,24 @@ public class WelcomeManager {
     public Component preview(Player player) {
         return Component.text("Rejoin, or /rngadmin welcome, to see it.");
     }
+
+    /**
+     * "(!) WELCOME Name TO SpaceRNG! [#76]" to the whole server, the first
+     * time somebody ever joins (V162). The number is how many different
+     * players have joined, this one included, so a new player sees they
+     * are counted and everyone else sees the server grow.
+     */
+    public void broadcastNewPlayer(Player player) {
+        if (!plugin.getConfig().getBoolean("welcome.new-player-broadcast.enabled", true)) return;
+        int number = org.bukkit.Bukkit.getOfflinePlayers().length;
+        String line = com.spacerng.solrng.gui.Lore.gradient("(!)", true, "#C77DFF", "#E879F9")
+                + " " + com.spacerng.solrng.gui.Lore.gradient("\u1d21\u1d07\u029f\u1d04\u1d0f\u1d0d\u1d07", false, "#E9D5FF", "#C77DFF")
+                + " " + ChatColor.WHITE + player.getName()
+                + " " + com.spacerng.solrng.gui.Lore.gradient("\u1d1b\u1d0f", false, "#E9D5FF", "#C77DFF")
+                + " " + com.spacerng.solrng.gui.Lore.gradient("SpaceRNG", true, "#F6D6FF", "#C77DFF", "#A855F7")
+                + ChatColor.WHITE + "! " + ChatColor.GOLD + "[#" + String.format("%,d", number) + "]";
+        Component message = LEGACY.deserialize(line);
+        for (Player online : org.bukkit.Bukkit.getOnlinePlayers()) online.sendMessage(message);
+        org.bukkit.Bukkit.getConsoleSender().sendMessage(message);
+    }
 }

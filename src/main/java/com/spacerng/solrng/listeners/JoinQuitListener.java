@@ -54,6 +54,7 @@ public class JoinQuitListener implements Listener {
         }
 
         if (!event.getPlayer().hasPlayedBefore()) {
+            plugin.getWelcomeManager().broadcastNewPlayer(event.getPlayer());
             com.spacerng.solrng.player.Stash.give(plugin, event.getPlayer(), RollItemFactory.create(plugin, 1));
             event.getPlayer().sendMessage(ChatColor.GREEN + "Welcome to SpaceRNG! "
                     + ChatColor.GRAY + "Right-click your " + ChatColor.LIGHT_PURPLE + "Roll"

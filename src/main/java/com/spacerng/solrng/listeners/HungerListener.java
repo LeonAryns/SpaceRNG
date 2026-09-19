@@ -5,6 +5,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
+import org.bukkit.event.player.PlayerExpChangeEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 
 /**
@@ -19,6 +20,12 @@ public class HungerListener implements Listener {
         if (!(event.getEntity() instanceof Player player)) return;
         // Eating still fills the bar; only the drain is stopped.
         if (event.getFoodLevel() < player.getFoodLevel()) event.setCancelled(true);
+    }
+
+    /** The XP bar shows rolls (V162), so vanilla experience never touches it. */
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onExp(PlayerExpChangeEvent event) {
+        event.setAmount(0);
     }
 
     @EventHandler

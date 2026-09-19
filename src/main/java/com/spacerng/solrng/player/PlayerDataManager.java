@@ -89,6 +89,11 @@ public class PlayerDataManager {
         data.addConverted(Rarity.COMMON, yml.getLong("converted-common", 0L));
         data.addConverted(Rarity.UNCOMMON, yml.getLong("converted-uncommon", 0L));
         data.setTotalRolls(yml.getLong("total-rolls", 0L));
+        // A file from before V162 has no count yet: without a prestige every
+        // roll so far is this prestige's, otherwise it starts from zero.
+        data.setRollsThisPrestige(yml.contains("rolls-this-prestige")
+                ? yml.getLong("rolls-this-prestige", 0L)
+                : yml.getInt("prestige", 0) == 0 ? yml.getLong("total-rolls", 0L) : 0L);
         data.setLevel(yml.getInt("level", 1));
         data.setPrestige(yml.getInt("prestige", 0));
         data.setRollSoundEnabled(yml.getBoolean("roll-sound-enabled", true));
@@ -351,6 +356,7 @@ public class PlayerDataManager {
         yml.set("converted-common", data.getConvertedCommon());
         yml.set("converted-uncommon", data.getConvertedUncommon());
         yml.set("total-rolls", data.getTotalRolls());
+        yml.set("rolls-this-prestige", data.getRollsThisPrestige());
         yml.set("level", data.getLevel());
         yml.set("prestige", data.getPrestige());
         yml.set("roll-sound-enabled", data.isRollSoundEnabled());

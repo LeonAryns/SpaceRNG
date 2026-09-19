@@ -103,6 +103,7 @@ public class ScoreboardManager {
     }
 
     public void update(Player player) {
+        updateXpBar(player);
         Scoreboard board = player.getScoreboard();
         Objective objective = board.getObjective(OBJECTIVE_ID);
         if (objective == null) return; // player's on a different scoreboard right now
@@ -117,6 +118,23 @@ public class ScoreboardManager {
         for (int i = total; i < MAX_LINES; i++) {
             board.resetScores(ChatColor.RESET.toString().repeat(i + 1));
         }
+    }
+
+    /**
+     * The vanilla XP bar, repurposed (V162): the number is the rolls made
+     * since the last prestige, and the bar fills toward the next level.
+     * Nothing in SpaceRNG uses real experience, so nothing is lost.
+     */
+    public void updateXpBar(Player player) {
+        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+        var prestige = plugin.getPrestigeManager();
+        int level = Math.max(1, data.getLevel());
+        long need = prestige.rollsNeededForLevel(level);
+        long previous = level <= 1 ? 0L : prestige.rollsNeededForLevel(level - 1);
+        double span = Math.max(1.0, need - previous);
+        float progress = (float) Math.max(0.0, Math.min(0.999, (data.getTotalRolls() - previous) / span));
+        player.setLevel((int) Math.min(Integer.MAX_VALUE, data.getRollsThisPrestige()));
+        player.setExp(progress);
     }
 
     public void updateAll() {

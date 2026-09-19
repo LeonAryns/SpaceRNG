@@ -107,6 +107,31 @@ public class SolRNGExpansion extends PlaceholderExpansion {
             case "tag_multiplier":
                 return String.format("%.2f", plugin.getRarityManager().tagMultiplierFor(data));
 
+            // --- stats and boosts, for the tab list (V162) ---
+            case "luck":
+                return statText(data, com.spacerng.solrng.stats.StatSources.Id.LUCK);
+            case "speed":
+                return statText(data, com.spacerng.solrng.stats.StatSources.Id.SPEED);
+            case "money":
+                return statText(data, com.spacerng.solrng.stats.StatSources.Id.MONEY);
+            case "coins":
+                return statText(data, com.spacerng.solrng.stats.StatSources.Id.COINS);
+            case "shiny":
+                return statText(data, com.spacerng.solrng.stats.StatSources.Id.SHINY);
+            case "boosts":
+                return ChatColor.GREEN + statText(data, com.spacerng.solrng.stats.StatSources.Id.LUCK)
+                        + ChatColor.WHITE + " Luck  " + ChatColor.YELLOW
+                        + statText(data, com.spacerng.solrng.stats.StatSources.Id.SPEED)
+                        + ChatColor.WHITE + " Speed  " + ChatColor.GREEN
+                        + statText(data, com.spacerng.solrng.stats.StatSources.Id.MONEY)
+                        + ChatColor.WHITE + " Money";
+            case "server_boost": {
+                var boost = plugin.getBoostManager();
+                if (!boost.isActive()) return "";
+                return ChatColor.LIGHT_PURPLE + com.spacerng.solrng.boost.BoostManager.formatMultiplier(boost.multiplier())
+                        + ChatColor.WHITE + " Luck " + ChatColor.GRAY + "(" + boost.timeLeftText() + ")";
+            }
+
             // --- draught, for the tab list ---
             case "draught":
                 return draught(data);
@@ -302,5 +327,10 @@ public class SolRNGExpansion extends PlaceholderExpansion {
         }
         out.append(ChatColor.DARK_AQUA).append(" (").append(String.format("%,d", data.getPotionRolls())).append(" rolls)");
         return out.toString();
+    }
+
+    private String statText(PlayerData data, com.spacerng.solrng.stats.StatSources.Id id) {
+        return com.spacerng.solrng.listeners.ChatTagsListener.format(
+                com.spacerng.solrng.stats.StatSources.of(plugin, data, id));
     }
 }

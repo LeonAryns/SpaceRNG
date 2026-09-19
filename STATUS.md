@@ -5,7 +5,7 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V159**, 19 September 2026.
+Last updated at **V162**, 19 September 2026.
 
 ## The agreed way of working
 
@@ -124,6 +124,13 @@ record and says WHY, not only what: `git log` for the list,
   proc. Shift-click buys max in both trees. /convert rebuilt with Convert
   all. Respec is its own confirmation screen. Page 1 skill prices
   smoothed.
+- **V160** A golden crop has 5% for a Farm Dust (needs Farm Dust unlocked).
+- **V161** Enchant level screen (+1, +10, +100, max) from the hoe and /farmtree.
+- **V162** New player broadcast "(!) WELCOME Name TO SpaceRNG! [#N]". XP bar
+  = rolls this prestige, fills toward the next level. Chat tags [item],
+  [luck], [speed], [money], [coins], [shiny], [enchant], [prestige],
+  [index], [rolls], [stats]. Placeholders %solrng_luck/speed/money/coins/
+  shiny/boosts/server_boost%.
 - **V140** The boss event: a server event, not a mob, standing over a
   spot and losing health to harvests and rolls. `/boss`.
 - **V141** Rebuilt per player. Everyone fights their own copy, health

@@ -468,6 +468,18 @@ public class PlayerData {
 
     public void addRoll() {
         totalRolls++;
+        rollsThisPrestige++;
+    }
+
+    /** Rolls since the last prestige, shown as the XP bar's number (V162). */
+    private long rollsThisPrestige;
+
+    public long getRollsThisPrestige() {
+        return rollsThisPrestige;
+    }
+
+    public void setRollsThisPrestige(long rolls) {
+        this.rollsThisPrestige = Math.max(0L, rolls);
     }
 
     public void setTotalRolls(long totalRolls) {
