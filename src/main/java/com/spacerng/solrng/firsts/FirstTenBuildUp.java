@@ -29,7 +29,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * ground nobody can tell who it is until the banner and title say so. The
  * last tenth goes quiet, so the burst lands on silence.
  *
- * Five seconds for Legendary, seven for Mythical, ten for Divine. Drawn per
+ * Three seconds for Legendary, four for Mythical, six for Divine. Drawn per
  * viewer within 180 blocks, honouring the rarity's aura switch, and forced,
  * since a client only draws normal particles within 32 blocks. Everyone
  * who hasn't muted the rarity hears the bells and sees the action bar.
@@ -64,9 +64,11 @@ final class FirstTenBuildUp {
         this.finder = finder;
         this.burst = burst;
         this.length = switch (rarity) {
-            case DIVINE -> 200L;
-            case MYTHICAL -> 140L;
-            default -> 100L;
+            // Shortened in V158: Leon found it dragging well past the
+            // roll's own reveal. Three, four and six seconds.
+            case DIVINE -> 120L;
+            case MYTHICAL -> 80L;
+            default -> 60L;
         };
         this.base = RollAura.colorFor(rarity);
         // Warm near-white, never pure white, which reads as a glitch.

@@ -346,41 +346,60 @@ final class ShowcaseAdmin extends AdminTools {
             return true;
         }
 
-        double weightSum = 0.0;
-        for (RollableItem item : items) {
-            weightSum += item.getRollWeight();
+        // "/rngadmin odds [rarity] [luck%]": a bare number is the Luck to
+        // check at, "me" is the sender's own Luck, so the real chances at
+        // any Luck can be read off instead of guessed.
+        double luck = 0.0;
+        Rarity filter = null;
+        for (int a = 1; a < args.length; a++) {
+            String arg = args[a].replace("%", "");
+            if (arg.equalsIgnoreCase("me") && sender instanceof Player self) {
+                luck = plugin.getPrestigeManager().effectiveLuck(
+                        plugin.getPlayerDataManager().get(self.getUniqueId()));
+                continue;
+            }
+            try {
+                luck = Double.parseDouble(arg) / 100.0;
+                continue;
+            } catch (NumberFormatException ignored) {
+                // not a number, so it names a rarity
+            }
+            filter = parseRarity(sender, args[a]);
+            if (filter == null) return true;
         }
 
-        sender.sendMessage(ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + "Odds check "
-                + ChatColor.GRAY + "(" + items.size() + " items)");
-        sender.sendMessage(ChatColor.GRAY + "Total roll weight: " + ChatColor.YELLOW
-                + String.format("%.4f", weightSum) + ChatColor.GRAY + "  (1.0000 is expected)");
-        sender.sendMessage(ChatColor.GRAY + "Rarities marked true-odds roll at their label."
-                + " The rest split what is left by share.");
+        double[] weights = plugin.getRarityManager().weightsAt(luck, null);
+        double weightSum = 0.0;
+        for (double weight : weights) weightSum += weight;
 
-        Rarity filter = args.length >= 2 ? parseRarity(sender, args[1]) : null;
-        if (args.length >= 2 && filter == null) return true;
+        sender.sendMessage(ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + "Odds check "
+                + ChatColor.WHITE + "at +" + String.format("%,.0f", luck * 100.0) + "% Luck "
+                + ChatColor.GRAY + "(" + items.size() + " items)");
+        sender.sendMessage(ChatColor.GRAY + "Epic and up: the label divided by (1 + Luck)."
+                + " Common is what is left over.");
 
         for (Rarity rarity : Rarity.values()) {
             double share = 0.0;
             int count = 0;
-            for (RollableItem item : items) {
-                if (item.getRarity() != rarity) continue;
-                share += item.getRollWeight();
+            for (int i = 0; i < items.size(); i++) {
+                if (items.get(i).getRarity() != rarity) continue;
+                share += weights[i];
                 count++;
             }
             if (count == 0) continue;
             sender.sendMessage(plugin.getRarityManager().style(rarity, rarity.displayName())
                     + ChatColor.DARK_GRAY + " x" + count + ChatColor.GRAY + " - "
-                    + ChatColor.WHITE + String.format("%.4f%%", 100.0 * share / weightSum)
-                    + ChatColor.GRAY + " of rolls");
+                    + ChatColor.WHITE + (share <= 0.0 ? "never"
+                            : RollFormat.chance(Math.round(weightSum / share)))
+                    + ChatColor.GRAY + String.format(" (%.4f%% of rolls)", 100.0 * share / weightSum));
         }
 
         if (filter != null) {
-            sender.sendMessage(ChatColor.GRAY + "Label -> true odds:");
-            for (RollableItem item : items) {
+            sender.sendMessage(ChatColor.GRAY + "Label -> real odds at this Luck:");
+            for (int i = 0; i < items.size(); i++) {
+                RollableItem item = items.get(i);
                 if (item.getRarity() != filter) continue;
-                long trueOdds = Math.round(weightSum / Math.max(1e-18, item.getRollWeight()));
+                long trueOdds = Math.round(weightSum / Math.max(1e-18, weights[i]));
                 sender.sendMessage(ChatColor.DARK_GRAY + " - " + RollFormat.displayName(plugin, item)
                         + ChatColor.GRAY + "  " + RollFormat.chance(item.getOdds())
                         + ChatColor.DARK_GRAY + " -> " + ChatColor.WHITE + RollFormat.chance(trueOdds));
@@ -512,7 +531,7 @@ final class ShowcaseAdmin extends AdminTools {
         lines.add("");
         lines.add(com.spacerng.solrng.gui.Lore.section(ChatColor.YELLOW, "Requirements"));
         lines.add(com.spacerng.solrng.gui.Lore.requirement("Money", "12K", "28K", false));
-        lines.add(com.spacerng.solrng.gui.Lore.line(ChatColor.AQUA, "Unlocks Shiny Chance I next."));
+        lines.add(com.spacerng.solrng.gui.Lore.line(ChatColor.AQUA, "Unlocks Shiny Boost I next."));
         lines.add("");
         lines.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to upgrade");
         lines.add(com.spacerng.solrng.gui.Lore.footnote("Shift-click buys as many as you can"));

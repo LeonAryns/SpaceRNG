@@ -90,7 +90,7 @@ public final class StatSources {
         // notices. Its levels then add more on top.
         parts.add(new Part("Index", "Buy Index Luck I in /skilltree",
                 data.hasUnlocked("curator_1")
-                        ? plugin.getConfig().getDouble("index.luck-per-discovery", 0.01)
+                        ? plugin.getConfig().getDouble("index.luck-per-discovery", 0.004)
                                 * data.getDiscoveredItems().size()
                         : 0.0,
                 Op.ADD));
@@ -319,7 +319,7 @@ public final class StatSources {
         List<Part> parts = new ArrayList<>();
         parts.add(new Part("Base", "The same for everyone",
                 plugin.getConfig().getDouble("shiny.chance", 0.01), Op.ADD));
-        parts.add(new Part("Skills", "Shiny Chance nodes in /skilltree",
+        parts.add(new Part("Skills", "Shiny Boost nodes in /skilltree",
                 plugin.getSkillTreeManager().multiplierOf(data, SkillNode.Effect.SHINY_CHANCE),
                 Op.MULTIPLY));
         parts.add(new Part("Perks", "Equip perks in /perks",

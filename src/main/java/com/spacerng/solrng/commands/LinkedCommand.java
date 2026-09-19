@@ -42,10 +42,14 @@ public class LinkedCommand implements CommandExecutor {
         player.sendMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "Discord Link");
         player.sendMessage(ChatColor.GRAY + "Status: "
                 + (isLinked ? ChatColor.GREEN + "linked" : ChatColor.RED + "not linked"));
-        if (!isLinked) {
-            player.sendMessage(ChatColor.GRAY + "Link with " + ChatColor.YELLOW
-                    + "/discord link" + ChatColor.GRAY + " in-game and use the code in "
-                    + ChatColor.AQUA + "#link" + ChatColor.GRAY + " on Discord.");
+        if (!isLinked && label.equalsIgnoreCase("link")) {
+            // /link does the linking itself (V158): DiscordSRV's own
+            // "/discord link" hands out the code, so nobody has to know
+            // the longer command exists.
+            player.performCommand("discord link");
+        } else if (!isLinked) {
+            player.sendMessage(ChatColor.WHITE + "Type " + ChatColor.YELLOW + "/link"
+                    + ChatColor.WHITE + " to get your code, then send it to the bot on Discord.");
         }
         player.sendMessage(ChatColor.GRAY + "Bonuses while linked:");
         player.sendMessage(bonusLine(ChatColor.GOLD, "Money", linked.moneyBonus()));

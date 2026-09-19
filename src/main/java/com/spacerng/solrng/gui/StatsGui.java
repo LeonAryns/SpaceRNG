@@ -48,12 +48,16 @@ public class StatsGui {
 
     private static final int HEAD_SLOT = 4;
     private static final int BACK_SLOT = 49;
-    private static final int TOP_CONTRIBUTORS = 3;
+    // Every source that is doing something, up to eight: with three, Armor
+    // and the Index dropped off the card even while they paid (V158).
+    private static final int TOP_CONTRIBUTORS = 8;
 
-    // Where a breakdown lays its parts out: two clean rows of seven.
+    // Where a breakdown lays its parts out: three rows of seven. Luck has
+    // about twenty sources, and two rows cut the last six off.
     private static final int[] PART_SLOTS = {
             19, 20, 21, 22, 23, 24, 25,
             28, 29, 30, 31, 32, 33, 34,
+            37, 38, 39, 40, 41, 42, 43,
     };
 
     public static NamespacedKey statKey(SolRNGPlugin plugin) {

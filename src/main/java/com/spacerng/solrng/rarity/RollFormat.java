@@ -347,6 +347,19 @@ public final class RollFormat {
 
     public static String broadcastBanner(SolRNGPlugin plugin, String playerName, RollableItem item, boolean shiny) {
         Rarity rarity = item.getRarity();
+        if (shiny) {
+            // A shiny has its own banner. It used to be the rarity's one
+            // with "SHINY" glued on, so a shiny Common read "SHINY COMMON
+            // DROP" in plain white with the word shiny three times, and the
+            // odds shown were the plain drop's rather than the shiny's.
+            double chance = plugin.getConfig().getDouble("shiny.chance", 0.0004);
+            long odds = chance <= 0.0 ? item.getOdds() : Math.round(item.getOdds() / chance);
+            return plugin.getRarityManager().styleShiny("✦ SHINY DROP ✦") + "\n"
+                    + ChatColor.YELLOW + playerName + ChatColor.WHITE + " found "
+                    + displayName(plugin, item, true) + ChatColor.WHITE + " ("
+                    + plugin.getRarityManager().style(rarity, rarity.displayName()) + ChatColor.WHITE + ")\n"
+                    + ChatColor.WHITE + "Odds: " + ChatColor.AQUA + compactOdds(odds);
+        }
         String rarityWord = (shiny ? "SHINY " : "") + rarity.name();
         return plugin.getRarityManager().style(rarity, "✦ " + rarityWord + " DROP ✦") + "\n"
                 + ChatColor.YELLOW + playerName + ChatColor.GRAY + " just found "

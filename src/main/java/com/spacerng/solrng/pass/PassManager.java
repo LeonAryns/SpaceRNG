@@ -87,14 +87,28 @@ public class PassManager {
             try {
                 long xp = asLong(entry.get("xp"), 100L);
                 levels.add(new Level(index, xp,
-                        parseReward(entry.get("free")),
-                        parseReward(entry.get("premium"))));
+                        withCredits(parseReward(entry.get("free")),
+                                config.getLong("pass.credit-rewards.free." + index, 0L)),
+                        withCredits(parseReward(entry.get("premium")),
+                                config.getLong("pass.credit-rewards.premium." + index, 0L))));
                 index++;
             } catch (Exception ex) {
                 plugin.getLogger().warning("Skipped a malformed pass level: " + entry);
             }
         }
         plugin.getLogger().info("Loaded Battle Pass " + seasonName + " with " + levels.size() + " levels.");
+    }
+
+    /**
+     * Credits from pass.credit-rewards, added to a level's own reward. A
+     * separate table so the live levels list never has to be rewritten to
+     * put Credits on the free track.
+     */
+    private static Reward withCredits(Reward reward, long extra) {
+        if (extra <= 0) return reward;
+        return new Reward(reward.tokens(), reward.gems(), reward.coins(), reward.credits() + extra,
+                reward.dropRarity(), reward.dropAmount(), reward.consumable(),
+                reward.consumableAmount(), reward.note());
     }
 
     private Reward parseReward(Object raw) {

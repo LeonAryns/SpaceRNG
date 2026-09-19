@@ -198,6 +198,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new FarmingListener(this), this);
         getServer().getPluginManager().registerEvents(new com.spacerng.solrng.farming.FarmPlotListener(this), this);
         getServer().getPluginManager().registerEvents(new com.spacerng.solrng.listeners.WorldLoadListener(this), this);
+        getServer().getPluginManager().registerEvents(new com.spacerng.solrng.listeners.HungerListener(), this);
         foundCounts = new com.spacerng.solrng.player.FoundCounts(this);
         foundCounts.load();
         getServer().getPluginManager().registerEvents(

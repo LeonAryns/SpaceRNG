@@ -172,8 +172,12 @@ public class NovaCoreGui {
                     + "1 Nova Core" + ChatColor.DARK_GRAY + "  (you have " + held + ")");
             lore.add(Lore.stat(ChatColor.RED, "On fail", "back to tier " + nova.checkpointBelow(tier)));
             lore.add("");
-            lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " Your Luck raises the odds. The Core's");
-            lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " own multiplier does not.");
+            // Luck multiplies the tier's base chance: no Luck is the base,
+            // +100% Luck doubles it, +200% triples it (V158).
+            lore.add(Lore.stat(ChatColor.AQUA, "Base chance",
+                    String.format("%.1f%%", nova.chanceAt(tier, 0.0) * 100.0)));
+            lore.add(Lore.stat(ChatColor.GREEN, "Your Luck",
+                    String.format("x%.2f", 1.0 + Math.max(0.0, luck) * nova.getLuckWeight())));
             lore.add("");
             if (affordable) {
                 lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to forge");

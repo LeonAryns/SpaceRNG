@@ -48,14 +48,17 @@ public class RarityManager {
      * never seen this key still gets the curve: a missing key falls back
      * to its code default, a whole new section would not.
      */
+    // V158: Epic and up take exactly (1 + Luck), so +1,700% Luck makes a
+    // 1 in 50,000 drop a 1 in 2,778. Common has no exponent at all: it is
+    // whatever the other rarities leave over. See luckWeightFactor.
     private static final Map<Rarity, Double> DEFAULT_EXPONENTS = new EnumMap<>(Map.of(
-            Rarity.COMMON, -0.6,
+            Rarity.COMMON, 0.0,
             Rarity.UNCOMMON, 0.15,
-            Rarity.RARE, 0.45,
-            Rarity.EPIC, 0.8,
-            Rarity.LEGENDARY, 1.05,
-            Rarity.MYTHICAL, 1.3,
-            Rarity.DIVINE, 1.6));
+            Rarity.RARE, 0.5,
+            Rarity.EPIC, 1.0,
+            Rarity.LEGENDARY, 1.0,
+            Rarity.MYTHICAL, 1.0,
+            Rarity.DIVINE, 1.0));
     // Rarities that roll at exactly their label, and the band shares the
     // rest divide up. See assignRollWeights.
     private final Map<Rarity, Boolean> trueOdds = new EnumMap<>(Rarity.class);
@@ -353,6 +356,11 @@ public class RarityManager {
      * gradient, in bold, so a shiny reads as shiny before its markers are
      * even noticed. The flair follows the same rules as the plain name.
      */
+    /** Any text in the shiny gradient, for the shiny drop banner. */
+    public String styleShiny(String text) {
+        return buildStyle(SHINY_COLORS, true, false, false).apply(text);
+    }
+
     public String styleShinyName(RollableItem item) {
         RarityStyle shine = buildStyle(SHINY_COLORS, true, false, false);
         return withFlair(item, shine.apply(item.getDisplayName()));
@@ -405,6 +413,14 @@ public class RarityManager {
 
     /**
      * What one rarity's weight is multiplied by at this much Luck.
+     *
+     * On the exponent curve Common is not multiplied at all; roll() makes
+     * it the remainder instead. Until V158 Common took a negative power,
+     * which shrank the total weight of a roll, and dividing by that total
+     * multiplied every other rarity a second time. At +1,700% Luck an Epic
+     * came out about 39 times likelier instead of 18, and a Mythical about
+     * 166 times. Now the roll's weights always add to 1, so a rarity's
+     * factor is exactly how much likelier it gets.
      *
      * The exponent curve is the one that keeps working. On the old linear
      * curve every rarity's weight grew in a straight line with Luck, so
@@ -470,6 +486,40 @@ public class RarityManager {
         }
     }
 
+    /**
+     * Every item's weight at this much Luck, in the order of getItems().
+     *
+     * On the exponent curve the lowest rarity is the filler: every other
+     * rarity is multiplied by its factor, and Common gets what is left of
+     * 1. The weights then add to 1, so each one is the item's real chance
+     * and nothing is scaled twice. When Luck is so high that the rest adds
+     * past 1, Common is gone and the others split the roll by weight.
+     */
+    public double[] weightsAt(double luck, Rarity minimum) {
+        double[] weights = new double[items.size()];
+        Rarity filler = Rarity.values()[0];
+        double other = 0.0;
+        double fillerBase = 0.0;
+        for (int i = 0; i < items.size(); i++) {
+            RollableItem item = items.get(i);
+            if (minimum != null && item.getRarity().ordinal() < minimum.ordinal()) continue;
+            if (exponentCurve && item.getRarity() == filler) {
+                weights[i] = item.getRollWeight();
+                fillerBase += weights[i];
+                continue;
+            }
+            weights[i] = item.getRollWeight() * luckWeightFactor(item.getRarity(), luck);
+            other += weights[i];
+        }
+        if (exponentCurve && fillerBase > 0.0) {
+            double scale = Math.max(0.0, 1.0 - other) / fillerBase;
+            for (int i = 0; i < items.size(); i++) {
+                if (items.get(i).getRarity() == filler) weights[i] *= scale;
+            }
+        }
+        return weights;
+    }
+
     public List<RollableItem> getItems() {
         return items;
     }
@@ -508,19 +558,9 @@ public class RarityManager {
             throw new IllegalStateException("No rollable items configured - check config.yml");
         }
 
+        double[] effectiveWeights = weightsAt(luck, minimum);
         double totalWeight = 0.0;
-        double[] effectiveWeights = new double[items.size()];
-
-        for (int i = 0; i < items.size(); i++) {
-            RollableItem item = items.get(i);
-            if (minimum != null && item.getRarity().ordinal() < minimum.ordinal()) {
-                effectiveWeights[i] = 0.0;
-                continue;
-            }
-            double weight = item.getRollWeight() * luckWeightFactor(item.getRarity(), luck);
-            effectiveWeights[i] = weight;
-            totalWeight += weight;
-        }
+        for (double weight : effectiveWeights) totalWeight += weight;
 
         // Nothing survived the floor (a rarity with no items configured).
         // Falling back to an unrestricted roll beats handing back null.

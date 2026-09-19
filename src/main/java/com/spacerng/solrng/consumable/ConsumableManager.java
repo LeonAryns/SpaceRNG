@@ -319,10 +319,16 @@ public class ConsumableManager {
                     + ChatColor.GRAY + " Luck.");
         }
         if (consumable.isDraught()) {
-            // One draught at a time: a second replaces the first outright
-            // rather than stacking, so a minus column can't be dodged by
-            // drinking something else on top of it.
-            data.setPotion(consumable.luck(), consumable.speed(), consumable.rolls());
+            // One kind of draught at a time (V158). The same kind again adds
+            // its rolls; a different kind is refused and the item kept,
+            // where it used to replace the running one without a word.
+            if (data.getPotionRolls() > 0 && !data.isSamePotion(consumable.luck(), consumable.speed())) {
+                player.sendMessage(ChatColor.RED + "You already have a different draught running. "
+                        + ChatColor.WHITE + "Finish its " + String.format("%,d", data.getPotionRolls())
+                        + " rolls first, or drink the same kind to add to it.");
+                return false;
+            }
+            data.addPotion(consumable.luck(), consumable.speed(), consumable.rolls());
             player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + consumable.display()
                     + ChatColor.RESET + ChatColor.GRAY + "  "
                     + (consumable.luck() != 0
@@ -333,7 +339,7 @@ public class ConsumableManager {
                             ? (consumable.speed() > 0 ? ChatColor.YELLOW : ChatColor.RED)
                                     + signed(consumable.speed() * 100) + " Speed" + ChatColor.GRAY + "  "
                             : "")
-                    + ChatColor.AQUA + String.format("%,d", consumable.rolls()) + " rolls");
+                    + ChatColor.AQUA + String.format("%,d", data.getPotionRolls()) + " rolls left");
         }
         if (consumable.isTimed()) {
             if (consumable.coinMultiplier() > 1.0) {

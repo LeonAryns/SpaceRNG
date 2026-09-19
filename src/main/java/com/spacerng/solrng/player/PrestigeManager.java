@@ -34,8 +34,8 @@ public class PrestigeManager {
         firstPrestigeLevels = config.getInt("prestige.first-prestige-levels", 10);
         levelsIncrementPerPrestige = config.getInt("prestige.levels-increment-per-prestige", 5);
         luckMultiplierPerPrestige = config.getDouble("prestige.luck-multiplier-per-prestige", 0.10);
-        indexCompletionPerRarity = config.getDouble("index.completion.per-rarity", 2.0);
-        indexCompletionPerShiny = config.getDouble("index.completion.per-shiny-rarity", 5.0);
+        indexCompletionPerRarity = config.getDouble("index.completion.per-rarity", 1.25);
+        indexCompletionPerShiny = config.getDouble("index.completion.per-shiny-rarity", 2.0);
         pointsPerPrestige = config.getInt("prestige.points-per-prestige", 1);
 
         upgrades.clear();

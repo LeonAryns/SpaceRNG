@@ -338,7 +338,10 @@ public class RollListener implements Listener {
         // A banked charge is spent here rather than at the end, so it can't
         // be lost to a disconnect mid-roll without having done anything.
         double charge = data.consumeRollCharge();
-        double luck = plugin.getPrestigeManager().effectiveLuck(data) * supercharge * charge;
+        // A 10x charge or a supercharge multiplies the CHANCE, which is
+        // (1 + Luck), not the Luck number. Until V158 it multiplied Luck
+        // itself, so at 0% Luck a 10x Roll did nothing at all.
+        double luck = (1.0 + plugin.getPrestigeManager().effectiveLuck(data)) * supercharge * charge - 1.0;
         if (supercharge > 1.0) {
             announceSupercharge(player, supercharge);
         }
@@ -656,9 +659,10 @@ public class RollListener implements Listener {
                 com.spacerng.solrng.boss.BossManager.Trigger.ROLL);
 
         // Server First 10 hangs off the real roll path only, so an admin
-        // roll can never take a spot. The event waits for the reveal.
-        plugin.getFirstTenManager().onRoll(player, result, shiny,
-                finaleTicks + RollAura.titleDelayTicks(result.getRarity()) + 10L);
+        // roll can never take a spot. The event starts the moment the reel
+        // lands (V158); waiting for the title as well left seconds of
+        // nothing between the roll and its First.
+        plugin.getFirstTenManager().onRoll(player, result, shiny, finaleTicks);
 
         // Double Roll skill tree branch: a chance to immediately chain into
         // another free roll, no click required.

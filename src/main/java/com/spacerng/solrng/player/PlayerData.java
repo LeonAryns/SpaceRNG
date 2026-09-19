@@ -883,6 +883,20 @@ public class PlayerData {
         this.potionRolls = Math.max(0L, rolls);
     }
 
+    /** Whether a draught with these numbers is the kind already running. */
+    public boolean isSamePotion(double luck, double speed) {
+        return Math.abs(potionLuck - luck) < 1e-9 && Math.abs(potionSpeed - speed) < 1e-9;
+    }
+
+    /** Starts a draught, or adds its rolls to the same kind already running. */
+    public void addPotion(double luck, double speed, long rolls) {
+        if (potionRolls > 0 && isSamePotion(luck, speed)) {
+            potionRolls += Math.max(0L, rolls);
+            return;
+        }
+        setPotion(luck, speed, rolls);
+    }
+
     /** Spends one roll of the draught, clearing it when it runs out. */
     public boolean tickPotion() {
         if (potionRolls <= 0) return false;

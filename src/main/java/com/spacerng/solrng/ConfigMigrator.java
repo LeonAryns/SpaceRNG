@@ -58,6 +58,8 @@ public final class ConfigMigrator {
             "crates.types.vote", "crates.types.nebula", "consumables.vote_key", "consumables.nebula_key",
             // V135: Credits on some milestone tiers.
             "milestones.credit-rewards",
+            // V158: Credits on the free pass track.
+            "pass.credit-rewards",
             // V137: ranks.
             "ranks",
             // V138: what one Credit Finder proc pays.
@@ -136,7 +138,56 @@ public final class ConfigMigrator {
             new Patch("podium-heads-6-from-1.3", "holograms.podium-head-scale", 1.3, 6.0),
             new Patch("podium-heads-6-from-1.8", "holograms.podium-head-scale", 1.8, 6.0),
             new Patch("podium-heads-6-from-3.2", "holograms.podium-head-scale", 3.2, 6.0),
-            new Patch("podium-heads-6-from-4.5", "holograms.podium-head-scale", 4.5, 6.0));
+            new Patch("podium-heads-6-from-4.5", "holograms.podium-head-scale", 4.5, 6.0),
+            // V158: Luck multiplies the Nova Core chance in full, 100% Luck is 2x.
+            new Patch("nova-luck-weight-full", "novacore.luck-weight", 0.15, 1.0),
+            // V158: armor paid its Luck per piece, so a full Netherite set
+            // was +1,000%. About a quarter of that now.
+            new Patch("armor-luck-leather", "armor.tiers.LEATHER.luck-bonus", 0.25, 0.05),
+            new Patch("armor-luck-chainmail", "armor.tiers.CHAINMAIL.luck-bonus", 0.45, 0.10),
+            new Patch("armor-luck-iron", "armor.tiers.IRON.luck-bonus", 0.70, 0.15),
+            new Patch("armor-luck-gold", "armor.tiers.GOLD.luck-bonus", 1.05, 0.25),
+            new Patch("armor-luck-diamond", "armor.tiers.DIAMOND.luck-bonus", 1.60, 0.40),
+            new Patch("armor-luck-netherite", "armor.tiers.NETHERITE.luck-bonus", 2.50, 0.60),
+            // V158: Index Luck was too strong. Less per drop, and finishing a
+            // rarity is 1.25x rather than doubling everything.
+            new Patch("index-luck-per-drop-lower", "index.luck-per-discovery", 0.01, 0.004),
+            new Patch("index-completion-lower", "index.completion.per-rarity", 2.0, 1.25),
+            new Patch("index-completion-shiny-lower", "index.completion.per-shiny-rarity", 5.0, 2.0),
+            // V158: the Index milestones start at 80 (Leon's tiers), and
+            // milestone Credits are about 1.6x what they were.
+            new Patch("milestone-index-tiers-80", "milestones.tracks.rarity.tiers",
+                    List.of(Map.of("at", 25, "money", 5000),
+                            Map.of("at", 50, "consumable", "roll_10x"),
+                            Map.of("at", 70, "consumable", "free_skill"),
+                            Map.of("at", 85, "consumable", "luck_potion"),
+                            Map.of("at", 95, "consumable", "roll_10x", "consumable-amount", 2),
+                            Map.of("at", 105, "consumable", "speed_potion"),
+                            Map.of("at", 112, "consumable", "roll_10x", "consumable-amount", 3),
+                            Map.of("at", 118, "consumable", "luck_potion", "consumable-amount", 3),
+                            Map.of("at", 126, "consumable", "roll_10x", "consumable-amount", 5),
+                            Map.of("at", 130, "consumable", "luck_250"),
+                            Map.of("at", 140, "consumable", "roll_10x", "consumable-amount", 10),
+                            Map.of("at", 144, "consumable", "luck_potion", "consumable-amount", 10)),
+                    List.of(Map.of("at", 80, "consumable", "roll_10x", "consumable-amount", 2),
+                            Map.of("at", 100, "consumable", "free_skill"),
+                            Map.of("at", 120, "consumable", "roll_10x", "consumable-amount", 5),
+                            Map.of("at", 130, "consumable", "luck_250"),
+                            Map.of("at", 140, "consumable", "roll_10x", "consumable-amount", 10),
+                            Map.of("at", 144, "consumable", "luck_potion", "consumable-amount", 10))),
+            new Patch("milestone-credits-prestige-up", "milestones.credit-rewards.prestige",
+                    Map.of("10", 25, "25", 50, "50", 100, "100", 250),
+                    Map.of("10", 40, "25", 75, "50", 150, "100", 350)),
+            new Patch("milestone-credits-index-up", "milestones.credit-rewards.rarity",
+                    Map.of("70", 15, "105", 30, "130", 60, "144", 150),
+                    Map.of("80", 20, "100", 40, "120", 60, "130", 80, "140", 120, "144", 200)),
+            new Patch("milestone-credits-farming-up", "milestones.credit-rewards.farming",
+                    Map.of("10000", 25, "100000", 50, "1000000", 150),
+                    Map.of("10000", 40, "100000", 75, "1000000", 200)),
+            // V158: Leon's rank multipliers, on Luck, Speed and Money alike.
+            new Patch("rank-comet-1.1", "ranks.tiers.comet.multiplier", 1.2, 1.1),
+            new Patch("rank-nova-1.25", "ranks.tiers.nova.multiplier", 1.5, 1.25),
+            new Patch("rank-supernova-1.5", "ranks.tiers.supernova.multiplier", 2.0, 1.5));
 
     /** Like a Patch, for one field of the entry with a given id inside a list of maps. */
     private record EntryPatch(String id, String list, String entryId, String field, Object oldDefault,
@@ -313,7 +364,14 @@ public final class ConfigMigrator {
         boolean changed = false;
         for (Patch patch : PATCHES) {
             if (applied.contains(patch.id())) continue;
-            if (Objects.equals(disk.get(patch.path()), patch.oldDefault())) {
+            // A map-shaped value comes back from disk as a section, so it is
+            // compared by its entries (keys as strings) rather than as an object.
+            Object current = disk.get(patch.path());
+            if (current instanceof org.bukkit.configuration.ConfigurationSection section) {
+                current = section.getValues(false);
+            }
+            if (Objects.equals(current, patch.oldDefault())) {
+                if (patch.newDefault() instanceof Map<?, ?>) disk.set(patch.path(), null);
                 disk.set(patch.path(), patch.newDefault());
                 plugin.getLogger().info("Config patch " + patch.id() + ": " + patch.path()
                         + " is now " + patch.newDefault());

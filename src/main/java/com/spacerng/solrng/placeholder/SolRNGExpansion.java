@@ -107,6 +107,10 @@ public class SolRNGExpansion extends PlaceholderExpansion {
             case "tag_multiplier":
                 return String.format("%.2f", plugin.getRarityManager().tagMultiplierFor(data));
 
+            // --- draught, for the tab list ---
+            case "draught":
+                return draught(data);
+
             // --- server first 10 ---
             case "first10": {
                 var spots = plugin.getFirstTenManager().spotsOf(player.getUniqueId());
@@ -276,5 +280,27 @@ public class SolRNGExpansion extends PlaceholderExpansion {
     private static String roman(int value) {
         if (value <= 0) return "0";
         return value <= ROMAN_NUMERALS.length ? ROMAN_NUMERALS[value - 1] : String.valueOf(value);
+    }
+
+    /**
+     * "+50% Luck (60 rolls)" while a draught runs, empty otherwise, so a
+     * TAB line holding %solrng_draught% simply disappears between draughts.
+     */
+    private String draught(PlayerData data) {
+        if (data.getPotionRolls() <= 0) return "";
+        StringBuilder out = new StringBuilder();
+        if (data.getPotionLuck() != 0.0) {
+            out.append(data.getPotionLuck() > 0 ? ChatColor.GREEN : ChatColor.RED)
+                    .append(com.spacerng.solrng.consumable.ConsumableManager.signed(data.getPotionLuck() * 100))
+                    .append("% Luck");
+        }
+        if (data.getPotionSpeed() != 0.0) {
+            if (out.length() > 0) out.append(" ");
+            out.append(data.getPotionSpeed() > 0 ? ChatColor.YELLOW : ChatColor.RED)
+                    .append(com.spacerng.solrng.consumable.ConsumableManager.signed(data.getPotionSpeed() * 100))
+                    .append(" Speed");
+        }
+        out.append(ChatColor.DARK_AQUA).append(" (").append(String.format("%,d", data.getPotionRolls())).append(" rolls)");
+        return out.toString();
     }
 }

@@ -210,6 +210,10 @@ public class NovaCoreManager {
                 + ChatColor.GRAY + ", to forge.");
     }
 
+    public double getLuckWeight() {
+        return luckWeight;
+    }
+
     /** Odds of clearing the step from {@code tier} to {@code tier + 1}. */
     public double chanceAt(int tier, double luck) {
         double raw = baseChance * Math.pow(decay, tier) * (1.0 + luck * luckWeight);

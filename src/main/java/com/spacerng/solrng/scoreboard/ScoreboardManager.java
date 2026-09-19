@@ -112,7 +112,7 @@ public class ScoreboardManager {
         for (int i = 0; i < total; i++) {
             setLine(objective, i, total - i, lines.get(i));
         }
-        // Line count varies (rolling adds 2 lines) - clear anything left
+        // Line count can vary - clear anything left
         // over from a longer previous frame so old lines don't linger.
         for (int i = total; i < MAX_LINES; i++) {
             board.resetScores(ChatColor.RESET.toString().repeat(i + 1));
@@ -152,31 +152,10 @@ public class ScoreboardManager {
         lines.add(walletLine(Currency.GEMS, data.getShards()));
         lines.add(walletLine(Currency.CREDITS, data.getPoints()));
 
-        // A draught only exists while it's running, so its line does too.
-        if (data.getPotionRolls() > 0) {
-            lines.add("");
-            lines.add(Lore.header("Draught"));
-            if (data.getPotionLuck() != 0.0) {
-                lines.add(ChatColor.YELLOW + "| "
-                        + (data.getPotionLuck() > 0 ? ChatColor.GREEN : ChatColor.RED)
-                        + com.spacerng.solrng.consumable.ConsumableManager.signed(data.getPotionLuck() * 100)
-                        + "% " + ChatColor.WHITE + "Luck");
-            }
-            if (data.getPotionSpeed() != 0.0) {
-                lines.add(ChatColor.YELLOW + "| "
-                        + (data.getPotionSpeed() > 0 ? ChatColor.YELLOW : ChatColor.RED)
-                        + com.spacerng.solrng.consumable.ConsumableManager.signed(data.getPotionSpeed() * 100)
-                        + " " + ChatColor.WHITE + "Speed");
-            }
-            lines.add(ChatColor.YELLOW + "| " + ChatColor.AQUA
-                    + String.format("%,d", data.getPotionRolls()) + ChatColor.WHITE + " rolls left");
-        }
-
-        String rollStatus = rollStatusLine(player);
-        if (rollStatus != null) {
-            lines.add(""); // blank spacer
-            lines.add(rollStatus);
-        }
+        // The draught is shown in the tab list through %solrng_draught%,
+        // not here (V158): Leon wants the sidebar to stay the same shape.
+        // No "Rolling... 3s" line: Leon took it out in V158. The roll shows
+        // itself on screen already, and the line made the sidebar jump.
         lines.add(""); // blank spacer
         lines.add(ChatColor.GRAY + "SpaceRNG.Minehut.gg");
         return lines;
@@ -202,18 +181,6 @@ public class ScoreboardManager {
      */
     private String walletLine(Currency currency, long amount) {
         return ChatColor.YELLOW + "| " + currency.amount(amount);
-    }
-
-    /**
-     * Null when the player isn't mid-roll - the idle "Ready to roll!"
-     * line was removed, so this line is skipped entirely while idle.
-     */
-    private String rollStatusLine(Player player) {
-        int secondsLeft = plugin.getRollListener().getRemainingSeconds(player.getUniqueId());
-        if (secondsLeft > 0) {
-            return ChatColor.YELLOW + "Rolling... " + ChatColor.WHITE + secondsLeft + "s";
-        }
-        return null;
     }
 
     private String balanceLine(Player player) {

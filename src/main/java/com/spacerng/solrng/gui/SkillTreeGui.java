@@ -411,7 +411,7 @@ public class SkillTreeGui {
             case INSTANT_ROLL -> scaled(ChatColor.AQUA,
                     "+" + pct(value) + "% chance a roll resolves instantly", pct(value * level) + "%", leveled);
             case SHINY_CHANCE -> scaled(ChatColor.AQUA,
-                    "+" + pct(value) + "% Shiny chance", "+" + pct(value * level) + "%", leveled);
+                    "+" + pct(value) + "% Shiny Boost", "+" + pct(value * level) + "%", leveled);
             case LUCK_PER_DISCOVERY -> scaled(ChatColor.GREEN,
                     "+" + trim(value * 100) + "% Luck per Index entry found",
                     "+" + trim(value * level * 100) + "% each", leveled);

@@ -8,7 +8,7 @@
 # their fresh defaults in on top of whatever is on disk, so a server
 # owner never has to delete the whole file to pick up a structural
 # change. Item table, prices and cosmetic tweaks are untouched.
-config-version: 18
+config-version: 19
 
 # One-off value changes the plugin has already made to this file, so none
 # is ever made twice. Managed by the plugin; leave it alone.
@@ -899,42 +899,42 @@ armor:
       costs:
         COMMON: 10
         UNCOMMON: 1
-      luck-bonus: 0.25
+      luck-bonus: 0.05
       speed-bonus: 0.05
     CHAINMAIL:
       display: "Chainmail"
       costs:
         COMMON: 25
         UNCOMMON: 5
-      luck-bonus: 0.45
+      luck-bonus: 0.10
       speed-bonus: 0.08
     IRON:
       display: "Iron"
       costs:
         UNCOMMON: 25
         RARE: 5
-      luck-bonus: 0.70
+      luck-bonus: 0.15
       speed-bonus: 0.12
     GOLD:
       display: "Gold"
       costs:
         UNCOMMON: 50
         RARE: 10
-      luck-bonus: 1.05
+      luck-bonus: 0.25
       speed-bonus: 0.16
     DIAMOND:
       display: "Diamond"
       costs:
         RARE: 25
         EPIC: 5
-      luck-bonus: 1.60
+      luck-bonus: 0.40
       speed-bonus: 0.20
     NETHERITE:
       display: "Netherite"
       costs:
         RARE: 50
         EPIC: 10
-      luck-bonus: 2.50
+      luck-bonus: 0.60
       speed-bonus: 0.25
 
 # Rarity tiers, in ascending order. "luck-factor" controls how strongly
@@ -1769,7 +1769,7 @@ index:
   # Luck for every entry discovered, before any skill. Collecting is
   # supposed to BE progression, not just a prerequisite for a skill that
   # makes collecting progression.
-  luck-per-discovery: 0.01
+  luck-per-discovery: 0.004
   luck-multipliers:
     COMMON: [1.0, 1.1]
     UNCOMMON: [1.1, 1.25]
@@ -1789,8 +1789,8 @@ index:
   # Gated behind the same Tag Luck skill the tag multiplier is: until
   # that's bought, the index is a collection log and nothing more.
   completion:
-    per-rarity: 2.0
-    per-shiny-rarity: 5.0
+    per-rarity: 1.25
+    per-shiny-rarity: 2.0
 
 # How many points ("Credits") a single item of each rarity is worth
 # when converted via /convert.
@@ -1931,11 +1931,11 @@ skilltree:
       cost-growth: 1.3
       requires: "luck_skill"
       effect: LUCK_PER_DISCOVERY
-      value: 0.002
+      value: 0.001
       max-level: 10
 
     shiny_chance_1:
-      display: "Shiny Chance I"
+      display: "Shiny Boost I"
       page: 1
       slot: "4,2"
       icon: PRISMARINE_CRYSTALS
@@ -2134,10 +2134,10 @@ skilltree:
     auto_convert:
       display: "Auto Convert"
       page: 1
-      slot: "7,3"
+      slot: "3,4"
       icon: HOPPER
       cost-money: 2140
-      requires: "vault_space"
+      requires: "convert_unlock"
       effect: UNLOCK_AUTO_CONVERT
       value: 0
 
@@ -2234,7 +2234,7 @@ skilltree:
       cost-growth: 1.3
       requires: "tag_mastery_1"
       effect: LUCK_PER_DISCOVERY
-      value: 0.003
+      value: 0.0015
       max-level: 10
 
     # -- Speed spine --
@@ -2406,7 +2406,7 @@ skilltree:
 
     # -- Extras --
     shiny_chance_2:
-      display: "Shiny Chance II"
+      display: "Shiny Boost II"
       page: 2
       slot: "3,3"
       icon: PRISMARINE_CRYSTALS
@@ -2418,7 +2418,7 @@ skilltree:
       max-level: 10
 
     shiny_chance_3:
-      display: "Shiny Chance III"
+      display: "Shiny Boost III"
       page: 2
       slot: "7,3"
       icon: PRISMARINE_CRYSTALS
@@ -2483,7 +2483,7 @@ skilltree:
       cost-growth: 1.3
       requires: "speed_3"
       effect: EXPLORER
-      value: 0.5
+      value: 0.03
       max-level: 10
 
     autopilot_1:
@@ -2752,7 +2752,7 @@ skilltree:
 
     # -- Extras --
     shiny_chance_4:
-      display: "Shiny Chance IV"
+      display: "Shiny Boost IV"
       page: 3
       slot: "3,3"
       icon: PRISMARINE_CRYSTALS
@@ -2764,7 +2764,7 @@ skilltree:
       max-level: 10
 
     shiny_chance_5:
-      display: "Shiny Chance V"
+      display: "Shiny Boost V"
       page: 3
       slot: "7,3"
       icon: PRISMARINE_CRYSTALS
@@ -2861,7 +2861,7 @@ skilltree:
       cost-growth: 1.38
       requires: "tag_mastery_2"
       effect: LUCK_PER_DISCOVERY
-      value: 0.005
+      value: 0.0025
       max-level: 10
 
     luck_capstone_2:
@@ -2932,7 +2932,7 @@ skilltree:
       cost-growth: 1.38
       requires: "bonus_roll_5"
       effect: EXPLORER
-      value: 1.0
+      value: 0.02
       max-level: 10
 
     supercharge_4:
@@ -2994,7 +2994,7 @@ skilltree:
       max-level: 10
 
     shiny_chance_6:
-      display: "Shiny Chance VI"
+      display: "Shiny Boost VI"
       page: 4
       slot: "8,2"
       icon: PRISMARINE_CRYSTALS
@@ -3111,9 +3111,9 @@ milestones:
   # Credits paid on top of a tier's own reward, by track and the tier's
   # threshold. Credits are what the store sells, so keep these rare.
   credit-rewards:
-    prestige: {10: 25, 25: 50, 50: 100, 100: 250}
-    rarity: {70: 15, 105: 30, 130: 60, 144: 150}
-    farming: {10000: 25, 100000: 50, 1000000: 150}
+    prestige: {10: 40, 25: 75, 50: 150, 100: 350}
+    rarity: {80: 20, 100: 40, 120: 60, 130: 80, 140: 120, 144: 200}
+    farming: {10000: 40, 100000: 75, 1000000: 200}
   tracks:
     prestige:
       verb: "Reach"
@@ -3141,15 +3141,9 @@ milestones:
       unit: "drops found"
       description: "Unique drops discovered in your /index."
       tiers:
-        - { at: 25, money: 5000 }
-        - { at: 50, consumable: roll_10x }
-        - { at: 70, consumable: free_skill }
-        - { at: 85, consumable: luck_potion }
-        - { at: 95, consumable: roll_10x, consumable-amount: 2 }
-        - { at: 105, consumable: speed_potion }
-        - { at: 112, consumable: roll_10x, consumable-amount: 3 }
-        - { at: 118, consumable: luck_potion, consumable-amount: 3 }
-        - { at: 126, consumable: roll_10x, consumable-amount: 5 }
+        - { at: 80, consumable: roll_10x, consumable-amount: 2 }
+        - { at: 100, consumable: free_skill }
+        - { at: 120, consumable: roll_10x, consumable-amount: 5 }
         - { at: 130, consumable: luck_250 }
         - { at: 140, consumable: roll_10x, consumable-amount: 10 }
         - { at: 144, consumable: luck_potion, consumable-amount: 10 }
@@ -4966,9 +4960,10 @@ novacore:
   # still shows the real chance; only the result is guaranteed.
   first-forge-guaranteed: true
   decay: 0.85
-  # How much Luck lifts the chance. At 1.0 a player with +100% Luck saw a
-  # 50% forge as 95%, so the coin flip stopped being one.
-  luck-weight: 0.15
+  # How much Luck lifts the chance. Luck multiplies the tier's base
+  # chance: no Luck keeps it, +100% Luck doubles it, +200% triples it,
+  # always capped at max-chance.
+  luck-weight: 1.0
   # Shown in chat whenever somebody needs to know where Nova Cores come from.
   how-to-get: "crates, /milestones (Playtime) and the /guide"
   min-chance: 0.02
@@ -5007,6 +5002,10 @@ pass:
   season: 1
   season-name: "Season I"
   premium-cost-credits: 1000
+  # Credits on top of a level's own reward, by level. The premium track
+  # already pays 1,000 over levels 10 to 50, its whole price back.
+  credit-rewards:
+    free: {10: 15, 20: 20, 30: 25, 40: 30, 50: 50}
   # The skill that unlocks the menu at all.
   node: "pass_unlock"
   xp:
@@ -5484,7 +5483,7 @@ unlock-commands:
     - "lp user {player} permission set playervaults.use true"
 
 shiny:
-  # Base 1 in 2,500. Shiny Chance nodes in /skilltree multiply this.
+  # Base 1 in 2,500. Shiny Boost nodes in /skilltree multiply this.
   chance: 0.0004
   node: "shiny_unlock"
   marker: "&b&l✦"
@@ -5748,7 +5747,7 @@ ranks:
       tag: "★"
       icon: FIREWORK_ROCKET
       price-credits: 1200
-      multiplier: 1.2
+      multiplier: 1.1
       keyall-crate: vote
       keyall-amount: 1
       vault-pages: 3
@@ -5762,7 +5761,7 @@ ranks:
       tag: "✦"
       icon: BLAZE_POWDER
       price-credits: 3200
-      multiplier: 1.5
+      multiplier: 1.25
       keyall-crate: nebula
       keyall-amount: 1
       vault-pages: 5
@@ -5776,7 +5775,7 @@ ranks:
       tag: "⚡"
       icon: NETHER_STAR
       price-credits: 7000
-      multiplier: 2.0
+      multiplier: 1.5
       keyall-crate: nebula
       keyall-amount: 3
       vault-pages: 8

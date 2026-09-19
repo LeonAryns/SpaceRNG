@@ -17,7 +17,7 @@ public enum PerkStat {
     COINS_PERCENT("Coins", ChatColor.YELLOW, "More Coins from every crop."),
     ROLL_SPEED_FLAT("Speed", ChatColor.AQUA, "Your rolls finish faster."),
     ENCHANT_PROC_PERCENT("Enchant", ChatColor.LIGHT_PURPLE, "Hoe enchants fire more often."),
-    SHINY_PERCENT("Shiny Chance", ChatColor.AQUA, "Not on any perk."),
+    SHINY_PERCENT("Shiny Boost", ChatColor.AQUA, "Not on any perk."),
     RARE_BAND_PUSH("Rare Band Push", ChatColor.LIGHT_PURPLE, "Not on any perk."),
     BONUS_ROLL_PERCENT("Bonus Roll", ChatColor.LIGHT_PURPLE, "Not on any perk."),
     INSTANT_ROLL_PERCENT("Instant Roll", ChatColor.AQUA, "Not on any perk."),
