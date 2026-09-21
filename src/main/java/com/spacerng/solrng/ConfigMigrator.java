@@ -201,7 +201,11 @@ public final class ConfigMigrator {
             new Patch("icon-speed-clock-from-effects", "scoreboard.icons.speed",
                     "minecraft:mob_effects|minecraft:speed", "minecraft:items|minecraft:item/clock_00"),
             new Patch("icon-speed-clock", "scoreboard.icons.speed",
-                    "minecraft:gui|minecraft:mob_effect/speed", "minecraft:items|minecraft:item/clock_00"));
+                    "minecraft:gui|minecraft:mob_effect/speed", "minecraft:items|minecraft:item/clock_00"),
+            // V169: the farm panel twice the size and without "Click Here".
+            // Both keys are new, so the old value is "not there".
+            new Patch("farm-panel-scale", "holograms.panels.farm.scale", null, 2.0),
+            new Patch("farm-panel-no-click", "holograms.panels.farm.click", null, ""));
 
     // V159: every hoe enchant runs to level 10,000, except Credit Finder,
     // which stays at 1,000 because it pays Credits.

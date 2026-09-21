@@ -446,8 +446,10 @@ public final class HoloManager {
         List<Component> lines = new ArrayList<>();
         for (String line : panel.getStringList("lines")) lines.add(parse(line));
         String click = panel.getString("click", plugin.getConfig().getString("holograms.click", ""));
+        // A panel may set its own size and its own click line; "" hides the click line.
+        float size = (float) Math.max(0.2, Math.min(6.0, panel.getDouble("scale", 1.0)));
         stack(spot, spot.at(), parse(panel.getString("title", spot.key())), lines,
-                click == null || click.isBlank() ? null : parse(click), pieces);
+                click == null || click.isBlank() ? null : parse(click), pieces, size);
     }
 
     private void drawCrate(Spot spot, List<Display> pieces) {
@@ -841,6 +843,18 @@ public final class HoloManager {
      */
     private void stack(Spot spot, Location base, Component title, List<Component> lines, Component click,
                        List<Display> pieces) {
+        stack(spot, base, title, lines, click, pieces, 1.0f);
+    }
+
+    /**
+     * The same stack at a size of its own: {@code size} multiplies both the
+     * text and the title, so one panel (the farm's, V169) can be read from
+     * further away without making every panel bigger.
+     */
+    private void stack(Spot spot, Location base, Component title, List<Component> lines, Component click,
+                       List<Display> pieces, float size) {
+        float textScale = this.textScale * size;
+        float titleScale = this.titleScale * size;
         Location y = base.clone();
         int widest = width(title) / 2;
         for (Component line : lines) widest = Math.max(widest, width(line));

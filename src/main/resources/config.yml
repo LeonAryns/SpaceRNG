@@ -3693,6 +3693,10 @@ holograms:
       lines:
         - "<white>Harvest crops for <#FFD54F>Coins</#FFD54F>"
         - "<white>and climb the <#AED581>farm tree</#AED581>"
+      # Any panel can take these two. scale multiplies its size; an empty
+      # click hides the "Click Here" line.
+      scale: 2.0
+      click: ""
     crates:
       title: "<gradient:#B3E5FC:#29B6F6><b>CRATES</b></gradient>"
       lines:
