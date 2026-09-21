@@ -191,7 +191,12 @@ public final class ConfigMigrator {
             new Patch("rank-nova-1.25", "ranks.tiers.nova.multiplier", 1.5, 1.25),
             new Patch("rank-supernova-1.5", "ranks.tiers.supernova.multiplier", 2.0, 1.5),
             // V159: tool upgrades lift enchant procs a bit more.
-            new Patch("hoe-proc-share-up", "farming.hoe-ladder.proc-share", 0.04, 0.07));
+            new Patch("hoe-proc-share-up", "farming.hoe-ladder.proc-share", 0.04, 0.07),
+            // V165: the effect icons showed as a missing glyph; they live in the gui atlas.
+            new Patch("icon-luck-gui-atlas", "scoreboard.icons.luck",
+                    "minecraft:mob_effects|minecraft:luck", "minecraft:gui|minecraft:mob_effect/luck"),
+            new Patch("icon-speed-gui-atlas", "scoreboard.icons.speed",
+                    "minecraft:mob_effects|minecraft:speed", "minecraft:gui|minecraft:mob_effect/speed"));
 
     // V159: every hoe enchant runs to level 10,000, except Credit Finder,
     // which stays at 1,000 because it pays Credits.

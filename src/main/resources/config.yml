@@ -36,8 +36,8 @@ scoreboard:
   # A player on an older client just sees no icon.
   icons-enabled: true
   icons:
-    luck: "minecraft:mob_effects|minecraft:luck"
-    speed: "minecraft:mob_effects|minecraft:speed"
+    luck: "minecraft:gui|minecraft:mob_effect/luck"
+    speed: "minecraft:gui|minecraft:mob_effect/speed"
     prestige: "minecraft:items|minecraft:item/nether_star"
     money: "minecraft:items|minecraft:item/emerald"
     coins: "minecraft:items|minecraft:item/gold_nugget"
