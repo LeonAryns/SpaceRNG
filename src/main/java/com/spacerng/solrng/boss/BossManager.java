@@ -565,9 +565,9 @@ public class BossManager {
                 + ChatColor.GRAY + String.format("%,d", fight.max));
         lines.add(fight.beaten
                 ? ChatColor.GREEN + "  You beat it. Your loot is paid."
-                : ChatColor.GRAY + "  " + timeLeft() + " left"
+                : ChatColor.WHITE + "  " + timeLeft() + " left"
                         + ChatColor.DARK_GRAY + "  " + Lore.BULLET + "  "
-                        + ChatColor.GRAY + String.format("%,d", fight.health) + " crops to go");
+                        + ChatColor.WHITE + String.format("%,d", fight.health) + " crops to go");
         lines.add(ChatColor.WHITE + "  Beaten by " + beaten + "/" + joined + " players");
         lines.add("");
         return lines;
@@ -622,11 +622,10 @@ public class BossManager {
         bar.setTitle(fight.beaten
                 ? name + ChatColor.RESET + ChatColor.DARK_GRAY + "  |  "
                         + ChatColor.GREEN + "beaten" + ChatColor.DARK_GRAY + "  |  "
-                        + ChatColor.GRAY + beaten + " of " + joined + " done"
+                        + ChatColor.WHITE + beaten + "/" + joined + " done"
                 : name + ChatColor.RESET + ChatColor.DARK_GRAY + "  |  "
-                        + ChatColor.WHITE + String.format("%,d", fight.health)
-                        + ChatColor.GRAY + " crops left"
-                        + ChatColor.DARK_GRAY + "  |  " + ChatColor.GRAY + timeLeft());
+                        + ChatColor.WHITE + String.format("%,d", fight.health) + " crops left"
+                        + ChatColor.DARK_GRAY + "  |  " + ChatColor.WHITE + timeLeft());
         bar.setVisible(true);
     }
 

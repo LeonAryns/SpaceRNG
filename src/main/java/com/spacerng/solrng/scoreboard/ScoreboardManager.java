@@ -175,7 +175,7 @@ public class ScoreboardManager {
         // No "Rolling... 3s" line: Leon took it out in V158. The roll shows
         // itself on screen already, and the line made the sidebar jump.
         lines.add(""); // blank spacer
-        lines.add(ChatColor.GRAY + "SpaceRNG.Minehut.gg");
+        lines.add(ChatColor.WHITE + "SpaceRNG.Minehut.gg");
         return lines;
     }
 
