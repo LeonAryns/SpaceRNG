@@ -70,6 +70,10 @@ public final class AuraManager {
         long frame = 0L;
         boolean paused = false;
         float lastYaw = Float.NaN;
+        // How often the pieces had to be put back this minute. Once a spawn
+        // is normal; many means something keeps taking the passengers off.
+        int remounts = 0;
+        long remountWindow = 0L;
 
         Worn(String key, String wanted, AuraConcept concept, Rarity rarity, Color color, AuraAccent accent,
              boolean test, String petKey) {
@@ -297,6 +301,10 @@ public final class AuraManager {
      * orbits across their view in first person.
      */
     private boolean ownerSees(Player owner, Worn aura, int index) {
+        // A test is for looking at, so the tester sees every piece whatever
+        // their own view is set to (V172). With the default ground-only view
+        // an auratest on yourself hid everything floating around you.
+        if (aura.test) return true;
         var data = plugin.getPlayerDataManager().get(owner.getUniqueId());
         if (!data.isWornAurasVisible()) return false;
         return switch (data.getOwnAuraView()) {
@@ -348,7 +356,10 @@ public final class AuraManager {
                     if (!aura.displays.isEmpty()) despawn(aura);
                     continue;
                 }
-                if (!mounted(player, aura)) mount(player, aura);
+                if (!mounted(player, aura)) {
+                    noteRemount(player, aura);
+                    mount(player, aura);
+                }
                 aura.concept.tick(aura.displays, frame);
                 // A look that hangs off the back turns with the body. A mounted
                 // display keeps its own yaw, so it is set whenever the body has
@@ -431,6 +442,32 @@ public final class AuraManager {
             viewers.add(viewer);
         }
         return viewers;
+    }
+
+    /**
+     * Counts remounts and names the problem in the console (V172). A worn
+     * aura is rebuilt after a death or a teleport, a handful a minute at
+     * most. Dozens mean another plugin keeps removing the player's
+     * passengers, which shows as pieces that never settle and a tag that
+     * stutters, and no amount of re-adding fixes that from this side.
+     */
+    private void noteRemount(Player player, Worn aura) {
+        long now = System.currentTimeMillis();
+        if (now - aura.remountWindow > 60_000L) {
+            aura.remountWindow = now;
+            aura.remounts = 0;
+        }
+        if (++aura.remounts == 20) {
+            List<String> riders = new ArrayList<>();
+            for (Entity rider : player.getPassengers()) {
+                if (!rider.getPersistentDataContainer().has(tag, PersistentDataType.BYTE)) {
+                    riders.add(rider.getType().name());
+                }
+            }
+            plugin.getLogger().warning("The aura on " + player.getName() + " had to be put back 20 times"
+                    + " in a minute. Something else is taking the player's passengers off"
+                    + (riders.isEmpty() ? "." : "; other riders now: " + riders + "."));
+        }
     }
 
     private boolean mounted(Player player, Worn aura) {

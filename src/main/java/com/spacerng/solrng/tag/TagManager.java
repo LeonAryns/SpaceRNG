@@ -264,8 +264,31 @@ public class TagManager {
                 }
             }
             if (riding) continue;
+            noteRemount(player);
             String[] text = hologramTexts.get(entry.getKey());
             if (text != null) spawnHologram(player, text[0], text[1]);
+        }
+    }
+
+    // Tag rebuilds per player in the current minute, see noteRemount.
+    private final Map<UUID, long[]> remounts = new HashMap<>();
+
+    /**
+     * A tag is rebuilt after a teleport now and then. Rebuilt every half
+     * second means something else keeps taking the player's passengers,
+     * which is what a stuttering tag is (V172), so the console says so.
+     */
+    private void noteRemount(Player player) {
+        long now = System.currentTimeMillis();
+        long[] window = remounts.computeIfAbsent(player.getUniqueId(), id -> new long[]{now, 0L});
+        if (now - window[0] > 60_000L) {
+            window[0] = now;
+            window[1] = 0L;
+        }
+        if (++window[1] == 20) {
+            plugin.getLogger().warning("The tag over " + player.getName() + " had to be put back 20 times in a"
+                    + " minute. Something else is taking the player's passengers off. Passengers now: "
+                    + player.getPassengers().stream().map(e -> e.getType().name()).toList() + ".");
         }
     }
 
