@@ -226,17 +226,28 @@ public class RankManager {
     public void refreshName(Player player) {
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         RankTier tier = rankOf(data);
-        String name = data.getNick() == null || data.getNick().isEmpty() ? player.getName() : data.getNick();
-        String shown;
-        if (has(data, "rgb")) {
-            shown = Lore.rainbow(name);
-        } else if (tier != null && tier.colors().size() > 1) {
-            shown = Lore.gradient(name, false, tier.colors().toArray(new String[0]));
-        } else {
-            shown = ChatColor.WHITE + name;
-        }
-        Component component = LegacyComponentSerializer.legacySection().deserialize(tagOf(tier) + shown);
+        Component component = LegacyComponentSerializer.legacySection().deserialize(tagOf(tier) + coloredName(player));
         player.playerListName(component);
         player.displayName(component);
+    }
+
+    /**
+     * The nick or player name in the rank's colours and nothing else: a
+     * gradient across the rank's stops, the drifting rainbow for a rank
+     * with rgb-name, white without a rank. Chat uses this (V173), where the
+     * rank shows only as the colour of the name.
+     */
+    public String coloredName(Player player) {
+        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+        RankTier tier = rankOf(data);
+        String name = data.getNick() == null || data.getNick().isEmpty() ? player.getName() : data.getNick();
+        if (has(data, "rgb")) return Lore.rainbow(name);
+        if (tier != null && tier.colors().size() > 1) {
+            return Lore.gradient(name, false, tier.colors().toArray(new String[0]));
+        }
+        if (tier != null && tier.colors().size() == 1) {
+            return Lore.gradient(name, false, tier.colors().get(0));
+        }
+        return ChatColor.WHITE + name;
     }
 }
