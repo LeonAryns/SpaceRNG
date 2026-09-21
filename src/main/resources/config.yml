@@ -3735,8 +3735,9 @@ holograms:
     novacore:
       title: "<gradient:#FCE4EC:#F06292:#BA68C8><b>NOVA CORE</b></gradient>"
       lines:
-        - "<white>Forge <#F48FB1>Nova Cores</#F48FB1> and climb"
-        - "<white>the tier ladder for huge bonuses"
+        - "<white>Forge <#F48FB1>Nova Cores</#F48FB1> to climb 20 tiers"
+        - "<white>Every tier multiplies <#81C784>Luck</#81C784>, <#81C784>Money</#81C784> and <#FFD54F>Coins</#FFD54F>"
+        - "<white>More Luck means better odds per forge"
     perks:
       title: "<gradient:#D1C4E9:#7E57C2><b>PERKS</b></gradient>"
       lines:
@@ -3775,6 +3776,7 @@ holograms:
         - "<white>Type <#E879F9>/guide</#E879F9> if you are new here"
         - "<white>Roll, farm and climb the <#CE93D8>skill tree</#CE93D8>"
         - "<#C77DFF>SpaceRNG.Minehut.gg"
+      click: ""
   # Optional per board: title, color and unit. Boards: index, shiny, rolls,
   # coins, money, farming_total, farming, prestige.
   boards:
@@ -3964,7 +3966,7 @@ consumables:
     display: "Nova Core"
     material: HEART_OF_THE_SEA
     colors: ["#7FE7FF", "#00B0FF"]
-    description: "Spend it in /novacore on a shot at the next tier."
+    description: "Forge it in /novacore for a shot at the next tier.\nEvery tier multiplies your Luck, Money and Coins.\nMiss and you fall back to your last checkpoint.\nThe more Luck you have, the better your odds."
   free_skill:
     display: "Skilltree Unlock Voucher"
     material: KNOWLEDGE_BOOK

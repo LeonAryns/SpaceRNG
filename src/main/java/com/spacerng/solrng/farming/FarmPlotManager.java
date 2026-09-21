@@ -500,7 +500,12 @@ public class FarmPlotManager {
         // render two seconds later. Both ends read the same clock now.
         long now = System.currentTimeMillis();
         World world = player.getWorld();
-        double rangeSq = 64 * 64;
+        // As far as the player can see (V170). It was a flat 64 blocks, so
+        // a field seen from further off showed bare soil until you walked
+        // up to it. Capped so a huge view distance can't flood a player.
+        double range = Math.max(64, Math.min(192, player.getViewDistance() * 16));
+        double rangeSq = range * range;
+        Map<io.papermc.paper.math.Position, BlockData> changes = new java.util.HashMap<>();
 
         for (Location plot : plots) {
             if (plot.getWorld() == null || !plot.getWorld().equals(world)) continue;
@@ -515,8 +520,11 @@ public class FarmPlotManager {
             if (!restore(plot)) continue;
 
             boolean gone = mine != null && mine.getOrDefault(plot, 0L) > now;
-            player.sendBlockChange(plot, gone ? air : grown);
+            changes.put(plot, gone ? air : grown);
         }
+        // One packet per chunk section instead of one per plot, now that
+        // the range covers whole fields.
+        if (!changes.isEmpty()) player.sendMultiBlockChange(changes);
     }
 
     /**

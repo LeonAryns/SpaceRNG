@@ -165,6 +165,9 @@ public class ConsumableManager {
         String footer = ChatColor.YELLOW + "" + ChatColor.BOLD + action;
         List<String> effects = describe(consumable);
         String description = consumable.description();
+        // A description may run over several lines, split on a newline
+        // ("\n" in config), so an item that needs explaining can (V170).
+        String[] descLines = description.isEmpty() ? new String[0] : description.split("\n");
 
         List<String> lore = new ArrayList<>();
         switch (style == null ? "" : style.toLowerCase(java.util.Locale.ROOT)) {
@@ -172,7 +175,7 @@ public class ConsumableManager {
                 String accent = consumable.colors().isEmpty() ? ChatColor.LIGHT_PURPLE.toString()
                         : net.md_5.bungee.api.ChatColor.of(consumable.colors().get(0)).toString();
                 List<String> top = new ArrayList<>();
-                if (!description.isEmpty()) top.add("  " + ChatColor.GRAY + description);
+                for (String line : descLines) top.add("  " + ChatColor.GRAY + line);
                 int widest = 0;
                 for (String line : top) widest = Math.max(widest, com.spacerng.solrng.rarity.LoreStyle.pixelWidth(line));
                 for (String line : effects) widest = Math.max(widest, com.spacerng.solrng.rarity.LoreStyle.pixelWidth(line));
@@ -185,12 +188,12 @@ public class ConsumableManager {
                 lore.add(footer);
             }
             case "compact" -> {
-                if (!description.isEmpty()) lore.add(ChatColor.GRAY + description);
+                for (String line : descLines) lore.add(ChatColor.GRAY + line);
                 lore.addAll(effects);
                 lore.add(footer);
             }
             case "story" -> {
-                if (!description.isEmpty()) lore.add(ChatColor.GRAY + "" + ChatColor.ITALIC + description);
+                for (String line : descLines) lore.add(ChatColor.GRAY + "" + ChatColor.ITALIC + line);
                 if (!effects.isEmpty()) {
                     lore.add("");
                     lore.addAll(effects);
@@ -200,7 +203,7 @@ public class ConsumableManager {
             }
             default -> {
                 lore.add(Lore.section(ChatColor.AQUA, "What it does"));
-                if (!description.isEmpty()) lore.add(Lore.line(ChatColor.AQUA, description));
+                for (String line : descLines) lore.add(Lore.line(ChatColor.AQUA, line));
                 lore.addAll(effects);
                 lore.add("");
                 lore.add(footer);

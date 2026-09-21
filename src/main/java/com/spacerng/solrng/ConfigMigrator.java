@@ -205,7 +205,20 @@ public final class ConfigMigrator {
             // V169: the farm panel twice the size and without "Click Here".
             // Both keys are new, so the old value is "not there".
             new Patch("farm-panel-scale", "holograms.panels.farm.scale", null, 2.0),
-            new Patch("farm-panel-no-click", "holograms.panels.farm.click", null, ""));
+            new Patch("farm-panel-no-click", "holograms.panels.farm.click", null, ""),
+            // V170: the welcome panel has nothing to click either.
+            new Patch("welcome-panel-no-click", "holograms.panels.welcome.click", null, ""),
+            // V170: the Nova Core explained, on the item and on its panel.
+            new Patch("nova-core-description", "consumables.nova_core.description",
+                    "Spend it in /novacore on a shot at the next tier.",
+                    "Forge it in /novacore for a shot at the next tier.\nEvery tier multiplies your Luck, Money and Coins.\n"
+                            + "Miss and you fall back to your last checkpoint.\nThe more Luck you have, the better your odds."),
+            new Patch("nova-core-panel", "holograms.panels.novacore.lines",
+                    List.of("<white>Forge <#F48FB1>Nova Cores</#F48FB1> and climb",
+                            "<white>the tier ladder for huge bonuses"),
+                    List.of("<white>Forge <#F48FB1>Nova Cores</#F48FB1> to climb 20 tiers",
+                            "<white>Every tier multiplies <#81C784>Luck</#81C784>, <#81C784>Money</#81C784> and <#FFD54F>Coins</#FFD54F>",
+                            "<white>More Luck means better odds per forge")));
 
     // V159: every hoe enchant runs to level 10,000, except Credit Finder,
     // which stays at 1,000 because it pays Credits.

@@ -185,7 +185,9 @@ public class ScoreboardManager {
                 : data.getPrestige() <= ROMAN_NUMERALS.length
                         ? ROMAN_NUMERALS[data.getPrestige() - 1]
                         : String.valueOf(data.getPrestige());
-        return ChatColor.WHITE + "Prestige: " + ChatColor.GOLD + "★ " + ChatColor.AQUA + numeral;
+        // No star after the label since V170: the nether star icon in front
+        // of the line already says prestige.
+        return ChatColor.WHITE + "Prestige: " + ChatColor.AQUA + numeral;
     }
 
     /**
