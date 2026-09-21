@@ -331,37 +331,55 @@ public final class HoloManager {
             if (refresh) nextBoardRefresh = ticks + boardRefreshTicks;
 
             for (Spot spot : spots.values()) {
-                World world = spot.at().getWorld();
-                boolean loaded = world != null
-                        && world.isChunkLoaded(spot.at().getBlockX() >> 4, spot.at().getBlockZ() >> 4);
-                List<Display> pieces = drawn.get(spot.id());
-                if (!loaded) {
-                    if (pieces != null) despawn(spot.id());
-                    continue;
-                }
-                boolean alive = pieces != null && !pieces.isEmpty();
-                if (alive) {
-                    for (Display piece : pieces) {
-                        if (!piece.isValid()) {
-                            alive = false;
-                            break;
-                        }
+                // One spot that throws must not stop the rest: until V168 a
+                // single broken spot aborted the whole frame, so after a
+                // reload every spot behind it in the list stayed invisible.
+                try {
+                    frameSpot(spot, refresh);
+                } catch (RuntimeException ex) {
+                    long now = System.currentTimeMillis();
+                    if (now - lastFrameWarning > 60_000L) {
+                        lastFrameWarning = now;
+                        plugin.getLogger().warning("Hologram " + spot.id() + " (" + spot.kind() + " "
+                                + spot.key() + ") failed to draw: " + ex);
                     }
                 }
-                if (!alive) {
-                    despawn(spot.id());
-                    draw(spot);
-                } else if (refresh && spot.kind() == Kind.BOARD) {
-                    TextDisplay body = boardBodies.get(spot.id());
-                    if (body != null && body.isValid()) body.text(boardBody(spot.key()));
-                } else if (spot.kind() == Kind.LEADER) {
-                    tickPodium(spot, refresh || ticks % 100 == 0);
-                }
-                if (spot.kind() == Kind.CRATE) spinCrate(spot.id());
             }
         } catch (RuntimeException ex) {
             plugin.getLogger().warning("Hologram frame failed: " + ex);
         }
+    }
+
+    private long lastFrameWarning;
+
+    private void frameSpot(Spot spot, boolean refresh) {
+        World world = spot.at().getWorld();
+        boolean loaded = world != null
+                && world.isChunkLoaded(spot.at().getBlockX() >> 4, spot.at().getBlockZ() >> 4);
+        List<Display> pieces = drawn.get(spot.id());
+        if (!loaded) {
+            if (pieces != null) despawn(spot.id());
+            return;
+        }
+        boolean alive = pieces != null && !pieces.isEmpty();
+        if (alive) {
+            for (Display piece : pieces) {
+                if (!piece.isValid()) {
+                    alive = false;
+                    break;
+                }
+            }
+        }
+        if (!alive) {
+            despawn(spot.id());
+            draw(spot);
+        } else if (refresh && spot.kind() == Kind.BOARD) {
+            TextDisplay body = boardBodies.get(spot.id());
+            if (body != null && body.isValid()) body.text(boardBody(spot.key()));
+        } else if (spot.kind() == Kind.LEADER) {
+            tickPodium(spot, refresh || ticks % 100 == 0);
+        }
+        if (spot.kind() == Kind.CRATE) spinCrate(spot.id());
     }
 
     /**
