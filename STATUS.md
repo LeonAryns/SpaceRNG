@@ -5,7 +5,7 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V162**, 19 September 2026.
+Last updated at **V167**, 19 September 2026.
 
 ## The agreed way of working
 
@@ -131,6 +131,14 @@ record and says WHY, not only what: `git log` for the list,
   [luck], [speed], [money], [coins], [shiny], [enchant], [prestige],
   [index], [rolls], [stats]. Placeholders %solrng_luck/speed/money/coins/
   shiny/boosts/server_boost%.
+- **V163** Sprite icons on the sidebar (scoreboard.icons, /rngadmin icon).
+- **V164** Welcome panel (`holo panel welcome`), `/rngadmin farmwheat`.
+- **V165-V167** Icon fixes (Luck from the gui atlas, Speed a clock),
+  boss bar and sidebar address in white, `/rngadmin farmland`, farmland
+  that never dries or tramples.
+- **21 Sept:** the server moved to a bought map in the world folder
+  `map`. Everything placed in the old `world` (holograms, crates, heads,
+  boss spot, farm) has to be placed again there.
 - **V140** The boss event: a server event, not a mob, standing over a
   spot and losing health to harvests and rolls. `/boss`.
 - **V141** Rebuilt per player. Everyone fights their own copy, health

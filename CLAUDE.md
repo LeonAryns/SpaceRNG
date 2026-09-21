@@ -170,6 +170,15 @@ Packages are by feature under `com.spacerng.solrng`. Where new things go:
   credential is back: Leon removes it under Referentiebeheer, Windows
   referenties, then pushes once himself. Never put a token in a command,
   the auto-mode classifier blocks it.
+- **Minehut file handling (21 September 2026, a morning lost to it).**
+  The file manager only works while the server runs, and the running
+  server writes its loaded world back on stop, over anything uploaded
+  in between. So a new world goes in under a NEW folder name with
+  `level-name` pointed at it, then a real stop and start. Uploads refuse
+  a name that already exists ("this file already exists") and unzip
+  silently skips existing files, so delete first. Uploads land in the
+  folder being viewed: a jar dropped in the root is never loaded. When
+  something looks lost, a real stop and start comes before anything else.
 - **Java 21 only.** Leon's server runs Paper on Java 21, and a jar
   compiled for a newer release does not load. The VS Code Java upgrade
   tool creates `appmod/java-upgrade-*` branches that switch everything to
