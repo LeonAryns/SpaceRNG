@@ -196,7 +196,12 @@ public final class ConfigMigrator {
             new Patch("icon-luck-gui-atlas", "scoreboard.icons.luck",
                     "minecraft:mob_effects|minecraft:luck", "minecraft:gui|minecraft:mob_effect/luck"),
             new Patch("icon-speed-gui-atlas", "scoreboard.icons.speed",
-                    "minecraft:mob_effects|minecraft:speed", "minecraft:gui|minecraft:mob_effect/speed"));
+                    "minecraft:mob_effects|minecraft:speed", "minecraft:gui|minecraft:mob_effect/speed"),
+            // V167: Speed is how fast a roll goes, so a clock rather than the Speed effect.
+            new Patch("icon-speed-clock-from-effects", "scoreboard.icons.speed",
+                    "minecraft:mob_effects|minecraft:speed", "minecraft:items|minecraft:item/clock_00"),
+            new Patch("icon-speed-clock", "scoreboard.icons.speed",
+                    "minecraft:gui|minecraft:mob_effect/speed", "minecraft:items|minecraft:item/clock_00"));
 
     // V159: every hoe enchant runs to level 10,000, except Credit Finder,
     // which stays at 1,000 because it pays Credits.

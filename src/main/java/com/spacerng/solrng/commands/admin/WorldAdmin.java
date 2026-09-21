@@ -68,6 +68,37 @@ final class WorldAdmin extends AdminTools {
      * they are the farm. Only chunks that are loaded are read, so stand in
      * the middle of the fields.
      */
+    /**
+     * A farm plot on every farmland block around you (V167): tilled fields
+     * on a map become the farm, planted or not. Only loaded chunks are read.
+     */
+    boolean doFarmland(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(ChatColor.RED + "Run this in-game, standing in the middle of the fields.");
+            return true;
+        }
+        int radius = 64;
+        if (args.length >= 2) {
+            try {
+                radius = Math.max(1, Math.min(160, Integer.parseInt(args[1])));
+            } catch (NumberFormatException ex) {
+                sender.sendMessage(ChatColor.RED + "Radius must be a number.");
+                return true;
+            }
+        }
+        int before = plugin.getFarmPlotManager().plotCount();
+        int found = plugin.getFarmPlotManager().plotOnFarmland(player.getLocation(), radius);
+        plugin.getFarmPlotManager().renderAll();
+        sender.sendMessage(ChatColor.GREEN + "Put " + ChatColor.WHITE + found + ChatColor.GREEN
+                + " farm plot(s) on farmland within " + radius + " blocks, "
+                + ChatColor.WHITE + (before + found) + ChatColor.GREEN + " plots in total.");
+        if (found == 0) {
+            sender.sendMessage(ChatColor.WHITE + "No free farmland found. Only loaded chunks are read, "
+                    + "and a block standing on the farmland is left alone.");
+        }
+        return true;
+    }
+
     boolean doFarmWheat(CommandSender sender, String[] args) {
         if (!(sender instanceof Player player)) {
             sender.sendMessage(ChatColor.RED + "Run this in-game, standing in the middle of the wheat.");

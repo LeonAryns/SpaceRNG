@@ -399,6 +399,45 @@ public class FarmPlotManager {
         return found;
     }
 
+    /**
+     * Puts a farm plot on top of every farmland block within the radius
+     * (V167, /rngadmin farmland): a map with tilled fields becomes a farm
+     * in one command, whether the fields are planted or bare. The block
+     * above has to be air or a crop; anything else is left alone so a
+     * build standing on farmland is never replaced. Only loaded chunks.
+     */
+    public int plotOnFarmland(Location centre, int radius) {
+        World world = centre.getWorld();
+        if (world == null) return 0;
+
+        int found = 0;
+        int cx = centre.getBlockX();
+        int cy = centre.getBlockY();
+        int cz = centre.getBlockZ();
+        int minY = Math.max(world.getMinHeight(), cy - radius);
+        int maxY = Math.min(world.getMaxHeight() - 2, cy + radius);
+
+        for (int x = cx - radius; x <= cx + radius; x++) {
+            for (int z = cz - radius; z <= cz + radius; z++) {
+                if (!world.isChunkLoaded(x >> 4, z >> 4)) continue;
+                for (int y = minY; y <= maxY; y++) {
+                    if (world.getBlockAt(x, y, z).getType() != Material.FARMLAND) continue;
+                    Block above = world.getBlockAt(x, y + 1, z);
+                    Material type = above.getType();
+                    boolean free = type.isAir() || above.getBlockData() instanceof Ageable
+                            || type == Material.SHORT_GRASS || type == MARKER;
+                    if (!free) continue;
+                    Location key = normalise(above.getLocation());
+                    if (!plots.add(key)) continue;
+                    above.setType(MARKER, false);
+                    found++;
+                }
+            }
+        }
+        if (found > 0) savePlots();
+        return found;
+    }
+
     /** Registers a block as part of the farm and makes it the marker crop. */
     public void addPlot(Block block) {
         Location key = normalise(block.getLocation());

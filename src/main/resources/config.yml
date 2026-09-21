@@ -37,7 +37,7 @@ scoreboard:
   icons-enabled: true
   icons:
     luck: "minecraft:gui|minecraft:mob_effect/luck"
-    speed: "minecraft:gui|minecraft:mob_effect/speed"
+    speed: "minecraft:items|minecraft:item/clock_00"
     prestige: "minecraft:items|minecraft:item/nether_star"
     money: "minecraft:items|minecraft:item/emerald"
     coins: "minecraft:items|minecraft:item/gold_nugget"

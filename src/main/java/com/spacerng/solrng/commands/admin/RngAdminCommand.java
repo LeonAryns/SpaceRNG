@@ -38,7 +38,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
 
     private static final List<String> SUBCOMMANDS = List.of(
             "reload", "setspawn", "starforge", "reset", "give", "drops",
-            "bank", "rank", "aura", "roll", "unlock", "unlockall", "lockall", "odds", "farmblock", "farmscan", "farmwheat",
+            "bank", "rank", "aura", "roll", "unlock", "unlockall", "lockall", "odds", "farmblock", "farmscan", "farmwheat", "farmland",
             "hoe", "consumable", "gradient", "welcome", "crops", "farmclear",
             "milestones", "farmfill", "boost", "crowd", "nova", "placeholders", "payout", "crate", "tophead", "floatingitem", "boss", "pet", "dust", "discord", "advancements", "icon", "shiny", "firsts", "lorestyles", "tagstyles", "menustyles", "hoestyles", "standingstyles", "enchantstyles", "novastyles", "auratest", "holo", "help");
     private static final List<String> CURRENCIES = List.of("money", "coins", "gems", "credits", "luck", "speed", "tickets");
@@ -95,6 +95,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             case "welcome" -> showcase.doWelcome(sender, args);
             case "farmscan" -> world.doFarmScan(sender, args);
             case "farmwheat" -> world.doFarmWheat(sender, args);
+            case "farmland" -> world.doFarmland(sender, args);
             case "farmclear" -> world.doFarmClear(sender, args);
             case "lockall" -> players.doLockAll(sender, args);
             case "odds" -> showcase.doOdds(sender, args);
@@ -147,6 +148,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         line(sender, "welcome", "[player]", "Replay the join banner");
         line(sender, "farmscan", "[radius] [legacy]", "Re-register farm plots by scanning the world");
         line(sender, "farmwheat", "[radius]", "Turn every wheat block around you into a farm plot");
+        line(sender, "farmland", "[radius]", "Put a farm plot on every farmland block around you");
         line(sender, "farmclear", "confirm", "Remove every farm plot, everywhere");
         line(sender, "lockall", "[player]", "Wipe every skill, to test the tree from scratch");
         line(sender, "odds", "[rarity]", "Label vs. true odds, and each tier's real share");
