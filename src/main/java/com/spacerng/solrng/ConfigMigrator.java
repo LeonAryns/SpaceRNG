@@ -53,7 +53,7 @@ public final class ConfigMigrator {
             "holograms.panels.convert", "holograms.panels.pass", "holograms.panels.store",
             "holograms.panels.novacore", "holograms.panels.perks", "holograms.panels.index",
             "holograms.panels.farmtree", "holograms.panels.daily", "holograms.panels.leaderboards",
-            "holograms.panels.stash",
+            "holograms.panels.stash", "holograms.panels.welcome",
             // V132: a Vote and a Nebula crate, with their keys.
             "crates.types.vote", "crates.types.nebula", "consumables.vote_key", "consumables.nebula_key",
             // V135: Credits on some milestone tiers.

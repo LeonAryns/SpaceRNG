@@ -362,6 +362,15 @@ public class FarmPlotManager {
      * Returns how many plots were newly registered.
      */
     public int scan(Location centre, int radius, boolean includeLegacy) {
+        return scan(centre, radius, includeLegacy ? LEGACY_MARKERS : java.util.Set.of());
+    }
+
+    /**
+     * Turns every block of the given kinds within the radius into a farm
+     * plot (V164, for /rngadmin farmwheat: a bought map with real wheat
+     * fields becomes a farm in one command). Only loaded chunks are read.
+     */
+    public int scan(Location centre, int radius, java.util.Set<Material> convert) {
         World world = centre.getWorld();
         if (world == null) return 0;
 
@@ -378,7 +387,7 @@ public class FarmPlotManager {
                 for (int y = minY; y <= maxY; y++) {
                     Block block = world.getBlockAt(x, y, z);
                     Material type = block.getType();
-                    if (type != MARKER && !(includeLegacy && LEGACY_MARKERS.contains(type))) continue;
+                    if (type != MARKER && !convert.contains(type)) continue;
                     Location key = normalise(block.getLocation());
                     if (!plots.add(key)) continue;
                     if (type != MARKER) block.setType(MARKER, false);

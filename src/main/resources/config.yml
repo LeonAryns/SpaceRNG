@@ -3763,6 +3763,14 @@ holograms:
       lines:
         - "<white>Items that didn't fit"
         - "<white>in your inventory wait here"
+    # The welcome at spawn (V164). Place it with /rngadmin holo panel welcome.
+    welcome:
+      title: "<gradient:#F6D6FF:#C77DFF:#A855F7><b>WELCOME TO SPACERNG</b></gradient>"
+      lines:
+        - "<white>Right-click your <#E879F9>Roll</#E879F9> item to start"
+        - "<white>Type <#E879F9>/guide</#E879F9> if you are new here"
+        - "<white>Roll, farm and climb the <#CE93D8>skill tree</#CE93D8>"
+        - "<#C77DFF>SpaceRNG.Minehut.gg"
   # Optional per board: title, color and unit. Boards: index, shiny, rolls,
   # coins, money, farming_total, farming, prestige.
   boards:
