@@ -88,6 +88,20 @@ final class FirstTenBuildUp {
         }
         this.bar = LegacyComponentSerializer.legacySection().deserialize(
                 plugin.getRarityManager().styleBold(rarity, "✦ A Server First " + rarity.displayName() + " is coming ✦"));
+        this.title = LegacyComponentSerializer.legacySection().deserialize(
+                plugin.getRarityManager().styleBold(rarity, "✦ SERVER FIRST ✦"));
+    }
+
+    private final Component title;
+
+    /** "A Mythical is coming" with a filling row of stars under the title. */
+    private Component progressLine(double progress) {
+        int filled = (int) Math.round(progress * 10);
+        String stars = plugin.getRarityManager().style(rarity, "✦".repeat(Math.max(0, filled)))
+                + org.bukkit.ChatColor.DARK_GRAY + "✦".repeat(Math.max(0, 10 - filled));
+        return LegacyComponentSerializer.legacySection().deserialize(
+                org.bukkit.ChatColor.WHITE + "A " + plugin.getRarityManager().style(rarity, rarity.displayName())
+                        + org.bukkit.ChatColor.WHITE + " is coming  " + stars);
     }
 
     void start() {
@@ -129,6 +143,16 @@ final class FirstTenBuildUp {
                 if (!own && !data.isBroadcastEnabled(rarity)) continue;
 
                 if (!hush) viewer.sendActionBar(bar);
+                // The same size of announcement as the reveal, on every
+                // screen wherever the viewer stands (V171). Before this the
+                // run-up was only an action bar and particles within 180
+                // blocks, so most of the server saw nothing until the name
+                // landed. The finder is left to their own roll reveal.
+                if (!own && frame % 10 == 0) {
+                    viewer.showTitle(net.kyori.adventure.title.Title.title(title, progressLine(progress),
+                            net.kyori.adventure.title.Title.Times.times(java.time.Duration.ZERO,
+                                    java.time.Duration.ofMillis(900), java.time.Duration.ofMillis(250))));
+                }
                 if (!hush && frame % 8 == 0) {
                     viewer.playSound(viewer.getLocation(), Sound.BLOCK_NOTE_BLOCK_BELL, 0.9f,
                             (float) (0.5 + 1.5 * progress));

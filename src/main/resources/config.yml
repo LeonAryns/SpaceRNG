@@ -27,6 +27,11 @@ consumable-style: card
 # compact. /rngadmin standingstyles shows them side by side.
 standings-style: summary
 
+# The time of day held in every overworld, in ticks: 1000 morning, 6000
+# noon, 12000 sunset, 18000 midnight. -1 lets the sun move again.
+world-time:
+  lock: 6000
+
 # The sidebar's fixed text. Colour codes use "&".
 scoreboard:
   # Game textures in front of the sidebar lines (V163). No resource pack:

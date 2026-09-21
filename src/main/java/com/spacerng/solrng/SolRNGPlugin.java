@@ -341,6 +341,31 @@ public final class SolRNGPlugin extends JavaPlugin {
                 com.spacerng.solrng.player.SkillNode.Effect.CONVERT_CAP));
     }
 
+    private void holdTime() {
+        long lock = getConfig().getLong("world-time.lock", 6000L);
+        if (lock < 0) return;
+        for (org.bukkit.World world : getServer().getWorlds()) {
+            if (world.getEnvironment() != org.bukkit.World.Environment.NORMAL) continue;
+            stopDaylightCycle(world);
+            if (Math.abs(world.getTime() - lock) > 20) world.setTime(lock);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void stopDaylightCycle(org.bukkit.World world) {
+        for (String name : new String[]{"doDaylightCycle", "advance_time", "minecraft:advance_time"}) {
+            try {
+                org.bukkit.GameRule<?> rule = org.bukkit.GameRule.getByName(name);
+                if (rule == null || rule.getType() != Boolean.class) continue;
+                org.bukkit.GameRule<Boolean> daylight = (org.bukkit.GameRule<Boolean>) rule;
+                if (!Boolean.FALSE.equals(world.getGameRuleValue(daylight))) world.setGameRule(daylight, false);
+                return;
+            } catch (RuntimeException ignored) {
+                // not this name on this version, try the next
+            }
+        }
+    }
+
     public void reloadAll() {
         reloadConfig();
         rarityManager.load(getConfig());
@@ -608,6 +633,12 @@ public final class SolRNGPlugin extends JavaPlugin {
         // The golden crop shimmers on its own clock: often enough to catch
         // the eye across a field, rarely enough to cost nothing.
         getServer().getScheduler().runTaskTimer(this, () -> farmPlotManager.tickGolden(), 10L, 10L);
+
+        // The sun stays put (V171): world-time.lock is the time of day to
+        // hold, -1 lets it run. The daylight gamerule was renamed in
+        // 1.21.11, so it is looked up by every name it has had, and the
+        // time is pinned every second whether or not one was found.
+        getServer().getScheduler().runTaskTimer(this, this::holdTime, 40L, 20L);
 
         // Once, a few seconds in: put back any farm plot whose block went
         // missing while the server was down. Chunks need to be loaded for

@@ -61,7 +61,7 @@ public final class ConfigMigrator {
             // V158: Credits on the free pass track.
             "pass.credit-rewards",
             // V163: game textures on the sidebar.
-            "scoreboard.icons",
+            "scoreboard.icons", "world-time",
             // V137: ranks.
             "ranks",
             // V138: what one Credit Finder proc pays.
