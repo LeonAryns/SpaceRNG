@@ -5,7 +5,7 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V180**, 23 September 2026.
+Last updated at **V181**, 23 September 2026.
 
 ## The agreed way of working
 
@@ -66,7 +66,7 @@ payout line (layout fixed in V157).
 
 A "no" on any of them is the next thing to fix, and only that.
 
-## The auras and the visuals, V174 to V180, the current subject
+## The auras and the visuals, V174 to V181, the current subject
 
 Leon said on 22 September that the auratest looked a lot worse than it
 used to, and asked for the best look each rarity can have, using
@@ -202,6 +202,24 @@ a few times a day rather than constantly.
 `AuraManager.parts()` is public now, so anything outside the aura package
 that draws display entities on a player gets the same tagged, swept,
 size aware pieces instead of its own copy of the spawn code.
+
+**V181: the boss stands in an arena.** A boss was one item model turning
+over a spot with a ring of dust running out of it, which reads as a
+floating icon rather than as a server event, and the dust is gone past
+twenty blocks. `BossCircle` paints the ground: a solid circle five blocks
+out marking where it is, a second circle inside it that loses a segment at
+a time as the clock runs down, and a slanted ring turning round the body.
+
+The clock ring is the point. Every fighter has their own health, so the
+panel can only say what the event is and never how anybody is doing. The
+one number the whole server shares is the time left, and a circle that
+visibly opens up says it from across the map without anybody reading a
+word. Only the segments that change are rewritten.
+
+`AuraParts` gained `plate(Location, ...)` and `block(Location, ...)`, so
+anything that marks a place rather than a player draws with the same
+tagged, swept pieces. View range is given in blocks there and divided by
+64 inside, which is the unit a display actually wants.
 
 **Still not verifiable from outside the game, so check these first:**
 

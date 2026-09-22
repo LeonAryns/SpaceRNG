@@ -147,6 +147,53 @@ public final class AuraParts {
         });
     }
 
+    /**
+     * A plate standing at a spot in the world rather than on a player, for
+     * the things that mark a place: the star over a Server First, the ring
+     * round a boss. {@code viewRange} is in blocks and {@code hidden} keeps
+     * it from everybody until the caller shows it to the audience it wants.
+     */
+    public TextDisplay plate(Location at, Color color, int alpha, double viewRange, boolean hidden,
+                             Matrix4f matrix) {
+        return at.getWorld().spawn(levelled(at), TextDisplay.class, display -> {
+            common(display, EMPTY);
+            place(display, viewRange, hidden);
+            display.setTransformationMatrix(matrix);
+            display.setBillboard(Display.Billboard.FIXED);
+            display.setDefaultBackground(false);
+            display.setBackgroundColor(Color.fromARGB(alpha, color.getRed(), color.getGreen(), color.getBlue()));
+            display.setShadowed(false);
+            display.setSeeThrough(false);
+            display.setLineWidth(4000);
+            display.text(Component.text(" "));
+        });
+    }
+
+    /** A block model standing at a spot in the world. */
+    public BlockDisplay block(Location at, BlockData data, double viewRange, boolean hidden, Matrix4f matrix) {
+        return at.getWorld().spawn(levelled(at), BlockDisplay.class, display -> {
+            common(display, EMPTY);
+            place(display, viewRange, hidden);
+            display.setTransformationMatrix(matrix);
+            display.setBlock(data);
+        });
+    }
+
+    private static void place(Display display, double viewRange, boolean hidden) {
+        // A display is drawn while the viewer is inside viewRange times 64
+        // blocks, so the reach a caller asks for in blocks is that over 64.
+        display.setViewRange((float) (viewRange / 64.0));
+        if (hidden) display.setVisibleByDefault(false);
+    }
+
+    /** A copy of a spot with no rotation, so a piece never inherits a yaw it was not meant to have. */
+    private static Location levelled(Location at) {
+        Location copy = at.clone();
+        copy.setYaw(0f);
+        copy.setPitch(0f);
+        return copy;
+    }
+
     /** A fullbright block model. Its origin is a corner, so {@link #box} centres it. */
     public BlockDisplay block(Player player, BlockData data, Matrix4f matrix) {
         Matrix4f scaled = withPlayerSize(player, matrix);

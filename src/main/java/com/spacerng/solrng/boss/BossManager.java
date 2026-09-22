@@ -127,6 +127,10 @@ public class BossManager {
 
     private BossType active;
     private long eventEndsAt;
+    // When it began, so the arena's clock ring knows what fraction of the
+    // window is left rather than only how many seconds.
+    private long eventStartedAt;
+    private BossCircle circle;
     private int beaten;
     private int joined;
     private Location at;
@@ -357,6 +361,7 @@ public class BossManager {
         active = type;
         at = spot;
         eventEndsAt = System.currentTimeMillis() + type.durationMinutes() * 60_000L;
+        eventStartedAt = System.currentTimeMillis();
         fights.clear();
         beaten = 0;
         joined = 0;
@@ -402,6 +407,7 @@ public class BossManager {
                 return;
             }
             spin();
+            if (circle != null && frame % 4 == 0) circle.tick(frame, fractionLeft());
             if (frame % 8 == 0) pulse();
             if (frame % 20 == 0) {
                 refreshBars();
@@ -667,7 +673,16 @@ public class BossManager {
                     new Vector3f(1.4f, 1.4f, 1.4f), new Quaternionf()));
             d.getPersistentDataContainer().set(tagKey, PersistentDataType.STRING, type.id());
         });
+        circle = new BossCircle(plugin, spot, colourOf(type.accent()));
+        circle.start();
         refreshPanel();
+    }
+
+    /** How much of the window is still to run, 1 at the start and 0 at the end. */
+    private double fractionLeft() {
+        long whole = eventEndsAt - eventStartedAt;
+        if (whole <= 0L) return 0.0;
+        return Math.max(0.0, Math.min(1.0, (double) (eventEndsAt - System.currentTimeMillis()) / whole));
     }
 
     /**
@@ -740,8 +755,10 @@ public class BossManager {
     private void clear() {
         if (body != null && body.isValid()) body.remove();
         if (panel != null && panel.isValid()) panel.remove();
+        if (circle != null) circle.remove();
         body = null;
         panel = null;
+        circle = null;
         at = null;
     }
 
