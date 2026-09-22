@@ -539,3 +539,101 @@ particles every tick for every wearer would never fit the budget.
 - **Lifecycle** (`AuraManager`): rebuilt when not riding (death, teleport),
   paused near farm plots, removed on quit, disable and swap, swept on
   start. The tag's rarity picks the look from `auras:` in config.
+
+## Painted plates: colour and shape at the same time
+
+Added in V174. Before it, every worn aura was built from two kinds of
+piece, and both have a hard limit:
+
+| Piece | Any colour? | Any shape? |
+|---|---|---|
+| Text glyph (`✦`) | yes, any RGB | no, always a star |
+| Item or block model | no, Mojang's paint | yes |
+| **Painted plate** | **yes, any RGB and alpha** | **yes, any rectangle** |
+
+A plate is a `TextDisplay` holding a single space with its **background**
+painted instead of its text. That background is a rectangle, and a matrix
+in front of it makes it a ring segment, a blade, a feather or a beam.
+This is what lets a Legendary aura actually be orange instead of orange
+stars next to a sea lantern that is not.
+
+```java
+display.setDefaultBackground(false);
+display.setBackgroundColor(Color.fromARGB(alpha, r, g, b));
+display.text(Component.text(" "));
+display.setTransformationMatrix(matrix);
+```
+
+**The size constant.** The painted background of one space is 0.125
+blocks wide and 0.25 high, running from -0.05 to 0.075 across and 0 to
+0.25 up. So this matrix maps it onto the unit square:
+
+```java
+public static final Matrix4f UNIT_QUAD =
+        new Matrix4f().translate(0.4f, 0f, 0f).scale(8f, 4f, 1f);
+```
+
+Do not re-derive it by eye. It is confirmed against two unrelated public
+projects that both landed on exactly this matrix:
+`TWME-TW/TextDisplayShapes` (`getTextDisplayUnitSquare`) and
+`TheCymaera/minecraft-text-display-experiments`
+(`textBackgroundTransform`). A plate of width w and height h centred on a
+point is then ordinary matrix work, `AuraParts.plate`:
+
+```java
+new Matrix4f().translate(x, y, z).rotate(rotation)
+        .scale(width, height, 1f).translate(-0.5f, -0.5f, 0f).mul(UNIT_QUAD);
+```
+
+Local +X is the width, +Y the height, +Z the face's normal. Every shape
+follows from where you point those three.
+
+### Rules that came out of building the eight signature looks
+
+- **A plate is drawn on ONE side.** From behind there is nothing at all,
+  not even a mirrored copy ("the displayed text is only visible from one
+  side", Minecraft Wiki). Anything a viewer can walk round needs both
+  faces: `AuraParts.plate(..., back)` turns it a half turn about its own
+  upright axis and sets it `BACK_GAP` behind the front one. The half turn
+  goes in **before** the centring translate, or it swings the quad about
+  the text's origin instead of its middle. Rings lying at the feet are
+  the one thing that can stay single, because they are only looked down
+  on. A halo over the head cannot: everyone is below it.
+- **Alpha under 26 is discarded by the client.** 55 reads as a haze, 120
+  to 170 as a glow, 220 and up as solid.
+- **A full ring does not need to turn.** A regular polygon of sixteen
+  plates looks identical at every angle, so spinning it reads as nothing
+  and costs a packet per segment per step for it. Leave full rings still,
+  which is free, and put the motion in a **broken** ring, where the gaps
+  make the turn obvious. `coverage` under 1 in `PlateRing`.
+- **Tilt and precess are the motion nothing else has.** A ring standing
+  upright (`tilt: 90`) whose plane swings round the wearer reads as a
+  gyroscope and cannot be mistaken for an orbit of stars.
+- **A column of light wants `Billboard.VERTICAL`.** It then turns with
+  the viewer about the upright axis, so it is never seen edge on and
+  never has to be moved at all.
+- **`setGlowColorOverride` plus `setGlowing(true)`** outlines a piece in
+  any RGB, through walls. It is the loudest thing a display can do: one
+  piece of one look, never more.
+
+### Traps in worn auras that cost a jar each
+
+- **Teleport duration belongs at 0 on a piece that rides a player.** It
+  smooths the piece's own position over that many ticks, and a passenger
+  is repositioned by the ride every tick, so any non-zero value makes the
+  whole aura swim behind the wearer while walking. Only a look that is
+  sent turns of its own (`followsBody`, the wings) wants 3, and only its
+  own pieces: `Combined.followsAt(index)` answers it per piece.
+- **Do not rebuild a look because one piece fell off.** Every piece then
+  snaps back to the pose `spawn()` draws, in the middle of its orbit. Put
+  the pieces that are merely no longer riding straight back on, and when
+  a real rebuild is needed, restart the frame count so the pose and the
+  count agree.
+- **A pose knows nothing about who wears it.** `move` and `moveTo` put
+  the wearer's `/size` back on by reading the piece's own vehicle;
+  without that a big player's aura springs back to normal scale on its
+  first move.
+- **Watch the piece count, not just the packets.** The signature looks
+  run 26 (sigil) to about 86 (empyrean) display entities per wearer. Both
+  faces double everything that needs them, so pay for it by dropping
+  segments rather than by dropping shapes.

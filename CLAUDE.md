@@ -142,8 +142,14 @@ Packages are by feature under `com.spacerng.solrng`. Where new things go:
   the player as passengers. Text pieces orbit by putting a glyph off
   centre with spaces and spinning the display (slerped, at most 120
   degrees per update); item pieces move their translation in small steps.
+  The eight signature looks in `SignatureConcepts` are drawn a third way,
+  with plates: a text display holding one space with its background
+  painted, which is the only piece that takes both any RGB and any shape.
   The tag rarity picks the look from `auras:` in config; `/rngadmin
   auratest list` shows every concept and accent.
+- **A plate is drawn on one side only**, and teleport duration on a piece
+  that rides a player has to stay 0 or the whole aura swims behind them
+  while walking. Both cost a jar to find. The aura skill has the rest.
 - **Changing a default outside a structural section.** The live config
   keeps its old value, so add a one-off patch in `ConfigMigrator`:
   `Patch` for a fixed path, `EntryPatch` for one field of a list entry
