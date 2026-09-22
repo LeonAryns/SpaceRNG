@@ -5,7 +5,7 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V179**, 23 September 2026.
+Last updated at **V180**, 23 September 2026.
 
 ## The agreed way of working
 
@@ -66,7 +66,7 @@ payout line (layout fixed in V157).
 
 A "no" on any of them is the next thing to fix, and only that.
 
-## The auras and the visuals, V174 to V179, the current subject
+## The auras and the visuals, V174 to V180, the current subject
 
 Leon said on 22 September that the auratest looked a lot worse than it
 used to, and asked for the best look each rarity can have, using
@@ -187,6 +187,21 @@ two solid circles), `shield` (six wide faint panels at the hips), `beacon`
 (a column of light nine blocks up) and `portal` (a standing ring with a
 second inside it and an eye). `Bars` is the new piece: narrow and tall it
 is a cage, wide and faint it is a shield.
+
+**V180: a circle under every roll.** The reveal was particles and
+nothing else, and past twenty blocks a few hundred bright specks read as
+weather rather than as a shape. `RollCircle` paints a summoning circle on
+the ground under the roller in the rarity's colour: it opens over the
+first third, holds while the strands wind up, is dragged inward and spun
+faster with the implosion, and is thrown out to twice its width on the
+bang. The pieces ride the player as passengers like a worn aura, carry
+the aura tag so the startup sweep clears them, and honour the same per
+rarity switch in /options. Only Epic and up roll an aura, so it is built
+a few times a day rather than constantly.
+
+`AuraManager.parts()` is public now, so anything outside the aura package
+that draws display entities on a player gets the same tagged, swept,
+size aware pieces instead of its own copy of the spawn code.
 
 **Still not verifiable from outside the game, so check these first:**
 

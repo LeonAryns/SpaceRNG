@@ -103,6 +103,16 @@ public final class AuraManager {
         this.parts = new AuraParts(tag);
     }
 
+    /**
+     * The piece builder, for anything outside this package that draws with
+     * display entities on a player. Pieces built with it carry the aura tag,
+     * so the startup sweep clears whatever a crash leaves behind, whoever
+     * made them.
+     */
+    public AuraParts parts() {
+        return parts;
+    }
+
     public void start() {
         sweep();
         task = plugin.getServer().getScheduler().runTaskTimer(plugin, this::tick, 2L, 2L);

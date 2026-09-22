@@ -194,6 +194,9 @@ public final class RollAura {
     private long elapsed = 0L;
     private BukkitTask task;
     private boolean finished = false;
+    // The ground circle, the only part of the reveal that is a shape rather
+    // than a cloud of particles.
+    private RollCircle circle;
 
     private RollAura(SolRNGPlugin plugin, Player player, Rarity rarity) {
         this.plugin = plugin;
@@ -237,6 +240,10 @@ public final class RollAura {
         if (!isBigDrop(rarity)) return null;
 
         RollAura aura = new RollAura(plugin, player, rarity);
+        // The one solid shape in an effect made of particles. Past twenty
+        // blocks a few hundred specks read as weather; a ring does not.
+        aura.circle = new RollCircle(plugin, player, rarity, colorFor(rarity), aura.maxRadius);
+        aura.circle.start();
         aura.task = plugin.getServer().getScheduler().runTaskTimer(plugin, aura::tick, 0L, 1L);
         return aura;
     }
@@ -245,6 +252,10 @@ public final class RollAura {
     public void cancel() {
         finished = true;
         if (task != null) task.cancel();
+        if (circle != null) {
+            circle.stop();
+            circle = null;
+        }
     }
 
     // ------------------------------------------------------------- delivery
@@ -301,6 +312,13 @@ public final class RollAura {
         double progress = Math.min(1.0, (double) elapsed / durationTicks);
 
         playDueCues(progress);
+
+        if (circle != null) {
+            circle.tick(elapsed, progress, IMPLODE_FROM);
+            // People walk in, and somebody who just switched this rarity
+            // back on should see the rest of it.
+            if (elapsed % 20 == 0) circle.refreshAudience();
+        }
 
         if (progress < IMPLODE_FROM) {
             drawBuildUp(progress);
@@ -432,8 +450,18 @@ public final class RollAura {
      */
     public void reveal() {
         if (finished) return;
+        // Taken out of the field before cancel(), which stops the circle
+        // dead for an abandoned roll. This is the other case: it has earned
+        // its throw outward, and it plays over the first frames of the
+        // finale whichever script that finale is.
+        RollCircle thrown = circle;
+        circle = null;
         cancel();
-        if (!player.isOnline()) return;
+        if (!player.isOnline()) {
+            if (thrown != null) thrown.stop();
+            return;
+        }
+        if (thrown != null) thrown.detonate();
 
         long length = finaleTicks(rarity);
         final long[] frame = {0L};
