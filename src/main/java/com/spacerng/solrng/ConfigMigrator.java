@@ -227,7 +227,15 @@ public final class ConfigMigrator {
             new Patch("tag-aura-legendary-ember", "auras.tag.LEGENDARY.concept", "galaxy-grand", "ember"),
             new Patch("tag-aura-legendary-embers", "auras.tag.LEGENDARY.accent", "sparkle", "embers"),
             new Patch("tag-aura-mythical-eclipse", "auras.tag.MYTHICAL.concept", "singularity-lite", "eclipse"),
-            new Patch("tag-aura-divine-ascend", "auras.tag.DIVINE.concept", "atom-grand", "ascend"));
+            new Patch("tag-aura-divine-ascend", "auras.tag.DIVINE.concept", "atom-grand", "ascend"),
+            // V175: the shiny looks repainted the same way, and the look a
+            // heavy one falls back to when two of them stand together.
+            new Patch("shiny-aura-epic-prism", "auras.shiny.EPIC.concept", "helix", "prism"),
+            new Patch("shiny-aura-legendary-pyre", "auras.shiny.LEGENDARY.concept", "nova-grand", "pyre"),
+            new Patch("shiny-aura-legendary-embers", "auras.shiny.LEGENDARY.accent", "sparkle", "embers"),
+            new Patch("shiny-aura-mythical-rift", "auras.shiny.MYTHICAL.concept", "titan", "rift"),
+            new Patch("shiny-aura-divine-empyrean", "auras.shiny.DIVINE.concept", "supernova", "empyrean"),
+            new Patch("heavy-fallback-ascend", "auras.heavy.fallback", "galaxy-grand", "ascend"));
 
     // V159: every hoe enchant runs to level 10,000, except Credit Finder,
     // which stays at 1,000 because it pays Credits.

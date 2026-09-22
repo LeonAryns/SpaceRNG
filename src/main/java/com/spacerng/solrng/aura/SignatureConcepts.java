@@ -51,6 +51,11 @@ final class SignatureConcepts {
         d.put("eclipse", "a ring standing round the body, sweeping over a wide floor");
         d.put("ascend", "a slanted orbit, a column of light and a lantern atom");
         d.put("signature", "whichever of the four painted looks the rarity wears");
+        d.put("prism", "the sigil with a ring standing through it and a short column");
+        d.put("pyre", "the flames with wings of fire off the back and a tall column");
+        d.put("rift", "two standing rings crossed and swinging opposite ways (heavy)");
+        d.put("empyrean", "the slanted orbit with wings and a crown of light (heavy)");
+        d.put("shiny", "whichever of the four shiny looks the rarity wears");
     }
 
     static AuraConcept create(String key, Rarity rarity, Color color) {
@@ -60,6 +65,11 @@ final class SignatureConcepts {
             case "eclipse" -> eclipse(color);
             case "ascend" -> ascend(color);
             case "signature" -> forRarity(rarity, color);
+            case "prism" -> prism(color);
+            case "pyre" -> pyre(color);
+            case "rift" -> rift(color);
+            case "empyrean" -> empyrean(color);
+            case "shiny" -> shinyFor(rarity, color);
             default -> null;
         };
     }
@@ -71,6 +81,16 @@ final class SignatureConcepts {
             case MYTHICAL -> eclipse(color);
             case LEGENDARY -> ember(color);
             default -> sigil(color);
+        };
+    }
+
+    /** The look unlocked by finding a shiny of that rarity. */
+    static AuraConcept shinyFor(Rarity rarity, Color color) {
+        return switch (rarity) {
+            case DIVINE -> empyrean(color);
+            case MYTHICAL -> rift(color);
+            case LEGENDARY -> pyre(color);
+            default -> prism(color);
         };
     }
 
@@ -137,6 +157,66 @@ final class SignatureConcepts {
                 new PlateRing(color, 215, -0.85f, 2.55f, 14, 0.09f, 0.8f, 25f, 5, 9.0, 5.0),
                 new Column(color, -1.70f, 7.0f, 1.15f, 0.30f, 55, 150),
                 new AuraConcepts.SolidAtom(Material.SEA_LANTERN, -0.70f, 1.45f, 0.42f, false, 0, 2, 20.0));
+    }
+
+    // ------------------------------------------------------- the four shinies
+
+    /**
+     * Epic shiny. The sigil with a ring standing through it, tipped a little
+     * off upright so it never hides behind the wearer, and a short column.
+     */
+    private static AuraConcept prism(Color color) {
+        Color soft = softer(color);
+        return new AuraConcepts.Combined(
+                sigil(color),
+                new PlateRing(soft, 205, -0.80f, 1.25f, 14, 0.07f, 0.65f, 78f, 4, 9.0, 5.0),
+                new Column(color, -1.70f, 3.2f, 0.60f, 0.16f, 45, 120));
+    }
+
+    /**
+     * Legendary shiny. The flames, with a pair of wings off the back drawn in
+     * the same fire and a column standing through the middle. The wings are
+     * the only pieces that turn with the body, so the circles under them stay
+     * exactly where the wearer is.
+     */
+    private static AuraConcept pyre(Color color) {
+        return new AuraConcepts.Combined(
+                ember(color),
+                new PlateWings(color, 215),
+                new Column(color, -1.70f, 4.5f, 0.75f, 0.20f, 45, 130));
+    }
+
+    /**
+     * Mythical shiny. Two rings standing upright through the wearer, crossed
+     * a quarter turn apart and swinging opposite ways, so there is always one
+     * of them broadside on however you stand. Over the floor circles and the
+     * outlined star of the plain Mythical look.
+     */
+    private static AuraConcept rift(Color color) {
+        Color soft = softer(color);
+        return new AuraConcepts.Combined(
+                new PlateRing(color, 225, -0.75f, 2.00f, 14, 0.11f, 0.7f, 90f, 4, 8.0, 4.0),
+                new PlateRing(soft, 190, -0.75f, 1.70f, 14, 0.09f, 0.7f, 90f, 4, -8.0, -4.0),
+                new PlateRing(color, 240, FEET + 0.01f, 2.60f, 16, 0.12f, 1.0f, 0f, 0, 0.0, 0.0),
+                new PlateRing(soft, 160, FEET + 0.02f, 3.30f, 10, 0.07f, 0.45f, 0f, 5, -6.0, 0.0),
+                new Core(Material.NETHER_STAR, color, -0.55f, 0.60f));
+    }
+
+    /**
+     * Divine shiny, the rarest thing anyone can wear. Two floor circles, the
+     * slanted orbit, the column, the lantern atom, wings off the back and a
+     * crown of light standing over the head.
+     */
+    private static AuraConcept empyrean(Color color) {
+        Color soft = softer(color);
+        return new AuraConcepts.Combined(
+                new PlateRing(color, 240, FEET + 0.01f, 2.30f, 16, 0.13f, 1.0f, 0f, 0, 0.0, 0.0),
+                new PlateRing(soft, 165, FEET + 0.02f, 3.40f, 12, 0.08f, 0.45f, 0f, 5, 6.0, 0.0),
+                new PlateRing(color, 215, -0.85f, 2.55f, 14, 0.09f, 0.8f, 25f, 5, 9.0, 5.0),
+                new Column(color, -1.70f, 8.0f, 1.20f, 0.32f, 55, 155),
+                new AuraConcepts.SolidAtom(Material.SEA_LANTERN, -0.70f, 1.45f, 0.42f, false, 0, 2, 20.0),
+                new PlateWings(soft, 210),
+                new Petals(soft, 215, 0.16f, 0.42f, 8, 0.11f, 0.34f, 12f, 5, 16));
     }
 
     // -------------------------------------------------------------- plate ring
@@ -478,6 +558,120 @@ final class SignatureConcepts {
         @Override
         public void stars(long frame, List<Vector> out) {
             out.add(new Vector(0.0, RIDE + y, 0.0));
+        }
+    }
+
+    // ------------------------------------------------------------------- wings
+
+    /**
+     * A pair of wings fanned off the back, drawn as painted feathers with a
+     * brighter plate along the leading edge. The geometry is the one the old
+     * stained glass wings used, because that part was right: feathers spread
+     * from one pivot at the shoulder along direction vectors, the lower ones
+     * swept a little further back, the whole wing opening and folding on
+     * alternate beats.
+     *
+     * What was wrong was the material. A wing of lime stained glass is a
+     * green wing on every rarity; a wing of plates is whatever colour the
+     * rarity is.
+     */
+    static final class PlateWings implements AuraConcept {
+        private static final float PIVOT_X = 0.1f;
+        private static final float PIVOT_Y = -0.38f;
+        private static final float PIVOT_Z = -0.22f;
+        private static final double[] RAISE = {40, 22, 5, -15, -35};
+        private static final float[] LENGTH = {1.2f, 1.35f, 1.25f, 1.0f, 0.75f};
+        private static final float[] WIDTH = {0.20f, 0.24f, 0.22f, 0.18f, 0.13f};
+        private static final int EVERY = 10;
+        private final Color color;
+        private final Color edge;
+        private final int alpha;
+
+        PlateWings(Color color, int alpha) {
+            this.color = color;
+            this.edge = softer(color);
+            this.alpha = alpha;
+        }
+
+        @Override
+        public boolean followsBody() {
+            return true;
+        }
+
+        @Override
+        public List<Display> spawn(Player player, AuraParts parts) {
+            List<Display> displays = new ArrayList<>();
+            for (int side = -1; side <= 1; side += 2) {
+                for (int f = 0; f < RAISE.length; f++) {
+                    displays.add(parts.plate(player, color, alpha, feather(side, f, 0)));
+                }
+                displays.add(parts.plate(player, edge, 245, leading(side, 0)));
+            }
+            return displays;
+        }
+
+        @Override
+        public void tick(List<Display> displays, long frame) {
+            if (frame % EVERY != 0) return;
+            long beat = frame / EVERY + 1;
+            int index = 0;
+            for (int side = -1; side <= 1; side += 2) {
+                for (int f = 0; f < RAISE.length; f++) {
+                    moveTo(displays.get(index++), feather(side, f, beat), EVERY * 2);
+                }
+                moveTo(displays.get(index++), leading(side, beat), EVERY * 2);
+            }
+        }
+
+        @Override
+        public void stars(long frame, List<Vector> out) {
+            long beat = frame / EVERY;
+            for (int side = -1; side <= 1; side += 2) {
+                for (int f = 0; f < RAISE.length; f++) {
+                    double raise = Math.toRadians(RAISE[f] + lift(beat));
+                    double swept = Math.toRadians(sweep(beat) + f * 3);
+                    Vector3f dir = direction(side, raise, swept);
+                    out.add(new Vector(side * PIVOT_X + dir.x * LENGTH[f],
+                            RIDE + PIVOT_Y + dir.y * LENGTH[f], PIVOT_Z + dir.z * LENGTH[f]));
+                }
+            }
+        }
+
+        /** Degrees swept back: open and folded on alternate beats. */
+        private static double sweep(long beat) {
+            return beat % 2 == 0 ? 25 : 42;
+        }
+
+        /** Degrees added to every feather's raise: up on the open beat, down on the fold. */
+        private static double lift(long beat) {
+            return beat % 2 == 0 ? 6 : -4;
+        }
+
+        private static Quaternionf rotation(int side, double a, double b) {
+            return new Quaternionf().rotateY((float) (side > 0 ? b : Math.PI - b)).rotateZ((float) a);
+        }
+
+        private static Vector3f direction(int side, double a, double b) {
+            return new Vector3f((float) (side * Math.cos(a) * Math.cos(b)), (float) Math.sin(a),
+                    (float) (-Math.cos(a) * Math.sin(b)));
+        }
+
+        private static Matrix4f feather(int side, int f, long beat) {
+            return blade(side, Math.toRadians(RAISE[f] + lift(beat)),
+                    Math.toRadians(sweep(beat) + f * 3), LENGTH[f], WIDTH[f], -f * 0.04f);
+        }
+
+        /** A thinner, brighter plate along the top feather, so the wing has an edge. */
+        private static Matrix4f leading(int side, long beat) {
+            return blade(side, Math.toRadians(RAISE[0] + lift(beat) + 3),
+                    Math.toRadians(sweep(beat)), LENGTH[0] * 1.1f, 0.05f, 0f);
+        }
+
+        private static Matrix4f blade(int side, double a, double b, float length, float width, float drop) {
+            Vector3f dir = direction(side, a, b);
+            float half = length / 2f;
+            return AuraParts.plate(side * PIVOT_X + dir.x * half, PIVOT_Y + dir.y * half + drop,
+                    PIVOT_Z + dir.z * half, rotation(side, a, b), length, width);
         }
     }
 

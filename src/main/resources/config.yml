@@ -5859,25 +5859,25 @@ auras:
   # from /aura. Leave a concept out to have no shiny look for that rarity.
   shiny:
     EPIC:
-      concept: helix
+      concept: prism
       accent: sparkle
     LEGENDARY:
-      concept: nova-grand
-      accent: sparkle
+      concept: pyre
+      accent: embers
     MYTHICAL:
-      concept: titan
+      concept: rift
       accent: enchant
     DIVINE:
-      concept: supernova
+      concept: empyrean
       accent: all
-  # The heavy looks (singularity, titan, supernova) cost about a hundred
-  # updates a second for each player watching. Only max-nearby of them run
-  # within radius blocks of each other; whoever put one on later wears the
-  # fallback look until there is room again.
+  # The heavy looks (singularity, titan, supernova, rift, empyrean) cost
+  # about a hundred updates a second for each player watching. Only
+  # max-nearby of them run within radius blocks of each other; whoever put
+  # one on later wears the fallback look until there is room again.
   heavy:
     max-nearby: 1
     radius: 32
-    fallback: galaxy-grand
+    fallback: ascend
   # What a tag of each rarity wears. The four below are the signature
   # looks: rings, flames and columns painted in the rarity's own colour
   # rather than star glyphs round a sea lantern. /rngadmin auratest list

@@ -319,6 +319,12 @@ public final class AuraManager {
         return plugin.getPlayerDataManager().get(viewer.getUniqueId()).isWornAurasVisible();
     }
 
+    /** Whether piece {@code index} of a look is one of the pieces that turn with the body. */
+    private static boolean followsAt(AuraConcept concept, int index) {
+        return concept instanceof AuraConcepts.Combined combined
+                ? combined.followsAt(index) : concept.followsBody();
+    }
+
     // ------------------------------------------------------------------- tick
 
     private void tick() {
@@ -379,8 +385,8 @@ public final class AuraManager {
                     float yaw = player.getBodyYaw();
                     float turned = ((yaw - aura.lastYaw) % 360f + 540f) % 360f - 180f;
                     if (Float.isNaN(aura.lastYaw) || Math.abs(turned) > 4f) {
-                        for (Display display : aura.displays) {
-                            display.setRotation(yaw, 0f);
+                        for (int i = 0; i < aura.displays.size(); i++) {
+                            if (followsAt(aura.concept, i)) aura.displays.get(i).setRotation(yaw, 0f);
                         }
                         aura.lastYaw = yaw;
                     }
@@ -412,8 +418,8 @@ public final class AuraManager {
     private void balanceHeavy() {
         int max = Math.max(0, plugin.getConfig().getInt("auras.heavy.max-nearby", 1));
         double radius = plugin.getConfig().getDouble("auras.heavy.radius", 32.0);
-        String fallback = plugin.getConfig().getString("auras.heavy.fallback", "galaxy-grand").toLowerCase(Locale.ROOT);
-        if (MassiveConcepts.isHeavy(fallback)) fallback = "galaxy-grand";
+        String fallback = plugin.getConfig().getString("auras.heavy.fallback", "ascend").toLowerCase(Locale.ROOT);
+        if (MassiveConcepts.isHeavy(fallback)) fallback = "ascend";
 
         record Swap(Player player, Worn aura, boolean heavy) {
         }
@@ -509,12 +515,12 @@ public final class AuraManager {
     private void mount(Player player, Worn aura) {
         despawn(aura);
         List<Display> displays = aura.concept.spawn(player, parts);
-        // Only a look that hangs off the body is sent turns of its own, and
+        // Only a piece that hangs off the body is sent turns of its own, and
         // only those want them smoothed. Every other piece leaves teleport
         // duration at 0 so it sits exactly where the wearer is.
-        boolean follows = aura.concept.followsBody();
-        for (Display display : displays) {
-            if (follows) display.setTeleportDuration(3);
+        for (int i = 0; i < displays.size(); i++) {
+            Display display = displays.get(i);
+            if (followsAt(aura.concept, i)) display.setTeleportDuration(3);
             player.addPassenger(display);
         }
         aura.displays = displays;

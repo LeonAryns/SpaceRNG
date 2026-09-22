@@ -837,5 +837,22 @@ public final class AuraConcepts {
             }
             return false;
         }
+
+        /**
+         * Whether piece {@code index} belongs to a look that turns with the
+         * body. Asked per piece rather than per look, because a pair of wings
+         * put on top of ground rings would otherwise hand every ring the
+         * smoothing that only the wings need, and the rings would swim behind
+         * the wearer again.
+         */
+        boolean followsAt(int index) {
+            for (int i = 0; i < looks.length; i++) {
+                if (index >= starts[i] && index < starts[i + 1]) {
+                    return looks[i] instanceof Combined inner
+                            ? inner.followsAt(index - starts[i]) : looks[i].followsBody();
+                }
+            }
+            return false;
+        }
     }
 }

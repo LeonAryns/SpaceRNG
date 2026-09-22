@@ -5,7 +5,7 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V167**, 19 September 2026.
+Last updated at **V175**, 22 September 2026.
 
 ## The agreed way of working
 
@@ -62,6 +62,62 @@ Seen working on 19 September: the boss panel and particles, the podium
 payout line (layout fixed in V157).
 
 A "no" on any of them is the next thing to fix, and only that.
+
+## The auras, V174 and V175, the current subject
+
+Leon said on 22 September that the auratest looked a lot worse than it
+used to, and asked for the best look each rarity can have, using
+everything a display entity can do.
+
+**The thing that was missing.** Every aura was drawn out of star glyphs
+and item models. A glyph takes any RGB but is always a star; an item
+model is any shape but only Mojang's colours. A third piece was never
+used: a text display holding one space with its **background** painted.
+That is a rectangle in any RGB at any alpha, and a matrix in front of it
+makes it a ring segment, a flame, a feather or a column of light.
+
+`AuraParts.plate` draws one. `UNIT_QUAD` maps the painted background of a
+single space (0.125 blocks wide, 0.25 high) onto a one by one square;
+the constant is confirmed against two unrelated public projects,
+TWME-TW/TextDisplayShapes and TheCymaera/minecraft-text-display-
+experiments, which derive exactly the same matrix. `AuraParts.block`
+adds block displays and `AuraParts.glowing` a coloured outline through
+walls. `SignatureConcepts` holds the pieces (PlateRing, Spokes, Petals,
+Column, Core, PlateWings) and the eight looks.
+
+| Look | Worn by | Heavy |
+|---|---|---|
+| sigil | Epic tag | no |
+| ember | Legendary tag | no |
+| eclipse | Mythical tag | no |
+| ascend | Divine tag, and the heavy fallback | no |
+| prism | Epic shiny | no |
+| pyre | Legendary shiny | no |
+| rift | Mythical shiny | yes |
+| empyrean | Divine shiny | yes |
+
+**Three bugs under it, all of them making every aura worse:**
+
+- Teleport duration was 3 on every piece. It smooths a display's own
+  position over that many ticks, and a piece riding a player is moved by
+  the ride every tick, so the aura swam behind the wearer while walking.
+  It is 0 now, and only pieces of a look that turns with the body get 3.
+- One piece falling off rebuilt the whole look, which put every piece
+  back at its spawn pose in the middle of its orbit. Pieces that only
+  came off go straight back on, and a real rebuild restarts the frame
+  count so pose and count agree.
+- `AuraParts.move` threw the wearer's size away, so a /size player's aura
+  sprang back to normal on its first move.
+
+**Not verifiable from outside the game, so check these first:**
+
+1. Is a painted plate visible from **both** sides? If `eclipse` blinks in
+   and out as its standing ring swings past, it is single sided, and the
+   fix is a second plate per segment facing the other way.
+2. Is the plate the size the maths says? A ring that comes out far too
+   small or far too wide means `UNIT_QUAD` is wrong for 1.21.11.
+3. Do the `empyrean` and `pyre` wings sit on the back rather than in the
+   chest? The pivot came from the old stained glass wings.
 
 ## What shipped but has never been tested in game
 

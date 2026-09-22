@@ -36,7 +36,10 @@ final class MassiveConcepts {
     private MassiveConcepts() {
     }
 
-    private static final Set<String> HEAVY = Set.of("singularity", "titan", "supernova");
+    // rift and empyrean are painted rather than built here, but they cost the
+    // same and are limited the same way.
+    private static final Set<String> HEAVY = Set.of("singularity", "titan", "supernova",
+            "rift", "empyrean");
 
     /** The looks AuraManager limits per area, since each costs about a hundred updates a second per viewer. */
     static boolean isHeavy(String key) {
