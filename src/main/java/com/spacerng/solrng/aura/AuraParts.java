@@ -6,6 +6,8 @@ import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.entity.BlockDisplay;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
@@ -14,6 +16,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
+import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
@@ -82,6 +85,53 @@ public final class AuraParts {
     }
 
     /**
+     * A flat plate of solid colour: a text display holding one space, with
+     * its background painted instead of its text.
+     *
+     * This is the only piece that can be any shape AND any colour. A glyph
+     * takes a colour but is always a star; an item model is whatever Mojang
+     * drew. A painted background is a rectangle, and a rectangle with a
+     * matrix on it is a ring segment, a blade, a beam or a wing.
+     *
+     * Alpha under 26 is dropped by the client, so anything meant to be seen
+     * stays above it; 255 is solid.
+     */
+    public TextDisplay plate(Player player, Color color, int alpha, Matrix4f matrix) {
+        Matrix4f scaled = withPlayerSize(player, matrix);
+        return player.getWorld().spawn(level(player), TextDisplay.class, display -> {
+            common(display, EMPTY);
+            display.setTransformationMatrix(scaled);
+            display.setBillboard(Display.Billboard.FIXED);
+            display.setDefaultBackground(false);
+            display.setBackgroundColor(Color.fromARGB(alpha, color.getRed(), color.getGreen(), color.getBlue()));
+            display.setShadowed(false);
+            display.setSeeThrough(false);
+            display.setLineWidth(4000);
+            display.text(Component.text(" "));
+        });
+    }
+
+    /** A fullbright block model. Its origin is a corner, so {@link #box} centres it. */
+    public BlockDisplay block(Player player, BlockData data, Matrix4f matrix) {
+        Matrix4f scaled = withPlayerSize(player, matrix);
+        return player.getWorld().spawn(level(player), BlockDisplay.class, display -> {
+            common(display, EMPTY);
+            display.setTransformationMatrix(scaled);
+            display.setBlock(data);
+        });
+    }
+
+    /**
+     * Gives a piece a coloured outline, seen through walls. Strong enough
+     * that only one or two pieces of a look should ever carry it.
+     */
+    public static <T extends Display> T glowing(T display, Color color) {
+        display.setGlowColorOverride(color);
+        display.setGlowing(true);
+        return display;
+    }
+
+    /**
      * The player's location with no rotation. A display copies the yaw and
      * pitch of where it spawns, and an aura put on while looking down would
      * otherwise hang tilted for as long as it was worn.
@@ -92,15 +142,25 @@ public final class AuraParts {
      * higher on a bigger player, so only the piece itself needs scaling.
      */
     private static Transformation withPlayerSize(Player player, Transformation pose) {
-        var attribute = player.getAttribute(org.bukkit.attribute.Attribute.SCALE);
-        double size = attribute == null ? 1.0 : attribute.getValue();
-        if (Math.abs(size - 1.0) < 0.01) return pose;
-        float factor = (float) size;
+        float factor = sizeOf(player);
+        if (factor == 1f) return pose;
         return new Transformation(
                 new Vector3f(pose.getTranslation()).mul(factor),
                 pose.getLeftRotation(),
                 new Vector3f(pose.getScale()).mul(factor),
                 pose.getRightRotation());
+    }
+
+    /** The same, for a piece posed by a matrix: one scale about the origin does both. */
+    private static Matrix4f withPlayerSize(Player player, Matrix4f matrix) {
+        float factor = sizeOf(player);
+        return factor == 1f ? matrix : new Matrix4f().scale(factor).mul(matrix);
+    }
+
+    private static float sizeOf(Player player) {
+        var attribute = player.getAttribute(org.bukkit.attribute.Attribute.SCALE);
+        double size = attribute == null ? 1.0 : attribute.getValue();
+        return Math.abs(size - 1.0) < 0.01 ? 1f : (float) size;
     }
 
     private static Location level(Player player) {
@@ -115,8 +175,12 @@ public final class AuraParts {
         display.setBrightness(new Display.Brightness(15, 15));
         display.setViewRange(0.6f);
         display.setShadowRadius(0f);
-        // A turn sent to a piece that follows the body glides instead of snapping.
-        display.setTeleportDuration(3);
+        // Left at 0 on purpose. Teleport duration smooths a piece's own
+        // position and rotation over that many ticks, and a piece riding a
+        // player is repositioned by the ride every tick: at 3 the whole aura
+        // swam a few ticks behind the wearer while walking. Only looks that
+        // turn with the body want it, and AuraManager sets it for those.
+        display.setTeleportDuration(0);
         display.setTransformation(pose);
         display.getPersistentDataContainer().set(tag, PersistentDataType.BYTE, (byte) 1);
     }
@@ -144,6 +208,46 @@ public final class AuraParts {
     public static Transformation atScaled(float x, float y, float z, Quaternionf rotation,
                                           float sx, float sy, float sz) {
         return new Transformation(new Vector3f(x, y, z), rotation, new Vector3f(sx, sy, sz), new Quaternionf());
+    }
+
+    /** The pose a matrix piece is spawned with; the matrix replaces it a line later. */
+    private static final Transformation EMPTY =
+            new Transformation(new Vector3f(), new Quaternionf(), new Vector3f(1f, 1f, 1f), new Quaternionf());
+
+    /**
+     * The matrix that turns the painted background of a one space text
+     * display into a one by one square with its bottom left on the origin.
+     *
+     * That background is 0.125 blocks wide and 0.25 high, sitting from
+     * -0.05 to 0.075 across and from 0 to 0.25 up, so eight across and four
+     * up lands it on the unit square. Everything {@link #plate} draws is
+     * this square with a matrix in front of it.
+     */
+    public static final Matrix4f UNIT_QUAD = new Matrix4f().translate(0.4f, 0f, 0f).scale(8f, 4f, 1f);
+
+    /** A {@code width} by {@code height} plate centred on (x, y, z) and turned by {@code rotation}. */
+    public static Matrix4f plate(float x, float y, float z, Quaternionf rotation, float width, float height) {
+        return new Matrix4f().translate(x, y, z).rotate(rotation)
+                .scale(width, height, 1f).translate(-0.5f, -0.5f, 0f).mul(UNIT_QUAD);
+    }
+
+    /** A block model centred on (x, y, z), turned by {@code rotation} and stretched on each axis. */
+    public static Matrix4f box(float x, float y, float z, Quaternionf rotation, float sx, float sy, float sz) {
+        return new Matrix4f().translate(x, y, z).rotate(rotation)
+                .scale(sx, sy, sz).translate(-0.5f, -0.5f, -0.5f);
+    }
+
+    /** {@link #move} for a piece posed by a matrix. */
+    public static void moveTo(Display display, Matrix4f matrix, int ticks) {
+        display.setInterpolationDelay(0);
+        display.setInterpolationDuration(ticks);
+        display.setTransformationMatrix(rider(display) instanceof Player player
+                ? withPlayerSize(player, matrix) : matrix);
+    }
+
+    /** Who a piece is riding, so a move can be scaled to them the way the spawn was. */
+    private static org.bukkit.entity.Entity rider(Display display) {
+        return display.getVehicle();
     }
 
     /** Standing up, turned about the vertical axis. */
@@ -180,11 +284,17 @@ public final class AuraParts {
         }
     }
 
-    /** Sends a new pose that the client glides to over {@code ticks}; 0 snaps. */
+    /**
+     * Sends a new pose that the client glides to over {@code ticks}; 0 snaps.
+     * The wearer's own size is put back on, because a pose comes from the
+     * look and knows nothing about who is wearing it; without this a /size
+     * player's aura sprang back to normal on its first move.
+     */
     public static void move(Display display, Transformation pose, int ticks) {
         display.setInterpolationDelay(0);
         display.setInterpolationDuration(ticks);
-        display.setTransformation(pose);
+        display.setTransformation(rider(display) instanceof Player player
+                ? withPlayerSize(player, pose) : pose);
     }
 
     /** Halfway between a colour and warm near-white, for a second, softer layer. */

@@ -5878,18 +5878,22 @@ auras:
     max-nearby: 1
     radius: 32
     fallback: galaxy-grand
+  # What a tag of each rarity wears. The four below are the signature
+  # looks: rings, flames and columns painted in the rarity's own colour
+  # rather than star glyphs round a sea lantern. /rngadmin auratest list
+  # shows every look there is, and any of them can be named here.
   tag:
     EPIC:
-      concept: runes
+      concept: sigil
       accent: none
     LEGENDARY:
-      concept: galaxy-grand
-      accent: sparkle
+      concept: ember
+      accent: embers
     MYTHICAL:
-      concept: singularity-lite
+      concept: eclipse
       accent: trails
     DIVINE:
-      concept: atom-grand
+      concept: ascend
       accent: all
 
 # =====================================================================

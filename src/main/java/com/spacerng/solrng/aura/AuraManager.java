@@ -49,10 +49,10 @@ public final class AuraManager {
 
     // What each tag rarity wears when config says nothing: concept, accent.
     private static final Map<Rarity, String[]> DEFAULT_TAG_AURAS = new EnumMap<>(Map.of(
-            Rarity.EPIC, new String[]{"runes", "none"},
-            Rarity.LEGENDARY, new String[]{"galaxy-grand", "sparkle"},
-            Rarity.MYTHICAL, new String[]{"singularity-lite", "trails"},
-            Rarity.DIVINE, new String[]{"atom-grand", "all"}));
+            Rarity.EPIC, new String[]{"sigil", "none"},
+            Rarity.LEGENDARY, new String[]{"ember", "embers"},
+            Rarity.MYTHICAL, new String[]{"eclipse", "trails"},
+            Rarity.DIVINE, new String[]{"ascend", "all"}));
 
     private static final class Worn {
         final String key;
@@ -358,7 +358,18 @@ public final class AuraManager {
                 }
                 if (!mounted(player, aura)) {
                     noteRemount(player, aura);
-                    mount(player, aura);
+                    // Pieces that are only no longer riding go straight back
+                    // on; rebuilding the whole look for them threw away every
+                    // piece's place in its orbit and made the aura jump.
+                    if (remountable(player, aura)) {
+                        for (Display display : aura.displays) player.addPassenger(display);
+                    } else {
+                        mount(player, aura);
+                        // Rebuilt pieces stand in the pose spawn() draws,
+                        // which is frame 0, so the count starts over with them.
+                        frame = 0;
+                        aura.frame = 1;
+                    }
                 }
                 aura.concept.tick(aura.displays, frame);
                 // A look that hangs off the back turns with the body. A mounted
@@ -479,11 +490,31 @@ public final class AuraManager {
         return true;
     }
 
+    /**
+     * Whether the pieces only fell off and can be put straight back on. A
+     * teleport and another plugin clearing passengers both leave every piece
+     * alive and standing where it was, and re-adding it carries it back to
+     * the player without disturbing the look. Only a piece that is gone, or
+     * in another world, forces the look to be built again.
+     */
+    private boolean remountable(Player player, Worn aura) {
+        if (aura.displays.isEmpty()) return false;
+        for (Display display : aura.displays) {
+            if (!display.isValid() || !display.getWorld().equals(player.getWorld())) return false;
+        }
+        return true;
+    }
+
     /** Rebuilds every piece at the player and mounts it; also how an aura comes back after a death or teleport. */
     private void mount(Player player, Worn aura) {
         despawn(aura);
         List<Display> displays = aura.concept.spawn(player, parts);
+        // Only a look that hangs off the body is sent turns of its own, and
+        // only those want them smoothed. Every other piece leaves teleport
+        // duration at 0 so it sits exactly where the wearer is.
+        boolean follows = aura.concept.followsBody();
         for (Display display : displays) {
+            if (follows) display.setTeleportDuration(3);
             player.addPassenger(display);
         }
         aura.displays = displays;

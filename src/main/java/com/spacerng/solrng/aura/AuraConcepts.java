@@ -57,6 +57,8 @@ public final class AuraConcepts {
 
     static {
         Map<String, String> d = new LinkedHashMap<>();
+        // First in the list because these are the four a tag actually wears.
+        SignatureConcepts.describe(d);
         d.put("orbit", "two star rings, waist and shoulders, turning opposite ways");
         d.put("runes", "six runes flat round the feet, four smaller ones inside");
         d.put("halo", "a ring of six stars just above the head");
@@ -115,6 +117,8 @@ public final class AuraConcepts {
             case "ascendant" -> new Combined(new Cubes(block(rarity)), new Halo(color));
             case "stellar" -> new Combined(new Shards(gem(rarity)), new RuneRing(color), new Halo(color));
             default -> {
+                AuraConcept signature = SignatureConcepts.create(key, rarity, color);
+                if (signature != null) yield signature;
                 AuraConcept display = DisplayConcepts.create(key, rarity, color);
                 yield display != null ? display : GrandConcepts.create(key, rarity, color);
             }

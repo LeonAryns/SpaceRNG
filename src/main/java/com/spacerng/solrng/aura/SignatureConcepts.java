@@ -1,0 +1,488 @@
+package com.spacerng.solrng.aura;
+
+import com.spacerng.solrng.rarity.Rarity;
+import org.bukkit.Color;
+import org.bukkit.Material;
+import org.bukkit.entity.Display;
+import org.bukkit.entity.Player;
+import org.bukkit.util.Vector;
+import org.joml.Matrix4f;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import static com.spacerng.solrng.aura.AuraParts.FEET;
+import static com.spacerng.solrng.aura.AuraParts.RIDE;
+import static com.spacerng.solrng.aura.AuraParts.moveTo;
+import static com.spacerng.solrng.aura.AuraParts.rad;
+import static com.spacerng.solrng.aura.AuraParts.softer;
+
+/**
+ * The signature look of each rarity, and the pieces they are built from.
+ *
+ * Every other look in this plugin is drawn with star glyphs and item
+ * models. Both have a hard limit: a glyph takes any colour but is always
+ * the shape of a star, and an item model is any shape but only ever the
+ * colours Mojang painted on it. So a Legendary aura ended up as orange
+ * stars around a sea lantern that is not orange at all.
+ *
+ * These looks are drawn with plates instead: the painted background of a
+ * text display holding a single space, which is a rectangle in any RGB at
+ * any transparency, with a matrix deciding where that rectangle goes. A
+ * ring is a polygon of them, a flame is one standing on its end, a column
+ * of light is one that turns to face whoever is looking. Colour and shape
+ * at the same time, which is what the other looks never had.
+ *
+ * Cost sits where the grand looks put it: a ring only sends updates while
+ * it turns, and a ring drawn full and still sends none at all after it is
+ * built.
+ */
+final class SignatureConcepts {
+
+    private SignatureConcepts() {
+    }
+
+    static void describe(Map<String, String> d) {
+        d.put("sigil", "a broken circle turning over a still one, with four spokes");
+        d.put("ember", "two circles on the floor and six flames breathing at the waist");
+        d.put("eclipse", "a ring standing round the body, sweeping over a wide floor");
+        d.put("ascend", "a slanted orbit, a column of light and a lantern atom");
+        d.put("signature", "whichever of the four painted looks the rarity wears");
+    }
+
+    static AuraConcept create(String key, Rarity rarity, Color color) {
+        return switch (key) {
+            case "sigil" -> sigil(color);
+            case "ember" -> ember(color);
+            case "eclipse" -> eclipse(color);
+            case "ascend" -> ascend(color);
+            case "signature" -> forRarity(rarity, color);
+            default -> null;
+        };
+    }
+
+    /** The look a rarity wears when nothing else is chosen. */
+    static AuraConcept forRarity(Rarity rarity, Color color) {
+        return switch (rarity) {
+            case DIVINE -> ascend(color);
+            case MYTHICAL -> eclipse(color);
+            case LEGENDARY -> ember(color);
+            default -> sigil(color);
+        };
+    }
+
+    // ----------------------------------------------------------- the four looks
+
+    /**
+     * Epic, the smallest of the four and the only one that stays inside two
+     * blocks. A broken circle turning one way over a still, fainter circle,
+     * with four spokes crossing between them the other way. Nothing above
+     * the waist, so an Epic tag reads as a mark on the floor rather than as
+     * something worn.
+     */
+    private static AuraConcept sigil(Color color) {
+        Color soft = softer(color);
+        return new AuraConcepts.Combined(
+                new PlateRing(color, 235, FEET + 0.02f, 1.35f, 8, 0.09f, 0.55f, 0f, 3, 7.5, 0.0),
+                new PlateRing(soft, 150, FEET + 0.01f, 0.90f, 14, 0.05f, 1.0f, 0f, 0, 0.0, 0.0),
+                new Spokes(color, 200, FEET + 0.03f, 0.95f, 1.30f, 4, 0.06f, 4, -6.0));
+    }
+
+    /**
+     * Legendary. Two circles on the floor, the outer one broken and turning,
+     * six flames standing round the waist that rise and fall in turn so the
+     * wave runs round the body, and a small broken halo over the head.
+     */
+    private static AuraConcept ember(Color color) {
+        Color soft = softer(color);
+        return new AuraConcepts.Combined(
+                new PlateRing(color, 240, FEET + 0.01f, 1.95f, 16, 0.11f, 1.0f, 0f, 0, 0.0, 0.0),
+                new PlateRing(soft, 170, FEET + 0.02f, 2.55f, 10, 0.07f, 0.5f, 0f, 3, 5.0, 0.0),
+                new Petals(color, 200, -1.15f, 1.05f, 6, 0.34f, 1.15f, 18f, 5, 12),
+                new PlateRing(soft, 210, 0.26f, 0.62f, 8, 0.05f, 0.5f, 0f, 4, 18.0, 0.0));
+    }
+
+    /**
+     * Mythical. A ring nearly four blocks across standing upright around the
+     * wearer, swinging round them like a gyroscope while its own gaps travel
+     * the other way, over a wide floor circle. One nether star hangs at the
+     * chest with a red outline, so a Mythical tag is recognisable through a
+     * wall, which is most of the reason to wear one.
+     */
+    private static AuraConcept eclipse(Color color) {
+        Color soft = softer(color);
+        return new AuraConcepts.Combined(
+                new PlateRing(color, 225, -0.75f, 1.90f, 18, 0.10f, 0.72f, 90f, 4, 8.0, 4.0),
+                new PlateRing(color, 240, FEET + 0.01f, 2.40f, 16, 0.12f, 1.0f, 0f, 0, 0.0, 0.0),
+                new PlateRing(soft, 160, FEET + 0.02f, 3.00f, 12, 0.07f, 0.45f, 0f, 4, -6.0, 0.0),
+                new Core(Material.NETHER_STAR, color, -0.55f, 0.55f));
+    }
+
+    /**
+     * Divine. Three circles on the floor, a slanted orbit two and a half
+     * blocks out that never lies in the same plane twice, a column of light
+     * standing seven blocks up through the wearer, and the sea lantern atom
+     * the old Divine look was built round, kept because it is the one piece
+     * with real depth to it.
+     */
+    private static AuraConcept ascend(Color color) {
+        Color soft = softer(color);
+        return new AuraConcepts.Combined(
+                new PlateRing(color, 240, FEET + 0.01f, 2.30f, 16, 0.13f, 1.0f, 0f, 0, 0.0, 0.0),
+                new PlateRing(soft, 165, FEET + 0.02f, 3.30f, 12, 0.08f, 0.45f, 0f, 4, 5.0, 0.0),
+                new PlateRing(soft, 120, FEET + 0.03f, 4.10f, 10, 0.06f, 0.35f, 0f, 8, -5.5, 0.0),
+                new PlateRing(color, 215, -0.85f, 2.55f, 14, 0.09f, 0.8f, 25f, 5, 9.0, 5.0),
+                new Column(color, -1.70f, 7.0f, 1.15f, 0.30f, 55, 150),
+                new AuraConcepts.SolidAtom(Material.SEA_LANTERN, -0.70f, 1.45f, 0.42f, false, 0, 2, 20.0));
+    }
+
+    // -------------------------------------------------------------- plate ring
+
+    /**
+     * A ring drawn as a polygon of painted plates. Each plate lies in the
+     * ring's plane with its long side along the circle and its short side
+     * across it, so the ring is a band of solid colour.
+     *
+     * A coverage under 1 leaves gaps between the plates, and that is what
+     * makes a turn visible at all: a full ring of sixteen plates looks
+     * exactly the same at every angle, so turning it reads as nothing. A
+     * full ring is therefore left still, which also costs nothing to run.
+     *
+     * Tilt stands the plane up, 0 flat and 90 upright, and precess swings
+     * that standing plane round the wearer, which is the one motion in the
+     * plugin that cannot be mistaken for any other look.
+     */
+    static final class PlateRing implements AuraConcept {
+        private final Color color;
+        private final int alpha;
+        private final float y;
+        private final float radius;
+        private final int segments;
+        private final float thickness;
+        private final float tilt;
+        private final int every;
+        private final double spin;
+        private final double precess;
+        private final float chord;
+
+        /**
+         * @param every   frames between moves, 0 for a ring that never moves
+         * @param spin    degrees per move round the ring's own axis
+         * @param precess degrees per move that the plane itself swings round
+         */
+        PlateRing(Color color, int alpha, float y, float radius, int segments, float thickness,
+                  float coverage, float tilt, int every, double spin, double precess) {
+            this.color = color;
+            this.alpha = alpha;
+            this.y = y;
+            this.radius = radius;
+            this.segments = segments;
+            this.thickness = thickness;
+            this.tilt = tilt;
+            this.every = every;
+            this.spin = spin;
+            this.precess = precess;
+            this.chord = (float) (2.0 * radius * Math.sin(Math.PI / segments)) * coverage;
+        }
+
+        @Override
+        public boolean lowToGround() {
+            // A flat ring at the feet stays out of the wearer's own view; a
+            // standing or slanted one crosses it and counts as worn.
+            return tilt == 0f && y < FEET + 0.5f;
+        }
+
+        @Override
+        public List<Display> spawn(Player player, AuraParts parts) {
+            List<Display> displays = new ArrayList<>();
+            for (int i = 0; i < segments; i++) {
+                displays.add(parts.plate(player, color, alpha, pose(i, 0)));
+            }
+            return displays;
+        }
+
+        @Override
+        public void tick(List<Display> displays, long frame) {
+            if (every == 0 || frame % every != 0) return;
+            long n = frame / every + 1;
+            for (int i = 0; i < segments; i++) {
+                moveTo(displays.get(i), pose(i, n), every * 2);
+            }
+        }
+
+        @Override
+        public void stars(long frame, List<Vector> out) {
+            double steps = every == 0 ? 0 : (double) frame / every;
+            Quaternionf plane = plane(steps);
+            for (int i = 0; i < segments; i++) {
+                Vector3f p = plane.transform(onCircle(radius, angle(i, steps)));
+                out.add(new Vector(p.x, RIDE + y + p.y, p.z));
+            }
+        }
+
+        private double angle(int i, double steps) {
+            return Math.toRadians(360.0 / segments * i + spin * steps);
+        }
+
+        /** The ring's plane: tipped up by tilt, then swung by however far it has precessed. */
+        private Quaternionf plane(double steps) {
+            return new Quaternionf().rotateY(rad(precess * steps)).rotateX(rad(tilt));
+        }
+
+        private Matrix4f pose(int i, double steps) {
+            double a = angle(i, steps);
+            Quaternionf plane = plane(steps);
+            Vector3f p = plane.transform(onCircle(radius, a));
+            // Turned along the circle, then laid flat so the plate's face
+            // points out of the ring's plane, with the plane's own turn on top.
+            Quaternionf turn = new Quaternionf(plane).rotateY((float) a + rad(90)).rotateX(rad(-90));
+            return AuraParts.plate(p.x, y + p.y, p.z, turn, chord, thickness);
+        }
+    }
+
+    // ------------------------------------------------------------------ spokes
+
+    /** Short plates lying flat and pointing outward, from one radius to another. */
+    static final class Spokes implements AuraConcept {
+        private final Color color;
+        private final int alpha;
+        private final float y;
+        private final float from;
+        private final float to;
+        private final int count;
+        private final float width;
+        private final int every;
+        private final double spin;
+
+        Spokes(Color color, int alpha, float y, float from, float to, int count, float width,
+               int every, double spin) {
+            this.color = color;
+            this.alpha = alpha;
+            this.y = y;
+            this.from = from;
+            this.to = to;
+            this.count = count;
+            this.width = width;
+            this.every = every;
+            this.spin = spin;
+        }
+
+        @Override
+        public boolean lowToGround() {
+            return true;
+        }
+
+        @Override
+        public List<Display> spawn(Player player, AuraParts parts) {
+            List<Display> displays = new ArrayList<>();
+            for (int i = 0; i < count; i++) {
+                displays.add(parts.plate(player, color, alpha, pose(i, 0)));
+            }
+            return displays;
+        }
+
+        @Override
+        public void tick(List<Display> displays, long frame) {
+            if (every == 0 || frame % every != 0) return;
+            long n = frame / every + 1;
+            for (int i = 0; i < count; i++) {
+                moveTo(displays.get(i), pose(i, n), every * 2);
+            }
+        }
+
+        private Matrix4f pose(int i, double steps) {
+            double a = Math.toRadians(360.0 / count * i + spin * steps);
+            Vector3f p = onCircle((from + to) / 2.0, a);
+            // The long side runs outward, so this is a quarter turn short of
+            // where a ring segment at the same angle would sit.
+            Quaternionf turn = new Quaternionf().rotateY((float) a).rotateX(rad(-90));
+            return AuraParts.plate(p.x, y, p.z, turn, to - from, width);
+        }
+    }
+
+    // ------------------------------------------------------------------ petals
+
+    /**
+     * Plates standing on their ends round a circle, faces pointing outward
+     * and tipped a little back, rising and falling one after another so the
+     * wave runs round the body. Flames in the aura's own colour, which no
+     * fire particle can be.
+     */
+    static final class Petals implements AuraConcept {
+        private final Color color;
+        private final int alpha;
+        private final float y;
+        private final float radius;
+        private final int count;
+        private final float width;
+        private final float height;
+        private final float lean;
+        private final int every;
+        private final int period;
+
+        /** @param period steps in one full wave round the ring */
+        Petals(Color color, int alpha, float y, float radius, int count, float width, float height,
+               float lean, int every, int period) {
+            this.color = color;
+            this.alpha = alpha;
+            this.y = y;
+            this.radius = radius;
+            this.count = count;
+            this.width = width;
+            this.height = height;
+            this.lean = lean;
+            this.every = every;
+            this.period = period;
+        }
+
+        @Override
+        public List<Display> spawn(Player player, AuraParts parts) {
+            List<Display> displays = new ArrayList<>();
+            for (int i = 0; i < count; i++) {
+                displays.add(parts.plate(player, color, alpha, pose(i, 0)));
+            }
+            return displays;
+        }
+
+        @Override
+        public void tick(List<Display> displays, long frame) {
+            if (frame % every != 0) return;
+            long n = frame / every + 1;
+            for (int i = 0; i < count; i++) {
+                moveTo(displays.get(i), pose(i, n), every * 2);
+            }
+        }
+
+        @Override
+        public void stars(long frame, List<Vector> out) {
+            double steps = (double) frame / every;
+            for (int i = 0; i < count; i++) {
+                Vector3f p = onCircle(radius, Math.toRadians(360.0 / count * i));
+                out.add(new Vector(p.x, RIDE + y + height * tall(i, steps) * 0.5f, p.z));
+            }
+        }
+
+        /** How tall this petal stands now: a sine a fraction of a turn behind the one before it. */
+        private float tall(int i, double steps) {
+            double phase = steps / period + (double) i / count;
+            return (float) (0.62 + 0.38 * Math.sin(phase * Math.PI * 2));
+        }
+
+        private Matrix4f pose(int i, double steps) {
+            double a = Math.toRadians(360.0 / count * i);
+            Vector3f p = onCircle(radius, a);
+            float h = height * tall(i, steps);
+            // Facing outward, then tipped so the top leans away from the body.
+            Quaternionf turn = new Quaternionf().rotateY((float) a + rad(90)).rotateX(rad(lean));
+            return AuraParts.plate(p.x, y + h / 2f, p.z, turn, width, h);
+        }
+    }
+
+    // ------------------------------------------------------------------ column
+
+    /**
+     * A column of light standing through the wearer: a wide faint plate with
+     * a bright narrow one inside it, both set to turn with whoever is
+     * looking, so the column is never seen edge on and never has to be moved
+     * to keep facing anybody. It breathes, and that is all it does.
+     */
+    static final class Column implements AuraConcept {
+        private static final int EVERY = 8;
+        private final Color color;
+        private final float from;
+        private final float height;
+        private final float wide;
+        private final float core;
+        private final int outerAlpha;
+        private final int coreAlpha;
+
+        Column(Color color, float from, float height, float wide, float core,
+               int outerAlpha, int coreAlpha) {
+            this.color = color;
+            this.from = from;
+            this.height = height;
+            this.wide = wide;
+            this.core = core;
+            this.outerAlpha = outerAlpha;
+            this.coreAlpha = coreAlpha;
+        }
+
+        @Override
+        public List<Display> spawn(Player player, AuraParts parts) {
+            List<Display> displays = new ArrayList<>();
+            displays.add(facing(parts.plate(player, color, outerAlpha, pose(wide, 0))));
+            displays.add(facing(parts.plate(player, softer(color), coreAlpha, pose(core, 0))));
+            return displays;
+        }
+
+        /** Turning about the upright axis only, so the column stays upright at any angle. */
+        private static Display facing(Display display) {
+            display.setBillboard(Display.Billboard.VERTICAL);
+            return display;
+        }
+
+        @Override
+        public void tick(List<Display> displays, long frame) {
+            if (frame % EVERY != 0) return;
+            long n = frame / EVERY + 1;
+            moveTo(displays.get(0), pose(wide, n), EVERY * 2);
+            moveTo(displays.get(1), pose(core, n), EVERY * 2);
+        }
+
+        private Matrix4f pose(float width, double steps) {
+            float breath = (float) (0.88 + 0.12 * Math.sin(steps / 9.0 * Math.PI * 2));
+            return AuraParts.plate(0f, from + height / 2f, 0f, new Quaternionf(), width * breath, height);
+        }
+    }
+
+    // -------------------------------------------------------------------- core
+
+    /**
+     * One item held at the chest, turned to whoever is looking and outlined
+     * in the aura's colour, so the wearer is picked out through a wall. Kept
+     * to a single piece on purpose: an outline is the loudest thing a
+     * display can do, and a room full of them would be unreadable.
+     */
+    static final class Core implements AuraConcept {
+        private static final int EVERY = 5;
+        private final Material material;
+        private final Color color;
+        private final float y;
+        private final float scale;
+
+        Core(Material material, Color color, float y, float scale) {
+            this.material = material;
+            this.color = color;
+            this.y = y;
+            this.scale = scale;
+        }
+
+        @Override
+        public List<Display> spawn(Player player, AuraParts parts) {
+            return List.of(AuraParts.glowing(
+                    parts.item(player, material, AuraParts.pose(y, new Quaternionf(), scale), true), color));
+        }
+
+        @Override
+        public void tick(List<Display> displays, long frame) {
+            if (frame % EVERY != 0) return;
+            long n = frame / EVERY + 1;
+            float breath = (float) (1.0 + 0.12 * Math.sin(n / 8.0 * Math.PI * 2));
+            AuraParts.move(displays.get(0),
+                    AuraParts.pose(y, new Quaternionf(), scale * breath), EVERY * 2);
+        }
+
+        @Override
+        public void stars(long frame, List<Vector> out) {
+            out.add(new Vector(0.0, RIDE + y, 0.0));
+        }
+    }
+
+    /** A point on a level circle, in the same convention as a display's rotateY. */
+    private static Vector3f onCircle(double radius, double angle) {
+        return new Vector3f((float) (radius * Math.cos(angle)), 0f, (float) (-radius * Math.sin(angle)));
+    }
+}

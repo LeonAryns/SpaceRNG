@@ -218,7 +218,16 @@ public final class ConfigMigrator {
                             "<white>the tier ladder for huge bonuses"),
                     List.of("<white>Forge <#F48FB1>Nova Cores</#F48FB1> to climb 20 tiers",
                             "<white>Every tier multiplies <#81C784>Luck</#81C784>, <#81C784>Money</#81C784> and <#FFD54F>Coins</#FFD54F>",
-                            "<white>More Luck means better odds per forge")));
+                            "<white>More Luck means better odds per forge")),
+            // V174: every rarity got a look of its own, painted in its own
+            // colour instead of star glyphs round a sea lantern. These run
+            // after the V118 and V121 patches above, so a server still on a
+            // pre-V118 value is carried the whole way.
+            new Patch("tag-aura-epic-sigil", "auras.tag.EPIC.concept", "runes", "sigil"),
+            new Patch("tag-aura-legendary-ember", "auras.tag.LEGENDARY.concept", "galaxy-grand", "ember"),
+            new Patch("tag-aura-legendary-embers", "auras.tag.LEGENDARY.accent", "sparkle", "embers"),
+            new Patch("tag-aura-mythical-eclipse", "auras.tag.MYTHICAL.concept", "singularity-lite", "eclipse"),
+            new Patch("tag-aura-divine-ascend", "auras.tag.DIVINE.concept", "atom-grand", "ascend"));
 
     // V159: every hoe enchant runs to level 10,000, except Credit Finder,
     // which stays at 1,000 because it pays Credits.
