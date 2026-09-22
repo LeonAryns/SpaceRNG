@@ -27,6 +27,7 @@ import static com.spacerng.solrng.aura.AuraParts.pairStars;
 import static com.spacerng.solrng.aura.AuraParts.pose;
 import static com.spacerng.solrng.aura.AuraParts.rad;
 import static com.spacerng.solrng.aura.AuraParts.single;
+import static com.spacerng.solrng.aura.AuraParts.singleBack;
 import static com.spacerng.solrng.aura.AuraParts.softer;
 import static com.spacerng.solrng.aura.AuraParts.tilted;
 import static com.spacerng.solrng.aura.AuraParts.upright;
@@ -183,6 +184,9 @@ public final class AuraConcepts {
         };
     }
 
+    /** Front then back, for a piece that has to be drawn for both of its faces. */
+    private static final boolean[] BOTH = {false, true};
+
     /** Every {@code every} frames, the step count since spawn, wrapped to a full turn of 120 degree steps. */
     private static int step(long frame, int every) {
         return (int) ((frame / every + 1) % 3);
@@ -209,17 +213,25 @@ public final class AuraConcepts {
 
         @Override
         public List<Display> spawn(Player player, AuraParts parts) {
+            // Two cards each, one per face: a card standing up is not drawn
+            // at all from behind, so half the ring would go missing.
             return List.of(
-                    parts.text(player, pair("✦", 8), color, upright(WAIST, 0f, 2.0f)),
-                    parts.text(player, pair("✦", 8), soft, upright(SHOULDER, rad(90), 1.6f)));
+                    parts.text(player, pair("✦", 8), color, upright(WAIST, 0f, 2.0f), false),
+                    parts.text(player, pair("✦", 8), color, upright(WAIST, 0f, 2.0f), true),
+                    parts.text(player, pair("✦", 8), soft, upright(SHOULDER, rad(90), 1.6f), false),
+                    parts.text(player, pair("✦", 8), soft, upright(SHOULDER, rad(90), 1.6f), true));
         }
 
         @Override
         public void tick(List<Display> displays, long frame) {
             if (frame % 10 != 0) return;
             int step = step(frame, 10);
-            move(displays.get(0), upright(WAIST, rad(120 * step), 2.0f), 20);
-            move(displays.get(1), upright(SHOULDER, rad(90 - 120 * step), 1.6f), 20);
+            Transformation waist = upright(WAIST, rad(120 * step), 2.0f);
+            Transformation shoulder = upright(SHOULDER, rad(90 - 120 * step), 1.6f);
+            move(displays.get(0), waist, 20);
+            move(displays.get(1), AuraParts.flipped(waist), 20);
+            move(displays.get(2), shoulder, 20);
+            move(displays.get(3), AuraParts.flipped(shoulder), 20);
         }
 
         @Override
@@ -342,9 +354,14 @@ public final class AuraConcepts {
 
         @Override
         public List<Display> spawn(Player player, AuraParts parts) {
+            // Two cards per star, one per face. The back card carries its
+            // glyph on the other side of its own text, because the half turn
+            // that shows the back also swaps left for right.
             return List.of(
-                    parts.text(player, single("✦", 9), color, upright(heightAt(0), 0f, 1.8f)),
-                    parts.text(player, single("✦", 9), soft, upright(heightAt(LEGS), rad(180), 1.8f)));
+                    parts.text(player, single("✦", 9), color, upright(heightAt(0), 0f, 1.8f), false),
+                    parts.text(player, singleBack("✦", 9), color, upright(heightAt(0), 0f, 1.8f), true),
+                    parts.text(player, single("✦", 9), soft, upright(heightAt(LEGS), rad(180), 1.8f), false),
+                    parts.text(player, singleBack("✦", 9), soft, upright(heightAt(LEGS), rad(180), 1.8f), true));
         }
 
         @Override
@@ -352,8 +369,12 @@ public final class AuraConcepts {
             if (frame % 10 != 0) return;
             long n = frame / 10 + 1;
             int turn = (int) (n % 3);
-            move(displays.get(0), upright(heightAt(n), rad(120 * turn), 1.8f), 20);
-            move(displays.get(1), upright(heightAt(n + LEGS), rad(180 + 120 * turn), 1.8f), 20);
+            Transformation lead = upright(heightAt(n), rad(120 * turn), 1.8f);
+            Transformation trail = upright(heightAt(n + LEGS), rad(180 + 120 * turn), 1.8f);
+            move(displays.get(0), lead, 20);
+            move(displays.get(1), AuraParts.flipped(lead), 20);
+            move(displays.get(2), trail, 20);
+            move(displays.get(3), AuraParts.flipped(trail), 20);
         }
 
         /** A triangle wave: LEGS steps up, LEGS steps down. */
@@ -489,8 +510,16 @@ public final class AuraConcepts {
             List<Display> displays = new ArrayList<>();
             for (int k = 0; k < 3; k++) {
                 Color tint = k == 1 ? soft : color;
-                displays.add(parts.text(player, pair("✦", 7), tint, tilted(CHEST, TILTS[k], 0f, 1.7f)));
-                displays.add(parts.text(player, pair("✦", 7), tint, crossed(k, 0f)));
+                // Four cards per orbit: two crossed planes, each drawn for
+                // both of its faces. Two planes alone leave a quarter of the
+                // directions you can stand in with nothing facing you, which
+                // is what made the atom fade in and out as you walked round.
+                for (boolean back : BOTH) {
+                    displays.add(parts.text(player, pair("✦", 7), tint, tilted(CHEST, TILTS[k], 0f, 1.7f), back));
+                }
+                for (boolean back : BOTH) {
+                    displays.add(parts.text(player, pair("✦", 7), tint, crossed(k, 0f), back));
+                }
             }
             return displays;
         }
@@ -502,8 +531,12 @@ public final class AuraConcepts {
             for (int k = 0; k < 3; k++) {
                 // The middle orbit runs the other way, so the three never line up.
                 float angle = rad(direction(k) * 120 * step);
-                move(displays.get(k * 2), tilted(CHEST, TILTS[k], angle, 1.7f), 20);
-                move(displays.get(k * 2 + 1), crossed(k, angle), 20);
+                Transformation plane = tilted(CHEST, TILTS[k], angle, 1.7f);
+                Transformation cross = crossed(k, angle);
+                move(displays.get(k * 4), plane, 20);
+                move(displays.get(k * 4 + 1), AuraParts.flipped(plane), 20);
+                move(displays.get(k * 4 + 2), cross, 20);
+                move(displays.get(k * 4 + 3), AuraParts.flipped(cross), 20);
             }
         }
 

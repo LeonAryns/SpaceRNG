@@ -5,7 +5,7 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V177**, 23 September 2026.
+Last updated at **V178**, 23 September 2026.
 
 ## The agreed way of working
 
@@ -63,7 +63,7 @@ payout line (layout fixed in V157).
 
 A "no" on any of them is the next thing to fix, and only that.
 
-## The auras, V174 to V177, the current subject
+## The auras, V174 to V178, the current subject
 
 Leon said on 22 September that the auratest looked a lot worse than it
 used to, and asked for the best look each rarity can have, using
@@ -135,6 +135,20 @@ They are turned to look outward along their own radius now, with no
 billboard, which is also what stops them going thin edge on. Only a piece
 standing on the wearer's own axis can be billboarded, and only VERTICAL,
 which leaves the upright axis alone.
+
+**V178: the same one sided rule caught the old star looks.** Three of
+them draw their glyph cards on a plane that is not flat: `orbit` and
+`helix` stand theirs upright, `atom` slants its three. Every one of those
+cards was missing from behind. `atom` has claimed to be "solid from any
+side" since V107 and was not: two crossed planes still leave a quarter of
+the directions you can stand in with nothing facing you, which reads as
+the atom fading in and out as you walk round it. All three draw both
+faces now, so `celestial`, `seraph`, `cosmos` and `atom-hybrid` come
+right with them. Every other star look lies flat at the feet and was
+fine. The back of a `pair` card is the same card turned about its own
+upright axis; the back of a `single` card also needs `singleBack`, which
+moves the glyph to the other side of its own text so the turn puts it
+back where it was.
 
 **Found and deliberately not changed:** `TagManager.spawnLine` has the
 same pattern. The floating tag rides the player with billboard CENTER and

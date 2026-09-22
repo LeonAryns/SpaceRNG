@@ -67,6 +67,29 @@ public final class AuraParts {
         });
     }
 
+    /**
+     * The same glyph card, drawn for the other side when {@code back} is
+     * set. A text display exists on one face only, so a card standing up or
+     * slanted is simply not there from behind. The half turn is about the
+     * card's own upright axis, which leaves it in exactly the same plane
+     * and swaps which way it looks; the two are left touching, because only
+     * one of them is ever drawn.
+     *
+     * A pair of glyphs is symmetric, so the turn puts them back where they
+     * were. A single glyph is not, and wants {@link #singleBack} to move it
+     * to the other side of its own text first.
+     */
+    public TextDisplay text(Player player, String text, Color color, Transformation pose, boolean back) {
+        return text(player, text, color, back ? flipped(pose) : pose);
+    }
+
+    /** The same pose spun a half turn about the piece's own upright axis. */
+    public static Transformation flipped(Transformation pose) {
+        return new Transformation(new Vector3f(pose.getTranslation()),
+                new Quaternionf(pose.getLeftRotation()).rotateY((float) Math.PI),
+                new Vector3f(pose.getScale()), new Quaternionf(pose.getRightRotation()));
+    }
+
     /** A fullbright item or block model, centred on its own origin so it can tumble in place. */
     public ItemDisplay item(Player player, Material material, Transformation pose) {
         Transformation scaled = withPlayerSize(player, pose);
@@ -201,6 +224,16 @@ public final class AuraParts {
     /** One glyph pushed n spaces off the axis. */
     public static String single(String glyph, int spaces) {
         return glyph + " ".repeat(spaces);
+    }
+
+    /**
+     * The same glyph pushed the same distance the other way. Turning a card
+     * a half turn to show its back also swaps left for right, so the back of
+     * a {@link #single} card carries this instead and the glyph lands where
+     * it started.
+     */
+    public static String singleBack(String glyph, int spaces) {
+        return " ".repeat(spaces) + glyph;
     }
 
     /** Two glyphs on opposite sides of the axis. */
