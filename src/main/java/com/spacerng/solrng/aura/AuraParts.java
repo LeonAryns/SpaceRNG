@@ -352,6 +352,27 @@ public final class AuraParts {
                 .scale(sx, sy, sz).translate(-0.5f, -0.5f, -0.5f);
     }
 
+    /**
+     * One segment of a ring lying flat: a plate in the level plane with its
+     * long side along the circle and its short side across it, so a set of
+     * them reads as a band of colour rather than as a row of marks.
+     *
+     * {@code coverage} under 1 leaves gaps, which is the only thing that
+     * makes a turn visible: a full ring of sixteen looks the same at every
+     * angle. Single faced, because a ring drawn flat is looked down on.
+     *
+     * Every circle in the plugin that is not tilted comes from here: the
+     * one under a roll, the arena round a boss, the burst out of a crate.
+     */
+    public static Matrix4f ringSegment(int segments, int i, float radius, double spinDegrees,
+                                       float y, float thickness, float coverage) {
+        double a = Math.toRadians(360.0 / segments * i + spinDegrees);
+        float chord = (float) (2.0 * radius * Math.sin(Math.PI / segments)) * coverage;
+        Quaternionf turn = new Quaternionf().rotateY((float) a + rad(90)).rotateX(rad(-90));
+        return plate((float) (radius * Math.cos(a)), y, (float) (-radius * Math.sin(a)),
+                turn, Math.max(0.001f, chord), thickness);
+    }
+
     /** {@link #move} for a piece posed by a matrix. */
     public static void moveTo(Display display, Matrix4f matrix, int ticks) {
         display.setInterpolationDelay(0);

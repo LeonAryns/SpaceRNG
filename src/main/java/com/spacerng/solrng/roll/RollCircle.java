@@ -8,7 +8,6 @@ import org.bukkit.Color;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.Player;
 import org.joml.Matrix4f;
-import org.joml.Quaternionf;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -134,17 +133,8 @@ final class RollCircle {
         }
     }
 
-    /**
-     * One segment of a ring lying flat just off the ground, its long side
-     * along the circle. Single faced on purpose: a circle at the feet is
-     * only ever looked down on, and the roller is standing on it.
-     */
+    /** One segment of the circle, just off the ground under the roller. */
     private Matrix4f ring(int segments, int i, float radius, double spin, float thickness) {
-        double a = Math.toRadians(360.0 / segments * i + spin);
-        float chord = (float) (2.0 * radius * Math.sin(Math.PI / segments)) * 0.8f;
-        float x = (float) (radius * Math.cos(a));
-        float z = (float) (-radius * Math.sin(a));
-        Quaternionf turn = new Quaternionf().rotateY((float) a + AuraParts.rad(90)).rotateX(AuraParts.rad(-90));
-        return AuraParts.plate(x, AuraParts.FEET + 0.02f, z, turn, Math.max(0.01f, chord), thickness);
+        return AuraParts.ringSegment(segments, i, radius, spin, AuraParts.FEET + 0.02f, thickness, 0.8f);
     }
 }

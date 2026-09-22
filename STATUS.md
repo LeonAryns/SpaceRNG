@@ -5,7 +5,7 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V181**, 23 September 2026.
+Last updated at **V182**, 23 September 2026.
 
 ## The agreed way of working
 
@@ -66,7 +66,7 @@ payout line (layout fixed in V157).
 
 A "no" on any of them is the next thing to fix, and only that.
 
-## The auras and the visuals, V174 to V181, the current subject
+## The auras and the visuals, V174 to V182, the current subject
 
 Leon said on 22 September that the auratest looked a lot worse than it
 used to, and asked for the best look each rarity can have, using
@@ -220,6 +220,17 @@ word. Only the segments that change are rewritten.
 anything that marks a place rather than a player draws with the same
 tagged, swept pieces. View range is given in blocks there and divided by
 64 inside, which is the unit a display actually wants.
+
+**V182: the crate and the shiny get a shape too, and the ring code stops
+being written a fourth time.** `AuraParts.ringSegment` is the one place a
+flat ring segment is worked out now; `RollCircle`, `BossCircle` and both
+of the new ones call it. A crate throws a ring outward from its top in its
+own colour when it opens, and a jackpot throws a wider one and stands a
+column of light over the block, reaching 96 blocks rather than 24, because
+a jackpot is worth somebody across the spawn turning round for. The shiny
+pre-roll closes a pale aqua ring in round the roller while the helix
+climbs and throws it out on the flash, with a timed clear so an abandoned
+roll cannot leave one standing.
 
 **Still not verifiable from outside the game, so check these first:**
 

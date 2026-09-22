@@ -1,13 +1,16 @@
 package com.spacerng.solrng.crate;
 
 import com.spacerng.solrng.SolRNGPlugin;
+import com.spacerng.solrng.aura.AuraParts;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.World;
+import org.bukkit.entity.Display;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.joml.Quaternionf;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -67,6 +70,7 @@ final class CrateFx {
                         }
                     } else if (t == RISE_TICKS) {
                         Location top = at.clone().add(0, 1.9, 0);
+                        shockwave(plugin, top, from, jackpot);
                         for (Player viewer : audience) {
                             if (!viewer.isOnline()) continue;
                             viewer.spawnParticle(Particle.FIREWORK, top, 30, 0.2, 0.2, 0.2, 0.15);
@@ -89,6 +93,43 @@ final class CrateFx {
                 t++;
             }
         }.runTaskTimer(plugin, 0L, 1L);
+    }
+
+    /**
+     * A ring thrown outward from the top of the crate in its own colour,
+     * and on a jackpot a column of light standing over it for a moment.
+     *
+     * The rest of this is particles, which do the job right on top of the
+     * block and nothing at all past twenty blocks. A shape carries. A
+     * jackpot in particular is worth somebody across the spawn turning
+     * round for, and until now there was nothing to turn round to.
+     */
+    private static void shockwave(SolRNGPlugin plugin, Location top, Color colour, boolean jackpot) {
+        AuraParts parts = plugin.getAuraManager().parts();
+        List<Display> pieces = new ArrayList<>();
+        int segments = jackpot ? 14 : 10;
+        double view = jackpot ? 96.0 : 40.0;
+        for (int i = 0; i < segments; i++) {
+            pieces.add(parts.plate(top, colour, 230, view, false,
+                    AuraParts.ringSegment(segments, i, 0.35f, 0.0, 0f, 0.14f, 0.85f)));
+        }
+        if (jackpot) {
+            // Both faces: a column standing on a crate is walked round.
+            for (boolean back : new boolean[]{false, true}) {
+                pieces.add(parts.plate(top, colour, 90, view, false,
+                        AuraParts.plate(0f, 2.6f, 0f, new Quaternionf(), 0.9f, 5.2f, back)));
+            }
+        }
+        float reach = jackpot ? 4.4f : 2.6f;
+        for (int i = 0; i < segments; i++) {
+            AuraParts.moveTo(pieces.get(i),
+                    AuraParts.ringSegment(segments, i, reach, 40.0, 0.25f, 0.05f, 0.85f), 14);
+        }
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+            for (Display piece : pieces) {
+                if (piece.isValid()) piece.remove();
+            }
+        }, jackpot ? 34L : 18L);
     }
 
     /** The crate's first or last gradient stop, when it has one. */

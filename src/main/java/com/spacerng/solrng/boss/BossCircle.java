@@ -104,13 +104,9 @@ final class BossCircle {
         }
     }
 
-    /** One segment of a ring lying flat just off the ground. */
+    /** One segment of a ring lying flat just off the ground; length 0 thins it away. */
     private Matrix4f flat(int segments, int i, float radius, double spin, float thickness, float length) {
-        double a = Math.toRadians(360.0 / segments * i + spin);
-        float chord = (float) (2.0 * radius * Math.sin(Math.PI / segments)) * 0.9f * length;
-        Quaternionf turn = new Quaternionf().rotateY((float) a + AuraParts.rad(90)).rotateX(AuraParts.rad(-90));
-        return AuraParts.plate((float) (radius * Math.cos(a)), 0.08f, (float) (-radius * Math.sin(a)),
-                turn, Math.max(0.001f, chord), thickness);
+        return AuraParts.ringSegment(segments, i, radius, spin, 0.08f, thickness, 0.9f * length);
     }
 
     /** One segment of the ring slanted round the body, drawn for both of its faces. */

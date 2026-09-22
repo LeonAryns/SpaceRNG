@@ -10,6 +10,8 @@ import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
+import com.spacerng.solrng.aura.AuraParts;
+import org.bukkit.entity.Display;
 import org.bukkit.entity.Player;
 
 import java.time.Duration;
@@ -39,6 +41,7 @@ public final class ShinyPreRoll {
     private static final double VIEW_RANGE = 10.0;
     // From here to the last frame is the hush before the flash.
     private static final double HUSH_FROM = 0.75;
+    private static final int RING_SEGMENTS = 10;
     private static final Color AQUA = Color.fromRGB(85, 255, 255);
     // Warm near-white: a pure 255,255,255 dust cloud reads as a rendering glitch.
     private static final Color PALE = Color.fromRGB(235, 255, 252);
@@ -48,6 +51,7 @@ public final class ShinyPreRoll {
     private final Particle.DustTransition strand = new Particle.DustTransition(AQUA, PALE, 1.1f);
     private final Particle.DustOptions bright = new Particle.DustOptions(PALE, 2.2f);
     private final List<Player> audience = new ArrayList<>();
+    private final List<Display> ring = new ArrayList<>();
     private int frames = 0;
     private boolean cast = false;
     private boolean failed = false;
@@ -78,6 +82,7 @@ public final class ShinyPreRoll {
             // One bad frame ends the effect instead of throwing on every
             // frame after it. The roll itself carries on regardless.
             failed = true;
+            clearRing();
             plugin.getLogger().warning("Shiny pre-roll failed: " + ex);
         }
     }
@@ -102,6 +107,45 @@ public final class ShinyPreRoll {
         }
         sound(Sound.BLOCK_AMETHYST_BLOCK_RESONATE, 0.7f, 1.0f);
         sound(Sound.BLOCK_BEACON_ACTIVATE, 0.5f, 1.8f);
+        openRing();
+    }
+
+    /**
+     * A ring of pale aqua on the ground that closes in while the helix
+     * climbs, then is thrown out on the flash.
+     *
+     * The helix is the shiny's signature and it stays; what it never had
+     * was anything that holds a shape for the people watching. It rides
+     * the player as passengers, so a roller who walks takes it with them.
+     */
+    private void openRing() {
+        AuraParts parts = plugin.getAuraManager().parts();
+        for (int i = 0; i < RING_SEGMENTS; i++) {
+            Display piece = parts.plate(player, AQUA, 215,
+                    AuraParts.ringSegment(RING_SEGMENTS, i, 1.6f, 0.0, AuraParts.FEET + 0.02f, 0.09f, 0.7f));
+            ring.add(piece);
+            player.addPassenger(piece);
+        }
+        // Whatever happens to the roll, the pieces go. A roll abandoned
+        // halfway simply stops calling frame(), and nothing else here would
+        // ever come round to tidy up.
+        plugin.getServer().getScheduler().runTaskLater(plugin, this::clearRing, TICKS + 40L);
+    }
+
+    private void drawRing(float radius, double spin, int ticks) {
+        for (int i = 0; i < ring.size(); i++) {
+            Display piece = ring.get(i);
+            if (!piece.isValid()) continue;
+            AuraParts.moveTo(piece, AuraParts.ringSegment(RING_SEGMENTS, i, radius, spin,
+                    AuraParts.FEET + 0.02f, 0.09f, 0.7f), ticks);
+        }
+    }
+
+    private void clearRing() {
+        for (Display piece : ring) {
+            if (piece.isValid()) piece.remove();
+        }
+        ring.clear();
     }
 
     /** A double helix tightening as it climbs, with a chime ladder rising underneath. */
@@ -116,6 +160,7 @@ public final class ShinyPreRoll {
                 transition(base.clone().add(Math.cos(angle) * radius, y, Math.sin(angle) * radius));
             }
         }
+        drawRing((float) (1.6 - 0.7 * p), frames * 6.0, 4);
         if (frames % 2 == 1) {
             puff(Particle.END_ROD, base.clone().add(0, top, 0), 1, 0.05, 0.05, 0.05, 0.0);
             sound(Sound.BLOCK_NOTE_BLOCK_CHIME, 0.6f, (float) (0.8 + 1.1 * p));
@@ -125,6 +170,7 @@ public final class ShinyPreRoll {
     /** Silence, and the helix pulled into one point just above the head. */
     private void hush(double p) {
         dust(player.getLocation().add(0, 2.3, 0), 5, 0.25 * (1.0 - p), bright);
+        drawRing((float) (0.9 - 0.55 * p), frames * (6.0 + 10.0 * p), 4);
     }
 
     /** Three sounds low to high on one frame, a burst at the core and a ring on the ground. */
@@ -143,6 +189,8 @@ public final class ShinyPreRoll {
         sound(Sound.BLOCK_AMETHYST_BLOCK_RESONATE, 0.8f, 0.7f);
         sound(Sound.BLOCK_BEACON_ACTIVATE, 0.8f, 1.2f);
         sound(Sound.BLOCK_AMETHYST_BLOCK_CHIME, 1.0f, 1.6f);
+        drawRing(3.2f, 0.0, 8);
+        plugin.getServer().getScheduler().runTaskLater(plugin, this::clearRing, 10L);
     }
 
     private void transition(Location at) {
