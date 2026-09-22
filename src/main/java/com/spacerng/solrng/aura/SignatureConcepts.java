@@ -56,6 +56,12 @@ final class SignatureConcepts {
         d.put("rift", "two standing rings crossed and swinging opposite ways (heavy)");
         d.put("empyrean", "the slanted orbit with wings and a crown of light (heavy)");
         d.put("shiny", "whichever of the four shiny looks the rarity wears");
+        d.put("armillary", "three rings round the body at different angles, all turning");
+        d.put("vortex", "five circles narrowing up the body, the top one fastest");
+        d.put("cage", "eight bars standing round you between two solid circles");
+        d.put("shield", "six wide panels standing round the hips, slowly turning");
+        d.put("beacon", "a column of light nine blocks up, a floor circle and a halo");
+        d.put("portal", "a ring standing round you with a second inside and an eye");
     }
 
     static AuraConcept create(String key, Rarity rarity, Color color) {
@@ -70,6 +76,12 @@ final class SignatureConcepts {
             case "rift" -> rift(color);
             case "empyrean" -> empyrean(color);
             case "shiny" -> shinyFor(rarity, color);
+            case "armillary" -> armillary(color);
+            case "vortex" -> vortex(color);
+            case "cage" -> cage(color);
+            case "shield" -> shield(color);
+            case "beacon" -> beacon(color);
+            case "portal" -> portal(color);
             default -> null;
         };
     }
@@ -216,6 +228,80 @@ final class SignatureConcepts {
                 new AuraConcepts.SolidAtom(Material.SEA_LANTERN, -0.70f, 1.45f, 0.42f, false, 0, 2, 20.0),
                 new PlateWings(soft, 210),
                 new Petals(soft, 215, 0.16f, 0.42f, 6, 0.12f, 0.34f, 12f, 5, 16));
+    }
+
+    // -------------------------------------------------------- six more to pick
+
+    /**
+     * Three rings round the whole body at three different angles, each
+     * swinging its own plane at its own rate, so they are never twice in
+     * the same arrangement. An armillary sphere, near enough.
+     */
+    private static AuraConcept armillary(Color color) {
+        Color soft = softer(color);
+        return new AuraConcepts.Combined(
+                new PlateRing(color, 230, -0.85f, 2.10f, 8, 0.11f, 0.75f, 0f, 5, 6.0, 0.0),
+                new PlateRing(soft, 205, -0.85f, 1.85f, 8, 0.10f, 0.75f, 62f, 4, -7.0, 5.0),
+                new PlateRing(color, 205, -0.85f, 2.35f, 8, 0.10f, 0.75f, 118f, 5, 7.0, -4.0));
+    }
+
+    /**
+     * Five circles stacked from the floor to over the head, each narrower
+     * and faster than the one under it, so the eye reads them as one funnel
+     * being drawn upward rather than as five separate rings.
+     */
+    private static AuraConcept vortex(Color color) {
+        Color soft = softer(color);
+        return new AuraConcepts.Combined(
+                new PlateRing(color, 225, FEET + 0.02f, 1.90f, 8, 0.10f, 0.5f, 0f, 6, 4.0, 0.0),
+                new PlateRing(soft, 205, -1.25f, 1.55f, 7, 0.09f, 0.5f, 0f, 5, 5.0, 0.0),
+                new PlateRing(color, 195, -0.85f, 1.20f, 6, 0.08f, 0.5f, 0f, 4, 6.5, 0.0),
+                new PlateRing(soft, 185, -0.45f, 0.85f, 5, 0.07f, 0.5f, 0f, 3, 8.0, 0.0),
+                new PlateRing(color, 180, -0.05f, 0.50f, 4, 0.06f, 0.5f, 0f, 2, 10.0, 0.0));
+    }
+
+    /** Eight bars standing between a solid circle at the feet and another over the head. */
+    private static AuraConcept cage(Color color) {
+        return new AuraConcepts.Combined(
+                new Bars(color, 190, FEET + 0.05f, 0.95f, 8, 0.10f, 2.10f, 5, 4.0),
+                new PlateRing(color, 235, FEET + 0.01f, 1.02f, 10, 0.10f, 1.0f, 0f, 0, 0.0, 0.0),
+                new PlateRing(color, 235, 0.33f, 1.02f, 10, 0.10f, 1.0f, 0f, 0, 0.0, 0.0));
+    }
+
+    /**
+     * Six wide panels standing round the hips, faint enough to see the
+     * wearer through and slow enough to read as held there rather than
+     * spun. The cheapest of the lot and the only one that looks like armour.
+     */
+    private static AuraConcept shield(Color color) {
+        return new AuraConcepts.Combined(
+                new Bars(color, 95, -1.30f, 1.15f, 6, 0.95f, 1.50f, 6, 3.0),
+                new PlateRing(softer(color), 210, FEET + 0.01f, 1.25f, 12, 0.08f, 1.0f, 0f, 0, 0.0, 0.0));
+    }
+
+    /** A column of light nine blocks up, a solid circle at the feet and a broken halo. */
+    private static AuraConcept beacon(Color color) {
+        Color soft = softer(color);
+        return new AuraConcepts.Combined(
+                new Column(color, FEET, 9.0f, 0.95f, 0.26f, 50, 145),
+                new PlateRing(color, 235, FEET + 0.01f, 1.60f, 14, 0.10f, 1.0f, 0f, 0, 0.0, 0.0),
+                new PlateRing(soft, 180, FEET + 0.02f, 2.20f, 10, 0.07f, 0.45f, 0f, 4, -5.0, 0.0),
+                new PlateRing(soft, 210, 0.30f, 0.70f, 8, 0.06f, 0.5f, 0f, 3, 12.0, 0.0));
+    }
+
+    /**
+     * A ring standing round the wearer with a smaller one inside it running
+     * the other way, both on the same swinging plane, and an eye held in the
+     * middle of them. No outline on this one: a look anybody can pick should
+     * not be seen through walls.
+     */
+    private static AuraConcept portal(Color color) {
+        Color soft = softer(color);
+        return new AuraConcepts.Combined(
+                new PlateRing(color, 230, -0.70f, 1.75f, 12, 0.12f, 0.8f, 90f, 4, 7.0, 3.0),
+                new PlateRing(soft, 195, -0.70f, 1.30f, 8, 0.08f, 0.6f, 90f, 4, -9.0, 3.0),
+                new Core(Material.ENDER_EYE, color, -0.70f, 0.50f, false),
+                new PlateRing(color, 235, FEET + 0.01f, 1.90f, 14, 0.09f, 1.0f, 0f, 0, 0.0, 0.0));
     }
 
     // -------------------------------------------------------------- plate ring
@@ -472,6 +558,79 @@ final class SignatureConcepts {
         }
     }
 
+    // -------------------------------------------------------------------- bars
+
+    /**
+     * Plates standing on their ends round a circle, faces pointing outward,
+     * all the same height and turning together. Narrow and tall they are the
+     * bars of a cage; wide and faint they are the panels of a shield. The
+     * only difference between the two is the numbers.
+     */
+    static final class Bars implements AuraConcept {
+        private final Color color;
+        private final int alpha;
+        private final float y;
+        private final float radius;
+        private final int count;
+        private final float width;
+        private final float height;
+        private final int every;
+        private final double spin;
+
+        Bars(Color color, int alpha, float y, float radius, int count, float width, float height,
+             int every, double spin) {
+            this.color = color;
+            this.alpha = alpha;
+            this.y = y;
+            this.radius = radius;
+            this.count = count;
+            this.width = width;
+            this.height = height;
+            this.every = every;
+            this.spin = spin;
+        }
+
+        @Override
+        public List<Display> spawn(Player player, AuraParts parts) {
+            List<Display> displays = new ArrayList<>();
+            for (int i = 0; i < count; i++) {
+                displays.add(parts.plate(player, color, alpha, pose(i, 0, false)));
+                displays.add(parts.plate(player, color, alpha, pose(i, 0, true)));
+            }
+            return displays;
+        }
+
+        @Override
+        public void tick(List<Display> displays, long frame) {
+            if (every == 0 || frame % every != 0) return;
+            long n = frame / every + 1;
+            for (int i = 0; i < count; i++) {
+                moveTo(displays.get(i * 2), pose(i, n, false), every * 2);
+                moveTo(displays.get(i * 2 + 1), pose(i, n, true), every * 2);
+            }
+        }
+
+        @Override
+        public void stars(long frame, List<Vector> out) {
+            double steps = every == 0 ? 0 : (double) frame / every;
+            for (int i = 0; i < count; i++) {
+                Vector3f p = onCircle(radius, angle(i, steps));
+                out.add(new Vector(p.x, RIDE + y + height / 2f, p.z));
+            }
+        }
+
+        private double angle(int i, double steps) {
+            return Math.toRadians(360.0 / count * i + spin * steps);
+        }
+
+        private Matrix4f pose(int i, double steps, boolean back) {
+            double a = angle(i, steps);
+            Vector3f p = onCircle(radius, a);
+            Quaternionf turn = new Quaternionf().rotateY((float) a + rad(90));
+            return AuraParts.plate(p.x, y + height / 2f, p.z, turn, width, height, back);
+        }
+    }
+
     // ------------------------------------------------------------------ column
 
     /**
@@ -543,18 +702,25 @@ final class SignatureConcepts {
         private final Color color;
         private final float y;
         private final float scale;
+        private final boolean glow;
 
         Core(Material material, Color color, float y, float scale) {
+            this(material, color, y, scale, true);
+        }
+
+        /** @param glow an outline through walls, which only the rarest looks should carry */
+        Core(Material material, Color color, float y, float scale, boolean glow) {
             this.material = material;
             this.color = color;
             this.y = y;
             this.scale = scale;
+            this.glow = glow;
         }
 
         @Override
         public List<Display> spawn(Player player, AuraParts parts) {
-            return List.of(AuraParts.glowing(
-                    parts.item(player, material, AuraParts.pose(y, new Quaternionf(), scale), true), color));
+            Display piece = parts.item(player, material, AuraParts.pose(y, new Quaternionf(), scale), true);
+            return List.of(glow ? AuraParts.glowing(piece, color) : piece);
         }
 
         @Override

@@ -5,7 +5,7 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V178**, 23 September 2026.
+Last updated at **V179**, 23 September 2026.
 
 ## The agreed way of working
 
@@ -52,6 +52,9 @@ farm area.
    `/pets`, do they circle the player?
 3. Look at the farming podium hologram. Big enough now?
 4. Roll something and read the hotbar line. Are the gradient colours right?
+7. (V179) `/rngadmin firsts test <rarity>` if it exists, or roll a Server
+   First: is the star a clean outline, is it visible through terrain, and
+   does the column of light reach the ground?
 
 5. (V153) Is the podium's "Payout locked x/10" line right after a
    restart? It counts the day's peak, sampled every 30 seconds.
@@ -63,7 +66,7 @@ payout line (layout fixed in V157).
 
 A "no" on any of them is the next thing to fix, and only that.
 
-## The auras, V174 to V178, the current subject
+## The auras and the visuals, V174 to V179, the current subject
 
 Leon said on 22 September that the auratest looked a lot worse than it
 used to, and asked for the best look each rarity can have, using
@@ -157,6 +160,33 @@ the head when a viewer looks steeply up or down at somebody. The fix is
 one word, `CENTER` to `VERTICAL`, at the cost of the tag no longer
 tilting toward a viewer who is above or below. Leon's call, and it is the
 tag rather than the auras.
+
+**V179: the star, the pets and six more looks.**
+
+The Server First star was ninety glass cubes strung along the edges of a
+five pointed star. It is ten stretched beams now, one per edge, which is a
+clean unbroken outline for a ninth of the pieces, and each beam carries a
+glow override in the rarity's exact colour so the star is seen through the
+terrain from any corner of the map. A Server First happens ten times per
+rarity for the life of the server and then never again, so nobody should
+miss one for standing in the wrong place. A column of light runs from the
+star down to the ground, breathing, so the spot can be walked to rather
+than only looked at.
+
+Pets were three item models and nothing else, so a Common pet and a Divine
+one were the same sight unless you already knew the item. Each relic now
+rides on a painted card in its own rarity's colour, drawn on both faces,
+and the three bob a third of a cycle apart so the orbit reads as alive
+rather than as a turntable. A shiny pet carries an outline in the same
+colour, through walls.
+
+Six more looks to pick from, all built out of the plate pieces:
+`armillary` (three rings at three angles, each swinging its own plane),
+`vortex` (five circles narrowing up the body), `cage` (eight bars between
+two solid circles), `shield` (six wide faint panels at the hips), `beacon`
+(a column of light nine blocks up) and `portal` (a standing ring with a
+second inside it and an eye). `Bars` is the new piece: narrow and tall it
+is a cage, wide and faint it is a shield.
 
 **Still not verifiable from outside the game, so check these first:**
 

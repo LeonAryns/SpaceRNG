@@ -346,9 +346,14 @@ public class PetManager {
     /** The orbit for what this player is wearing, or null when nothing is. */
     public PetOrbit orbit(PlayerData data) {
         if (!enabled) return null;
-        List<Material> icons = new ArrayList<>();
-        for (PetType pet : equipped(data)) icons.add(pet.icon());
-        return icons.isEmpty() ? null : new PetOrbit(icons);
+        List<PetOrbit.Worn> relics = new ArrayList<>();
+        for (PetType pet : equipped(data)) {
+            PetInstance owned = data.getPet(pet.id());
+            relics.add(new PetOrbit.Worn(pet.icon(),
+                    com.spacerng.solrng.roll.RollAura.colorFor(pet.rarity()),
+                    owned != null && owned.shiny()));
+        }
+        return relics.isEmpty() ? null : new PetOrbit(relics);
     }
 
     /**
