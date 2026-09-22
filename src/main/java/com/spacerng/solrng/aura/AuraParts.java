@@ -231,6 +231,28 @@ public final class AuraParts {
                 .scale(width, height, 1f).translate(-0.5f, -0.5f, 0f).mul(UNIT_QUAD);
     }
 
+    /**
+     * The same plate again, facing the other way and a hair behind itself.
+     *
+     * A text display is drawn on one side only: from behind there is
+     * nothing there at all, not even a mirrored copy. So anything that can
+     * be walked round, a ring standing upright or a wing off the back, needs
+     * both faces or it vanishes as the viewer crosses its plane. A half turn
+     * about the plate's own upright axis flips which way it looks, and the
+     * four millimetres keep the two out of each other's way.
+     */
+    public static Matrix4f plate(float x, float y, float z, Quaternionf rotation,
+                                 float width, float height, boolean back) {
+        if (!back) return plate(x, y, z, rotation, width, height);
+        Vector3f normal = rotation.transform(new Vector3f(0f, 0f, 1f));
+        return new Matrix4f()
+                .translate(x - normal.x * BACK_GAP, y - normal.y * BACK_GAP, z - normal.z * BACK_GAP)
+                .rotate(rotation).scale(width, height, 1f).rotateY((float) Math.PI)
+                .translate(-0.5f, -0.5f, 0f).mul(UNIT_QUAD);
+    }
+
+    private static final float BACK_GAP = 0.004f;
+
     /** A block model centred on (x, y, z), turned by {@code rotation} and stretched on each axis. */
     public static Matrix4f box(float x, float y, float z, Quaternionf rotation, float sx, float sy, float sz) {
         return new Matrix4f().translate(x, y, z).rotate(rotation)

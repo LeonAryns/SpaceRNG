@@ -5,7 +5,7 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V175**, 22 September 2026.
+Last updated at **V176**, 23 September 2026.
 
 ## The agreed way of working
 
@@ -63,7 +63,7 @@ payout line (layout fixed in V157).
 
 A "no" on any of them is the next thing to fix, and only that.
 
-## The auras, V174 and V175, the current subject
+## The auras, V174 to V176, the current subject
 
 Leon said on 22 September that the auratest looked a lot worse than it
 used to, and asked for the best look each rarity can have, using
@@ -109,15 +109,25 @@ Column, Core, PlateWings) and the eight looks.
 - `AuraParts.move` threw the wearer's size away, so a /size player's aura
   sprang back to normal on its first move.
 
-**Not verifiable from outside the game, so check these first:**
+**V176: both faces.** A text display is drawn on one side only. The wiki
+says it plainly ("the displayed text is only visible from one side"), and
+TWME-TW/TextDisplayShapes carries a `doubleSided` option for the same
+reason. So every plate that can be walked round is now drawn twice, the
+second turned a half turn about its own upright axis and set four
+millimetres behind the first: rings that stand or slant, halos over the
+head, flames, and every feather of a wing. Rings lying at the feet stay
+single, because they are only ever looked down on. Segment counts came
+down to pay for it, which costs nothing on a broken ring since the gaps
+are the point.
 
-1. Is a painted plate visible from **both** sides? If `eclipse` blinks in
-   and out as its standing ring swings past, it is single sided, and the
-   fix is a second plate per segment facing the other way.
-2. Is the plate the size the maths says? A ring that comes out far too
+**Still not verifiable from outside the game, so check these first:**
+
+1. Is the plate the size the maths says? A ring that comes out far too
    small or far too wide means `UNIT_QUAD` is wrong for 1.21.11.
-3. Do the `empyrean` and `pyre` wings sit on the back rather than in the
+2. Do the `empyrean` and `pyre` wings sit on the back rather than in the
    chest? The pivot came from the old stained glass wings.
+3. Does the `eclipse` standing ring z-fight with itself? If the two faces
+   flicker against each other, `AuraParts.BACK_GAP` needs raising.
 
 ## What shipped but has never been tested in game
 

@@ -113,16 +113,15 @@ final class SignatureConcepts {
 
     /**
      * Legendary. Two circles on the floor, the outer one broken and turning,
-     * six flames standing round the waist that rise and fall in turn so the
-     * wave runs round the body, and a small broken halo over the head.
+     * and six flames standing round the waist that rise and fall in turn, so
+     * the wave runs round the body once every six seconds.
      */
     private static AuraConcept ember(Color color) {
         Color soft = softer(color);
         return new AuraConcepts.Combined(
                 new PlateRing(color, 240, FEET + 0.01f, 1.95f, 16, 0.11f, 1.0f, 0f, 0, 0.0, 0.0),
                 new PlateRing(soft, 170, FEET + 0.02f, 2.55f, 10, 0.07f, 0.5f, 0f, 3, 5.0, 0.0),
-                new Petals(color, 200, -1.15f, 1.05f, 6, 0.34f, 1.15f, 18f, 5, 12),
-                new PlateRing(soft, 210, 0.26f, 0.62f, 8, 0.05f, 0.5f, 0f, 4, 18.0, 0.0));
+                new Petals(color, 200, -1.15f, 1.05f, 6, 0.34f, 1.15f, 18f, 5, 12));
     }
 
     /**
@@ -135,7 +134,7 @@ final class SignatureConcepts {
     private static AuraConcept eclipse(Color color) {
         Color soft = softer(color);
         return new AuraConcepts.Combined(
-                new PlateRing(color, 225, -0.75f, 1.90f, 18, 0.10f, 0.72f, 90f, 4, 8.0, 4.0),
+                new PlateRing(color, 225, -0.75f, 1.90f, 12, 0.11f, 0.72f, 90f, 4, 8.0, 4.0),
                 new PlateRing(color, 240, FEET + 0.01f, 2.40f, 16, 0.12f, 1.0f, 0f, 0, 0.0, 0.0),
                 new PlateRing(soft, 160, FEET + 0.02f, 3.00f, 12, 0.07f, 0.45f, 0f, 4, -6.0, 0.0),
                 new Core(Material.NETHER_STAR, color, -0.55f, 0.55f));
@@ -152,9 +151,9 @@ final class SignatureConcepts {
         Color soft = softer(color);
         return new AuraConcepts.Combined(
                 new PlateRing(color, 240, FEET + 0.01f, 2.30f, 16, 0.13f, 1.0f, 0f, 0, 0.0, 0.0),
-                new PlateRing(soft, 165, FEET + 0.02f, 3.30f, 12, 0.08f, 0.45f, 0f, 4, 5.0, 0.0),
-                new PlateRing(soft, 120, FEET + 0.03f, 4.10f, 10, 0.06f, 0.35f, 0f, 8, -5.5, 0.0),
-                new PlateRing(color, 215, -0.85f, 2.55f, 14, 0.09f, 0.8f, 25f, 5, 9.0, 5.0),
+                new PlateRing(soft, 165, FEET + 0.02f, 3.30f, 10, 0.08f, 0.45f, 0f, 4, 5.0, 0.0),
+                new PlateRing(soft, 120, FEET + 0.03f, 4.10f, 8, 0.06f, 0.35f, 0f, 8, -5.5, 0.0),
+                new PlateRing(color, 215, -0.85f, 2.55f, 10, 0.10f, 0.8f, 25f, 5, 9.0, 5.0),
                 new Column(color, -1.70f, 7.0f, 1.15f, 0.30f, 55, 150),
                 new AuraConcepts.SolidAtom(Material.SEA_LANTERN, -0.70f, 1.45f, 0.42f, false, 0, 2, 20.0));
     }
@@ -169,7 +168,7 @@ final class SignatureConcepts {
         Color soft = softer(color);
         return new AuraConcepts.Combined(
                 sigil(color),
-                new PlateRing(soft, 205, -0.80f, 1.25f, 14, 0.07f, 0.65f, 78f, 4, 9.0, 5.0),
+                new PlateRing(soft, 205, -0.80f, 1.25f, 10, 0.08f, 0.65f, 78f, 4, 9.0, 5.0),
                 new Column(color, -1.70f, 3.2f, 0.60f, 0.16f, 45, 120));
     }
 
@@ -195,10 +194,10 @@ final class SignatureConcepts {
     private static AuraConcept rift(Color color) {
         Color soft = softer(color);
         return new AuraConcepts.Combined(
-                new PlateRing(color, 225, -0.75f, 2.00f, 14, 0.11f, 0.7f, 90f, 4, 8.0, 4.0),
-                new PlateRing(soft, 190, -0.75f, 1.70f, 14, 0.09f, 0.7f, 90f, 4, -8.0, -4.0),
-                new PlateRing(color, 240, FEET + 0.01f, 2.60f, 16, 0.12f, 1.0f, 0f, 0, 0.0, 0.0),
-                new PlateRing(soft, 160, FEET + 0.02f, 3.30f, 10, 0.07f, 0.45f, 0f, 5, -6.0, 0.0),
+                new PlateRing(color, 225, -0.75f, 2.00f, 10, 0.12f, 0.7f, 90f, 4, 8.0, 4.0),
+                new PlateRing(soft, 190, -0.75f, 1.70f, 10, 0.10f, 0.7f, 90f, 4, -8.0, -4.0),
+                new PlateRing(color, 240, FEET + 0.01f, 2.60f, 14, 0.12f, 1.0f, 0f, 0, 0.0, 0.0),
+                new PlateRing(soft, 160, FEET + 0.02f, 3.30f, 8, 0.07f, 0.45f, 0f, 5, -6.0, 0.0),
                 new Core(Material.NETHER_STAR, color, -0.55f, 0.60f));
     }
 
@@ -211,12 +210,12 @@ final class SignatureConcepts {
         Color soft = softer(color);
         return new AuraConcepts.Combined(
                 new PlateRing(color, 240, FEET + 0.01f, 2.30f, 16, 0.13f, 1.0f, 0f, 0, 0.0, 0.0),
-                new PlateRing(soft, 165, FEET + 0.02f, 3.40f, 12, 0.08f, 0.45f, 0f, 5, 6.0, 0.0),
-                new PlateRing(color, 215, -0.85f, 2.55f, 14, 0.09f, 0.8f, 25f, 5, 9.0, 5.0),
+                new PlateRing(soft, 165, FEET + 0.02f, 3.40f, 10, 0.08f, 0.45f, 0f, 5, 6.0, 0.0),
+                new PlateRing(color, 215, -0.85f, 2.55f, 10, 0.10f, 0.8f, 25f, 5, 9.0, 5.0),
                 new Column(color, -1.70f, 8.0f, 1.20f, 0.32f, 55, 155),
                 new AuraConcepts.SolidAtom(Material.SEA_LANTERN, -0.70f, 1.45f, 0.42f, false, 0, 2, 20.0),
                 new PlateWings(soft, 210),
-                new Petals(soft, 215, 0.16f, 0.42f, 8, 0.11f, 0.34f, 12f, 5, 16));
+                new Petals(soft, 215, 0.16f, 0.42f, 6, 0.12f, 0.34f, 12f, 5, 16));
     }
 
     // -------------------------------------------------------------- plate ring
@@ -247,6 +246,7 @@ final class SignatureConcepts {
         private final double spin;
         private final double precess;
         private final float chord;
+        private final boolean twoSided;
 
         /**
          * @param every   frames between moves, 0 for a ring that never moves
@@ -266,20 +266,25 @@ final class SignatureConcepts {
             this.spin = spin;
             this.precess = precess;
             this.chord = (float) (2.0 * radius * Math.sin(Math.PI / segments)) * coverage;
+            // A ring lying at the feet is only ever looked down on, so one
+            // face is enough. Anything else, a ring standing up or a halo
+            // over the head, is seen from the side a plate does not exist on.
+            this.twoSided = !(tilt == 0f && y < FEET + 0.5f);
         }
 
         @Override
         public boolean lowToGround() {
             // A flat ring at the feet stays out of the wearer's own view; a
             // standing or slanted one crosses it and counts as worn.
-            return tilt == 0f && y < FEET + 0.5f;
+            return !twoSided;
         }
 
         @Override
         public List<Display> spawn(Player player, AuraParts parts) {
             List<Display> displays = new ArrayList<>();
             for (int i = 0; i < segments; i++) {
-                displays.add(parts.plate(player, color, alpha, pose(i, 0)));
+                displays.add(parts.plate(player, color, alpha, pose(i, 0, false)));
+                if (twoSided) displays.add(parts.plate(player, color, alpha, pose(i, 0, true)));
             }
             return displays;
         }
@@ -288,8 +293,10 @@ final class SignatureConcepts {
         public void tick(List<Display> displays, long frame) {
             if (every == 0 || frame % every != 0) return;
             long n = frame / every + 1;
+            int stride = twoSided ? 2 : 1;
             for (int i = 0; i < segments; i++) {
-                moveTo(displays.get(i), pose(i, n), every * 2);
+                moveTo(displays.get(i * stride), pose(i, n, false), every * 2);
+                if (twoSided) moveTo(displays.get(i * stride + 1), pose(i, n, true), every * 2);
             }
         }
 
@@ -312,14 +319,14 @@ final class SignatureConcepts {
             return new Quaternionf().rotateY(rad(precess * steps)).rotateX(rad(tilt));
         }
 
-        private Matrix4f pose(int i, double steps) {
+        private Matrix4f pose(int i, double steps, boolean back) {
             double a = angle(i, steps);
             Quaternionf plane = plane(steps);
             Vector3f p = plane.transform(onCircle(radius, a));
             // Turned along the circle, then laid flat so the plate's face
             // points out of the ring's plane, with the plane's own turn on top.
             Quaternionf turn = new Quaternionf(plane).rotateY((float) a + rad(90)).rotateX(rad(-90));
-            return AuraParts.plate(p.x, y + p.y, p.z, turn, chord, thickness);
+            return AuraParts.plate(p.x, y + p.y, p.z, turn, chord, thickness, back);
         }
     }
 
@@ -422,7 +429,10 @@ final class SignatureConcepts {
         public List<Display> spawn(Player player, AuraParts parts) {
             List<Display> displays = new ArrayList<>();
             for (int i = 0; i < count; i++) {
-                displays.add(parts.plate(player, color, alpha, pose(i, 0)));
+                displays.add(parts.plate(player, color, alpha, pose(i, 0, false)));
+                // Both faces: a flame on the far side of the body points away
+                // from anyone looking, and a plate has nothing on its back.
+                displays.add(parts.plate(player, color, alpha, pose(i, 0, true)));
             }
             return displays;
         }
@@ -432,7 +442,8 @@ final class SignatureConcepts {
             if (frame % every != 0) return;
             long n = frame / every + 1;
             for (int i = 0; i < count; i++) {
-                moveTo(displays.get(i), pose(i, n), every * 2);
+                moveTo(displays.get(i * 2), pose(i, n, false), every * 2);
+                moveTo(displays.get(i * 2 + 1), pose(i, n, true), every * 2);
             }
         }
 
@@ -451,13 +462,13 @@ final class SignatureConcepts {
             return (float) (0.62 + 0.38 * Math.sin(phase * Math.PI * 2));
         }
 
-        private Matrix4f pose(int i, double steps) {
+        private Matrix4f pose(int i, double steps, boolean back) {
             double a = Math.toRadians(360.0 / count * i);
             Vector3f p = onCircle(radius, a);
             float h = height * tall(i, steps);
             // Facing outward, then tipped so the top leans away from the body.
             Quaternionf turn = new Quaternionf().rotateY((float) a + rad(90)).rotateX(rad(lean));
-            return AuraParts.plate(p.x, y + h / 2f, p.z, turn, width, h);
+            return AuraParts.plate(p.x, y + h / 2f, p.z, turn, width, h, back);
         }
     }
 
@@ -579,9 +590,11 @@ final class SignatureConcepts {
         private static final float PIVOT_X = 0.1f;
         private static final float PIVOT_Y = -0.38f;
         private static final float PIVOT_Z = -0.22f;
-        private static final double[] RAISE = {40, 22, 5, -15, -35};
-        private static final float[] LENGTH = {1.2f, 1.35f, 1.25f, 1.0f, 0.75f};
-        private static final float[] WIDTH = {0.20f, 0.24f, 0.22f, 0.18f, 0.13f};
+        // Four feathers rather than the old five, because each is drawn twice
+        // now, once per face.
+        private static final double[] RAISE = {38, 18, -4, -26};
+        private static final float[] LENGTH = {1.25f, 1.4f, 1.2f, 0.9f};
+        private static final float[] WIDTH = {0.22f, 0.26f, 0.23f, 0.17f};
         private static final int EVERY = 10;
         private final Color color;
         private final Color edge;
@@ -602,10 +615,15 @@ final class SignatureConcepts {
         public List<Display> spawn(Player player, AuraParts parts) {
             List<Display> displays = new ArrayList<>();
             for (int side = -1; side <= 1; side += 2) {
+                // Each feather twice, once for each face. A wing has a left
+                // and a right side to be looked at, and a plate only exists
+                // on one of them.
                 for (int f = 0; f < RAISE.length; f++) {
-                    displays.add(parts.plate(player, color, alpha, feather(side, f, 0)));
+                    displays.add(parts.plate(player, color, alpha, feather(side, f, 0, false)));
+                    displays.add(parts.plate(player, color, alpha, feather(side, f, 0, true)));
                 }
-                displays.add(parts.plate(player, edge, 245, leading(side, 0)));
+                displays.add(parts.plate(player, edge, 245, leading(side, 0, false)));
+                displays.add(parts.plate(player, edge, 245, leading(side, 0, true)));
             }
             return displays;
         }
@@ -617,9 +635,11 @@ final class SignatureConcepts {
             int index = 0;
             for (int side = -1; side <= 1; side += 2) {
                 for (int f = 0; f < RAISE.length; f++) {
-                    moveTo(displays.get(index++), feather(side, f, beat), EVERY * 2);
+                    moveTo(displays.get(index++), feather(side, f, beat, false), EVERY * 2);
+                    moveTo(displays.get(index++), feather(side, f, beat, true), EVERY * 2);
                 }
-                moveTo(displays.get(index++), leading(side, beat), EVERY * 2);
+                moveTo(displays.get(index++), leading(side, beat, false), EVERY * 2);
+                moveTo(displays.get(index++), leading(side, beat, true), EVERY * 2);
             }
         }
 
@@ -656,22 +676,23 @@ final class SignatureConcepts {
                     (float) (-Math.cos(a) * Math.sin(b)));
         }
 
-        private static Matrix4f feather(int side, int f, long beat) {
+        private static Matrix4f feather(int side, int f, long beat, boolean back) {
             return blade(side, Math.toRadians(RAISE[f] + lift(beat)),
-                    Math.toRadians(sweep(beat) + f * 3), LENGTH[f], WIDTH[f], -f * 0.04f);
+                    Math.toRadians(sweep(beat) + f * 3), LENGTH[f], WIDTH[f], -f * 0.04f, back);
         }
 
         /** A thinner, brighter plate along the top feather, so the wing has an edge. */
-        private static Matrix4f leading(int side, long beat) {
+        private static Matrix4f leading(int side, long beat, boolean back) {
             return blade(side, Math.toRadians(RAISE[0] + lift(beat) + 3),
-                    Math.toRadians(sweep(beat)), LENGTH[0] * 1.1f, 0.05f, 0f);
+                    Math.toRadians(sweep(beat)), LENGTH[0] * 1.1f, 0.05f, 0f, back);
         }
 
-        private static Matrix4f blade(int side, double a, double b, float length, float width, float drop) {
+        private static Matrix4f blade(int side, double a, double b, float length, float width,
+                                      float drop, boolean back) {
             Vector3f dir = direction(side, a, b);
             float half = length / 2f;
             return AuraParts.plate(side * PIVOT_X + dir.x * half, PIVOT_Y + dir.y * half + drop,
-                    PIVOT_Z + dir.z * half, rotation(side, a, b), length, width);
+                    PIVOT_Z + dir.z * half, rotation(side, a, b), length, width, back);
         }
     }
 
