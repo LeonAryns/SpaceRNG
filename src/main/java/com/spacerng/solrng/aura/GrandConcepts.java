@@ -33,8 +33,8 @@ import static com.spacerng.solrng.aura.AuraParts.softer;
  * Ground rings are text, because a text ring of any size still costs one
  * update per display every second or two. Blocks and nether stars orbit by
  * translation, in steps small enough for their radius that the chord can't
- * be told from the arc. Nether stars are flat sprites, so they turn to face
- * whoever is looking and never go thin edge-on.
+ * be told from the arc. Nether stars are flat sprites, so they are turned
+ * to look outward along their own radius and never go thin edge-on.
  */
 final class GrandConcepts {
 
@@ -204,7 +204,7 @@ final class GrandConcepts {
     /**
      * Items circling level at one or more radii. Each ring runs the other way
      * from the one inside it and slower the further out it is. Blocks tumble
-     * as they go; flat sprites face the viewer instead.
+     * as they go; a flat sprite is turned to look outward instead.
      */
     static final class FlatOrbit implements AuraConcept {
         private final Material material;
@@ -238,7 +238,12 @@ final class GrandConcepts {
             List<Display> displays = new ArrayList<>();
             for (int r = 0; r < radii.length; r++) {
                 for (int j = 0; j < perRing; j++) {
-                    displays.add(parts.item(player, material, pose(r, j, 0), faceViewer));
+                    // Never billboarded: these ride out at a radius, and a
+                    // billboarded piece reads its offset in the camera's
+                    // frame, so it would hang off the viewer's screen
+                    // instead of orbiting the wearer. They are turned to
+                    // face outward instead.
+                    displays.add(parts.item(player, material, pose(r, j, 0)));
                 }
             }
             return displays;
@@ -275,8 +280,10 @@ final class GrandConcepts {
         private Transformation pose(int r, int j, double steps) {
             double a = angle(r, j, steps);
             Vector3f p = onCircle(radii[r], a);
+            // A flat sprite is turned to look outward along its own radius,
+            // which is where anyone watching stands; a block tumbles.
             Quaternionf rotation = faceViewer
-                    ? new Quaternionf()
+                    ? new Quaternionf().rotateY((float) a + rad(90))
                     : new Quaternionf().rotateY((float) (a * 2)).rotateX(rad(35)).rotateZ(rad(45));
             return at(p.x, y, p.z, rotation, scale);
         }

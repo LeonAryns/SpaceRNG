@@ -561,7 +561,7 @@ public final class AuraConcepts {
             this(material, y, radius, scale, facing, phase, every, step, false);
         }
 
-        /** @param faceViewer flat sprites such as a nether star turn to the viewer, so they never go thin */
+        /** @param faceViewer a flat sprite such as a nether star, turned along its path so it never goes thin */
         SolidAtom(Material material, float y, float radius, float scale, boolean facing, double phase,
                   int every, double step, boolean faceViewer) {
             this.faceViewer = faceViewer;
@@ -580,7 +580,12 @@ public final class AuraConcepts {
             List<Display> displays = new ArrayList<>();
             for (int k = 0; k < 3; k++) {
                 for (int side = 0; side < 2; side++) {
-                    displays.add(parts.item(player, material, pose(k, side, 0), faceViewer));
+                    // Never billboarded: an atom piece rides out at a radius,
+                    // and a billboarded piece reads its offset in the
+                    // camera's frame, so it would hang off the viewer's
+                    // screen rather than orbit. It is turned to face along
+                    // its own path instead.
+                    displays.add(parts.item(player, material, pose(k, side, 0)));
                 }
             }
             return displays;
@@ -619,7 +624,9 @@ public final class AuraConcepts {
         private Transformation pose(int k, int side, double steps) {
             double a = angle(k, side, steps);
             Vector3f p = offset(k, a);
-            Quaternionf rotation = facing
+            // A flat sprite gets the same turn as a gem that follows its
+            // path, which keeps its face along the orbit instead of edge on.
+            Quaternionf rotation = facing || faceViewer
                     ? new Quaternionf(Atom.TILTS[k]).rotateY((float) a + rad(90))
                     : new Quaternionf().rotateY((float) (a * 2)).rotateX(rad(35)).rotateZ(rad(45));
             return at(p.x, y + p.y, p.z, rotation, scale);

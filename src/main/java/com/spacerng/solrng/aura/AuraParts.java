@@ -77,10 +77,23 @@ public final class AuraParts {
         });
     }
 
-    /** An item piece that, when {@code faceViewer} is set, always turns its face to whoever is looking. */
+    /**
+     * An item piece that turns about the upright axis to face whoever is
+     * looking, for a flat sprite that would otherwise go thin edge on.
+     *
+     * Only for a piece standing on the wearer's own axis. Under any
+     * billboard but FIXED the client reads the transformation's translation
+     * in the camera's frame, not the world's, which is the trick
+     * {@code RollShowcase} uses to pin itself to the screen. A billboarded
+     * piece given an offset therefore does not orbit the wearer at all: it
+     * hangs at that offset from the middle of the viewer's screen and
+     * follows them about. VERTICAL leaves the upright axis alone, so a
+     * piece only offset in height is safe; anything offset sideways has to
+     * stay FIXED and be turned to face outward by hand.
+     */
     public ItemDisplay item(Player player, Material material, Transformation pose, boolean faceViewer) {
         ItemDisplay display = item(player, material, pose);
-        if (faceViewer) display.setBillboard(Display.Billboard.CENTER);
+        if (faceViewer) display.setBillboard(Display.Billboard.VERTICAL);
         return display;
     }
 

@@ -5,7 +5,7 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V176**, 23 September 2026.
+Last updated at **V177**, 23 September 2026.
 
 ## The agreed way of working
 
@@ -63,7 +63,7 @@ payout line (layout fixed in V157).
 
 A "no" on any of them is the next thing to fix, and only that.
 
-## The auras, V174 to V176, the current subject
+## The auras, V174 to V177, the current subject
 
 Leon said on 22 September that the auratest looked a lot worse than it
 used to, and asked for the best look each rarity can have, using
@@ -119,6 +119,30 @@ head, flames, and every feather of a wing. Rings lying at the feet stay
 single, because they are only ever looked down on. Segment counts came
 down to pay for it, which costs nothing on a broken ring since the gaps
 are the point.
+
+**V177: billboarded pieces read their offset in the camera's frame.**
+CLAUDE.md already wrote this down once, for `RollShowcase`, which uses it
+on purpose to pin itself to the screen. Under any billboard but FIXED the
+client applies the billboard turn first and the transformation inside it,
+so a piece given an offset does not sit at that offset from the wearer,
+it sits at that offset from the middle of the viewer's screen and follows
+them around.
+
+Every nether star in `galaxy-grand`, `nova-grand`, `singularity`,
+`singularity-lite` and `titan` was billboarded CENTER at a radius of two
+to five blocks, so none of them has ever orbited anything since V118.
+They are turned to look outward along their own radius now, with no
+billboard, which is also what stops them going thin edge on. Only a piece
+standing on the wearer's own axis can be billboarded, and only VERTICAL,
+which leaves the upright axis alone.
+
+**Found and deliberately not changed:** `TagManager.spawnLine` has the
+same pattern. The floating tag rides the player with billboard CENTER and
+its line spacing in the transformation's Y, so the lines shear away from
+the head when a viewer looks steeply up or down at somebody. The fix is
+one word, `CENTER` to `VERTICAL`, at the cost of the tag no longer
+tilting toward a viewer who is above or below. Leon's call, and it is the
+tag rather than the auras.
 
 **Still not verifiable from outside the game, so check these first:**
 
