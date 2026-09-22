@@ -52,14 +52,14 @@ farm area.
    `/pets`, do they circle the player?
 3. Look at the farming podium hologram. Big enough now?
 4. Roll something and read the hotbar line. Are the gradient colours right?
-7. (V179) `/rngadmin firsts test <rarity>` if it exists, or roll a Server
-   First: is the star a clean outline, is it visible through terrain, and
-   does the column of light reach the ground?
 
 5. (V153) Is the podium's "Payout locked x/10" line right after a
    restart? It counts the day's peak, sampled every 30 seconds.
 6. (V156) Link a Discord account that never linked before: does the
    broadcast show and does the tag turn blurple?
+7. (V179) `/rngadmin firsts preview <rarity>`: is the star one clean
+   outline, is it visible through terrain, and does the column of light
+   reach the ground?
 
 Seen working on 19 September: the boss panel and particles, the podium
 payout line (layout fixed in V157).
