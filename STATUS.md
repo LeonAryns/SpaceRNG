@@ -5,7 +5,7 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V182**, 23 September 2026.
+Last updated at **V183**, 23 September 2026.
 
 ## The agreed way of working
 
@@ -66,7 +66,7 @@ payout line (layout fixed in V157).
 
 A "no" on any of them is the next thing to fix, and only that.
 
-## The auras and the visuals, V174 to V182, the current subject
+## The auras and the visuals, V174 to V183, the current subject
 
 Leon said on 22 September that the auratest looked a lot worse than it
 used to, and asked for the best look each rarity can have, using
@@ -231,6 +231,17 @@ a jackpot is worth somebody across the spawn turning round for. The shiny
 pre-roll closes a pale aqua ring in round the roller while the helix
 climbs and throws it out on the flash, with a timed clear so an abandoned
 roll cannot leave one standing.
+
+**V183: the Nova Core forge is no longer one sound.** Forging is the
+biggest single gamble in the plugin, it eats a Core and it can send a
+player back to their last checkpoint, and the whole of it was a sound and
+a line of chat. `NovaForgeFx` gives the three outcomes three shapes that
+can be told apart with your eyes shut: climbed throws a ring outward and
+sends sparks up, twice as far and with a beacon on a checkpoint; anchored
+pulls the ring in and holds it on one flat thud, nothing thrown because
+nothing was gained; shattered breaks the ring apart and drops the pieces.
+A forge happens with a menu open, so it is drawn round the feet and over
+the head where the inventory panel is not.
 
 **Still not verifiable from outside the game, so check these first:**
 

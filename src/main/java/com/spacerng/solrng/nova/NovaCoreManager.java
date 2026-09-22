@@ -267,9 +267,7 @@ public class NovaCoreManager {
                     + ChatColor.RESET + ChatColor.GRAY + "Nova Core Luck is now "
                     + ChatColor.LIGHT_PURPLE + String.format("%.2f", multiplierAt(next)) + "x"
                     + (isCheckpoint(next) ? ChatColor.AQUA + "  (checkpoint secured)" : ""));
-            player.playSound(player.getLocation(),
-                    isCheckpoint(next) ? Sound.BLOCK_BEACON_POWER_SELECT : Sound.ENTITY_EXPERIENCE_ORB_PICKUP,
-                    0.9f, isCheckpoint(next) ? 1.4f : 1.8f);
+            NovaForgeFx.climbed(plugin, player, isCheckpoint(next));
         } else if (holdsOnFailure(data)) {
             // Core Anchor: the attempt is still lost, and so are the Tokens.
             // Only the fall is cancelled - otherwise the skill would remove
@@ -277,14 +275,14 @@ public class NovaCoreManager {
             player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "Anchored! "
                     + ChatColor.RESET + ChatColor.GRAY + "The climb failed but your Core held at tier "
                     + ChatColor.WHITE + tier);
-            player.playSound(player.getLocation(), Sound.BLOCK_ANVIL_LAND, 0.6f, 1.6f);
+            NovaForgeFx.anchored(plugin, player);
         } else {
             int fallback = checkpointBelow(tier);
             data.setNovaTier(fallback);
             player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Shattered! "
                     + ChatColor.RESET + ChatColor.GRAY + "Back to tier " + ChatColor.WHITE + fallback
                     + ChatColor.DARK_GRAY + " (was " + tier + ")");
-            player.playSound(player.getLocation(), Sound.BLOCK_GLASS_BREAK, 1.0f, 0.8f);
+            NovaForgeFx.shattered(plugin, player);
         }
 
         plugin.getScoreboardManager().update(player);
