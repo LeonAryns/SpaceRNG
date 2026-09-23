@@ -70,6 +70,11 @@ final class SignatureConcepts {
         d.put("beacon", "a column of light nine blocks up, a floor circle and a halo");
         d.put("portal", "a ring standing round you with a second inside and an eye");
         d.put("orrery", "a lantern atom and nether stars inside three swinging rings, over star bands");
+        d.put("zenith", "three swinging rings under a crown of light and a column into the sky");
+        d.put("lattice", "a cage of bars between two solid circles, with stars turning under it");
+        d.put("aurora", "three wide slow curtains sweeping round you over a floor of stars");
+        d.put("tempest", "a funnel of five circles with gems thrown round the waist");
+        d.put("cradle", "two crossed standing rings holding a lantern atom and an outlined star");
     }
 
     static AuraConcept create(String key, Rarity rarity, Color color) {
@@ -91,6 +96,11 @@ final class SignatureConcepts {
             case "beacon" -> beacon(color);
             case "portal" -> portal(color);
             case "orrery" -> orrery(rarity, color);
+            case "zenith" -> zenith(color);
+            case "lattice" -> lattice(color);
+            case "aurora" -> aurora(color);
+            case "tempest" -> tempest(rarity, color);
+            case "cradle" -> cradle(rarity, color);
             default -> null;
         };
     }
@@ -350,6 +360,88 @@ final class SignatureConcepts {
                 // turn behind it, so a star always rides between two lanterns.
                 new AuraConcepts.SolidAtom(AuraConcepts.lantern(rarity), -0.70f, 1.45f, 0.42f, false, 0, 2, 20.0),
                 new AuraConcepts.SolidAtom(Material.NETHER_STAR, -0.70f, 0.85f, 0.50f, false, 90, 2, 26.0, true));
+    }
+
+    // ------------------------------------------------- five more combinations
+
+    /**
+     * Five looks built by putting the existing pieces together rather than
+     * by drawing new ones, which is what a combination is for: the pieces
+     * are already tuned, and what makes a look is which of them stand
+     * together and at what speed.
+     *
+     * Each one leans on a different axis so no two read alike: zenith is
+     * vertical, lattice is boxy, aurora is wide and slow, tempest is fast
+     * and narrow, cradle is close in and solid.
+     */
+
+    /** Everything points up: the armillary rings, a crown over the head, and light off the top of it. */
+    private static AuraConcept zenith(Color color) {
+        Color soft = softer(color);
+        return new AuraConcepts.Combined(
+                new PlateRing(color, 235, FEET + 0.01f, 2.00f, 12, 0.10f, 1.0f, 0f, 0, 0.0, 0.0),
+                new PlateRing(color, 225, -0.85f, 2.10f, 7, 0.11f, 0.75f, 0f, 5, 6.0, 0.0),
+                new PlateRing(soft, 200, -0.85f, 1.85f, 7, 0.10f, 0.75f, 62f, 4, -7.0, 5.0),
+                new PlateRing(color, 200, -0.85f, 2.35f, 7, 0.10f, 0.75f, 118f, 5, 7.0, -4.0),
+                new Petals(soft, 215, 0.16f, 0.42f, 6, 0.12f, 0.34f, 12f, 5, 16),
+                new Column(color, 0.55f, 9.0f, 1.10f, 0.24f, 55, 150, 5));
+    }
+
+    /**
+     * A cage the wearer stands inside, with the ground turning under it.
+     * The only look here with straight lines and right angles, which is
+     * what makes it recognisable from a long way off.
+     */
+    private static AuraConcept lattice(Color color) {
+        Color soft = softer(color);
+        return new AuraConcepts.Combined(
+                new Bars(color, 190, FEET + 0.05f, 1.05f, 8, 0.10f, 2.20f, 5, 4.0),
+                new PlateRing(color, 240, FEET + 0.01f, 1.12f, 12, 0.11f, 1.0f, 0f, 0, 0.0, 0.0),
+                new PlateRing(color, 235, 0.38f, 1.12f, 12, 0.11f, 1.0f, 0f, 0, 0.0, 0.0),
+                new GrandConcepts.StarRing(soft, FEET + 0.02f, 18, 2.0f, 3, 16, -1, "✧"),
+                new Spokes(soft, 170, FEET + 0.03f, 1.20f, 2.30f, 6, 0.07f, 5, 5.0));
+    }
+
+    /**
+     * Wide, slow and faint: three broad bands leaning at three angles and
+     * sweeping round the wearer like curtains, over a floor of drifting
+     * stars. Nothing in it is bright, and that is the point.
+     */
+    private static AuraConcept aurora(Color color) {
+        Color soft = softer(color);
+        return new AuraConcepts.Combined(
+                new PlateRing(soft, 235, FEET + 0.01f, 2.60f, 14, 0.09f, 1.0f, 0f, 0, 0.0, 0.0),
+                new PlateRing(color, 110, -0.60f, 3.10f, 8, 0.75f, 0.55f, 72f, 8, 3.0, 4.0),
+                new PlateRing(soft, 95, -0.45f, 2.75f, 8, 0.90f, 0.5f, 55f, 9, -3.5, -3.0),
+                new PlateRing(color, 85, -0.30f, 3.45f, 8, 0.65f, 0.45f, 84f, 10, 2.5, 5.0),
+                new GrandConcepts.StarRing(soft, FEET + 0.02f, 26, 2.2f, 3, 22, 1, "✦"));
+    }
+
+    /** A funnel drawn upward, with the rarity's gems thrown round the waist. */
+    private static AuraConcept tempest(Rarity rarity, Color color) {
+        Color soft = softer(color);
+        return new AuraConcepts.Combined(
+                new PlateRing(color, 230, FEET + 0.02f, 2.10f, 9, 0.11f, 0.5f, 0f, 5, 5.0, 0.0),
+                new PlateRing(soft, 210, -1.25f, 1.65f, 7, 0.09f, 0.5f, 0f, 4, 6.5, 0.0),
+                new PlateRing(color, 200, -0.85f, 1.25f, 6, 0.08f, 0.5f, 0f, 3, 8.0, 0.0),
+                new PlateRing(soft, 190, -0.45f, 0.85f, 5, 0.07f, 0.5f, 0f, 3, 10.0, 0.0),
+                new Spokes(color, 200, FEET + 0.03f, 1.05f, 2.15f, 5, 0.07f, 3, -9.0),
+                new AuraConcepts.SolidAtom(AuraConcepts.gem(rarity), -1.05f, 1.55f, 0.34f, true, 0, 2, 14.0));
+    }
+
+    /**
+     * Close in and solid: two rings standing through the wearer a quarter
+     * turn apart, a lantern atom held between them, and one outlined star
+     * so the wearer is picked out through a wall.
+     */
+    private static AuraConcept cradle(Rarity rarity, Color color) {
+        Color soft = softer(color);
+        return new AuraConcepts.Combined(
+                new PlateRing(color, 225, -0.75f, 1.80f, 10, 0.12f, 0.7f, 90f, 4, 7.0, 3.0),
+                new PlateRing(soft, 195, -0.75f, 1.55f, 10, 0.10f, 0.7f, 90f, 4, -7.0, -3.0),
+                new PlateRing(color, 240, FEET + 0.01f, 2.05f, 14, 0.11f, 1.0f, 0f, 0, 0.0, 0.0),
+                new AuraConcepts.SolidAtom(AuraConcepts.lantern(rarity), -0.70f, 1.05f, 0.34f, false, 0, 2, 22.0),
+                new Core(Material.NETHER_STAR, color, -0.60f, 0.55f));
     }
 
     // -------------------------------------------------------------- plate ring

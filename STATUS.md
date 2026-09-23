@@ -5,7 +5,7 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V191**, 23 September 2026.
+Last updated at **V192**, 23 September 2026.
 
 ## The agreed way of working
 
@@ -247,6 +247,25 @@ is the one definition CLAUDE.md asks for.
   the top, then one card per tracked rarity listing every holder with
   what they found, and how many spots are left. Nothing in it is
   clickable.
+
+**V192: five more combined aura looks.**
+
+`orrery`, the atom and armillary combination Leon asked for, has been in
+since V184 and is in `/rngadmin auratest list`. Five more stand beside it
+now, each built by putting existing pieces together rather than drawing
+new ones, and each leaning on a different axis so no two read alike:
+
+| Look | What it is | Leans |
+|---|---|---|
+| `zenith` | the armillary rings, a crown over the head, a column nine blocks up | vertical |
+| `lattice` | a cage of bars between two solid circles, stars turning under it | boxy |
+| `aurora` | three wide faint curtains sweeping round you over a floor of stars | wide and slow |
+| `tempest` | a funnel of five circles with the rarity's gems round the waist | fast and narrow |
+| `cradle` | two crossed standing rings holding a lantern atom and an outlined star | close in |
+
+Try them with `/rngadmin auratest <name> divine`, and remember the test
+obeys the own aura view in /options since V184, which the command prints
+when it starts.
 
 **Deliberately not done in V186, and why:** the +10% Coins and Gems per
 crop. Those are the `CROP_YIELD` nodes, and they are the spine of the
