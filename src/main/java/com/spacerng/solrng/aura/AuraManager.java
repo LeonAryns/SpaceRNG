@@ -424,7 +424,11 @@ public final class AuraManager {
                 // display keeps its own yaw, so it is set whenever the body has
                 // turned a little; the pieces' teleport duration glides it.
                 if (aura.concept.followsBody()) {
-                    float yaw = player.getBodyYaw();
+                    // Wings belong behind where somebody is looking. The
+                    // body yaw lags the head and then snaps to it, which
+                    // reads as the wings swinging late and jumping.
+                    float yaw = aura.concept.followsHead()
+                            ? player.getLocation().getYaw() : player.getBodyYaw();
                     float turned = ((yaw - aura.lastYaw) % 360f + 540f) % 360f - 180f;
                     if (Float.isNaN(aura.lastYaw) || Math.abs(turned) > 4f) {
                         for (int i = 0; i < aura.displays.size(); i++) {

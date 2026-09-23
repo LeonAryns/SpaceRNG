@@ -408,9 +408,26 @@ public final class AuraParts {
         return pose(y, new Quaternionf().rotateY(angle), scale);
     }
 
-    /** Laid flat first, then turned about the vertical axis, so the spin stays level. */
+    /**
+     * How far a flat glyph card has to be lifted off its own origin to be
+     * seen, per unit of scale.
+     *
+     * A text display centres its line box on its position, and a star
+     * glyph sits in the lower part of that box, so a card laid flat at the
+     * feet renders inside the top face of the block it is standing on and
+     * simply is not there. It is the same 4.5 font pixels
+     * {@link #pairStars} already works with, and it grows with the card,
+     * which is why a big ground ring disappeared while a small one did
+     * not.
+     */
+    private static final float GLYPH_LIFT = 4.5f * 0.025f;
+
+    /**
+     * Laid flat first, then turned about the vertical axis, so the spin
+     * stays level, and lifted clear of whatever it is lying on.
+     */
     public static Transformation flat(float y, float angle, float scale) {
-        return pose(y, flatRotation(angle), scale);
+        return pose(y + GLYPH_LIFT * scale, flatRotation(angle), scale);
     }
 
     /** The rotation {@link #flat} uses, for working out where its glyphs are. */

@@ -88,6 +88,12 @@ final class DisplayConcepts {
         }
 
         @Override
+        public boolean clearOfView() {
+            // Six swords at arm's length round the waist, not on the nose.
+            return true;
+        }
+
+        @Override
         public List<Display> spawn(Player player, AuraParts parts) {
             List<Display> displays = new ArrayList<>();
             for (int i = 0; i < COUNT; i++) {
@@ -148,6 +154,12 @@ final class DisplayConcepts {
         }
 
         @Override
+        public boolean clearOfView() {
+            // A ring standing on the head, which the wearer is under.
+            return true;
+        }
+
+        @Override
         public List<Display> spawn(Player player, AuraParts parts) {
             List<Display> displays = new ArrayList<>();
             for (int i = 0; i < COUNT; i++) {
@@ -195,6 +207,12 @@ final class DisplayConcepts {
                 case LEGENDARY -> Material.ORANGE_STAINED_GLASS;
                 default -> Material.PURPLE_STAINED_GLASS;
             };
+        }
+
+        @Override
+        public boolean clearOfView() {
+            // Four beams out at the edge of the body, looked between.
+            return true;
         }
 
         @Override
@@ -255,7 +273,11 @@ final class DisplayConcepts {
      * axis, with three of the rarity's gems as moons on a slanted orbit.
      */
     static final class Planet implements AuraConcept {
-        private static final float Y = 1.45f;
+        // V193: was 1.45, which is three and a quarter blocks over the
+        // feet. Nobody looks up that far, and with no clearOfView the
+        // wearer's own view hid it as well, so /rngadmin auratest planet
+        // showed a completely empty sky.
+        private static final float Y = 0.85f;
         private static final float MOON_RADIUS = 0.5f;
         private static final Quaternionf ORBIT = new Quaternionf().rotateX(rad(25));
         private final Material core;
@@ -264,6 +286,12 @@ final class DisplayConcepts {
         Planet(Rarity rarity) {
             this.core = AuraConcepts.lantern(rarity);
             this.moon = AuraConcepts.gem(rarity);
+        }
+
+        @Override
+        public boolean clearOfView() {
+            // Over the head, so the wearer is under it.
+            return true;
         }
 
         @Override

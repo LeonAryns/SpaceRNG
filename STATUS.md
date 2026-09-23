@@ -5,7 +5,7 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V192**, 23 September 2026.
+Last updated at **V193**, 23 September 2026.
 
 ## The agreed way of working
 
@@ -266,6 +266,47 @@ new ones, and each leaning on a different axis so no two read alike:
 Try them with `/rngadmin auratest <name> divine`, and remember the test
 obeys the own aura view in /options since V184, which the command prints
 when it starts.
+
+**V193: Leon's aura feedback, and two bugs it turned up.**
+
+**The ground stars were sinking into the block.** A text display centres
+its line box on its position and a star glyph sits low in that box, so a
+card laid flat at the feet renders inside the top face of the block it is
+lying on. `AuraParts.flat` lifts a card by `4.5 * 0.025 * scale`, the
+same figure `pairStars` already works with, which is why the big rings
+vanished while small ones did not. Every flat glyph piece is fixed at
+once: the star bands, the runes, galaxy, ripple, pulse.
+
+**`planet` showed nothing** for two reasons at once. It hung at 1.45
+above the ride point, which is three and a quarter blocks over the feet,
+and it had no `clearOfView`, so the default own aura view hid it from the
+only person testing it. It sits at 0.85 now and counts as sky. `crown`,
+`blades` and `pillars` had the same missing flag and now say so.
+
+**Three looks built only out of what he named:**
+
+- `seraphim` is wings on their own. Seven narrow feathers a side rather
+  than four wide ones, and behind where he is LOOKING rather than where
+  his body points, which is a new `followsHead()` on the concept: the
+  body yaw lags the head and then snaps to it, so wings on the body swing
+  late and jump. The crown he liked stays over the head.
+- `heartfall` is the heart out of `cradle`, the lanterns out of
+  `galaxy-grand` sailing round it, and the star bands from under
+  `atom-grand`. Three things he named and no filler.
+- `stardust` is `nebula`'s shooting ground stars under two of `aurora`'s
+  curtains.
+
+**Epic's lit block** is an amethyst block rather than a pearlescent
+froglight, which read as pale pink next to Epic's violet. Every aura
+piece is fullbright anyway, so it glows.
+
+**Also in V193:** the drop behind a name in `/firsts` wears its own
+gradient, and `Money` lost its Base rate row in /stats along with the
+other three.
+
+**Still Leon's call:** which looks to keep, which shiny slots to put them
+on, and whether Legendary and Mythical should swap lit blocks (shroomlight
+is on Mythical today, ochre froglight on Legendary).
 
 **Deliberately not done in V186, and why:** the +10% Coins and Gems per
 crop. Those are the `CROP_YIELD` nodes, and they are the spine of the

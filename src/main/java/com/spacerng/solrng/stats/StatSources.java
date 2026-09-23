@@ -217,7 +217,7 @@ public final class StatSources {
         List<Part> parts = new ArrayList<>();
 
         parts.add(new Part("Base rate", "Every roll pays odds x this",
-                plugin.getConfig().getDouble("economy.money-per-odds-multiplier", 10.0), Op.ADD));
+                plugin.getConfig().getDouble("economy.money-per-odds-multiplier", 10.0), Op.ADD, false));
         parts.add(new Part("Nova Core", "Hold Nova Cores - see /nova",
                 plugin.getNovaCoreManager().multiplierAt(data.getNovaTier()), Op.MULTIPLY));
         parts.add(new Part("Prestige upgrades", "Spend Prestige Points in /prestige",

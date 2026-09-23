@@ -105,7 +105,7 @@ public class FirstsGui {
                 FirstTenManager.Entry entry = entries.get(i);
                 lore.add(plugin.getRarityManager().style(rarity, Lore.BULLET + " #" + (i + 1)) + " "
                         + ChatColor.WHITE + entry.name()
-                        + ChatColor.DARK_GRAY + "  " + entry.item());
+                        + ChatColor.DARK_GRAY + "  " + drop(plugin, entry.item()));
             }
         }
         lore.add("");
@@ -116,6 +116,19 @@ public class FirstsGui {
         if (left <= 0) meta.setEnchantmentGlintOverride(Boolean.TRUE);
         item.setItemMeta(meta);
         return item;
+    }
+
+    /**
+     * A drop's name the way it reads everywhere else in the plugin: its
+     * own gradient, its own styling (V193). firsts.yml stores the plain
+     * name, so it is looked up in the item table on the way out; an item
+     * renamed or retired since it was won falls back to what was saved.
+     */
+    private static String drop(SolRNGPlugin plugin, String name) {
+        if (name == null || name.isBlank()) return "";
+        var item = plugin.getRarityManager().findByDisplayName(name);
+        return item == null ? ChatColor.GRAY + name
+                : com.spacerng.solrng.rarity.RollFormat.displayName(plugin, item);
     }
 
     /** The same icon each rarity wears on the aura switches in /options. */

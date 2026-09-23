@@ -35,6 +35,18 @@ public interface AuraConcept {
     }
 
     /**
+     * True for a look that should turn with the wearer's HEAD rather than
+     * their body. Both yaws exist and they are not the same: the body
+     * lags the head and snaps to it, so wings on the body swing late and
+     * then jump. Wings sit where somebody is looking.
+     *
+     * Only read when {@link #followsBody()} is also true.
+     */
+    default boolean followsHead() {
+        return false;
+    }
+
+    /**
      * True for looks that stay out of the wearer's own first person view:
      * down at the feet, up over the head, out behind the back, or far
      * enough out that the wearer looks straight through them. With the

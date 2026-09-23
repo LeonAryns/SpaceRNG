@@ -75,6 +75,9 @@ final class SignatureConcepts {
         d.put("aurora", "three wide slow curtains sweeping round you over a floor of stars");
         d.put("tempest", "a funnel of five circles with gems thrown round the waist");
         d.put("cradle", "two crossed standing rings holding a lantern atom and an outlined star");
+        d.put("seraphim", "seven feathered wings a side, behind where you look, under a crown");
+        d.put("heartfall", "the beating heart, lanterns sailing round it, star bands at the feet");
+        d.put("stardust", "shooting stars running out along the ground under two wide curtains");
     }
 
     static AuraConcept create(String key, Rarity rarity, Color color) {
@@ -101,6 +104,9 @@ final class SignatureConcepts {
             case "aurora" -> aurora(color);
             case "tempest" -> tempest(rarity, color);
             case "cradle" -> cradle(rarity, color);
+            case "seraphim" -> seraphim(color);
+            case "heartfall" -> heartfall(rarity, color);
+            case "stardust" -> stardust(color);
             default -> null;
         };
     }
@@ -442,6 +448,53 @@ final class SignatureConcepts {
                 new PlateRing(color, 240, FEET + 0.01f, 2.05f, 14, 0.11f, 1.0f, 0f, 0, 0.0, 0.0),
                 new AuraConcepts.SolidAtom(AuraConcepts.lantern(rarity), -0.70f, 1.05f, 0.34f, false, 0, 2, 22.0),
                 new Core(Material.NETHER_STAR, color, -0.60f, 0.55f));
+    }
+
+    // ------------------------------------------------ three from the feedback
+
+    /**
+     * Wings on their own, which is what Leon asked for after empyrean:
+     * seven narrow feathers a side instead of four wide ones, and behind
+     * where he is LOOKING rather than where his body points. The crown he
+     * liked stays over the head and nothing else competes with them.
+     */
+    private static AuraConcept seraphim(Color color) {
+        Color soft = softer(color);
+        return new AuraConcepts.Combined(
+                new PlateWings(color, 220, true),
+                new Petals(soft, 215, 0.16f, 0.42f, 6, 0.12f, 0.34f, 12f, 5, 16),
+                new PlateRing(color, 230, FEET + 0.01f, 1.70f, 12, 0.09f, 1.0f, 0f, 0, 0.0, 0.0));
+    }
+
+    /**
+     * The heart out of cradle, which is the piece he called unique, with
+     * the lanterns out of galaxy-grand sailing round it because he liked
+     * how those move, over the star bands he liked under atom-grand.
+     * Nothing else: three things he named and no filler.
+     */
+    private static AuraConcept heartfall(Rarity rarity, Color color) {
+        Color soft = softer(color);
+        return new AuraConcepts.Combined(
+                new Core(Material.NETHER_STAR, color, -0.60f, 0.60f),
+                new GrandConcepts.FlatOrbit(AuraConcepts.lantern(rarity), false, -0.55f,
+                        new float[]{1.35f, 2.25f}, 2, 0.34f, 2, 7.0),
+                new GrandConcepts.StarRing(color, FEET + 0.02f, 22, 2.3f, 3, 18, -1, "✦"),
+                new GrandConcepts.StarRing(soft, FEET + 0.03f, 12, 1.8f, 2, 13, 1, "✧"),
+                new PlateRing(color, 235, FEET + 0.01f, 2.00f, 12, 0.10f, 1.0f, 0f, 0, 0.0, 0.0));
+    }
+
+    /**
+     * The shooting stars he liked in nebula, running out along the ground,
+     * under two of aurora's wide slow curtains. Wide, quiet and the
+     * cheapest of the three.
+     */
+    private static AuraConcept stardust(Color color) {
+        Color soft = softer(color);
+        return new AuraConcepts.Combined(
+                new MassiveConcepts.WideRipple(color, 26, 3.0f, 22, 4),
+                new PlateRing(soft, 235, FEET + 0.01f, 2.40f, 14, 0.09f, 1.0f, 0f, 0, 0.0, 0.0),
+                new PlateRing(color, 105, -0.55f, 3.00f, 8, 0.80f, 0.55f, 74f, 9, 3.0, 4.0),
+                new PlateRing(soft, 90, -0.40f, 2.65f, 8, 0.95f, 0.5f, 58f, 10, -3.0, -3.0));
     }
 
     // -------------------------------------------------------------- plate ring
@@ -960,18 +1013,47 @@ final class SignatureConcepts {
         private static final float PIVOT_Z = -0.22f;
         // Four feathers rather than the old five, because each is drawn twice
         // now, once per face.
-        private static final double[] RAISE = {38, 18, -4, -26};
-        private static final float[] LENGTH = {1.25f, 1.4f, 1.2f, 0.9f};
-        private static final float[] WIDTH = {0.22f, 0.26f, 0.23f, 0.17f};
+        private static final double[] PLAIN_RAISE = {38, 18, -4, -26};
+        private static final float[] PLAIN_LENGTH = {1.25f, 1.4f, 1.2f, 0.9f};
+        private static final float[] PLAIN_WIDTH = {0.22f, 0.26f, 0.23f, 0.17f};
+
+        /**
+         * The detailed set (V193). Seven feathers a side instead of four,
+         * each narrower, with the long ones in the middle and short
+         * coverts at both ends, which is the shape a real wing has and the
+         * thing that was missing: four wide blades read as a fan.
+         */
+        private static final double[] FINE_RAISE = {56, 40, 24, 8, -10, -28, -46};
+        private static final float[] FINE_LENGTH = {0.85f, 1.25f, 1.55f, 1.65f, 1.5f, 1.15f, 0.75f};
+        private static final float[] FINE_WIDTH = {0.11f, 0.14f, 0.17f, 0.18f, 0.16f, 0.13f, 0.10f};
+
         private static final int EVERY = 10;
         private final Color color;
         private final Color edge;
         private final int alpha;
+        private final double[] raise;
+        private final float[] length;
+        private final float[] width;
+        private final boolean head;
 
         PlateWings(Color color, int alpha) {
+            this(color, alpha, false);
+        }
+
+        /** @param fine the seven feather set, turning with the head instead of the body */
+        PlateWings(Color color, int alpha, boolean fine) {
             this.color = color;
             this.edge = softer(color);
             this.alpha = alpha;
+            this.raise = fine ? FINE_RAISE : PLAIN_RAISE;
+            this.length = fine ? FINE_LENGTH : PLAIN_LENGTH;
+            this.width = fine ? FINE_WIDTH : PLAIN_WIDTH;
+            this.head = fine;
+        }
+
+        @Override
+        public boolean followsHead() {
+            return head;
         }
 
         @Override
@@ -993,7 +1075,7 @@ final class SignatureConcepts {
                 // Each feather twice, once for each face. A wing has a left
                 // and a right side to be looked at, and a plate only exists
                 // on one of them.
-                for (int f = 0; f < RAISE.length; f++) {
+                for (int f = 0; f < raise.length; f++) {
                     displays.add(parts.plate(player, color, alpha, feather(side, f, 0, false)));
                     displays.add(parts.plate(player, color, alpha, feather(side, f, 0, true)));
                 }
@@ -1009,7 +1091,7 @@ final class SignatureConcepts {
             long beat = frame / EVERY + 1;
             int index = 0;
             for (int side = -1; side <= 1; side += 2) {
-                for (int f = 0; f < RAISE.length; f++) {
+                for (int f = 0; f < raise.length; f++) {
                     moveTo(displays.get(index++), feather(side, f, beat, false), EVERY * 2);
                     moveTo(displays.get(index++), feather(side, f, beat, true), EVERY * 2);
                 }
@@ -1022,12 +1104,12 @@ final class SignatureConcepts {
         public void stars(long frame, List<Vector> out) {
             long beat = frame / EVERY;
             for (int side = -1; side <= 1; side += 2) {
-                for (int f = 0; f < RAISE.length; f++) {
-                    double raise = Math.toRadians(RAISE[f] + lift(beat));
+                for (int f = 0; f < raise.length; f++) {
+                    double lifted = Math.toRadians(raise[f] + lift(beat));
                     double swept = Math.toRadians(sweep(beat) + f * 3);
-                    Vector3f dir = direction(side, raise, swept);
-                    out.add(new Vector(side * PIVOT_X + dir.x * LENGTH[f],
-                            RIDE + PIVOT_Y + dir.y * LENGTH[f], PIVOT_Z + dir.z * LENGTH[f]));
+                    Vector3f dir = direction(side, lifted, swept);
+                    out.add(new Vector(side * PIVOT_X + dir.x * length[f],
+                            RIDE + PIVOT_Y + dir.y * length[f], PIVOT_Z + dir.z * length[f]));
                 }
             }
         }
@@ -1051,15 +1133,15 @@ final class SignatureConcepts {
                     (float) (-Math.cos(a) * Math.sin(b)));
         }
 
-        private static Matrix4f feather(int side, int f, long beat, boolean back) {
-            return blade(side, Math.toRadians(RAISE[f] + lift(beat)),
-                    Math.toRadians(sweep(beat) + f * 3), LENGTH[f], WIDTH[f], -f * 0.04f, back);
+        private Matrix4f feather(int side, int f, long beat, boolean back) {
+            return blade(side, Math.toRadians(raise[f] + lift(beat)),
+                    Math.toRadians(sweep(beat) + f * 3), length[f], width[f], -f * 0.04f, back);
         }
 
         /** A thinner, brighter plate along the top feather, so the wing has an edge. */
-        private static Matrix4f leading(int side, long beat, boolean back) {
-            return blade(side, Math.toRadians(RAISE[0] + lift(beat) + 3),
-                    Math.toRadians(sweep(beat)), LENGTH[0] * 1.1f, 0.05f, 0f, back);
+        private Matrix4f leading(int side, long beat, boolean back) {
+            return blade(side, Math.toRadians(raise[0] + lift(beat) + 3),
+                    Math.toRadians(sweep(beat)), length[0] * 1.1f, 0.05f, 0f, back);
         }
 
         private static Matrix4f blade(int side, double a, double b, float length, float width,

@@ -178,7 +178,11 @@ public final class AuraConcepts {
             case DIVINE -> Material.SEA_LANTERN;
             case MYTHICAL -> Material.SHROOMLIGHT;
             case LEGENDARY -> Material.OCHRE_FROGLIGHT;
-            default -> Material.PEARLESCENT_FROGLIGHT;
+            // V193: a pearlescent froglight is pale pink and read as
+            // nothing next to Epic's violet. Every aura piece is drawn
+            // fullbright, so an amethyst block reads as lit anyway and is
+            // the only violet block in the game.
+            default -> Material.AMETHYST_BLOCK;
         };
     }
 
@@ -866,6 +870,14 @@ public final class AuraConcepts {
         public boolean followsBody() {
             for (AuraConcept look : looks) {
                 if (look.followsBody()) return true;
+            }
+            return false;
+        }
+
+        @Override
+        public boolean followsHead() {
+            for (AuraConcept look : looks) {
+                if (look.followsHead()) return true;
             }
             return false;
         }
