@@ -32,8 +32,14 @@ public class TagCommand implements CommandExecutor {
             return true;
         }
 
+        // V186: bare /tag opens the index, because that is where a tag is
+        // actually picked. Printing a usage line at somebody who typed the
+        // name of the thing they wanted is the least useful answer there is.
         if (args.length == 0) {
-            player.sendMessage(ChatColor.RED + "Usage: /tag <equip|clear>");
+            com.spacerng.solrng.gui.Menus.open(plugin, player,
+                    () -> com.spacerng.solrng.gui.IndexGui.build(plugin, player, null, 0));
+            player.sendMessage(ChatColor.GRAY + "Click any drop you have found to wear it. "
+                    + ChatColor.YELLOW + "/tag clear" + ChatColor.GRAY + " takes it off.");
             return true;
         }
 

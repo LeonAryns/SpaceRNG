@@ -42,10 +42,18 @@ public class HoeGui {
     };
 
     private static final int HOE_SLOT = 4;
-    private static final int COINS_SLOT = 49;
+    // V186: Your Coins went to the far left of the bottom row and the way
+    // into /farmtree took the middle, because the middle of the row under
+    // the rack is where somebody looks for the next thing to do.
+    private static final int COINS_SLOT = 45;
+    private static final int FARM_TREE_SLOT = 49;
     private static final int FARM_SOUND_SLOT = 47;
     private static final int ENCHANT_SOUND_SLOT = 51;
     private static final int HIDE_PLAYERS_SLOT = 53;
+
+    public static int farmTreeSlot() {
+        return FARM_TREE_SLOT;
+    }
 
     public static int hidePlayersSlot() {
         return HIDE_PLAYERS_SLOT;
@@ -70,7 +78,7 @@ public class HoeGui {
 
         Inventory inv = Bukkit.createInventory(holder, 54,
                 ChatColor.DARK_GREEN + "" + ChatColor.BOLD + "Farmer's Hoe"
-                        + ChatColor.GRAY + " \u2014 " + tier.display());
+                        + ChatColor.GRAY + " - " + tier.display());
         holder.setInventory(inv);
 
         // Green rim, one row of glass above the controls, everything else
@@ -102,6 +110,7 @@ public class HoeGui {
 
         inv.setItem(HOE_SLOT, buildHoeCard(plugin, player, data, tier));
         inv.setItem(COINS_SLOT, buildCoins(data));
+        inv.setItem(FARM_TREE_SLOT, buildFarmTree(plugin, data));
         inv.setItem(FARM_SOUND_SLOT, buildToggle(Material.NOTE_BLOCK, "Farming Sounds",
                 data.isFarmSoundEnabled(), "The click of a crop coming up."));
         inv.setItem(ENCHANT_SOUND_SLOT, buildToggle(Material.BELL, "Enchant Sounds",
@@ -317,6 +326,36 @@ public class HoeGui {
                 "",
                 ChatColor.DARK_GRAY + Lore.BULLET + " Enchants are unlocked in /farmtree",
                 ChatColor.DARK_GRAY + Lore.BULLET + " and levelled here with Coins."));
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    /**
+     * The way into /farmtree, in the middle of the row under the rack.
+     * Every enchant on that rack is unlocked over there, so the screen
+     * that shows them should be one click from the screen that sells
+     * them. Leon asked for it in V186; before it the only pointer was a
+     * dark grey footnote nobody reads.
+     */
+    private static ItemStack buildFarmTree(SolRNGPlugin plugin, PlayerData data) {
+        HoeEnchantManager hoe = plugin.getHoeEnchantManager();
+        int total = hoe.getEnchants().size();
+        int unlocked = 0;
+        for (String id : hoe.getEnchants().keySet()) {
+            if (hoe.isUnlocked(data, id)) unlocked++;
+        }
+        ItemStack item = new ItemStack(Material.WHEAT_SEEDS);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(Lore.title(ChatColor.GREEN, "Farm Tree"));
+        List<String> lore = new ArrayList<>();
+        lore.add(Lore.stat(ChatColor.GREEN, "Enchants unlocked", unlocked + " of " + total));
+        lore.add("");
+        lore.add(Lore.line(ChatColor.AQUA, "Unlock the rest of the rack,"));
+        lore.add(Lore.line(ChatColor.AQUA, "and every farming skill there is."));
+        lore.add("");
+        lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to open");
+        meta.setLore(lore);
+        if (unlocked < total) meta.setEnchantmentGlintOverride(Boolean.TRUE);
         item.setItemMeta(meta);
         return item;
     }

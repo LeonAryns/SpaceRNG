@@ -38,6 +38,8 @@ final class FirstTenBuildUp {
 
     private static final double VIEW = 180.0;
     private static final double REACH = 100.0;
+    // How much of the run the opening owns. The rest is the build.
+    private static final double OPENING = 0.25;
 
     private final SolRNGPlugin plugin;
     private final Rarity rarity;
@@ -64,11 +66,13 @@ final class FirstTenBuildUp {
         this.finder = finder;
         this.burst = burst;
         this.length = switch (rarity) {
-            // Shortened in V158: Leon found it dragging well past the
-            // roll's own reveal. Three, four and six seconds.
-            case DIVINE -> 120L;
-            case MYTHICAL -> 80L;
-            default -> 60L;
+            // V158 cut this to three, four and six seconds because it
+            // dragged. V186 puts it back up at Leon's request, now that
+            // the opening is loud enough to be worth turning round for:
+            // five, seven and ten seconds. The star hangs for all of it.
+            case DIVINE -> 200L;
+            case MYTHICAL -> 140L;
+            default -> 100L;
         };
         this.base = RollAura.colorFor(rarity);
         // Warm near-white, never pure white, which reads as a glitch.
@@ -179,16 +183,45 @@ final class FirstTenBuildUp {
     private void draw(Player viewer, double progress) {
         ThreadLocalRandom random = ThreadLocalRandom.current();
 
-        // The opening: one ring running outward from where it began, gone by a fifth of the way.
-        if (progress < 0.2) {
-            double radius = REACH * progress / 0.2;
-            int points = 24 + (int) (radius * 1.2);
-            for (int i = 0; i < points; i++) {
-                double angle = Math.PI * 2 * i / points;
-                viewer.spawnParticle(Particle.DUST_COLOR_TRANSITION,
-                        origin.clone().add(Math.cos(angle) * radius, 0.6, Math.sin(angle) * radius),
-                        1, 0.0, 0.2, 0.0, 0.0, fade, true);
+        // The opening, and it has to carry the whole thing: somebody
+        // hearing the first bell has a second or two to work out which way
+        // to look, and one ring at ankle height told them nothing. Three
+        // rings run outward at three heights, so it reads as a dome going
+        // up over the spot rather than as a line on the floor, and a
+        // column of light stands in the middle of them while they travel.
+        if (progress < OPENING) {
+            double out = progress / OPENING;
+            for (int ring = 0; ring < 3; ring++) {
+                // Each ring is a little behind the one under it, so the
+                // three of them lean outward as they go.
+                double lag = Math.max(0.0, out - ring * 0.12);
+                double radius = REACH * lag;
+                if (radius < 0.5) continue;
+                int points = 20 + (int) (radius * 1.1);
+                double height = 0.6 + ring * 4.5;
+                for (int i = 0; i < points; i++) {
+                    double angle = Math.PI * 2 * i / points;
+                    viewer.spawnParticle(Particle.DUST_COLOR_TRANSITION,
+                            origin.clone().add(Math.cos(angle) * radius, height, Math.sin(angle) * radius),
+                            1, 0.0, 0.2, 0.0, 0.0, ring == 1 ? dust : fade, true);
+                }
             }
+            // The column. It reaches the star, so the two of them are one
+            // shape from the first frame rather than a floor effect and a
+            // thing in the sky that happen to share a colour.
+            double reach = 40.0 * Math.min(1.0, out * 2.0);
+            for (double y = 0.0; y < reach; y += 1.25) {
+                viewer.spawnParticle(Particle.END_ROD, origin.clone().add(
+                                random.nextDouble(-0.35, 0.35), y, random.nextDouble(-0.35, 0.35)),
+                        1, 0.0, 0.0, 0.0, 0.0, null, true);
+            }
+            // And a flash a frame, thrown somewhere out on the ring that is
+            // travelling, so the eye is pulled outward with it.
+            double edge = REACH * out;
+            double angle = random.nextDouble(Math.PI * 2);
+            viewer.spawnParticle(Particle.FLASH, origin.clone().add(
+                            Math.cos(angle) * edge, random.nextDouble(1.0, 9.0), Math.sin(angle) * edge),
+                    1, 0.0, 0.0, 0.0, 0.0, base, true);
         }
 
         // Bursts at random spots across the whole area, more of them as it builds.

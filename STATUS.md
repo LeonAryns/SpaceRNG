@@ -5,7 +5,7 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V185**, 23 September 2026.
+Last updated at **V186**, 23 September 2026.
 
 ## The agreed way of working
 
@@ -73,7 +73,68 @@ two lines a player cannot read. Ours is 19 at the top rank and 14 at the
 bottom. Each rank's pitch is `ranks.tiers.<id>.blurb` in config, two
 lines, so Leon can word them himself.
 
+**Done in V186: almost all of it, in one jar, because Leon said "doe
+voor v186 alles".**
+
+- **The chat.** The prefix was on `AsyncPlayerChatEvent` while the tag
+  expansion was on Paper's own `AsyncChatEvent`. Paper picks one path and
+  it picked the modern one, so `setFormat` was never read by anybody and
+  no prestige, no tag and no rank colour ever reached the screen. It is
+  one listener on `AsyncChatEvent` with a renderer now.
+- **An Enchant potion was raising Coins per crop.** `powerOf` multiplied
+  every enchant by the proc multiplier, including the always on ones. A
+  thing that fires on 100% of crops has no chance to raise. Proc Chance,
+  the hoe tier and the potion now all skip `TOKEN_GREED` and `MOMENTUM`.
+- **Prices.** Auto Roll 1000, Auto Convert 10000, Shiny Unlocked 100000,
+  Armor 10000, Farming 10000. Tag Luck sits under Index Luck I again,
+  the two swapped prices with their slots, and Luck II moved behind
+  Index Luck I so the spine still climbs.
+- **Crop milestones.** Ten times the old thresholds, 1,000 up to
+  10,000,000, and not one Coin in the list: 10x and 100x Rolls, potions,
+  Nova Cores, Perk Tickets and a permanent Luck at the top. Milestone
+  tiers take a `tickets:` key now, and there is a `roll_100x`
+  consumable.
+- **Credits.** The first Credit reward on every track is 100 and never on
+  the track's opening tier. The tiers behind each first one were raised
+  only as far as they had to be to keep climbing.
+- **Starforge tier 3 pays +5 Speed** rather than 0.05, as asked. Speed
+  divides the roll time, so that is a roll six times faster at tier 3,
+  quicker than every tier above it. Left as asked.
+- **The hoe's enchant proc** climbs at 0.18 of the Coin step rather than
+  0.07, so a fully walked ladder is about 1.50x rather than 1.20x.
+- **Enchants really reach 10,000 levels.** They always did in the jar;
+  `farming.enchants` was not a structural section, so a live config
+  predating V159 kept its 1,000. It is structural now, the enchants only.
+- **Menus.** A Farm Tree button in the middle of the hoe screen's bottom
+  row with Your Coins moved to its far left; clicking a locked enchant
+  opens the farm tree instead of refusing; Auto Convert is a chest
+  minecart; the Coins sprite is a gold ingot; `/tag` with no arguments
+  opens the index.
+- **Nova Core.** Tier 1 cannot fail, ever, not only the first forge, and
+  the menu says "certain" rather than a number the forge will not use. A
+  climb says "Your Nova Core is now Tier N". The forge button wears the
+  Core's own gradient and explains itself before it quotes odds.
+- **The Server First run-up** is five, seven and ten seconds, and the
+  opening is three rings going outward at three heights with a column of
+  light standing in the middle of them, so there is something to turn
+  round for before the banner lands.
+- **The tab list** has a header and a footer at last, in `tab:` in
+  config, with per player tokens. Switch `tab.enabled` off if the TAB
+  plugin is ever installed, because it owns the same two blocks.
+
+**Deliberately not done in V186, and why:** the +10% Coins and Gems per
+crop. Those are the `CROP_YIELD` nodes, and they are the spine of the
+farm tree: `golden_crop` and the crops behind them require
+`yield_wheat`, `yield_carrots` and `yield_potatoes` by name. Taking the
+effect away leaves nodes that cost 6,500 Coins and pay nothing; taking
+the nodes away breaks the chain. **Leon said he wants to put something
+else there, so the reminder is here: crop level.** Tell me what the node
+should do and it is a ten minute change.
+
 **Next up, in this order unless Leon says otherwise:**
+
+(Most of the list below shipped in V186; what is left is called out
+above.)
 
 1. **The Server First show.** The star and the beam are good. He wants
    more particles in the opening seconds, so people have time to look

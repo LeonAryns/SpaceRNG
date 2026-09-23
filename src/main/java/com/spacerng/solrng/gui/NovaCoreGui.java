@@ -142,6 +142,9 @@ public class NovaCoreGui {
         return item;
     }
 
+    /** The Nova Core's own two colours, from its consumable entry. */
+    private static final String[] CORE_STOPS = {"#7FE7FF", "#00B0FF"};
+
     private static ItemStack buildForge(SolRNGPlugin plugin, Player player, PlayerData data,
                                         NovaCoreManager nova, int tier) {
         boolean maxed = tier >= nova.getMaxTier();
@@ -154,9 +157,12 @@ public class NovaCoreGui {
         // the one thing in the menu you press rather than read.
         ItemStack item = new ItemStack(maxed ? Material.NETHER_STAR : Material.COMPASS);
         ItemMeta meta = item.getItemMeta();
+        // The Core's own colours, so the button and the thing it eats read
+        // as the same object. A gradient belongs on a name and nowhere
+        // else in a tooltip: see the menu-design skill.
         meta.setDisplayName(maxed
-                ? Lore.title(ChatColor.GREEN, "Fully Forged")
-                : Lore.title(ChatColor.YELLOW, "Forge Tier " + (tier + 1)));
+                ? Lore.gradient("Fully Forged", true, "#B9F6CA", "#00E676")
+                : Lore.gradient("Forge Tier " + (tier + 1), true, CORE_STOPS));
 
         List<String> lore = new ArrayList<>();
         if (maxed) {
@@ -165,8 +171,13 @@ public class NovaCoreGui {
             lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "Maxed");
         } else {
             ChatColor odds = chance >= 0.5 ? ChatColor.GREEN : chance >= 0.2 ? ChatColor.YELLOW : ChatColor.RED;
+            lore.add(ChatColor.GRAY + "Every tier multiplies your Luck, Money");
+            lore.add(ChatColor.GRAY + "and Coins. Miss, and you fall back to");
+            lore.add(ChatColor.GRAY + "your last checkpoint.");
+            lore.add("");
             lore.add(Lore.section(ChatColor.AQUA, "This attempt"));
-            lore.add(Lore.stat(odds, "Success", String.format("%.1f%%", chance * 100.0)));
+            lore.add(Lore.stat(odds, "Success", chance >= 1.0
+                    ? "certain" : String.format("%.1f%%", chance * 100.0)));
             lore.add((affordable ? ChatColor.YELLOW : ChatColor.RED) + Lore.BULLET + " "
                     + ChatColor.GRAY + "Cost: " + (affordable ? ChatColor.WHITE : ChatColor.RED)
                     + "1 Nova Core" + ChatColor.DARK_GRAY + "  (you have " + held + ")");

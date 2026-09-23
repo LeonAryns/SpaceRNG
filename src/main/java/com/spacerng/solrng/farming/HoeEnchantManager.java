@@ -263,12 +263,19 @@ public class HoeEnchantManager {
         // total rather than adding levels - a flat level bonus would be
         // worth wildly different amounts to a 0.02/level enchant and a
         // 0.00004/level one.
+        double raw = enchant.perLevel() * levelOf(data, enchantId);
+        // An always on enchant has no chance to raise: Coin Greed pays on
+        // every single crop already. Until V186 the proc multiplier was
+        // applied to it anyway, so an Enchant potion put Leon's Coins per
+        // crop up, which is not what any of the three things feeding it
+        // say they do. Proc Chance, the hoe tier and the potion all say
+        // "fires more often", and something at 100% cannot.
+        if (ALWAYS_ON.contains(enchant.id())) return raw;
         double proc = plugin.getSkillTreeManager()
                 .multiplierOf(data, SkillNode.Effect.ENCHANT_PROC)
                 * data.boostMultiplier("ENCHANT_PROC")
                 * plugin.getFarmingManager().tierOf(data).procMultiplier();
-        double raw = enchant.perLevel() * levelOf(data, enchantId) * proc;
-        if (ALWAYS_ON.contains(enchant.id())) return raw;
+        raw *= proc;
         // Everything else is a chance rolled per crop. With 10,000 levels
         // (V159) the straight product ran past 100% on half of them, so it
         // bends toward a ceiling instead: about the raw number while small,

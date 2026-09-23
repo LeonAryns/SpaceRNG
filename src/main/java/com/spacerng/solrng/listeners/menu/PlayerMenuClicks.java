@@ -393,6 +393,12 @@ final class PlayerMenuClicks {
             return;
         }
 
+        if (event.getRawSlot() == HoeGui.farmTreeSlot()) {
+            player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.6f, 1.2f);
+            player.openInventory(SkillTreeGui.build(plugin, player, "farmtree", 0));
+            return;
+        }
+
         if (event.getRawSlot() == HoeGui.hidePlayersSlot()) {
             data.setFarmHidePlayers(!data.isFarmHidePlayers());
             player.openInventory(HoeGui.build(plugin, player));
@@ -423,8 +429,12 @@ final class PlayerMenuClicks {
 
         var hoe = plugin.getHoeEnchantManager();
         if (!hoe.isUnlocked(data, id)) {
-            player.sendMessage(ChatColor.RED + "Unlock that enchant in /farmtree first.");
-            player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
+            // V186: take them there rather than telling them where it is.
+            // A locked slot that answers with a sentence is a dead end.
+            player.sendMessage(ChatColor.GRAY + "That enchant is unlocked in "
+                    + ChatColor.YELLOW + "/farmtree" + ChatColor.GRAY + ".");
+            player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.6f, 1.2f);
+            player.openInventory(SkillTreeGui.build(plugin, player, "farmtree", 0));
             return;
         }
         // Levels are bought in their own screen now (V161): +1, +10, +100 or max.

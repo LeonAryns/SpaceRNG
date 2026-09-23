@@ -78,8 +78,12 @@ public class MilestoneManager {
                     // keyed by track and threshold, so they can be added to a live config.
                     long credits = (entry.get("credits") == null ? 0L : Long.parseLong(String.valueOf(entry.get("credits"))))
                             + plugin.getConfig().getLong("milestones.credit-rewards." + id + "." + threshold, 0L);
+                    // V186: Perk Tickets, so a milestone can pay the one
+                    // thing the shop sells that nothing else hands out.
+                    int tickets = entry.get("tickets") == null
+                            ? 0 : Integer.parseInt(String.valueOf(entry.get("tickets")));
                     tiers.add(new MilestoneTrack.Tier(index++, threshold, tokens, shards, money,
-                            consumable, consumableAmount, credits));
+                            consumable, consumableAmount, credits, tickets));
                 } catch (RuntimeException ex) {
                     plugin.getLogger().warning("Skipped a malformed milestone tier in '" + id + "': " + entry);
                 }
@@ -193,6 +197,7 @@ public class MilestoneManager {
         if (tier.tokens() > 0) data.addTokens(tier.tokens());
         if (tier.shards() > 0) data.addShards(tier.shards());
         if (tier.credits() > 0) data.addPoints(tier.credits());
+        if (tier.tickets() > 0) data.setPerkTickets(data.getPerkTickets() + tier.tickets());
         if (tier.money() > 0) {
             var registration = Bukkit.getServicesManager().getRegistration(Economy.class);
             if (registration != null) {
@@ -250,6 +255,10 @@ public class MilestoneManager {
         }
         if (tier.credits() > 0) {
             parts.add(ChatColor.LIGHT_PURPLE + String.format("%,d", tier.credits()) + " Credits");
+        }
+        if (tier.tickets() > 0) {
+            parts.add(ChatColor.GOLD.toString() + tier.tickets()
+                    + (tier.tickets() == 1 ? " Perk Ticket" : " Perk Tickets"));
         }
         if (tier.money() > 0) {
             parts.add(ChatColor.DARK_GREEN + "$" + String.format("%,.0f", tier.money()));

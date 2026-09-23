@@ -41,7 +41,17 @@ public final class ConfigMigrator {
      * even across a version bump.
      */
     private static final List<String> STRUCTURAL = List.of(
-            "skilltree", "farmtree", "shiny", "perks", "linked-account");
+            "skilltree", "farmtree", "shiny", "perks", "linked-account",
+            // V186: the enchant definitions, so the 10,000 level ceiling
+            // from V159 finally reaches a server whose file predates it.
+            // Only the enchants: the crops, the procs and the regrow
+            // timings beside them are Leon's to tune.
+            "farming.enchants",
+            // V186: the milestone ladders. Leon asks for these to be
+            // changed rather than editing them on the server, and a whole
+            // rewritten tier list cannot be delivered one Patch at a time.
+            // If he ever does tune them by hand, take this back out.
+            "milestones");
 
     /**
      * Sections copied from the jar whenever the server's config has none
@@ -64,6 +74,10 @@ public final class ConfigMigrator {
             "scoreboard.icons", "world-time",
             // V184: how far each rank grows the aura it wears.
             "auras.rank-scale",
+            // V186: the tab list header and footer.
+            "tab",
+            // V186: a 100x roll, for the milestones that pay one.
+            "consumables.roll_100x",
             // V185: the two line pitch under each rank's name in /ranks.
             "ranks.tiers.linked.blurb", "ranks.tiers.comet.blurb",
             "ranks.tiers.nova.blurb", "ranks.tiers.supernova.blurb",
@@ -123,6 +137,14 @@ public final class ConfigMigrator {
             // V148: Leon wants the farming podium read from across the spawn.
             new Patch("podium-heads-bigger", "holograms.podium-head-scale", 1.8, 3.2),
             new Patch("podium-spacing-wider", "holograms.podium-spacing", 2.5, 4.5),
+            // V186: Leon wanted the hoe's enchant proc worth more.
+            new Patch("hoe-proc-share-higher", "farming.hoe-ladder.proc-share", 0.07, 0.18),
+            // V186: the gold nugget sprite is tiny next to the others.
+            new Patch("icon-coins-gold-ingot", "scoreboard.icons.coins",
+                    "minecraft:items|minecraft:item/gold_nugget",
+                    "minecraft:items|minecraft:item/gold_ingot"),
+            // V186: Leon asked for +5 Speed on the third Starforge tier.
+            new Patch("starforge-intermediate-speed-5", "starforge.tiers.INTERMEDIATE.speed-bonus", 0.05, 5.0),
             // V150: still too small in game, so bigger again.
             new Patch("podium-heads-bigger-2", "holograms.podium-head-scale", 3.2, 4.5),
             new Patch("podium-text-bigger-2", "holograms.podium-text-scale", 2.0, 3.2),
@@ -274,7 +296,12 @@ public final class ConfigMigrator {
             // V126: Index Luck I moved in front of Tag Luck.
             new EntryPatch("guide-hint-tag-luck-after-index", "guide.quests", "index_luck", "hint",
                     "In /skilltree, right above Luck I. It's what lets you equip a tag.",
-                    "In /skilltree, right after Index Luck I. It's what lets you equip a tag."));
+                    "In /skilltree, right after Index Luck I. It's what lets you equip a tag."),
+            // V186: Leon put Tag Luck back in front of Index Luck I, so the
+            // hint points at Luck I again. Runs after the V126 patch above.
+            new EntryPatch("guide-hint-tag-luck-before-index", "guide.quests", "index_luck", "hint",
+                    "In /skilltree, right after Index Luck I. It's what lets you equip a tag.",
+                    "In /skilltree, right above Luck I. It's what lets you equip a tag."));
 
     /**
      * Replaces one exact line anywhere inside a (nested) list, like a

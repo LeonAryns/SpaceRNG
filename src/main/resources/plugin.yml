@@ -18,8 +18,8 @@ commands:
     description: Open the item-to-points conversion menu
     usage: /convert
   tag:
-    description: Manage your equipped rarity tag
-    usage: /tag <equip|clear>
+    description: Open your index to pick a tag, or manage the one you wear
+    usage: /tag [equip|clear]
   index:
     description: View your collection log of every item you've rolled
     usage: /index

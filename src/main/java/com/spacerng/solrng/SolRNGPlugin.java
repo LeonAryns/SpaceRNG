@@ -65,6 +65,7 @@ public final class SolRNGPlugin extends JavaPlugin {
     private com.spacerng.solrng.leaderboard.LeaderboardManager leaderboardManager;
     private com.spacerng.solrng.firsts.FirstTenManager firstTenManager;
     private com.spacerng.solrng.aura.AuraManager auraManager;
+    private com.spacerng.solrng.tab.TabListManager tabListManager;
     private com.spacerng.solrng.crate.CrateManager crateManager;
     private com.spacerng.solrng.discord.DiscordWebhook discordWebhook;
     private com.spacerng.solrng.holo.HoloManager holoManager;
@@ -142,6 +143,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         this.leaderboardManager = new com.spacerng.solrng.leaderboard.LeaderboardManager(this);
         this.firstTenManager = new com.spacerng.solrng.firsts.FirstTenManager(this);
         this.auraManager = new com.spacerng.solrng.aura.AuraManager(this);
+        this.tabListManager = new com.spacerng.solrng.tab.TabListManager(this);
         this.playerDataManager = new PlayerDataManager(this);
         this.prestigeManager = new PrestigeManager(this);
         this.armorManager = new ArmorManager(this);
@@ -263,6 +265,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         topHeadManager.start();
         holoManager.start();
         auraManager.start();
+        tabListManager.start();
         floatingItemManager.start();
         linkedAccountManager.start();
         crowdBoostManager.start();
@@ -283,6 +286,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         if (topHeadManager != null) topHeadManager.stop();
         if (holoManager != null) holoManager.stop();
         if (auraManager != null) auraManager.stop();
+        if (tabListManager != null) tabListManager.stop();
         if (floatingItemManager != null) floatingItemManager.stop();
         if (crowdBoostManager != null) crowdBoostManager.stop();
         if (linkedAccountManager != null) linkedAccountManager.stop();

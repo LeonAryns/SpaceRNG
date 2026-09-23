@@ -214,8 +214,15 @@ public class NovaCoreManager {
         return luckWeight;
     }
 
-    /** Odds of clearing the step from {@code tier} to {@code tier + 1}. */
+    /**
+     * Odds of clearing the step from {@code tier} to {@code tier + 1}.
+     *
+     * Tier 0 to 1 is a certainty while novacore.first-tier-guaranteed is
+     * on, and the menu says so rather than quoting a number the forge
+     * will not use.
+     */
     public double chanceAt(int tier, double luck) {
+        if (tier <= 0 && firstForgeFree) return 1.0;
         double raw = baseChance * Math.pow(decay, tier) * (1.0 + luck * luckWeight);
         return Math.max(minChance, Math.min(maxChance, raw));
     }
@@ -251,11 +258,12 @@ public class NovaCoreManager {
         double chance = Math.min(maxChance, chanceAt(tier, luck)
                 + plugin.getPrestigeManager().upgradeTotal(data,
                         com.spacerng.solrng.player.PrestigeUpgrade.Effect.NOVA_ODDS));
-        // The first forge anybody ever makes cannot fail. The menu still
-        // shows the real chance, because it is teaching what the ladder is;
-        // the guarantee is just so the first lesson is not a loss.
-        boolean firstEver = firstForgeFree && tier == 0 && data.getNovaBestTier() <= 0;
-        boolean success = firstEver || ThreadLocalRandom.current().nextDouble() < chance;
+        // Tier 1 cannot fail, ever, not only the first time (V186). A
+        // shattered Core drops somebody to 0, and making them gamble a
+        // second Core to get back to a tier worth almost nothing is the
+        // point where people stop forging altogether.
+        boolean guaranteed = firstForgeFree && tier == 0;
+        boolean success = guaranteed || ThreadLocalRandom.current().nextDouble() < chance;
 
         if (success) {
             int next = tier + 1;
@@ -263,7 +271,8 @@ public class NovaCoreManager {
             if (next > data.getNovaBestTier()) {
                 data.setNovaBestTier(next);
             }
-            player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "Tier " + next + "! "
+            player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD
+                    + "Your Nova Core is now Tier " + next + "! "
                     + ChatColor.RESET + ChatColor.GRAY + "Nova Core Luck is now "
                     + ChatColor.LIGHT_PURPLE + String.format("%.2f", multiplierAt(next)) + "x"
                     + (isCheckpoint(next) ? ChatColor.AQUA + "  (checkpoint secured)" : ""));

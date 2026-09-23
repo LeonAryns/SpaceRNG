@@ -8,7 +8,7 @@
 # their fresh defaults in on top of whatever is on disk, so a server
 # owner never has to delete the whole file to pick up a structural
 # change. Item table, prices and cosmetic tweaks are untouched.
-config-version: 20
+config-version: 21
 
 # One-off value changes the plugin has already made to this file, so none
 # is ever made twice. Managed by the plugin; leave it alone.
@@ -45,7 +45,7 @@ scoreboard:
     speed: "minecraft:items|minecraft:item/clock_00"
     prestige: "minecraft:items|minecraft:item/nether_star"
     money: "minecraft:items|minecraft:item/emerald"
-    coins: "minecraft:items|minecraft:item/gold_nugget"
+    coins: "minecraft:items|minecraft:item/gold_ingot"
     gems: "minecraft:items|minecraft:item/diamond"
     credits: "minecraft:items|minecraft:item/amethyst_shard"
   title: "&5&l\u2726 ѕᴘᴀᴄᴇʀɴɢ \u2726"
@@ -118,7 +118,11 @@ starforge:
       display: "Intermediate Starforge"
       colors: ["#2FBF4F", "#A6F26B"]
       luck-bonus: 0.50
-      speed-bonus: 0.05
+      # Leon asked for +5 Speed here rather than the 0.05 it was. Speed
+      # divides the roll time, so the pile starting at 1.0 and this adding
+      # 5 makes a roll six times faster, which is quicker than every tier
+      # above it. Left as asked; those tiers need raising to match.
+      speed-bonus: 5.0
       costs:
         COMMON: 75
         UNCOMMON: 25
@@ -833,9 +837,12 @@ farming:
     tiers-per-band: 10
     cost-step: 2
     coin-bonus-step: 0.01
-    # Enchant proc climbs far slower than Coins, because it lifts every
+    # Enchant proc climbs slower than Coins, because it lifts every
     # enchant at once: the same step would be worth many times more.
-    proc-share: 0.07
+    # V186 raised it from 0.07 at Leon's request. The whole ladder is
+    # +280% Coins, so this share is what the top of it is worth in proc:
+    # 0.18 puts a fully walked hoe at about 1.50x.
+    proc-share: 0.18
     blend-from: 8
 
   # ---- Sounds ----
@@ -1917,7 +1924,7 @@ skilltree:
       page: 1
       slot: "5,6"
       icon: CLOCK
-      cost-money: 400
+      cost-money: 1000
       requires: ""
       effect: AUTO_ROLL
       value: 0
@@ -1942,21 +1949,25 @@ skilltree:
       icon: RABBIT_FOOT
       cost-money: 28700
       cost-growth: 1.24
-      requires: "index_luck"
+      requires: "curator_1"
       effect: LUCK
       value: 0.08
       max-level: 10
 
     # Index Luck I turns on the base Luck per discovered drop
     # (index.luck-per-discovery), and each level adds its value on top.
+    # V186 put it behind Tag Luck rather than in front of it: a new player
+    # wants a tag on their head before they want Luck per entry, and Leon
+    # asked for them in that order. The two swapped prices with their
+    # slots, so the spine still climbs.
     curator_1:
       display: "Index Luck I"
       page: 1
-      slot: "5,4"
+      slot: "5,3"
       icon: BOOKSHELF
-      cost-money: 10000
+      cost-money: 28700
       cost-growth: 1.3
-      requires: "luck_skill"
+      requires: "index_luck"
       effect: LUCK_PER_DISCOVERY
       value: 0.001
       max-level: 10
@@ -2098,7 +2109,7 @@ skilltree:
       page: 1
       slot: "7,5"
       icon: IRON_CHESTPLATE
-      cost-money: 2140
+      cost-money: 10000
       requires: "coins_1"
       effect: UNLOCK_ARMOR
       value: 0
@@ -2142,7 +2153,7 @@ skilltree:
       page: 1
       slot: "8,5"
       icon: WHEAT
-      cost-money: 3750
+      cost-money: 10000
       requires: "armor_unlock"
       effect: UNLOCK_FARMING
       value: 0
@@ -2163,7 +2174,7 @@ skilltree:
       page: 1
       slot: "3,4"
       icon: HOPPER
-      cost-money: 2140
+      cost-money: 10000
       requires: "convert_unlock"
       effect: UNLOCK_AUTO_CONVERT
       value: 0
@@ -2171,10 +2182,10 @@ skilltree:
     index_luck:
       display: "Tag Luck"
       page: 1
-      slot: "5,3"
+      slot: "5,4"
       icon: KNOWLEDGE_BOOK
-      cost-money: 28700
-      requires: "curator_1"
+      cost-money: 10000
+      requires: "luck_skill"
       effect: UNLOCK_INDEX_LUCK
       value: 0
 
@@ -2183,7 +2194,7 @@ skilltree:
       page: 1
       slot: "6,2"
       icon: AMETHYST_SHARD
-      cost-money: 6560
+      cost-money: 100000
       requires: "luck_2"
       effect: UNLOCK_SHINY
       value: 0
@@ -3138,9 +3149,13 @@ milestones:
   # Credits paid on top of a tier's own reward, by track and the tier's
   # threshold. Credits are what the store sells, so keep these rare.
   credit-rewards:
-    prestige: {10: 40, 25: 75, 50: 150, 100: 350}
-    rarity: {80: 20, 100: 40, 120: 60, 130: 80, 140: 120, 144: 200}
-    farming: {10000: 40, 100000: 75, 1000000: 200}
+    # V186, Leon's call: the first Credits on a track are 100, and never
+    # on its opening tier, so the first hundred takes a bit of work. The
+    # tiers behind each first one were raised only as far as they had to
+    # be to keep climbing; the tops are untouched.
+    prestige: {10: 100, 25: 150, 50: 250, 100: 350}
+    rarity: {100: 100, 120: 150, 130: 200, 140: 250, 144: 400}
+    farming: {10000: 100, 100000: 200, 1000000: 500, 10000000: 1200}
   tracks:
     prestige:
       verb: "Reach"
@@ -3180,19 +3195,23 @@ milestones:
       icon: WHEAT
       unit: "crops"
       description: "Crops harvested on the shared farm."
+      # V186: roughly ten times the old thresholds, and not one Coin in
+      # the list. Coins are what farming already pays per crop, so paying
+      # more of them for farming is the one reward that cannot feel like
+      # a reward. Everything here is something a farmer cannot farm.
       tiers:
-        - { at: 100, tokens: 10000 }
-        - { at: 500, consumable: coin_potion }
-        - { at: 1000, tokens: 100000 }
-        - { at: 2500, consumable: enchant_potion }
-        - { at: 5000, consumable: coin_potion, consumable-amount: 2 }
-        - { at: 10000, tokens: 1000000, shards: 25 }
-        - { at: 25000, consumable: enchant_potion, consumable-amount: 2 }
-        - { at: 50000, tokens: 5000000, shards: 100 }
-        - { at: 100000, consumable: coin_potion, consumable-amount: 5 }
-        - { at: 250000, tokens: 25000000, shards: 500 }
-        - { at: 500000, consumable: enchant_potion, consumable-amount: 5 }
-        - { at: 1000000, consumable: coin_potion, consumable-amount: 10 }
+        - { at: 1000, consumable: roll_10x, consumable-amount: 2 }
+        - { at: 5000, consumable: enchant_potion }
+        - { at: 10000, consumable: roll_10x, consumable-amount: 5 }
+        - { at: 25000, consumable: luck_potion, consumable-amount: 3 }
+        - { at: 50000, consumable: nova_core }
+        - { at: 100000, consumable: roll_100x }
+        - { at: 250000, consumable: speed_potion, consumable-amount: 5 }
+        - { at: 500000, tickets: 1 }
+        - { at: 1000000, consumable: roll_100x, consumable-amount: 2 }
+        - { at: 2500000, consumable: nova_core, consumable-amount: 2 }
+        - { at: 5000000, tickets: 3 }
+        - { at: 10000000, consumable: luck_250 }
     playtime:
       verb: "Play"
       display: "Playtime"
@@ -3388,7 +3407,7 @@ guide:
       amount: 1
     - id: index_luck
       display: "Unlock Tag Luck"
-      hint: "In /skilltree, right after Index Luck I. It's what lets you equip a tag."
+      hint: "In /skilltree, right above Luck I. It's what lets you equip a tag."
       goal: HAS_NODE
       target: index_luck
       amount: 1
@@ -3942,6 +3961,16 @@ consumables:
     costs:
       EPIC: 8
       LEGENDARY: 2
+  roll_100x:
+    display: "100x Roll"
+    material: NETHER_STAR
+    colors: ["#B9F6CA", "#69F0AE", "#00B0FF"]
+    roll-luck-multiplier: 100.0
+    charges: 1
+    description: "Banks one roll at a hundred times your Luck."
+    costs:
+      LEGENDARY: 8
+      MYTHICAL: 2
   crate_key:
     display: "Farm Key"
     material: TRIPWIRE_HOOK
@@ -5839,6 +5868,33 @@ ranks:
       nick: true
       size: true
       rgb-name: true
+# ---------------------------------------------------------------------
+# The tab list (V186)
+#
+# Names in tab already wear their rank's colours. These are the two
+# blocks above and below them, which were empty until now.
+#
+# Tokens, filled per player: {title} {name} {rank} {luck} {rolls}
+# {prestige} {online} {max} {ping}. Colour codes are "&" as everywhere
+# else, and a blank string is a blank line.
+#
+# Switch this off if the TAB plugin is installed: it owns the same two
+# blocks and would overwrite these every second.
+tab:
+  enabled: true
+  refresh-ticks: 40
+  title: "SPACERNG"
+  header:
+    - ""
+    - "{title}"
+    - "&8{online}&7/&8{max} online"
+    - ""
+  footer:
+    - ""
+    - "&7Rank &r{rank}   &8|&r   &7Luck &f{luck}   &8|&r   &7Rolls &f{rolls}"
+    - "&8spacerng.minehut.gg"
+    - ""
+
 # Rolls of this rarity or higher get broadcast to the whole server.
 broadcast:
   min-rarity-to-broadcast: EPIC

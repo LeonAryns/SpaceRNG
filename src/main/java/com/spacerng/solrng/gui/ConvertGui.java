@@ -118,7 +118,10 @@ public class ConvertGui {
             return item;
         }
         boolean on = data.isAutoConverting(rarity);
-        ItemStack item = new ItemStack(Material.HOPPER);
+        // A chest minecart rather than the hopper it was until V186: a
+        // hopper is the block every other plugin uses for a sorting
+        // machine, and this switch is about a drop leaving on its own.
+        ItemStack item = new ItemStack(Material.CHEST_MINECART);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(name + ChatColor.GRAY + " auto convert: "
                 + (on ? ChatColor.GREEN + "On" : ChatColor.RED + "Off"));
