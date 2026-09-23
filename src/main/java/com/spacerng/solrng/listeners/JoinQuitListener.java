@@ -40,6 +40,10 @@ public class JoinQuitListener implements Listener {
 
         // Rebuilds the equipped-tag team prefix (empty if none equipped).
         plugin.getTagManager().refreshPrefix(event.getPlayer(), data);
+        // Any title marked auto-grant, which is how Beta reaches everybody
+        // who turns up while beta is on. It runs before the name is drawn,
+        // so a first time player wears it from their first line of chat.
+        plugin.getCosmeticManager().grantAutomatic(data);
         // The rank name in tab, and the size a /size rank picked, come back on join.
         plugin.getRankManager().refreshName(event.getPlayer());
         // Their Discord roles catch up with whatever they bought or

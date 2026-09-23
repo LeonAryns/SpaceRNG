@@ -5898,6 +5898,52 @@ tab:
     - "&8spacerng.minehut.gg"
     - ""
 
+# ---------------------------------------------------------------------
+# Cosmetics (/cosmetics)
+#
+# Things a player wears that change nothing. That is the point: a rank
+# can sell them without selling an advantage, which the multipliers are
+# not. Deliberately NOT the rarity tag from /index, which is a drop you
+# equip and does carry Luck.
+#
+# TITLES are words in front of a name, in chat and in tab. They are given
+# out, never bought:
+#   /rngadmin cosmetic give <title> [player]
+#   /rngadmin cosmetic take <title> [player]
+# auto-grant hands one to everybody who logs in while it is on. Switch it
+# off when beta ends and the people who have it keep it, which is the
+# whole reason Beta works this way.
+#
+# NAME COLOURS are the gradient a name is painted in. Only a rank with
+# rgb-name may pick one, which today is Supernova. Nothing picked is the
+# drifting rainbow that rank always had.
+cosmetics:
+  titles:
+    beta:
+      display: "Beta"
+      colors: ["#A5F3FC", "#22D3EE"]
+      description: "Here before the doors opened."
+      auto-grant: true
+  name-colours:
+    ember:
+      display: "Ember"
+      colors: ["#FFE082", "#FF8F00", "#E53935"]
+    frost:
+      display: "Frost"
+      colors: ["#E0F7FA", "#4FC3F7", "#1565C0"]
+    orchid:
+      display: "Orchid"
+      colors: ["#F6D6FF", "#C77DFF", "#7C4DFF"]
+    venom:
+      display: "Venom"
+      colors: ["#D4FF6B", "#76FF03", "#1B5E20"]
+    dusk:
+      display: "Dusk"
+      colors: ["#FFAB91", "#AB47BC", "#283593"]
+    gold:
+      display: "Gold"
+      colors: ["#FFF59D", "#FFC107", "#FF6F00"]
+
 # Rolls of this rarity or higher get broadcast to the whole server.
 broadcast:
   min-rarity-to-broadcast: EPIC

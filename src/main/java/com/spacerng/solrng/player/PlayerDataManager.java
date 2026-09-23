@@ -6,6 +6,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -269,6 +270,9 @@ public class PlayerDataManager {
         data.setFarmDust(yml.getLong("farm-dust", 0L));
         data.setKeyallAt(yml.getLong("keyall-at", 0L));
         data.setNick(yml.getString("nick"));
+        data.getCosmeticTags().addAll(yml.getStringList("cosmetic-tags"));
+        data.setWornCosmeticTag(yml.getString("cosmetic-tag"));
+        data.setNameColour(yml.getString("name-colour"));
         data.setPlayerSize(yml.getDouble("player-size", 1.0));
         data.getPerkConfirm().addAll(yml.getStringList("perk-confirm"));
         data.getPerkFound().addAll(yml.getStringList("perk-found"));
@@ -455,6 +459,9 @@ public class PlayerDataManager {
         yml.set("farm-dust", data.getFarmDust());
         yml.set("keyall-at", data.getKeyallAt());
         yml.set("nick", data.getNick());
+        yml.set("cosmetic-tags", new ArrayList<>(data.getCosmeticTags()));
+        yml.set("cosmetic-tag", data.getWornCosmeticTag());
+        yml.set("name-colour", data.getNameColour());
         yml.set("player-size", data.getPlayerSize());
         yml.set("perk-tickets", data.getPerkTickets());
         yml.set("perk-pity", data.getPerkPity());

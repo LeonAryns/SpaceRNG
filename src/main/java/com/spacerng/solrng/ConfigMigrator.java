@@ -74,6 +74,8 @@ public final class ConfigMigrator {
             "scoreboard.icons", "world-time",
             // V184: how far each rank grows the aura it wears.
             "auras.rank-scale",
+            // V188: titles and name colours.
+            "cosmetics",
             // V187: the one letter rank badge in tab and chat.
             "ranks.tiers.linked.letter", "ranks.tiers.comet.letter",
             "ranks.tiers.nova.letter", "ranks.tiers.supernova.letter",

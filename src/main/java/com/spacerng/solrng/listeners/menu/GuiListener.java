@@ -59,6 +59,7 @@ public class GuiListener implements Listener {
     private final PlayerMenuClicks playerMenus;
     private final ShopClicks shops;
     private final VaultClicks vaults;
+    private final CosmeticClicks cosmetics;
 
     private final SolRNGPlugin plugin;
 
@@ -70,6 +71,7 @@ public class GuiListener implements Listener {
         this.playerMenus = new PlayerMenuClicks(plugin);
         this.shops = new ShopClicks(plugin);
         this.vaults = new VaultClicks(plugin);
+        this.cosmetics = new CosmeticClicks(plugin);
     }
 
     @EventHandler
@@ -122,6 +124,8 @@ public class GuiListener implements Listener {
             shops.handlePerkRollerClick(event);
         } else if (topInventory.getHolder() instanceof com.spacerng.solrng.gui.PerkIndexHolder) {
             shops.handlePerkIndexClick(event);
+        } else if (topInventory.getHolder() instanceof com.spacerng.solrng.gui.CosmeticsHolder) {
+            cosmetics.handle(event);
         } else if (topInventory.getHolder() instanceof com.spacerng.solrng.gui.RanksHolder) {
             shops.handleRanksClick(event);
         } else if (topInventory.getHolder() instanceof com.spacerng.solrng.gui.AuraHolder) {

@@ -20,6 +20,10 @@ commands:
   tag:
     description: Open your index to pick a tag, or manage the one you wear
     usage: /tag [equip|clear]
+  cosmetics:
+    description: Your auras, titles and name colour
+    usage: /cosmetics
+    aliases: [cosmetic]
   index:
     description: View your collection log of every item you've rolled
     usage: /index

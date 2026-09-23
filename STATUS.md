@@ -5,7 +5,7 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V187**, 23 September 2026.
+Last updated at **V188**, 23 September 2026.
 
 ## The agreed way of working
 
@@ -156,6 +156,26 @@ Handing ranks out, which was the other question:
 **And a V185 mistake found on the way:** the Nova rank's blurb was
 written into `perks.types.nova` instead, because the perks section has a
 `nova:` of its own and it comes first in the file. Both are correct now.
+
+**V188: /cosmetics.** One menu for everything a player wears that
+changes nothing, which is the only kind of thing a rank should sell.
+
+- **The hub** says what you are wearing and opens three pickers. Locked
+  things are drawn rather than hidden, so somebody with no rank can open
+  it and see what a rank would give them, and the bottom right panel
+  lists every rank's aura scale next to its name.
+- **Auras** is the existing /aura screen, reached from here too.
+- **Titles** are words in front of a name, in chat and in tab, given out
+  and never bought. `Beta` is the first, with `auto-grant: true` so
+  everybody who logs in picks it up; switch that off when beta ends and
+  the people who have it keep it. `/rngadmin cosmetic give|take|list`.
+- **Name colours** are six gradients, and picking one needs the rank
+  perk that already existed, `rgb-name`, which today is Supernova.
+  Nothing picked is the drifting rainbow that rank always had.
+
+Everything is `cosmetics:` in config, so the titles, the colours and the
+wording are Leon's. Player data gained `cosmetic-tags`, `cosmetic-tag`
+and `name-colour`.
 
 **Deliberately not done in V186, and why:** the +10% Coins and Gems per
 crop. Those are the `CROP_YIELD` nodes, and they are the spine of the

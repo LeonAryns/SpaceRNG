@@ -192,6 +192,59 @@ final class PlayerAdmin extends AdminTools {
      * This is what a web store calls after a purchase, so it works from the
      * console and says plainly what it did.
      */
+    /**
+     * /rngadmin cosmetic give|take|list. Titles are handed out rather than
+     * bought, so this is the only way one moves, apart from a title with
+     * auto-grant on, which everybody picks up on join.
+     */
+    boolean doCosmetic(CommandSender sender, String[] args) {
+        var cosmetics = plugin.getCosmeticManager();
+        List<String> ids = new ArrayList<>();
+        for (var title : cosmetics.titles()) ids.add(title.id());
+        if (args.length < 2 || args[1].equalsIgnoreCase("list")) {
+            sender.sendMessage(ChatColor.AQUA + "Titles: " + ChatColor.GRAY + String.join(", ", ids));
+            sender.sendMessage(ChatColor.DARK_GRAY + "/rngadmin cosmetic <give|take> <title> [player]");
+            return true;
+        }
+        String action = args[1].toLowerCase(Locale.ROOT);
+        if (!action.equals("give") && !action.equals("take")) {
+            sender.sendMessage(ChatColor.RED + "Usage: /rngadmin cosmetic <give|take|list> <title> [player]");
+            return true;
+        }
+        if (args.length < 3) {
+            sender.sendMessage(ChatColor.RED + "Which title? " + String.join(", ", ids));
+            return true;
+        }
+        var title = cosmetics.title(args[2]);
+        if (title == null) {
+            sender.sendMessage(ChatColor.RED + "Unknown title. There is: " + String.join(", ", ids));
+            return true;
+        }
+        Player target = resolve(sender, args.length >= 4 ? args[3] : null);
+        if (target == null) return true;
+        PlayerData data = plugin.getPlayerDataManager().get(target.getUniqueId());
+
+        if (action.equals("give")) {
+            if (!data.giveCosmeticTag(title.id())) {
+                sender.sendMessage(ChatColor.GRAY + target.getName() + " already has that title.");
+                return true;
+            }
+            target.sendMessage(ChatColor.GRAY + "You were given the title "
+                    + cosmetics.styled(title) + ChatColor.GRAY + ". Wear it in /cosmetics.");
+            sender.sendMessage(ChatColor.GREEN + "Gave " + title.display() + " to " + target.getName() + ".");
+        } else {
+            if (!data.takeCosmeticTag(title.id())) {
+                sender.sendMessage(ChatColor.GRAY + target.getName() + " does not have that title.");
+                return true;
+            }
+            target.sendMessage(ChatColor.GRAY + "The title " + cosmetics.styled(title)
+                    + ChatColor.GRAY + " was taken off you.");
+            sender.sendMessage(ChatColor.GREEN + "Took " + title.display() + " from " + target.getName() + ".");
+        }
+        plugin.getRankManager().refreshName(target);
+        return true;
+    }
+
     boolean doRank(CommandSender sender, String[] args) {
         var ranks = plugin.getRankManager();
         List<String> ids = new ArrayList<>();

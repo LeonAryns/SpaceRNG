@@ -174,6 +174,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         this.floatingItemManager = new com.spacerng.solrng.decor.FloatingItemManager(this);
         this.linkedAccountManager = new com.spacerng.solrng.discord.LinkedAccountManager(this);
         this.rankManager = new com.spacerng.solrng.rank.RankManager(this);
+        this.cosmeticManager = new com.spacerng.solrng.cosmetic.CosmeticManager(this);
         this.bossManager = new com.spacerng.solrng.boss.BossManager(this);
         this.petManager = new com.spacerng.solrng.pet.PetManager(this);
         this.dustManager = new com.spacerng.solrng.pet.DustManager(this);
@@ -238,6 +239,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         getCommand("shop").setExecutor(new com.spacerng.solrng.commands.ShopCommand(this));
         getCommand("ranks").setExecutor(new com.spacerng.solrng.commands.RanksCommand(this));
         getCommand("aura").setExecutor(new com.spacerng.solrng.commands.AuraCommand(this));
+        getCommand("cosmetics").setExecutor(new com.spacerng.solrng.commands.CosmeticsCommand(this));
         com.spacerng.solrng.commands.PrivateVaultCommand vaultCommand =
                 new com.spacerng.solrng.commands.PrivateVaultCommand(this);
         getCommand("pv").setExecutor(vaultCommand);
@@ -401,6 +403,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         floatingItemManager.load(getConfig());
         linkedAccountManager.load(getConfig());
         rankManager.load(getConfig());
+        cosmeticManager.load(getConfig());
         bossManager.load(getConfig());
         petManager.load(getConfig());
         dustManager.load(getConfig());
@@ -512,6 +515,7 @@ public final class SolRNGPlugin extends JavaPlugin {
 
     private com.spacerng.solrng.player.FoundCounts foundCounts;
     private com.spacerng.solrng.rank.RankManager rankManager;
+    private com.spacerng.solrng.cosmetic.CosmeticManager cosmeticManager;
     private com.spacerng.solrng.boss.BossManager bossManager;
     private com.spacerng.solrng.pet.PetManager petManager;
     private com.spacerng.solrng.pet.DustManager dustManager;
@@ -537,6 +541,10 @@ public final class SolRNGPlugin extends JavaPlugin {
     }
 
     /** Ranks, their multipliers and what they unlock. */
+    public com.spacerng.solrng.cosmetic.CosmeticManager getCosmeticManager() {
+        return cosmeticManager;
+    }
+
     public com.spacerng.solrng.rank.RankManager getRankManager() {
         return rankManager;
     }

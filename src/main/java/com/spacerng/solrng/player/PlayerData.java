@@ -1288,6 +1288,50 @@ public class PlayerData {
         this.keyallAt = keyallAt;
     }
 
+    // ------------------------------------------------------------ cosmetics
+    // Titles a player has been given, the one they wear, and the name
+    // gradient they picked. All three are cosmetic and none of them
+    // touches a stat: see CosmeticManager.
+    private final java.util.Set<String> cosmeticTags = new java.util.LinkedHashSet<>();
+    private String wornCosmeticTag;
+    private String nameColour;
+
+    public java.util.Set<String> getCosmeticTags() {
+        return cosmeticTags;
+    }
+
+    public boolean hasCosmeticTag(String id) {
+        return id != null && cosmeticTags.contains(id.toLowerCase(java.util.Locale.ROOT));
+    }
+
+    /** True when the tag was not already owned. */
+    public boolean giveCosmeticTag(String id) {
+        return id != null && cosmeticTags.add(id.toLowerCase(java.util.Locale.ROOT));
+    }
+
+    public boolean takeCosmeticTag(String id) {
+        if (id == null) return false;
+        String key = id.toLowerCase(java.util.Locale.ROOT);
+        if (key.equals(wornCosmeticTag)) wornCosmeticTag = null;
+        return cosmeticTags.remove(key);
+    }
+
+    public String getWornCosmeticTag() {
+        return wornCosmeticTag;
+    }
+
+    public void setWornCosmeticTag(String id) {
+        this.wornCosmeticTag = id == null || id.isEmpty() ? null : id.toLowerCase(java.util.Locale.ROOT);
+    }
+
+    public String getNameColour() {
+        return nameColour;
+    }
+
+    public void setNameColour(String id) {
+        this.nameColour = id == null || id.isEmpty() ? null : id.toLowerCase(java.util.Locale.ROOT);
+    }
+
     public String getNick() {
         return nick;
     }

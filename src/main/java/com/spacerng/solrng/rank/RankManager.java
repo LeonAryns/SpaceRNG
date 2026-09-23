@@ -275,7 +275,10 @@ public class RankManager {
     public void refreshName(Player player) {
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         RankTier tier = rankOf(data);
-        Component component = LegacyComponentSerializer.legacySection().deserialize(badgeOf(tier) + coloredName(player));
+        String title = plugin.getCosmeticManager() == null
+                ? "" : plugin.getCosmeticManager().badgeOf(data);
+        Component component = LegacyComponentSerializer.legacySection()
+                .deserialize(badgeOf(tier) + title + coloredName(player));
         player.playerListName(component);
         player.displayName(component);
     }
@@ -290,7 +293,13 @@ public class RankManager {
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         RankTier tier = rankOf(data);
         String name = data.getNick() == null || data.getNick().isEmpty() ? player.getName() : data.getNick();
-        if (has(data, "rgb")) return Lore.rainbow(name);
+        // The top rank paints its own name (V188). Nothing picked is the
+        // drifting rainbow it always was.
+        if (has(data, "rgb")) {
+            String[] stops = plugin.getCosmeticManager() == null
+                    ? null : plugin.getCosmeticManager().stopsFor(data);
+            return stops == null ? Lore.rainbow(name) : Lore.gradient(name, false, stops);
+        }
         if (tier != null && tier.colors().size() > 1) {
             return Lore.gradient(name, false, tier.colors().toArray(new String[0]));
         }
