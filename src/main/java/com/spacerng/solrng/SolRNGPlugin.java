@@ -240,6 +240,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         getCommand("ranks").setExecutor(new com.spacerng.solrng.commands.RanksCommand(this));
         getCommand("aura").setExecutor(new com.spacerng.solrng.commands.AuraCommand(this));
         getCommand("cosmetics").setExecutor(new com.spacerng.solrng.commands.CosmeticsCommand(this));
+        getCommand("firsts").setExecutor(new com.spacerng.solrng.commands.FirstsCommand(this));
         com.spacerng.solrng.commands.PrivateVaultCommand vaultCommand =
                 new com.spacerng.solrng.commands.PrivateVaultCommand(this);
         getCommand("pv").setExecutor(vaultCommand);

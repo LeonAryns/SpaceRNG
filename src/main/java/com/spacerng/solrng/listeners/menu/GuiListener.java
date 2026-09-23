@@ -124,6 +124,10 @@ public class GuiListener implements Listener {
             shops.handlePerkRollerClick(event);
         } else if (topInventory.getHolder() instanceof com.spacerng.solrng.gui.PerkIndexHolder) {
             shops.handlePerkIndexClick(event);
+        } else if (topInventory.getHolder() instanceof com.spacerng.solrng.gui.FirstsHolder) {
+            // A board to read, nothing to click, but an uncancelled click
+            // would let somebody walk off with the panes.
+            event.setCancelled(true);
         } else if (topInventory.getHolder() instanceof com.spacerng.solrng.gui.CosmeticsHolder) {
             cosmetics.handle(event);
         } else if (topInventory.getHolder() instanceof com.spacerng.solrng.gui.RanksHolder) {

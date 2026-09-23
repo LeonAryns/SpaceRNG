@@ -101,7 +101,7 @@ public class StatsGui {
         lore.add("");
 
         List<StatSources.Part> ranked = new ArrayList<>(stat.parts());
-        ranked.removeIf(StatSources.Part::idle);
+        ranked.removeIf(part -> part.idle() || !part.shown());
         ranked.sort((a, b) -> Double.compare(weight(b), weight(a)));
 
         if (ranked.isEmpty()) {
@@ -140,11 +140,16 @@ public class StatsGui {
         // Parts are shown in the order they're applied, idle ones
         // included. A source sitting at zero is the most useful thing on
         // the page: it's the one you haven't bought yet.
+        // The running total still walks every part, including the base,
+        // so the numbers down the page are the real ones. Only the base
+        // is left off the page.
         double running = 0.0;
-        for (int i = 0; i < stat.parts().size() && i < PART_SLOTS.length; i++) {
-            StatSources.Part part = stat.parts().get(i);
+        int slot = 0;
+        for (StatSources.Part part : stat.parts()) {
             running = part.op() == StatSources.Op.ADD ? running + part.value() : running * part.value();
-            inv.setItem(PART_SLOTS[i], partCard(part, stat, i + 1, running, accentOf(id)));
+            if (!part.shown() || slot >= PART_SLOTS.length) continue;
+            inv.setItem(PART_SLOTS[slot], partCard(part, stat, slot + 1, running, accentOf(id)));
+            slot++;
         }
 
         inv.setItem(BACK_SLOT, back(targetName));

@@ -144,6 +144,8 @@ public final class ConfigMigrator {
             // V148: Leon wants the farming podium read from across the spawn.
             new Patch("podium-heads-bigger", "holograms.podium-head-scale", 1.8, 3.2),
             new Patch("podium-spacing-wider", "holograms.podium-spacing", 2.5, 4.5),
+            // V191: five Server First spots per rarity rather than ten.
+            new Patch("first-ten-five-slots", "first-ten.slots", 10, 5),
             // V190: the Nova Core is an ender pearl.
             new Patch("nova-core-ender-pearl", "consumables.nova_core.material",
                     "HEART_OF_THE_SEA", "ENDER_PEARL"),

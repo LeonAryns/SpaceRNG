@@ -8,7 +8,7 @@
 # their fresh defaults in on top of whatever is on disk, so a server
 # owner never has to delete the whole file to pick up a structural
 # change. Item table, prices and cosmetic tweaks are untouched.
-config-version: 23
+config-version: 24
 
 # One-off value changes the plugin has already made to this file, so none
 # is ever made twice. Managed by the plugin; leave it alone.
@@ -2019,7 +2019,7 @@ skilltree:
       page: 1
       slot: "2,3"
       icon: WRITABLE_BOOK
-      cost-money: 3750
+      cost-money: 50000
       requires: "instant_roll_1"
       effect: UNLOCK_PASS
       value: 0
@@ -2064,11 +2064,11 @@ skilltree:
     coins_2:
       display: "Money II"
       page: 1
-      slot: "8,4"
+      slot: "8,3"
       icon: GOLD_INGOT
       cost-money: 70000
       cost-growth: 1.28
-      requires: "farming_unlock"
+      requires: "vault_space"
       effect: MONEY_MULTIPLIER
       value: 0.2
       max-level: 10
@@ -2098,11 +2098,11 @@ skilltree:
     vault_space:
       display: "Vault Space"
       page: 1
-      slot: "8,3"
+      slot: "8,4"
       icon: ENDER_CHEST
       cost-money: 12000
       cost-growth: 1.45
-      requires: "coins_2"
+      requires: "farming_unlock"
       effect: CONVERT_CAP
       value: 50
       max-level: 10
@@ -2113,7 +2113,7 @@ skilltree:
       slot: "8,2"
       icon: ENDER_CHEST
       cost-money: 2140
-      requires: "vault_space"
+      requires: "coins_2"
       effect: UNLOCK_PRIVATE_VAULT
       value: 0
 
@@ -5931,7 +5931,7 @@ broadcast:
 # Not a structural section, so tuning here survives a jar update.
 first-ten:
   enabled: true
-  slots: 10
+  slots: 5
   rarities: [LEGENDARY, MYTHICAL, DIVINE]
 
 # Worn auras. A player wearing a /tag of Epic or rarer wears the aura set

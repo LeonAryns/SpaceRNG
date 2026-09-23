@@ -5,7 +5,7 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V190**, 23 September 2026.
+Last updated at **V191**, 23 September 2026.
 
 ## The agreed way of working
 
@@ -220,6 +220,33 @@ whether they come out.
 **Still open from the same message:** /store and /buy rebuilt in the
 description block style, and better descriptions on the Nova Core tier
 items.
+
+**V191: the rank multiplier finally reaches Speed.**
+
+There were two Speeds. `StatSources.speed` had the rank, the perks, the
+pets, permanent Speed and Autopilot in it and drove the roll timer;
+`PlayerData.getEffectiveRollSpeedMultiplier` had none of them and drove
+the sidebar, the skill tree panel and `/rngadmin stats`. So a Supernova
+rolled 1.5x faster and every number they could read said otherwise. The
+second one is deleted and all three read `StatSources.speed` now, which
+is the one definition CLAUDE.md asks for.
+
+**V191 also:**
+
+- **The Base row is gone from /stats**, on every stat that had one:
+  Speed, Enchant Proc and Shiny. `Part` carries a `shown` flag and the
+  base is the only thing that sets it false, so it still folds into every
+  total and the running column down the breakdown is unchanged. It is not
+  a source anybody can go and get, so it does not belong next to the ones
+  they can.
+- **The Battle Pass costs 50,000** rather than 3,750.
+- **Money II and Vault Space swapped places** on the right column of page
+  1, with the requires chain rewired and every price left where it was.
+- **Five Server First spots per rarity**, not ten.
+- **/firsts** is a board of who holds them: your own spots on your head at
+  the top, then one card per tracked rarity listing every holder with
+  what they found, and how many spots are left. Nothing in it is
+  clickable.
 
 **Deliberately not done in V186, and why:** the +10% Coins and Gems per
 crop. Those are the `CROP_YIELD` nodes, and they are the spine of the

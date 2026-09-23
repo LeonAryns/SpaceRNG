@@ -305,22 +305,6 @@ public class PlayerData {
         this.skillSpeedBonus = Math.max(0.0, skillSpeedBonus);
     }
 
-    /**
-     * Total roll speed actually applied: the 1.0 baseline, plus every
-     * Speed node bought, plus worn armor. 1.0 = the "100 Speed" baseline
-     * shown on the scoreboard (Speed = this x 100, rounded).
-     */
-    public double getEffectiveRollSpeedMultiplier() {
-        // A draught's Speed joins the flat pile rather than multiplying it,
-        // which is what lets a potion carry a MINUS without wiping somebody
-        // out - a 0.75x multiplier on a maxed player is brutal, -25 flat is
-        // a trade.
-        // The flat pile first, then anything multiplying it. An ability
-        // like Overcharge is a multiplier on purpose: doubling a maxed
-        // player's Speed has to stay worth something.
-        return Math.max(0.1, (rollSpeedMultiplier + skillSpeedBonus + armorSpeedBonus
-                + starforgeSpeedBonus + getPotionSpeed()) * boostMultiplier("SPEED"));
-    }
 
     public Set<String> getUnlockedNodes() {
         return unlockedNodes;

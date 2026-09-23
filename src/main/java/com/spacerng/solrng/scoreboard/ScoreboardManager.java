@@ -161,7 +161,7 @@ public class ScoreboardManager {
                 + String.format("%.2f", plugin.getRarityManager().tagMultiplierFor(data)) + "x)");
         lines.add(ChatColor.YELLOW + "| " + icon("luck") + ChatColor.WHITE + "Luck: " + ChatColor.GREEN + "+" + String.format("%.2f", luckPercent) + "%");
         lines.add(ChatColor.YELLOW + "| " + icon("speed") + ChatColor.WHITE + "Speed: " + ChatColor.YELLOW
-                + Math.round(data.getEffectiveRollSpeedMultiplier() * 100));
+                + Math.round(com.spacerng.solrng.stats.StatSources.speed(plugin, data).total() * 100));
         lines.add(ChatColor.YELLOW + "| " + icon("prestige") + prestigeLine(data));
         lines.add(""); // blank spacer
         lines.add(Lore.header("Your Wallet"));

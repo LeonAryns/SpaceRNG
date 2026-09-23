@@ -24,6 +24,9 @@ commands:
     description: Your auras, titles and name colour
     usage: /cosmetics
     aliases: [cosmetic]
+  firsts:
+    description: Who took the Server First spots, per rarity
+    usage: /firsts
   index:
     description: View your collection log of every item you've rolled
     usage: /index

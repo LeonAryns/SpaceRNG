@@ -341,7 +341,8 @@ public class SkillTreeGui {
         lore.add(Lore.stat(ChatColor.GREEN, "Luck", "+"
                 + String.format("%.2f", plugin.getPrestigeManager().effectiveLuck(data) * 100.0) + "%"));
         lore.add(Lore.stat(ChatColor.YELLOW, "Speed",
-                String.valueOf(Math.round(data.getEffectiveRollSpeedMultiplier() * 100))));
+                String.valueOf(Math.round(
+                        com.spacerng.solrng.stats.StatSources.speed(plugin, data).total() * 100))));
         lore.add(Lore.stat(ChatColor.AQUA, "Skills owned", String.valueOf(ownedCount(plugin, data))));
         lore.add("");
         lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " " + Lore.FOOT

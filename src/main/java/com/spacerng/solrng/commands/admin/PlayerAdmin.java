@@ -444,7 +444,8 @@ final class PlayerAdmin extends AdminTools {
                 + target.getName() + ".");
         sender.sendMessage(ChatColor.DARK_GRAY + "Luck is now +"
                 + String.format("%.2f", plugin.getPrestigeManager().effectiveLuck(data) * 100.0)
-                + "%, Speed " + Math.round(data.getEffectiveRollSpeedMultiplier() * 100) + ".");
+                + "%, Speed " + Math.round(
+                        com.spacerng.solrng.stats.StatSources.speed(plugin, data).total() * 100) + ".");
         return true;
     }
 

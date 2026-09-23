@@ -48,7 +48,19 @@ public final class StatSources {
      * One contribution. `hint` says where more of it comes from, so a part
      * sitting at zero still teaches something instead of just being blank.
      */
-    public record Part(String label, String hint, double value, Op op) {
+    /**
+     * @param shown false for a part that still counts but is not drawn in
+     *              /stats. The flat base every player starts on is the only
+     *              thing that uses it: it is not a source anybody can go and
+     *              get, so listing it next to the ones they can is noise
+     *              (V191, at Leon's request). It stays in the fold, so every
+     *              total is unchanged.
+     */
+    public record Part(String label, String hint, double value, Op op, boolean shown) {
+
+        public Part(String label, String hint, double value, Op op) {
+            this(label, hint, value, op, true);
+        }
 
         /** A part that isn't doing anything yet. */
         public boolean idle() {
@@ -167,7 +179,7 @@ public final class StatSources {
     public static Stat speed(SolRNGPlugin plugin, PlayerData data) {
         List<Part> parts = new ArrayList<>();
         parts.add(new Part("Base", "Everybody starts here",
-                data.getRollSpeedMultiplier(), Op.ADD));
+                data.getRollSpeedMultiplier(), Op.ADD, false));
         parts.add(new Part("Skills", "Speed nodes in /skilltree",
                 data.getSkillSpeedBonus(), Op.ADD));
         parts.add(new Part("Armor", "Buy and wear a set from /armor",
@@ -293,7 +305,7 @@ public final class StatSources {
 
     public static Stat enchantProc(SolRNGPlugin plugin, PlayerData data) {
         List<Part> parts = new ArrayList<>();
-        parts.add(new Part("Base", "Every enchant's own chance", 1.0, Op.ADD));
+        parts.add(new Part("Base", "Every enchant's own chance", 1.0, Op.ADD, false));
         parts.add(new Part("Skills", "Proc Chance nodes in /farmtree",
                 plugin.getSkillTreeManager().multiplierOf(data, SkillNode.Effect.ENCHANT_PROC),
                 Op.MULTIPLY));
@@ -318,7 +330,7 @@ public final class StatSources {
     public static Stat shiny(SolRNGPlugin plugin, PlayerData data) {
         List<Part> parts = new ArrayList<>();
         parts.add(new Part("Base", "The same for everyone",
-                plugin.getConfig().getDouble("shiny.chance", 0.01), Op.ADD));
+                plugin.getConfig().getDouble("shiny.chance", 0.01), Op.ADD, false));
         parts.add(new Part("Skills", "Shiny Boost nodes in /skilltree",
                 plugin.getSkillTreeManager().multiplierOf(data, SkillNode.Effect.SHINY_CHANCE),
                 Op.MULTIPLY));
