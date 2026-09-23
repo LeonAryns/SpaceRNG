@@ -142,23 +142,25 @@ public class OptionsGui {
     }
 
     /**
-     * How you see your own worn aura. Ground only is the default: pieces
-     * orbiting at chest and head height cross your view in first person,
-     * the rings at your feet don't. Everyone else sees all of it either way.
+     * How you see your own worn aura. Out of your way is the default: the
+     * floor, the sky, the back and anything far enough out that you look
+     * through it stay, and only what would sit on your nose in first person
+     * goes. Everyone else sees all of it whichever you pick.
      */
     private static ItemStack ownAuraItem(String mode) {
         ItemStack item = new ItemStack(Material.ENDER_EYE);
         ItemMeta meta = item.getItemMeta();
         String state = switch (mode) {
-            case "full" -> ChatColor.GREEN.toString() + ChatColor.BOLD + "Full";
+            case "full" -> ChatColor.GREEN.toString() + ChatColor.BOLD + "Everything";
             case "hidden" -> ChatColor.RED.toString() + ChatColor.BOLD + "Hidden";
-            default -> ChatColor.YELLOW.toString() + ChatColor.BOLD + "Ground only";
+            default -> ChatColor.YELLOW.toString() + ChatColor.BOLD + "Out of your way";
         };
         meta.setDisplayName(Lore.title(ChatColor.YELLOW, "Your Own Aura") + ChatColor.DARK_GRAY + " - " + state);
         List<String> lore = new ArrayList<>();
         lore.add(Lore.section(ChatColor.AQUA, "What you see of yours"));
-        lore.add(Lore.line(ChatColor.AQUA, "Ground only: the rings at your feet."));
-        lore.add(Lore.line(ChatColor.AQUA, "Full: all of it, orbits too."));
+        lore.add(Lore.line(ChatColor.AQUA, "Out of your way: ground and sky,"));
+        lore.add(Lore.line(ChatColor.AQUA, "nothing in front of your eyes."));
+        lore.add(Lore.line(ChatColor.AQUA, "Everything: all of it, orbits too."));
         lore.add(Lore.line(ChatColor.AQUA, "Hidden: none of it."));
         lore.add("");
         lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " Others always see your whole aura.");

@@ -64,7 +64,7 @@ public final class PetOrbit implements AuraConcept {
     }
 
     @Override
-    public boolean lowToGround() {
+    public boolean clearOfView() {
         return true;
     }
 

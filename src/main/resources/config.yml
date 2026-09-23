@@ -5870,6 +5870,20 @@ auras:
     DIVINE:
       concept: empyrean
       accent: all
+  # How far a rank grows the aura it wears. This is the one thing a rank
+  # changes about it: same look, same piece count, same cost, drawn bigger.
+  # A cosmetic that scales with what you paid is the least harmful thing a
+  # server can sell, which is the whole point of putting it here rather
+  # than into another Luck multiplier.
+  #
+  # Nova is the middle, so it wears exactly what every aura looked like
+  # before V184. default covers anybody with no rank at all.
+  rank-scale:
+    default: 0.70
+    linked: 0.70
+    comet: 0.85
+    nova: 1.0
+    supernova: 1.30
   # The heavy looks (singularity, titan, supernova, rift, empyrean) cost
   # about a hundred updates a second for each player watching. Only
   # max-nearby of them run within radius blocks of each other; whoever put

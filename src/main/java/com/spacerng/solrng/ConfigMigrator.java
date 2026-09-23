@@ -62,6 +62,8 @@ public final class ConfigMigrator {
             "pass.credit-rewards",
             // V163: game textures on the sidebar.
             "scoreboard.icons", "world-time",
+            // V184: how far each rank grows the aura it wears.
+            "auras.rank-scale",
             // V137: ranks.
             "ranks",
             // V138: what one Credit Finder proc pays.

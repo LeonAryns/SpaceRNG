@@ -112,6 +112,15 @@ final class ShowcaseAdmin extends AdminTools {
         sender.sendMessage(ChatColor.GREEN + "Wearing " + ChatColor.WHITE + key + ChatColor.GREEN + " in "
                 + plugin.getRarityManager().style(rarity, rarity.displayName()) + ChatColor.GREEN
                 + " colours. " + ChatColor.GRAY + "/rngadmin auratest off to remove.");
+        // A test obeys the own-aura setting from V184 on, so say which one
+        // is running. Before this a test ignored it, which is how the
+        // setting came to look broken from the only seat it was judged in.
+        String view = plugin.getPlayerDataManager().get(player.getUniqueId()).getOwnAuraView();
+        sender.sendMessage(ChatColor.GRAY + "Your own view is " + ChatColor.YELLOW + switch (view) {
+            case "full" -> "Everything";
+            case "hidden" -> "Hidden";
+            default -> "Out of your way";
+        } + ChatColor.GRAY + "; change it in /options.");
         return true;
     }
 

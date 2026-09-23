@@ -42,6 +42,13 @@ import static com.spacerng.solrng.aura.AuraParts.softer;
  */
 final class SignatureConcepts {
 
+    /**
+     * How far out a piece has to sit before the wearer looks through it
+     * rather than at it, for the middle own-aura setting in /options.
+     * Inside this everything is within arm's reach of the eyes.
+     */
+    static final float CLEAR_RADIUS = 1.25f;
+
     private SignatureConcepts() {
     }
 
@@ -62,6 +69,7 @@ final class SignatureConcepts {
         d.put("shield", "six wide panels standing round the hips, slowly turning");
         d.put("beacon", "a column of light nine blocks up, a floor circle and a halo");
         d.put("portal", "a ring standing round you with a second inside and an eye");
+        d.put("orrery", "a lantern atom and nether stars inside three swinging rings, over star bands");
     }
 
     static AuraConcept create(String key, Rarity rarity, Color color) {
@@ -82,6 +90,7 @@ final class SignatureConcepts {
             case "shield" -> shield(color);
             case "beacon" -> beacon(color);
             case "portal" -> portal(color);
+            case "orrery" -> orrery(rarity, color);
             default -> null;
         };
     }
@@ -155,9 +164,13 @@ final class SignatureConcepts {
     /**
      * Divine. Three circles on the floor, a slanted orbit two and a half
      * blocks out that never lies in the same plane twice, a column of light
-     * standing seven blocks up through the wearer, and the sea lantern atom
-     * the old Divine look was built round, kept because it is the one piece
-     * with real depth to it.
+     * that starts over the head and thins as it rises six blocks, and the
+     * sea lantern atom the old Divine look was built round, kept because it
+     * is the one piece with real depth to it.
+     *
+     * The column used to start at the feet and run as one slab straight
+     * through the wearer, which read as a plank rather than as light and
+     * sat in their own eyes the whole time they wore it.
      */
     private static AuraConcept ascend(Color color) {
         Color soft = softer(color);
@@ -166,7 +179,7 @@ final class SignatureConcepts {
                 new PlateRing(soft, 165, FEET + 0.02f, 3.30f, 10, 0.08f, 0.45f, 0f, 4, 5.0, 0.0),
                 new PlateRing(soft, 120, FEET + 0.03f, 4.10f, 8, 0.06f, 0.35f, 0f, 8, -5.5, 0.0),
                 new PlateRing(color, 215, -0.85f, 2.55f, 10, 0.10f, 0.8f, 25f, 5, 9.0, 5.0),
-                new Column(color, -1.70f, 7.0f, 1.15f, 0.30f, 55, 150),
+                new Column(color, 0.35f, 6.0f, 1.30f, 0.28f, 60, 150, 4),
                 new AuraConcepts.SolidAtom(Material.SEA_LANTERN, -0.70f, 1.45f, 0.42f, false, 0, 2, 20.0));
     }
 
@@ -224,7 +237,7 @@ final class SignatureConcepts {
                 new PlateRing(color, 240, FEET + 0.01f, 2.30f, 16, 0.13f, 1.0f, 0f, 0, 0.0, 0.0),
                 new PlateRing(soft, 165, FEET + 0.02f, 3.40f, 10, 0.08f, 0.45f, 0f, 5, 6.0, 0.0),
                 new PlateRing(color, 215, -0.85f, 2.55f, 10, 0.10f, 0.8f, 25f, 5, 9.0, 5.0),
-                new Column(color, -1.70f, 8.0f, 1.20f, 0.32f, 55, 155),
+                new Column(color, 0.35f, 7.5f, 1.40f, 0.32f, 60, 155, 5),
                 new AuraConcepts.SolidAtom(Material.SEA_LANTERN, -0.70f, 1.45f, 0.42f, false, 0, 2, 20.0),
                 new PlateWings(soft, 210),
                 new Petals(soft, 215, 0.16f, 0.42f, 6, 0.12f, 0.34f, 12f, 5, 16));
@@ -304,6 +317,41 @@ final class SignatureConcepts {
                 new PlateRing(color, 235, FEET + 0.01f, 1.90f, 14, 0.09f, 1.0f, 0f, 0, 0.0, 0.0));
     }
 
+    /**
+     * atom-grand and armillary in one look, which is what Leon asked for
+     * after V179: the depth of a solid orbit inside the swing of three
+     * painted rings, standing over the bands of stars the grand looks drew
+     * at the feet.
+     *
+     * The atom that used to turn inside the lanterns was end rods, and end
+     * rods are Mojang's white however the rest of the aura is painted. It
+     * is nether stars now, turned to face along their own path so they
+     * never go thin edge on.
+     *
+     * Seventy odd pieces, which is the most any look that is not marked
+     * heavy should cost. The three body rings pay for both of their faces
+     * by running seven segments each instead of ten.
+     */
+    private static AuraConcept orrery(Rarity rarity, Color color) {
+        Color soft = softer(color);
+        return new AuraConcepts.Combined(
+                // The floor: one solid ring with a band of stars outside it
+                // and a smaller one inside, turning against each other.
+                new PlateRing(color, 235, FEET + 0.01f, 2.20f, 12, 0.11f, 1.0f, 0f, 0, 0.0, 0.0),
+                new GrandConcepts.StarRing(color, FEET + 0.02f, 24, 2.4f, 3, 18, -1, "✦"),
+                new GrandConcepts.StarRing(soft, FEET + 0.03f, 14, 1.9f, 2, 13, 1, "✧"),
+                // Three rings round the body at three angles, each swinging
+                // its own plane, so they are never twice in the same
+                // arrangement.
+                new PlateRing(color, 230, -0.85f, 2.30f, 7, 0.12f, 0.75f, 0f, 5, 6.0, 0.0),
+                new PlateRing(soft, 205, -0.85f, 2.05f, 7, 0.11f, 0.75f, 62f, 4, -7.0, 5.0),
+                new PlateRing(color, 205, -0.85f, 2.55f, 7, 0.11f, 0.75f, 118f, 5, 7.0, -4.0),
+                // Inside them, the lantern atom with nether stars a quarter
+                // turn behind it, so a star always rides between two lanterns.
+                new AuraConcepts.SolidAtom(AuraConcepts.lantern(rarity), -0.70f, 1.45f, 0.42f, false, 0, 2, 20.0),
+                new AuraConcepts.SolidAtom(Material.NETHER_STAR, -0.70f, 0.85f, 0.50f, false, 90, 2, 26.0, true));
+    }
+
     // -------------------------------------------------------------- plate ring
 
     /**
@@ -359,10 +407,12 @@ final class SignatureConcepts {
         }
 
         @Override
-        public boolean lowToGround() {
-            // A flat ring at the feet stays out of the wearer's own view; a
-            // standing or slanted one crosses it and counts as worn.
-            return !twoSided;
+        public boolean clearOfView() {
+            // A flat ring at the feet is under everybody. A standing or
+            // slanted one is clear as long as it is wide enough that the
+            // wearer looks through the middle of it rather than having a
+            // segment swing past their nose.
+            return !twoSided || radius >= CLEAR_RADIUS;
         }
 
         @Override
@@ -444,7 +494,7 @@ final class SignatureConcepts {
         }
 
         @Override
-        public boolean lowToGround() {
+        public boolean clearOfView() {
             return true;
         }
 
@@ -495,6 +545,13 @@ final class SignatureConcepts {
         private final float lean;
         private final int every;
         private final int period;
+
+        @Override
+        public boolean clearOfView() {
+            // A crown over the head is sky; flames at the waist are clear as
+            // long as they burn at arm's length rather than on the nose.
+            return y >= 0f || radius >= CLEAR_RADIUS - 0.25f;
+        }
 
         /** @param period steps in one full wave round the ring */
         Petals(Color color, int alpha, float y, float radius, int count, float width, float height,
@@ -634,13 +691,24 @@ final class SignatureConcepts {
     // ------------------------------------------------------------------ column
 
     /**
-     * A column of light standing through the wearer: a wide faint plate with
-     * a bright narrow one inside it, both set to turn with whoever is
-     * looking, so the column is never seen edge on and never has to be moved
-     * to keep facing anybody. It breathes, and that is all it does.
+     * A column of light: a bright narrow core with a sheath of wider,
+     * fainter plates round it, all set to turn with whoever is looking, so
+     * the column is never seen edge on and never has to be moved to keep
+     * facing anybody. It breathes, and that is all it does.
+     *
+     * With more than one section the sheath is cut into that many plates up
+     * the height, each narrower and fainter than the one under it, which
+     * reads as light thinning out as it rises. One section is a single slab
+     * the whole way up, which is what a beacon wants.
+     *
+     * Where it starts matters as much as how tall it is. A column from the
+     * feet goes straight through the wearer's own eyes, and V184 moved the
+     * Divine one above the head for exactly that reason.
      */
     static final class Column implements AuraConcept {
         private static final int EVERY = 8;
+        // How much of its width the top section keeps.
+        private static final float TAPER = 0.30f;
         private final Color color;
         private final float from;
         private final float height;
@@ -648,9 +716,16 @@ final class SignatureConcepts {
         private final float core;
         private final int outerAlpha;
         private final int coreAlpha;
+        private final int sections;
 
         Column(Color color, float from, float height, float wide, float core,
                int outerAlpha, int coreAlpha) {
+            this(color, from, height, wide, core, outerAlpha, coreAlpha, 1);
+        }
+
+        /** @param sections plates up the sheath; more than one tapers it */
+        Column(Color color, float from, float height, float wide, float core,
+               int outerAlpha, int coreAlpha, int sections) {
             this.color = color;
             this.from = from;
             this.height = height;
@@ -658,13 +733,23 @@ final class SignatureConcepts {
             this.core = core;
             this.outerAlpha = outerAlpha;
             this.coreAlpha = coreAlpha;
+            this.sections = Math.max(1, sections);
+        }
+
+        @Override
+        public boolean clearOfView() {
+            // A column that starts over the head is sky; one that starts at
+            // the feet runs straight through the wearer's own eyes.
+            return from >= 0f;
         }
 
         @Override
         public List<Display> spawn(Player player, AuraParts parts) {
             List<Display> displays = new ArrayList<>();
-            displays.add(facing(parts.plate(player, color, outerAlpha, pose(wide, 0))));
-            displays.add(facing(parts.plate(player, softer(color), coreAlpha, pose(core, 0))));
+            displays.add(facing(parts.plate(player, softer(color), coreAlpha, corePose(0))));
+            for (int i = 0; i < sections; i++) {
+                displays.add(facing(parts.plate(player, color, alphaAt(i), sheathPose(i, 0))));
+            }
             return displays;
         }
 
@@ -678,13 +763,38 @@ final class SignatureConcepts {
         public void tick(List<Display> displays, long frame) {
             if (frame % EVERY != 0) return;
             long n = frame / EVERY + 1;
-            moveTo(displays.get(0), pose(wide, n), EVERY * 2);
-            moveTo(displays.get(1), pose(core, n), EVERY * 2);
+            moveTo(displays.get(0), corePose(n), EVERY * 2);
+            for (int i = 0; i < sections; i++) {
+                moveTo(displays.get(i + 1), sheathPose(i, n), EVERY * 2);
+            }
         }
 
-        private Matrix4f pose(float width, double steps) {
-            float breath = (float) (0.88 + 0.12 * Math.sin(steps / 9.0 * Math.PI * 2));
-            return AuraParts.plate(0f, from + height / 2f, 0f, new Quaternionf(), width * breath, height);
+        /** How far up the taper section {@code i} sits, 0 at the bottom and 1 at the top. */
+        private float up(int i) {
+            return sections == 1 ? 0f : (float) i / (sections - 1);
+        }
+
+        private int alphaAt(int i) {
+            return Math.max(30, Math.round(outerAlpha * (1f - 0.45f * up(i))));
+        }
+
+        private Matrix4f corePose(double steps) {
+            return plate(core * breath(steps), height, from + height / 2f);
+        }
+
+        private Matrix4f sheathPose(int i, double steps) {
+            float slice = height / sections;
+            float width = wide * (1f - (1f - TAPER) * up(i)) * breath(steps + i);
+            return plate(width, slice, from + slice * (i + 0.5f));
+        }
+
+        /** The whole column swells and settles once every nine steps. */
+        private static float breath(double steps) {
+            return (float) (0.88 + 0.12 * Math.sin(steps / 9.0 * Math.PI * 2));
+        }
+
+        private static Matrix4f plate(float width, float height, float middle) {
+            return AuraParts.plate(0f, middle, 0f, new Quaternionf(), width, height);
         }
     }
 
@@ -770,6 +880,13 @@ final class SignatureConcepts {
             this.color = color;
             this.edge = softer(color);
             this.alpha = alpha;
+        }
+
+        @Override
+        public boolean clearOfView() {
+            // Off the back, and they turn with the body, so they are never
+            // anywhere the wearer is looking.
+            return true;
         }
 
         @Override

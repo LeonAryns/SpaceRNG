@@ -158,7 +158,7 @@ final class MassiveConcepts {
         }
 
         @Override
-        public boolean lowToGround() {
+        public boolean clearOfView() {
             return true;
         }
 

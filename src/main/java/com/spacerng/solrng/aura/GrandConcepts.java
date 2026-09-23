@@ -116,7 +116,7 @@ final class GrandConcepts {
         }
 
         @Override
-        public boolean lowToGround() {
+        public boolean clearOfView() {
             return true;
         }
 
@@ -229,7 +229,7 @@ final class GrandConcepts {
         }
 
         @Override
-        public boolean lowToGround() {
+        public boolean clearOfView() {
             return true;
         }
 

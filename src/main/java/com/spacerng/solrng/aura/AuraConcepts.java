@@ -79,7 +79,6 @@ public final class AuraConcepts {
         d.put("seraph", "halo and orbit");
         d.put("nebula", "galaxy and ripple");
         d.put("cosmos", "atom and runes");
-        d.put("ascendant", "cubes and halo");
         d.put("stellar", "shards, runes and halo");
         DisplayConcepts.describe(d);
         GrandConcepts.describe(d);
@@ -115,7 +114,6 @@ public final class AuraConcepts {
             case "seraph" -> new Combined(new Halo(color), new StarOrbit(color));
             case "nebula" -> new Combined(new Galaxy(color), new Ripple(color));
             case "cosmos" -> new Combined(new Atom(color), new RuneRing(color));
-            case "ascendant" -> new Combined(new Cubes(block(rarity)), new Halo(color));
             case "stellar" -> new Combined(new Shards(gem(rarity)), new RuneRing(color), new Halo(color));
             default -> {
                 AuraConcept signature = SignatureConcepts.create(key, rarity, color);
@@ -254,7 +252,7 @@ public final class AuraConcepts {
         }
 
         @Override
-        public boolean lowToGround() {
+        public boolean clearOfView() {
             return true;
         }
 
@@ -304,6 +302,12 @@ public final class AuraConcepts {
         Halo(Color color) {
             this.color = color;
             this.soft = softer(color);
+        }
+
+        @Override
+        public boolean clearOfView() {
+            // A ring above the head, which the wearer is under.
+            return true;
         }
 
         @Override
@@ -404,7 +408,7 @@ public final class AuraConcepts {
         }
 
         @Override
-        public boolean lowToGround() {
+        public boolean clearOfView() {
             return true;
         }
 
@@ -452,7 +456,7 @@ public final class AuraConcepts {
         }
 
         @Override
-        public boolean lowToGround() {
+        public boolean clearOfView() {
             return true;
         }
 
@@ -609,6 +613,13 @@ public final class AuraConcepts {
         }
 
         @Override
+        public boolean clearOfView() {
+            // A wide atom is a cage the wearer stands in the middle of and
+            // looks out through; a tight one tumbles across their face.
+            return radius >= SignatureConcepts.CLEAR_RADIUS;
+        }
+
+        @Override
         public List<Display> spawn(Player player, AuraParts parts) {
             List<Display> displays = new ArrayList<>();
             for (int k = 0; k < 3; k++) {
@@ -679,7 +690,7 @@ public final class AuraConcepts {
         }
 
         @Override
-        public boolean lowToGround() {
+        public boolean clearOfView() {
             return true;
         }
 
@@ -860,19 +871,19 @@ public final class AuraConcepts {
         }
 
         @Override
-        public boolean lowToGround() {
+        public boolean clearOfView() {
             for (AuraConcept look : looks) {
-                if (!look.lowToGround()) return false;
+                if (!look.clearOfView()) return false;
             }
             return true;
         }
 
-        /** Whether piece {@code index} of this combination belongs to a look that stays at the feet. */
-        boolean lowAt(int index) {
+        /** Whether piece {@code index} of this combination belongs to a look that stays out of the wearer's view. */
+        boolean clearAt(int index) {
             for (int i = 0; i < looks.length; i++) {
                 if (index >= starts[i] && index < starts[i + 1]) {
                     return looks[i] instanceof Combined inner
-                            ? inner.lowAt(index - starts[i]) : looks[i].lowToGround();
+                            ? inner.clearAt(index - starts[i]) : looks[i].clearOfView();
                 }
             }
             return false;

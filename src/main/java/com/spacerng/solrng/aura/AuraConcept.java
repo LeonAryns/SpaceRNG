@@ -35,10 +35,18 @@ public interface AuraConcept {
     }
 
     /**
-     * True for looks that stay down at the feet, out of the wearer's own
-     * view. With the default own-aura setting a wearer sees only these.
+     * True for looks that stay out of the wearer's own first person view:
+     * down at the feet, up over the head, out behind the back, or far
+     * enough out that the wearer looks straight through them. With the
+     * middle own-aura setting in /options a wearer sees only these, and
+     * everybody else still sees the whole thing.
+     *
+     * It is about where the look sits, not how big it is. A ring two
+     * blocks out at chest height is clear, because there is nothing
+     * within arm's reach of the eyes; a column of light standing through
+     * the head is not, however thin it is.
      */
-    default boolean lowToGround() {
+    default boolean clearOfView() {
         return false;
     }
 }

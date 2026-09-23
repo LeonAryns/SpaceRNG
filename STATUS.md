@@ -5,7 +5,7 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V183**, 23 September 2026.
+Last updated at **V184**, 23 September 2026.
 
 ## The agreed way of working
 
@@ -42,6 +42,78 @@ check the roles, try the slash commands. Testing, not building.
 **After that:** his own hub world (decided: only cosmetic, it cannot pull
 players back after a restart on Minehut), and a build for the spawn and
 farm area.
+
+## The backlog Leon gave on 23 September
+
+Three messages in a row, so it is written down here rather than left in a
+conversation that does not travel. One subject per jar still holds: this
+is the queue, not one jar. Nothing here is started before the jar in
+front of it comes back confirmed.
+
+**Done in V184: the auras.** The five aura points and the new `orrery`
+look. See the aura section below.
+
+**Next up, in this order unless Leon says otherwise:**
+
+1. **The Server First show.** The star and the beam are good. He wants
+   more particles in the opening seconds, so people have time to look
+   around and find it, and the whole run-up longer. It is 3 / 4 / 6
+   seconds now (`FirstTenBuildUp.length`), shortened in V158 because it
+   dragged; he is asking for the opposite now, which is his call.
+2. **The crop milestones.** A lot higher than they are. No Coins as a
+   reward at all: Credits, 10x roll, 100x roll, potions, a Nova Core,
+   Perk Tickets. The first Credit reward is 100 Credits everywhere, but
+   not on the very first milestone, so it takes a little work.
+3. **The farming numbers.** Drop the 10 percent Coins and Gems per crop
+   (he wants something else in that spot and will say what; remind him
+   about crop level). Raise the enchant proc boost on the hoe. Enchants
+   really to 10,000 levels, and balanced at that ceiling.
+4. **The skill tree prices.** Auto Roll 400 to 2000. Auto Convert 2140 to
+   10000. Shiny Unlocked 6560 to about 100000. Armor and farming a bit
+   more expensive. Tag Luck (`index_luck`) sits under Index Luck I
+   (`curator_1`) rather than above it.
+5. **The menus.** A Farm Tree button in the hoe enchant screen, bottom
+   left where Your Coins is, and Your Coins moved. Clicking a locked
+   enchant opens the farm tree. Auto Convert in /convert stops being a
+   hopper. The Coins icon becomes a gold ingot, which is bigger. `/tag`
+   with no arguments opens the index.
+6. **Nova Core.** Tier 1 always succeeds. A chat line when the tier goes
+   up ("Nova Core is now Tier 1"). The menu rebuilt properly: gradients,
+   better descriptions. He is sending screenshots of the layout he wants,
+   so the layout waits for those.
+7. **The TAB list.** He asked for this a while back and believes it was
+   never done. Check what is there before rebuilding it.
+
+**Two bugs he reported, both need answers before they can be fixed:**
+
+- **An enchant potion raised his Coins per crop.** A potion is meant to
+  raise the CHANCE only. An enchant that already procs at 100 percent,
+  like Coins 1 or Coin Greed, must not pay more because a potion is up.
+  Find where the potion multiplier is applied and make sure it only ever
+  touches the proc roll.
+- **The chat.** "De chat is nog niet geregeld", and he thinks it was
+  reported fixed. Nobody has written down what is wrong with it, so ask
+  before touching anything.
+
+**Answered, so it does not get asked again: the scoreboard icons cannot
+be made bigger.** They are 1.21.9 sprite objects in text
+(`Icons.sprite`, `ObjectContents.sprite`). The component carries an atlas
+key and a sprite key and nothing else, no scale, verified against
+adventure-api 4.26.1. The client draws one at the height of a line of
+text and the server cannot change that. The only route to bigger icons is
+a server resource pack with its own bitmap font, which is a project of
+its own.
+
+**Open, waiting on Leon:**
+
+- "Het geld mag wel op 1k starten." Which money: what a new player starts
+  with, or the price of the Money I node (1220 now)?
+- "In starforge mag hij +5 speed hebben in plaats van 5%." Which tier?
+  `speed-bonus` is a flat add to the Speed pile, so 0.05 is what reads as
+  5 percent somewhere. Say which screen shows it wrong.
+- Armor and farming "wat duurder": how much, roughly double?
+- Icons inside menus as well as the sidebar: he wants to see it before
+  deciding, so one screen gets them as a sample.
 
 ## Step 0 checklist, to run on a fresh restart with V150
 
@@ -243,6 +315,45 @@ nothing was gained; shattered breaks the ring apart and drops the pieces.
 A forge happens with a menu open, so it is drawn round the feet and over
 the head where the inventory panel is not.
 
+**V184: what Leon said back about them, and the answers.** He looked at
+V174 to V183 and gave five things:
+
+- The `/options` own aura setting did nothing. It did nothing because a
+  test aura ignored it outright (V172), and every look he has judged
+  since was judged through `/rngadmin auratest`. A test obeys the setting
+  now, and the command prints which view is on so nothing is silently
+  missing.
+- He wants the middle setting to mean ground and sky rather than feet
+  only. `AuraConcept.lowToGround` became `clearOfView`, and it is about
+  where a piece sits rather than how big it is: floor rings, halos over
+  the head, wings off the back and anything past `CLEAR_RADIUS` (1.25
+  blocks) are kept, and only what would sit on the wearer's nose goes.
+  The three modes are Out of your way, Everything and Hidden.
+- The aura is now the thing a rank buys. `auras.rank-scale` multiplies
+  every piece's pose through `AuraParts.withPlayerSize`, the one place
+  both the spawn and every move already pass through: Linked 0.70, Comet
+  0.85, Nova 1.0, Supernova 1.30. Same look, same piece count, same cost,
+  drawn bigger. Nova is the middle, so it wears exactly what every aura
+  looked like before.
+- `archon` and `ascendant` are gone. The standalone `wings` look has the
+  same trailing problem archon had and was left alone, because he did not
+  ask for it: a piece that turns with the body is told its new yaw every
+  two ticks and the client slerps it over three more, so about a quarter
+  of a second of lag is the floor for anything hanging off a back.
+- `ascend` was good but its beam was not. A `Column` used to be one slab
+  from the feet straight through the wearer's eyes. It starts over the
+  head now and its sheath is cut into sections that narrow and fade as
+  they rise, so it reads as light rather than as a plank. Divine and
+  Divine shiny only; the Epic and Legendary shiny columns were not
+  mentioned and were left.
+
+**V184 also adds `orrery`,** which is the combination he asked for: the
+lantern atom out of `atom-grand` and the three swinging rings out of
+`armillary`, over star bands at the feet, with the end rod atom replaced
+by nether stars because an end rod is Mojang's white whatever colour the
+rest of the aura is painted. About seventy pieces, so the body rings run
+seven segments each to pay for both of their faces.
+
 **Still not verifiable from outside the game, so check these first:**
 
 1. Is the plate the size the maths says? A ring that comes out far too
@@ -251,6 +362,10 @@ the head where the inventory panel is not.
    chest? The pivot came from the old stained glass wings.
 3. Does the `eclipse` standing ring z-fight with itself? If the two faces
    flicker against each other, `AuraParts.BACK_GAP` needs raising.
+4. (V184) Is Supernova's aura obviously bigger than Linked's? Put a tag
+   on, `/rngadmin auratest orrery divine`, and compare against a rank
+   change. If the difference reads as nothing, raise the spread in
+   `auras.rank-scale`.
 
 ## What shipped but has never been tested in game
 

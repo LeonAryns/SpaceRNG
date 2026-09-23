@@ -21,6 +21,7 @@ import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import java.util.List;
+import java.util.function.ToDoubleFunction;
 
 /**
  * Builds the pieces auras are made of. Every piece is non-persistent, so it
@@ -42,6 +43,21 @@ public final class AuraParts {
 
     /** How high a passenger rides above the feet of a standing player. */
     public static final float RIDE = 1.8f;
+
+    /**
+     * How much the wearer's rank grows their aura, set once by
+     * {@link AuraManager} from config.
+     *
+     * It is a static because every piece is posed through
+     * {@link #withPlayerSize}, at spawn and again on every move, and that
+     * is the one place a factor on a whole look lands without every concept
+     * in the package having to be told about it.
+     */
+    private static volatile ToDoubleFunction<Player> rankScale = player -> 1.0;
+
+    static void rankScale(ToDoubleFunction<Player> scale) {
+        rankScale = scale == null ? player -> 1.0 : scale;
+    }
 
     private final NamespacedKey tag;
 
@@ -220,9 +236,9 @@ public final class AuraParts {
      * otherwise hang tilted for as long as it was worn.
      */
     /**
-     * The same pose scaled to the player wearing it, so a /size player wears
-     * an aura that grows and shrinks with them. A passenger already rides
-     * higher on a bigger player, so only the piece itself needs scaling.
+     * The same pose scaled to the player wearing it: their /size, and how
+     * far their rank grows the aura. A passenger already rides higher on a
+     * bigger player, so only the piece itself needs scaling.
      */
     private static Transformation withPlayerSize(Player player, Transformation pose) {
         float factor = sizeOf(player);
@@ -243,7 +259,8 @@ public final class AuraParts {
     private static float sizeOf(Player player) {
         var attribute = player.getAttribute(org.bukkit.attribute.Attribute.SCALE);
         double size = attribute == null ? 1.0 : attribute.getValue();
-        return Math.abs(size - 1.0) < 0.01 ? 1f : (float) size;
+        double factor = size * rankScale.applyAsDouble(player);
+        return Math.abs(factor - 1.0) < 0.01 ? 1f : (float) factor;
     }
 
     private static Location level(Player player) {

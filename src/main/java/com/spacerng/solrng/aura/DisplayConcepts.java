@@ -44,7 +44,6 @@ final class DisplayConcepts {
         d.put("sanctum", "pillars, runes and halo");
         d.put("wings", "stained glass wings fanned from the back, beating gently (experimental)");
         d.put("barrier", "a slow hexagon of the rarity's glass round the hips");
-        d.put("archon", "wings, halo-grand and runes (experimental)");
     }
 
     static AuraConcept create(String key, Rarity rarity, Color color) {
@@ -58,8 +57,6 @@ final class DisplayConcepts {
                     new AuraConcepts.RuneRing(color), new AuraConcepts.Halo(color));
             case "wings" -> new Wings(rarity);
             case "barrier" -> new Barrier(rarity);
-            case "archon" -> new AuraConcepts.Combined(new Wings(rarity),
-                    GrandConcepts.create("halo-grand", rarity, color), new AuraConcepts.RuneRing(color));
             default -> null;
         };
     }
@@ -448,7 +445,7 @@ final class DisplayConcepts {
         }
 
         @Override
-        public boolean lowToGround() {
+        public boolean clearOfView() {
             return true;
         }
 

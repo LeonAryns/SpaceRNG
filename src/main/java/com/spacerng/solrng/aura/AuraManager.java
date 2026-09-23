@@ -97,10 +97,32 @@ public final class AuraManager {
     private BukkitTask task;
     private long ticks = 0L;
 
+    // How much each rank grows the aura when config says nothing. Nova is
+    // the middle, so a rank below it is visibly smaller and the top one is
+    // visibly bigger than everything the plugin drew before V184.
+    private static final Map<String, Double> DEFAULT_RANK_SCALE = Map.of(
+            "linked", 0.70, "comet", 0.85, "nova", 1.0, "supernova", 1.30);
+
     public AuraManager(SolRNGPlugin plugin) {
         this.plugin = plugin;
         this.tag = SolRNGPlugin.key("solrng_aura");
         this.parts = new AuraParts(tag);
+        AuraParts.rankScale(this::rankScaleOf);
+    }
+
+    /**
+     * How far a wearer's rank grows their aura (V184). The rank is the only
+     * thing that changes the size, on purpose: the aura is the cosmetic a
+     * rank buys, and selling a bigger one costs nobody else anything, which
+     * is not true of selling Luck.
+     */
+    private double rankScaleOf(Player player) {
+        double fallback = plugin.getConfig().getDouble("auras.rank-scale.default", 0.70);
+        var ranks = plugin.getRankManager();
+        var tier = ranks == null ? null : ranks.rankOf(player);
+        if (tier == null) return fallback;
+        return plugin.getConfig().getDouble("auras.rank-scale." + tier.id(),
+                DEFAULT_RANK_SCALE.getOrDefault(tier.id(), fallback));
     }
 
     /**
@@ -306,22 +328,24 @@ public final class AuraManager {
     }
 
     /**
-     * Whether a wearer sees piece {@code index} of their own aura. Ground
-     * only, the default, keeps just the pieces at the feet, so nothing
-     * orbits across their view in first person.
+     * Whether a wearer sees piece {@code index} of their own aura. The
+     * middle setting, and the default, keeps the pieces that are out of
+     * their way: the floor, the sky, the back, and anything far enough out
+     * that they look through it rather than at it.
+     *
+     * A test aura used to ignore this outright (V172), which is the whole
+     * reason the setting looked broken: every look Leon judged was judged
+     * with the setting switched off. It obeys now, and /rngadmin auratest
+     * says which view is on so nothing is silently missing.
      */
     private boolean ownerSees(Player owner, Worn aura, int index) {
-        // A test is for looking at, so the tester sees every piece whatever
-        // their own view is set to (V172). With the default ground-only view
-        // an auratest on yourself hid everything floating around you.
-        if (aura.test) return true;
         var data = plugin.getPlayerDataManager().get(owner.getUniqueId());
         if (!data.isWornAurasVisible()) return false;
         return switch (data.getOwnAuraView()) {
             case "full" -> true;
             case "hidden" -> false;
             default -> aura.concept instanceof AuraConcepts.Combined combined
-                    ? combined.lowAt(index) : aura.concept.lowToGround();
+                    ? combined.clearAt(index) : aura.concept.clearOfView();
         };
     }
 
