@@ -369,6 +369,55 @@ public final class AuraManager {
 
     // ------------------------------------------------------------------- tick
 
+    // Whether the real ride height has been read off a mounted piece yet.
+    // Once per server start is enough: it is a property of the game, not
+    // of a player.
+    private boolean rideMeasured = false;
+    private boolean rebuildAll = false;
+
+    /**
+     * Reads the true passenger attachment height off a piece that is
+     * already riding somebody, and rebuilds every worn look if it turns
+     * out the constant was wrong.
+     *
+     * Bukkit exposes no way to ask where a passenger will sit, so the only
+     * honest way to know is to mount one and look. A piece is spawned at
+     * the player's own feet, so before the ride has moved it the offset
+     * reads 0; anything under 0.2 is that, and is ignored.
+     */
+    private void measureRide(Player player, Worn aura) {
+        if (rideMeasured || aura.displays.isEmpty()) return;
+        Display piece = aura.displays.get(0);
+        if (!piece.isValid() || !piece.getWorld().equals(player.getWorld())) return;
+        double offset = piece.getLocation().getY() - player.getLocation().getY();
+        if (offset < 0.2) return;
+        rideMeasured = true;
+        if (!AuraParts.measure(offset)) return;
+        plugin.getLogger().info("Auras: a passenger rides " + String.format("%.2f", offset)
+                + " blocks up, not 1.80. Every worn look is being rebuilt at the right height.");
+        // Not here: this runs inside the tick's own walk over worn, and
+        // wear() takes an aura out of that map and puts a new one in.
+        rebuildAll = true;
+    }
+
+    /** Rebuilds every worn look, outside the tick's walk over the map. */
+    private void rebuildAll() {
+        rebuildAll = false;
+        record Pending(Player player, Worn look) {
+        }
+        List<Pending> pending = new ArrayList<>();
+        for (Map.Entry<UUID, Worn> entry : worn.entrySet()) {
+            Player wearer = Bukkit.getPlayer(entry.getKey());
+            if (wearer != null && !wearer.isDead()) pending.add(new Pending(wearer, entry.getValue()));
+        }
+        for (Pending each : pending) {
+            // The look holds the numbers it was built with, so it has to be
+            // created again rather than only put back on.
+            wear(each.player(), each.look().key, each.look().wanted, each.look().rarity,
+                    each.look().accent, each.look().test);
+        }
+    }
+
     private void tick() {
         // The floating tag rides the same way and is dropped by the same teleports.
         if (ticks++ % 10 == 0) plugin.getTagManager().keepMounted();
@@ -419,6 +468,7 @@ public final class AuraManager {
                         aura.frame = 1;
                     }
                 }
+                if (!rideMeasured) measureRide(player, aura);
                 aura.concept.tick(aura.displays, frame);
                 // A look that hangs off the back turns with the body. A mounted
                 // display keeps its own yaw, so it is set whenever the body has
@@ -451,6 +501,7 @@ public final class AuraManager {
                 it.remove();
             }
         }
+        if (rebuildAll) rebuildAll();
     }
 
     /**

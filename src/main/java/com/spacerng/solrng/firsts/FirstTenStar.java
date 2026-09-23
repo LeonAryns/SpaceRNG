@@ -161,11 +161,23 @@ final class FirstTenStar {
         return display;
     }
 
+    /**
+     * Somebody who always sees it whatever their /options say. Set for the
+     * person running a preview: a preview they cannot see is a preview of
+     * nothing, which is how it came to look like there was no run-up.
+     */
+    private java.util.UUID forced;
+
+    void forceFor(java.util.UUID viewer) {
+        this.forced = viewer;
+        refreshAudience();
+    }
+
     /** Who may see it: anybody who has not muted this rarity's aura. */
     void refreshAudience() {
         for (Player viewer : Bukkit.getOnlinePlayers()) {
-            boolean allowed = plugin.getPlayerDataManager()
-                    .get(viewer.getUniqueId()).isAuraEnabled(rarity);
+            boolean allowed = viewer.getUniqueId().equals(forced)
+                    || plugin.getPlayerDataManager().get(viewer.getUniqueId()).isAuraEnabled(rarity);
             for (Display piece : everything) {
                 if (!piece.isValid()) continue;
                 if (allowed) viewer.showEntity(plugin, piece);

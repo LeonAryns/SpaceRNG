@@ -59,6 +59,14 @@ final class FirstTenBuildUp {
     // distance; a star does not.
     private FirstTenStar star;
 
+    /** Set for a preview: whoever asked for it sees it whatever their /options say. */
+    private boolean forced;
+
+    void force() {
+        this.forced = true;
+        if (star != null) star.forceFor(finder);
+    }
+
     FirstTenBuildUp(SolRNGPlugin plugin, Rarity rarity, org.bukkit.Material drop, UUID finder, Runnable burst) {
         this.plugin = plugin;
         this.rarity = rarity;
@@ -120,6 +128,7 @@ final class FirstTenBuildUp {
             };
             star = new FirstTenStar(plugin, rarity, drop, origin, 18.0 + radius, radius);
             star.start();
+            if (forced) star.forceFor(finder);
         }
         task = plugin.getServer().getScheduler().runTaskTimer(plugin, this::tick, 0L, 2L);
     }
@@ -169,7 +178,7 @@ final class FirstTenBuildUp {
                     viewer.playSound(viewer.getLocation(), Sound.BLOCK_BEACON_POWER_SELECT, 1.0f,
                             (float) (0.7 + 0.6 * progress));
                 }
-                if (hush || origin == null || !data.isAuraEnabled(rarity)) continue;
+                if (hush || origin == null || (!data.isAuraEnabled(rarity) && !(own && forced))) continue;
                 if (!origin.getWorld().equals(viewer.getWorld())
                         || viewer.getLocation().distanceSquared(origin) > VIEW * VIEW) continue;
                 draw(viewer, progress);

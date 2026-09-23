@@ -5,7 +5,7 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V193**, 23 September 2026.
+Last updated at **V194**, 23 September 2026.
 
 ## The agreed way of working
 
@@ -307,6 +307,39 @@ other three.
 **Still Leon's call:** which looks to keep, which shiny slots to put them
 on, and whether Legendary and Mythical should swap lit blocks (shroomlight
 is on Mythical today, ochre froglight on Legendary).
+
+**V194: the aura height is measured instead of guessed.**
+
+`AuraParts.RIDE` was 1.8 because that is how tall a player is. It is
+where a passenger actually attaches that matters, Bukkit exposes no way
+to ask, and if the real number is lower then EVERY piece of EVERY aura
+sits that much too low. That is one cause behind both complaints that
+kept coming back: rings meant for the feet end up inside the block they
+lie on, and rings meant for the waist end up in the wearer's eyes.
+
+The first time an aura is worn after a start, the manager reads the true
+offset off a mounted piece (`piece.getLocation().getY()` minus the
+player's), corrects `RIDE` and `FEET`, logs the number and rebuilds every
+worn look once. If 1.8 was right nothing happens. **The console line is
+worth reading after the first jar with this in it: it says what the real
+number is.**
+
+**Also in V194:**
+
+- **A `/rngadmin firsts preview` looked instant** because the run-up is
+  drawn per viewer and skipped anybody with that rarity's aura switched
+  off in /options, which included the one person watching. A preview now
+  forces itself on whoever asked for it, star included.
+- **The detailed wings have tapered tips**: a narrower plate in the edge
+  colour carrying on past each feather, so a feather reads as a feather
+  rather than as one rectangle in a fan. That is as far as plates go
+  without spending pieces by the hundred.
+- **`stardust` has three steps of colour** rather than two, because two
+  tints one shade apart read as one colour at any distance.
+- **`starfall`** is the combination asked for: heartfall's heart with its
+  lanterns sailing round it, standing in stardust's shooting stars under
+  one curtain. Nether stars and lanterns, no end rods. 39 pieces, the
+  cheapest good look in the plugin.
 
 **Deliberately not done in V186, and why:** the +10% Coins and Gems per
 crop. Those are the `CROP_YIELD` nodes, and they are the spine of the

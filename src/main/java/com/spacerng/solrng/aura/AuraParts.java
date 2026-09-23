@@ -39,10 +39,37 @@ import java.util.function.ToDoubleFunction;
  */
 public final class AuraParts {
 
-    public static final float FEET = -1.74f;
+    /**
+     * How high a passenger rides above the feet of a standing player, and
+     * where the ground is relative to that.
+     *
+     * Not final, and not a guess any more (V194). Minecraft attaches a
+     * passenger at a point the Bukkit API does not expose, so this started
+     * life as 1.8 because that is how tall a player is. If the real number
+     * is lower, every piece in every aura sits that much too low: the
+     * rings meant for the feet end up inside the block they are lying on
+     * and the ones meant for the waist end up in the wearer's eyes, which
+     * is exactly the pair of complaints that came back twice.
+     *
+     * {@link #measure} reads the truth off a mounted piece and corrects
+     * both, once, the first time an aura is worn.
+     */
+    public static float RIDE = 1.8f;
 
-    /** How high a passenger rides above the feet of a standing player. */
-    public static final float RIDE = 1.8f;
+    public static float FEET = -(RIDE - 0.06f);
+
+    /**
+     * The real ride height, read off a piece that is already riding
+     * somebody. Returns true when it moved, which is the manager's cue to
+     * build every worn look again with the corrected numbers.
+     */
+    static boolean measure(double offset) {
+        float found = (float) offset;
+        if (found < 0.2f || found > 3.5f || Math.abs(found - RIDE) < 0.03f) return false;
+        RIDE = found;
+        FEET = -(found - 0.06f);
+        return true;
+    }
 
     /**
      * How much the wearer's rank grows their aura, set once by

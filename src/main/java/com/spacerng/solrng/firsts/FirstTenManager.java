@@ -140,13 +140,26 @@ public final class FirstTenManager {
         UUID roller = viewer == null ? null : viewer.getUniqueId();
         String name = viewer == null ? "Console" : viewer.getName();
         buildUpThen(item.getRarity(), item.getMaterial(), roller,
-                () -> announce(roller, name, item, shiny, place, true));
+                () -> announce(roller, name, item, shiny, place, true), true);
     }
 
     /** The build-up is for Legendary and up; anything below goes straight to the banner. */
     private void buildUpThen(Rarity rarity, org.bukkit.Material drop, UUID roller, Runnable event) {
+        buildUpThen(rarity, drop, roller, event, false);
+    }
+
+    /**
+     * @param forced a preview, so whoever asked for it sees the run-up
+     *               whether or not they have this rarity's aura switched
+     *               off in /options. Without this a preview looked
+     *               instant to the one person watching it.
+     */
+    private void buildUpThen(Rarity rarity, org.bukkit.Material drop, UUID roller, Runnable event,
+                             boolean forced) {
         if (rarity.ordinal() >= Rarity.LEGENDARY.ordinal()) {
-            new FirstTenBuildUp(plugin, rarity, drop, roller, event).start();
+            FirstTenBuildUp build = new FirstTenBuildUp(plugin, rarity, drop, roller, event);
+            if (forced) build.force();
+            build.start();
         } else {
             event.run();
         }

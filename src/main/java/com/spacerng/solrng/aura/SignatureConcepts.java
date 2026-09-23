@@ -78,6 +78,7 @@ final class SignatureConcepts {
         d.put("seraphim", "seven feathered wings a side, behind where you look, under a crown");
         d.put("heartfall", "the beating heart, lanterns sailing round it, star bands at the feet");
         d.put("stardust", "shooting stars running out along the ground under two wide curtains");
+        d.put("starfall", "the heart and its lanterns standing in shooting stars, under a curtain");
     }
 
     static AuraConcept create(String key, Rarity rarity, Color color) {
@@ -107,6 +108,7 @@ final class SignatureConcepts {
             case "seraphim" -> seraphim(color);
             case "heartfall" -> heartfall(rarity, color);
             case "stardust" -> stardust(color);
+            case "starfall" -> starfall(rarity, color);
             default -> null;
         };
     }
@@ -490,11 +492,32 @@ final class SignatureConcepts {
      */
     private static AuraConcept stardust(Color color) {
         Color soft = softer(color);
+        // A third step, the way galaxy does it, because two tints one
+        // shade apart read as one colour at any distance.
+        Color pale = softer(soft);
         return new AuraConcepts.Combined(
                 new MassiveConcepts.WideRipple(color, 26, 3.0f, 22, 4),
-                new PlateRing(soft, 235, FEET + 0.01f, 2.40f, 14, 0.09f, 1.0f, 0f, 0, 0.0, 0.0),
-                new PlateRing(color, 105, -0.55f, 3.00f, 8, 0.80f, 0.55f, 74f, 9, 3.0, 4.0),
-                new PlateRing(soft, 90, -0.40f, 2.65f, 8, 0.95f, 0.5f, 58f, 10, -3.0, -3.0));
+                new PlateRing(color, 240, FEET + 0.01f, 2.40f, 14, 0.09f, 1.0f, 0f, 0, 0.0, 0.0),
+                new PlateRing(soft, 120, -0.55f, 3.00f, 8, 0.80f, 0.55f, 74f, 9, 3.0, 4.0),
+                new PlateRing(pale, 85, -0.40f, 2.65f, 8, 0.95f, 0.5f, 58f, 10, -3.0, -3.0));
+    }
+
+    /**
+     * What Leon asked for after seeing both: heartfall's heart with the
+     * lanterns sailing round it, standing in stardust's shooting stars and
+     * one of its curtains. Nether stars and lanterns only, no end rods,
+     * because an end rod is Mojang's white whatever colour the rest is.
+     */
+    private static AuraConcept starfall(Rarity rarity, Color color) {
+        Color soft = softer(color);
+        Color pale = softer(soft);
+        return new AuraConcepts.Combined(
+                new Core(Material.NETHER_STAR, color, -0.60f, 0.60f),
+                new GrandConcepts.FlatOrbit(AuraConcepts.lantern(rarity), false, -0.55f,
+                        new float[]{1.40f, 2.35f}, 2, 0.34f, 2, 7.0),
+                new MassiveConcepts.WideRipple(color, 26, 3.0f, 22, 4),
+                new PlateRing(color, 240, FEET + 0.01f, 2.20f, 14, 0.10f, 1.0f, 0f, 0, 0.0, 0.0),
+                new PlateRing(pale, 100, -0.50f, 3.00f, 8, 0.85f, 0.55f, 74f, 9, 3.0, 4.0));
     }
 
     // -------------------------------------------------------------- plate ring
@@ -1078,6 +1101,10 @@ final class SignatureConcepts {
                 for (int f = 0; f < raise.length; f++) {
                     displays.add(parts.plate(player, color, alpha, feather(side, f, 0, false)));
                     displays.add(parts.plate(player, color, alpha, feather(side, f, 0, true)));
+                    if (head) {
+                        displays.add(parts.plate(player, edge, alpha, tip(side, f, 0, false)));
+                        displays.add(parts.plate(player, edge, alpha, tip(side, f, 0, true)));
+                    }
                 }
                 displays.add(parts.plate(player, edge, 245, leading(side, 0, false)));
                 displays.add(parts.plate(player, edge, 245, leading(side, 0, true)));
@@ -1094,6 +1121,10 @@ final class SignatureConcepts {
                 for (int f = 0; f < raise.length; f++) {
                     moveTo(displays.get(index++), feather(side, f, beat, false), EVERY * 2);
                     moveTo(displays.get(index++), feather(side, f, beat, true), EVERY * 2);
+                    if (head) {
+                        moveTo(displays.get(index++), tip(side, f, beat, false), EVERY * 2);
+                        moveTo(displays.get(index++), tip(side, f, beat, true), EVERY * 2);
+                    }
                 }
                 moveTo(displays.get(index++), leading(side, beat, false), EVERY * 2);
                 moveTo(displays.get(index++), leading(side, beat, true), EVERY * 2);
@@ -1139,6 +1170,18 @@ final class SignatureConcepts {
         }
 
         /** A thinner, brighter plate along the top feather, so the wing has an edge. */
+        /**
+         * The narrow half past the end of a feather, in the lighter edge
+         * colour. One rectangle per feather reads as a fan; a rectangle
+         * with a thinner one carrying on past it reads as a feather, and
+         * that is the whole of the detail Leon was missing.
+         */
+        private Matrix4f tip(int side, int f, long beat, boolean back) {
+            return blade(side, Math.toRadians(raise[f] + lift(beat) - 1.5),
+                    Math.toRadians(sweep(beat) + f * 3 + 1.5),
+                    length[f] * 1.45f, width[f] * 0.42f, -f * 0.04f - 0.01f, back);
+        }
+
         private Matrix4f leading(int side, long beat, boolean back) {
             return blade(side, Math.toRadians(raise[0] + lift(beat) + 3),
                     Math.toRadians(sweep(beat)), length[0] * 1.1f, 0.05f, 0f, back);
