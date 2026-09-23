@@ -74,6 +74,8 @@ public final class ConfigMigrator {
             "scoreboard.icons", "world-time",
             // V184: how far each rank grows the aura it wears.
             "auras.rank-scale",
+            // V190: the join and quit lines.
+            "join",
             // V188: titles and name colours.
             "cosmetics",
             // V187: the one letter rank badge in tab and chat.
@@ -142,6 +144,9 @@ public final class ConfigMigrator {
             // V148: Leon wants the farming podium read from across the spawn.
             new Patch("podium-heads-bigger", "holograms.podium-head-scale", 1.8, 3.2),
             new Patch("podium-spacing-wider", "holograms.podium-spacing", 2.5, 4.5),
+            // V190: the Nova Core is an ender pearl.
+            new Patch("nova-core-ender-pearl", "consumables.nova_core.material",
+                    "HEART_OF_THE_SEA", "ENDER_PEARL"),
             // V189: Leon wanted the Beta title in hacker green.
             new Patch("beta-title-terminal-green", "cosmetics.titles.beta.colors",
                     List.of("#A5F3FC", "#22D3EE"), List.of("#008F11", "#00FF41", "#39FF14")),
@@ -277,10 +282,44 @@ public final class ConfigMigrator {
     private static final List<Patch> ENCHANT_PATCHES = java.util.stream.Stream.of(
                     "TOKEN_GREED", "MOMENTUM", "SHARD_GREED", "KEY_FINDER", "BLAST_HARVEST",
                     "POTION_FINDER", "LIGHTNING", "NOVA_FINDER", "NUKE", "COIN_FACTORY", "GAMBA",
-                    "PROSPECTOR", "GOLDEN_TOUCH", "GEM_RUSH", "HARVEST_ECHO", "ALCHEMY",
+                    "PROSPECTOR", "GEM_RUSH", "ALCHEMY",
                     "GEM_CASCADE", "COIN_STORM", "METEOR", "BLACK_HOLE", "SUPERNOVA")
             .map(id -> new Patch("enchant-10k-" + id, "farming.enchants." + id + ".max-level", 1000, 10000))
             .toList();
+
+    /**
+     * V190: and the ceiling a player can actually reach.
+     *
+     * max-level says where an enchant can ever finish; base-cap says where
+     * it starts, and maxLevelFor returns the smaller of the two. Every
+     * enchant shipped with base-cap 100, so "10,000 levels" was a number
+     * in a config file that nobody could see in game: the rack read out of
+     * 100 until both Enchant Mastery nodes were bought, and those cost
+     * billions. The price curve is the balance now, which is what it was
+     * always for.
+     */
+    private static final List<Patch> ENCHANT_CAP_PATCHES = java.util.stream.Stream.of(
+                    "TOKEN_GREED", "MOMENTUM", "SHARD_GREED", "KEY_FINDER", "BLAST_HARVEST",
+                    "POTION_FINDER", "LIGHTNING", "NOVA_FINDER", "NUKE", "COIN_FACTORY", "GAMBA",
+                    "PROSPECTOR", "GEM_RUSH", "ALCHEMY", "GEM_CASCADE", "COIN_STORM", "METEOR",
+                    "BLACK_HOLE", "SUPERNOVA")
+            .map(id -> new Patch("enchant-cap-10k-" + id, "farming.enchants." + id + ".base-cap", 100, 10000))
+            .toList();
+
+    /**
+     * Paths deleted outright, once, and remembered like a patch.
+     *
+     * farming is not a structural section, so an enchant taken out of the
+     * jar is still sitting in a live config and still loads. This is the
+     * only way one actually leaves.
+     */
+    private static final List<String[]> REMOVALS = List.of(
+            // coming-soon needs nothing here: the key is simply absent from
+            // a live config, and a missing key falls through to the jar's
+            // default, which is where it is set.
+            // V190: Leon took Golden Touch and Harvest Echo out.
+            new String[]{"enchant-gone-golden-touch", "farming.enchants.GOLDEN_TOUCH"},
+            new String[]{"enchant-gone-harvest-echo", "farming.enchants.HARVEST_ECHO"});
 
     /** Like a Patch, for one field of the entry with a given id inside a list of maps. */
     private record EntryPatch(String id, String list, String entryId, String field, Object oldDefault,
@@ -457,6 +496,15 @@ public final class ConfigMigrator {
         boolean changed = false;
         List<Patch> allPatches = new ArrayList<>(PATCHES);
         allPatches.addAll(ENCHANT_PATCHES);
+        allPatches.addAll(ENCHANT_CAP_PATCHES);
+
+        for (String[] removal : REMOVALS) {
+            if (applied.contains(removal[0]) || !disk.contains(removal[1], true)) continue;
+            disk.set(removal[1], null);
+            applied.add(removal[0]);
+            plugin.getLogger().info("Config: removed " + removal[1] + ".");
+            changed = true;
+        }
         for (Patch patch : allPatches) {
             if (applied.contains(patch.id())) continue;
             // A map-shaped value comes back from disk as a section, so it is

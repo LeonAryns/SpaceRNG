@@ -197,11 +197,30 @@ public class RankManager {
      * whole point of selling four of them.
      */
     public String badgeOf(RankTier tier) {
+        return badgeOf(tier, null);
+    }
+
+    /**
+     * The same badge, painted in {@code stops} when a player has picked a
+     * name colour (V190). A Supernova who paints their name gold and then
+     * wears a purple letter in front of it looks like two people.
+     */
+    public String badgeOf(RankTier tier, String[] stops) {
         if (tier == null || tier.letter().isEmpty()) return "";
-        String letter = tier.colors().size() > 1
-                ? Lore.gradient(tier.letter(), true, tier.colors().toArray(new String[0]))
-                : ChatColor.WHITE + ChatColor.BOLD.toString() + tier.letter();
+        String[] colours = stops != null && stops.length > 0
+                ? stops : tier.colors().toArray(new String[0]);
+        String letter = colours.length > 1
+                ? Lore.gradient(tier.letter(), true, colours)
+                : Lore.gradient(tier.letter(), true, colours[0]);
         return ChatColor.DARK_GRAY + "[" + letter + ChatColor.DARK_GRAY + "] ";
+    }
+
+    /** The badge for one player, which is the tier's unless they paint their own name. */
+    public String badgeOf(Player player) {
+        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+        String[] stops = plugin.getCosmeticManager() == null
+                ? null : plugin.getCosmeticManager().stopsFor(data);
+        return badgeOf(rankOf(data), stops);
     }
 
     /** The tag alone, in the rank colours. Kept for anywhere the symbol still reads better. */
@@ -276,9 +295,11 @@ public class RankManager {
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         RankTier tier = rankOf(data);
         String title = plugin.getCosmeticManager() == null
-                ? "" : plugin.getCosmeticManager().badgeOf(data);
+                ? "" : plugin.getCosmeticManager().suffixOf(data);
+        String[] stops = plugin.getCosmeticManager() == null
+                ? null : plugin.getCosmeticManager().stopsFor(data);
         Component component = LegacyComponentSerializer.legacySection()
-                .deserialize(badgeOf(tier) + title + coloredName(player));
+                .deserialize(badgeOf(tier, stops) + coloredName(player) + title);
         player.playerListName(component);
         player.displayName(component);
     }

@@ -428,6 +428,12 @@ final class PlayerMenuClicks {
         if (id == null) return;
 
         var hoe = plugin.getHoeEnchantManager();
+        var enchant = hoe.get(id);
+        if (enchant != null && enchant.comingSoon()) {
+            player.sendMessage(ChatColor.GRAY + "That one is not finished yet.");
+            player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.5f, 0.8f);
+            return;
+        }
         if (!hoe.isUnlocked(data, id)) {
             // V186: take them there rather than telling them where it is.
             // A locked slot that answers with a sentence is a dead end.

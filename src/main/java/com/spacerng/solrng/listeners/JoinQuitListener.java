@@ -36,7 +36,8 @@ public class JoinQuitListener implements Listener {
 
         // Level/Prestige is intentionally NOT part of this - it's
         // tab-list-only via %solrng_level%, never the join broadcast.
-        event.setJoinMessage(ChatColor.YELLOW + event.getPlayer().getName() + " joined the game");
+        event.setJoinMessage(line(event.getPlayer(), "join.message",
+                "&8[&a+&8] {name}"));
 
         // Rebuilds the equipped-tag team prefix (empty if none equipped).
         plugin.getTagManager().refreshPrefix(event.getPlayer(), data);
@@ -81,7 +82,8 @@ public class JoinQuitListener implements Listener {
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
-        event.setQuitMessage(ChatColor.YELLOW + event.getPlayer().getName() + " left the game");
+        event.setQuitMessage(line(event.getPlayer(), "join.quit-message",
+                "&8[&c-&8] {name}"));
         plugin.getRollListener().cancelRoll(event.getPlayer().getUniqueId());
         plugin.getTagManager().hideHologram(event.getPlayer().getUniqueId());
         plugin.getAuraManager().hide(event.getPlayer().getUniqueId());
@@ -124,5 +126,25 @@ public class JoinQuitListener implements Listener {
         plugin.getTagManager().showHologram(player,
                 RollFormat.displayName(plugin, rollable),
                 RollFormat.tagOdds(plugin, rollable));
+    }
+
+    /**
+     * A join or quit line from config, or null for no line at all (V190).
+     *
+     * {name} is the whole name as it reads everywhere else: the rank
+     * badge, the name in its own colours, and the cosmetic title behind
+     * it. {plain} is just the account name, for anybody who wants the
+     * line to stay quiet.
+     */
+    private String line(org.bukkit.entity.Player player, String path, String fallback) {
+        String raw = plugin.getConfig().getString(path, fallback);
+        if (raw == null || raw.isBlank()) return null;
+        var data = plugin.getPlayerDataManager().get(player.getUniqueId());
+        String name = plugin.getRankManager().badgeOf(player)
+                + plugin.getRankManager().coloredName(player)
+                + plugin.getCosmeticManager().suffixOf(data);
+        return ChatColor.translateAlternateColorCodes('&', raw)
+                .replace("{name}", name)
+                .replace("{plain}", player.getName());
     }
 }

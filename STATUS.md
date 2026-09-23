@@ -5,7 +5,7 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V188**, 23 September 2026.
+Last updated at **V190**, 23 September 2026.
 
 ## The agreed way of working
 
@@ -176,6 +176,50 @@ changes nothing, which is the only kind of thing a rank should sell.
 Everything is `cosmetics:` in config, so the titles, the colours and the
 wording are Leon's. Player data gained `cosmetic-tags`, `cosmetic-tag`
 and `name-colour`.
+
+**V190: why the farm enchants were never at 10,000.**
+
+`maxLevelFor` returns the SMALLER of `max-level` and
+`base-cap + Enchant Mastery`. Every enchant shipped with `base-cap: 100`,
+so the rack read "x / 100" however many times the max-level was pushed to
+10,000, and the only way past it was two Enchant Mastery nodes costing
+4.7 and 7.7 billion Coins. `base-cap` is 10,000 now (1,000 on Credit
+Finder, which pays Credits), carried across by a patch per enchant the
+same way the max-level was. The price curve is the balance, which is
+what it was always for.
+
+**That leaves Enchant Mastery I and II buying nothing.** They are still
+in the farm tree at page 3, still cost billions, and now close a gap that
+is already closed. Leon has to say what they should do instead, or
+whether they come out.
+
+**V190 also:**
+
+- **Golden Touch and Harvest Echo are gone**, enchant and node both. Gem
+  Rush moved into Golden Touch's slot at the top of that column with its
+  way in, Alchemy comes off `hoe_tier_2` and `crop_beetroot` directly,
+  Nether Wart no longer needs Harvest Echo, and nothing is left pointing
+  at a node that does not exist.
+- **Gem Greed, Gem Rush and Gem Cascade say Coming soon.** They are drawn
+  on the rack and in the tree, refuse every click, and pay nothing.
+  Momentum moved off Gem Greed and Coin Storm off Gem Cascade, so nothing
+  sits behind an enchant nobody can buy. An enchant taken out of the jar
+  is still in a live config, so `ConfigMigrator.REMOVALS` deletes a path
+  once and remembers it, which is new.
+- **The cosmetic title sits after the name** rather than in front of it,
+  and a Supernova who paints their name gets the rank letter painted to
+  match.
+- **The join and quit lines are config**, under `join:`, with `{name}`
+  and `{plain}`. Empty means no line.
+- **The Nova Core is an ender pearl.**
+- **Sprites work in a description.** `Lore.lore(plugin, meta, lines)`
+  renders `Icons` markers into component lore, with italic turned off per
+  line because component lore tilts by default and legacy lore does not.
+  Your Coins in the hoe screen is the one sample; say where else.
+
+**Still open from the same message:** /store and /buy rebuilt in the
+description block style, and better descriptions on the Nova Core tier
+items.
 
 **Deliberately not done in V186, and why:** the +10% Coins and Gems per
 crop. Those are the `CROP_YIELD` nodes, and they are the spine of the

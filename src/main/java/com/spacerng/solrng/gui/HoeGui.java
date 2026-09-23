@@ -109,7 +109,7 @@ public class HoeGui {
         }
 
         inv.setItem(HOE_SLOT, buildHoeCard(plugin, player, data, tier));
-        inv.setItem(COINS_SLOT, buildCoins(data));
+        inv.setItem(COINS_SLOT, buildCoins(plugin, data));
         inv.setItem(FARM_TREE_SLOT, buildFarmTree(plugin, data));
         inv.setItem(FARM_SOUND_SLOT, buildToggle(Material.NOTE_BLOCK, "Farming Sounds",
                 data.isFarmSoundEnabled(), "The click of a crop coming up."));
@@ -233,7 +233,12 @@ public class HoeGui {
         String price = unlocked && !maxed ? Currency.COINS.price(cost, affordable) : null;
 
         List<String> actions = new ArrayList<>();
-        if (!unlocked) {
+        if (enchant.comingSoon()) {
+            // Drawn rather than deleted, so the rack keeps its shape and a
+            // player can see what is on the way.
+            actions.add(ChatColor.DARK_GRAY + "" + ChatColor.BOLD + "Coming soon");
+            actions.add(Lore.footnote("Not finished yet. It pays nothing."));
+        } else if (!unlocked) {
             actions.add(ChatColor.RED + "" + ChatColor.BOLD + "Locked");
             actions.add(ChatColor.RED + Lore.BULLET + " " + ChatColor.GRAY + "Unlock it in "
                     + ChatColor.YELLOW + "/farmtree");
@@ -317,12 +322,18 @@ public class HoeGui {
         return lore;
     }
 
-    private static ItemStack buildCoins(PlayerData data) {
+    /**
+     * Your Coins, and the one sample of a game sprite drawn inside a
+     * description (V190). The gold ingot in the first line is the same
+     * sprite the sidebar uses, not a glyph.
+     */
+    private static ItemStack buildCoins(SolRNGPlugin plugin, PlayerData data) {
         ItemStack item = new ItemStack(Material.HAY_BLOCK);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(Lore.title(Currency.COINS.colour(), "Your Coins"));
-        meta.setLore(List.of(
-                Currency.COINS.colour() + Lore.BULLET + " " + Currency.COINS.exact(data.getTokens()),
+        Lore.lore(plugin, meta, List.of(
+                Currency.COINS.colour() + Lore.BULLET + " " + Icons.of("coins") + " "
+                        + Currency.COINS.exact(data.getTokens()),
                 "",
                 ChatColor.DARK_GRAY + Lore.BULLET + " Enchants are unlocked in /farmtree",
                 ChatColor.DARK_GRAY + Lore.BULLET + " and levelled here with Coins."));

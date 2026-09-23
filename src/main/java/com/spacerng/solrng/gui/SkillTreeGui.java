@@ -57,6 +57,20 @@ public class SkillTreeGui {
             20, 24, 12, 14
     );
 
+    /**
+     * Whether a node unlocks an enchant that is not finished. Derived from
+     * the enchant rather than from a flag on the node, so there is one
+     * place that decides and the two screens can never disagree.
+     */
+    public static boolean comingSoon(SolRNGPlugin plugin, SkillNode node) {
+        if (node == null || node.getEffect() != SkillNode.Effect.UNLOCK_ENCHANT
+                || node.getTarget() == null) {
+            return false;
+        }
+        var enchant = plugin.getHoeEnchantManager().get(node.getTarget());
+        return enchant != null && enchant.comingSoon();
+    }
+
     private static boolean isReservedButton(int slot) {
         return slot == PREV_SLOT || slot == NEXT_SLOT || slot == RESPEC_SLOT || slot == STATS_SLOT;
     }
@@ -181,7 +195,14 @@ public class SkillTreeGui {
                     + wallet.amount(balance));
         }
         lore.add("");
-        if (complete && node.getEffect() == SkillNode.Effect.UNLOCK_ENCHANT) {
+        if (comingSoon(plugin, node)) {
+            // The node for an enchant that is not finished. It is drawn in
+            // its place so the tree keeps its shape, and nothing sits
+            // behind it, so a dead end here blocks nobody.
+            lore.add(ChatColor.DARK_GRAY + "" + ChatColor.BOLD + "Coming soon");
+            lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " " + ChatColor.DARK_GRAY
+                    + "Not finished yet.");
+        } else if (complete && node.getEffect() == SkillNode.Effect.UNLOCK_ENCHANT) {
             lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "Unlocked");
             lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to level it up");
         } else if (complete) {
@@ -195,6 +216,7 @@ public class SkillTreeGui {
 
         Material material = Material.matchMaterial(node.getIcon());
         if (material == null) material = Material.RECOVERY_COMPASS;
+        if (comingSoon(plugin, node)) material = Material.STONE_BUTTON;
 
         ItemStack icon = new ItemStack(material);
         ItemMeta meta = icon.getItemMeta();

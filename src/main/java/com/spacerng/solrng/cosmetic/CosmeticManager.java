@@ -108,11 +108,17 @@ public final class CosmeticManager {
         }
     }
 
-    /** The worn title as "[Beta] " in its own colours, or empty. */
-    public String badgeOf(PlayerData data) {
+    /**
+     * The worn title as " [Beta]", or empty.
+     *
+     * It goes AFTER the name (V190). A badge in front of a name competes
+     * with the rank badge for the first thing the eye lands on, and the
+     * name is what people are actually looking for in a list.
+     */
+    public String suffixOf(PlayerData data) {
         Title title = title(data.getWornCosmeticTag());
         if (title == null || !data.hasCosmeticTag(title.id())) return "";
-        return ChatColor.DARK_GRAY + "[" + styled(title) + ChatColor.DARK_GRAY + "] ";
+        return " " + ChatColor.DARK_GRAY + "[" + styled(title) + ChatColor.DARK_GRAY + "]";
     }
 
     /** A title's name in its own colours. */

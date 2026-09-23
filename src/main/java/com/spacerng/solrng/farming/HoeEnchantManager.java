@@ -31,7 +31,7 @@ public class HoeEnchantManager {
     /** One enchant definition. Level comes from the player's skill nodes. */
     public record Enchant(String id, String display, String description, String icon, int maxLevel,
                           int baseCap, double perLevel, String colour, long baseCost,
-                          double costLinear, double costStep, double costPower) {
+                          double costLinear, double costStep, double costPower, boolean comingSoon) {
 
         /** e.g. "Token Greed III" in the enchant's own colour. */
         public String styled(int level) {
@@ -78,7 +78,12 @@ public class HoeEnchantManager {
                     e.getLong("base-cost", 25000L),
                     e.getDouble("cost-linear", 1.0),
                     e.getDouble("cost-step", 0.0001),
-                    e.getDouble("cost-power", 2.0)));
+                    e.getDouble("cost-power", 2.0),
+                    // Drawn on the rack and in the tree, and refused
+                    // everywhere it would cost anybody a Coin. Better than
+                    // deleting one: the rack keeps its shape and a player
+                    // can see what is coming.
+                    e.getBoolean("coming-soon", false)));
         }
         plugin.getLogger().info("Loaded " + enchants.size() + " hoe enchants.");
     }
@@ -247,6 +252,7 @@ public class HoeEnchantManager {
         Enchant enchant = get(enchantId);
         if (enchant == null || !isUnlocked(data, enchantId)) return false;
 
+        if (enchant.comingSoon()) return false;
         int level = levelOf(data, enchantId);
         if (level >= maxLevelFor(data, enchant)) return false;
         if (!data.spendTokens(costFor(enchant, level))) return false;
@@ -258,7 +264,7 @@ public class HoeEnchantManager {
     /** The enchant's total effect at the player's level - 0 if not unlocked. */
     public double powerOf(PlayerData data, String enchantId) {
         Enchant enchant = get(enchantId);
-        if (enchant == null) return 0.0;
+        if (enchant == null || enchant.comingSoon()) return 0.0;
         // Proc Chance lifts every enchant at once, so it multiplies the
         // total rather than adding levels - a flat level bonus would be
         // worth wildly different amounts to a 0.02/level enchant and a

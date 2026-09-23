@@ -147,6 +147,12 @@ final class SkillTreeClicks {
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
 
         com.spacerng.solrng.player.SkillNode node = plugin.getSkillTreeManager().get(nodeId);
+        // An enchant that is not finished cannot be bought into.
+        if (com.spacerng.solrng.gui.SkillTreeGui.comingSoon(plugin, node)) {
+            player.sendMessage(ChatColor.GRAY + node.getDisplay() + " is not finished yet.");
+            player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.5f, 0.8f);
+            return;
+        }
         // An enchant already unlocked opens its level screen (V161), the
         // same one the hoe menu opens, so either place can level it.
         if (node != null && node.getEffect() == com.spacerng.solrng.player.SkillNode.Effect.UNLOCK_ENCHANT

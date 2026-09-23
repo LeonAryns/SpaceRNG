@@ -405,4 +405,25 @@ public final class Lore {
         if (formatted.endsWith(".")) formatted = formatted.substring(0, formatted.length() - 1);
         return formatted;
     }
+
+    /**
+     * Sets an item's lore from legacy lines, drawing any {@link Icons}
+     * markers in them as real game sprites (V190).
+     *
+     * Yes, icons work in a description, and this is the only way to get
+     * one there: a sprite is a text OBJECT, so the line has to be a
+     * component, and setLore takes strings. Italic is turned off on every
+     * line by hand, because component lore renders italic by default and
+     * legacy lore does not, so a straight swap would tilt the whole
+     * tooltip.
+     */
+    public static void lore(com.spacerng.solrng.SolRNGPlugin plugin,
+                            org.bukkit.inventory.meta.ItemMeta meta, java.util.List<String> lines) {
+        java.util.List<net.kyori.adventure.text.Component> out = new java.util.ArrayList<>();
+        for (String line : lines) {
+            out.add(Icons.render(plugin, line)
+                    .decoration(net.kyori.adventure.text.format.TextDecoration.ITALIC, false));
+        }
+        meta.lore(out);
+    }
 }
