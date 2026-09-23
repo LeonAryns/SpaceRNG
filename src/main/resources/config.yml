@@ -8,7 +8,7 @@
 # their fresh defaults in on top of whatever is on disk, so a server
 # owner never has to delete the whole file to pick up a structural
 # change. Item table, prices and cosmetic tweaks are untouched.
-config-version: 21
+config-version: 22
 
 # One-off value changes the plugin has already made to this file, so none
 # is ever made twice. Managed by the plugin; leave it alone.
@@ -1924,7 +1924,7 @@ skilltree:
       page: 1
       slot: "5,6"
       icon: CLOCK
-      cost-money: 1000
+      cost-money: 400
       requires: ""
       effect: AUTO_ROLL
       value: 0
@@ -1949,25 +1949,21 @@ skilltree:
       icon: RABBIT_FOOT
       cost-money: 28700
       cost-growth: 1.24
-      requires: "curator_1"
+      requires: "index_luck"
       effect: LUCK
       value: 0.08
       max-level: 10
 
     # Index Luck I turns on the base Luck per discovered drop
     # (index.luck-per-discovery), and each level adds its value on top.
-    # V186 put it behind Tag Luck rather than in front of it: a new player
-    # wants a tag on their head before they want Luck per entry, and Leon
-    # asked for them in that order. The two swapped prices with their
-    # slots, so the spine still climbs.
     curator_1:
       display: "Index Luck I"
       page: 1
-      slot: "5,3"
+      slot: "5,4"
       icon: BOOKSHELF
-      cost-money: 28700
+      cost-money: 10000
       cost-growth: 1.3
-      requires: "index_luck"
+      requires: "luck_skill"
       effect: LUCK_PER_DISCOVERY
       value: 0.001
       max-level: 10
@@ -2109,7 +2105,7 @@ skilltree:
       page: 1
       slot: "7,5"
       icon: IRON_CHESTPLATE
-      cost-money: 10000
+      cost-money: 2140
       requires: "coins_1"
       effect: UNLOCK_ARMOR
       value: 0
@@ -2153,7 +2149,7 @@ skilltree:
       page: 1
       slot: "8,5"
       icon: WHEAT
-      cost-money: 10000
+      cost-money: 3750
       requires: "armor_unlock"
       effect: UNLOCK_FARMING
       value: 0
@@ -2174,7 +2170,7 @@ skilltree:
       page: 1
       slot: "3,4"
       icon: HOPPER
-      cost-money: 10000
+      cost-money: 2140
       requires: "convert_unlock"
       effect: UNLOCK_AUTO_CONVERT
       value: 0
@@ -2182,10 +2178,10 @@ skilltree:
     index_luck:
       display: "Tag Luck"
       page: 1
-      slot: "5,4"
+      slot: "5,3"
       icon: KNOWLEDGE_BOOK
-      cost-money: 10000
-      requires: "luck_skill"
+      cost-money: 28700
+      requires: "curator_1"
       effect: UNLOCK_INDEX_LUCK
       value: 0
 
@@ -2194,7 +2190,7 @@ skilltree:
       page: 1
       slot: "6,2"
       icon: AMETHYST_SHARD
-      cost-money: 100000
+      cost-money: 6560
       requires: "luck_2"
       effect: UNLOCK_SHINY
       value: 0
@@ -3407,7 +3403,7 @@ guide:
       amount: 1
     - id: index_luck
       display: "Unlock Tag Luck"
-      hint: "In /skilltree, right above Luck I. It's what lets you equip a tag."
+      hint: "In /skilltree, right after Index Luck I. It's what lets you equip a tag."
       goal: HAS_NODE
       target: index_luck
       amount: 1
@@ -5756,12 +5752,6 @@ perks:
         MONEY_PERCENT: [0.30, 1.50]
     nova:
       display: "Nova Perk"
-      # The two lines of pitch under the name in /ranks. Two at most: a
-      # third pushes the price off the bottom of the tooltip on a small
-      # screen, and Minecraft cuts a tooltip off rather than fitting it.
-      blurb:
-        - "Fly over your farm, wear whatever name you"
-        - "like, and roll with a quarter more of everything."
       rarity: MYTHICAL
       icon: HEART_OF_THE_SEA
       chance: 0.012
@@ -5801,6 +5791,9 @@ ranks:
   tiers:
     linked:
       display: "Linked"
+      # The two lines of pitch under the name in /ranks. Two at most: a
+      # third pushes the price off the bottom of the tooltip on a small
+      # screen, and Minecraft cuts a tooltip off rather than fitting it.
       blurb:
         - "Link your Discord and the server knows you."
         - "It is also what switches your aura on."
@@ -5810,6 +5803,10 @@ ranks:
       # linked player's name out halfway across.
       colors: ["#5865F2", "#7289DA"]
       tag: "✔"
+      # The badge in front of a name, in tab and in chat: [C] for Comet.
+      # Leave it out and a rank wears the first letter of its own name, so
+      # a new rank added here needs nothing extra to look right.
+      letter: "L"
       icon: NAME_TAG
       price-credits: 0
       multiplier: 1.0
@@ -5827,6 +5824,7 @@ ranks:
         - "for itself while you are away from the keyboard."
       colors: ["#81D4FA", "#0288D1"]
       tag: "★"
+      letter: "C"
       icon: FIREWORK_ROCKET
       price-credits: 1200
       multiplier: 1.1
@@ -5839,8 +5837,12 @@ ranks:
       rgb-name: false
     nova:
       display: "Nova"
+      blurb:
+        - "Fly over your farm, wear whatever name you"
+        - "like, and roll with a quarter more of everything."
       colors: ["#FFE082", "#FF8F00"]
       tag: "✦"
+      letter: "N"
       icon: BLAZE_POWDER
       price-credits: 3200
       multiplier: 1.25
@@ -5858,6 +5860,7 @@ ranks:
         - "on the server, and a name that drifts to match."
       colors: ["#E1BEE7", "#7C4DFF", "#40C4FF"]
       tag: "⚡"
+      letter: "S"
       icon: NETHER_STAR
       price-credits: 7000
       multiplier: 1.5

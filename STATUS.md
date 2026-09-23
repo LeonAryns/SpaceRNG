@@ -5,7 +5,7 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V186**, 23 September 2026.
+Last updated at **V187**, 23 September 2026.
 
 ## The agreed way of working
 
@@ -121,6 +121,41 @@ voor v186 alles".**
 - **The tab list** has a header and a footer at last, in `tab:` in
   config, with per player tokens. Switch `tab.enabled` off if the TAB
   plugin is ever installed, because it owns the same two blocks.
+
+**V187 undid two things V186 should never have done.**
+
+- **The whole `skilltree` section is back to exactly what it was.** Leon
+  asked for five prices and for Tag Luck to move, then looked at the
+  result and said the tree should stay as it was: some nodes to level 10,
+  some a plain unlock. Every price, every slot and the requires chain are
+  byte for byte the V185 file again. The five prices he originally asked
+  for went back with them, so if he wants those they go in on their own.
+- **`farming.enchants` is not a structural section and must not become
+  one.** V186 put it there to carry the 10,000 level ceiling across, but
+  `ENCHANT_PATCHES` has carried that one `max-level` at a time since
+  V159, and a structural rewrite takes `base-cost`, `cost-linear`,
+  `cost-step` and `base-cap` with it. Those are Leon's numbers. The
+  ceiling works out to exactly 10,000: `base-cap` 100 plus two Enchant
+  Mastery nodes worth 990 x 5 each, and `farmtree` is structural so those
+  arrive on their own.
+
+**V187 also added the rank badge.** One letter in brackets in front of a
+name in tab and in chat, the letter in the rank's own colours: `[L]`,
+`[C]`, `[N]`, `[S]`. It is `ranks.tiers.<id>.letter` in config, and a
+rank with nothing set wears the first letter of its own name, so a staff
+rank added later needs no extra key. It replaced the symbol tab used to
+carry, because a symbol says somebody has a rank and a letter says which.
+
+Handing ranks out, which was the other question:
+
+```
+/rngadmin rank set <linked|comet|nova|supernova> [player]
+/rngadmin rank clear [player]
+```
+
+**And a V185 mistake found on the way:** the Nova rank's blurb was
+written into `perks.types.nova` instead, because the perks section has a
+`nova:` of its own and it comes first in the file. Both are correct now.
 
 **Deliberately not done in V186, and why:** the +10% Coins and Gems per
 crop. Those are the `CROP_YIELD` nodes, and they are the spine of the

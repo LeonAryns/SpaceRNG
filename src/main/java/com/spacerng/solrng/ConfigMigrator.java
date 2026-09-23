@@ -42,11 +42,11 @@ public final class ConfigMigrator {
      */
     private static final List<String> STRUCTURAL = List.of(
             "skilltree", "farmtree", "shiny", "perks", "linked-account",
-            // V186: the enchant definitions, so the 10,000 level ceiling
-            // from V159 finally reaches a server whose file predates it.
-            // Only the enchants: the crops, the procs and the regrow
-            // timings beside them are Leon's to tune.
-            "farming.enchants",
+            // NOT farming.enchants. V186 put it here to carry the 10,000
+            // level ceiling across and that was wrong twice over: the
+            // ENCHANT_PATCHES below already carry it one max-level at a
+            // time, and a structural rewrite takes the base-cost and the
+            // cost curve with it, which are Leon's numbers.
             // V186: the milestone ladders. Leon asks for these to be
             // changed rather than editing them on the server, and a whole
             // rewritten tier list cannot be delivered one Patch at a time.
@@ -74,6 +74,9 @@ public final class ConfigMigrator {
             "scoreboard.icons", "world-time",
             // V184: how far each rank grows the aura it wears.
             "auras.rank-scale",
+            // V187: the one letter rank badge in tab and chat.
+            "ranks.tiers.linked.letter", "ranks.tiers.comet.letter",
+            "ranks.tiers.nova.letter", "ranks.tiers.supernova.letter",
             // V186: the tab list header and footer.
             "tab",
             // V186: a 100x roll, for the milestones that pay one.
@@ -296,12 +299,7 @@ public final class ConfigMigrator {
             // V126: Index Luck I moved in front of Tag Luck.
             new EntryPatch("guide-hint-tag-luck-after-index", "guide.quests", "index_luck", "hint",
                     "In /skilltree, right above Luck I. It's what lets you equip a tag.",
-                    "In /skilltree, right after Index Luck I. It's what lets you equip a tag."),
-            // V186: Leon put Tag Luck back in front of Index Luck I, so the
-            // hint points at Luck I again. Runs after the V126 patch above.
-            new EntryPatch("guide-hint-tag-luck-before-index", "guide.quests", "index_luck", "hint",
-                    "In /skilltree, right after Index Luck I. It's what lets you equip a tag.",
-                    "In /skilltree, right above Luck I. It's what lets you equip a tag."));
+                    "In /skilltree, right after Index Luck I. It's what lets you equip a tag."));
 
     /**
      * Replaces one exact line anywhere inside a (nested) list, like a

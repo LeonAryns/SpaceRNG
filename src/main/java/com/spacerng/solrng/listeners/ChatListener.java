@@ -77,6 +77,9 @@ public class ChatListener implements Listener {
             line.append(ChatColor.DARK_GRAY).append("[").append(tag)
                     .append(ChatColor.RESET).append(ChatColor.DARK_GRAY).append("] ");
         }
+        // The rank badge, [C] for Comet and so on, in front of the name
+        // exactly as it reads in tab.
+        line.append(plugin.getRankManager().badgeOf(plugin.getRankManager().rankOf(player)));
         line.append(plugin.getRankManager().coloredName(player));
         line.append(ChatColor.DARK_GRAY).append(" \u2192 ").append(ChatColor.WHITE);
         return line.toString();

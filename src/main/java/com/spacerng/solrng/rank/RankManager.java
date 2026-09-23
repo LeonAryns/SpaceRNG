@@ -61,8 +61,14 @@ public class RankManager {
                 if (t == null) continue;
                 List<String> colors = t.getStringList("colors");
                 if (colors.isEmpty()) colors = List.of("#FFFFFF");
+                // The badge letter. A rank with nothing set wears the first
+                // letter of its own name, which is what Leon asked for and
+                // means a rank added later needs no extra key to look right.
+                String display = t.getString("display", id);
+                String letter = t.getString("letter", display.isEmpty()
+                        ? "?" : display.substring(0, 1).toUpperCase(Locale.ROOT));
                 tiers.put(id.toLowerCase(Locale.ROOT), new RankTier(id.toLowerCase(Locale.ROOT),
-                        t.getString("display", id), colors, t.getString("tag", ""),
+                        display, colors, t.getString("tag", ""), letter,
                         t.getString("icon", "NETHER_STAR"),
                         Math.max(0L, t.getLong("price-credits", 0L)),
                         Math.max(1.0, t.getDouble("multiplier", 1.0)),
@@ -181,7 +187,24 @@ public class RankManager {
                 : ChatColor.WHITE + name;
     }
 
-    /** The tag alone, in the rank colours, for a name in tab. */
+    /**
+     * The rank badge that goes in front of a name in tab and in chat:
+     * one letter in brackets, the letter in the rank's own colours and
+     * the brackets left dark so the letter is what the eye lands on.
+     *
+     * A letter rather than the symbol tab used to carry (V187). A symbol
+     * says "this player has something"; a letter says which, which is the
+     * whole point of selling four of them.
+     */
+    public String badgeOf(RankTier tier) {
+        if (tier == null || tier.letter().isEmpty()) return "";
+        String letter = tier.colors().size() > 1
+                ? Lore.gradient(tier.letter(), true, tier.colors().toArray(new String[0]))
+                : ChatColor.WHITE + ChatColor.BOLD.toString() + tier.letter();
+        return ChatColor.DARK_GRAY + "[" + letter + ChatColor.DARK_GRAY + "] ";
+    }
+
+    /** The tag alone, in the rank colours. Kept for anywhere the symbol still reads better. */
     public String tagOf(RankTier tier) {
         if (tier == null || tier.tag().isEmpty()) return "";
         return (tier.colors().size() > 1
@@ -252,7 +275,7 @@ public class RankManager {
     public void refreshName(Player player) {
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         RankTier tier = rankOf(data);
-        Component component = LegacyComponentSerializer.legacySection().deserialize(tagOf(tier) + coloredName(player));
+        Component component = LegacyComponentSerializer.legacySection().deserialize(badgeOf(tier) + coloredName(player));
         player.playerListName(component);
         player.displayName(component);
     }
