@@ -142,6 +142,9 @@ public final class ConfigMigrator {
             // V148: Leon wants the farming podium read from across the spawn.
             new Patch("podium-heads-bigger", "holograms.podium-head-scale", 1.8, 3.2),
             new Patch("podium-spacing-wider", "holograms.podium-spacing", 2.5, 4.5),
+            // V189: Leon wanted the Beta title in hacker green.
+            new Patch("beta-title-terminal-green", "cosmetics.titles.beta.colors",
+                    List.of("#A5F3FC", "#22D3EE"), List.of("#008F11", "#00FF41", "#39FF14")),
             // V186: Leon wanted the hoe's enchant proc worth more.
             new Patch("hoe-proc-share-higher", "farming.hoe-ladder.proc-share", 0.07, 0.18),
             // V186: the gold nugget sprite is tiny next to the others.

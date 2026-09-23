@@ -5921,7 +5921,10 @@ cosmetics:
   titles:
     beta:
       display: "Beta"
-      colors: ["#A5F3FC", "#22D3EE"]
+      # Terminal green: dark phosphor into matrix green into neon. Four
+      # letters over three stops, so it reads as a glow running left to
+      # right rather than as one flat colour.
+      colors: ["#008F11", "#00FF41", "#39FF14"]
       description: "Here before the doors opened."
       auto-grant: true
   name-colours:
