@@ -5727,6 +5727,12 @@ perks:
         MONEY_PERCENT: [0.30, 1.50]
     nova:
       display: "Nova Perk"
+      # The two lines of pitch under the name in /ranks. Two at most: a
+      # third pushes the price off the bottom of the tooltip on a small
+      # screen, and Minecraft cuts a tooltip off rather than fitting it.
+      blurb:
+        - "Fly over your farm, wear whatever name you"
+        - "like, and roll with a quarter more of everything."
       rarity: MYTHICAL
       icon: HEART_OF_THE_SEA
       chance: 0.012
@@ -5766,6 +5772,9 @@ ranks:
   tiers:
     linked:
       display: "Linked"
+      blurb:
+        - "Link your Discord and the server knows you."
+        - "It is also what switches your aura on."
       # Discord's current blurple into the older one. The tag is a single
       # character, so it takes the first stop; the second only shapes the
       # name behind it. The old second colour was grey, which washed a
@@ -5784,6 +5793,9 @@ ranks:
       rgb-name: false
     comet:
       display: "Comet"
+      blurb:
+        - "The first step up, and the one that pays"
+        - "for itself while you are away from the keyboard."
       colors: ["#81D4FA", "#0288D1"]
       tag: "★"
       icon: FIREWORK_ROCKET
@@ -5812,6 +5824,9 @@ ranks:
       rgb-name: false
     supernova:
       display: "Supernova"
+      blurb:
+        - "The top of the ladder. The biggest aura"
+        - "on the server, and a name that drifts to match."
       colors: ["#E1BEE7", "#7C4DFF", "#40C4FF"]
       tag: "⚡"
       icon: NETHER_STAR

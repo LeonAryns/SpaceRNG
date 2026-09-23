@@ -117,12 +117,20 @@ public final class AuraManager {
      * is not true of selling Luck.
      */
     private double rankScaleOf(Player player) {
-        double fallback = plugin.getConfig().getDouble("auras.rank-scale.default", 0.70);
         var ranks = plugin.getRankManager();
         var tier = ranks == null ? null : ranks.rankOf(player);
-        if (tier == null) return fallback;
-        return plugin.getConfig().getDouble("auras.rank-scale." + tier.id(),
-                DEFAULT_RANK_SCALE.getOrDefault(tier.id(), fallback));
+        return rankScale(tier == null ? null : tier.id());
+    }
+
+    /**
+     * How far one rank grows the aura it wears, by rank id, so /ranks can
+     * print the same number this draws with. Null is no rank at all.
+     */
+    public double rankScale(String tierId) {
+        double fallback = plugin.getConfig().getDouble("auras.rank-scale.default", 0.70);
+        if (tierId == null) return fallback;
+        return plugin.getConfig().getDouble("auras.rank-scale." + tierId,
+                DEFAULT_RANK_SCALE.getOrDefault(tierId, fallback));
     }
 
     /**

@@ -5,7 +5,7 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V184**, 23 September 2026.
+Last updated at **V185**, 23 September 2026.
 
 ## The agreed way of working
 
@@ -53,6 +53,26 @@ front of it comes back confirmed.
 **Done in V184: the auras.** The five aura points and the new `orrery`
 look. See the aura section below.
 
+**Done in V185: how a thing being sold is described.** Leon brought two
+screenshots of another server's rank menu and asked for its description
+next to our title. The shape is now written down in
+`.claude/skills/menu-design` as the description block: name, a subtitle
+that says what kind of thing it is, two lines of pitch, the perks one
+per line, commands on a single line under their own header, the price as
+a stat line, and the action footer. `/ranks` is built that way, and it
+is the pattern the Nova Core menu should follow when his screenshots
+arrive.
+
+The skill also carries a length limit now, which the reference
+screenshot is the argument for. Minecraft draws a tooltip at the cursor
+and cuts off whatever does not fit rather than fitting it to the screen,
+and where that happens depends on the player's resolution and GUI scale
+(MC-26757, MC-161929, MC-253053, all open). That screenshot runs about
+28 lines and is clipped at both ends, so the name and the price are the
+two lines a player cannot read. Ours is 19 at the top rank and 14 at the
+bottom. Each rank's pitch is `ranks.tiers.<id>.blurb` in config, two
+lines, so Leon can word them himself.
+
 **Next up, in this order unless Leon says otherwise:**
 
 1. **The Server First show.** The star and the beam are good. He wants
@@ -79,8 +99,8 @@ look. See the aura section below.
    with no arguments opens the index.
 6. **Nova Core.** Tier 1 always succeeds. A chat line when the tier goes
    up ("Nova Core is now Tier 1"). The menu rebuilt properly: gradients,
-   better descriptions. He is sending screenshots of the layout he wants,
-   so the layout waits for those.
+   better descriptions, in the V185 description block. He is sending
+   screenshots of the layout he wants, so the layout waits for those.
 7. **The TAB list.** He asked for this a while back and believes it was
    never done. Check what is there before rebuilding it.
 

@@ -80,11 +80,24 @@ public class RanksGui {
         return item;
     }
 
+    /**
+     * One rank, written as the description block in the menu-design skill:
+     * the gradient name, a subtitle that says what kind of thing it is, two
+     * lines of pitch, the perks one per line, the commands on a single line
+     * under their own header, the price, and what a click does.
+     *
+     * Length is the constraint, not the wording. Minecraft draws a tooltip
+     * at the cursor and cuts off whatever does not fit, top and bottom, and
+     * the player's GUI scale decides where that happens. The top rank is
+     * the longest at nineteen lines, which is why the commands share a row
+     * instead of taking one each.
+     */
     private static ItemStack tierIcon(SolRNGPlugin plugin, PlayerData data, RankTier tier) {
         RankManager ranks = plugin.getRankManager();
         RankTier current = ranks.rankOf(data);
         boolean owned = current != null && ranks.indexOf(current) >= ranks.indexOf(tier);
         boolean affordable = data.getPoints() >= tier.price();
+        boolean free = tier.price() <= 0;
 
         Material material = Material.matchMaterial(tier.icon());
         ItemStack item = new ItemStack(material == null ? Material.NETHER_STAR : material);
@@ -92,11 +105,27 @@ public class RanksGui {
         meta.setDisplayName(ranks.styled(tier));
 
         List<String> lore = new ArrayList<>();
-        lore.add(Lore.section(ChatColor.AQUA, "What you get"));
-        lore.add(Lore.stat(ChatColor.GREEN, "Money, Luck and Speed",
-                String.format("%.2f", tier.multiplier()) + "x"));
+        lore.add(ChatColor.DARK_GRAY + (free ? "Free while your Discord is linked" : "Permanent rank"));
+        lore.add("");
+        for (String pitch : ranks.blurbOf(tier)) {
+            lore.add(ChatColor.GRAY + pitch);
+        }
+        lore.add("");
+
+        lore.add(Lore.section(ChatColor.AQUA, "Perks"));
+        if (tier.multiplier() > 1.0) {
+            lore.add(Lore.stat(ChatColor.GREEN, "Money, Luck and Speed",
+                    String.format("%.2f", tier.multiplier()) + "x"));
+        }
+        // V184: the size of the aura is the cosmetic a rank actually buys,
+        // so it belongs on the list rather than only in the aura config.
+        if (plugin.getConfig().getBoolean("auras.enabled", true)) {
+            lore.add(Lore.stat(ChatColor.LIGHT_PURPLE, "Aura",
+                    String.format("%.2f", plugin.getAuraManager().rankScale(tier.id())) + "x size"));
+        }
         if (tier.vaultPages() > 0) {
-            lore.add(Lore.stat(ChatColor.AQUA, "Private vaults", tier.vaultPages() + " pages"));
+            lore.add(Lore.stat(ChatColor.AQUA, "Private vaults",
+                    tier.vaultPages() + (tier.vaultPages() == 1 ? " page" : " pages")));
         }
         if (tier.hasKeyall()) {
             var crate = plugin.getCrateManager().get(tier.keyallCrate());
@@ -104,27 +133,31 @@ public class RanksGui {
             lore.add(Lore.stat(ChatColor.GOLD, "Key all", tier.keyallAmount() + "x " + name
                     + ChatColor.DARK_GRAY + " every " + (ranks.keyallCooldownMillis() / 3600_000L) + "h"));
         }
+        if (tier.rgbName()) {
+            lore.add(Lore.stat(ChatColor.LIGHT_PURPLE, "Name", "a drifting rainbow"));
+        }
+
         List<String> commands = new ArrayList<>();
         if (tier.fly()) commands.add("/fly");
         if (tier.nick()) commands.add("/nick");
         if (tier.size()) commands.add("/size");
-        if (!commands.isEmpty()) {
-            lore.add(Lore.stat(ChatColor.AQUA, "Commands", String.join(", ", commands)));
+        if (commands.size() >= 3) {
+            lore.add("");
+            lore.add(Lore.section(ChatColor.AQUA, "Commands"));
+            lore.add(Lore.line(ChatColor.AQUA, String.join("  ", commands)));
+        } else if (!commands.isEmpty()) {
+            lore.add(Lore.stat(ChatColor.AQUA, "Commands", String.join("  ", commands)));
         }
-        if (tier.rgbName()) {
-            lore.add(Lore.stat(ChatColor.LIGHT_PURPLE, "Name", "a drifting rainbow in tab and chat"));
-        }
+
         lore.add("");
-        lore.add(Lore.section(ChatColor.LIGHT_PURPLE, "Price"));
-        if (tier.price() <= 0) {
-            lore.add(Lore.line(ChatColor.LIGHT_PURPLE, "Free with /discord link."));
-        } else {
-            lore.add(Lore.line(ChatColor.LIGHT_PURPLE, Currency.CREDITS.price(tier.price(), affordable)));
-        }
+        lore.add(free
+                ? Lore.stat(ChatColor.LIGHT_PURPLE, "Price", "free")
+                : Lore.stat(ChatColor.LIGHT_PURPLE, "Price",
+                        Currency.CREDITS.price(tier.price(), affordable)));
         lore.add("");
         if (owned) {
             lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "Yours");
-        } else if (tier.price() <= 0) {
+        } else if (free) {
             lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Link your Discord");
             lore.add(Lore.line(ChatColor.GRAY, "Use /discord link in game."));
         } else if (affordable) {

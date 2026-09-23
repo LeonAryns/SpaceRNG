@@ -110,6 +110,32 @@ public class RankManager {
         return null;
     }
 
+    /**
+     * What each rank says for itself in /ranks when config gives it no
+     * blurb. Two lines at most: the pitch is the one line of voice a rank
+     * gets, and a third pushes the price off the bottom of the tooltip.
+     */
+    private static final Map<String, List<String>> DEFAULT_BLURBS = Map.of(
+            "linked", List.of("Link your Discord and the server knows you.",
+                    "It is also what switches your aura on."),
+            "comet", List.of("The first step up, and the one that pays",
+                    "for itself while you are away from the keyboard."),
+            "nova", List.of("Fly over your farm, wear whatever name you",
+                    "like, and roll with a quarter more of everything."),
+            "supernova", List.of("The top of the ladder. The biggest aura",
+                    "on the server, and a name that drifts to match."));
+
+    /** The two line pitch under a rank's name in /ranks, from config or the default above. */
+    public List<String> blurbOf(RankTier tier) {
+        if (tier == null) return List.of();
+        List<String> lines = plugin.getConfig().getStringList("ranks.tiers." + tier.id() + ".blurb");
+        if (lines.isEmpty()) {
+            lines = DEFAULT_BLURBS.getOrDefault(tier.id(),
+                    List.of("Unlocks everything below it, and keeps it."));
+        }
+        return lines.size() > 2 ? lines.subList(0, 2) : lines;
+    }
+
     /** The rank a player counts as: bought, or Linked while their Discord is linked. */
     public RankTier rankOf(PlayerData data) {
         if (!enabled) return null;

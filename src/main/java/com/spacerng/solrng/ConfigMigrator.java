@@ -64,6 +64,9 @@ public final class ConfigMigrator {
             "scoreboard.icons", "world-time",
             // V184: how far each rank grows the aura it wears.
             "auras.rank-scale",
+            // V185: the two line pitch under each rank's name in /ranks.
+            "ranks.tiers.linked.blurb", "ranks.tiers.comet.blurb",
+            "ranks.tiers.nova.blurb", "ranks.tiers.supernova.blurb",
             // V137: ranks.
             "ranks",
             // V138: what one Credit Finder proc pays.

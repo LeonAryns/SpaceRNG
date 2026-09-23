@@ -42,8 +42,8 @@ drifts back into a dozen private styles.
 
 ## Item layout
 
-Every clickable item follows the same six-part shape. Omit a part when it
-has nothing to say; never reorder them.
+Every clickable item follows the same shape. Omit a part when it has
+nothing to say; never reorder them.
 
 ```
 1  DISPLAY NAME   Lore.title(...) or a HoeGui-style [3★] badge + name
@@ -55,7 +55,65 @@ has nothing to say; never reorder them.
 The blank lines are load-bearing. A tooltip with no breathing room reads
 as a wall and people stop reading it.
 
-**No category tag under the name.** `Lore.state("upgrade")` under an item
+### The description block, for anything somebody buys
+
+A price tag is not a description. Anything a player spends Credits,
+Gems or real progress on gets the longer block below, which is the shape
+every well run store menu converges on, with our own title on top of it:
+
+```
+1   NAME          the gradient name, bold, and nothing else on the line
+2   SUBTITLE      dark grey, and only when it says something the name
+                  does not: "Permanent rank", "Free while linked"
+3   (blank)
+4   PITCH         one or two lines, second person, naming the thing
+5
+6   (blank)
+7   SECTION       "Perks", "Commands", "What it changes"
+8   ▎ one per line, the shortest noun phrase that is still true
+...
+12  (blank)
+13  ▎ Price  7,000 Credits ✪
+14  (blank)
+15  ACTION FOOTER
+```
+
+- **One perk per line, and no sentences.** "Private vaults  7 pages",
+  never "This rank gives you seven pages of private vault space." A
+  reader scans the marks down the left edge and stops at the one they
+  came for.
+- **The pitch says why, the perks say what.** If the pitch repeats a
+  perk it is a wasted line, and it is the one place a thing being sold
+  is allowed a voice of its own.
+- **The price is a stat line, not its own section.** A "Price" header
+  over a single line costs two rows and says nothing the ✪ does not.
+- **Commands get their own section** only when there are three or more,
+  and even then they sit on one line under it. The screenshot spends
+  nine rows on nine slash commands, which is nine rows saying one thing,
+  and it is most of why that tooltip does not fit on the screen.
+
+### Length is a hard limit, not a preference
+
+**Keep a tooltip to about 16 lines, and never past 20.**
+
+Minecraft draws a tooltip at the cursor and does not fit it to the
+screen. Past a certain height it is simply cut off at the top and the
+bottom, and where that starts depends on the player's resolution and GUI
+scale, which the server cannot see. It is an open vanilla bug rather
+than something a plugin can work around: MC-26757, MC-161929 and
+MC-253053 are all the same report, still unfixed.
+
+The reference screenshot Leon brought for this proves it. That rank
+tooltip runs about 28 lines, and in the screenshot it is clipped at both
+ends, so the name at the top and the price at the bottom, the two lines
+that actually sell the rank, are the two the player cannot read.
+
+When a block gets long, cut content rather than the spacing. The blank
+lines are what make it readable. The ninth perk is not.
+
+**No empty category tag under the name.** The subtitle in the
+description block above is the exception that proves this rule: it earns
+its row by saying something the name cannot. `Lore.state("upgrade")` under an item
 called "Luck I", or `[FREE TRACK]` under one called "Free 12", is a line
 that costs a row and says nothing. Use `Lore.state` only when it carries
 something the title genuinely doesn't - a season name, a mode. The
@@ -169,7 +227,21 @@ column. Trailing it, a stacked list lines up.
 life: Skill Tree DARK_PURPLE, Farming DARK_GREEN, Index DARK_AQUA,
 Prestige DARK_PURPLE, Battle Pass GOLD, Nova Core LIGHT_PURPLE.
 
-Inventory titles can't take hex colours - legacy codes only.
+Inventory titles can't take hex colours - legacy codes only. Display
+names and lore lines can, which is where gradients belong.
+
+### Gradients
+
+`Lore.gradient(text, bold, stops...)` paints per character in hex, and
+`Lore.header`, `Lore.banner` and `Lore.rainbow` are the three the plugin
+already speaks in. Reach for one of those before inventing stops.
+
+A gradient is for a **name**: a display name, a rank, a sidebar header.
+Never a body line. Colour carries state everywhere else in this file,
+and a gradient says nothing about state while taking the colour away
+from the thing that did. A gradient across a whole paragraph is also
+unreadable at Minecraft's font size, and it costs six characters per
+character against the line length limit.
 
 ## Writing the words
 
