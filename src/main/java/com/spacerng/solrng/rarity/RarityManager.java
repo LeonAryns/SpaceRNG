@@ -67,7 +67,19 @@ public class RarityManager {
     // Rarities flagged with "symbol: true" wrap item names in an
     // obfuscated flair character on BOTH sides (Epic and up).
     private final Map<Rarity, Boolean> symbolFlair = new EnumMap<>(Rarity.class);
+    /**
+     * The mark a rarity wears on both sides of its name where an
+     * obfuscated one cannot go.
+     *
+     * The flair has always been an obfuscated '#', which flickers, and
+     * flickering text in a tab list is unreadable, so the plain path threw
+     * it away and the tab tag had no marks at all. A real glyph solves
+     * both: the nametag keeps its flicker, tab and chat get this.
+     */
+    private final Map<Rarity, String> symbolMark = new EnumMap<>(Rarity.class);
     private final Logger logger;
+    /** How long a drop's name may be where it shares a line, from tag.max-name-length. */
+    private int maxPlainName = 18;
 
     public RarityManager(Logger logger) {
         this.logger = logger;
@@ -80,6 +92,8 @@ public class RarityManager {
         shares.clear();
         styles.clear();
         symbolFlair.clear();
+        symbolMark.clear();
+        maxPlainName = config.getInt("tag.max-name-length", 18);
 
         exponentCurve = !"linear".equalsIgnoreCase(config.getString("luck-curve", "exponent"));
 
@@ -99,8 +113,10 @@ public class RarityManager {
                 styles.put(rarity, parseStyle(r.getStringList("colors"),
                         r.getBoolean("bold", false),
                         r.getBoolean("underline", false),
-                        r.getBoolean("strikethrough", false)));
+                        r.getBoolean("strikethrough", false),
+                        r.getBoolean("italic", false)));
                 symbolFlair.put(rarity, r.getBoolean("symbol", false));
+                symbolMark.put(rarity, r.getString("symbol-char", "✦"));
             }
         }
 
@@ -273,13 +289,28 @@ public class RarityManager {
     }
 
     private RarityStyle parseStyle(List<String> colors, boolean bold, boolean underline, boolean strikethrough) {
+        return parseStyle(colors, bold, underline, strikethrough, false);
+    }
+
+    private RarityStyle parseStyle(List<String> colors, boolean bold, boolean underline,
+                                   boolean strikethrough, boolean italic) {
         List<int[]> stops = new ArrayList<>();
         for (String colorStr : colors) {
             int[] rgb = parseColor(colorStr);
             if (rgb != null) stops.add(rgb);
         }
         if (stops.isEmpty()) stops.add(new int[]{255, 255, 255});
-        return new RarityStyle(stops, bold, underline, strikethrough);
+        return new RarityStyle(stops, bold, underline, strikethrough, italic);
+    }
+
+    /**
+     * The mark a rarity wears on either side of a drop's name, for tab and
+     * chat. Empty for a rarity that carries no symbol.
+     */
+    public String markFor(Rarity rarity) {
+        if (!Boolean.TRUE.equals(symbolFlair.get(rarity))) return "";
+        String mark = symbolMark.get(rarity);
+        return mark == null ? "" : mark;
     }
 
     /** Accepts "&6"-style legacy codes or "#RRGGBB" hex. Null if unparseable. */
@@ -343,10 +374,41 @@ public class RarityManager {
      * in a tab list - so %solrng_tag_plain% asks for it without.
      */
     public String styleItemName(RollableItem item, boolean withFlair) {
+        String name = shorten(item.getDisplayName(), withFlair);
         String colored = item.getStyle() != null
-                ? item.getStyle().apply(item.getDisplayName())
-                : RollFormat.naturalColor(item.getMaterial()) + item.getDisplayName();
-        return withFlair ? withFlair(item, colored) : colored;
+                ? item.getStyle().apply(name)
+                : RollFormat.naturalColor(item.getMaterial()) + name;
+        // With the flicker, or with a real glyph in its place. The plain
+        // path used to come back bare, which is why the tab tag had no
+        // marks on either side of the drop at all.
+        return withFlair ? withFlair(item, colored) : marked(item, colored);
+    }
+
+    /**
+     * A drop's name wrapped in its rarity's own glyph, for the places an
+     * obfuscated character cannot go.
+     */
+    private String marked(RollableItem item, String colored) {
+        String mark = markFor(item.getRarity());
+        if (mark.isEmpty()) return colored;
+        String left = leadingCodes(colored);
+        String right = lastColour(colored);
+        return left + mark + " " + colored + " " + right + mark;
+    }
+
+    /**
+     * Cuts a drop's name down for the places it has to share a line.
+     *
+     * A tab list entry is a name, a rank badge, a tag and the odds beside
+     * each other, and a long drop name pushes the rest off: "ook wil ik de
+     * namen niet te lang vanwege tab en chat dat het te druk wordt". Only
+     * the plain path is cut, so the drop itself, its tooltip and the
+     * nametag over somebody's head all keep the full name. 0 turns it off.
+     */
+    private String shorten(String name, boolean full) {
+        if (full) return name;
+        if (maxPlainName <= 0 || name.length() <= maxPlainName) return name;
+        return name.substring(0, Math.max(1, maxPlainName - 1)).trim() + "…";
     }
 
     private static final List<String> SHINY_COLORS = List.of("#3CE8FF", "#A6F7FF");

@@ -198,6 +198,8 @@ final class RollComet {
     private Color colour = Color.WHITE;
     private Particle.DustTransition tail;
     private Particle.DustOptions spark;
+    /** The head's own dust: the band's colour, as big as a dust particle goes. */
+    private Particle.DustOptions headDust;
     private Particle accent = Particle.END_ROD;
     private int trailPoints = 8;
     private double height;
@@ -313,6 +315,7 @@ final class RollComet {
 
         Location now = positionAt(progress);
         headPiece.teleport(now);
+        core(now);
         streak(last, now);
         last = now;
 
@@ -362,17 +365,17 @@ final class RollComet {
         Location eye = player.getEyeLocation();
         // FLASH takes a Colour since 1.21.11, which is the one particle in
         // the game that fills the screen in a colour we choose.
-        player.spawnParticle(Particle.FLASH, eye, 1, 0.0, 0.0, 0.0, 0.0, colour);
+        player.spawnParticle(Particle.FLASH, eye, 1, 0.0, 0.0, 0.0, 0.0, colour, true);
         int points = 28;
         for (int i = 0; i < points; i++) {
             double a = Math.PI * 2 / points * i;
             for (double r = CLEAR; r <= CLEAR + 1.6; r += 0.8) {
                 Location at = eye.clone().add(Math.cos(a) * r, -0.4, Math.sin(a) * r);
-                player.spawnParticle(Particle.DUST_COLOR_TRANSITION, at, 1, 0.1, 0.25, 0.1, 0.0, tail);
+                player.spawnParticle(Particle.DUST_COLOR_TRANSITION, at, 1, 0.1, 0.25, 0.1, 0.0, tail, true);
             }
             if (i % 3 == 0) {
                 Location at = eye.clone().add(Math.cos(a) * CLEAR, 0.1, Math.sin(a) * CLEAR);
-                player.spawnParticle(accent, at, 2, 0.1, 0.2, 0.1, 0.02);
+                player.spawnParticle(accent, at, 2, 0.1, 0.2, 0.1, 0.02, null, true);
             }
         }
     }
@@ -394,6 +397,7 @@ final class RollComet {
         Color pale = Color.fromRGB(255, 252, 224);
         this.tail = new Particle.DustTransition(colour, pale, 2.4f);
         this.spark = new Particle.DustOptions(pale, 1.1f);
+        this.headDust = new Particle.DustOptions(colour, 4.0f);
         this.accent = switch (rarity) {
             case MYTHICAL -> Particle.DRAGON_BREATH;
             case LEGENDARY -> Particle.FLAME;
@@ -438,6 +442,31 @@ final class RollComet {
         return AuraParts.box(0f, 0f, 0f, new Quaternionf(), size, size, size);
     }
 
+    /**
+     * The head, in particles as well as in a block.
+     *
+     * The block display was the whole head until V205, and it was never
+     * once seen. A server only sends an entity to a client inside its
+     * tracking range, which is 32 blocks for this kind by default, and the
+     * comet spends nearly all of its fall further away than that. The view
+     * range set on the display is a CLIENT side limit and cannot help with
+     * something the client was never told about.
+     *
+     * Particles have no such limit, as long as they are sent forced: the
+     * client draws an ordinary particle only within 32 blocks too, which
+     * is why every call in this class passes true at the end.
+     * {@code FirstTenBuildUp} learned the same thing and says so in its
+     * own comment, which is where this should have been read four jars
+     * ago.
+     *
+     * So the block is now the close-up look and this is the comet.
+     */
+    private void core(Location at) {
+        player.spawnParticle(Particle.DUST, at, 8, 0.35, 0.35, 0.35, 0.0, headDust, true);
+        player.spawnParticle(Particle.DUST, at, 4, 0.12, 0.12, 0.12, 0.0, spark, true);
+        player.spawnParticle(accent, at, 5, 0.3, 0.3, 0.3, 0.01, null, true);
+    }
+
     /** The trail, laid down along the ground it covered since the last step. */
     private void streak(Location from, Location to) {
         Vector step = to.toVector().subtract(from.toVector()).multiply(1.0 / trailPoints);
@@ -447,12 +476,12 @@ final class RollComet {
         for (int i = 0; i < trailPoints; i++) {
             cursor.add(step);
             if (cursor.distanceSquared(eye) < clearSq) continue;
-            player.spawnParticle(Particle.DUST_COLOR_TRANSITION, cursor, 1, 0.12, 0.12, 0.12, 0.0, tail);
+            player.spawnParticle(Particle.DUST_COLOR_TRANSITION, cursor, 1, 0.12, 0.12, 0.12, 0.0, tail, true);
         }
         if (to.distanceSquared(eye) < clearSq) return;
         // Embers shedding off the head, thrown backwards along the path.
-        player.spawnParticle(accent, to, 3, 0.25, 0.25, 0.25, 0.02);
-        player.spawnParticle(Particle.DUST, to, 2, 0.4, 0.4, 0.4, 0.0, spark);
+        player.spawnParticle(accent, to, 3, 0.25, 0.25, 0.25, 0.02, null, true);
+        player.spawnParticle(Particle.DUST, to, 2, 0.4, 0.4, 0.4, 0.0, spark, true);
     }
 
     /**

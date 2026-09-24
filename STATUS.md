@@ -5,7 +5,7 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V204**, 24 September 2026.
+Last updated at **V205**, 24 September 2026.
 
 ## The agreed way of working
 
@@ -788,6 +788,47 @@ symbols on either side of a drop inside the tab tag, and shorter names
 for tab and chat. That is the drop naming pipeline (`RollFormat`,
 `RarityStyle`, the tag) rather than the reveal, and mixing it into this
 one would have made both harder to judge.
+
+**V205: the comet was never once visible, and that explains most of it.**
+
+Leon, after five jars built around it: "wat bedoel je ook elke keer met
+comeet want die is er niet en de player kijkt ook niet naar een comeet".
+He saw it fail on the first jar, assumed the idea had been dropped, and
+never mentioned it again. Meanwhile every jar since was reasoning about a
+cutscene half of which had never rendered.
+
+**Two reasons at once, and both are ranges.**
+
+- **The head is a display entity**, and a server only sends an entity to
+  a client inside its tracking range, 32 blocks for this kind by default.
+  The comet spends nearly its whole fall further off. The view range set
+  on the display is a CLIENT side limit and cannot help with something
+  the client was never told about.
+- **The trail is particles, and they were not forced.** A client draws an
+  ordinary particle only within 32 blocks of itself. `FirstTenBuildUp`
+  learned this and says so in its own comment, which is where it should
+  have been read four jars ago.
+
+So the comet is drawn in particles now, forced, with the block kept as
+the close-up look. Every particle in `RollAura` is forced too: that
+effect reaches forty blocks up a Divine's pillar and twenty out through
+its shell, so the far half of every big reveal was being drawn for
+nobody.
+
+**And the drop names, asked for in the same breath:**
+
+- **Weight climbs with rarity.** `RarityStyle` never carried italic, so
+  the top tiers all read the same weight. Bold from Epic, italic from
+  Mythical, underline on the Divine alone. Strikethrough is supported and
+  left off, because a struck out name reads as cancelled.
+- **The marks reach tab and chat.** The flair has always been an
+  obfuscated character, which flickers, so the plain path threw it away
+  and the tab tag had no marks at all. Each rarity has a real glyph now
+  (`symbol-char`, Epic and Legendary a star, Mythical a hollow one,
+  Divine a filled one) used everywhere the flicker cannot go.
+- **`tag.max-name-length`, 18.** Only the shared-line copy is cut. The
+  drop, its tooltip and the nametag over somebody's head keep the full
+  name.
 
 **Deliberately not done in V186, and why:** the +10% Coins and Gems per
 crop. Those are the `CROP_YIELD` nodes, and they are the spine of the

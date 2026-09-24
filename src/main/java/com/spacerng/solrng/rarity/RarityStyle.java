@@ -21,12 +21,24 @@ public class RarityStyle {
     private final boolean bold;
     private final boolean underline;
     private final boolean strikethrough;
+    /**
+     * Italic, added in V205. It was the one of the four Minecraft offers
+     * that this class never carried, so a rarity could not lean on it and
+     * the higher tiers all looked the same weight as each other.
+     */
+    private final boolean italic;
 
     public RarityStyle(List<int[]> colorStopsRgb, boolean bold, boolean underline, boolean strikethrough) {
+        this(colorStopsRgb, bold, underline, strikethrough, false);
+    }
+
+    public RarityStyle(List<int[]> colorStopsRgb, boolean bold, boolean underline,
+                       boolean strikethrough, boolean italic) {
         this.colorStopsRgb = colorStopsRgb;
         this.bold = bold;
         this.underline = underline;
         this.strikethrough = strikethrough;
+        this.italic = italic;
     }
 
     /** Applies this style's color(s) and formatting to the given text. */
@@ -74,6 +86,7 @@ public class RarityStyle {
         if (bold || forceBold) flags.append(ChatColor.BOLD);
         if (underline) flags.append(ChatColor.UNDERLINE);
         if (strikethrough) flags.append(ChatColor.STRIKETHROUGH);
+        if (italic) flags.append(ChatColor.ITALIC);
         return flags.toString();
     }
 

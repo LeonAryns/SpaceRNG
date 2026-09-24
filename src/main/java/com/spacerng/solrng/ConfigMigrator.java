@@ -79,6 +79,13 @@ public final class ConfigMigrator {
             "crates.fastest-gap-ticks",
             // V203: how much room the reveal keeps clear of the eyes.
             "roll-item.comet.face-clear",
+            // V205: the drop name's length where it shares a line, and the
+            // weight and the mark each rarity wears on its name.
+            "tag.max-name-length",
+            "rarities.EPIC.symbol-char", "rarities.EPIC.bold",
+            "rarities.LEGENDARY.symbol-char", "rarities.LEGENDARY.bold",
+            "rarities.MYTHICAL.symbol-char", "rarities.MYTHICAL.bold", "rarities.MYTHICAL.italic",
+            "rarities.DIVINE.symbol-char", "rarities.DIVINE.italic", "rarities.DIVINE.underline",
             "discord", "holograms",
             "holograms.panels.armor", "holograms.panels.starforge", "holograms.panels.potion",
             "holograms.panels.convert", "holograms.panels.pass", "holograms.panels.store",

@@ -460,17 +460,21 @@ public final class RollAura {
      * had been fixed: "ztten nogsteeds vele particles voor het gezicht".
      * The finale was never the half he was in.
      */
+    // Forced, all of them. A client draws an ordinary particle only
+    // within 32 blocks of itself, and this effect reaches 40 blocks up a
+    // Divine's pillar and 20 out through its shell, so the far half of
+    // every big reveal was being drawn for nobody.
     private void dustAt(Location at, int count, double spread, Particle.DustOptions options) {
         for (int i = 0; i < audience.size(); i++) {
             if (tooClose(i, at)) continue;
-            audience.get(i).spawnParticle(Particle.DUST, at, count, spread, spread, spread, 0.0, options);
+            audience.get(i).spawnParticle(Particle.DUST, at, count, spread, spread, spread, 0.0, options, true);
         }
     }
 
     private void puff(Particle particle, Location at, int count, double sx, double sy, double sz, double extra) {
         for (int i = 0; i < audience.size(); i++) {
             if (tooClose(i, at)) continue;
-            audience.get(i).spawnParticle(particle, at, count, sx, sy, sz, extra);
+            audience.get(i).spawnParticle(particle, at, count, sx, sy, sz, extra, null, true);
         }
     }
 
@@ -499,7 +503,7 @@ public final class RollAura {
             Location at = onShell(centre);
             for (int i = 0; i < audience.size(); i++) {
                 if (tooClose(i, at)) continue;
-                audience.get(i).spawnParticle(Particle.DUST, at, 1, 0.0, 0.0, 0.0, 0.0, options);
+                audience.get(i).spawnParticle(Particle.DUST, at, 1, 0.0, 0.0, 0.0, 0.0, options, true);
             }
         }
     }
@@ -510,7 +514,7 @@ public final class RollAura {
             Location at = onShell(centre);
             for (int i = 0; i < audience.size(); i++) {
                 if (tooClose(i, at)) continue;
-                audience.get(i).spawnParticle(particle, at, 1, 0.0, 0.0, 0.0, extra);
+                audience.get(i).spawnParticle(particle, at, 1, 0.0, 0.0, 0.0, extra, null, true);
             }
         }
     }

@@ -330,6 +330,12 @@ starforge:
 #   %solrng_level_number%   raw level
 tag:
   manage-nametag: true
+  # The longest a drop's name may be where it has to share a line: the tab
+  # list and chat. A tab entry is a name, a rank badge, a tag and the odds
+  # side by side, and a long drop name pushes the rest off the row. Only
+  # that shortened copy is cut; the drop itself, its tooltip and the
+  # nametag over somebody's head keep the whole name. 0 switches it off.
+  max-name-length: 18
   # How the odds line under a tag looks: dots, squares, diamonds, compact
   # or split. /rngadmin tagstyles shows them side by side and switches live.
   odds-style: dots
@@ -1060,19 +1066,36 @@ rarities:
     colors: ["&9"]
     luck-factor: 0.35
     share: 0.003
+  #
+  # Epic and up also wear their name with weight on it, and more of it the
+  # higher the rarity goes: bold from Epic, italic from Mythical, and
+  # underline on the Divine alone. Strikethrough is supported and left
+  # off, because a struck out name reads as something that was cancelled.
+  #
+  # symbol-char is the mark on either side of the name in tab and in chat.
+  # The `symbol: true` flair is an obfuscated character, which flickers,
+  # and flickering text in a tab list is unreadable, so that one is only
+  # used on the floating nametag and this is used everywhere else.
   EPIC:
     colors: ["&5"]
     symbol: true
+    symbol-char: "✦"
+    bold: true
     luck-factor: 0.6
     true-odds: true
   LEGENDARY:
     colors: ["&6"]
     symbol: true
+    symbol-char: "✦"
+    bold: true
     luck-factor: 1.0
     true-odds: true
   MYTHICAL:
     colors: ["&c"]
     symbol: true
+    symbol-char: "✧"
+    bold: true
+    italic: true
     luck-factor: 1.6
     true-odds: true
   # Divine sits above everything. Its label is the palest thing in the
@@ -1081,7 +1104,10 @@ rarities:
   DIVINE:
     colors: ["#FFFDF7", "#FFF0B8", "#FFFFFA", "#DCEFFF", "#FFFDF7"]
     symbol: true
+    symbol-char: "★"
     bold: true
+    italic: true
+    underline: true
     luck-factor: 2.5
     true-odds: true
 
