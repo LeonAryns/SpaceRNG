@@ -363,7 +363,14 @@ public class RollListener implements Listener {
         // item and gave you a different one.
         // Lucky Streak: every so many rolls, this one can't land below its rarity.
         int floor = plugin.getSkillTreeManager().luckyStreakFloor(data, rollNumber);
-        RollableItem result = luckyStrike(floor > 0
+        // /rngadmin nextroll, taken before the draw so the result stays a
+        // single assignment and the whole roll after this point is the
+        // real one: the reel, the showcase, the acts, the comet, the
+        // counter and the finale.
+        Rarity demanded = forcedRarity.remove(player.getUniqueId());
+        RollableItem asked = demanded == null ? null : randomItemOf(demanded);
+        final boolean forced = asked != null;
+        final RollableItem result = forced ? asked : luckyStrike(floor > 0
                 ? plugin.getRarityManager().rollAtLeast(luck, Rarity.values()[floor])
                 : plugin.getRarityManager().roll(luck));
         if (floor > 0) {
@@ -457,7 +464,7 @@ public class RollListener implements Listener {
                 taskHolder[0].cancel();
                 rollingTasks.remove(player.getUniqueId());
                 remainingTicks.remove(player.getUniqueId());
-                finishRoll(player, data, result, shiny, auto, cinematic[0]);
+                finishRoll(player, data, result, shiny, auto, cinematic[0], forced);
                 return;
             }
 
@@ -545,6 +552,24 @@ public class RollListener implements Listener {
 
     public void forceShinyNext(UUID uuid) {
         forcedShiny.add(uuid);
+    }
+
+    /**
+     * One-shot "the next roll lands on this rarity", for /rngadmin
+     * nextroll.
+     *
+     * The reveal cost five jars partly because there was no way to run it.
+     * /rngadmin aura plays the aura and the comet but not the reel, and
+     * /rngadmin roll grants a drop and plays the burst on the spot, so
+     * neither of them ever built the showcase and neither was the real
+     * thing. Waiting for a one in five thousand Epic to test a change is
+     * not a test loop. This makes the next real right-click land where you
+     * want it, through startRoll and everything after it.
+     */
+    private final Map<UUID, Rarity> forcedRarity = new HashMap<>();
+
+    public void forceRarityNext(UUID uuid, Rarity rarity) {
+        forcedRarity.put(uuid, rarity);
     }
 
     // Where the real result lands, as a fraction of the roll. The rest of
@@ -658,7 +683,7 @@ public class RollListener implements Listener {
     }
 
     private void finishRoll(Player player, PlayerData data, RollableItem result, boolean shiny,
-                            boolean auto, boolean cinematic) {
+                            boolean auto, boolean cinematic, boolean forced) {
         clearActionBar(player);
         // The landed item stays in front of the player through the payoff.
         RollShowcase showcase = showcases.get(player.getUniqueId());
@@ -725,7 +750,10 @@ public class RollListener implements Listener {
         // roll can never take a spot. The event starts the moment the reel
         // lands (V158); waiting for the title as well left seconds of
         // nothing between the roll and its First.
-        plugin.getFirstTenManager().onRoll(player, result, shiny, finaleTicks);
+        // A forced roll is a test, and a Server First spot cannot be given
+        // back. Everything else about the roll is real; this one thing is
+        // not, on purpose.
+        if (!forced) plugin.getFirstTenManager().onRoll(player, result, shiny, finaleTicks);
 
         // Double Roll skill tree branch: a chance to immediately chain into
         // another free roll, no click required.

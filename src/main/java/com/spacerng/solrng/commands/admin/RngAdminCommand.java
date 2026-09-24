@@ -38,7 +38,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
 
     private static final List<String> SUBCOMMANDS = List.of(
             "reload", "setspawn", "starforge", "reset", "give", "drops",
-            "bank", "rank", "cosmetic", "aura", "head", "reveal", "roll", "unlock", "unlockall", "lockall", "odds", "farmblock", "farmscan", "farmwheat", "farmland",
+            "bank", "rank", "cosmetic", "aura", "head", "reveal", "nextroll", "roll", "unlock", "unlockall", "lockall", "odds", "farmblock", "farmscan", "farmwheat", "farmland",
             "hoe", "consumable", "gradient", "welcome", "crops", "farmclear",
             "milestones", "farmfill", "boost", "crowd", "nova", "placeholders", "payout", "crate", "tophead", "floatingitem", "boss", "pet", "dust", "discord", "advancements", "icon", "shiny", "firsts", "lorestyles", "tagstyles", "menustyles", "hoestyles", "standingstyles", "enchantstyles", "novastyles", "auratest", "holo", "help");
     private static final List<String> CURRENCIES = List.of("money", "coins", "gems", "credits", "luck", "speed", "tickets");
@@ -79,6 +79,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             case "aura" -> showcase.doAura(sender, args);
             case "head" -> showcase.doHead(sender, args);
             case "reveal" -> showcase.doReveal(sender, args);
+            case "nextroll" -> showcase.doNextRoll(sender, args);
             case "roll" -> showcase.doRoll(sender, args);
             case "shiny" -> showcase.doShiny(sender, args);
             case "firsts" -> showcase.doFirsts(sender, args);
@@ -145,6 +146,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         line(sender, "aura", "<epic|legendary|mythical|divine> [player]", "Replay the full reveal build-up + burst");
         line(sender, "head", "[player]", "Hand over the question mark head the reveal holds");
         line(sender, "reveal", "[player]", "Every switch that can hide part of the reveal, and a preview");
+        line(sender, "nextroll", "<rarity> [player]", "Make the next REAL roll land on a rarity");
         line(sender, "roll", "<rarity> [player]", "Force a real roll result of that rarity");
         line(sender, "unlock", "<node|all> [player]", "Grant one skill tree node");
         line(sender, "unlockall", "[player]", "Max out every skill in every tree");
@@ -312,7 +314,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
                 case "enchantstyles" -> partial(args[1], com.spacerng.solrng.gui.HoeGui.ENCHANT_STYLES);
                 case "novastyles" -> partial(args[1], com.spacerng.solrng.consumable.ConsumableManager.CONSUMABLE_STYLES);
                 case "auratest" -> partial(args[1], java.util.stream.Stream.concat(com.spacerng.solrng.aura.AuraConcepts.KEYS.stream(), java.util.stream.Stream.of("off", "list")).toList());
-                case "roll", "odds" -> partial(args[1], rarityNames());
+                case "roll", "nextroll", "odds" -> partial(args[1], rarityNames());
                 case "unlock" -> partial(args[1], withAll(nodeIds()));
                 case "consumable" -> partial(args[1],
                         new ArrayList<>(plugin.getConsumableManager().getAll().keySet()));
@@ -338,7 +340,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
                 case "give", "drops", "bank" -> partial(args[2], List.of("1", "10", "100", "1000"));
                 case "auratest" -> partial(args[2], List.of("epic", "legendary", "mythical", "divine"));
                 case "firsts" -> partial(args[2], args[1].equalsIgnoreCase("reset") ? withAll(rarityNames()) : rarityNames());
-                case "aura", "roll", "unlock", "starforge", "milestones", "farmblock" ->
+                case "aura", "roll", "nextroll", "unlock", "starforge", "milestones", "farmblock" ->
                         partial(args[2], playerNames());
                 case "consumable" -> partial(args[2], List.of("1", "3", "5"));
                 case "crops" -> partial(args[2], cropOptions());

@@ -5,7 +5,7 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V200**, 24 September 2026.
+Last updated at **V201**, 24 September 2026.
 
 ## The agreed way of working
 
@@ -644,6 +644,39 @@ circle as well, since they all read the same constant.
 head. The showcase has had a preview since V197 and the counter never
 did, which is why three rounds of "ik zie de odds niet" could not be
 narrowed down.
+
+**V201: there was no way to run the thing being reported on.**
+
+Leon asked the question that unpicked five jars: "met rngadmin reveal zag
+ik het hoofd maar tijdens aura niet, weet je zeker dat dat nu goed is?"
+
+No. And the reason is in the code rather than in the effect.
+
+**`/rngadmin aura` never built a showcase at all.** The showcase lives in
+the roll listener's reel loop, and that command calls `RollAura.start`
+directly, so it played the aura, the comet and the counter and nothing
+else. Anybody testing the reveal with it could not see the question mark
+or the drop in ANY version. **`/rngadmin roll` is no better**: it grants
+a drop and plays the burst on the spot, with no reel either. So neither
+of the two commands used to judge this was ever running the thing being
+judged, and four rounds of "ik zie het hoofd niet" were partly a broken
+test.
+
+Both are fixed. `/rngadmin aura` is a full dry run now: the question mark
+in front of the player, fed the same way the roll feeds it, turning into
+the drop on the frame the last act lands.
+
+**And `/rngadmin nextroll <rarity>` is the one that was missing.** It
+makes the next real right-click land where you want it, through
+`startRoll` and everything after it, so the genuine path can be run on
+demand instead of waiting for a one in five thousand Epic. The only thing
+held back is the Server First spot, which is scarce and cannot be given
+back; everything else fires exactly as it would in play.
+
+**This is the lesson worth keeping:** when a report cannot be reproduced,
+check that the command being used to reproduce it runs the same code as
+the thing being reported. Three jars went on theories about display
+placement that were answered by one screenshot and one command audit.
 
 **Deliberately not done in V186, and why:** the +10% Coins and Gems per
 crop. Those are the `CROP_YIELD` nodes, and they are the spine of the

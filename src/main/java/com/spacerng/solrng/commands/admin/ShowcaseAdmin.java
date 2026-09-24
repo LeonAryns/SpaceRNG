@@ -69,12 +69,82 @@ final class ShowcaseAdmin extends AdminTools {
         RollAura aura = RollAura.start(plugin, target, rarity, odds, stages, actTicks);
         if (aura == null) return true;
 
-        // Reveal exactly when the last act finishes, same as a real roll.
-        plugin.getServer().getScheduler().runTaskLater(plugin, aura::reveal, duration);
+        // The question mark in front of them, fed the same way the roll
+        // feeds it.
+        //
+        // This command played the aura, the comet and the counter and
+        // nothing else, because the showcase lives in the roll listener's
+        // reel loop. So anybody testing with /rngadmin aura could never
+        // see the head or the drop, in any version, and four rounds of
+        // "ik zie het hoofd niet" were partly a broken test rather than a
+        // broken effect. Leon asked the right question: "met rngadmin
+        // reveal zag ik het hoofd maar tijdens aura niet".
+        final com.spacerng.solrng.roll.RollShowcase showcase =
+                com.spacerng.solrng.roll.RollShowcase.start(plugin, target);
+        final RollableItem drop = sample;
+        final org.bukkit.scheduler.BukkitTask[] hold = new org.bukkit.scheduler.BukkitTask[1];
+        final long[] shown = {0L};
+        hold[0] = plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
+            shown[0] += 2L;
+            if (shown[0] >= duration || !target.isOnline()) {
+                hold[0].cancel();
+                return;
+            }
+            showcase.show(com.spacerng.solrng.roll.MysteryHead.item(plugin), false);
+        }, 0L, 2L);
+
+        // Reveal exactly when the last act finishes, same as a real roll,
+        // and turn the question mark into the drop on the same frame.
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+            aura.reveal();
+            if (drop != null) {
+                showcase.show(plugin.getRollListener().buildTaggedItem(drop, false), true);
+            }
+            showcase.finish(RollAura.finaleTicks(rarity) + 30L);
+        }, duration);
 
         sender.sendMessage(ChatColor.GREEN + "Playing the " + rarity.displayName() + " reveal on "
                 + target.getName() + ChatColor.GRAY + " (" + stages.acts() + " acts, "
-                + String.format("%.0f", duration / 20.0) + "s).");
+                + String.format("%.0f", duration / 20.0) + "s)"
+                + (drop == null ? "" : ChatColor.GRAY + ", landing on " + ChatColor.WHITE
+                        + drop.getDisplayName()) + ChatColor.GRAY + ".");
+        return true;
+    }
+
+    /**
+     * Makes the next real roll land on a rarity.
+     *
+     * This is the one that was missing, and its absence is most of why
+     * the reveal took five jars. /rngadmin aura plays the aura and the
+     * comet without the reel, /rngadmin roll grants a drop and plays the
+     * burst on the spot, and neither ever built the showcase, so neither
+     * of them was ever the thing being reported on. After this the tester
+     * right-clicks their own Starforge and gets the genuine article, reel
+     * and showcase and acts and counter and finale, without waiting for a
+     * one in five thousand.
+     *
+     * The one thing held back is the Server First spot, because that is
+     * scarce and cannot be handed back.
+     */
+    boolean doNextRoll(CommandSender sender, String[] args) {
+        if (args.length < 2) {
+            sender.sendMessage(ChatColor.RED + "Usage: /rngadmin nextroll <rarity> [player]");
+            return true;
+        }
+        Rarity rarity = parseRarity(sender, args[1]);
+        if (rarity == null) return true;
+        Player target = resolve(sender, args.length >= 3 ? args[2] : null);
+        if (target == null) return true;
+        if (randomItemOf(rarity) == null) {
+            sender.sendMessage(ChatColor.RED + "No items configured for " + rarity.displayName() + ".");
+            return true;
+        }
+        plugin.getRollListener().forceRarityNext(target.getUniqueId(), rarity);
+        sender.sendMessage(ChatColor.GREEN + "The next roll by " + target.getName() + " lands on "
+                + plugin.getRarityManager().style(rarity, rarity.displayName()) + ChatColor.GREEN + ".");
+        sender.sendMessage(ChatColor.GRAY + "Right click the Starforge. This is the real roll, so the "
+                + "reel, the question mark, the acts and the counter all play; only the Server First "
+                + "spot is held back.");
         return true;
     }
 
