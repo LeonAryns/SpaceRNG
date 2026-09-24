@@ -11,25 +11,28 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * The ladder a reveal climbs while its odds counter runs.
+ * The ladder a reveal climbs, one act per rarity band.
  *
- * A big drop used to be one rarity from the first frame: Divine colours,
- * Divine size, Divine everything, for fifteen seconds. That gives the
- * answer away before anything has happened and it wastes the one thing a
- * counter is good at, which is crossing a line in front of you.
+ * Leon set the shape of this himself: "ik wil gwn een rarity van bv 20s
+ * eerste 5s epic 10s legend 15 mythical 20s divine". Every band gets the
+ * same fixed slice of time, so a roll runs five seconds of Epic, and then
+ * either it ENDS there and the drop was an Epic, or it breaks through
+ * into five seconds of Legendary, and so on. A Divine is four acts and
+ * twenty seconds; with Epic switched off in /options it is three acts and
+ * fifteen.
  *
- * So the reveal starts in the lowest band the player can see and climbs.
- * Epic is small and violet, and the moment the counter passes into
- * Legendary odds the whole thing grows, recolours and pops, then again at
- * Mythical and again at Divine. Every stage IS that rarity's own look,
- * the same numbers {@link RollAura} and {@link RollComet} already use for
- * it, so the stages cannot drift apart from the auras they are borrowed
- * from.
+ * That fixed slice is the whole point, and it is what V196 got wrong. A
+ * counter racing along a curve meant the bands arrived at unpredictable
+ * moments, an Epic was over before its number could be read, and the
+ * length of the roll and the size of the comet told you what you had
+ * before the first band was done. Now every act is exactly the same
+ * length and exactly the same act, whatever is coming: an Epic roll and
+ * the first five seconds of a Divine are indistinguishable, which is the
+ * only way the climb can be suspenseful.
  *
  * Which bands are in the ladder is the roller's own choice. A player who
- * switched the Epic aura off in /options does not get an Epic stage, so
- * their show opens at Legendary, which is exactly what they asked for by
- * switching it off.
+ * switched the Epic aura off in /options does not get an Epic act, so
+ * their show opens at Legendary.
  *
  * A band's entry is the shortest odds any drop in it actually has, read
  * off the item list rather than written down twice. Epic and up roll at
@@ -43,62 +46,23 @@ public final class RollStages {
     }
 
     /**
-     * How hard the counter's climb is eased. Above 1 the big numbers land
-     * late, which is what keeps the last band from arriving halfway
-     * through.
+     * How hard the counter's climb inside one act is eased. Above 1 the
+     * digits turn over slowly at first and race at the end, so an act
+     * finishes ON its next band's entry rather than drifting up to it.
      */
-    private static final double EASE = 1.6;
+    private static final double EASE = 1.35;
 
     /** Nothing below this is ever shown, however cheap the opening band is. */
     private static final long FLOOR = 100L;
 
-    /**
-     * Where the counter stops climbing, as a fraction of the flight. The
-     * rest of the run holds the final number.
-     *
-     * It cannot be 1.0. The top band's entry is often the drop's own odds
-     * exactly, and this server's only Divine is one in ten million, which
-     * is also where Divine starts. A counter that finished on the last
-     * frame would promote to Divine ON the impact, so the whole build-up
-     * would be red Mythical and the thing the player waited fifteen
-     * seconds for would never be on the screen at all. Landing at 0.78
-     * leaves the last fifth of the run in the band that was actually
-     * found, and the implosion at 0.88 happens in its colours.
-     *
-     * The same figure the reel lands on, which is not a coincidence: it is
-     * how long a payoff needs to be looked at before the next thing moves.
-     */
-    private static final double COUNTS_UNTIL = 0.78;
-
-    /**
-     * The latest the LAST promotion is allowed to happen.
-     *
-     * Without it, a drop sitting on its own band's entry promotes at the
-     * moment the counter finishes and the band it was actually found in
-     * gets a second of screen time. Both of this server's worst cases are
-     * exactly that: the only Divine is one in ten million and Divine
-     * starts at ten million, and the cheapest Legendary is one in a
-     * hundred thousand where Legendary starts. Pulling the whole climb
-     * forward until the top rung lands here gives the band that was found
-     * better than a third of the run in its own colours, and costs the
-     * lower bands nothing but a slightly quicker walk through them.
-     *
-     * A drop comfortably inside its band already crosses early and is
-     * left alone.
-     */
-    private static final double TOP_BY = 0.62;
-
     private final List<Stage> stages;
-    private final long fromOdds;
-    private final long toOdds;
-    /** Where this particular climb finishes, at or before {@link #COUNTS_UNTIL}. */
-    private final double until;
+    private final long openingOdds;
+    private final long dropOdds;
 
-    private RollStages(List<Stage> stages, long fromOdds, long toOdds, double until) {
+    private RollStages(List<Stage> stages, long openingOdds, long dropOdds) {
         this.stages = stages;
-        this.fromOdds = fromOdds;
-        this.toOdds = toOdds;
-        this.until = until;
+        this.openingOdds = openingOdds;
+        this.dropOdds = dropOdds;
     }
 
     /**
@@ -107,7 +71,7 @@ public final class RollStages {
      * has left switched on.
      */
     public static RollStages of(SolRNGPlugin plugin, PlayerData data, Rarity drop, long odds) {
-        if (drop == null || odds <= 0L) return new RollStages(List.of(), 0L, 0L, COUNTS_UNTIL);
+        if (drop == null || odds <= 0L) return new RollStages(List.of(), 0L, 0L);
 
         Map<Rarity, Long> entries = entryOdds(plugin);
         List<Stage> rungs = new ArrayList<>();
@@ -120,35 +84,13 @@ public final class RollStages {
             if (entry == null) continue;
             rungs.add(new Stage(rarity, entry));
         }
-        if (rungs.isEmpty()) return new RollStages(List.of(), 0L, 0L, COUNTS_UNTIL);
+        if (rungs.isEmpty()) return new RollStages(List.of(), 0L, 0L);
 
-        long start = rungs.get(0).entryOdds();
-        // A drop sitting on its own band's entry would leave the counter
-        // with nowhere to climb, so it opens a little below instead.
-        if (start >= odds) start = Math.max(FLOOR, odds / 4L);
-        start = Math.max(FLOOR, start);
-        return new RollStages(List.copyOf(rungs), start, odds,
-                until(start, odds, rungs.get(rungs.size() - 1).entryOdds()));
-    }
-
-    /**
-     * Where this climb should finish so that the top rung lands by
-     * {@link #TOP_BY}.
-     *
-     * The counter is linear in log space, so the top band is entered at
-     * {@code until * k^(1/EASE)} where k is how far up the log climb that
-     * band's entry sits. Solving that for the moment it should land is
-     * one line, and a drop that already crosses early keeps the full
-     * window.
-     */
-    private static double until(long start, long odds, long topEntry) {
-        double span = Math.log((double) odds / start);
-        if (span <= 1.0e-9) return COUNTS_UNTIL;
-        double k = Math.log((double) topEntry / start) / span;
-        if (k <= 0.0) return COUNTS_UNTIL;
-        double lands = Math.pow(Math.min(1.0, k), 1.0 / EASE);
-        if (lands <= 1.0e-9) return COUNTS_UNTIL;
-        return Math.min(COUNTS_UNTIL, TOP_BY / lands);
+        // The counter opens below the first band's own entry, so the first
+        // act has somewhere to climb from and the number is moving from
+        // the first frame rather than sitting on a threshold.
+        long opening = Math.max(FLOOR, rungs.get(0).entryOdds() / 3L);
+        return new RollStages(List.copyOf(rungs), opening, odds);
     }
 
     /** The shortest odds in each Epic and up band, read off the loaded items. */
@@ -166,45 +108,52 @@ public final class RollStages {
         return stages.isEmpty();
     }
 
-    public int size() {
+    /** How many acts this reveal runs, which is what sets its length. */
+    public int acts() {
         return stages.size();
     }
 
-    /** The rarity of one rung, clamped, so a caller never has to bounds check. */
-    public Rarity rarityAt(int index) {
+    /** The rarity of one act, clamped, so a caller never has to bounds check. */
+    public Rarity rarityAt(int act) {
         if (stages.isEmpty()) return Rarity.EPIC;
-        return stages.get(Math.max(0, Math.min(stages.size() - 1, index))).rarity();
+        return stages.get(Math.max(0, Math.min(stages.size() - 1, act))).rarity();
+    }
+
+    /** True while this act is not the last one, so a breakthrough follows it. */
+    public boolean climbsAfter(int act) {
+        return act < stages.size() - 1;
     }
 
     /**
-     * What the counter reads at this point of the run.
+     * What the counter reads part way through one act.
      *
-     * It climbs in a straight line through the LOGARITHM of the odds
-     * rather than through the odds themselves. A linear climb to one in
-     * five million sits under a hundred thousand for the first nine tenths
-     * of the run and then jumps, so every rarity would read the same for
-     * most of its build-up and the bands would all be crossed in the last
-     * second. In log space the digits turn over at a steady rate the whole
-     * way down, and the rungs are spread across the run.
+     * Each act owns one leg of the climb: it starts where that band starts
+     * and finishes exactly on the NEXT band's entry, which is the number
+     * that promotes it. The last act finishes on the drop's own odds.
+     *
+     * The climb is linear through the LOGARITHM of the odds rather than
+     * through the odds themselves, because a Mythical act covering 250,000
+     * to ten million would otherwise sit under a million for four of its
+     * five seconds and then blur. In log space the digits turn over at a
+     * steady rate the whole way.
      */
-    public long shownOdds(double progress) {
-        if (stages.isEmpty() || toOdds <= fromOdds) return toOdds;
-        double run = Math.max(0.0, Math.min(1.0, progress / until));
-        double t = Math.pow(run, EASE);
-        long shown = Math.round(fromOdds * Math.pow((double) toOdds / fromOdds, t));
-        return Math.max(fromOdds, Math.min(toOdds, shown));
+    public long shownOdds(int act, double actProgress) {
+        if (stages.isEmpty()) return dropOdds;
+        long from = act <= 0 ? openingOdds : stages.get(Math.min(act, stages.size() - 1)).entryOdds();
+        long to = target(act);
+        if (to <= from) return to;
+        double t = Math.pow(Math.max(0.0, Math.min(1.0, actProgress)), EASE);
+        long shown = Math.round(from * Math.pow((double) to / from, t));
+        return Math.max(from, Math.min(to, shown));
     }
 
     /**
-     * Which rung the reveal is on at those odds. Never below the opening
-     * band: the show starts inside its first stage rather than climbing
-     * into it, so the first pop a player sees is a real promotion.
+     * Where one act's climb finishes: the next band's entry, or the drop's
+     * own odds on the last act.
      */
-    public int indexAt(long shown) {
-        int index = 0;
-        for (int i = 0; i < stages.size(); i++) {
-            if (shown >= stages.get(i).entryOdds()) index = i;
-        }
-        return index;
+    public long target(int act) {
+        if (stages.isEmpty()) return dropOdds;
+        if (act < stages.size() - 1) return stages.get(act + 1).entryOdds();
+        return dropOdds;
     }
 }

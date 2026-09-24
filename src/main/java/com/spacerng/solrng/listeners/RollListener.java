@@ -386,9 +386,21 @@ public class RollListener implements Listener {
         // Assigned once: the timer lambda below captures it, so it has to
         // stay effectively final.
         long baseTicks = effectiveRollTicks(data);
-        final long rollTicks = RollAura.isBigDrop(result.getRarity())
-                ? Math.max(baseTicks, RollAura.durationTicks(result.getRarity()))
-                : (rollsInstantly(data) ? 1L : baseTicks);
+        // The cutscene decides the length of a big roll, and it is one act
+        // per rarity band: five seconds of Epic, then either it ends there
+        // or it breaks through into five of Legendary, and so on. A Divine
+        // is four acts and twenty seconds, and fifteen for somebody with
+        // the Epic aura switched off. The ladder therefore has to be built
+        // BEFORE the timer, since its length is what the timer runs for.
+        final com.spacerng.solrng.roll.RollStages stages = RollAura.isBigDrop(result.getRarity())
+                ? com.spacerng.solrng.roll.RollStages.of(plugin, data, result.getRarity(), result.getOdds())
+                : null;
+        final long actTicks = RollAura.actTicks(plugin);
+        final long cutscene = RollAura.durationTicks(stages, actTicks);
+        // No cutscene means no ladder to walk: the drop's own rarity is
+        // switched off in this player's /options, so the roll is an
+        // ordinary one and nobody is watching an effect anyway.
+        final long rollTicks = cutscene > 0L ? cutscene : (rollsInstantly(data) ? 1L : baseTicks);
 
         // A shiny gets its own beat before the roll, and Instant Roll can't
         // skip it for the same reason it can't skip a big drop. The aura's
@@ -410,7 +422,7 @@ public class RollListener implements Listener {
         final boolean[] cinematic = {false};
         if (preTicks == 0L) {
             auraStarted[0] = true;
-            aura[0] = RollAura.start(plugin, player, result.getRarity(), result.getOdds(), rollTicks);
+            aura[0] = RollAura.start(plugin, player, result.getRarity(), result.getOdds(), stages, actTicks);
             if (aura[0] != null) {
                 activeAuras.put(player.getUniqueId(), aura[0]);
                 cinematic[0] = aura[0].ownsScreen();
@@ -433,7 +445,7 @@ public class RollListener implements Listener {
 
             if (!auraStarted[0]) {
                 auraStarted[0] = true;
-                aura[0] = RollAura.start(plugin, player, result.getRarity(), result.getOdds(), rollTicks);
+                aura[0] = RollAura.start(plugin, player, result.getRarity(), result.getOdds(), stages, actTicks);
                 if (aura[0] != null) {
                     activeAuras.put(player.getUniqueId(), aura[0]);
                     cinematic[0] = aura[0].ownsScreen();

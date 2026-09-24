@@ -5,7 +5,7 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V196**, 24 September 2026.
+Last updated at **V197**, 24 September 2026.
 
 ## The agreed way of working
 
@@ -444,6 +444,68 @@ time the odds cross into the next rarity.
   judged outside the game. The table behind it is sized against the
   screen: at 1.5 blocks in front of the camera the view is about 3.7
   blocks wide, and "1 in 10,000,000" at scale 1 is 1.6 blocks of text.
+
+**V197: Leon tested V196 and it was wrong in six places.**
+
+His message is the spec for this one, so it is written down: "ik wil gwn
+een rarity van bv 20s eerste 5s epic 10s legend 15 mythical 20s divine
+waarbij het dus 15s duurt voor een divine als je epic uit hebt".
+
+**The reveal is acts now, one per rarity band, each the same length.**
+Five seconds of Epic, and then either it ENDS there and the drop was an
+Epic, or it breaks through into five of Legendary, and so on. A Divine is
+four acts and twenty seconds; with the Epic aura switched off it is
+three acts and fifteen. `roll-item.comet.stage-seconds` is the whole
+timing of a reveal. The per rarity durations `RollAura` carried since it
+was written are gone, because a roll whose LENGTH came from the drop told
+the player what they had before the first act was over.
+
+Each act is a complete build-up: it gathers, charges, implodes and then
+either breaks through or is the ending. It plays its own band's score,
+wears its own band's colour and size, and launches its own comet from its
+own band's height. That last one is the answer to "je weet nu alsnog
+wanneer het een divine is": V196 sized the comet's path from the DROP so
+it would not jump mid flight, so a Divine started ninety blocks up on its
+first frame and an Epic forty.
+
+**The six things he found:**
+
+- **No player head.** A skull is a BLOCK model, and under transform NONE
+  a block model is drawn with its corner on the display's origin while a
+  flat item is drawn centred. Pinned a block and a half in front of the
+  camera the head hung half a model up and to the side, mostly off the
+  edge of the screen. `RollShowcase` pulls a block shaped item back by
+  half its own scaled size now. The texture route changed as well, from
+  Paper's profile property to the one Bukkit specifies, including the
+  `setTextures` call back onto the profile that a copy-returning
+  implementation needs. **`/rngadmin head` hands you the item**, so a bad
+  texture can be told from a bad effect without another jar.
+- **The text ran too fast on Epic.** It was one curve across the whole
+  roll; now each act owns one leg of the climb, from its band's entry to
+  the next band's entry, over a fixed five seconds.
+- **The text was too small and too flat.** The scale table is up by about
+  half, and every character is mixed between the band's colour and a warm
+  near-white on a wave that walks along the number.
+- **No odds climbing on Mythical and Divine.** Same cause as the Epic
+  one: the old curve finished at 62% and held, so the last band had
+  nothing left to count.
+- **The Divine stayed red.** The promotion to the top band landed on the
+  impact whenever the drop sat on its own band's entry, which the only
+  Divine on this server does at one in ten million. With acts it is a
+  band boundary like any other.
+- **Particles in the face, at every rarity.** Every cloud in the finale
+  was centred on the player's chest, which is the one place a first
+  person camera cannot see: from outside a burst, from inside a screen
+  full of dust. `RollAura.CLEAR` is 2.6 blocks and the clouds are shells
+  around the player now, with the middle left empty. The Divine pillar
+  skips the two or three points at the roller's own head, the growing
+  sphere starts outside it, and the comet's own burst is a ring rather
+  than a cloud.
+
+**Still open from this round:** the endings are per rarity in colour,
+radius, strand count and, for Divine, script, but Epic, Legendary and
+Mythical still share the shape of one. If he wants four visibly different
+endings that is its own jar.
 
 **Deliberately not done in V186, and why:** the +10% Coins and Gems per
 crop. Those are the `CROP_YIELD` nodes, and they are the spine of the

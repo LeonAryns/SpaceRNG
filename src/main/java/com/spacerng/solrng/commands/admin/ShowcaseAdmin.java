@@ -52,19 +52,46 @@ final class ShowcaseAdmin extends AdminTools {
         if (target == null) return true;
 
         // A real drop of that rarity stands behind the preview, so the
-        // comet's odds counter climbs to a number the server actually pays
-        // rather than sitting blank.
+        // counter climbs to a number the server actually pays rather than
+        // sitting blank, and the ladder is the real one for this player.
         RollableItem sample = randomItemOf(rarity);
-        RollAura aura = RollAura.start(plugin, target, rarity,
-                sample == null ? 0L : sample.getOdds(), RollAura.durationTicks(rarity));
+        long odds = sample == null ? 0L : sample.getOdds();
+        com.spacerng.solrng.roll.RollStages stages = com.spacerng.solrng.roll.RollStages.of(plugin,
+                plugin.getPlayerDataManager().get(target.getUniqueId()), rarity, odds);
+        long actTicks = RollAura.actTicks(plugin);
+        long duration = RollAura.durationTicks(stages, actTicks);
+        if (duration <= 0L) {
+            sender.sendMessage(ChatColor.RED + target.getName() + " has that rarity's aura switched off "
+                    + "in /options, so there is nothing to show them.");
+            return true;
+        }
+
+        RollAura aura = RollAura.start(plugin, target, rarity, odds, stages, actTicks);
         if (aura == null) return true;
 
-        // Reveal exactly when the build-up finishes, same as a real roll.
-        long duration = RollAura.durationTicks(rarity);
+        // Reveal exactly when the last act finishes, same as a real roll.
         plugin.getServer().getScheduler().runTaskLater(plugin, aura::reveal, duration);
 
-        sender.sendMessage(ChatColor.GREEN + "Playing the " + rarity.displayName() + " reveal aura on "
-                + target.getName() + ChatColor.GRAY + " (" + String.format("%.0f", duration / 20.0) + "s).");
+        sender.sendMessage(ChatColor.GREEN + "Playing the " + rarity.displayName() + " reveal on "
+                + target.getName() + ChatColor.GRAY + " (" + stages.acts() + " acts, "
+                + String.format("%.0f", duration / 20.0) + "s).");
+        return true;
+    }
+
+    /**
+     * Hands over the question mark head on its own.
+     *
+     * It is here because V196 shipped a head nobody could see and there
+     * was no way to tell whether the texture was wrong or the thing
+     * holding it was. Holding the item answers that in one click.
+     */
+    boolean doHead(CommandSender sender, String[] args) {
+        Player target = resolve(sender, args.length >= 2 ? args[1] : null);
+        if (target == null) return true;
+        target.getInventory().addItem(com.spacerng.solrng.roll.MysteryHead.item(plugin));
+        sender.sendMessage(ChatColor.GREEN + "Gave the mystery head to " + target.getName()
+                + ChatColor.GRAY + ". If it is a plain Steve head, the texture in "
+                + "roll-item.comet.mystery-head is what is wrong.");
         return true;
     }
 
@@ -281,7 +308,7 @@ final class ShowcaseAdmin extends AdminTools {
         // No flight time: this plays the burst straight away, and a comet
         // that spawned and landed in the same tick would be a flash of a
         // block in the sky.
-        RollAura burst = RollAura.start(plugin, target, rarity, item.getOdds(), 0L);
+        RollAura burst = RollAura.start(plugin, target, rarity, item.getOdds(), null, 0L);
         if (burst != null) burst.reveal();
         plugin.getScoreboardManager().update(target);
         return true;

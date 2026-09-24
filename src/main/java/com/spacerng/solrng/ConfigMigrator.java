@@ -62,6 +62,13 @@ public final class ConfigMigrator {
             // V195: the comet on an Epic or better roll. A dotted path,
             // because roll-item is in every config there has ever been.
             "roll-item.comet",
+            // V197: the keys added INSIDE that section afterwards. A
+            // section only arrives once, when it is missing entirely, so
+            // anything added to it later has to come across on its own or
+            // a server that took the V195 version never sees it and Leon
+            // cannot tune the one timing that matters.
+            "roll-item.comet.stage-seconds", "roll-item.comet.counter-scale",
+            "roll-item.comet.mystery-head",
             "discord", "holograms",
             "holograms.panels.armor", "holograms.panels.starforge", "holograms.panels.potion",
             "holograms.panels.convert", "holograms.panels.pass", "holograms.panels.store",

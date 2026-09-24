@@ -2,6 +2,7 @@ package com.spacerng.solrng.roll;
 
 import com.spacerng.solrng.SolRNGPlugin;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
@@ -50,6 +51,17 @@ public final class RollShowcase {
     private BukkitTask spin;
     private int quarterTurns = 0;
     private boolean landed = false;
+    /**
+     * Whether what is being held is a block shaped model rather than a
+     * flat sprite. A player head is the only one the reel ever shows, and
+     * it is why the question mark in V196 could not be found: under
+     * transform NONE a flat item is drawn centred on the display's origin
+     * and a BLOCK model is drawn with its CORNER there, so a head pinned
+     * a block and a half in front of the camera hung half a model up and
+     * to the side of where it was meant to be, mostly off the edge of the
+     * screen. It is pulled back by half its own size below.
+     */
+    private boolean blockShaped = false;
 
     private RollShowcase(SolRNGPlugin plugin, Player player) {
         this.plugin = plugin;
@@ -81,7 +93,16 @@ public final class RollShowcase {
     /** Shows one frame of the reel; the landing frame also swells the item. */
     public void show(ItemStack item, boolean land) {
         if (!display.isValid()) return;
+        boolean wasBlockShaped = blockShaped;
+        blockShaped = item != null && item.getType() == Material.PLAYER_HEAD;
         display.setItemStack(item);
+        // A head has to be re-posed the moment it arrives, or it hangs in
+        // the wrong place until something else moves it.
+        if (blockShaped != wasBlockShaped && !land) {
+            display.setInterpolationDelay(0);
+            display.setInterpolationDuration(0);
+            display.setTransformation(pose(SIZE, quarterTurns));
+        }
         if (land && !landed) {
             landed = true;
             display.setInterpolationDelay(0);
@@ -128,8 +149,12 @@ public final class RollShowcase {
         }
     }
 
-    private static Transformation pose(float scale, int quarterTurns) {
-        return new Transformation(new Vector3f(0f, -BELOW - RIDE_ABOVE_EYES, -AHEAD),
+    private Transformation pose(float scale, int quarterTurns) {
+        // The scale is applied to the model before the translation, so a
+        // corner origin model is centred by shifting half its SCALED size.
+        float centre = blockShaped ? scale * 0.5f : 0f;
+        return new Transformation(
+                new Vector3f(-centre, -BELOW - RIDE_ABOVE_EYES - centre, -AHEAD - centre),
                 new Quaternionf().rotateY((float) (Math.PI / 2 * quarterTurns)),
                 new Vector3f(scale, scale, scale), new Quaternionf());
     }

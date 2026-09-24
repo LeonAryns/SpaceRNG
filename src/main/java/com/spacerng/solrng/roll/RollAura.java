@@ -54,16 +54,21 @@ public final class RollAura {
     // impact sounds have cleared, short enough that the bolt is still lit.
     private static final long DING_OFFSET = 5L;
 
-    // ---------------------------------------------------------- per-rarity
+    /**
+     * No particle of a burst is ever drawn nearer than this to the
+     * roller's own eyes.
+     *
+     * Every cloud in the finale used to be centred on their chest, which
+     * is the one place a first person camera cannot see. From outside it
+     * read as a burst and from inside it read as a screen full of dust
+     * with the drop somewhere behind it. Leon put it plainly: "ik wil sws
+     * niet particles in mn gezicht". A burst reads as big because of where
+     * its EDGE is, so the clouds are shells around the player now and the
+     * middle is left empty.
+     */
+    private static final double CLEAR = 2.6;
 
-    private static long durationFor(Rarity rarity) {
-        return switch (rarity) {
-            case DIVINE -> 300L;   // 15s - the longest thing in the plugin
-            case MYTHICAL -> 200L; // 10s
-            case LEGENDARY -> 100L; // 5s
-            default -> 60L;         // 3s, Epic
-        };
-    }
+    // ---------------------------------------------------------- per-rarity
 
     /** How long the payoff runs after the reveal, and how long rolling is locked. */
     public static long finaleTicks(Rarity rarity) {
@@ -180,7 +185,6 @@ public final class RollAura {
     private final SolRNGPlugin plugin;
     private final Player player;
     private final Rarity rarity;
-    private final long durationTicks;
     // The look, which is the CURRENT stage's rather than the drop's.
     //
     // A reveal climbs the rarity ladder while its counter runs: it opens
@@ -194,11 +198,19 @@ public final class RollAura {
     private Particle.DustOptions dust;
     private Particle.DustOptions dustBright;
     private Particle accent;
-    /** Which rung of the ladder the look is on. -1 until the first tick sets it. */
-    private int stageIndex = -1;
-    /** The rarity whose look is currently being worn, which is the stage's. */
+    /** The rarity whose look is currently being worn, which is the act's. */
     private Rarity look;
-    private final List<Cue> score;
+
+    // The acts. One per rarity band, each the same fixed length, and the
+    // reveal simply stops at the end of the drop's own.
+    private RollStages stages;
+    private long actTicks = 100L;
+    private int act = 0;
+    private long actElapsed = 0L;
+    // Each act plays its OWN band's score, so the seam between two
+    // acts is audible as a change of instrument and not only as a
+    // louder version of the same one.
+    private List<Cue> score;
     private final double viewRange;
 
     private final List<Player> audience = new ArrayList<>();
@@ -218,7 +230,6 @@ public final class RollAura {
         this.plugin = plugin;
         this.player = player;
         this.rarity = rarity;
-        this.durationTicks = durationFor(rarity);
         this.look = rarity;
         this.maxRadius = maxRadiusFor(rarity);
         this.strands = strandsFor(rarity);
@@ -245,55 +256,63 @@ public final class RollAura {
     }
 
     /**
-     * How long this rarity's build-up wants to run. The roll stretches to
-     * at least this long so the effect isn't cut off halfway.
+     * How long a reveal runs: one act per rarity band, each the same fixed
+     * length.
+     *
+     * Leon set this shape himself: five seconds of Epic, and then either
+     * it ends there or it breaks through into five of Legendary, and so
+     * on, so a Divine is twenty seconds and a Divine for somebody with the
+     * Epic aura switched off is fifteen. The per rarity durations this
+     * class used to carry are gone with it, because a roll whose LENGTH
+     * was decided by the drop told the player what they had before the
+     * first act was over.
      */
-    public static long durationTicks(Rarity rarity) {
-        return isBigDrop(rarity) ? durationFor(rarity) : 0L;
+    public static long durationTicks(RollStages stages, long actTicks) {
+        return stages == null || stages.isEmpty() ? 0L : stages.acts() * actTicks;
+    }
+
+    /** How long one act runs, from config, in ticks. */
+    public static long actTicks(SolRNGPlugin plugin) {
+        double seconds = Math.max(1.0, plugin.getConfig().getDouble("roll-item.comet.stage-seconds", 5.0));
+        return Math.round(seconds * 20.0);
     }
 
     /**
      * Starts the build-up on its own task. Returns null for anything below
      * Epic, so callers can just null-check instead of branching on rarity.
      *
-     * {@code odds} is the drop's own label, which the comet's counter
-     * climbs towards. Pass 0 when there is no real drop behind the effect
-     * and the counter is simply left off.
-     *
-     * {@code flightTicks} is how long it is until the reveal, which is the
-     * length of the ROLL rather than of this build-up: the two differ
-     * whenever a player's roll is slower than their rarity's aura, and the
-     * comet has to arrive on the drop rather than on the implosion. Pass 0
-     * for a reveal that is played immediately, and no comet flies.
+     * {@code odds} is the drop's own label, which the last act's counter
+     * climbs to. {@code stages} is the ladder of bands this reveal walks;
+     * an empty one means no climb and no comet, which is what an admin
+     * preview with no drop behind it gets.
      */
     public static RollAura start(SolRNGPlugin plugin, Player player, Rarity rarity, long odds,
-                                 long flightTicks) {
+                                 RollStages stages, long actTicks) {
         if (!isBigDrop(rarity)) return null;
 
         RollAura aura = new RollAura(plugin, player, rarity);
+        aura.stages = stages;
+        aura.actTicks = Math.max(1L, actTicks);
 
-        // The comet comes first, because it decides which rung of the
-        // rarity ladder the whole reveal opens on. Built after the circle
-        // it would repaint a floor that had already been drawn in the
-        // drop's own colour, and the first frame would show the answer.
+        // The comet comes first, because its act decides which band the
+        // whole reveal opens in. Built after the circle it would repaint a
+        // floor already drawn in the drop's own colour, and the first
+        // frame would give the answer away.
         //
         // For the roller alone, and only if they have this rarity's aura
         // switched on. Everybody else sees them standing still.
-        if (flightTicks > 0L && RollComet.wanted(plugin, player, rarity)) {
-            RollStages stages = RollStages.of(plugin,
-                    plugin.getPlayerDataManager().get(player.getUniqueId()), rarity, odds);
-            if (!stages.isEmpty()) {
-                aura.comet = new RollComet(plugin, player, rarity, stages, odds, flightTicks);
-                aura.stageIndex = 0;
-                aura.wear(stages.rarityAt(0));
-                aura.comet.start();
-            }
+        if (stages != null && !stages.isEmpty() && RollComet.wanted(plugin, player, rarity)) {
+            aura.comet = new RollComet(plugin, player, stages, odds, aura.actTicks);
+            aura.wear(stages.rarityAt(0));
         }
 
         // The one solid shape in an effect made of particles. Past twenty
         // blocks a few hundred specks read as weather; a ring does not.
         aura.circle = new RollCircle(plugin, player, rarity, colorFor(aura.look), aura.maxRadius);
         aura.circle.start();
+        // The comet opens only once the floor is under it, so the first
+        // frame of an act is the whole act, not half of it.
+        if (aura.comet != null) aura.comet.startAct(0);
         aura.task = plugin.getServer().getScheduler().runTaskTimer(plugin, aura::tick, 0L, 1L);
         return aura;
     }
@@ -357,6 +376,49 @@ public final class RollAura {
         }
     }
 
+    /** True when a point is far enough from the roller's eyes to be drawn. */
+    private boolean clearOfFace(Location at) {
+        return at.getWorld() != null && at.getWorld().equals(player.getWorld())
+                && at.distanceSquared(player.getEyeLocation()) >= CLEAR * CLEAR;
+    }
+
+    /**
+     * A cloud turned inside out: {@code count} points scattered through a
+     * shell around {@code centre} rather than a Gaussian ball centred on
+     * it. Same number of particles, same reach, and the roller can see
+     * through the middle of it.
+     */
+    private void shellDust(Location centre, int count, Particle.DustOptions options) {
+        for (int i = 0; i < count; i++) {
+            Location at = onShell(centre);
+            for (Player viewer : audience) {
+                viewer.spawnParticle(Particle.DUST, at, 1, 0.0, 0.0, 0.0, 0.0, options);
+            }
+        }
+    }
+
+    /** The same shell for a particle that takes no colour. */
+    private void shellPuff(Particle particle, Location centre, int count, double extra) {
+        for (int i = 0; i < count; i++) {
+            Location at = onShell(centre);
+            for (Player viewer : audience) {
+                viewer.spawnParticle(particle, at, 1, 0.0, 0.0, 0.0, extra);
+            }
+        }
+    }
+
+    /** One point somewhere in the shell between CLEAR and the effect's own reach. */
+    private Location onShell(Location centre) {
+        double outer = Math.max(CLEAR + 1.2, maxRadius * 0.9);
+        double radius = CLEAR + Math.random() * (outer - CLEAR);
+        double theta = Math.random() * Math.PI * 2.0;
+        // Uniform over the sphere rather than bunched at the poles.
+        double z = Math.random() * 2.0 - 1.0;
+        double ring = Math.sqrt(Math.max(0.0, 1.0 - z * z));
+        return centre.clone().add(Math.cos(theta) * ring * radius, z * radius * 0.7,
+                Math.sin(theta) * ring * radius);
+    }
+
     private void sound(Sound sound, float volume, float pitch) {
         Location at = player.getLocation();
         for (Player viewer : audience) {
@@ -374,8 +436,12 @@ public final class RollAura {
         }
 
         elapsed++;
+        actElapsed++;
         refreshAudience();
-        double progress = Math.min(1.0, (double) elapsed / durationTicks);
+        // Progress is through the ACT, not through the whole reveal. Every
+        // act is a complete build-up: it gathers, charges, implodes and
+        // either breaks through into the next band or is the ending.
+        double progress = Math.min(1.0, (double) actElapsed / actTicks);
 
         playDueCues(progress);
 
@@ -392,17 +458,7 @@ public final class RollAura {
             // rest of the build-up. One line, then it is taken out and the
             // rest of the reveal plays without it.
             try {
-                comet.tick(elapsed, IMPLODE_FROM);
-                // The comet owns the counter, so it owns the ladder: its
-                // clock is the roll's and the aura's is only its own
-                // build-up, and the two differ whenever a roll is slower
-                // than its rarity's aura. Polling it here rather than
-                // letting it call back keeps the flow one way.
-                int stage = comet.stageIndex();
-                if (stage != stageIndex) {
-                    stageIndex = stage;
-                    wear(comet.stageRarity());
-                }
+                comet.tick(actElapsed, IMPLODE_FROM);
             } catch (RuntimeException ex) {
                 plugin.getLogger().warning("Roll comet (" + rarity + ") failed: " + ex);
                 comet.stop();
@@ -414,13 +470,63 @@ public final class RollAura {
             drawBuildUp(progress);
             // A rising note ladder under the score, so something is always
             // climbing even between cues.
-            int noteEvery = rarity == Rarity.DIVINE ? 10 : 6;
+            int noteEvery = look == Rarity.DIVINE ? 10 : 6;
             if (elapsed % noteEvery == 0) {
-                sound(rarity == Rarity.EPIC ? Sound.BLOCK_NOTE_BLOCK_PLING : Sound.BLOCK_NOTE_BLOCK_BELL,
+                sound(look == Rarity.EPIC ? Sound.BLOCK_NOTE_BLOCK_PLING : Sound.BLOCK_NOTE_BLOCK_BELL,
                         1.2f, (float) Math.min(2.0, 0.5 + progress * 1.5));
             }
         } else {
             drawImplosion((progress - IMPLODE_FROM) / (1.0 - IMPLODE_FROM));
+        }
+
+        // The act is over. Either the band the drop was actually found in
+        // is next, and the reveal holds here for reveal() to end it, or it
+        // breaks through and the next act opens on top of the burst.
+        if (actElapsed >= actTicks && stages != null && stages.climbsAfter(act)) {
+            breakthrough();
+        }
+    }
+
+    /**
+     * The seam between two acts: the counter has reached the next band's
+     * entry, so the reveal grows into it.
+     *
+     * The comet hits first, which is what the moment sounds like, then
+     * everything is repainted in the new band and a fresh comet launches
+     * for the act that follows. The cue list restarts with it, so each act
+     * plays its own band's score rather than one score stretched over the
+     * whole run.
+     */
+    private void breakthrough() {
+        act++;
+        actElapsed = 0L;
+        nextCue = 0;
+        Rarity next = stages.rarityAt(act);
+        if (comet != null) {
+            try {
+                comet.impact(false);
+            } catch (RuntimeException ex) {
+                plugin.getLogger().warning("Roll comet breakthrough (" + rarity + ") failed: " + ex);
+            }
+        }
+        wear(next);
+        // The ring thrown outward on the seam, for everybody watching from
+        // outside, who cannot see the comet or the counter at all. It is
+        // the only thing that tells them the roll just got bigger.
+        Location base = player.getLocation();
+        for (int wave = 0; wave < 3; wave++) {
+            ring(base, maxRadius * (0.6 + wave * 0.45), (int) (20 + maxRadius * 4),
+                    wave == 0 ? dustBright : dust, 0.1 + wave * 0.6);
+        }
+        sound(Sound.ITEM_TRIDENT_THUNDER, 1.4f, (float) Math.min(2.0, 0.8 + 0.15 * act));
+        if (comet != null) {
+            try {
+                comet.startAct(act);
+            } catch (RuntimeException ex) {
+                plugin.getLogger().warning("Roll comet act " + act + " (" + rarity + ") failed: " + ex);
+                comet.stop();
+                comet = null;
+            }
         }
     }
 
@@ -436,6 +542,7 @@ public final class RollAura {
      */
     private void wear(Rarity stage) {
         this.look = stage;
+        this.score = scoreFor(stage);
         Color colour = colorFor(stage);
         this.maxRadius = maxRadiusFor(stage);
         this.strands = strandsFor(stage);
@@ -578,7 +685,7 @@ public final class RollAura {
             return;
         }
         if (thrown != null) thrown.detonate();
-        if (landing != null) landing.land();
+        if (landing != null) landing.impact(true);
 
         long length = finaleTicks(rarity);
         final long[] frame = {0L};
@@ -636,10 +743,10 @@ public final class RollAura {
 
         if (frame == 1) {
             puff(Particle.FLASH, core, 3, 0.0, 0.0, 0.0, 0.0);
-            puff(Particle.EXPLOSION_EMITTER, core, 4, 1.6, 0.8, 1.6, 0.0);
-            puff(Particle.SONIC_BOOM, core, 1, 0.0, 0.0, 0.0, 0.0);
-            puff(accent, core, 340, 3.0, 1.8, 3.0, 0.45);
-            dustAt(core, 300, 2.8, dustBright);
+            puff(Particle.SONIC_BOOM, base.clone().add(0, 6.0, 0), 1, 0.0, 0.0, 0.0, 0.0);
+            shellPuff(Particle.EXPLOSION_EMITTER, core, 4, 0.0);
+            shellPuff(accent, core, 340, 0.45);
+            shellDust(core, 300, dustBright);
             lightningRing(8.0, 10);
 
             sound(Sound.ENTITY_LIGHTNING_BOLT_IMPACT, 4.0f, 0.6f);
@@ -652,7 +759,7 @@ public final class RollAura {
         // the part that makes the burst visible from inside it.
         if (frame <= 26) {
             double p = frame / 26.0;
-            double radius = 1.0 + ease(p) * 22.0;
+            double radius = CLEAR + ease(p) * 20.0;
             // Thins out as it grows so the far edge doesn't turn into a wall.
             int rings = p < 0.5 ? 7 : 5;
             int points = p < 0.5 ? 18 : 12;
@@ -664,8 +771,14 @@ public final class RollAura {
         double pillarWidth = 0.4 + 1.6 * Math.sin(Math.min(1.0, frame / 14.0) * Math.PI * 0.5) * pillarLife;
         for (double y = 0.0; y < 40.0; y += 1.0) {
             double sway = Math.sin((y * 0.4) + (frame * 0.25)) * pillarWidth;
-            dustAt(base.clone().add(sway, y, Math.cos((y * 0.4) + (frame * 0.25)) * pillarWidth),
-                    1, 0.05, y < 6 ? dustBright : dust);
+            Location point = base.clone().add(sway, y,
+                    Math.cos((y * 0.4) + (frame * 0.25)) * pillarWidth);
+            // The column stands through the roller, so the two or three
+            // points at their own head are left out. From outside the gap
+            // is invisible; from inside it is the difference between a
+            // landmark and a faceful of dust.
+            if (!clearOfFace(point)) continue;
+            dustAt(point, 1, 0.05, y < 6 ? dustBright : dust);
         }
         if (frame % 3 == 0) {
             puff(Particle.ELECTRIC_SPARK, base.clone().add(0, 4.0 + (frame % 20), 0), 4, 0.6, 0.6, 0.6, 0.04);
@@ -680,7 +793,7 @@ public final class RollAura {
         } else if (frame == FINAL_STRIKE) {
             lightningRing(16.0, 10);
             puff(Particle.FLASH, core, 2, 0.0, 0.0, 0.0, 0.0);
-            puff(Particle.EXPLOSION_EMITTER, core, 2, 1.2, 0.6, 1.2, 0.0);
+            shellPuff(Particle.EXPLOSION_EMITTER, core, 2, 0.0);
             sound(Sound.ENTITY_LIGHTNING_BOLT_IMPACT, 4.0f, 0.7f);
             sound(Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 4.0f, 0.5f);
         } else if (frame == FINAL_STRIKE + DING_OFFSET) {
@@ -758,20 +871,23 @@ public final class RollAura {
         Location base = player.getLocation();
         Location core = base.clone().add(0, 1.6, 0);
 
-        dustAt(core, 220, maxRadius * 0.3, dustBright);
-        puff(accent, core, 90, maxRadius * 0.22, 0.9, maxRadius * 0.22, 0.35);
+        shellDust(core, 220, dustBright);
+        shellPuff(accent, core, 90, 0.35);
 
         if (rarity == Rarity.MYTHICAL) {
             // Mythical ran the beat finale until the two swapped, and it
             // landed on the shared ending underneath, which finished the
             // second longest build-up in the plugin on an XP pickup noise.
             // It gets its own arrival now.
+            // FLASH is a screen wide flare with no position to speak of,
+            // so it is the one thing that may sit on the camera. The boom
+            // goes overhead, where it is a shape rather than a wall.
             puff(Particle.FLASH, core, 1, 0.0, 0.0, 0.0, 0.0);
-            puff(Particle.EXPLOSION_EMITTER, core, 2, 1.1, 0.6, 1.1, 0.0);
-            puff(Particle.SONIC_BOOM, core, 1, 0.0, 0.0, 0.0, 0.0);
-            puff(Particle.TOTEM_OF_UNDYING, core, 170, 1.5, 1.2, 1.5, 0.5);
-            puff(accent, core, 120, maxRadius * 0.3, 1.0, maxRadius * 0.3, 0.4);
-            dustAt(core, 200, 1.8, dustBright);
+            puff(Particle.SONIC_BOOM, base.clone().add(0, 5.0, 0), 1, 0.0, 0.0, 0.0, 0.0);
+            shellPuff(Particle.EXPLOSION_EMITTER, core, 2, 0.0);
+            shellPuff(Particle.TOTEM_OF_UNDYING, core, 170, 0.5);
+            shellPuff(accent, core, 120, 0.4);
+            shellDust(core, 200, dustBright);
             ring(base, maxRadius * 1.5, 70, dustBright, 0.1);
             lightningRing(maxRadius * 0.8, 6);
 
@@ -782,8 +898,8 @@ public final class RollAura {
             sound(Sound.BLOCK_END_PORTAL_SPAWN, 3.5f, 1.3f);
             sound(Sound.ENTITY_WITHER_SPAWN, 3.0f, 1.5f);
         } else if (rarity == Rarity.LEGENDARY) {
-            puff(Particle.TOTEM_OF_UNDYING, core, 140, 1.3, 1.0, 1.3, 0.45);
-            puff(Particle.FIREWORK, core, 90, 1.1, 0.9, 1.1, 0.35);
+            shellPuff(Particle.TOTEM_OF_UNDYING, core, 140, 0.45);
+            shellPuff(Particle.FIREWORK, core, 90, 0.35);
             puff(Particle.FLASH, core, 1, 0.0, 0.0, 0.0, 0.0);
             ring(base, maxRadius * 1.3, 60, dustBright, 0.1);
 
@@ -791,8 +907,8 @@ public final class RollAura {
             sound(Sound.UI_TOAST_CHALLENGE_COMPLETE, 2.5f, 1.0f);
             sound(Sound.ITEM_TOTEM_USE, 2.5f, 1.2f);
         } else {
-            puff(Particle.WITCH, core, 100, 0.9, 0.9, 0.9, 0.15);
-            puff(Particle.END_ROD, core, 50, 0.6, 0.7, 0.6, 0.25);
+            shellPuff(Particle.WITCH, core, 100, 0.15);
+            shellPuff(Particle.END_ROD, core, 50, 0.25);
 
             sound(Sound.BLOCK_BEACON_POWER_SELECT, 2.0f, 1.6f);
             sound(Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.5f, 1.8f);
