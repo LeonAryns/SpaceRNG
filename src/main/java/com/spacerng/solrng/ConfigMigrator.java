@@ -69,6 +69,8 @@ public final class ConfigMigrator {
             // cannot tune the one timing that matters.
             "roll-item.comet.stage-seconds", "roll-item.comet.counter-scale",
             "roll-item.comet.mystery-head",
+            // V198: where the two pieces in front of the roller are put.
+            "roll-item.comet.screen",
             "discord", "holograms",
             "holograms.panels.armor", "holograms.panels.starforge", "holograms.panels.potion",
             "holograms.panels.convert", "holograms.panels.pass", "holograms.panels.store",

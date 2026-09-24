@@ -117,6 +117,25 @@ roll-item:
     # a black question mark. /rngadmin head hands you the item, which is
     # how you tell a bad texture from a bad effect.
     mystery-head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNDZiYTYzMzQ0ZjQ5ZGQxYzRmNTQ4OGU5MjZiZjNkOWUyYjI5OTE2YTZjNTBkNjEwYmI0MGE1MjczZGM4YzgyIn19fQ=="
+    # Where the two pieces that hang in front of you are put: the drop
+    # (a question mark until the odds land on it) and the odds themselves.
+    #
+    # "world" works the spot out in ordinary coordinates and teleports
+    # them there every tick. One tick behind a fast head turn, and it
+    # cannot be got wrong. "pinned" mounts them on you and lets the client
+    # place them from its own camera every frame, which has no lag at all
+    # but depends on a convention that cannot be checked by reading the
+    # API, and which is the most likely reason none of this was visible
+    # before V198.
+    #
+    # ahead is how far in front of your eyes they sit, item-down how far
+    # the drop hangs below that line and counter-up how far the odds sit
+    # above it. All in blocks; these only do anything in world mode.
+    screen:
+      mode: world
+      ahead: 1.6
+      item-down: 0.45
+      counter-up: 0.35
     # Swings the roller's view up towards the comet while it falls.
     #
     # Left off, and not because it does not work. Minecraft gives a plugin

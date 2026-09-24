@@ -483,7 +483,12 @@ public class RollListener implements Listener {
                     player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.8f, 1.2f);
                     chimedOnLanding.add(player.getUniqueId());
                 }
-                if (data.isRollAnimationEnabled() && cinematic[0]) {
+                // NOT gated on Rolling Animation. That switch belongs to the
+                // reel; this is the cutscene, and it is already gated on the
+                // rarity's own aura switch, which is what the player used to
+                // ask for it. Gating it twice is how the whole thing can be
+                // invisible to somebody with the wrong toggle off.
+                if (cinematic[0]) {
                     // A comet is falling, so the reel steps aside. The drop
                     // used to appear at 78% of the roll, which on a fifteen
                     // second Divine put the answer on the screen while the
@@ -651,7 +656,7 @@ public class RollListener implements Listener {
             // so this is where it becomes the drop: on the same frame the
             // comet lands, which is the moment the counter stopped on the
             // real odds.
-            if (cinematic && data.isRollAnimationEnabled()) {
+            if (cinematic) {
                 showcase.show(buildTaggedItem(result, shiny), true);
             }
             showcase.finish(RollAura.finaleTicks(result.getRarity()) + 30L);

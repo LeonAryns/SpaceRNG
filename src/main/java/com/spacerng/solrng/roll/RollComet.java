@@ -274,7 +274,10 @@ final class RollComet {
         streak(last, now);
         last = now;
 
-        if (counter && readout != null) readout.show(line(stages.shownOdds(act, progress)));
+        if (counter && readout != null) {
+            readout.show(line(stages.shownOdds(act, progress)));
+            climbTick(progress);
+        }
         if (progress < hushFrom) roar(actElapsed, progress, now);
         if (steer) steerTowards(now);
     }
@@ -428,6 +431,23 @@ final class RollComet {
     }
 
     /**
+     * The sound of the number going up.
+     *
+     * Leon asked for it twice: "de odds en geluid van oplopen is ook nog
+     * steeds weg". A counter that climbs in silence is a number changing,
+     * not a machine running. One short tick every counter frame, climbing
+     * most of an octave across the act so the act itself is audibly
+     * winding up, quiet enough to sit under the score rather than on top
+     * of it, and nudged each time so fifty of them in five seconds do not
+     * turn into a drone.
+     */
+    private void climbTick(double progress) {
+        float jitter = (float) (ThreadLocalRandom.current().nextDouble() * 0.08 - 0.04);
+        player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_HAT, 0.35f,
+                (float) Math.min(2.0, 0.9 + progress * 0.9) + jitter);
+    }
+
+    /**
      * The approach. One heavy beat, getting louder and higher as it closes,
      * with the pitch nudged each time so a repeated sound does not start to
      * read as a machine.
@@ -447,13 +467,18 @@ final class RollComet {
     // --------------------------------------------------------- the counter
 
     /**
-     * Whether text belongs on this player's screen at all. The same switch
-     * the reel's own titles obey: somebody who turned the rolling
-     * animation off asked for no text, and a comet is not a reason to put
-     * some back.
+     * Whether text belongs on this player's screen at all.
+     *
+     * It used to follow Rolling Animation in /options, on the reasoning
+     * that the counter is text like the reel's titles are. That was a
+     * guess, and a guess in the one place that could silently hide the
+     * whole cutscene from somebody who had that switch off. The counter
+     * belongs to the reveal, and the reveal is already gated on this
+     * rarity's aura switch, which is the one the player used to ask for
+     * this show in the first place.
      */
     private boolean wantsText() {
-        return plugin.getPlayerDataManager().get(player.getUniqueId()).isRollAnimationEnabled();
+        return true;
     }
 
     /**

@@ -38,7 +38,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
 
     private static final List<String> SUBCOMMANDS = List.of(
             "reload", "setspawn", "starforge", "reset", "give", "drops",
-            "bank", "rank", "cosmetic", "aura", "head", "roll", "unlock", "unlockall", "lockall", "odds", "farmblock", "farmscan", "farmwheat", "farmland",
+            "bank", "rank", "cosmetic", "aura", "head", "reveal", "roll", "unlock", "unlockall", "lockall", "odds", "farmblock", "farmscan", "farmwheat", "farmland",
             "hoe", "consumable", "gradient", "welcome", "crops", "farmclear",
             "milestones", "farmfill", "boost", "crowd", "nova", "placeholders", "payout", "crate", "tophead", "floatingitem", "boss", "pet", "dust", "discord", "advancements", "icon", "shiny", "firsts", "lorestyles", "tagstyles", "menustyles", "hoestyles", "standingstyles", "enchantstyles", "novastyles", "auratest", "holo", "help");
     private static final List<String> CURRENCIES = List.of("money", "coins", "gems", "credits", "luck", "speed", "tickets");
@@ -78,6 +78,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             case "bank" -> players.doDrops(sender, args, true);
             case "aura" -> showcase.doAura(sender, args);
             case "head" -> showcase.doHead(sender, args);
+            case "reveal" -> showcase.doReveal(sender, args);
             case "roll" -> showcase.doRoll(sender, args);
             case "shiny" -> showcase.doShiny(sender, args);
             case "firsts" -> showcase.doFirsts(sender, args);
@@ -143,6 +144,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         line(sender, "bank", "<rarity|all> <amount> [player]", "Stored drops (the /convert bank)");
         line(sender, "aura", "<epic|legendary|mythical|divine> [player]", "Replay the full reveal build-up + burst");
         line(sender, "head", "[player]", "Hand over the question mark head the reveal holds");
+        line(sender, "reveal", "[player]", "Every switch that can hide part of the reveal, and a preview");
         line(sender, "roll", "<rarity> [player]", "Force a real roll result of that rarity");
         line(sender, "unlock", "<node|all> [player]", "Grant one skill tree node");
         line(sender, "unlockall", "[player]", "Max out every skill in every tree");
@@ -298,7 +300,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
                 case "cosmetic" -> partial(args[1], List.of("give", "take", "list"));
                 case "drops", "bank" -> partial(args[1], withAll(rarityNames()));
                 case "aura" -> partial(args[1], List.of("epic", "legendary", "mythical", "divine"));
-                case "shiny", "head" -> partial(args[1], playerNames());
+                case "shiny", "head", "reveal" -> partial(args[1], playerNames());
                 case "firsts" -> partial(args[1], List.of("list", "reset", "preview"));
                 case "lorestyles" -> partial(args[1], rarityNames());
                 case "tagstyles" -> partial(args[1], RollFormat.TAG_ODDS_STYLES);

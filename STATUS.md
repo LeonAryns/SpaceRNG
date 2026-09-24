@@ -5,7 +5,7 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V197**, 24 September 2026.
+Last updated at **V198**, 24 September 2026.
 
 ## The agreed way of working
 
@@ -506,6 +506,55 @@ first frame and an Epic forty.
 radius, strand count and, for Divine, script, but Epic, Legendary and
 Mythical still share the shape of one. If he wants four visibly different
 endings that is its own jar.
+
+**V198: why none of the screen pieces were ever visible, probably.**
+
+Third report of the same thing. Leon sees the comet, the aura and the
+particles, `/rngadmin head` hands him a correct question mark head, and
+he has never seen the head, the drop or the odds in front of him during
+a roll. Everything missing is a PINNED piece and everything he can see is
+not, which is the one thing they have in common.
+
+Pinning mounts a display on the player with billboard CENTER and puts the
+offset in the transformation, which the client then reads in its own
+camera frame. It has no lag, and the convention behind it (minus Z ahead,
+minus Y down the screen) is the one thing in the whole reveal that cannot
+be checked by reading the API. A sign error there puts the piece exactly
+behind the viewer's head, which is indistinguishable from what he
+describes. `roll/ScreenSpot` now owns that decision and the default is
+**world**: the same spot worked out in ordinary coordinates and
+teleported there every tick. One tick behind a fast head turn, and
+impossible to get wrong. `roll-item.comet.screen.mode: pinned` keeps the
+old way for whoever can stand in game and compare, with `ahead`,
+`item-down` and `counter-up` next to it.
+
+**Particles in the face, third time, and this one was a real miss.** V197
+fixed the finale only, and the finale was never the half he was standing
+in. The BUILD-UP winds its strands in to under a block, and the IMPLOSION
+dragged everything into a point at 1.6 above the feet, which is his eyes,
+at the end of every act. Both read beautifully from six blocks away. The
+cull is per viewer now, inside `dustAt` and `puff`, against each viewer's
+own eyes: the effect is untouched for everybody watching and nobody is
+ever inside it. The implosion also gathers at 3.0 rather than 1.6, which
+is what its own comment always said it did.
+
+**Two smaller ones from the same message:**
+
+- **No sound on the counter.** There never was one. A tick per counter
+  frame now, climbing most of an octave across the act, quiet enough to
+  sit under the score.
+- **The cutscene text was gated twice.** It followed Rolling Animation in
+  /options as well as the rarity's aura switch, which was a guess, and a
+  guess in the one place that can silently hide the whole thing. It
+  follows the aura switch alone now, which is the one the player used to
+  ask for the reveal in the first place.
+
+**`/rngadmin reveal` is the new one to run.** It prints every switch that
+can hide a piece of this, per player and from config, works out how many
+acts and how many seconds each rarity would run for that player, and then
+puts the question mark in front of them for fifteen seconds with no roll
+around it. Three jars went on guessing at "ik zie het niet"; this is so
+the fourth does not.
 
 **Deliberately not done in V186, and why:** the +10% Coins and Gems per
 crop. Those are the `CROP_YIELD` nodes, and they are the spine of the

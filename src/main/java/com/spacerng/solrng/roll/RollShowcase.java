@@ -18,23 +18,19 @@ import org.joml.Vector3f;
  * with every frame of the reel and swells when it lands, so the drop is
  * something you see and not only a name on the screen.
  *
- * It rides the player, and its offset lives in the transformation. A
- * display with billboard CENTER applies its transformation after turning
- * to the camera, so the translation is measured in the camera's own frame:
- * minus Z is straight ahead, minus Y is down the screen. The client
- * rebuilds that every frame from its own camera, and a passenger of the
- * local player moves with it every frame too, so the item is pinned to the
- * screen with no lag at all. Moving it by teleport trailed a tick or two
- * behind every turn of the head.
+ * Where it is put is {@link ScreenSpot}'s decision, and it is the only
+ * interesting thing about this class. Pinned, it rides the player and the
+ * client rebuilds the offset from its own camera every frame. In world
+ * mode it is teleported to the spot in front of their eyes every tick,
+ * which is a tick behind a fast head turn and cannot be got wrong. World
+ * is the default since V198, after Leon reported three times that he
+ * could not see this at all.
+ *
+ * Only the roller ever sees it; to anybody else it would be an item
+ * hanging in front of someone's face.
  */
 public final class RollShowcase {
 
-    private static final float AHEAD = 1.5f;
-    // The client pins the title and subtitle to the middle of the screen, so
-    // the item goes low enough that even landed it clears the subtitle.
-    private static final float BELOW = 0.55f;
-    // A player's passengers sit at the top of the hitbox, above the eyes.
-    private static final float RIDE_ABOVE_EYES = 0.18f;
     private static final float SIZE = 0.34f;
     private static final float LANDED_SIZE = 0.5f;
     // The landing pops past its size, then settles while it starts to turn.
@@ -44,9 +40,17 @@ public final class RollShowcase {
     // never pick the wrong way round; ten ticks each is a turn every two seconds.
     private static final long SPIN_EVERY = 10L;
 
+    // Pinned only: a display with billboard CENTER reads its translation in
+    // the camera's frame, minus Z ahead and minus Y down the screen.
+    private static final float AHEAD = 1.5f;
+    private static final float BELOW = 0.55f;
+    /** A player's passengers sit at the top of the hitbox, above the eyes. */
+    private static final float RIDE_ABOVE_EYES = 0.18f;
+
     private final SolRNGPlugin plugin;
     private final Player player;
     private final ItemDisplay display;
+    private final boolean pinned;
     private final BukkitTask watch;
     private BukkitTask spin;
     private int quarterTurns = 0;
@@ -54,36 +58,39 @@ public final class RollShowcase {
     /**
      * Whether what is being held is a block shaped model rather than a
      * flat sprite. A player head is the only one the reel ever shows, and
-     * it is why the question mark in V196 could not be found: under
-     * transform NONE a flat item is drawn centred on the display's origin
-     * and a BLOCK model is drawn with its CORNER there, so a head pinned
-     * a block and a half in front of the camera hung half a model up and
-     * to the side of where it was meant to be, mostly off the edge of the
-     * screen. It is pulled back by half its own size below.
+     * it matters because under transform NONE a flat item is drawn centred
+     * on the display's origin while a BLOCK model is drawn with its CORNER
+     * there. Left alone, the question mark hangs half a model up and to
+     * the side of where it should be.
      */
     private boolean blockShaped = false;
 
     private RollShowcase(SolRNGPlugin plugin, Player player) {
         this.plugin = plugin;
         this.player = player;
-        Location at = player.getLocation();
-        at.setYaw(0f);
-        at.setPitch(0f);
+        this.pinned = ScreenSpot.pinned(plugin);
+        Location at = spot();
         this.display = player.getWorld().spawn(at, ItemDisplay.class, piece -> {
             piece.setPersistent(false);
             piece.setBillboard(Display.Billboard.CENTER);
             piece.setBrightness(new Display.Brightness(15, 15));
             piece.setShadowRadius(0f);
             piece.setViewRange(0.5f);
+            // A teleported piece is smoothed over the tick between updates;
+            // a pinned one is carried by its ride and must not be.
+            piece.setTeleportDuration(pinned ? 0 : 1);
             piece.setTransformation(pose(SIZE, 0));
             // The aura tag, so the aura sweep on startup clears one a crash left.
             piece.getPersistentDataContainer().set(SolRNGPlugin.key("solrng_aura"), PersistentDataType.BYTE, (byte) 1);
-            // Only the roller sees it; to anyone else it was an item hanging in front of someone's face.
+            // Only the roller sees it.
             piece.setVisibleByDefault(false);
         });
         player.showEntity(plugin, display);
-        player.addPassenger(display);
-        this.watch = plugin.getServer().getScheduler().runTaskTimer(plugin, this::watch, 5L, 5L);
+        if (pinned) player.addPassenger(display);
+        // Pinned needs only the occasional check that it is still riding;
+        // teleported has to be put back in front of the eyes every tick.
+        this.watch = plugin.getServer().getScheduler().runTaskTimer(plugin, this::watch,
+                1L, pinned ? 5L : 1L);
     }
 
     public static RollShowcase start(SolRNGPlugin plugin, Player player) {
@@ -133,28 +140,53 @@ public final class RollShowcase {
         if (display.isValid()) display.remove();
     }
 
-    /** A teleport or a world change drops passengers; put it back, or give up. */
+    /**
+     * Keeps it where it belongs. Teleported, that is every tick in front
+     * of the eyes; pinned, it is only a check that a teleport or a death
+     * has not dropped the passenger.
+     */
     private void watch() {
         if (!player.isOnline() || !display.isValid()) {
             cancel();
             return;
         }
+        if (!display.getWorld().equals(player.getWorld())) {
+            cancel();
+            return;
+        }
+        if (!pinned) {
+            display.teleport(spot());
+            return;
+        }
         if (display.getVehicle() == null || !display.getVehicle().equals(player)) {
-            if (!display.getWorld().equals(player.getWorld())) {
-                cancel();
-                return;
-            }
             display.teleport(player.getLocation().setRotation(0f, 0f));
             player.addPassenger(display);
         }
     }
 
+    /** Where the piece goes: on the player when pinned, in front of them otherwise. */
+    private Location spot() {
+        if (pinned) {
+            Location at = player.getLocation();
+            at.setYaw(0f);
+            at.setPitch(0f);
+            return at;
+        }
+        return ScreenSpot.inFront(player, ScreenSpot.ahead(plugin), -ScreenSpot.itemDown(plugin));
+    }
+
+    /**
+     * The pose. Pinned, it carries the offset in the camera's frame; in
+     * world mode the teleport has already done that and only the size is
+     * left. Either way a corner origin model is pulled back by half its
+     * own scaled size, because the scale is applied before the translation.
+     */
     private Transformation pose(float scale, int quarterTurns) {
-        // The scale is applied to the model before the translation, so a
-        // corner origin model is centred by shifting half its SCALED size.
         float centre = blockShaped ? scale * 0.5f : 0f;
-        return new Transformation(
-                new Vector3f(-centre, -BELOW - RIDE_ABOVE_EYES - centre, -AHEAD - centre),
+        Vector3f offset = pinned
+                ? new Vector3f(-centre, -BELOW - RIDE_ABOVE_EYES - centre, -AHEAD - centre)
+                : new Vector3f(-centre, -centre, -centre);
+        return new Transformation(offset,
                 new Quaternionf().rotateY((float) (Math.PI / 2 * quarterTurns)),
                 new Vector3f(scale, scale, scale), new Quaternionf());
     }

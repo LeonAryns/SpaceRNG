@@ -364,16 +364,42 @@ public final class RollAura {
         }
     }
 
+    /**
+     * Every particle in the reveal goes through here, and this is where
+     * the face is kept clear.
+     *
+     * The check is PER VIEWER, against that viewer's own eyes, which is
+     * the whole trick. The build-up winds its strands in to under a block
+     * and the implosion drags everything into a point at chest height,
+     * and both of those read beautifully from six blocks away and as a
+     * screen full of dust from inside. Culling the near field per viewer
+     * means the effect is untouched for everybody watching and nobody is
+     * ever standing inside it. The roller cannot see the hole, because
+     * the hole is around their own camera.
+     *
+     * Leon reported this twice, the second time after the finale alone
+     * had been fixed: "ztten nogsteeds vele particles voor het gezicht".
+     * The finale was never the half he was in.
+     */
     private void dustAt(Location at, int count, double spread, Particle.DustOptions options) {
         for (Player viewer : audience) {
+            if (tooClose(viewer, at)) continue;
             viewer.spawnParticle(Particle.DUST, at, count, spread, spread, spread, 0.0, options);
         }
     }
 
     private void puff(Particle particle, Location at, int count, double sx, double sy, double sz, double extra) {
         for (Player viewer : audience) {
+            if (tooClose(viewer, at)) continue;
             viewer.spawnParticle(particle, at, count, sx, sy, sz, extra);
         }
+    }
+
+    /** Whether this point would land in that viewer's own face. */
+    private boolean tooClose(Player viewer, Location at) {
+        Location eye = viewer.getEyeLocation();
+        if (at.getWorld() == null || !at.getWorld().equals(eye.getWorld())) return false;
+        return at.distanceSquared(eye) < CLEAR * CLEAR;
     }
 
     /** True when a point is far enough from the roller's eyes to be drawn. */
@@ -620,13 +646,16 @@ public final class RollAura {
      */
     private void drawImplosion(double p) {
         Location base = player.getLocation();
-        Location core = base.clone().add(0, 1.6, 0);
+        // Overhead, not at chest height. The class comment always said the
+        // implosion gathers "into a single point above the player's head"
+        // and the number underneath it said 1.6, which is their eyes.
+        Location core = base.clone().add(0, 3.0, 0);
 
         double radius = maxRadius * 1.3 * (1.0 - ease(p));
         int arms = strands * 3;
         for (int i = 0; i < arms; i++) {
             double angle = (elapsed * 0.6) + (i * (Math.PI * 2 / arms));
-            double y = 1.6 + (1.0 - p) * 1.4 * Math.sin(i * 1.7);
+            double y = 3.0 + (1.0 - p) * 1.4 * Math.sin(i * 1.7);
             dustAt(base.clone().add(Math.cos(angle) * radius, y, Math.sin(angle) * radius), 1, 0.0, dust);
         }
 

@@ -8,64 +8,58 @@ import org.bukkit.entity.Display;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Transformation;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 /**
- * The odds, pinned to the roller's screen while a comet falls.
+ * The odds, hanging in front of the roller while a comet falls.
  *
  * It is a display entity rather than a title for one reason: a title has
  * exactly one size and nothing in the API can change it, and this number
- * has to GROW. Leon asked for the counter to jump out of the screen when
- * it crosses into the next rarity's odds, and a display can be scaled to
- * anything and interpolated between scales by the client for free.
+ * has to GROW. Leon asked for it to jump out of the screen when it
+ * crosses into the next rarity's odds, and a display can be scaled to
+ * anything with the client interpolating between the sizes for free.
  *
- * It is pinned the same way {@link RollShowcase} is: mounted on the
- * player, billboard CENTER, so the client applies the translation in its
- * own camera frame every frame and the text never lags a head turn. Minus
- * Z is straight ahead and minus Y is down the screen, so this sits just
- * above the middle, clear of the drop's own name when that finally lands
- * and clear of the item hanging below it.
+ * Where it is put is {@link ScreenSpot}'s decision, and it is teleported
+ * in front of the eyes every tick by default rather than pinned through
+ * the camera's frame. See that class for why.
  *
  * Shown to the roller and to nobody else, like everything else in the
  * cutscene.
  */
 final class RollCounter {
 
-    private static final float AHEAD = 1.5f;
-    /**
-     * Above the middle of the screen. High enough to clear the drop's own
-     * name when that finally lands under it, since the counter is still
-     * hanging there through the first second of the payoff.
-     */
-    private static final float ABOVE = 0.45f;
-    /** A player's passengers sit at the top of the hitbox, above the eyes. */
-    private static final float RIDE_ABOVE_EYES = 0.18f;
-
     /** How far a promotion throws the number out before it settles back. */
     private static final float POP_FACTOR = 1.5f;
     private static final int POP_TICKS = 3;
     private static final int SETTLE_TICKS = 7;
 
+    // Pinned only: the camera frame offset, minus Y being down the screen.
+    private static final float AHEAD = 1.5f;
+    private static final float ABOVE = 0.45f;
+    private static final float RIDE_ABOVE_EYES = 0.18f;
+
     private final SolRNGPlugin plugin;
     private final Player player;
     private final TextDisplay display;
+    private final boolean pinned;
+    private final BukkitTask watch;
     private float scale;
 
     RollCounter(SolRNGPlugin plugin, Player player, float scale) {
         this.plugin = plugin;
         this.player = player;
         this.scale = scale;
-        Location at = player.getLocation();
-        at.setYaw(0f);
-        at.setPitch(0f);
-        this.display = player.getWorld().spawn(at, TextDisplay.class, piece -> {
+        this.pinned = ScreenSpot.pinned(plugin);
+        this.display = player.getWorld().spawn(spot(), TextDisplay.class, piece -> {
             piece.setPersistent(false);
             piece.setBillboard(Display.Billboard.CENTER);
             piece.setBrightness(new Display.Brightness(15, 15));
             piece.setShadowRadius(0f);
             piece.setViewRange(0.5f);
+            piece.setTeleportDuration(pinned ? 0 : 1);
             piece.setAlignment(TextDisplay.TextAlignment.CENTER);
             // No panel behind it. The default background is a dark box, and
             // a number floating in the sky reads as part of the world while
@@ -84,13 +78,14 @@ final class RollCounter {
             piece.setVisibleByDefault(false);
         });
         player.showEntity(plugin, display);
-        player.addPassenger(display);
+        if (pinned) player.addPassenger(display);
+        this.watch = plugin.getServer().getScheduler().runTaskTimer(plugin, this::watch,
+                1L, pinned ? 5L : 1L);
     }
 
     /** One ordinary frame of the counter: new text, same size. */
     void show(Component text) {
         if (!display.isValid()) return;
-        remount();
         display.text(text);
     }
 
@@ -102,7 +97,6 @@ final class RollCounter {
      */
     void pop(Component text, float newScale) {
         if (!display.isValid()) return;
-        remount();
         this.scale = newScale;
         display.text(text);
         display.setInterpolationDelay(0);
@@ -118,23 +112,44 @@ final class RollCounter {
 
     /** Removes it now. Safe to call more than once. */
     void stop() {
+        watch.cancel();
         if (display.isValid()) display.remove();
     }
 
-    /**
-     * A teleport or a death drops passengers. The comet ticks every two
-     * ticks anyway, so this rides along with it rather than paying for a
-     * watchdog task of its own.
-     */
-    private void remount() {
-        if (display.getVehicle() != null && display.getVehicle().equals(player)) return;
-        if (!display.getWorld().equals(player.getWorld())) return;
-        display.teleport(player.getLocation().setRotation(0f, 0f));
-        player.addPassenger(display);
+    private void watch() {
+        if (!player.isOnline() || !display.isValid()) {
+            stop();
+            return;
+        }
+        if (!display.getWorld().equals(player.getWorld())) {
+            stop();
+            return;
+        }
+        if (!pinned) {
+            display.teleport(spot());
+            return;
+        }
+        if (display.getVehicle() == null || !display.getVehicle().equals(player)) {
+            display.teleport(player.getLocation().setRotation(0f, 0f));
+            player.addPassenger(display);
+        }
     }
 
-    private static Transformation pose(float scale) {
-        return new Transformation(new Vector3f(0f, ABOVE - RIDE_ABOVE_EYES, -AHEAD),
-                new Quaternionf(), new Vector3f(scale, scale, scale), new Quaternionf());
+    private Location spot() {
+        if (pinned) {
+            Location at = player.getLocation();
+            at.setYaw(0f);
+            at.setPitch(0f);
+            return at;
+        }
+        return ScreenSpot.inFront(player, ScreenSpot.ahead(plugin), ScreenSpot.counterUp(plugin));
+    }
+
+    private Transformation pose(float scale) {
+        Vector3f offset = pinned
+                ? new Vector3f(0f, ABOVE - RIDE_ABOVE_EYES, -AHEAD)
+                : new Vector3f(0f, 0f, 0f);
+        return new Transformation(offset, new Quaternionf(),
+                new Vector3f(scale, scale, scale), new Quaternionf());
     }
 }

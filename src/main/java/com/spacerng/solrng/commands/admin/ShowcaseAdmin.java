@@ -96,6 +96,75 @@ final class ShowcaseAdmin extends AdminTools {
     }
 
     /**
+     * Prints every switch that can hide a piece of the reveal, and shows
+     * the two screen pieces on their own for fifteen seconds.
+     *
+     * Three jars were spent guessing at "ik zie het niet". Half the things
+     * that can suppress a piece of this are per player settings in
+     * /options and half are keys in config, and none of them are visible
+     * from the outside, so they are all printed here in one place and the
+     * pieces themselves are put in front of the person asking with no roll
+     * in the way.
+     */
+    boolean doReveal(CommandSender sender, String[] args) {
+        Player target = resolve(sender, args.length >= 2 ? args[1] : null);
+        if (target == null) return true;
+        PlayerData data = plugin.getPlayerDataManager().get(target.getUniqueId());
+
+        sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "Reveal check for " + target.getName());
+        sender.sendMessage(ChatColor.GRAY + " Rolling Animation: " + yesNo(data.isRollAnimationEnabled())
+                + ChatColor.DARK_GRAY + " (the reel only, not the cutscene)");
+        sender.sendMessage(ChatColor.GRAY + " Rolling Sound: " + yesNo(data.isRollSoundEnabled()));
+        sender.sendMessage(ChatColor.GRAY + " Worn Auras: " + yesNo(data.isWornAurasVisible())
+                + ChatColor.GRAY + "   Own aura view: " + ChatColor.YELLOW + data.getOwnAuraView());
+        StringBuilder auras = new StringBuilder();
+        for (Rarity rarity : Rarity.values()) {
+            if (!RollAura.isBigDrop(rarity)) continue;
+            auras.append(plugin.getRarityManager().style(rarity, rarity.displayName()))
+                    .append(' ').append(yesNo(data.isAuraEnabled(rarity))).append(ChatColor.GRAY).append("  ");
+        }
+        sender.sendMessage(ChatColor.GRAY + " Reveal per rarity: " + auras);
+
+        sender.sendMessage(ChatColor.GRAY + " Comet enabled: "
+                + yesNo(plugin.getConfig().getBoolean("roll-item.comet.enabled", true))
+                + ChatColor.GRAY + "   Counter: "
+                + yesNo(plugin.getConfig().getBoolean("roll-item.comet.counter", true)));
+        sender.sendMessage(ChatColor.GRAY + " Seconds per band: " + ChatColor.YELLOW
+                + plugin.getConfig().getDouble("roll-item.comet.stage-seconds", 5.0)
+                + ChatColor.GRAY + "   Counter scale: " + ChatColor.YELLOW
+                + plugin.getConfig().getDouble("roll-item.comet.counter-scale", 1.0));
+        sender.sendMessage(ChatColor.GRAY + " Screen mode: " + ChatColor.YELLOW
+                + plugin.getConfig().getString("roll-item.comet.screen.mode", "world")
+                + ChatColor.GRAY + "   ahead " + ChatColor.YELLOW
+                + plugin.getConfig().getDouble("roll-item.comet.screen.ahead", 1.6));
+
+        for (Rarity rarity : Rarity.values()) {
+            if (!RollAura.isBigDrop(rarity)) continue;
+            RollableItem sample = randomItemOf(rarity);
+            long odds = sample == null ? 0L : sample.getOdds();
+            com.spacerng.solrng.roll.RollStages ladder =
+                    com.spacerng.solrng.roll.RollStages.of(plugin, data, rarity, odds);
+            long ticks = RollAura.durationTicks(ladder, RollAura.actTicks(plugin));
+            sender.sendMessage(ChatColor.GRAY + " " + plugin.getRarityManager()
+                    .style(rarity, rarity.displayName()) + ChatColor.GRAY + ": " + ladder.acts()
+                    + " acts, " + String.format("%.0f", ticks / 20.0) + "s");
+        }
+
+        // And the two pieces themselves, with no roll around them.
+        com.spacerng.solrng.roll.RollShowcase showcase =
+                com.spacerng.solrng.roll.RollShowcase.start(plugin, target);
+        showcase.show(com.spacerng.solrng.roll.MysteryHead.item(plugin), false);
+        showcase.finish(300L);
+        sender.sendMessage(ChatColor.GREEN + "The question mark is in front of " + target.getName()
+                + " for 15 seconds." + ChatColor.GRAY + " If it is not there, the screen mode is what is wrong.");
+        return true;
+    }
+
+    private static String yesNo(boolean on) {
+        return (on ? ChatColor.GREEN + "on" : ChatColor.RED + "off") + ChatColor.GRAY;
+    }
+
+    /**
      * Tries an aura concept on yourself, in a rarity's colours, so the looks
      * can be judged in game before any of them is tied to tags.
      */
