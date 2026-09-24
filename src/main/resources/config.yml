@@ -76,15 +76,39 @@ roll-item:
     chance: 0.004
     max-rarity: MYTHICAL
   # The comet that falls on an Epic or better roll, with the odds counting
-  # up on the action bar while it comes down. It is drawn for the roller
-  # and for nobody else: everyone around them sees a player standing still
-  # with the usual aura winding up. Its length, height and speed come from
-  # the rarity, so a Divine takes fifteen seconds to arrive and an Epic
-  # three.
+  # up in front of the roller while it comes down. It is drawn for the
+  # roller and for nobody else: everyone around them sees a player
+  # standing still with the usual aura winding up. Its length, height and
+  # speed come from the rarity, so a Divine takes fifteen seconds to
+  # arrive and an Epic three.
+  #
+  # The show CLIMBS. It opens in the lowest band the roller still has
+  # switched on in /options, small and violet for Epic, and every time the
+  # counter crosses into the next rarity's odds the comet grows, takes
+  # that rarity's colour and lit block, and hits, while the number is
+  # thrown out of the screen and pulled back. The aura on the ground
+  # climbs with it. Switch Epic off in /options and the show opens at
+  # Legendary instead.
+  #
+  # The rungs are the shortest odds in each band, read off the items list
+  # rather than written here, so they follow whatever the items say:
+  # Epic 33,000, Legendary 100,000, Mythical 250,000, Divine 10,000,000.
   comet:
     enabled: true
-    # The odds climbing on the action bar under it.
+    # The odds climbing on the screen while it falls, where a roll's own
+    # name usually lands. Switch this off and the normal reel keeps the
+    # screen: candidates, names and all.
     counter: true
+    # How big that number is. A multiplier on the per rarity sizes, so 1.5
+    # makes every band half again as large and 0.7 pulls the lot back.
+    # The only number here that cannot be judged without standing in the
+    # game, so it is the one worth turning.
+    counter-scale: 1.0
+    # The head held in front of the roller while the odds climb, instead
+    # of the drop itself. Any "value" field from a head site goes in here
+    # as it is, no unwrapping: it already carries the skin URL and the
+    # client fetches it. This one is a black question mark.
+    mystery-head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNDZiYTYzMzQ0ZjQ5ZGQxYzRmNTQ4OGU5MjZiZjNkOWUyYjI5OTE2YTZjNTBkNjEwYmI0MGE1MjczZGM4YzgyIn19fQ=="
     # Swings the roller's view up towards the comet while it falls.
     #
     # Left off, and not because it does not work. Minecraft gives a plugin

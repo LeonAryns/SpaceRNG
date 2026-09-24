@@ -181,11 +181,23 @@ public final class RollAura {
     private final Player player;
     private final Rarity rarity;
     private final long durationTicks;
-    private final double maxRadius;
-    private final int strands;
-    private final Particle.DustOptions dust;
-    private final Particle.DustOptions dustBright;
-    private final Particle accent;
+    // The look, which is the CURRENT stage's rather than the drop's.
+    //
+    // A reveal climbs the rarity ladder while its counter runs: it opens
+    // small and violet in the lowest band the roller can see, and grows
+    // and recolours each time the odds cross into the next one. Every one
+    // of these is simply that stage's own rarity value, so a stage of the
+    // climb and the aura that rarity wears on its own can never drift
+    // apart. They are not final for that reason alone.
+    private double maxRadius;
+    private int strands;
+    private Particle.DustOptions dust;
+    private Particle.DustOptions dustBright;
+    private Particle accent;
+    /** Which rung of the ladder the look is on. -1 until the first tick sets it. */
+    private int stageIndex = -1;
+    /** The rarity whose look is currently being worn, which is the stage's. */
+    private Rarity look;
     private final List<Cue> score;
     private final double viewRange;
 
@@ -207,8 +219,12 @@ public final class RollAura {
         this.player = player;
         this.rarity = rarity;
         this.durationTicks = durationFor(rarity);
+        this.look = rarity;
         this.maxRadius = maxRadiusFor(rarity);
         this.strands = strandsFor(rarity);
+        // The stage ladder overwrites these before the first frame when a
+        // comet is flying; without one the drop's own rarity is the whole
+        // look, which is what every reveal did before the ladder existed.
         Color color = colorFor(rarity);
         this.dust = new Particle.DustOptions(color, 1.3f);
         this.dustBright = new Particle.DustOptions(color, 2.4f);
@@ -255,16 +271,29 @@ public final class RollAura {
         if (!isBigDrop(rarity)) return null;
 
         RollAura aura = new RollAura(plugin, player, rarity);
-        // The one solid shape in an effect made of particles. Past twenty
-        // blocks a few hundred specks read as weather; a ring does not.
-        aura.circle = new RollCircle(plugin, player, rarity, colorFor(rarity), aura.maxRadius);
-        aura.circle.start();
+
+        // The comet comes first, because it decides which rung of the
+        // rarity ladder the whole reveal opens on. Built after the circle
+        // it would repaint a floor that had already been drawn in the
+        // drop's own colour, and the first frame would show the answer.
+        //
         // For the roller alone, and only if they have this rarity's aura
         // switched on. Everybody else sees them standing still.
         if (flightTicks > 0L && RollComet.wanted(plugin, player, rarity)) {
-            aura.comet = new RollComet(plugin, player, rarity, colorFor(rarity), odds, flightTicks);
-            aura.comet.start();
+            RollStages stages = RollStages.of(plugin,
+                    plugin.getPlayerDataManager().get(player.getUniqueId()), rarity, odds);
+            if (!stages.isEmpty()) {
+                aura.comet = new RollComet(plugin, player, rarity, stages, odds, flightTicks);
+                aura.stageIndex = 0;
+                aura.wear(stages.rarityAt(0));
+                aura.comet.start();
+            }
         }
+
+        // The one solid shape in an effect made of particles. Past twenty
+        // blocks a few hundred specks read as weather; a ring does not.
+        aura.circle = new RollCircle(plugin, player, rarity, colorFor(aura.look), aura.maxRadius);
+        aura.circle.start();
         aura.task = plugin.getServer().getScheduler().runTaskTimer(plugin, aura::tick, 0L, 1L);
         return aura;
     }
@@ -272,6 +301,18 @@ public final class RollAura {
     /** The build-up on its own clock, with no drop behind it: the admin preview. */
     public static RollAura start(SolRNGPlugin plugin, Player player, Rarity rarity) {
         return start(plugin, player, rarity, 0L, durationFor(rarity));
+    }
+
+    /**
+     * Whether a comet is flying AND drawing the text on the screen.
+     *
+     * The reel asks this to decide whether to hand the title over and hold
+     * a question mark in front of the roller for the whole build-up. With
+     * no comet, or with its counter switched off in config, the reel keeps
+     * its candidates and nothing changes.
+     */
+    public boolean ownsScreen() {
+        return comet != null && comet.ownsScreen();
     }
 
     /** Stops the build-up without a payoff - used when a roll is abandoned. */
@@ -357,6 +398,16 @@ public final class RollAura {
             // rest of the reveal plays without it.
             try {
                 comet.tick(elapsed, IMPLODE_FROM);
+                // The comet owns the counter, so it owns the ladder: its
+                // clock is the roll's and the aura's is only its own
+                // build-up, and the two differ whenever a roll is slower
+                // than its rarity's aura. Polling it here rather than
+                // letting it call back keeps the flow one way.
+                int stage = comet.stageIndex();
+                if (stage != stageIndex) {
+                    stageIndex = stage;
+                    wear(comet.stageRarity());
+                }
             } catch (RuntimeException ex) {
                 plugin.getLogger().warning("Roll comet (" + rarity + ") failed: " + ex);
                 comet.stop();
@@ -376,6 +427,27 @@ public final class RollAura {
         } else {
             drawImplosion((progress - IMPLODE_FROM) / (1.0 - IMPLODE_FROM));
         }
+    }
+
+    /**
+     * Puts on one stage of the ladder: that rarity's colour, size, strand
+     * count and accent, and the ground circle with it.
+     *
+     * The score is deliberately NOT restyled. Its cues are fractions of
+     * the whole run and they are the arc of the drop that is actually
+     * coming, so a Divine keeps the Divine score from the first frame
+     * while the picture climbs towards it. What marks a promotion in the
+     * audio is the comet's own hit on the frame it happens.
+     */
+    private void wear(Rarity stage) {
+        this.look = stage;
+        Color colour = colorFor(stage);
+        this.maxRadius = maxRadiusFor(stage);
+        this.strands = strandsFor(stage);
+        this.dust = new Particle.DustOptions(colour, 1.3f);
+        this.dustBright = new Particle.DustOptions(colour, 2.4f);
+        this.accent = accentFor(stage);
+        if (circle != null) circle.restyle(colour, maxRadius);
     }
 
     private void playDueCues(double progress) {

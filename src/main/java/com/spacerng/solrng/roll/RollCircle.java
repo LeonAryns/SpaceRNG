@@ -40,9 +40,12 @@ final class RollCircle {
     private final SolRNGPlugin plugin;
     private final Player player;
     private final Rarity rarity;
-    private final Color color;
-    private final Color soft;
-    private final float maxRadius;
+    // Not final since V196: a reveal climbs the rarity ladder while its
+    // odds counter runs, and the circle has to climb with it or the floor
+    // stays Epic violet under a Divine.
+    private Color color;
+    private Color soft;
+    private float maxRadius;
     private final List<Display> pieces = new ArrayList<>();
     private long lastSent = -EVERY;
 
@@ -68,6 +71,31 @@ final class RollCircle {
             player.addPassenger(piece);
         }
         refreshAudience();
+    }
+
+    /**
+     * Repaints and resizes it for the next rung of the ladder.
+     *
+     * The plates are repainted where they stand rather than respawned.
+     * Rebuilding would put every segment back at the pose {@link #start}
+     * draws, in the middle of a turn, so the circle would jump backwards
+     * on the exact frame it is meant to be growing. The new radius is left
+     * to the next {@link #tick}, a frame or two away, which the client
+     * glides into like every other step.
+     */
+    void restyle(Color colour, double maxRadius) {
+        this.color = colour;
+        this.soft = AuraParts.softer(colour);
+        this.maxRadius = (float) maxRadius;
+        for (int i = 0; i < pieces.size(); i++) {
+            Display piece = pieces.get(i);
+            if (!(piece instanceof org.bukkit.entity.TextDisplay plate) || !plate.isValid()) continue;
+            boolean outer = i < OUTER;
+            Color paint = outer ? color : soft;
+            plate.setBackgroundColor(Color.fromARGB(outer ? 235 : 175,
+                    paint.getRed(), paint.getGreen(), paint.getBlue()));
+        }
+        lastSent = -EVERY;
     }
 
     /** Hidden from anybody who switched this rarity's aura off, like the particles. */

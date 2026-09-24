@@ -5,6 +5,7 @@ import com.spacerng.solrng.player.PlayerData;
 import com.spacerng.solrng.player.SkillNode;
 import com.spacerng.solrng.player.SkillTreeManager;
 import com.spacerng.solrng.rarity.Rarity;
+import com.spacerng.solrng.roll.MysteryHead;
 import com.spacerng.solrng.roll.RollAura;
 import com.spacerng.solrng.roll.ShinyPreRoll;
 import com.spacerng.solrng.roll.RollShowcase;
@@ -403,10 +404,17 @@ public class RollListener implements Listener {
         final RollShowcase[] showcase = {null};
         final RollAura[] aura = {null};
         final boolean[] auraStarted = {false};
+        // True once a comet is flying with its counter on. The reel then
+        // hands the screen over: the drop stays a question mark and the
+        // odds climb in its place until the comet lands.
+        final boolean[] cinematic = {false};
         if (preTicks == 0L) {
             auraStarted[0] = true;
             aura[0] = RollAura.start(plugin, player, result.getRarity(), result.getOdds(), rollTicks);
-            if (aura[0] != null) activeAuras.put(player.getUniqueId(), aura[0]);
+            if (aura[0] != null) {
+                activeAuras.put(player.getUniqueId(), aura[0]);
+                cinematic[0] = aura[0].ownsScreen();
+            }
         }
 
         long[] elapsed = {0L};
@@ -426,7 +434,10 @@ public class RollListener implements Listener {
             if (!auraStarted[0]) {
                 auraStarted[0] = true;
                 aura[0] = RollAura.start(plugin, player, result.getRarity(), result.getOdds(), rollTicks);
-                if (aura[0] != null) activeAuras.put(player.getUniqueId(), aura[0]);
+                if (aura[0] != null) {
+                    activeAuras.put(player.getUniqueId(), aura[0]);
+                    cinematic[0] = aura[0].ownsScreen();
+                }
             }
 
             long rollElapsed = elapsed[0] - preTicks;
@@ -434,7 +445,7 @@ public class RollListener implements Listener {
                 taskHolder[0].cancel();
                 rollingTasks.remove(player.getUniqueId());
                 remainingTicks.remove(player.getUniqueId());
-                finishRoll(player, data, result, shiny, auto);
+                finishRoll(player, data, result, shiny, auto, cinematic[0]);
                 return;
             }
 
@@ -460,7 +471,21 @@ public class RollListener implements Listener {
                     player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.8f, 1.2f);
                     chimedOnLanding.add(player.getUniqueId());
                 }
-                if (data.isRollAnimationEnabled()) {
+                if (data.isRollAnimationEnabled() && cinematic[0]) {
+                    // A comet is falling, so the reel steps aside. The drop
+                    // used to appear at 78% of the roll, which on a fifteen
+                    // second Divine put the answer on the screen while the
+                    // comet was still in the sky and left the impact with
+                    // nothing to reveal. A question mark hangs there for the
+                    // whole build-up instead, and the counter under the
+                    // comet carries the tension.
+                    if (showcase[0] == null) {
+                        showcase[0] = RollShowcase.start(plugin, player);
+                        RollShowcase previous = showcases.put(player.getUniqueId(), showcase[0]);
+                        if (previous != null) previous.cancel();
+                        showcase[0].show(MysteryHead.item(plugin), false);
+                    }
+                } else if (data.isRollAnimationEnabled()) {
                     boolean landed = step >= 19;
                     RollableItem shown = landed ? result : teaser(data, result, step);
                     // A candidate stays up until the next one replaces it, so
@@ -604,11 +629,21 @@ public class RollListener implements Listener {
         return plugin.getRarityManager().roll(plugin.getPrestigeManager().effectiveLuck(data));
     }
 
-    private void finishRoll(Player player, PlayerData data, RollableItem result, boolean shiny, boolean auto) {
+    private void finishRoll(Player player, PlayerData data, RollableItem result, boolean shiny,
+                            boolean auto, boolean cinematic) {
         clearActionBar(player);
         // The landed item stays in front of the player through the payoff.
         RollShowcase showcase = showcases.get(player.getUniqueId());
-        if (showcase != null) showcase.finish(RollAura.finaleTicks(result.getRarity()) + 30L);
+        if (showcase != null) {
+            // A cinematic roll held a question mark for the whole build-up,
+            // so this is where it becomes the drop: on the same frame the
+            // comet lands, which is the moment the counter stopped on the
+            // real odds.
+            if (cinematic && data.isRollAnimationEnabled()) {
+                showcase.show(buildTaggedItem(result, shiny), true);
+            }
+            showcase.finish(RollAura.finaleTicks(result.getRarity()) + 30L);
+        }
         // The level-up chime would land on the same tick as a big drop's
         // detonation and just clutter it - the aura brings its own. A roll
         // that reached its landing frame already chimed there.

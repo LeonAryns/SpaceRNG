@@ -5,7 +5,7 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V195**, 24 September 2026.
+Last updated at **V196**, 24 September 2026.
 
 ## The agreed way of working
 
@@ -398,6 +398,52 @@ above.
 
 **Still to come in the blueprint**, one jar each: the egg and the hatch
 animation, then the pet slots and the dust counter in `/aura`.
+
+**V196: the reveal climbs the rarity ladder now.**
+
+Leon's answer to V195, before he had it in game: the text belongs in
+front of you rather than over the hotbar, the drop has to stay a question
+mark until the counter reaches its odds, and the whole thing should start
+small and violet and GROW through the bands, popping with a sound each
+time the odds cross into the next rarity.
+
+- **`roll/RollStages` is the ladder.** A band's entry is the shortest
+  odds any drop in it actually has, read off the item list rather than
+  written down twice: Epic 33,000, Legendary 100,000, Mythical 250,000,
+  Divine 10,000,000. The rungs are filtered by the ROLLER's own
+  `/options`, so somebody who switched the Epic aura off opens at
+  Legendary, which is what he asked for.
+- **Every stage is that rarity's own look**, the same `colorFor`,
+  `maxRadiusFor`, `strandsFor`, `accentFor` and lit block the auras
+  already use, so a rung of the climb cannot drift away from the aura it
+  is borrowed from. `RollAura` follows the comet up the ladder by polling
+  it, and `RollCircle.restyle` repaints the floor where it stands rather
+  than respawning it, which would jump the circle back to its opening
+  pose mid turn.
+- **`roll/RollCounter` is the number, as a display entity**, not a title.
+  A title has exactly one size and nothing in the API can change it, and
+  this number has to grow. It is pinned to the screen the way
+  `RollShowcase` is, just above the middle, and a promotion throws it out
+  to 1.5x for three ticks and pulls it back over seven.
+- **`roll/MysteryHead` is the question mark**, a player head carrying the
+  texture Leon picked, in `roll-item.comet.mystery-head` as the plain
+  base64 every head site hands out. The reel used to land on the real
+  drop at 78% of the roll, so a fifteen second Divine had already given
+  its answer while the comet was still in the sky. On a comet roll the
+  reel now hands the screen over entirely and the head holds until the
+  impact.
+- **The counter finishes before the end, and that matters.** The top
+  band's entry is often the drop's own odds exactly, and the only Divine
+  on this server is one in ten million where Divine starts. Finishing on
+  the last frame would promote to Divine ON the impact and the whole
+  build-up would be Mythical red. The climb is pulled forward until the
+  last rung lands by 62%, so a Divine reads Legendary at 3.4s, Mythical
+  at 4.9s, Divine at 9.3s, and spends its last 5.7 seconds actually
+  looking Divine.
+- `roll-item.comet.counter-scale` is the one number that cannot be
+  judged outside the game. The table behind it is sized against the
+  screen: at 1.5 blocks in front of the camera the view is about 3.7
+  blocks wide, and "1 in 10,000,000" at scale 1 is 1.6 blocks of text.
 
 **Deliberately not done in V186, and why:** the +10% Coins and Gems per
 crop. Those are the `CROP_YIELD` nodes, and they are the spine of the
@@ -840,14 +886,12 @@ record and says WHY, not only what: `git log` for the list,
    which is what the jar already does; the cost in config is still 10 and
    has to become 100. Farm Dust keeps paying for tiers.
 
-   **What is still open is the egg ladder.** He said "de egg
-   kopen/hatchen heeft verschillende rarities", which is either (A) eggs
-   come in tiers, a plain one at 100 dust and better ones costing more,
-   each with its own odds over the pet rarities and its own skin, or (B)
-   one egg at 100 dust that rolls a rarity when it hatches. His own
-   blueprint says "betere Ei-skins bij zeldzamere eieren", which points at
-   A. A three rung ladder was put to him with numbers; nothing is built
-   until he picks.
+   **The egg ladder is answered too:** "gewoon 1 ei voor alles". One egg
+   at 100 Cosmic Dust, and the hatch rolls which rarity of pet comes out
+   of it. No tiers to buy, so no per egg odds tables and no second
+   currency sink. The egg's own look can still change with what it is
+   about to hatch, which is where the shake and the break get their
+   build-up.
 
    **Also open:** whether Cosmic Dust should also fall from scrapping in
    /convert, as a second source or instead of the roll source. And
