@@ -47,7 +47,7 @@ public class CrateSpin {
     private boolean finished;
 
     CrateSpin(SolRNGPlugin plugin, CrateManager manager, Player player, Crate crate,
-              CrateReward winner, Location burstAt, int steps, int slowestGap) {
+              CrateReward winner, Location burstAt, int steps, int fastestGap, int slowestGap) {
         this.plugin = plugin;
         this.manager = manager;
         this.player = player;
@@ -58,11 +58,18 @@ public class CrateSpin {
         // Each step waits a little longer than the one before, on a cubic
         // curve: quick for most of the spin, then a crawl across the last
         // few items, which is the only stretch the eye can actually read.
+        //
+        // The floor under it is fastestGap, and it used to be a hard coded
+        // 1. A tick is a twentieth of a second, so the opening of every
+        // spin pushed seventeen items past in the first second and the eye
+        // read a smear rather than a reel. That is what Leon means by "the
+        // crates are still spinning too fast", and it is the start of the
+        // spin rather than the end of it.
         stepAt = new int[steps];
         int tick = 0;
         for (int i = 0; i < steps; i++) {
             double t = (double) i / steps;
-            tick += 1 + (int) Math.round(Math.pow(t, 3) * slowestGap);
+            tick += fastestGap + (int) Math.round(Math.pow(t, 3) * slowestGap);
             stepAt[i] = tick;
         }
 

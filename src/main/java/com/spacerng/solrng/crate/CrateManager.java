@@ -59,8 +59,11 @@ public class CrateManager {
     private final List<String> unresolved = new ArrayList<>();
     private final Map<UUID, CrateSpin> spins = new HashMap<>();
 
-    private int spinSteps = 32;
-    private int slowestGap = 7;
+    private int spinSteps = 24;
+    // How long the quickest step of the reel waits. Hard coded at 1 until
+    // V202, which put seventeen items past the eye in the first second.
+    private int fastestGap = 3;
+    private int slowestGap = 12;
     private int quickOpenMax = 25;
 
     public CrateManager(SolRNGPlugin plugin) {
@@ -73,8 +76,9 @@ public class CrateManager {
 
     public void load(FileConfiguration config) {
         crates.clear();
-        spinSteps = Math.max(8, config.getInt("crates.spin-steps", 32));
-        slowestGap = Math.max(1, config.getInt("crates.slowest-gap-ticks", 7));
+        spinSteps = Math.max(8, config.getInt("crates.spin-steps", 24));
+        fastestGap = Math.max(1, config.getInt("crates.fastest-gap-ticks", 3));
+        slowestGap = Math.max(1, config.getInt("crates.slowest-gap-ticks", 12));
         quickOpenMax = Math.max(1, config.getInt("crates.quick-open-max", 25));
 
         ConfigurationSection types = config.getConfigurationSection("crates.types");
@@ -370,7 +374,7 @@ public class CrateManager {
         // for a result that already exists, so nothing the menu does can
         // change what comes out.
         CrateSpin spin = new CrateSpin(plugin, this, player, crate, crate.pick(),
-                at, spinSteps, slowestGap);
+                at, spinSteps, fastestGap, slowestGap);
         spins.put(player.getUniqueId(), spin);
         spin.start();
     }

@@ -5,7 +5,7 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V201**, 24 September 2026.
+Last updated at **V202**, 24 September 2026.
 
 ## The agreed way of working
 
@@ -677,6 +677,28 @@ back; everything else fires exactly as it would in play.
 check that the command being used to reproduce it runs the same code as
 the thing being reported. Three jars went on theories about display
 placement that were answered by one screenshot and one command audit.
+
+**V202: the crate reel was a smear, and the numbers say why.**
+
+"the crates are still spinning too fast". Measured rather than guessed:
+the old curve pushed **seventeen items past in the first second** and its
+last step held for 0.35s. The step time was a cubic curve with a hard
+coded floor of ONE tick, so two thirds of every spin ran at a twentieth
+of a second an item. The complaint is about the start of the spin, not
+the end of it.
+
+`crates.fastest-gap-ticks` is that floor, in config now, default 3.
+Alongside it `spin-steps` drops from 32 to 24 and `slowest-gap-ticks`
+climbs from 7 to 12, both carried to a live config by a `Patch` since
+they are values on disk.
+
+| | first second | last step | last five items | total |
+|---|---|---|---|---|
+| before | 17 items | 0.35s | 1.6s | 4.2s |
+| now | 6 items | 0.70s | 2.8s | 6.9s |
+
+Drop `spin-steps` if seven seconds drags; it shortens the whole thing
+without touching how readable any part of it is.
 
 **Deliberately not done in V186, and why:** the +10% Coins and Gems per
 crop. Those are the `CROP_YIELD` nodes, and they are the spine of the

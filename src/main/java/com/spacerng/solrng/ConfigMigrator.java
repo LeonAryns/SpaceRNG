@@ -75,6 +75,8 @@ public final class ConfigMigrator {
             "roll-item.comet.head-scale",
             // V200: how far a ground piece clears the block under it.
             "auras.ground-lift",
+            // V202: the floor under the crate reel's step time.
+            "crates.fastest-gap-ticks",
             "discord", "holograms",
             "holograms.panels.armor", "holograms.panels.starforge", "holograms.panels.potion",
             "holograms.panels.convert", "holograms.panels.pass", "holograms.panels.store",
@@ -135,6 +137,11 @@ public final class ConfigMigrator {
     }
 
     private static final List<Patch> PATCHES = List.of(
+            // V202: the crate reel was a smear for its first second, at
+            // seventeen items a second. Fewer steps and a longer crawl,
+            // alongside the new floor under the step time.
+            new Patch("crate-reel-slower-steps", "crates.spin-steps", 32, 24),
+            new Patch("crate-reel-slower-gap", "crates.slowest-gap-ticks", 7, 12),
             // V199: the reveal's two screen pieces go back to riding the
             // player. V198 defaulted them to being teleported, on the
             // theory that pinning was why they were invisible, and the

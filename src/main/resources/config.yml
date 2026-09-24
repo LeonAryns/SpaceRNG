@@ -3590,9 +3590,19 @@ welcome:
 # jackpot-below: a reward rarer than this share is announced to the whole
 # server and gets the big finish.
 crates:
-  # Steps the reel takes, and how slow the very last step is in ticks.
-  spin-steps: 32
-  slowest-gap-ticks: 7
+  # The reel: how many items pass, how long the QUICKEST step waits and
+  # how much is added to the slowest one, both in ticks.
+  #
+  # fastest-gap-ticks is the one that was missing and the one that was
+  # wrong. It used to be hard coded at 1, so the opening of every spin
+  # pushed seventeen items past in the first second, which no eye reads
+  # as a reel. At 3 it is six a second, and the cubic curve still crawls
+  # to two thirds of a second on the last item. Together these are about
+  # seven seconds; drop spin-steps to shorten the whole thing without
+  # touching how readable it is.
+  spin-steps: 24
+  fastest-gap-ticks: 3
+  slowest-gap-ticks: 12
   # The most keys one sneak click opens.
   quick-open-max: 25
   types:
