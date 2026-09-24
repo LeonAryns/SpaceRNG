@@ -22,17 +22,20 @@ import org.bukkit.util.Vector;
  * teleports the piece there every tick. One tick behind a fast head turn,
  * and impossible to get wrong.
  *
- * World is the default since V198, and the reason is worth writing down.
- * Leon reported three times that he could not see the item, the question
- * mark or the odds, while seeing the comet, the aura and the particles
- * perfectly, and `/rngadmin head` proved the head item itself was fine.
- * Every one of the missing pieces was a pinned one and every piece he
- * could see was not. The camera frame convention behind pinning is the
- * one thing in the reveal that cannot be checked by reading the API, and
- * a sign error in it puts the piece exactly behind the viewer's head,
- * which is indistinguishable from what he described. So the mode that
- * needs no convention is the one that ships, and `pinned` is kept in
- * config for whenever somebody can stand in the game and compare.
+ * <b>Pinned is the default, and V198 was wrong to change that.</b> The
+ * reasoning then was that every piece Leon could not see was a pinned one,
+ * so the convention behind pinning must be the suspect. He answered it in
+ * one line: "die playerhead moet niet zo moeilijk zijn want dat is toch
+ * gwn hetzelfde als alle andere items bij de rolling animation". The reel
+ * shows its candidates through the very same pinned display on every
+ * ordinary roll, so pinning demonstrably works and rebuilding it was
+ * solving a problem that was not there. What the cutscene path actually
+ * did differently was set the item once instead of every reel step, and
+ * gate itself behind a switch the reel does not use.
+ *
+ * World stays available for the day pinning really is the problem, and
+ * because it is the only way to move these two pieces about without a
+ * jar: `roll-item.comet.screen.mode: world`.
  */
 final class ScreenSpot {
 
@@ -42,7 +45,7 @@ final class ScreenSpot {
     /** True while the pieces should ride the player instead of being teleported. */
     static boolean pinned(SolRNGPlugin plugin) {
         return "pinned".equalsIgnoreCase(
-                plugin.getConfig().getString("roll-item.comet.screen.mode", "world"));
+                plugin.getConfig().getString("roll-item.comet.screen.mode", "pinned"));
     }
 
     static double ahead(SolRNGPlugin plugin) {

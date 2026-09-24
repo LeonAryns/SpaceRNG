@@ -496,12 +496,23 @@ public class RollListener implements Listener {
                     // nothing to reveal. A question mark hangs there for the
                     // whole build-up instead, and the counter under the
                     // comet carries the tension.
+                    //
+                    // Fed on EVERY reel step, exactly like the branch
+                    // below. Leon's own argument, and it is the right one:
+                    // "die playerhead moet niet zo moeilijk zijn want dat
+                    // is toch gwn hetzelfde als alle andere items bij de
+                    // rolling animation". It was set once at creation
+                    // before, which is the one way this path differed from
+                    // the one that works, and a display whose item never
+                    // arrived is an invisible display rather than an empty
+                    // one. Handing it the same stack twenty times costs a
+                    // clone of a cached item.
                     if (showcase[0] == null) {
                         showcase[0] = RollShowcase.start(plugin, player);
                         RollShowcase previous = showcases.put(player.getUniqueId(), showcase[0]);
                         if (previous != null) previous.cancel();
-                        showcase[0].show(MysteryHead.item(plugin), false);
                     }
+                    showcase[0].show(MysteryHead.item(plugin), false);
                 } else if (data.isRollAnimationEnabled()) {
                     boolean landed = step >= 19;
                     RollableItem shown = landed ? result : teaser(data, result, step);

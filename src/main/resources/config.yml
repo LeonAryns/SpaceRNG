@@ -120,19 +120,18 @@ roll-item:
     # Where the two pieces that hang in front of you are put: the drop
     # (a question mark until the odds land on it) and the odds themselves.
     #
-    # "world" works the spot out in ordinary coordinates and teleports
-    # them there every tick. One tick behind a fast head turn, and it
-    # cannot be got wrong. "pinned" mounts them on you and lets the client
-    # place them from its own camera every frame, which has no lag at all
-    # but depends on a convention that cannot be checked by reading the
-    # API, and which is the most likely reason none of this was visible
-    # before V198.
+    # "pinned" mounts them on you and lets the client place them from its
+    # own camera every frame, which is how the roll reel has always shown
+    # its items and has no lag at all. "world" works the same spot out in
+    # ordinary coordinates and teleports them there every tick instead:
+    # one tick behind a fast head turn, but it can be moved with the three
+    # numbers below, which pinned ignores.
     #
     # ahead is how far in front of your eyes they sit, item-down how far
     # the drop hangs below that line and counter-up how far the odds sit
-    # above it. All in blocks; these only do anything in world mode.
+    # above it, all in blocks and all world mode only.
     screen:
-      mode: world
+      mode: pinned
       ahead: 1.6
       item-down: 0.45
       counter-up: 0.35

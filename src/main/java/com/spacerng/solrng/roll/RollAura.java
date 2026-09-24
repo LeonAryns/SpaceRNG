@@ -214,6 +214,8 @@ public final class RollAura {
     private final double viewRange;
 
     private final List<Player> audience = new ArrayList<>();
+    // Their eyes, in step with the list above, refreshed once a frame.
+    private final List<Location> eyes = new ArrayList<>();
     private int nextCue = 0;
     private long elapsed = 0L;
     private BukkitTask task;
@@ -355,12 +357,18 @@ public final class RollAura {
      */
     private void refreshAudience() {
         audience.clear();
+        eyes.clear();
         double rangeSq = viewRange * viewRange;
         Location origin = player.getLocation();
         for (Player nearby : player.getWorld().getPlayers()) {
             if (nearby.getLocation().distanceSquared(origin) > rangeSq) continue;
             if (!plugin.getPlayerDataManager().get(nearby.getUniqueId()).isAuraEnabled(rarity)) continue;
             audience.add(nearby);
+            // Read once per frame, not once per particle. Every emitter
+            // checks every point against every viewer's eyes, and a Divine
+            // frame makes hundreds of those calls, so getEyeLocation there
+            // would allocate a Location for each one.
+            eyes.add(nearby.getEyeLocation());
         }
     }
 
@@ -382,22 +390,23 @@ public final class RollAura {
      * The finale was never the half he was in.
      */
     private void dustAt(Location at, int count, double spread, Particle.DustOptions options) {
-        for (Player viewer : audience) {
-            if (tooClose(viewer, at)) continue;
-            viewer.spawnParticle(Particle.DUST, at, count, spread, spread, spread, 0.0, options);
+        for (int i = 0; i < audience.size(); i++) {
+            if (tooClose(i, at)) continue;
+            audience.get(i).spawnParticle(Particle.DUST, at, count, spread, spread, spread, 0.0, options);
         }
     }
 
     private void puff(Particle particle, Location at, int count, double sx, double sy, double sz, double extra) {
-        for (Player viewer : audience) {
-            if (tooClose(viewer, at)) continue;
-            viewer.spawnParticle(particle, at, count, sx, sy, sz, extra);
+        for (int i = 0; i < audience.size(); i++) {
+            if (tooClose(i, at)) continue;
+            audience.get(i).spawnParticle(particle, at, count, sx, sy, sz, extra);
         }
     }
 
-    /** Whether this point would land in that viewer's own face. */
-    private boolean tooClose(Player viewer, Location at) {
-        Location eye = viewer.getEyeLocation();
+    /** Whether this point would land in viewer {@code i}'s own face. */
+    private boolean tooClose(int i, Location at) {
+        if (i >= eyes.size()) return false;
+        Location eye = eyes.get(i);
         if (at.getWorld() == null || !at.getWorld().equals(eye.getWorld())) return false;
         return at.distanceSquared(eye) < CLEAR * CLEAR;
     }
@@ -415,20 +424,22 @@ public final class RollAura {
      * through the middle of it.
      */
     private void shellDust(Location centre, int count, Particle.DustOptions options) {
-        for (int i = 0; i < count; i++) {
+        for (int n = 0; n < count; n++) {
             Location at = onShell(centre);
-            for (Player viewer : audience) {
-                viewer.spawnParticle(Particle.DUST, at, 1, 0.0, 0.0, 0.0, 0.0, options);
+            for (int i = 0; i < audience.size(); i++) {
+                if (tooClose(i, at)) continue;
+                audience.get(i).spawnParticle(Particle.DUST, at, 1, 0.0, 0.0, 0.0, 0.0, options);
             }
         }
     }
 
     /** The same shell for a particle that takes no colour. */
     private void shellPuff(Particle particle, Location centre, int count, double extra) {
-        for (int i = 0; i < count; i++) {
+        for (int n = 0; n < count; n++) {
             Location at = onShell(centre);
-            for (Player viewer : audience) {
-                viewer.spawnParticle(particle, at, 1, 0.0, 0.0, 0.0, extra);
+            for (int i = 0; i < audience.size(); i++) {
+                if (tooClose(i, at)) continue;
+                audience.get(i).spawnParticle(particle, at, 1, 0.0, 0.0, 0.0, extra);
             }
         }
     }

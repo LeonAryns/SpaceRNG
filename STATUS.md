@@ -5,7 +5,7 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V198**, 24 September 2026.
+Last updated at **V199**, 24 September 2026.
 
 ## The agreed way of working
 
@@ -555,6 +555,45 @@ acts and how many seconds each rarity would run for that player, and then
 puts the question mark in front of them for fifteen seconds with no roll
 around it. Three jars went on guessing at "ik zie het niet"; this is so
 the fourth does not.
+
+**V199: Leon was right and V198 was chasing the wrong suspect.**
+
+"doe nog een versie want 198 is weer gevaarlijk en volgensmij moet die
+playerhead niet zo moeilijk te zijn want dat is toch gwn hetzelfde als
+alle andere items bij de rolling animation."
+
+That last clause settles it. The reel shows its candidate items through
+the SAME pinned display on every ordinary roll, and those are visible. So
+pinning works, and V198 rebuilding it as a teleported piece was solving a
+problem that was never there. **`screen.mode` is back to `pinned`**, with
+a `ConfigMigrator.Patch` to flip a server that already took the V198
+file, since a default cannot reach a value written to disk. `world` stays
+in config, both as a fallback and because it is the only way to move
+these two pieces without a jar.
+
+**What the cutscene path actually did differently** from the one that
+works, which is what is fixed here:
+
+- **It set the item once**, at creation, instead of on every reel step.
+  The reel hands its display a stack twenty times a roll. One setItemStack
+  that does not land leaves an ItemDisplay holding nothing, and a display
+  holding nothing is invisible rather than empty. It is fed every step
+  now, the same as the branch beside it, at the cost of a clone of a
+  cached item.
+- **It was gated on Rolling Animation** as well as on the rarity's aura
+  switch, which the reel's own showcase is not. Fixed in V198 and kept.
+
+**Kept from V198**, because they answer things he asked for twice: the
+per viewer particle cull (the build-up and the implosion were the half
+that was in his face, not the finale), the implosion gathering at 3.0
+instead of at eye height, the tick under the climbing counter, and
+`/rngadmin reveal`.
+
+**Also in V199:** the cull reads each viewer's eyes once per frame rather
+than once per particle. Every emitter checks every point against every
+viewer, and a Divine frame makes hundreds of those calls, so a
+`getEyeLocation()` inside the check was allocating a Location per
+particle per viewer.
 
 **Deliberately not done in V186, and why:** the +10% Coins and Gems per
 crop. Those are the `CROP_YIELD` nodes, and they are the spine of the

@@ -131,6 +131,14 @@ public final class ConfigMigrator {
     }
 
     private static final List<Patch> PATCHES = List.of(
+            // V199: the reveal's two screen pieces go back to riding the
+            // player. V198 defaulted them to being teleported, on the
+            // theory that pinning was why they were invisible, and the
+            // reel has been showing its own items through the same pinned
+            // display all along. A server that already took the V198
+            // section has "world" written into its file, so the default
+            // alone would not reach it.
+            new Patch("comet-screen-pinned", "roll-item.comet.screen.mode", "world", "pinned"),
             // V108: Common's label went from grey to white at Leon's request.
             new Patch("common-label-white", "rarities.COMMON.colors", List.of("&7"), List.of("&f")),
             // V118: tags wear the looks Leon picked, built from ground stars, sea lanterns and nether stars.

@@ -134,7 +134,7 @@ final class ShowcaseAdmin extends AdminTools {
                 + ChatColor.GRAY + "   Counter scale: " + ChatColor.YELLOW
                 + plugin.getConfig().getDouble("roll-item.comet.counter-scale", 1.0));
         sender.sendMessage(ChatColor.GRAY + " Screen mode: " + ChatColor.YELLOW
-                + plugin.getConfig().getString("roll-item.comet.screen.mode", "world")
+                + plugin.getConfig().getString("roll-item.comet.screen.mode", "pinned")
                 + ChatColor.GRAY + "   ahead " + ChatColor.YELLOW
                 + plugin.getConfig().getDouble("roll-item.comet.screen.ahead", 1.6));
 
