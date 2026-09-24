@@ -108,7 +108,7 @@ public class TopHeadManager {
         // Past about 300 degrees a frame, interpolation takes the short way
         // round and the head visibly spins backwards.
         spinDegreesPerSecond = Math.max(0.0, Math.min(300.0,
-                config.getDouble("top-heads.spin-degrees-per-second", 90.0)));
+                config.getDouble("top-heads.spin-degrees-per-second", 45.0)));
         bobHeight = config.getDouble("top-heads.bob-height", 0.12);
         scale = (float) config.getDouble("top-heads.scale", 1.5);
         labelDrop = config.getDouble("top-heads.label-drop", 1.0);

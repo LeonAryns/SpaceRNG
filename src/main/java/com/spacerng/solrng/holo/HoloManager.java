@@ -143,7 +143,7 @@ public final class HoloManager {
         crateHeadScale = (float) config.getDouble("holograms.crate-head-scale", 2.6);
         crateHeadLift = config.getDouble("holograms.crate-head-lift", 0.15);
         // Past about 170 degrees an update, interpolation takes the short way round and spins backwards.
-        crateSpinDegrees = Math.max(0.0, Math.min(170.0, config.getDouble("holograms.crate-spin-degrees", 90.0)));
+        crateSpinDegrees = Math.max(0.0, Math.min(170.0, config.getDouble("holograms.crate-spin-degrees", 45.0)));
         crateBob = config.getDouble("holograms.crate-bob", 0.12);
         podiumHeadScale = (float) config.getDouble("holograms.podium-head-scale", 6.0);
         // The podium has its own text size. It is read from across the

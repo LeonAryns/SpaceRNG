@@ -5,7 +5,7 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V202**, 24 September 2026.
+Last updated at **V203**, 24 September 2026.
 
 ## The agreed way of working
 
@@ -699,6 +699,51 @@ they are values on disk.
 
 Drop `spin-steps` if seven seconds drags; it shortens the whole thing
 without touching how readable any part of it is.
+
+**V203: why the odds died after Legendary, and it was one line.**
+
+Four rounds of "het werkt bij epic en legendary maar niet bij mythical en
+divine". The cause:
+
+```java
+void tick(long actElapsed, double hushFrom) {
+    if (done || headPiece == null || !headPiece.isValid()) return;
+```
+
+The counter was updated further down that same method, so **the number
+stopped the moment the comet's head stopped existing**. And the head
+starts at its band's height: Mythical's at 70 blocks up and 40 out,
+Divine's at 90 and 50. That is outside the range a server sends entities
+at and far enough out that a non-persistent display has no reason to
+survive. Epic at 40 and 22 and Legendary at 55 and 30 stay close and
+live. Exactly the split that kept being reported.
+
+Both halves are fixed. The counter is updated before anything can return
+early, and it no longer depends on the comet at all. The comet's own
+heights come in to 18 to 36 blocks up and 10 to 22 out, so the whole path
+stays inside 45 blocks of the player and is always tracked.
+
+**The rest of the same message:**
+
+- **The counter fits the screen now, by construction.** Its size is the
+  smaller of what its band wants and what the text measures, at 0.089
+  blocks a character (read off the V202 screenshot). Bands get bigger
+  exactly as the numbers get longer, which is how "1 in 10,000,000" at
+  Divine's size ran off both edges.
+- **The head was a third of the screen.** `head-scale` 4.0 to 2.0, which
+  is about what a drop takes, and it now **grows a step with every band**
+  the roll survives, as asked.
+- **The particles came back.** `face-clear` was a flat 2.6 and took too
+  much of the aura with it. 1.5 clears about what an arm reaches, so what
+  is at eye level still goes and the rest returns. In config, 0 puts
+  everything back.
+- **The floating heads turn half as fast**, a full circle every eight
+  seconds rather than every four. Both the crate heads and the
+  leaderboard heads, which V202 never touched: that jar changed the reel
+  inside the crate menu, not the heads in the world.
+- **A forced roll takes a Server First again.** V201 held it back on the
+  grounds that a spot cannot be given back. The spots are Leon's to
+  spend and he asked for it.
 
 **Deliberately not done in V186, and why:** the +10% Coins and Gems per
 crop. Those are the `CROP_YIELD` nodes, and they are the spine of the

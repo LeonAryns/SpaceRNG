@@ -77,6 +77,8 @@ public final class ConfigMigrator {
             "auras.ground-lift",
             // V202: the floor under the crate reel's step time.
             "crates.fastest-gap-ticks",
+            // V203: how much room the reveal keeps clear of the eyes.
+            "roll-item.comet.face-clear",
             "discord", "holograms",
             "holograms.panels.armor", "holograms.panels.starforge", "holograms.panels.potion",
             "holograms.panels.convert", "holograms.panels.pass", "holograms.panels.store",
@@ -137,6 +139,13 @@ public final class ConfigMigrator {
     }
 
     private static final List<Patch> PATCHES = List.of(
+            // V203: the floating heads turned a full circle every four
+            // seconds, which is a spin rather than a turn. Every eight now.
+            new Patch("crate-head-slower", "holograms.crate-spin-degrees", 90, 45),
+            new Patch("top-head-slower", "top-heads.spin-degrees-per-second", 90, 45),
+            // V203: the question mark filled a third of the screen at 4.0.
+            // 2.0 is about what a drop takes, which is what was asked for.
+            new Patch("comet-head-scale-2", "roll-item.comet.head-scale", 4.0, 2.0),
             // V202: the crate reel was a smear for its first second, at
             // seventeen items a second. Fewer steps and a longer crawl,
             // alongside the new floor under the step time.

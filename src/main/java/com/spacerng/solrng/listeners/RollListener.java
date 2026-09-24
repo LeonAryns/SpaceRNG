@@ -369,8 +369,7 @@ public class RollListener implements Listener {
         // counter and the finale.
         Rarity demanded = forcedRarity.remove(player.getUniqueId());
         RollableItem asked = demanded == null ? null : randomItemOf(demanded);
-        final boolean forced = asked != null;
-        final RollableItem result = forced ? asked : luckyStrike(floor > 0
+        final RollableItem result = asked != null ? asked : luckyStrike(floor > 0
                 ? plugin.getRarityManager().rollAtLeast(luck, Rarity.values()[floor])
                 : plugin.getRarityManager().roll(luck));
         if (floor > 0) {
@@ -464,7 +463,7 @@ public class RollListener implements Listener {
                 taskHolder[0].cancel();
                 rollingTasks.remove(player.getUniqueId());
                 remainingTicks.remove(player.getUniqueId());
-                finishRoll(player, data, result, shiny, auto, cinematic[0], forced);
+                finishRoll(player, data, result, shiny, auto, cinematic[0]);
                 return;
             }
 
@@ -519,6 +518,10 @@ public class RollListener implements Listener {
                         RollShowcase previous = showcases.put(player.getUniqueId(), showcase[0]);
                         if (previous != null) previous.cancel();
                     }
+                    // Small in the first band and bigger in every one it
+                    // survives, so the question mark itself says how far
+                    // the roll has climbed.
+                    showcase[0].grow(1f + 0.15f * (aura[0] == null ? 0 : aura[0].currentAct()));
                     showcase[0].show(MysteryHead.item(plugin), false);
                 } else if (data.isRollAnimationEnabled()) {
                     boolean landed = step >= 19;
@@ -683,7 +686,7 @@ public class RollListener implements Listener {
     }
 
     private void finishRoll(Player player, PlayerData data, RollableItem result, boolean shiny,
-                            boolean auto, boolean cinematic, boolean forced) {
+                            boolean auto, boolean cinematic) {
         clearActionBar(player);
         // The landed item stays in front of the player through the payoff.
         RollShowcase showcase = showcases.get(player.getUniqueId());
@@ -750,10 +753,11 @@ public class RollListener implements Listener {
         // roll can never take a spot. The event starts the moment the reel
         // lands (V158); waiting for the title as well left seconds of
         // nothing between the roll and its First.
-        // A forced roll is a test, and a Server First spot cannot be given
-        // back. Everything else about the roll is real; this one thing is
-        // not, on purpose.
-        if (!forced) plugin.getFirstTenManager().onRoll(player, result, shiny, finaleTicks);
+        // Including on a forced roll. V201 held the Server First back on
+        // the grounds that a spot cannot be given back; Leon asked for it
+        // anyway ("voor de nextroll moet er ook een first komen"), and the
+        // spots are his to spend.
+        plugin.getFirstTenManager().onRoll(player, result, shiny, finaleTicks);
 
         // Double Roll skill tree branch: a chance to immediately chain into
         // another free roll, no click required.

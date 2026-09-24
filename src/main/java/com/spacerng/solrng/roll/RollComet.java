@@ -84,27 +84,36 @@ final class RollComet {
      * niet particles in mn gezicht". A burst reads as big because of where
      * its EDGE is, and a cloud centred on the camera hides its own shape.
      */
-    private static final double CLEAR = 2.6;
+    private final double CLEAR;
 
     // ---------------------------------------------------- per act, by band
 
-    /** How high the act's comet starts. */
+    /**
+     * How high the act's comet starts, and how far out in front.
+     *
+     * Both were roughly twice this, and that is why the Mythical and
+     * Divine comets were not there: a display 80 or 100 blocks off is
+     * past the range a server sends entities at, and a non-persistent one
+     * out there is a candidate for being cleaned up. Everything now
+     * starts inside 45 blocks of the player, which keeps the whole path
+     * live and tracked, and the bands still differ by a factor of two
+     * from the smallest to the biggest.
+     */
     private static double heightFor(Rarity rarity) {
         return switch (rarity) {
-            case DIVINE -> 90.0;
-            case MYTHICAL -> 70.0;
-            case LEGENDARY -> 55.0;
-            default -> 40.0; // Epic
+            case DIVINE -> 36.0;
+            case MYTHICAL -> 30.0;
+            case LEGENDARY -> 24.0;
+            default -> 18.0; // Epic
         };
     }
 
-    /** How far out in front of the roller it starts. */
     private static double reachFor(Rarity rarity) {
         return switch (rarity) {
-            case DIVINE -> 50.0;
-            case MYTHICAL -> 40.0;
-            case LEGENDARY -> 30.0;
-            default -> 22.0; // Epic
+            case DIVINE -> 22.0;
+            case MYTHICAL -> 18.0;
+            case LEGENDARY -> 14.0;
+            default -> 10.0; // Epic
         };
     }
 
@@ -129,13 +138,8 @@ final class RollComet {
     }
 
     /**
-     * How big the number on the screen is in each band, before the
-     * multiplier in config. Raised across the board in V197: Leon read it
-     * in game and asked for more. Sized against the screen rather than by
-     * eye, a display 1.5 blocks in front of the camera looks onto about
-     * 3.7 blocks of width and "1 in 10,000,000" at scale 1 is about 1.6
-     * blocks of text, so the top of this table fills about two thirds of
-     * it.
+     * How big the number wants to be in each band, before it is made to
+     * fit.
      */
     private static float counterScaleFor(Rarity rarity) {
         return switch (rarity) {
@@ -144,6 +148,36 @@ final class RollComet {
             case LEGENDARY -> 1.2f;
             default -> 1.0f; // Epic
         };
+    }
+
+    /**
+     * One character of the counter, in blocks, at scale 1.
+     *
+     * Measured off Leon's V202 screenshot rather than derived: "1 in
+     * 116,786" is twelve characters, drawn at scale 1.2, and it spans
+     * about 30 percent of a view that is 3.7 blocks wide at the distance
+     * these sit. That is 0.089 blocks a character at scale 1.
+     */
+    private static final double CHAR_WIDTH = 0.089;
+
+    /** How much of the view the number is allowed to take, in blocks. */
+    private static final double FIT_WIDTH = 1.7;
+
+    /**
+     * The size the number is actually drawn at: what its band wants, or
+     * what fits, whichever is smaller.
+     *
+     * A band's own size alone is not safe. The bands get bigger exactly as
+     * the numbers get longer, so "1 in 10,000,000" at Divine's size is
+     * three characters more at one and a half times the scale, and it runs
+     * off both edges of the screen. Fitting to the text means the counter
+     * can never grow past the screen however long the odds get or however
+     * far the config multiplier is turned up.
+     */
+    private float counterScale(Rarity band, long value) {
+        int chars = Math.max(1, RollFormat.chance(value).length());
+        double fits = FIT_WIDTH / (chars * CHAR_WIDTH);
+        return (float) (counterScale * Math.min(counterScaleFor(band), fits));
     }
 
     // -------------------------------------------------------------- state
@@ -192,6 +226,7 @@ final class RollComet {
         this.steer = plugin.getConfig().getBoolean("roll-item.comet.steer-view", false);
         this.counterScale = (float) Math.max(0.2,
                 plugin.getConfig().getDouble("roll-item.comet.counter-scale", 1.0));
+        this.CLEAR = RollAura.clearance(plugin);
 
         Vector look = player.getLocation().getDirection().setY(0.0);
         if (look.lengthSquared() < 1.0e-4) look = new Vector(0.0, 0.0, 1.0);
@@ -244,40 +279,65 @@ final class RollComet {
         player.showEntity(plugin, headPiece);
 
         if (counter && wantsText()) {
-            float scale = counterScale * counterScaleFor(band);
+            long opening = stages.shownOdds(act, 0.0);
+            float scale = counterScale(band, opening);
             if (readout == null) {
                 readout = new RollCounter(plugin, player, scale);
-                readout.show(line(stages.shownOdds(act, 0.0)));
+                readout.show(line(opening));
             } else {
-                readout.pop(line(stages.shownOdds(act, 0.0)), scale);
+                readout.pop(line(opening), scale);
             }
         }
         player.playSound(at, Sound.ENTITY_ENDER_DRAGON_FLAP, 0.7f, 0.5f);
     }
 
-    /** One step of the fall. {@code actElapsed} is ticks into the current act. */
+    /**
+     * One step of the act. {@code actElapsed} is ticks into the current
+     * act.
+     *
+     * <b>The counter is updated before anything can return early, and
+     * that is the bug that cost four rounds.</b> This method used to open
+     * with {@code if (headPiece == null || !headPiece.isValid()) return;}
+     * and the counter was updated below it, so the number stopped the
+     * instant the comet's head stopped existing. The head starts at its
+     * band's height, and Mythical's and Divine's were 70 and 90 blocks up
+     * and 40 and 50 out: far enough from the player that the server has no
+     * reason to keep a non-persistent display alive out there, and far
+     * enough to be outside the range it would be sent to a client anyway.
+     * Epic at 40 and 22 and Legendary at 55 and 30 stay close and live,
+     * which is exactly the split Leon kept reporting: "het werkt bij epic
+     * en legendary". The heights are pulled in below as well, but the
+     * counter must not depend on the comet whatever happens to it.
+     */
     void tick(long actElapsed, double hushFrom) {
-        if (done || headPiece == null || !headPiece.isValid()) return;
+        if (done) return;
         if (actElapsed - lastStep < EVERY) return;
         lastStep = actElapsed;
         frames++;
+
+        double progress = Math.min(1.0, (double) actElapsed / actTicks);
+
+        // The number first, and on its own. It is the one piece of this
+        // that must never be taken down by something else failing.
+        if (counter && readout != null) {
+            readout.show(line(stages.shownOdds(act, progress)));
+            climbTick(progress);
+        }
+
+        if (headPiece == null || !headPiece.isValid()) return;
         // A roller who walked through a portal mid-roll. Teleporting a
         // display across worlds to chase them is not worth the edge cases.
         if (!player.getWorld().equals(headPiece.getWorld())) {
-            stop();
+            if (headPiece.isValid()) headPiece.remove();
+            headPiece = null;
             return;
         }
 
-        double progress = Math.min(1.0, (double) actElapsed / actTicks);
         Location now = positionAt(progress);
         headPiece.teleport(now);
         streak(last, now);
         last = now;
 
-        if (counter && readout != null) {
-            readout.show(line(stages.shownOdds(act, progress)));
-            climbTick(progress);
-        }
         if (progress < hushFrom) roar(actElapsed, progress, now);
         if (steer) steerTowards(now);
     }
@@ -302,7 +362,7 @@ final class RollComet {
         burst();
         if (counter && readout != null) {
             long reached = last ? odds : stages.target(act);
-            readout.pop(line(reached), counterScale * counterScaleFor(band));
+            readout.pop(line(reached), counterScale(band, reached));
         }
         if (last) {
             done = true;
@@ -517,9 +577,10 @@ final class RollComet {
      * narrowed down: there was no way to look at the thing by itself.
      */
     static void preview(SolRNGPlugin plugin, Player player, Rarity rarity, long odds, long ticks) {
-        float scale = (float) Math.max(0.2,
-                plugin.getConfig().getDouble("roll-item.comet.counter-scale", 1.0))
-                * counterScaleFor(rarity);
+        double turn = Math.max(0.2, plugin.getConfig().getDouble("roll-item.comet.counter-scale", 1.0));
+        int chars = Math.max(1, RollFormat.chance(odds).length());
+        float scale = (float) (turn * Math.min(counterScaleFor(rarity),
+                FIT_WIDTH / (chars * CHAR_WIDTH)));
         Color colour = RollAura.colorFor(rarity);
         RollCounter counter = new RollCounter(plugin, player, scale);
         long from = Math.max(100L, odds / 8L);

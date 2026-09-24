@@ -79,6 +79,16 @@ public final class RollShowcase {
      * put its face towards the camera.
      */
     private boolean blockShaped = false;
+    /**
+     * How much bigger than its base the piece is drawn right now.
+     *
+     * One per act of a reveal, so the question mark starts small and
+     * swells with every band it survives: "laat de playerhead een beetje
+     * bewegen dus van klein naar groot bij elke stage". The client
+     * interpolates between the two sizes, so a step is a swell rather
+     * than a jump.
+     */
+    private float growth = 1f;
 
     private RollShowcase(SolRNGPlugin plugin, Player player) {
         this.plugin = plugin;
@@ -134,6 +144,19 @@ public final class RollShowcase {
         }
     }
 
+    /**
+     * Grows or shrinks the piece, over four ticks so it reads as a swell.
+     * Ignored once the drop has landed, since the landing has a size of
+     * its own and a spin to go with it.
+     */
+    public void grow(float factor) {
+        if (!display.isValid() || landed || Math.abs(factor - growth) < 0.01f) return;
+        growth = factor;
+        display.setInterpolationDelay(0);
+        display.setInterpolationDuration(4);
+        display.setTransformation(pose(SIZE, quarterTurns));
+    }
+
     /** One quarter turn at the landed size; the first one also settles the pulse. */
     private void spinStep() {
         if (!display.isValid()) return;
@@ -182,7 +205,7 @@ public final class RollShowcase {
     /** Where the piece goes: on the player when pinned, in front of them otherwise. */
     /** How much bigger a head is drawn than a sprite, from config. */
     private float headScale() {
-        return (float) Math.max(0.5, plugin.getConfig().getDouble("roll-item.comet.head-scale", 4.0));
+        return (float) Math.max(0.5, plugin.getConfig().getDouble("roll-item.comet.head-scale", 2.0));
     }
 
     private Location spot() {
@@ -202,7 +225,7 @@ public final class RollShowcase {
      * own scaled size, because the scale is applied before the translation.
      */
     private Transformation pose(float scale, int quarterTurns) {
-        float size = blockShaped ? scale * headScale() : scale;
+        float size = (blockShaped ? scale * headScale() : scale) * growth;
         Vector3f offset = pinned
                 ? new Vector3f(0f, -BELOW - RIDE_ABOVE_EYES, -AHEAD)
                 : new Vector3f(0f, 0f, 0f);

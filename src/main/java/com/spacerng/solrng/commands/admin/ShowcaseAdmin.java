@@ -90,6 +90,7 @@ final class ShowcaseAdmin extends AdminTools {
                 hold[0].cancel();
                 return;
             }
+            showcase.grow(1f + 0.15f * aura.currentAct());
             showcase.show(com.spacerng.solrng.roll.MysteryHead.item(plugin), false);
         }, 0L, 2L);
 

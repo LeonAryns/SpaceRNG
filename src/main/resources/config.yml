@@ -114,10 +114,11 @@ roll-item:
     # How much bigger the question mark head is drawn than an ordinary
     # drop. A skull is an eight cube inside the sixteen cube every item
     # model lives in, so at the same number it comes out half the size of
-    # a sprite, and in V199 it measured about two and a half percent of
-    # the screen. Turn this until it reads as the thing you are waiting
-    # for.
-    head-scale: 4.0
+    # a sprite; 2.0 puts it at about the size a drop takes on the screen,
+    # which is what was asked for. It then grows a step with every band
+    # the roll survives, so by a Divine's last act it is half again as
+    # big as it started.
+    head-scale: 2.0
     # The head held in front of the roller while the odds climb, instead
     # of the drop itself. Any "value" field from a head site goes in here
     # as it is, and so does the plain texture URL or its hash. This one is
@@ -142,6 +143,13 @@ roll-item:
       ahead: 1.6
       item-down: 0.45
       counter-up: 0.35
+    # How much room is kept clear around the roller's own eyes, in blocks.
+    # Nothing in the reveal is drawn nearer than this TO THAT VIEWER, so
+    # the effect is untouched for everybody watching from outside and
+    # nobody is ever standing inside a cloud. It was 2.6 in V198 and that
+    # took too much of the aura with it; 1.5 clears about what an arm
+    # reaches. Set it to 0 to put every particle back.
+    face-clear: 1.5
     # Swings the roller's view up towards the comet while it falls.
     #
     # Left off, and not because it does not work. Minecraft gives a plugin
@@ -3741,7 +3749,7 @@ holograms:
   # How far the head floats above the crate block, how fast it turns and
   # how far it bobs.
   crate-head-lift: 0.15
-  crate-spin-degrees: 90
+  crate-spin-degrees: 45
   crate-bob: 0.12
   # The podium from /rngadmin holo leader: how big the three heads are,
   # how big its text is, and how far #2 and #3 stand from #1. The podium
@@ -3874,7 +3882,7 @@ holograms:
 # removing the plugin can never leave any behind.
 top-heads:
   refresh-seconds: 30
-  spin-degrees-per-second: 90
+  spin-degrees-per-second: 45
   bob-height: 0.12
   # 1.5 is roughly a real head's size and a half.
   scale: 1.5

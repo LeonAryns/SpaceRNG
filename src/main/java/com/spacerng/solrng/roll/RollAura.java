@@ -66,7 +66,18 @@ public final class RollAura {
      * its EDGE is, so the clouds are shells around the player now and the
      * middle is left empty.
      */
-    private static final double CLEAR = 2.6;
+    public static double clearance(SolRNGPlugin plugin) {
+        return Math.max(0.0, plugin.getConfig().getDouble("roll-item.comet.face-clear", 1.5));
+    }
+
+    /**
+     * Set from that key at the start of every reveal. It was a flat 2.6
+     * and that took too much: Leon's verdict on V202 was "voor de aura ik
+     * vond de particles hiervoor beter, een stuk beter". At 1.5 the zone
+     * that is cleared is the one an arm reaches, so what is at eye level
+     * still goes and the strands below and above the eyes come back.
+     */
+    private final double CLEAR;
 
     // ---------------------------------------------------------- per-rarity
 
@@ -232,6 +243,7 @@ public final class RollAura {
         this.plugin = plugin;
         this.player = player;
         this.rarity = rarity;
+        this.CLEAR = clearance(plugin);
         this.look = rarity;
         this.maxRadius = maxRadiusFor(rarity);
         this.strands = strandsFor(rarity);
@@ -326,6 +338,11 @@ public final class RollAura {
         if (aura.comet != null) aura.comet.startAct(0);
         aura.task = plugin.getServer().getScheduler().runTaskTimer(plugin, aura::tick, 0L, 1L);
         return aura;
+    }
+
+    /** Which act is running, counted from 0, for the reel to size the head by. */
+    public int currentAct() {
+        return act;
     }
 
     /**
