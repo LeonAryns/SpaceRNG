@@ -298,11 +298,6 @@ public final class RollAura {
         return aura;
     }
 
-    /** The build-up on its own clock, with no drop behind it: the admin preview. */
-    public static RollAura start(SolRNGPlugin plugin, Player player, Rarity rarity) {
-        return start(plugin, player, rarity, 0L, durationFor(rarity));
-    }
-
     /**
      * Whether a comet is flying AND drawing the text on the screen.
      *

@@ -364,12 +364,12 @@ final class RollComet {
         player.spawnParticle(accent, at, 24, 0.5, 0.5, 0.5, 0.18);
 
         if (readout != null) {
-            RollCounter last = readout;
+            RollCounter hanging = readout;
             readout = null;
             if (counter && odds > 0L) {
-                last.pop(line(odds), counterScale * counterScaleFor(stages.rarityAt(stageIndex)));
+                hanging.pop(line(odds), counterScale * counterScaleFor(stages.rarityAt(stageIndex)));
             }
-            plugin.getServer().getScheduler().runTaskLater(plugin, last::stop, HOLD_AFTER_LANDING);
+            plugin.getServer().getScheduler().runTaskLater(plugin, hanging::stop, HOLD_AFTER_LANDING);
         }
     }
 
