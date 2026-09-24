@@ -2,6 +2,7 @@ package com.spacerng.solrng.roll;
 
 import com.spacerng.solrng.SolRNGPlugin;
 import com.spacerng.solrng.rarity.Rarity;
+import com.spacerng.solrng.rarity.RollFormat;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Particle;
@@ -218,6 +219,20 @@ public final class RollAura {
     private long actTicks = 100L;
     private int act = 0;
     private long actElapsed = 0L;
+    /**
+     * The odds on the screen.
+     *
+     * It belongs HERE, on the reveal's own clock, and not on the comet
+     * where it used to live. The comet is a display entity thirty or forty
+     * blocks away that can be culled, fail to spawn or be cleaned up, and
+     * every one of those took the number down with it because the two
+     * shared a method. This task runs every tick from the first act to the
+     * last whatever else happens, which is what a counter needs.
+     */
+    private RollCounter readout;
+    /** Told about each act, for /rngadmin aura to report what it is doing. */
+    private java.util.function.Consumer<String> narrator;
+    private long counterFrame;
     // Each act plays its OWN band's score, so the seam between two
     // acts is audible as a change of instrument and not only as a
     // louder version of the same one.
@@ -315,6 +330,7 @@ public final class RollAura {
 
         RollAura aura = new RollAura(plugin, player, rarity);
         aura.stages = stages;
+        aura.dropOdds = odds;
         aura.actTicks = Math.max(1L, actTicks);
 
         // The comet comes first, because its act decides which band the
@@ -336,6 +352,14 @@ public final class RollAura {
         // The comet opens only once the floor is under it, so the first
         // frame of an act is the whole act, not half of it.
         if (aura.comet != null) aura.comet.startAct(0);
+        // And the counter, which is this class's own from V204 on.
+        if (stages != null && !stages.isEmpty()
+                && plugin.getConfig().getBoolean("roll-item.comet.counter", true)) {
+            long opening = stages.shownOdds(0, 0.0);
+            aura.readout = new RollCounter(plugin, player,
+                    RollComet.counterScale(plugin, stages.rarityAt(0), opening));
+            aura.readout.show(RollComet.line(colorFor(stages.rarityAt(0)), opening, 0L));
+        }
         aura.task = plugin.getServer().getScheduler().runTaskTimer(plugin, aura::tick, 0L, 1L);
         return aura;
     }
@@ -368,6 +392,27 @@ public final class RollAura {
         if (comet != null) {
             comet.stop();
             comet = null;
+        }
+        if (readout != null) {
+            readout.stop();
+            readout = null;
+        }
+    }
+
+    /** The drop's own odds, for the last pop of the counter. */
+    private long dropOdds = 0L;
+
+    /** Says what an act is doing, to whoever asked for a preview. */
+    private void say(String line) {
+        if (narrator != null) narrator.accept(line);
+    }
+
+    /** /rngadmin aura reports each act, so "do the acts advance" is answerable. */
+    public void narrateTo(java.util.function.Consumer<String> listener) {
+        this.narrator = listener;
+        if (stages != null && !stages.isEmpty()) {
+            say("act 1 of " + stages.acts() + ": " + stages.rarityAt(0).displayName()
+                    + ", counting to " + RollFormat.chance(stages.target(0)));
         }
     }
 
@@ -515,6 +560,15 @@ public final class RollAura {
             if (elapsed % 20 == 0) circle.refreshAudience();
         }
 
+        // The number, before anything else can fail. Nothing below this
+        // line is allowed to decide whether the odds keep running.
+        if (readout != null && stages != null) {
+            counterFrame++;
+            long shown = stages.shownOdds(act, progress);
+            readout.show(RollComet.line(colorFor(look), shown, counterFrame));
+            if (elapsed % 2 == 0) RollComet.climbTick(player, progress);
+        }
+
         if (comet != null) {
             // Its own catch rather than safely(), which logs and carries on:
             // a comet that throws would throw again every other tick for the
@@ -573,6 +627,13 @@ public final class RollAura {
             }
         }
         wear(next);
+        if (readout != null && stages != null) {
+            long reached = stages.target(act - 1);
+            readout.pop(RollComet.line(colorFor(next), reached, counterFrame),
+                    RollComet.counterScale(plugin, next, reached));
+        }
+        say("act " + (act + 1) + " of " + stages.acts() + ": " + next.displayName()
+                + ", counting to " + RollFormat.chance(stages.target(act)));
         // The ring thrown outward on the seam, for everybody watching from
         // outside, who cannot see the comet or the counter at all. It is
         // the only thing that tells them the roll just got bigger.
@@ -744,14 +805,22 @@ public final class RollAura {
         // take it out of the sky a frame before it arrived.
         RollComet landing = comet;
         comet = null;
+        RollCounter last = readout;
+        readout = null;
         cancel();
         if (!player.isOnline()) {
             if (thrown != null) thrown.stop();
             if (landing != null) landing.stop();
+            if (last != null) last.stop();
             return;
         }
         if (thrown != null) thrown.detonate();
         if (landing != null) landing.impact(true);
+        if (last != null) {
+            last.pop(RollComet.line(colorFor(look), dropOdds, counterFrame),
+                    RollComet.counterScale(plugin, look, dropOdds));
+            plugin.getServer().getScheduler().runTaskLater(plugin, last::stop, 30L);
+        }
 
         long length = finaleTicks(rarity);
         final long[] frame = {0L};

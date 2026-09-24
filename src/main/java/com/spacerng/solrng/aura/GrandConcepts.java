@@ -230,7 +230,13 @@ final class GrandConcepts {
 
         @Override
         public boolean clearOfView() {
-            return true;
+            // Only when it is not swinging through the wearer's own view.
+            // Divine's lanterns ride at chest height barely a block out,
+            // which is exactly where a first person camera is pointing:
+            // "je hebt de sea lanterns die nogsteeds voor de view gaan".
+            float nearest = radii.length == 0 ? 0f : radii[0];
+            for (float r : radii) nearest = Math.min(nearest, r);
+            return AuraParts.outOfView(y, nearest);
         }
 
         @Override

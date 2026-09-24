@@ -6048,7 +6048,7 @@ auras:
   # their rank, so the rings at the feet spent most of their height inside
   # the floor. Raise it if anything still sinks, lower it if the rings
   # start to look like they are hovering.
-  ground-lift: 0.30
+  ground-lift: 0.45
   # Auras are a Linked perk: no Discord link, no aura.
   require-linked: true
   # The shiny look of a rarity, unlocked by rolling a shiny of it and worn

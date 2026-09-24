@@ -159,6 +159,48 @@ public final class Lore {
         return out.toString();
     }
 
+    /**
+     * A gradient that travels along the text, for a name that moves.
+     *
+     * {@code phase} runs 0 to 1 and slides the whole ramp one full lap, so
+     * feeding it a clock makes the colours walk one way for ever. The ramp
+     * is closed into a loop first, with the first stop repeated at the end,
+     * because a one way ramp wrapped round would snap back at the seam and
+     * read as a stutter rather than as a drift.
+     *
+     * The rank that carries rgb-name is refreshed once a second already,
+     * which is what makes this animate at no extra cost.
+     */
+    public static String drift(String text, boolean bold, double phase, String... hexStops) {
+        if (hexStops.length == 0) return text;
+        if (hexStops.length == 1) return of(hexStops[0]) + (bold ? ChatColor.BOLD : "") + text;
+
+        String[] loop = new String[hexStops.length + 1];
+        System.arraycopy(hexStops, 0, loop, 0, hexStops.length);
+        loop[hexStops.length] = hexStops[0];
+
+        String weight = bold ? ChatColor.BOLD.toString() : "";
+        StringBuilder out = new StringBuilder();
+        int length = text.length();
+        int segments = loop.length - 1;
+        double slide = phase - Math.floor(phase);
+        for (int i = 0; i < length; i++) {
+            char c = text.charAt(i);
+            if (c == ' ') {
+                out.append(' ');
+                continue;
+            }
+            double t = (length <= 1 ? 0.0 : (double) i / length) + slide;
+            t -= Math.floor(t);
+            int segment = Math.min((int) (t * segments), segments - 1);
+            double local = (t * segments) - segment;
+            out.append(of(blend(loop[segment], loop[segment + 1], local)))
+               .append(weight)
+               .append(c);
+        }
+        return out.toString();
+    }
+
     /** A bold sidebar/menu section header in the house purple. */
     public static String header(String text) {
         return gradient(text, true, HEADER_STOPS);

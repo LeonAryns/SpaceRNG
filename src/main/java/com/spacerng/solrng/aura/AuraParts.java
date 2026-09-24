@@ -73,9 +73,26 @@ public final class AuraParts {
      * and it is in config as auras.ground-lift so the next word on it
      * costs no jar.
      */
-    public static float GROUND = 0.30f;
+    public static float GROUND = 0.45f;
 
     public static float FEET = -(RIDE - GROUND);
+
+    /**
+     * Whether a ring at this height and radius is out of the wearer's own
+     * way, for the middle setting of Your Own Aura in /options.
+     *
+     * A ring is in the way when it passes through the band a first person
+     * camera actually looks through: above the knees and inside arm's
+     * reach and a bit. Anything hugging the ground is looked down on and
+     * anything far enough out is looked past, and both of those are what
+     * makes a look worth wearing from the inside.
+     *
+     * Heights here are relative to the ride point, the same frame every
+     * concept poses in, so FEET is the floor.
+     */
+    public static boolean outOfView(float y, float radius) {
+        return y <= FEET + 1.0f || radius >= 3.2f;
+    }
 
     /** Sets the ground clearance from config and recomputes what hangs off it. */
     public static void ground(double lift) {

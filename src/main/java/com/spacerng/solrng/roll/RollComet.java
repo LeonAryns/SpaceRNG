@@ -158,10 +158,10 @@ final class RollComet {
      * about 30 percent of a view that is 3.7 blocks wide at the distance
      * these sit. That is 0.089 blocks a character at scale 1.
      */
-    private static final double CHAR_WIDTH = 0.089;
+    static final double CHAR_WIDTH = 0.089;
 
     /** How much of the view the number is allowed to take, in blocks. */
-    private static final double FIT_WIDTH = 1.7;
+    static final double FIT_WIDTH = 1.7;
 
     /**
      * The size the number is actually drawn at: what its band wants, or
@@ -174,10 +174,11 @@ final class RollComet {
      * can never grow past the screen however long the odds get or however
      * far the config multiplier is turned up.
      */
-    private float counterScale(Rarity band, long value) {
+    static float counterScale(SolRNGPlugin plugin, Rarity band, long value) {
+        double turn = Math.max(0.2, plugin.getConfig().getDouble("roll-item.comet.counter-scale", 1.0));
         int chars = Math.max(1, RollFormat.chance(value).length());
         double fits = FIT_WIDTH / (chars * CHAR_WIDTH);
-        return (float) (counterScale * Math.min(counterScaleFor(band), fits));
+        return (float) (turn * Math.min(counterScaleFor(band), fits));
     }
 
     // -------------------------------------------------------------- state
@@ -187,9 +188,7 @@ final class RollComet {
     private final RollStages stages;
     private final long odds;
     private final long actTicks;
-    private final boolean counter;
     private final boolean steer;
-    private final float counterScale;
     /** Which way it comes in from, fixed at the start so it cannot chase a turning head. */
     private final double bearing;
 
@@ -205,7 +204,6 @@ final class RollComet {
     private double reach;
 
     private BlockDisplay headPiece;
-    private RollCounter readout;
     private Location last;
     private long lastStep = -EVERY;
     private long lastRoar = 0L;
@@ -218,14 +216,11 @@ final class RollComet {
         this.stages = stages;
         this.odds = odds;
         this.actTicks = Math.max(1L, actTicks);
-        this.counter = plugin.getConfig().getBoolean("roll-item.comet.counter", true);
         // Off by default. Steering writes the player's real rotation, and
         // the client reports that back, so everybody else would see them
         // spin round. Aiming the comet into the view they already have is
         // what keeps the whole thing private.
         this.steer = plugin.getConfig().getBoolean("roll-item.comet.steer-view", false);
-        this.counterScale = (float) Math.max(0.2,
-                plugin.getConfig().getDouble("roll-item.comet.counter-scale", 1.0));
         this.CLEAR = RollAura.clearance(plugin);
 
         Vector look = player.getLocation().getDirection().setY(0.0);
@@ -246,7 +241,7 @@ final class RollComet {
      * the drop shows its usual candidates, so nothing is left blank.
      */
     boolean ownsScreen() {
-        return counter;
+        return plugin.getConfig().getBoolean("roll-item.comet.counter", true);
     }
 
     // ---------------------------------------------------------- lifecycle
@@ -278,16 +273,6 @@ final class RollComet {
         headPiece.setTeleportDuration(EVERY);
         player.showEntity(plugin, headPiece);
 
-        if (counter && wantsText()) {
-            long opening = stages.shownOdds(act, 0.0);
-            float scale = counterScale(band, opening);
-            if (readout == null) {
-                readout = new RollCounter(plugin, player, scale);
-                readout.show(line(opening));
-            } else {
-                readout.pop(line(opening), scale);
-            }
-        }
         player.playSound(at, Sound.ENTITY_ENDER_DRAGON_FLAP, 0.7f, 0.5f);
     }
 
@@ -316,13 +301,6 @@ final class RollComet {
         frames++;
 
         double progress = Math.min(1.0, (double) actElapsed / actTicks);
-
-        // The number first, and on its own. It is the one piece of this
-        // that must never be taken down by something else failing.
-        if (counter && readout != null) {
-            readout.show(line(stages.shownOdds(act, progress)));
-            climbTick(progress);
-        }
 
         if (headPiece == null || !headPiece.isValid()) return;
         // A roller who walked through a portal mid-roll. Teleporting a
@@ -360,17 +338,8 @@ final class RollComet {
             headPiece = null;
         }
         burst();
-        if (counter && readout != null) {
-            long reached = last ? odds : stages.target(act);
-            readout.pop(line(reached), counterScale(band, reached));
-        }
         if (last) {
             done = true;
-            if (readout != null) {
-                RollCounter hanging = readout;
-                readout = null;
-                plugin.getServer().getScheduler().runTaskLater(plugin, hanging::stop, HOLD_AFTER_LANDING);
-            }
         } else {
             // Low and high together, a step higher each band, so a
             // breakthrough reads as one large sound rather than two.
@@ -414,10 +383,6 @@ final class RollComet {
         if (headPiece != null) {
             if (headPiece.isValid()) headPiece.remove();
             headPiece = null;
-        }
-        if (readout != null) {
-            readout.stop();
-            readout = null;
         }
     }
 
@@ -501,7 +466,7 @@ final class RollComet {
      * of it, and nudged each time so fifty of them in five seconds do not
      * turn into a drone.
      */
-    private void climbTick(double progress) {
+    static void climbTick(Player player, double progress) {
         float jitter = (float) (ThreadLocalRandom.current().nextDouble() * 0.08 - 0.04);
         player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_HAT, 0.35f,
                 (float) Math.min(2.0, 0.9 + progress * 0.9) + jitter);
@@ -550,10 +515,6 @@ final class RollComet {
      * on a wave that walks across the text a little each frame. It costs
      * one component per character on one viewer's screen.
      */
-    private Component line(long value) {
-        return line(colour, value, frames);
-    }
-
     /** The same line without a comet behind it, for the admin preview. */
     static Component line(Color colour, long value, long frame) {
         String text = RollFormat.chance(value);
@@ -577,10 +538,7 @@ final class RollComet {
      * narrowed down: there was no way to look at the thing by itself.
      */
     static void preview(SolRNGPlugin plugin, Player player, Rarity rarity, long odds, long ticks) {
-        double turn = Math.max(0.2, plugin.getConfig().getDouble("roll-item.comet.counter-scale", 1.0));
-        int chars = Math.max(1, RollFormat.chance(odds).length());
-        float scale = (float) (turn * Math.min(counterScaleFor(rarity),
-                FIT_WIDTH / (chars * CHAR_WIDTH)));
+        float scale = counterScale(plugin, rarity, odds);
         Color colour = RollAura.colorFor(rarity);
         RollCounter counter = new RollCounter(plugin, player, scale);
         long from = Math.max(100L, odds / 8L);

@@ -60,7 +60,10 @@ public final class RollShowcase {
     // Pinned only: a display with billboard CENTER reads its translation in
     // the camera's frame, minus Z ahead and minus Y down the screen.
     private static final float AHEAD = 1.5f;
-    private static final float BELOW = 0.55f;
+    // How far under the middle of the screen the drop hangs. 0.55 sat
+    // low enough to read as the bottom of the screen rather than as the
+    // thing you are looking at.
+    private static final float BELOW = 0.38f;
     /** A player's passengers sit at the top of the hitbox, above the eyes. */
     private static final float RIDE_ABOVE_EYES = 0.18f;
 

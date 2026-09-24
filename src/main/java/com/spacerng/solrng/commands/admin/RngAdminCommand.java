@@ -38,7 +38,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
 
     private static final List<String> SUBCOMMANDS = List.of(
             "reload", "setspawn", "starforge", "reset", "give", "drops",
-            "bank", "rank", "cosmetic", "aura", "head", "reveal", "nextroll", "roll", "unlock", "unlockall", "lockall", "odds", "farmblock", "farmscan", "farmwheat", "farmland",
+            "bank", "rank", "cosmetic", "aura", "auras", "head", "reveal", "nextroll", "roll", "unlock", "unlockall", "lockall", "odds", "farmblock", "farmscan", "farmwheat", "farmland",
             "hoe", "consumable", "gradient", "welcome", "crops", "farmclear",
             "milestones", "farmfill", "boost", "crowd", "nova", "placeholders", "payout", "crate", "tophead", "floatingitem", "boss", "pet", "dust", "discord", "advancements", "icon", "shiny", "firsts", "lorestyles", "tagstyles", "menustyles", "hoestyles", "standingstyles", "enchantstyles", "novastyles", "auratest", "holo", "help");
     private static final List<String> CURRENCIES = List.of("money", "coins", "gems", "credits", "luck", "speed", "tickets");
@@ -78,6 +78,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             case "bank" -> players.doDrops(sender, args, true);
             case "aura" -> showcase.doAura(sender, args);
             case "head" -> showcase.doHead(sender, args);
+            case "auras" -> showcase.doAuras(sender, args);
             case "reveal" -> showcase.doReveal(sender, args);
             case "nextroll" -> showcase.doNextRoll(sender, args);
             case "roll" -> showcase.doRoll(sender, args);
@@ -145,6 +146,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         line(sender, "bank", "<rarity|all> <amount> [player]", "Stored drops (the /convert bank)");
         line(sender, "aura", "<epic|legendary|mythical|divine> [player]", "Replay the full reveal build-up + burst");
         line(sender, "head", "[player]", "Hand over the question mark head the reveal holds");
+        line(sender, "auras", "", "Which aura every rarity wears, and the ground numbers");
         line(sender, "reveal", "[player]", "Every switch that can hide part of the reveal, and a preview");
         line(sender, "nextroll", "<rarity> [player]", "Make the next REAL roll land on a rarity");
         line(sender, "roll", "<rarity> [player]", "Force a real roll result of that rarity");

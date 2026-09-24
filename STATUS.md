@@ -5,7 +5,7 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V203**, 24 September 2026.
+Last updated at **V204**, 24 September 2026.
 
 ## The agreed way of working
 
@@ -744,6 +744,50 @@ stays inside 45 blocks of the player and is always tracked.
 - **A forced roll takes a Server First again.** V201 held it back on the
   grounds that a spot cannot be given back. The spots are Leon's to
   spend and he asked for it.
+
+**V204: the counter moved off the comet, and four more from the same list.**
+
+**The odds now live on the reveal's own clock.** V203 stopped the counter
+returning early with the comet, but it still lived INSIDE `RollComet`,
+which is a display entity thirty blocks away that can be culled, fail to
+spawn or be cleaned up. `RollAura` owns the `RollCounter` now and updates
+it every tick from the first act to the last. Nothing about the comet can
+reach it any more, which is the only way to be sure rather than to
+believe.
+
+**`/rngadmin aura` narrates its acts.** One line per act to whoever ran
+it: which band, and what the counter is counting to. If the acts stop
+advancing, or an act has no range to climb, it says so in chat rather
+than leaving it to be guessed from what is or is not on the screen. This
+is the answer to four rounds of "werkt niet bij mythical en divine" with
+no way to tell which half was broken.
+
+**`/rngadmin auras`** lists what every rarity wears, plain and shiny,
+plus the measured ride height, the ground lift and the feet offset. Asked
+for directly, and the three numbers are the first place to look when
+something sinks.
+
+**Ground pieces: 0.45.** Still sinking at 0.30. Carried across by a patch.
+
+**Close orbits stay out of the wearer's own view.** `AuraParts.outOfView`
+is the one rule now: a ring is out of the way when it hugs the ground or
+is past 3.2 blocks out. Divine's sea lanterns ride at 2.8 at chest
+height, which counted as wide enough under the old radius-only test and
+is exactly where a first person camera points.
+
+**The top rank's name moves, in its own colours.** `Lore.drift` walks a
+gradient along the text, one lap every four seconds, off the refresh task
+that already existed for this. With nothing picked it is the rank's own
+stops rather than the rainbow, which said nothing about which rank it was.
+
+**The head sits higher** (0.55 to 0.38 below the middle).
+
+**Still open from the same message**, and honestly a jar of its own: bold
+and italic and underline and strikethrough on drop names by rarity, the
+symbols on either side of a drop inside the tab tag, and shorter names
+for tab and chat. That is the drop naming pipeline (`RollFormat`,
+`RarityStyle`, the tag) rather than the reveal, and mixing it into this
+one would have made both harder to judge.
 
 **Deliberately not done in V186, and why:** the +10% Coins and Gems per
 crop. Those are the `CROP_YIELD` nodes, and they are the spine of the

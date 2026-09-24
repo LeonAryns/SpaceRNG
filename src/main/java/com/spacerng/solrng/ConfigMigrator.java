@@ -139,6 +139,8 @@ public final class ConfigMigrator {
     }
 
     private static final List<Patch> PATCHES = List.of(
+            // V204: the ground pieces were still sinking at 0.30.
+            new Patch("aura-ground-lift-45", "auras.ground-lift", 0.30, 0.45),
             // V203: the floating heads turned a full circle every four
             // seconds, which is a spin rather than a turn. Every eight now.
             new Patch("crate-head-slower", "holograms.crate-spin-degrees", 90, 45),

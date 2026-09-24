@@ -68,6 +68,9 @@ final class ShowcaseAdmin extends AdminTools {
 
         RollAura aura = RollAura.start(plugin, target, rarity, odds, stages, actTicks);
         if (aura == null) return true;
+        // Each act reports itself, so "do the acts advance and does the
+        // counter have a range in each one" stops being a guess.
+        aura.narrateTo(line -> sender.sendMessage(ChatColor.DARK_GRAY + "  " + line));
 
         // The question mark in front of them, fed the same way the roll
         // feeds it.
@@ -110,6 +113,43 @@ final class ShowcaseAdmin extends AdminTools {
                 + (drop == null ? "" : ChatColor.GRAY + ", landing on " + ChatColor.WHITE
                         + drop.getDisplayName()) + ChatColor.GRAY + ".");
         return true;
+    }
+
+    /**
+     * What every rarity actually wears, and the numbers the ground pieces
+     * are placed against.
+     *
+     * Asked for directly: "ook wil ik weten welke auratest je nu hebt voor
+     * elke rarity". The ride height is in here because it is measured at
+     * runtime and everything on the ground is placed relative to it, so if
+     * pieces are sinking it is the first number to look at.
+     */
+    boolean doAuras(CommandSender sender, String[] args) {
+        sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "Auras per rarity");
+        for (Rarity rarity : Rarity.values()) {
+            if (!RollAura.isBigDrop(rarity)) continue;
+            String[] plain = plugin.getAuraManager().lookFor(rarity);
+            String[] shiny = plugin.getAuraManager().shinyLookFor(rarity);
+            sender.sendMessage(ChatColor.GRAY + " "
+                    + plugin.getRarityManager().style(rarity, rarity.displayName())
+                    + ChatColor.GRAY + "  " + ChatColor.WHITE + look(plain)
+                    + ChatColor.DARK_GRAY + "   shiny " + ChatColor.WHITE + look(shiny));
+        }
+        sender.sendMessage(ChatColor.GRAY + " Ride height " + ChatColor.YELLOW
+                + String.format("%.3f", com.spacerng.solrng.aura.AuraParts.RIDE)
+                + ChatColor.GRAY + "   ground lift " + ChatColor.YELLOW
+                + String.format("%.3f", com.spacerng.solrng.aura.AuraParts.GROUND)
+                + ChatColor.GRAY + "   feet offset " + ChatColor.YELLOW
+                + String.format("%.3f", com.spacerng.solrng.aura.AuraParts.FEET));
+        sender.sendMessage(ChatColor.DARK_GRAY + " Ride height is measured off a worn piece. "
+                + "Ground pieces sit the lift above the block; raise auras.ground-lift if they sink.");
+        return true;
+    }
+
+    private static String look(String[] pair) {
+        if (pair == null) return ChatColor.DARK_GRAY + "none";
+        return pair[0] + (pair[1] == null || pair[1].equalsIgnoreCase("none")
+                ? "" : ChatColor.DARK_GRAY + " + " + ChatColor.WHITE + pair[1]);
     }
 
     /**

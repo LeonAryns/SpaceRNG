@@ -314,12 +314,27 @@ public class RankManager {
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         RankTier tier = rankOf(data);
         String name = data.getNick() == null || data.getNick().isEmpty() ? player.getName() : data.getNick();
-        // The top rank paints its own name (V188). Nothing picked is the
-        // drifting rainbow it always was.
+        // The top rank paints its own name (V188), and it MOVES: the
+        // gradient walks one way along the name for ever, one step a
+        // second off the refresh task that already exists for this.
+        //
+        // With nothing picked it is the rank's OWN colours rather than the
+        // rainbow it used to be. Leon asked for exactly that: "ik heb
+        // liever de supernova color gradient". The rainbow said nothing
+        // about which rank it was and fought every other colour on the
+        // screen.
         if (has(data, "rgb")) {
-            String[] stops = plugin.getCosmeticManager() == null
+            String[] picked = plugin.getCosmeticManager() == null
                     ? null : plugin.getCosmeticManager().stopsFor(data);
-            return stops == null ? Lore.rainbow(name) : Lore.gradient(name, false, stops);
+            String[] stops = picked != null ? picked
+                    : (tier != null && !tier.colors().isEmpty()
+                            ? tier.colors().toArray(new String[0]) : null);
+            if (stops == null) return Lore.rainbow(name);
+            // A lap every four seconds, from the wall clock so every
+            // player's name is in step with every other one.
+            double phase = (System.currentTimeMillis() % 4000L) / 4000.0;
+            return stops.length == 1 ? Lore.gradient(name, false, stops)
+                    : Lore.drift(name, false, phase, stops);
         }
         if (tier != null && tier.colors().size() > 1) {
             return Lore.gradient(name, false, tier.colors().toArray(new String[0]));

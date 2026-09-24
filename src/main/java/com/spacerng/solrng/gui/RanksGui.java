@@ -134,7 +134,7 @@ public class RanksGui {
                     + ChatColor.DARK_GRAY + " every " + (ranks.keyallCooldownMillis() / 3600_000L) + "h"));
         }
         if (tier.rgbName()) {
-            lore.add(Lore.stat(ChatColor.LIGHT_PURPLE, "Name", "a drifting rainbow"));
+            lore.add(Lore.stat(ChatColor.LIGHT_PURPLE, "Name", "its own colours, moving"));
         }
 
         List<String> commands = new ArrayList<>();

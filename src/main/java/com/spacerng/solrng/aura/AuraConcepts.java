@@ -620,7 +620,13 @@ public final class AuraConcepts {
         public boolean clearOfView() {
             // A wide atom is a cage the wearer stands in the middle of and
             // looks out through; a tight one tumbles across their face.
-            return radius >= SignatureConcepts.CLEAR_RADIUS;
+            //
+            // Width alone was not enough. Divine's lanterns ride at 2.8,
+            // which counted as wide, at chest height, which is where a
+            // first person camera is pointing: "je hebt de sea lanterns
+            // die nogsteeds voor de view gaan". A ring has to be out of
+            // the way in BOTH senses now.
+            return radius >= SignatureConcepts.CLEAR_RADIUS && AuraParts.outOfView(y, radius);
         }
 
         @Override
