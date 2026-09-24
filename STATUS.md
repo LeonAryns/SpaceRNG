@@ -5,7 +5,7 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V194**, 23 September 2026.
+Last updated at **V195**, 24 September 2026.
 
 ## The agreed way of working
 
@@ -340,6 +340,64 @@ number is.**
   lanterns sailing round it, standing in stardust's shooting stars under
   one curtain. Nether stars and lanterns, no end rods. 39 pieces, the
   cheapest good look in the plugin.
+
+**V195: the comet, and the odds counter under it.**
+
+Leon asked for the Sol's RNG cutscene: a falling star coming down at you
+on a rare pull, with the odds climbing on the screen while it falls. This
+is the first of three jars for that blueprint. He picked Epic as the
+threshold, so every rarity that already has a reveal aura now has a comet
+in front of it.
+
+`roll/RollComet` is owned by `RollAura` the same way `RollCircle` is, and
+it is the half of the reveal that is meant to be looked AT. Everything
+else in a reveal is drawn ON the player, which reads well from outside
+and reads as nothing in first person, because all of it is behind or
+below the camera.
+
+- **It is the roller's alone.** The head is spawned hidden and shown to
+  one player, and every particle and sound goes to that one player.
+  Everybody else sees somebody standing still with the usual aura winding
+  up, which is what he asked for twice.
+- **It comes down in the direction the roller is already facing**, so it
+  is in view from the first frame with nothing touching their camera.
+  That is the answer to the third person camera in the blueprint: Paper
+  has no camera of its own, `setSpectatorTarget` needs spectator mode,
+  which would make the roller invisible to everybody and drop them
+  through the world, and the raw camera packet is NMS. There is a
+  `roll-item.comet.steer-view` switch that swings the view with
+  `Player#setRotation`, off by default, because writing a real rotation
+  is echoed back by the client and everyone nearby would see them spin.
+- **It flies against the ROLL's length, not the aura's.** An Epic
+  build-up is three seconds and the roll around it is five or more, with
+  the aura holding at full implosion for the rest. Flown on the aura's
+  clock the comet would land two seconds early and hang inside the
+  roller's chest until the drop arrived, so `RollAura.start` takes the
+  roll length now.
+- **The counter climbs through the logarithm of the odds**, from 1 in
+  1,000 to the drop's own label. A linear climb to one in five million
+  sits under a hundred thousand for nine tenths of the run and then
+  jumps, so every rarity would read the same for most of its build-up.
+  It is on the action bar, because the reel owns the title and the
+  subtitle for the whole roll.
+- **Its audio stops where the aura's score stops**, at 0.88. A comet
+  screaming through the hush would take the silence that makes the
+  detonation land, so the last stretch is a silent plunge.
+- One glowing `BlockDisplay` head in the rarity's lit block, seen through
+  terrain, with a dust trail laid along the ground it covered. Height,
+  reach, size and trail all scale with rarity: Epic starts 40 blocks up,
+  Divine 90.
+- `roll-item.comet` in config, carried to the live server by
+  `ConfigMigrator.ADDED_SECTIONS` as a dotted path.
+
+**Two traps it walked into on the way**, both caught before the jar:
+a display takes the rotation of wherever it is put, and the comet is
+positioned off `player.getLocation()`, so without zeroing yaw and pitch
+it tumbled with every turn of the roller's head. And the flight clock,
+above.
+
+**Still to come in the blueprint**, one jar each: the egg and the hatch
+animation, then the pet slots and the dust counter in `/aura`.
 
 **Deliberately not done in V186, and why:** the +10% Coins and Gems per
 crop. Those are the `CROP_YIELD` nodes, and they are the spine of the
@@ -776,16 +834,36 @@ record and says WHY, not only what: `git log` for the list,
 
 ## Open questions for Leon
 
-1. **How is a pet earned?** Eggs from rolls that hatch, straight from
-   crates, or an index page completed. Everything else about pets is done.
+1. **How is a pet earned?** Answered on 24 September: an egg, bought with
+   100 Cosmic Dust, hatched with an animation. Cosmic Dust comes from
+   rolling once `cosmic_root` is bought and its levels raise the chance,
+   which is what the jar already does; the cost in config is still 10 and
+   has to become 100. Farm Dust keeps paying for tiers.
+
+   **What is still open is the egg ladder.** He said "de egg
+   kopen/hatchen heeft verschillende rarities", which is either (A) eggs
+   come in tiers, a plain one at 100 dust and better ones costing more,
+   each with its own odds over the pet rarities and its own skin, or (B)
+   one egg at 100 dust that rolls a rarity when it hatches. His own
+   blueprint says "betere Ei-skins bij zeldzamere eieren", which points at
+   A. A three rung ladder was put to him with numbers; nothing is built
+   until he picks.
+
+   **Also open:** whether Cosmic Dust should also fall from scrapping in
+   /convert, as a second source or instead of the roll source. And
+   whether rarity levels should cost Farm Dust rather than Cosmic Dust,
+   since he described Farm Dust as the upgrade currency.
 2. **Boss Box contents.** Credits, Perk Tickets, timed boosts and two
    permanents (+10% Luck, +10 Speed) are in. He tunes the weights.
 3. **Milestone Credits.** Top rank is now 7000. Either lower the top
    milestone reward to 100 and add more paying tiers, or scale every
    milestone by 0.4. Not changed until Leon picks.
-4. **Custom heads for crates and items.** The plugin cannot take a head
-   texture from config yet; a `head:` key taking the minecraft-heads.com
-   Value is the proposed way.
+4. **Custom heads for crates and items.** Not a blocker after all.
+   `TopHeadManager` already builds heads through `PlayerProfile`, so a
+   `head:` key in config is `Bukkit.createProfile` plus
+   `getTextures().setSkin(url)` on a random UUID. It is waiting on
+   somebody asking for it, not on research. The egg jar will need it
+   first.
 5. **A spawn build.** Advice given: buy or download a schematic for the
    spawn, and have the farm area and podiums generated by code.
 

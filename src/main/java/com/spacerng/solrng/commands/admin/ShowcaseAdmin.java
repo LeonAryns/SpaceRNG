@@ -51,7 +51,12 @@ final class ShowcaseAdmin extends AdminTools {
         Player target = resolve(sender, args.length >= 3 ? args[2] : null);
         if (target == null) return true;
 
-        RollAura aura = RollAura.start(plugin, target, rarity);
+        // A real drop of that rarity stands behind the preview, so the
+        // comet's odds counter climbs to a number the server actually pays
+        // rather than sitting blank.
+        RollableItem sample = randomItemOf(rarity);
+        RollAura aura = RollAura.start(plugin, target, rarity,
+                sample == null ? 0L : sample.getOdds(), RollAura.durationTicks(rarity));
         if (aura == null) return true;
 
         // Reveal exactly when the build-up finishes, same as a real roll.
@@ -273,7 +278,10 @@ final class ShowcaseAdmin extends AdminTools {
         // Goes through the real grant path, so discovery, Money, the chat
         // line and the broadcast all fire exactly as they would in play.
         plugin.getRollListener().grantRoll(target, data, item, false);
-        RollAura burst = RollAura.start(plugin, target, rarity);
+        // No flight time: this plays the burst straight away, and a comet
+        // that spawned and landed in the same tick would be a flash of a
+        // block in the sky.
+        RollAura burst = RollAura.start(plugin, target, rarity, item.getOdds(), 0L);
         if (burst != null) burst.reveal();
         plugin.getScoreboardManager().update(target);
         return true;

@@ -197,6 +197,10 @@ public final class RollAura {
     // The ground circle, the only part of the reveal that is a shape rather
     // than a cloud of particles.
     private RollCircle circle;
+    // The comet falling on the roller, and the odds counter under it. The
+    // roller's half of the reveal: everything else here is drawn on them
+    // and therefore behind their own camera.
+    private RollComet comet;
 
     private RollAura(SolRNGPlugin plugin, Player player, Rarity rarity) {
         this.plugin = plugin;
@@ -235,8 +239,19 @@ public final class RollAura {
     /**
      * Starts the build-up on its own task. Returns null for anything below
      * Epic, so callers can just null-check instead of branching on rarity.
+     *
+     * {@code odds} is the drop's own label, which the comet's counter
+     * climbs towards. Pass 0 when there is no real drop behind the effect
+     * and the counter is simply left off.
+     *
+     * {@code flightTicks} is how long it is until the reveal, which is the
+     * length of the ROLL rather than of this build-up: the two differ
+     * whenever a player's roll is slower than their rarity's aura, and the
+     * comet has to arrive on the drop rather than on the implosion. Pass 0
+     * for a reveal that is played immediately, and no comet flies.
      */
-    public static RollAura start(SolRNGPlugin plugin, Player player, Rarity rarity) {
+    public static RollAura start(SolRNGPlugin plugin, Player player, Rarity rarity, long odds,
+                                 long flightTicks) {
         if (!isBigDrop(rarity)) return null;
 
         RollAura aura = new RollAura(plugin, player, rarity);
@@ -244,8 +259,19 @@ public final class RollAura {
         // blocks a few hundred specks read as weather; a ring does not.
         aura.circle = new RollCircle(plugin, player, rarity, colorFor(rarity), aura.maxRadius);
         aura.circle.start();
+        // For the roller alone, and only if they have this rarity's aura
+        // switched on. Everybody else sees them standing still.
+        if (flightTicks > 0L && RollComet.wanted(plugin, player, rarity)) {
+            aura.comet = new RollComet(plugin, player, rarity, colorFor(rarity), odds, flightTicks);
+            aura.comet.start();
+        }
         aura.task = plugin.getServer().getScheduler().runTaskTimer(plugin, aura::tick, 0L, 1L);
         return aura;
+    }
+
+    /** The build-up on its own clock, with no drop behind it: the admin preview. */
+    public static RollAura start(SolRNGPlugin plugin, Player player, Rarity rarity) {
+        return start(plugin, player, rarity, 0L, durationFor(rarity));
     }
 
     /** Stops the build-up without a payoff - used when a roll is abandoned. */
@@ -255,6 +281,10 @@ public final class RollAura {
         if (circle != null) {
             circle.stop();
             circle = null;
+        }
+        if (comet != null) {
+            comet.stop();
+            comet = null;
         }
     }
 
@@ -318,6 +348,20 @@ public final class RollAura {
             // People walk in, and somebody who just switched this rarity
             // back on should see the rest of it.
             if (elapsed % 20 == 0) circle.refreshAudience();
+        }
+
+        if (comet != null) {
+            // Its own catch rather than safely(), which logs and carries on:
+            // a comet that throws would throw again every other tick for the
+            // rest of the build-up. One line, then it is taken out and the
+            // rest of the reveal plays without it.
+            try {
+                comet.tick(elapsed, IMPLODE_FROM);
+            } catch (RuntimeException ex) {
+                plugin.getLogger().warning("Roll comet (" + rarity + ") failed: " + ex);
+                comet.stop();
+                comet = null;
+            }
         }
 
         if (progress < IMPLODE_FROM) {
@@ -456,12 +500,18 @@ public final class RollAura {
         // finale whichever script that finale is.
         RollCircle thrown = circle;
         circle = null;
+        // Same reason: the comet has earned its impact, and cancel() would
+        // take it out of the sky a frame before it arrived.
+        RollComet landing = comet;
+        comet = null;
         cancel();
         if (!player.isOnline()) {
             if (thrown != null) thrown.stop();
+            if (landing != null) landing.stop();
             return;
         }
         if (thrown != null) thrown.detonate();
+        if (landing != null) landing.land();
 
         long length = finaleTicks(rarity);
         final long[] frame = {0L};

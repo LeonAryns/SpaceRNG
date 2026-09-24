@@ -75,6 +75,26 @@ roll-item:
   lucky-strike:
     chance: 0.004
     max-rarity: MYTHICAL
+  # The comet that falls on an Epic or better roll, with the odds counting
+  # up on the action bar while it comes down. It is drawn for the roller
+  # and for nobody else: everyone around them sees a player standing still
+  # with the usual aura winding up. Its length, height and speed come from
+  # the rarity, so a Divine takes fifteen seconds to arrive and an Epic
+  # three.
+  comet:
+    enabled: true
+    # The odds climbing on the action bar under it.
+    counter: true
+    # Swings the roller's view up towards the comet while it falls.
+    #
+    # Left off, and not because it does not work. Minecraft gives a plugin
+    # no camera of its own, so the only way to aim somebody's view is to
+    # write their real rotation, and their client reports that straight
+    # back to the server. Everyone nearby would see them spin round, which
+    # is the one thing this effect is built to avoid. The comet comes down
+    # in the direction the roller is already facing instead, so it is in
+    # view from the first frame without touching anything.
+    steer-view: false
 
 # The Starforge - right-click to roll, left-click to toggle Auto Roll
 # (once the Auto Roll skill is unlocked). Everyone starts on BASIC;
@@ -3274,7 +3294,7 @@ announcements:
 # The daily streak (/daily). No checkpoints on purpose: the whole tension
 # of a streak is that there's no safety net.
 #
-# Days are calendar days in this timezone, not rolling 24h windows \u2014 a
+# Days are calendar days in this timezone, not rolling 24h windows, a
 # rolling window slowly punishes people for playing earlier each day.
 daily:
   timezone: "UTC"

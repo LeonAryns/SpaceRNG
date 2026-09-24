@@ -405,7 +405,7 @@ public class RollListener implements Listener {
         final boolean[] auraStarted = {false};
         if (preTicks == 0L) {
             auraStarted[0] = true;
-            aura[0] = RollAura.start(plugin, player, result.getRarity());
+            aura[0] = RollAura.start(plugin, player, result.getRarity(), result.getOdds(), rollTicks);
             if (aura[0] != null) activeAuras.put(player.getUniqueId(), aura[0]);
         }
 
@@ -425,7 +425,7 @@ public class RollListener implements Listener {
 
             if (!auraStarted[0]) {
                 auraStarted[0] = true;
-                aura[0] = RollAura.start(plugin, player, result.getRarity());
+                aura[0] = RollAura.start(plugin, player, result.getRarity(), result.getOdds(), rollTicks);
                 if (aura[0] != null) activeAuras.put(player.getUniqueId(), aura[0]);
             }
 

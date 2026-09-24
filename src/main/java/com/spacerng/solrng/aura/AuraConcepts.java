@@ -173,7 +173,7 @@ public final class AuraConcepts {
     }
 
     /** A block that looks lit from inside, which reads as light even at full brightness. */
-    static Material lantern(Rarity rarity) {
+    public static Material lantern(Rarity rarity) {
         return switch (rarity) {
             case DIVINE -> Material.SEA_LANTERN;
             case MYTHICAL -> Material.SHROOMLIGHT;

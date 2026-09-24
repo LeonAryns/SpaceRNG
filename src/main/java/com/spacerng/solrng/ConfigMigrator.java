@@ -58,7 +58,11 @@ public final class ConfigMigrator {
      * yet. A dotted path works too, for a new entry inside a section the
      * server already has, like one more hologram panel.
      */
-    private static final List<String> ADDED_SECTIONS = List.of("discord", "holograms",
+    private static final List<String> ADDED_SECTIONS = List.of(
+            // V195: the comet on an Epic or better roll. A dotted path,
+            // because roll-item is in every config there has ever been.
+            "roll-item.comet",
+            "discord", "holograms",
             "holograms.panels.armor", "holograms.panels.starforge", "holograms.panels.potion",
             "holograms.panels.convert", "holograms.panels.pass", "holograms.panels.store",
             "holograms.panels.novacore", "holograms.panels.perks", "holograms.panels.index",
