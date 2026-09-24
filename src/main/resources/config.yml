@@ -111,6 +111,13 @@ roll-item:
     # The only number here that cannot be judged without standing in the
     # game, so it is the one worth turning.
     counter-scale: 1.0
+    # How much bigger the question mark head is drawn than an ordinary
+    # drop. A skull is an eight cube inside the sixteen cube every item
+    # model lives in, so at the same number it comes out half the size of
+    # a sprite, and in V199 it measured about two and a half percent of
+    # the screen. Turn this until it reads as the thing you are waiting
+    # for.
+    head-scale: 4.0
     # The head held in front of the roller while the odds climb, instead
     # of the drop itself. Any "value" field from a head site goes in here
     # as it is, and so does the plain texture URL or its hash. This one is
@@ -6016,6 +6023,14 @@ first-ten:
 auras:
   enabled: true
   farm-pause-radius: 10
+  # How far above the block a piece that lies "on the ground" actually
+  # sits, in blocks. It was six centimetres, which is not enough for
+  # anything with a size to it: a glyph sits low inside its own line box,
+  # a plate has a thickness, and both grow with the wearer's size and
+  # their rank, so the rings at the feet spent most of their height inside
+  # the floor. Raise it if anything still sinks, lower it if the rings
+  # start to look like they are hovering.
+  ground-lift: 0.30
   # Auras are a Linked perk: no Discord link, no aura.
   require-linked: true
   # The shiny look of a rarity, unlocked by rolling a shiny of it and worn

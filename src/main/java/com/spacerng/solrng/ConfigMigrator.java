@@ -71,6 +71,10 @@ public final class ConfigMigrator {
             "roll-item.comet.mystery-head",
             // V198: where the two pieces in front of the roller are put.
             "roll-item.comet.screen",
+            // V200: how big the question mark head is drawn.
+            "roll-item.comet.head-scale",
+            // V200: how far a ground piece clears the block under it.
+            "auras.ground-lift",
             "discord", "holograms",
             "holograms.panels.armor", "holograms.panels.starforge", "holograms.panels.potion",
             "holograms.panels.convert", "holograms.panels.pass", "holograms.panels.store",

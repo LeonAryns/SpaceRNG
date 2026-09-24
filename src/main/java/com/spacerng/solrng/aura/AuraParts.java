@@ -56,7 +56,32 @@ public final class AuraParts {
      */
     public static float RIDE = 1.8f;
 
-    public static float FEET = -(RIDE - 0.06f);
+    /**
+     * How far above the block a ground piece sits, in blocks.
+     *
+     * It was 0.06, which is six centimetres, and that is not enough for
+     * anything with a size to it. A glyph is drawn inside a line box with
+     * the character sitting low in it, a plate has a thickness, and both
+     * grow with the wearer's scale and their rank, so a ring "lying at the
+     * feet" spent most of its height inside the block it was lying on.
+     * Leon has reported it three times, the last time as "elke animatie
+     * van aura en auratest met entities enzo op de grond zijn te laag ze
+     * gaan nogsteeds onder de blokken waar je op staat".
+     *
+     * It is one number because every ground piece in every look is placed
+     * off {@link #FEET}, so this is the one lever that lifts all of them,
+     * and it is in config as auras.ground-lift so the next word on it
+     * costs no jar.
+     */
+    public static float GROUND = 0.30f;
+
+    public static float FEET = -(RIDE - GROUND);
+
+    /** Sets the ground clearance from config and recomputes what hangs off it. */
+    public static void ground(double lift) {
+        GROUND = (float) Math.max(0.0, Math.min(1.0, lift));
+        FEET = -(RIDE - GROUND);
+    }
 
     /**
      * The real ride height, read off a piece that is already riding
@@ -67,7 +92,7 @@ public final class AuraParts {
         float found = (float) offset;
         if (found < 0.2f || found > 3.5f || Math.abs(found - RIDE) < 0.03f) return false;
         RIDE = found;
-        FEET = -(found - 0.06f);
+        FEET = -(found - GROUND);
         return true;
     }
 

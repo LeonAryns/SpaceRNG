@@ -5,7 +5,7 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V199**, 24 September 2026.
+Last updated at **V200**, 24 September 2026.
 
 ## The agreed way of working
 
@@ -594,6 +594,56 @@ than once per particle. Every emitter checks every point against every
 viewer, and a Divine frame makes hundreds of those calls, so a
 `getEyeLocation()` inside the check was allocating a Location per
 particle per viewer.
+
+**V200: a screenshot, and four things measured instead of guessed.**
+
+Leon sent a shot of `/rngadmin reveal`. It is worth more than the four
+messages before it, because the question mark head is IN it: a small
+black cube, left of and below the middle of the screen. Everything below
+was read off that picture rather than reasoned about.
+
+- **Rolling Animation was ON**, so V198's ungating was not the cause and
+  the theory behind it was wrong.
+- **The head was about 2.5% of the screen's height.** A thing a whole
+  roll is about wants ten or more. `roll-item.comet.head-scale` is a
+  straight multiplier, default 4.0.
+- **It sat off centre by very nearly the offset V197 added** to "centre a
+  corner origin model". That measurement says the model was already
+  centred and the offset was what pushed it off. Removed.
+- **It was showing its back.** A skull's face is on the north side of its
+  own model and a billboarded display turns its local +Z at the camera,
+  so the question mark was pointing away. Half a turn.
+
+**The odds now climb in every act, which they provably did not.** A
+band's entry is the shortest odds in it, so a drop that IS the shortest
+odds in its band left its own act with nothing to climb: the act before
+it had already reached that number. Both of the server's worst cases are
+exactly that, the only Divine at one in ten million where Divine starts
+and the cheapest Mythical at 250,000 where Mythical starts, which is
+precisely the pair Leon named. `RollStages.boundaries` walks the marks
+backwards and pulls any that has caught up with the one in front back to
+the geometric midpoint. Simulated across all nine cases, every act climbs
+and every one lands exactly on the drop's real odds:
+
+| Drop | acts climb from / to |
+|---|---|
+| Divine 1/10M | 11k>100k, 100k>250k, 250k>1.58M, 1.58M>10M |
+| Mythical 1/250k | 11k>100k, 100k>158k, 158k>250k |
+| Legendary 1/100k | 11k>33k, 33k>100k |
+| Divine, Epic off | 33k>250k, 250k>1.58M, 1.58M>10M |
+
+**Ground pieces sit 0.30 above the block, not 0.06.** Six centimetres is
+not enough for anything with a size: a glyph sits low inside its own line
+box, a plate has a thickness, and both grow with the wearer's size and
+their rank. It is one number, `AuraParts.GROUND`, because every ground
+piece in every look is placed off `FEET`, and it is
+`auras.ground-lift` in config. This covers `auratest` and the roll
+circle as well, since they all read the same constant.
+
+**`/rngadmin reveal` now shows the counter too**, climbing, beside the
+head. The showcase has had a preview since V197 and the counter never
+did, which is why three rounds of "ik zie de odds niet" could not be
+narrowed down.
 
 **Deliberately not done in V186, and why:** the +10% Coins and Gems per
 crop. Those are the `CROP_YIELD` nodes, and they are the spine of the

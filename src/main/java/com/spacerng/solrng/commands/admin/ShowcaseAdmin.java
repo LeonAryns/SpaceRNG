@@ -155,8 +155,14 @@ final class ShowcaseAdmin extends AdminTools {
                 com.spacerng.solrng.roll.RollShowcase.start(plugin, target);
         showcase.show(com.spacerng.solrng.roll.MysteryHead.item(plugin), false);
         showcase.finish(300L);
-        sender.sendMessage(ChatColor.GREEN + "The question mark is in front of " + target.getName()
-                + " for 15 seconds." + ChatColor.GRAY + " If it is not there, the screen mode is what is wrong.");
+        // And the counter beside it, climbing, so both halves of what he
+        // cannot see can be looked at without a roll in the way.
+        RollableItem top = randomItemOf(Rarity.MYTHICAL);
+        RollAura.previewCounter(plugin, target, Rarity.MYTHICAL,
+                top == null ? 250_000L : top.getOdds(), 300L);
+        sender.sendMessage(ChatColor.GREEN + "The question mark and the odds are in front of "
+                + target.getName() + " for 15 seconds." + ChatColor.GRAY
+                + " Look straight ahead: the head sits just under the middle and the number just over it.");
         return true;
     }
 

@@ -273,6 +273,15 @@ public final class RollAura {
         return stages == null || stages.isEmpty() ? 0L : stages.acts() * actTicks;
     }
 
+    /**
+     * Shows the odds counter on its own, climbing, with no roll around it.
+     * The admin door to {@link RollComet}, which is package private.
+     */
+    public static void previewCounter(SolRNGPlugin plugin, Player player, Rarity rarity,
+                                      long odds, long ticks) {
+        RollComet.preview(plugin, player, rarity, odds, ticks);
+    }
+
     /** How long one act runs, from config, in ticks. */
     public static long actTicks(SolRNGPlugin plugin) {
         double seconds = Math.max(1.0, plugin.getConfig().getDouble("roll-item.comet.stage-seconds", 5.0));

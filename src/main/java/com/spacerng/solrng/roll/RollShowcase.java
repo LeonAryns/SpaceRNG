@@ -18,13 +18,11 @@ import org.joml.Vector3f;
  * with every frame of the reel and swells when it lands, so the drop is
  * something you see and not only a name on the screen.
  *
- * Where it is put is {@link ScreenSpot}'s decision, and it is the only
- * interesting thing about this class. Pinned, it rides the player and the
+ * Where it is put is {@link ScreenSpot}'s decision. Pinned, which is the
+ * default and what the reel has always used, it rides the player and the
  * client rebuilds the offset from its own camera every frame. In world
  * mode it is teleported to the spot in front of their eyes every tick,
- * which is a tick behind a fast head turn and cannot be got wrong. World
- * is the default since V198, after Leon reported three times that he
- * could not see this at all.
+ * which is a tick behind a fast head turn and cannot be got wrong.
  *
  * Only the roller ever sees it; to anybody else it would be an item
  * hanging in front of someone's face.
@@ -32,6 +30,25 @@ import org.joml.Vector3f;
 public final class RollShowcase {
 
     private static final float SIZE = 0.34f;
+    /*
+     * A note on the question mark head, measured off Leon's screenshot of
+     * V199 rather than reasoned about, because two rounds of reasoning
+     * about it were wrong.
+     *
+     * In that shot the head is plainly there and two things are off. It is
+     * about two and a half percent of the screen's height, where a thing
+     * the whole roll is about wants ten or more: hence
+     * roll-item.comet.head-scale, which is a straight multiplier on its
+     * size. And it sits left of and below centre by very close to the
+     * offset V197 added to "centre a corner origin model", which is the
+     * measurement that says the model was already centred and that offset
+     * was putting it off centre. It is gone.
+     *
+     * What is left is a size and a half turn: a skull's face is on the
+     * north side of its own model and a billboarded display turns its
+     * local +Z at the camera, so without the turn all anybody sees is the
+     * back of a black head, which is exactly what the screenshot shows.
+     */
     private static final float LANDED_SIZE = 0.5f;
     // The landing pops past its size, then settles while it starts to turn.
     private static final float PULSE_SIZE = 0.64f;
@@ -58,10 +75,8 @@ public final class RollShowcase {
     /**
      * Whether what is being held is a block shaped model rather than a
      * flat sprite. A player head is the only one the reel ever shows, and
-     * it matters because under transform NONE a flat item is drawn centred
-     * on the display's origin while a BLOCK model is drawn with its CORNER
-     * there. Left alone, the question mark hangs half a model up and to
-     * the side of where it should be.
+     * it is the only one that needs a size of its own and a half turn to
+     * put its face towards the camera.
      */
     private boolean blockShaped = false;
 
@@ -165,6 +180,11 @@ public final class RollShowcase {
     }
 
     /** Where the piece goes: on the player when pinned, in front of them otherwise. */
+    /** How much bigger a head is drawn than a sprite, from config. */
+    private float headScale() {
+        return (float) Math.max(0.5, plugin.getConfig().getDouble("roll-item.comet.head-scale", 4.0));
+    }
+
     private Location spot() {
         if (pinned) {
             Location at = player.getLocation();
@@ -182,12 +202,13 @@ public final class RollShowcase {
      * own scaled size, because the scale is applied before the translation.
      */
     private Transformation pose(float scale, int quarterTurns) {
-        float centre = blockShaped ? scale * 0.5f : 0f;
+        float size = blockShaped ? scale * headScale() : scale;
         Vector3f offset = pinned
-                ? new Vector3f(-centre, -BELOW - RIDE_ABOVE_EYES - centre, -AHEAD - centre)
-                : new Vector3f(-centre, -centre, -centre);
+                ? new Vector3f(0f, -BELOW - RIDE_ABOVE_EYES, -AHEAD)
+                : new Vector3f(0f, 0f, 0f);
+        double turn = Math.PI / 2 * quarterTurns + (blockShaped ? Math.PI : 0.0);
         return new Transformation(offset,
-                new Quaternionf().rotateY((float) (Math.PI / 2 * quarterTurns)),
-                new Vector3f(scale, scale, scale), new Quaternionf());
+                new Quaternionf().rotateY((float) turn),
+                new Vector3f(size, size, size), new Quaternionf());
     }
 }

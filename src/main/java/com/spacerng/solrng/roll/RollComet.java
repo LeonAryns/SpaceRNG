@@ -139,10 +139,10 @@ final class RollComet {
      */
     private static float counterScaleFor(Rarity rarity) {
         return switch (rarity) {
-            case DIVINE -> 1.55f;
-            case MYTHICAL -> 1.3f;
-            case LEGENDARY -> 1.05f;
-            default -> 0.85f; // Epic
+            case DIVINE -> 1.7f;
+            case MYTHICAL -> 1.45f;
+            case LEGENDARY -> 1.2f;
+            default -> 1.0f; // Epic
         };
     }
 
@@ -491,10 +491,15 @@ final class RollComet {
      * one component per character on one viewer's screen.
      */
     private Component line(long value) {
+        return line(colour, value, frames);
+    }
+
+    /** The same line without a comet behind it, for the admin preview. */
+    static Component line(Color colour, long value, long frame) {
         String text = RollFormat.chance(value);
         Component out = Component.empty();
         for (int i = 0; i < text.length(); i++) {
-            double phase = (double) i / Math.max(1, text.length()) - frames * 0.05;
+            double phase = (double) i / Math.max(1, text.length()) - frame * 0.05;
             double lit = 0.5 + 0.5 * Math.sin(phase * Math.PI * 2.0);
             out = out.append(Component.text(text.charAt(i))
                     .color(TextColor.color(mix(colour.getRed(), 255, lit),
@@ -502,6 +507,35 @@ final class RollComet {
                     .decoration(TextDecoration.BOLD, true));
         }
         return out;
+    }
+
+    /**
+     * A counter standing on its own, climbing, with no roll around it.
+     *
+     * The showcase has had a preview since V197 and the counter has not,
+     * which is why three rounds of "ik zie de odds niet" could never be
+     * narrowed down: there was no way to look at the thing by itself.
+     */
+    static void preview(SolRNGPlugin plugin, Player player, Rarity rarity, long odds, long ticks) {
+        float scale = (float) Math.max(0.2,
+                plugin.getConfig().getDouble("roll-item.comet.counter-scale", 1.0))
+                * counterScaleFor(rarity);
+        Color colour = RollAura.colorFor(rarity);
+        RollCounter counter = new RollCounter(plugin, player, scale);
+        long from = Math.max(100L, odds / 8L);
+        final long[] frame = {0L};
+        final org.bukkit.scheduler.BukkitTask[] task = new org.bukkit.scheduler.BukkitTask[1];
+        task[0] = plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
+            frame[0] += 2L;
+            if (frame[0] > ticks || !player.isOnline()) {
+                task[0].cancel();
+                counter.stop();
+                return;
+            }
+            double t = Math.min(1.0, (double) frame[0] / ticks);
+            long shown = Math.round(from * Math.pow((double) odds / from, t));
+            counter.show(line(colour, Math.min(odds, shown), frame[0] / 2L));
+        }, 0L, 2L);
     }
 
     private static int mix(int from, int to, double amount) {

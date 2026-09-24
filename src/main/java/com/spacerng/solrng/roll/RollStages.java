@@ -56,12 +56,29 @@ public final class RollStages {
     private static final long FLOOR = 100L;
 
     private final List<Stage> stages;
-    private final long openingOdds;
     private final long dropOdds;
+    /**
+     * Where each act's climb starts and finishes: {@code acts + 1} numbers,
+     * strictly increasing, opening below the first band and landing exactly
+     * on the drop's own odds.
+     *
+     * The band entries alone will not do, and that is what Leon saw as "je
+     * ziet nogsteeds niet de odds omhoog gaan bij mythical en divine". A
+     * band's entry is the shortest odds in it, so a drop that IS the
+     * shortest odds in its band has its own number as the boundary the act
+     * before it climbs to, and its own act then has nowhere left to go and
+     * sits frozen for five seconds. Both of this server's worst cases are
+     * exactly that: the only Divine is one in ten million where Divine
+     * starts, and the cheapest Mythical is one in 250,000 where Mythical
+     * starts. {@link #boundaries} pulls any boundary that has caught up
+     * with the one behind it back to the midpoint, so every act always has
+     * a stretch of its own to climb.
+     */
+    private final long[] marks;
 
-    private RollStages(List<Stage> stages, long openingOdds, long dropOdds) {
+    private RollStages(List<Stage> stages, long[] marks, long dropOdds) {
         this.stages = stages;
-        this.openingOdds = openingOdds;
+        this.marks = marks;
         this.dropOdds = dropOdds;
     }
 
@@ -71,7 +88,7 @@ public final class RollStages {
      * has left switched on.
      */
     public static RollStages of(SolRNGPlugin plugin, PlayerData data, Rarity drop, long odds) {
-        if (drop == null || odds <= 0L) return new RollStages(List.of(), 0L, 0L);
+        if (drop == null || odds <= 0L) return new RollStages(List.of(), new long[0], 0L);
 
         Map<Rarity, Long> entries = entryOdds(plugin);
         List<Stage> rungs = new ArrayList<>();
@@ -84,13 +101,38 @@ public final class RollStages {
             if (entry == null) continue;
             rungs.add(new Stage(rarity, entry));
         }
-        if (rungs.isEmpty()) return new RollStages(List.of(), 0L, 0L);
+        if (rungs.isEmpty()) return new RollStages(List.of(), new long[0], 0L);
 
         // The counter opens below the first band's own entry, so the first
         // act has somewhere to climb from and the number is moving from
         // the first frame rather than sitting on a threshold.
         long opening = Math.max(FLOOR, rungs.get(0).entryOdds() / 3L);
-        return new RollStages(List.copyOf(rungs), opening, odds);
+        return new RollStages(List.copyOf(rungs), boundaries(rungs, opening, odds), odds);
+    }
+
+    /**
+     * The numbers each act climbs between: the opening, then each band's
+     * entry, then the drop's own odds.
+     *
+     * Walked backwards afterwards so that no boundary has caught up with
+     * the one in front of it. Where one has, it is pulled back to the
+     * geometric midpoint of its neighbours, which is the middle of the
+     * climb in the space the counter actually moves through. Backwards
+     * because pulling one back can leave the one behind IT too high, and
+     * the same pass fixes that on its next step.
+     */
+    private static long[] boundaries(List<Stage> rungs, long opening, long odds) {
+        int acts = rungs.size();
+        long[] marks = new long[acts + 1];
+        marks[0] = opening;
+        for (int i = 1; i < acts; i++) marks[i] = rungs.get(i).entryOdds();
+        marks[acts] = odds;
+        for (int i = acts - 1; i >= 1; i--) {
+            if (marks[i] < marks[i + 1]) continue;
+            long midpoint = Math.round(Math.sqrt((double) marks[i - 1] * marks[i + 1]));
+            marks[i] = Math.max(marks[i - 1] + 1L, Math.min(marks[i + 1] - 1L, midpoint));
+        }
+        return marks;
     }
 
     /** The shortest odds in each Epic and up band, read off the loaded items. */
@@ -139,21 +181,19 @@ public final class RollStages {
      */
     public long shownOdds(int act, double actProgress) {
         if (stages.isEmpty()) return dropOdds;
-        long from = act <= 0 ? openingOdds : stages.get(Math.min(act, stages.size() - 1)).entryOdds();
-        long to = target(act);
+        int i = Math.max(0, Math.min(stages.size() - 1, act));
+        long from = marks[i];
+        long to = marks[i + 1];
         if (to <= from) return to;
         double t = Math.pow(Math.max(0.0, Math.min(1.0, actProgress)), EASE);
         long shown = Math.round(from * Math.pow((double) to / from, t));
         return Math.max(from, Math.min(to, shown));
     }
 
-    /**
-     * Where one act's climb finishes: the next band's entry, or the drop's
-     * own odds on the last act.
-     */
+    /** Where one act's climb finishes, which is what its impact pops on. */
     public long target(int act) {
         if (stages.isEmpty()) return dropOdds;
-        if (act < stages.size() - 1) return stages.get(act + 1).entryOdds();
-        return dropOdds;
+        int i = Math.max(0, Math.min(stages.size() - 1, act));
+        return marks[i + 1];
     }
 }

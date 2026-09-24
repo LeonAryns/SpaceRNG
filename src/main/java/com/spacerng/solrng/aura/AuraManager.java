@@ -144,6 +144,12 @@ public final class AuraManager {
     }
 
     public void start() {
+        // How far a ground piece clears the block under it. Read here
+        // rather than in the constructor, so it is after the migrator has
+        // put the key on disk, and again on every reload; and once rather
+        // than at every spawn, because FEET is a static that every concept
+        // in the package is written against.
+        AuraParts.ground(plugin.getConfig().getDouble("auras.ground-lift", 0.30));
         sweep();
         task = plugin.getServer().getScheduler().runTaskTimer(plugin, this::tick, 2L, 2L);
         // Anyone already online when the plugin (re)loads gets their tag's aura back.
