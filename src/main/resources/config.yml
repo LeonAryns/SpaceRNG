@@ -1068,9 +1068,10 @@ rarities:
     share: 0.003
   #
   # Epic and up also wear their name with weight on it, and more of it the
-  # higher the rarity goes: bold from Epic, italic from Mythical, and
-  # underline on the Divine alone. Strikethrough is supported and left
-  # off, because a struck out name reads as something that was cancelled.
+  # higher the rarity goes: Epic is bold, Legendary and Mythical are bold
+  # and italic, and the Divine takes all three with underline on top.
+  # Strikethrough is supported and left off, because a struck out name
+  # reads as something that was cancelled.
   #
   # symbol-char is the mark on either side of the name in tab and in chat.
   # The `symbol: true` flair is an obfuscated character, which flickers,
@@ -1088,6 +1089,7 @@ rarities:
     symbol: true
     symbol-char: "✦"
     bold: true
+    italic: true
     luck-factor: 1.0
     true-odds: true
   MYTHICAL:

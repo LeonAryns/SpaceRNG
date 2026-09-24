@@ -5,7 +5,7 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V205**, 24 September 2026.
+Last updated at **V206**, 24 September 2026.
 
 ## The agreed way of working
 
@@ -818,9 +818,10 @@ nobody.
 **And the drop names, asked for in the same breath:**
 
 - **Weight climbs with rarity.** `RarityStyle` never carried italic, so
-  the top tiers all read the same weight. Bold from Epic, italic from
-  Mythical, underline on the Divine alone. Strikethrough is supported and
-  left off, because a struck out name reads as cancelled.
+  the top tiers all read the same weight. Leon set the ladder in V206:
+  Epic bold, Legendary and Mythical bold and italic, Divine all three
+  with underline on top. Strikethrough is supported and left off, because
+  a struck out name reads as cancelled.
 - **The marks reach tab and chat.** The flair has always been an
   obfuscated character, which flickers, so the plain path threw it away
   and the tab tag had no marks at all. Each rarity has a real glyph now

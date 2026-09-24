@@ -84,6 +84,7 @@ public final class ConfigMigrator {
             "tag.max-name-length",
             "rarities.EPIC.symbol-char", "rarities.EPIC.bold",
             "rarities.LEGENDARY.symbol-char", "rarities.LEGENDARY.bold",
+            "rarities.LEGENDARY.italic",
             "rarities.MYTHICAL.symbol-char", "rarities.MYTHICAL.bold", "rarities.MYTHICAL.italic",
             "rarities.DIVINE.symbol-char", "rarities.DIVINE.italic", "rarities.DIVINE.underline",
             "discord", "holograms",
