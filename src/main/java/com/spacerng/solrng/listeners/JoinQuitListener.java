@@ -39,24 +39,14 @@ public class JoinQuitListener implements Listener {
         event.setJoinMessage(line(event.getPlayer(), "join.message",
                 "&8[&a+&8] {name}"));
 
-        // Rebuilds the equipped-tag team prefix (empty if none equipped).
-        plugin.getTagManager().refreshPrefix(event.getPlayer(), data);
         // Any title marked auto-grant, which is how Beta reaches everybody
         // who turns up while beta is on. It runs before the name is drawn,
         // so a first time player wears it from their first line of chat.
         plugin.getCosmeticManager().grantAutomatic(data);
-        // The rank name in tab, and the size a /size rank picked, come back on join.
-        plugin.getRankManager().refreshName(event.getPlayer());
         // Their Discord roles catch up with whatever they bought or
         // linked while they were away.
         if (plugin.getDiscordBot() != null) plugin.getDiscordBot().syncRoles(event.getPlayer());
-        if (Math.abs(data.getPlayerSize() - 1.0) > 0.01) {
-            com.spacerng.solrng.commands.SizeCommand.apply(plugin, event.getPlayer(), data.getPlayerSize());
-        }
-
-        if (data.getEquippedTagItemKey() != null && data.getEquippedTagRarity() != null) {
-            reattachHologram(event.getPlayer(), data);
-        }
+        drawFor(event.getPlayer(), data);
 
         if (!event.getPlayer().hasPlayedBefore()) {
             plugin.getWelcomeManager().broadcastNewPlayer(event.getPlayer());
@@ -66,18 +56,41 @@ public class JoinQuitListener implements Listener {
                     + ChatColor.GRAY + " item to get started.");
         }
 
-        plugin.getScoreboardManager().setup(event.getPlayer());
-        plugin.getLuckBarManager().show(event.getPlayer());
-        // Somebody joining mid-event gets their own copy of the boss and
-        // whatever time is left, otherwise the event is invisible to them.
-        plugin.getBossManager().onJoin(event.getPlayer());
         // The day's peak decides whether the farming payout runs at all,
         // and a peak concurrent count only ever rises on a join.
         plugin.getLeaderboardManager().notePlayerCount(
                 org.bukkit.Bukkit.getOnlinePlayers().size());
         plugin.getQuestManager().check(event.getPlayer());
-        plugin.getFarmPlotManager().render(event.getPlayer());
-        plugin.getAuraManager().refreshVisibility(event.getPlayer());
+    }
+
+    /**
+     * Everything the plugin draws for one player: the tag prefix, the name
+     * in tab, their size, the floating tag, the sidebar, the luck bar, a
+     * running boss, the farm and the auras around them.
+     *
+     * A join runs it, and so does an enable with players already online,
+     * which is what a hot reload with PlugManX is (V211). Before this the
+     * join was the only way in, so after a reload the players who were on
+     * had no sidebar, no tag and no name until they relogged.
+     */
+    public void drawFor(org.bukkit.entity.Player player, PlayerData data) {
+        // Rebuilds the equipped-tag team prefix (empty if none equipped).
+        plugin.getTagManager().refreshPrefix(player, data);
+        // The rank name in tab, and the size a /size rank picked, come back on join.
+        plugin.getRankManager().refreshName(player);
+        if (Math.abs(data.getPlayerSize() - 1.0) > 0.01) {
+            com.spacerng.solrng.commands.SizeCommand.apply(plugin, player, data.getPlayerSize());
+        }
+        if (data.getEquippedTagItemKey() != null && data.getEquippedTagRarity() != null) {
+            reattachHologram(player, data);
+        }
+        plugin.getScoreboardManager().setup(player);
+        plugin.getLuckBarManager().show(player);
+        // Somebody joining mid-event gets their own copy of the boss and
+        // whatever time is left, otherwise the event is invisible to them.
+        plugin.getBossManager().onJoin(player);
+        plugin.getFarmPlotManager().render(player);
+        plugin.getAuraManager().refreshVisibility(player);
     }
 
     @EventHandler

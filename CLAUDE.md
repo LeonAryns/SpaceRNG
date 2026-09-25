@@ -185,6 +185,14 @@ Packages are by feature under `com.spacerng.solrng`. Where new things go:
   silently skips existing files, so delete first. Uploads land in the
   folder being viewed: a jar dropped in the root is never loaded. When
   something looks lost, a real stop and start comes before anything else.
+- **Hot reload with PlugManX (since V211).** Delete the old jar, upload
+  the new one into `plugins`, `/plugman reload SpaceRNG`. That only works
+  because onDisable unregisters the PlaceholderAPI expansions (they
+  `persist()`, so nothing else takes them off), takes the floating tags
+  down and cancels running rolls, and onEnable runs
+  `JoinQuitListener.drawFor` for everyone already online. Anything new
+  that is drawn on join, or registered somewhere outside Bukkit, needs
+  the same treatment or it doubles or goes missing after a reload.
 - **Java 21 only.** Leon's server runs Paper on Java 21, and a jar
   compiled for a newer release does not load. The VS Code Java upgrade
   tool creates `appmod/java-upgrade-*` branches that switch everything to

@@ -5,7 +5,7 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V210**, 25 September 2026.
+Last updated at **V211**, 25 September 2026.
 
 ## The agreed way of working
 
@@ -879,6 +879,12 @@ letter. `/rngadmin placeholders` shows what they resolve to.
   `AuraConcept.audienceAt` says which piece is for whom.
 - **Rank gradient in tab** is still waiting on TAB's config:
   `customtabname: "%spacerng_name%"` in TAB's groups.yml.
+
+**V211, untested: hot reload.** Leon is installing PlugManX so a jar
+update is `/plugman reload SpaceRNG` instead of a restart. The plugin was
+not safe for that; see CLAUDE.md for what changed. The first reload is
+the test: sidebar, tag, tab name and %spacerng_% placeholders in TAB
+should all be there without anybody relogging.
 
 **Queue from the same message, one jar each, in this order:**
 

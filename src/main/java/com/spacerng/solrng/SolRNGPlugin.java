@@ -48,6 +48,9 @@ public final class SolRNGPlugin extends JavaPlugin {
     private ArmorManager armorManager;
     private TagManager tagManager;
     private RollListener rollListener;
+    private JoinQuitListener joinQuitListener;
+    // Kept so onDisable can take them off again; see registerPlaceholderExpansion.
+    private final java.util.List<me.clip.placeholderapi.expansion.PlaceholderExpansion> expansions = new java.util.ArrayList<>();
     private ScoreboardManager scoreboardManager;
     private FarmingManager farmingManager;
     private SpawnManager spawnManager;
@@ -195,7 +198,8 @@ public final class SolRNGPlugin extends JavaPlugin {
 
         this.rollListener = new RollListener(this);
         getServer().getPluginManager().registerEvents(rollListener, this);
-        getServer().getPluginManager().registerEvents(new JoinQuitListener(this), this);
+        this.joinQuitListener = new JoinQuitListener(this);
+        getServer().getPluginManager().registerEvents(joinQuitListener, this);
         getServer().getPluginManager().registerEvents(new ChatListener(this), this);
         getServer().getPluginManager().registerEvents(new GuiListener(this), this);
         getServer().getPluginManager().registerEvents(new FarmingListener(this), this);
@@ -275,11 +279,30 @@ public final class SolRNGPlugin extends JavaPlugin {
         rankManager.start();
         bossManager.start();
 
+        // A hot reload enables with players already on, and the join is
+        // what draws everything for a player. One tick later, so every
+        // manager started above has run its first frame.
+        getServer().getScheduler().runTask(this, () -> {
+            for (Player player : getServer().getOnlinePlayers()) {
+                joinQuitListener.drawFor(player, playerDataManager.get(player.getUniqueId()));
+            }
+        });
+
         getLogger().info("SpaceRNG enabled.");
     }
 
     @Override
     public void onDisable() {
+        // Everything from here to the saves is for a hot reload (PlugManX,
+        // V211): a stop takes the whole world down anyway, a reload keeps
+        // it running and the new instance must not find the old one's
+        // leftovers.
+        for (var expansion : expansions) expansion.unregister();
+        expansions.clear();
+        if (rollListener != null) {
+            for (Player player : getServer().getOnlinePlayers()) rollListener.cancelRoll(player.getUniqueId());
+        }
+        if (tagManager != null) tagManager.hideAll();
         luckBarManager.removeAll();
         questManager.removeAll();
         // Before saving: a crate still spinning pays out now, so the reward
@@ -713,8 +736,15 @@ public final class SolRNGPlugin extends JavaPlugin {
         if (getServer().getPluginManager().getPlugin("PlaceholderAPI") == null) {
             return;
         }
-        new SolRNGExpansion(this).register();
-        new SolRNGExpansion.Legacy(this).register();
+        // persist() keeps these through a /papi reload, which also means
+        // nothing takes them off when this plugin goes. After a hot reload
+        // the old ones would still answer every %spacerng_% for TAB, from a
+        // plugin that is switched off, and the new ones could not register
+        // over them. onDisable unregisters them.
+        expansions.clear();
+        expansions.add(new SolRNGExpansion(this));
+        expansions.add(new SolRNGExpansion.Legacy(this));
+        for (var expansion : expansions) expansion.register();
         getLogger().info("Registered PlaceholderAPI expansion: %spacerng_tag%, %spacerng_tag_plain%, "
                 + "%spacerng_prestige%, %spacerng_prestige_roman%, %spacerng_prestige_badge%, "
                 + "%spacerng_level% (and more - see config.yml). The old %solrng_ spelling still works.");

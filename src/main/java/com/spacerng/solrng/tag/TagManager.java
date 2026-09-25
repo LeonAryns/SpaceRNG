@@ -248,6 +248,16 @@ public class TagManager {
     }
 
     /**
+     * Every floating tag down, on disable. They are non-persistent, so a
+     * stop takes them anyway, but a hot reload (PlugManX) keeps the world
+     * running and the new instance would mount a second tag beside each.
+     */
+    public void hideAll() {
+        for (UUID uuid : new ArrayList<>(holograms.keySet())) removeDisplays(uuid);
+        hologramTexts.clear();
+    }
+
+    /**
      * A teleport can drop passengers, which would leave the floating tag
      * hanging where the player used to be. Called now and then by the aura
      * ticker, this rebuilds any tag that is no longer riding its player.
