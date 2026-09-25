@@ -124,13 +124,8 @@ public class PerkRollerGui {
             lore.add(Lore.mark(ChatColor.GRAY) + plugin.getRarityManager().style(type.rarity(), type.display())
                     + ChatColor.DARK_GRAY + "  " + ChatColor.WHITE + PerkIndexGui.percent(perks.chanceOf(type)));
         }
-        StringBuilder levels = new StringBuilder();
-        for (int level = 1; level <= 5; level++) {
-            if (level > 1) levels.append("  ");
-            levels.append(ChatColor.GRAY).append(PerkType.roman(level)).append(" ")
-                    .append(ChatColor.WHITE).append(PerkIndexGui.percent(perks.levelChance(level)));
-        }
-        lore.add(Lore.mark(ChatColor.YELLOW) + levels);
+        // No line of level chances under the perks since V219: Leon asked
+        // for it gone. The levels are in the Perk Index.
         lore.add("");
         PerkType current = perks.activeType(data);
         if (current != null && data.getPerkConfirm().contains(current.key(data.getActivePerkLevel()))) {

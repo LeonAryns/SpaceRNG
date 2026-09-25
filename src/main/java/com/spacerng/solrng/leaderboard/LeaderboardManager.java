@@ -352,8 +352,7 @@ public class LeaderboardManager {
             any = true;
             banner.add(ChatColor.YELLOW + "#" + (i + 1) + " " + ChatColor.WHITE + entry.name()
                     + ChatColor.GRAY + "  " + String.format("%,d", entry.farmedPeriod()) + " farmed"
-                    + ChatColor.GRAY + "  " + Currency.CREDITS.colour() + "+"
-                    + Currency.CREDITS.amount(reward));
+                    + ChatColor.GRAY + "  " + Currency.CREDITS.amount(reward));
             awardCredits(entry.uuid(), reward);
             discord.add("**#" + (i + 1) + "** " + entry.name() + ": "
                     + String.format("%,d", entry.farmedPeriod()) + " farmed, +"

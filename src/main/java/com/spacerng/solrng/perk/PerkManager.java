@@ -107,6 +107,25 @@ public class PerkManager {
 
     public Collection<PerkType> types() { return types.values(); }
 
+    // Remembered per player in completed quests, like the guide's gifts, so
+    // the defaults go on once and a perk switched off afterwards stays off.
+    private static final String CONFIRM_DEFAULTS = "default:perk-confirm-legendary";
+
+    /**
+     * Confirmation on for every level of every Legendary or rarer perk,
+     * once per player (V219). Leon: "alles vanaf fortune perk en hoger
+     * automatisch confirmation on". Those are the ones nobody wants to roll
+     * away by accident; anybody who switches one off keeps it off.
+     */
+    public void applyConfirmDefaults(com.spacerng.solrng.player.PlayerData data) {
+        if (data.getCompletedQuests().contains(CONFIRM_DEFAULTS)) return;
+        for (PerkType type : types.values()) {
+            if (type.rarity().ordinal() < com.spacerng.solrng.rarity.Rarity.LEGENDARY.ordinal()) continue;
+            for (int level = 1; level <= 5; level++) data.getPerkConfirm().add(type.key(level));
+        }
+        data.getCompletedQuests().add(CONFIRM_DEFAULTS);
+    }
+
     public PerkType type(String id) { return id == null ? null : types.get(id); }
 
     /** The first perk of a rarity, or null. */

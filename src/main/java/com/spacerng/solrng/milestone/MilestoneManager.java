@@ -254,7 +254,7 @@ public class MilestoneManager {
             parts.add(ChatColor.AQUA + String.format("%,d", tier.shards()) + " Gems");
         }
         if (tier.credits() > 0) {
-            parts.add(ChatColor.LIGHT_PURPLE + String.format("%,d", tier.credits()) + " Credits");
+            parts.add(com.spacerng.solrng.gui.Currency.CREDITS.exact(tier.credits()));
         }
         if (tier.tickets() > 0) {
             parts.add(ChatColor.GOLD.toString() + tier.tickets()

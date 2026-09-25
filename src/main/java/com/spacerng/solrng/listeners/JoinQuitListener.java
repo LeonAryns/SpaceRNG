@@ -74,6 +74,7 @@ public class JoinQuitListener implements Listener {
      * had no sidebar, no tag and no name until they relogged.
      */
     public void drawFor(org.bukkit.entity.Player player, PlayerData data) {
+        plugin.getPerkManager().applyConfirmDefaults(data);
         // Rebuilds the equipped-tag team prefix (empty if none equipped).
         plugin.getTagManager().refreshPrefix(player, data);
         // The rank name in tab, and the size a /size rank picked, come back on join.

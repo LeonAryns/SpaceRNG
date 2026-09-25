@@ -94,7 +94,11 @@ public enum Currency {
      * currency becoming unrecognisable.
      */
     public String price(long value, boolean affordable) {
-        if (affordable) return amount(value);
+        // Credits keep the sidebar's rainbow even when they cannot be paid
+        // (V219). Store prices are mostly out of reach, so the red made
+        // Credits look like a red currency everywhere but the sidebar. The
+        // footer under them still says "Not enough Credits" in red.
+        if (affordable || rainbow) return amount(value);
         return ChatColor.RED + RollFormat.abbreviate(value) + " " + label;
     }
 

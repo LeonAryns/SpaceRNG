@@ -717,8 +717,9 @@ public final class HoloManager {
         if (board.equals("farming")) {
             List<Integer> payouts = plugin.getConfig().getIntegerList("leaderboard.farming.credit-payouts");
             if (rank < payouts.size()) {
-                rows.add(parse("<#E879F9>+ " + String.format("%,d", payouts.get(rank))
-                        + " Credits</#E879F9> <gray>(Daily)"));
+                // The sidebar's rainbow, so Credits read the same everywhere (V219).
+                rows.add(parse("<gradient:#FF5555:#FFAA00:#FFFF55:#55FF55:#55FFFF:#FF55FF:#FF5555>+ "
+                        + String.format("%,d", payouts.get(rank)) + " Credits</gradient> <gray>(Daily)"));
             }
         }
         return Component.join(JoinConfiguration.newlines(), rows);

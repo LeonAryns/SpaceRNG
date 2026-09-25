@@ -158,7 +158,7 @@ public class DailyManager {
             parts.add(ChatColor.DARK_GREEN + "$" + String.format("%,.0f", day.money()));
         }
         if (day.credits() > 0) {
-            parts.add(ChatColor.LIGHT_PURPLE + String.format("%,d", day.credits()) + " Credits");
+            parts.add(com.spacerng.solrng.gui.Currency.CREDITS.exact(day.credits()));
         }
         return String.join(ChatColor.GRAY + ", ", parts);
     }
