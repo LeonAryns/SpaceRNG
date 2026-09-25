@@ -157,7 +157,7 @@ public final class FirstTenManager {
                 () -> announce(roller, name, item, shiny, place, true), true);
     }
 
-    /** The build-up is for Legendary and up; anything below goes straight to the banner. */
+    /** Every tracked rarity gets the build-up (V216); it was Legendary and up only. */
     private void buildUpThen(Rarity rarity, org.bukkit.Material drop, UUID roller, Runnable event) {
         buildUpThen(rarity, drop, roller, event, false);
     }
@@ -170,13 +170,12 @@ public final class FirstTenManager {
      */
     private void buildUpThen(Rarity rarity, org.bukkit.Material drop, UUID roller, Runnable event,
                              boolean forced) {
-        if (rarity.ordinal() >= Rarity.LEGENDARY.ordinal()) {
-            FirstTenBuildUp build = new FirstTenBuildUp(plugin, rarity, drop, roller, event);
-            if (forced) build.force();
-            build.start();
-        } else {
-            event.run();
-        }
+        // Every rarity the list tracks. Leon's server tracks Epic as well,
+        // and an Epic First went straight to its banner, which is what
+        // "de preview is instant" was.
+        FirstTenBuildUp build = new FirstTenBuildUp(plugin, rarity, drop, roller, event);
+        if (forced) build.force();
+        build.start();
     }
 
     public void reset(Rarity rarity) {
@@ -212,15 +211,15 @@ public final class FirstTenManager {
         String article = "AEIOU".indexOf(rarity.name().charAt(0)) >= 0 ? "an " : "a ";
 
         String rule = colourOf(rarity) + ChatColor.STRIKETHROUGH + " ".repeat(52);
-        String header = rarities.styleBold(rarity, "✦ SERVER FIRST " + slots + " ✦")
+        String header = rarities.styleHeading(rarity, "✦ SERVER FIRST " + slots + " ✦")
                 + (preview ? ChatColor.DARK_GRAY + " (preview)" : "");
         String line = ChatColor.YELLOW + name + ChatColor.GRAY + " is "
-                + rarities.styleBold(rarity, "#" + place)
+                + rarities.styleHeading(rarity, "#" + place)
                 + ChatColor.GRAY + " of the first " + ChatColor.WHITE + slots
-                + ChatColor.GRAY + " to find " + article + rarities.styleBold(rarity, rarity.displayName());
+                + ChatColor.GRAY + " to find " + article + rarities.styleHeading(rarity, rarity.displayName());
         String drop = ChatColor.GRAY + "Drop: " + RollFormat.displayName(plugin, item, shiny);
         // The spots as a meter: taken in the rarity's colour, free in grey.
-        String meter = rarities.style(rarity, "▬".repeat(place)) + ChatColor.DARK_GRAY + "▬".repeat(left);
+        String meter = rarities.styleHeading(rarity, "▬".repeat(place)) + ChatColor.DARK_GRAY + "▬".repeat(left);
         String footer = meter + "  " + (left > 0
                 ? ChatColor.WHITE + "" + left + ChatColor.GRAY + (left == 1 ? " spot left" : " spots left")
                 : ChatColor.RED + "Every spot is taken");
@@ -260,11 +259,11 @@ public final class FirstTenManager {
             // Two titles, not one. The first says what happened, the second
             // says who and what, and a title that tries to say all of it at
             // once is a title nobody finishes reading.
-            String place1 = rarities.styleBold(rarity, "#" + place + " of " + slots);
+            String place1 = rarities.styleHeading(rarity, "#" + place + " of " + slots);
             online.showTitle(Title.title(
                     LegacyComponentSerializer.legacySection().deserialize(place1),
                     LegacyComponentSerializer.legacySection().deserialize(
-                            rarities.styleBold(rarity, rarity.displayName().toUpperCase(Locale.ROOT))
+                            rarities.styleHeading(rarity, rarity.displayName().toUpperCase(Locale.ROOT))
                                     + ChatColor.GRAY + "  server first"),
                     Title.Times.times(Duration.ofMillis(150), Duration.ofMillis(1600), Duration.ofMillis(300))));
 
@@ -285,14 +284,15 @@ public final class FirstTenManager {
 
     /**
      * The colour codes a rarity's style starts with, for drawing something
-     * of its own in that colour. Bold is dropped so a rule stays thin.
+     * of its own in that colour. Only the colour: bold, italic and
+     * underline made the rule thick, Divine's most of all (V216).
      */
     private String colourOf(Rarity rarity) {
         String styled = plugin.getRarityManager().style(rarity, "|");
         StringBuilder codes = new StringBuilder();
         for (int i = 0; i + 1 < styled.length() && styled.charAt(i) == ChatColor.COLOR_CHAR; i += 2) {
             char code = Character.toLowerCase(styled.charAt(i + 1));
-            if (code != 'l') codes.append(styled, i, i + 2);
+            if (code == 'x' || "0123456789abcdef".indexOf(code) >= 0) codes.append(styled, i, i + 2);
         }
         return codes.toString();
     }

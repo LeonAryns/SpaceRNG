@@ -379,6 +379,17 @@ public class RarityManager {
         return style == null ? text : style.apply(text);
     }
 
+    /**
+     * The rarity's colours in bold and nothing else, for headings made of
+     * several coloured words. The full style carries Divine's italic and
+     * underline, and on a whole banner that reads as one dense block
+     * (V216). A drop's own name keeps its full weight.
+     */
+    public String styleHeading(Rarity rarity, String text) {
+        RarityStyle style = styles.get(rarity);
+        return style == null ? text : new RarityStyle(style.stops(), true, false, false, false).apply(text);
+    }
+
     /** Same, forced bold - used by the shop price lines. */
     public String styleBold(Rarity rarity, String text) {
         RarityStyle style = styles.get(rarity);

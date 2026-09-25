@@ -57,6 +57,7 @@ final class FirstTenBuildUp {
     private final Component bar;
     private long frame = 0L;
     private BukkitTask task;
+    private boolean fireworksFailed;
     // The shape over the whole thing. Particles read as weather from a
     // distance; a star does not.
     private FirstTenStar star;
@@ -95,9 +96,9 @@ final class FirstTenBuildUp {
             this.origin = at;
         }
         this.bar = LegacyComponentSerializer.legacySection().deserialize(
-                plugin.getRarityManager().styleBold(rarity, "✦ A Server First " + rarity.displayName() + " is coming ✦"));
+                plugin.getRarityManager().styleHeading(rarity, "✦ A Server First " + rarity.displayName() + " is coming ✦"));
         this.title = LegacyComponentSerializer.legacySection().deserialize(
-                plugin.getRarityManager().styleBold(rarity, "✦ SERVER FIRST ✦"));
+                plugin.getRarityManager().styleHeading(rarity, "✦ SERVER FIRST ✦"));
     }
 
     private final Component title;
@@ -105,10 +106,10 @@ final class FirstTenBuildUp {
     /** "A Mythical is coming" with a filling row of stars under the title. */
     private Component progressLine(double progress) {
         int filled = (int) Math.round(progress * 10);
-        String stars = plugin.getRarityManager().style(rarity, "✦".repeat(Math.max(0, filled)))
+        String stars = plugin.getRarityManager().styleHeading(rarity, "✦".repeat(Math.max(0, filled)))
                 + org.bukkit.ChatColor.DARK_GRAY + "✦".repeat(Math.max(0, 10 - filled));
         return LegacyComponentSerializer.legacySection().deserialize(
-                org.bukkit.ChatColor.WHITE + "A " + plugin.getRarityManager().style(rarity, rarity.displayName())
+                org.bukkit.ChatColor.WHITE + "A " + plugin.getRarityManager().styleHeading(rarity, rarity.displayName())
                         + org.bukkit.ChatColor.WHITE + " is coming  " + stars);
     }
 
@@ -138,7 +139,18 @@ final class FirstTenBuildUp {
         try {
             double progress = (double) frame / length;
             boolean hush = progress > 0.9;
-            if (!hush && origin != null && frame % 6 == 0) fireworks(progress);
+            if (!hush && origin != null && frame % 6 == 0) {
+                // On their own, so a firework that cannot spawn (a protected
+                // or unloaded spot) costs the fireworks and nothing else.
+                // Any failure in this method ends the run-up on the spot,
+                // which is the one way it can look like there was none.
+                try {
+                    fireworks(progress);
+                } catch (RuntimeException ex) {
+                    if (!fireworksFailed) plugin.getLogger().warning("First 10 fireworks failed: " + ex);
+                    fireworksFailed = true;
+                }
+            }
             if (star != null) {
                 star.tick(progress, 4);
                 // People walk in and out of range, and somebody who just
