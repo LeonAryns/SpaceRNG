@@ -56,10 +56,10 @@ final class SignatureConcepts {
         d.put("sigil", "a broken circle turning over a still one, with four spokes");
         d.put("ember", "two circles on the floor and six flames breathing at the waist");
         d.put("eclipse", "a ring standing round the body, sweeping over a wide floor");
-        d.put("ascend", "a slanted orbit, a column of light and a lantern atom");
+        d.put("ascend", "a slanted orbit and a lantern atom");
         d.put("signature", "whichever of the four painted looks the rarity wears");
-        d.put("prism", "the sigil with a ring standing through it and a short column");
-        d.put("pyre", "the flames with wings of fire off the back and a tall column");
+        d.put("prism", "the sigil with a ring standing through it");
+        d.put("pyre", "the flames with wings of fire off the back");
         d.put("rift", "two standing rings crossed and swinging opposite ways (heavy)");
         d.put("empyrean", "the slanted orbit with wings and a crown of light (heavy)");
         d.put("shiny", "whichever of the four shiny looks the rarity wears");
@@ -181,14 +181,12 @@ final class SignatureConcepts {
 
     /**
      * Divine. Three circles on the floor, a slanted orbit two and a half
-     * blocks out that never lies in the same plane twice, a column of light
-     * that starts over the head and thins as it rises six blocks, and the
-     * sea lantern atom the old Divine look was built round, kept because it
-     * is the one piece with real depth to it.
+     * blocks out that never lies in the same plane twice, and the sea
+     * lantern atom the old Divine look was built round, kept because it is
+     * the one piece with real depth to it.
      *
-     * The column used to start at the feet and run as one slab straight
-     * through the wearer, which read as a plank rather than as light and
-     * sat in their own eyes the whole time they wore it.
+     * It had a column of light over the head until V208, when Leon took the
+     * beam off every rarity's look.
      */
     private static AuraConcept ascend(Color color) {
         Color soft = softer(color);
@@ -197,7 +195,6 @@ final class SignatureConcepts {
                 new PlateRing(soft, 165, FEET + 0.02f, 3.30f, 10, 0.08f, 0.45f, 0f, 4, 5.0, 0.0),
                 new PlateRing(soft, 120, FEET + 0.03f, 4.10f, 8, 0.06f, 0.35f, 0f, 8, -5.5, 0.0),
                 new PlateRing(color, 215, -0.85f, 2.55f, 10, 0.10f, 0.8f, 25f, 5, 9.0, 5.0),
-                new Column(color, 0.35f, 6.0f, 1.30f, 0.28f, 60, 150, 4),
                 new AuraConcepts.SolidAtom(Material.SEA_LANTERN, -0.70f, 1.45f, 0.42f, false, 0, 2, 20.0));
     }
 
@@ -205,27 +202,25 @@ final class SignatureConcepts {
 
     /**
      * Epic shiny. The sigil with a ring standing through it, tipped a little
-     * off upright so it never hides behind the wearer, and a short column.
+     * off upright so it never hides behind the wearer.
      */
     private static AuraConcept prism(Color color) {
         Color soft = softer(color);
         return new AuraConcepts.Combined(
                 sigil(color),
-                new PlateRing(soft, 205, -0.80f, 1.25f, 10, 0.08f, 0.65f, 78f, 4, 9.0, 5.0),
-                new Column(color, -1.70f, 3.2f, 0.60f, 0.16f, 45, 120));
+                new PlateRing(soft, 205, -0.80f, 1.25f, 10, 0.08f, 0.65f, 78f, 4, 9.0, 5.0));
     }
 
     /**
      * Legendary shiny. The flames, with a pair of wings off the back drawn in
-     * the same fire and a column standing through the middle. The wings are
+     * the same fire. The wings are
      * the only pieces that turn with the body, so the circles under them stay
      * exactly where the wearer is.
      */
     private static AuraConcept pyre(Color color) {
         return new AuraConcepts.Combined(
                 ember(color),
-                new PlateWings(color, 215),
-                new Column(color, -1.70f, 4.5f, 0.75f, 0.20f, 45, 130));
+                new PlateWings(color, 215));
     }
 
     /**
@@ -246,7 +241,7 @@ final class SignatureConcepts {
 
     /**
      * Divine shiny, the rarest thing anyone can wear. Two floor circles, the
-     * slanted orbit, the column, the lantern atom, wings off the back and a
+     * slanted orbit, the lantern atom, wings off the back and a
      * crown of light standing over the head.
      */
     private static AuraConcept empyrean(Color color) {
@@ -255,7 +250,6 @@ final class SignatureConcepts {
                 new PlateRing(color, 240, FEET + 0.01f, 2.30f, 16, 0.13f, 1.0f, 0f, 0, 0.0, 0.0),
                 new PlateRing(soft, 165, FEET + 0.02f, 3.40f, 10, 0.08f, 0.45f, 0f, 5, 6.0, 0.0),
                 new PlateRing(color, 215, -0.85f, 2.55f, 10, 0.10f, 0.8f, 25f, 5, 9.0, 5.0),
-                new Column(color, 0.35f, 7.5f, 1.40f, 0.32f, 60, 155, 5),
                 new AuraConcepts.SolidAtom(Material.SEA_LANTERN, -0.70f, 1.45f, 0.42f, false, 0, 2, 20.0),
                 new PlateWings(soft, 210),
                 new Petals(soft, 215, 0.16f, 0.42f, 6, 0.12f, 0.34f, 12f, 5, 16));
