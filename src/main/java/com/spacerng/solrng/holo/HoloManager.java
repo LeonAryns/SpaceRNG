@@ -107,7 +107,9 @@ public final class HoloManager {
     private static final double PODIUM_YOU_Y = 0.1;
     private static final double PODIUM_READ_RANGE = 48.0;
     // How much bigger than panel text the podium's pieces are, and how far #1 stands above #2 and #3.
-    private static final double PODIUM_TAG = 1.0;
+    private static final double PODIUM_TAG = 1.15;
+    // #1's head is this much bigger than #2 and #3.
+    private static final double PODIUM_FIRST_SCALE = 1.25;
     // The widest a tag line usually gets, in font pixels: a 16 letter name or the Credits line.
     private static final double PODIUM_TAG_PIXELS = 115.0;
     private static final double PODIUM_TEXT = 1.25;
@@ -538,16 +540,24 @@ public final class HoloManager {
         int timerLines = board.equals("farming") ? 2 : 1;
         double titleY = timerY + timerLines * LINE * small + GAP;
         double headY = titleY + LINE * podiumTextScale * PODIUM_TITLE + 0.15 + podiumHeadScale / 2.0;
-        double spacing = podiumSpacing(podiumTextScale * (float) PODIUM_TAG);
+        float tagScale = podiumTextScale * (float) PODIUM_TAG;
+        float firstScale = podiumHeadScale * (float) PODIUM_FIRST_SCALE;
+        double spacing = podiumSpacing(tagScale, firstScale);
+        // #1 stands a step above the other two, like the top of a podium,
+        // and at least high enough that its tag clears theirs. That is what
+        // lets #2 and #3 stand closer than one tag's width from #1.
+        int tagRows = board.equals("farming") ? 3 : 2;
+        double firstLift = Math.max(PODIUM_FIRST_LIFT + (firstScale - podiumHeadScale) / 2.0,
+                tagRows * LINE * tagScale + 0.2 + GAP);
 
         ItemDisplay[] heads = new ItemDisplay[3];
         TextDisplay[] tags = new TextDisplay[3];
         java.util.UUID[] shown = new java.util.UUID[3];
         for (int rank = 0; rank < 3; rank++) {
             double side = rank == 0 ? 0.0 : rank == 1 ? spacing : -spacing;
-            // #1 stands a step above the other two, like the top of a podium.
+            float scale = rank == 0 ? firstScale : podiumHeadScale;
             Location centre = spot.at().clone().add(right.clone().multiply(side))
-                    .add(0, headY + (rank == 0 ? PODIUM_FIRST_LIFT : 0.0), 0);
+                    .add(0, headY + (rank == 0 ? firstLift : 0.0), 0);
             centre.setYaw(spot.yaw());
             centre.setPitch(0f);
             LeaderboardManager.Entry entry = rank < top.size() ? top.get(rank) : null;
@@ -557,7 +567,7 @@ public final class HoloManager {
                 d.setItemStack(leaderHead(uuid));
                 d.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
                 d.setTransformation(new Transformation(new Vector3f(), new Quaternionf(),
-                        new Vector3f(podiumHeadScale, podiumHeadScale, podiumHeadScale), new Quaternionf()));
+                        new Vector3f(scale, scale, scale), new Quaternionf()));
                 d.setViewRange(viewRange);
                 d.setBrightness(new Display.Brightness(15, 15));
                 d.getPersistentDataContainer().set(tagKey, PersistentDataType.STRING, spot.id());
@@ -567,8 +577,7 @@ public final class HoloManager {
             shown[rank] = uuid;
             // A head fills the lower half of its box, so its top sits at the display.
             Location tagAt = centre.clone().add(0, 0.2, 0);
-            TextDisplay tag = text(spot, tagAt, podiumTag(board, rank, entry),
-                    podiumTextScale * (float) PODIUM_TAG);
+            TextDisplay tag = text(spot, tagAt, podiumTag(board, rank, entry), tagScale);
             pieces.add(tag);
             tags[rank] = tag;
         }
@@ -651,11 +660,16 @@ public final class HoloManager {
      * scale 1, so at the podium's text size one tag is several blocks
      * wide. Before V157 the spacing ignored that and the three tags were
      * drawn on top of each other.
+     *
+     * Since V207 #1's tag is lifted clear of the other two, so it no longer
+     * sets the distance. What does: #2 and #3's tags must not meet each
+     * other across #1, and must not reach into #1's head beside them.
      */
-    private double podiumSpacing(float tagScale) {
-        double tagWidth = PODIUM_TAG_PIXELS / 40.0 * tagScale;
+    private double podiumSpacing(float tagScale, float firstScale) {
+        double tagHalf = PODIUM_TAG_PIXELS / 40.0 * tagScale / 2.0;
+        double firstHalf = firstScale * 0.25;
         double headWidth = podiumHeadScale * 0.5;
-        return Math.max(podiumSpacing, Math.max(tagWidth, headWidth) + 1.0);
+        return Math.max(podiumSpacing, Math.max(tagHalf + firstHalf, headWidth) + 0.3);
     }
 
     /** The reader's right as they face the podium. */
