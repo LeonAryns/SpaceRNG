@@ -150,7 +150,7 @@ roll-item:
       mode: pinned
       ahead: 1.6
       item-down: 0.45
-      counter-up: 0.0
+      counter-up: 0.28
     # How much room is kept clear around the roller's own eyes, in blocks.
     # Nothing in the reveal is drawn nearer than this TO THAT VIEWER, so
     # the effect is untouched for everybody watching from outside and

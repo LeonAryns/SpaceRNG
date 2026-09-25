@@ -41,6 +41,8 @@ final class RollCounter {
     private static final float RIDE_ABOVE_EYES = 0.18f;
     // Half the height of one line of text at scale 1, in blocks.
     private static final float HALF_LINE = 0.125f;
+    // How far above the crosshair the middle of the number sits, pinned.
+    private static final float ABOVE_CENTRE = 0.28f;
 
     private final SolRNGPlugin plugin;
     private final Player player;
@@ -152,9 +154,11 @@ final class RollCounter {
         // at its own size to put the middle of the number on the eye line.
         // The translation is not scaled with it, which is why the half line
         // is worked out per size, and why a pop stays centred too.
+        // V212: a little above the middle, because dead centre put the
+        // number behind the crosshair.
         float halfLine = HALF_LINE * scale;
         Vector3f offset = pinned
-                ? new Vector3f(0f, -halfLine - RIDE_ABOVE_EYES, -AHEAD)
+                ? new Vector3f(0f, ABOVE_CENTRE - halfLine - RIDE_ABOVE_EYES, -AHEAD)
                 : new Vector3f(0f, -halfLine, 0f);
         return new Transformation(offset, new Quaternionf(),
                 new Vector3f(scale, scale, scale), new Quaternionf());

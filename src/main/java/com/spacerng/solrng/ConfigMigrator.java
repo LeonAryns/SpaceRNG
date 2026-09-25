@@ -335,7 +335,9 @@ public final class ConfigMigrator {
             new Patch("symbol-epic-diamond", "rarities.EPIC.symbol-char", "✦", "◆"),
             new Patch("symbol-mythical-ornate", "rarities.MYTHICAL.symbol-char", "✧", "❖"),
             // V210: the odds counter sits in the middle of the screen.
-            new Patch("counter-centred", "roll-item.comet.screen.counter-up", 0.35, 0.0));
+            new Patch("counter-centred", "roll-item.comet.screen.counter-up", 0.35, 0.0),
+            // V212: centred sat behind the crosshair, so a little above it.
+            new Patch("counter-above-crosshair", "roll-item.comet.screen.counter-up", 0.0, 0.28));
 
     // V159: every hoe enchant runs to level 10,000, except Credit Finder,
     // which stays at 1,000 because it pays Credits.

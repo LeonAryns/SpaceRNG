@@ -454,7 +454,9 @@ public class RarityManager {
         // noise on every rarity where each one should look different.
         String mark = markFor(item.getRarity());
         if (mark.isEmpty()) return colored;
-        String left = leadingCodes(colored) + mark + ChatColor.RESET;
+        // Colour only on the marks. The name's own codes include its
+        // weight, and Divine's underline ran under the star as well (V212).
+        String left = colourOnly(leadingCodes(colored)) + mark + ChatColor.RESET;
         String right = lastColour(colored) + mark + ChatColor.RESET;
         return left + " " + colored + ChatColor.RESET + " " + right;
     }
@@ -464,6 +466,16 @@ public class RarityManager {
         int i = 0;
         while (i + 1 < legacy.length() && legacy.charAt(i) == ChatColor.COLOR_CHAR) i += 2;
         return legacy.substring(0, i);
+    }
+
+    /** The colour codes in a run of legacy codes, with bold, italic and the rest left out. */
+    private static String colourOnly(String codes) {
+        StringBuilder out = new StringBuilder();
+        for (int i = 0; i + 1 < codes.length(); i += 2) {
+            char code = Character.toLowerCase(codes.charAt(i + 1));
+            if (code == 'x' || "0123456789abcdef".indexOf(code) >= 0) out.append(codes, i, i + 2);
+        }
+        return out.toString();
     }
 
     /** The last colour a legacy string sets, hex or classic, or "" if it sets none. */
