@@ -292,17 +292,27 @@ public class RankManager {
      * rainbow instead.
      */
     public void refreshName(Player player) {
-        Component component = LegacyComponentSerializer.legacySection().deserialize(fullName(player));
-        player.playerListName(component);
-        player.displayName(component);
+        // Tab gets the badge and the name only. The cosmetic title (Beta
+        // and the rest) stays in chat and in the join line (V222): Leon
+        // does not want it in tab, where every row already carries a tag.
+        player.playerListName(LegacyComponentSerializer.legacySection().deserialize(tabName(player)));
+        player.displayName(LegacyComponentSerializer.legacySection().deserialize(fullName(player)));
     }
 
     /**
-     * The badge, the name in the rank's colours and the cosmetic title, as
-     * legacy text. Also %spacerng_name%: the TAB plugin writes the tab list
-     * itself and throws away the name set above, so the rank gradient only
-     * shows in tab when TAB's format asks for this.
+     * The badge and the name in the rank's colours, no title: what tab
+     * shows. Also %spacerng_name%, because the TAB plugin writes the tab
+     * list itself and throws away the name set above, so the rank gradient
+     * only shows in tab when TAB's format asks for this.
      */
+    public String tabName(Player player) {
+        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+        String[] stops = plugin.getCosmeticManager() == null
+                ? null : plugin.getCosmeticManager().stopsFor(data);
+        return badgeOf(rankOf(data), stops) + coloredName(player);
+    }
+
+    /** The badge, the name in the rank's colours and the cosmetic title, for chat and join lines. */
     public String fullName(Player player) {
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         RankTier tier = rankOf(data);

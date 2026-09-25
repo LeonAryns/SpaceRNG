@@ -107,6 +107,8 @@ public class SolRNGExpansion extends PlaceholderExpansion {
 
             // --- the name as the plugin draws it, for TAB (V209) ---
             case "name":
+                return plugin.getRankManager().tabName(player);
+            case "name_titled":
                 return plugin.getRankManager().fullName(player);
             case "name_colored":
                 return plugin.getRankManager().coloredName(player);
