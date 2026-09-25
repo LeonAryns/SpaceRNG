@@ -204,14 +204,14 @@ public final class AuraManager {
         if (linked) {
             rarity = tagRarity(player);
             look = rarity == null || !plugin.getConfig().getBoolean("auras.enabled", true)
-                    ? null : lookFor(rarity);
+                    ? null : lookFor(rarity, data);
             // A look picked in /aura wins over the one the tag would give.
             String choice = data.getAuraChoice();
             if (choice != null && !choice.isEmpty() && owns(data, choice)) {
                 Rarity chosen = rarityOf(choice);
                 if (chosen != null) {
                     rarity = chosen;
-                    look = choice.endsWith(":shiny") ? shinyLookFor(chosen) : lookFor(chosen);
+                    look = choice.endsWith(":shiny") ? shinyLookFor(chosen) : lookFor(chosen, data);
                 }
             }
         }
@@ -313,6 +313,32 @@ public final class AuraManager {
     }
 
     /** Concept and accent for a tag rarity, from config with the defaults underneath. Null means no aura. */
+    /**
+     * The plain look this player wears for a rarity. Since V218 the look is
+     * the rank's and the rarity only colours it: "de divine aura is gewoon
+     * per rank", so a Supernova wears the Divine look at every rarity from
+     * Epic up, each in its own colour, and a Linked player wears the Epic
+     * one. auras.by-rank in config; a rank it does not name, or the section
+     * switched off, falls back to the rarity's own look. The accent stays
+     * the rarity's.
+     */
+    public String[] lookFor(Rarity rarity, com.spacerng.solrng.player.PlayerData data) {
+        String[] own = lookFor(rarity);
+        if (own == null) return null;
+        String concept = rankConcept(data);
+        return concept == null ? own : new String[]{concept, own[1]};
+    }
+
+    /** The look a player's rank gives, or null to use the rarity's own. */
+    public String rankConcept(com.spacerng.solrng.player.PlayerData data) {
+        if (!plugin.getConfig().getBoolean("auras.by-rank.enabled", true)) return null;
+        var tier = plugin.getRankManager().rankOf(data);
+        if (tier == null) return null;
+        String concept = plugin.getConfig().getString("auras.by-rank.looks." + tier.id());
+        if (concept == null || concept.isBlank()) return null;
+        return concept.toLowerCase(Locale.ROOT);
+    }
+
     public String[] lookFor(Rarity rarity) {
         String path = "auras.tag." + rarity.name();
         String[] fallback = DEFAULT_TAG_AURAS.get(rarity);

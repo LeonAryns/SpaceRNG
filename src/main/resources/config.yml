@@ -6127,6 +6127,19 @@ auras:
     max-nearby: 1
     radius: 32
     fallback: ascend
+  # The look a player wears is their rank's since V218, and the tag's
+  # rarity only colours it: a Supernova wears the Divine look (ascend) at
+  # every rarity from Epic up, each in that rarity's colour, and Linked
+  # wears what Epic used to (sigil). A rank left out here, or enabled
+  # false, falls back to the rarity's own look under tag: below. The
+  # accent always stays the rarity's.
+  by-rank:
+    enabled: true
+    looks:
+      linked: sigil
+      comet: ember
+      nova: eclipse
+      supernova: ascend
   # What a tag of each rarity wears. The four below are the signature
   # looks: rings, flames and columns painted in the rarity's own colour
   # rather than star glyphs round a sea lantern. /rngadmin auratest list

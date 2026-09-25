@@ -87,7 +87,7 @@ public class AuraGui {
     private static ItemStack auraIcon(SolRNGPlugin plugin, PlayerData data, Rarity rarity, boolean shiny) {
         var auras = plugin.getAuraManager();
         String choice = rarity.name() + (shiny ? ":shiny" : "");
-        String[] look = shiny ? auras.shinyLookFor(rarity) : auras.lookFor(rarity);
+        String[] look = shiny ? auras.shinyLookFor(rarity) : auras.lookFor(rarity, data);
         boolean owned = auras.owns(data, choice);
         boolean linked = plugin.getRankManager().rankOf(data) != null;
         boolean worn = choice.equalsIgnoreCase(data.getAuraChoice());
@@ -111,6 +111,21 @@ public class AuraGui {
             lore.add(Lore.stat(ChatColor.AQUA, "Accent", look[1]));
         }
         lore.add("");
+        // The plain looks are the rank's since V218, so the menu says which
+        // look each rank wears, in this rarity's colour, with your own marked.
+        if (!shiny && auras.rankConcept(data) != null) {
+            lore.add(Lore.section(ChatColor.YELLOW, "By rank"));
+            String yours = auras.rankConcept(data);
+            for (var tier : plugin.getRankManager().tiers()) {
+                String concept = plugin.getConfig().getString("auras.by-rank.looks." + tier.id());
+                if (concept == null || concept.isBlank()) continue;
+                boolean mine = concept.equalsIgnoreCase(yours)
+                        && tier.equals(plugin.getRankManager().rankOf(data));
+                lore.add(Lore.stat(mine ? ChatColor.GREEN : ChatColor.DARK_GRAY,
+                        tier.display(), concept + (mine ? "  (yours)" : "")));
+            }
+            lore.add("");
+        }
         if (!owned) {
             lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Locked");
             lore.add(Lore.line(ChatColor.GRAY, shiny

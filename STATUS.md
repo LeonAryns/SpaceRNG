@@ -5,7 +5,7 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V215**, 25 September 2026.
+Last updated at **V218**, 25 September 2026.
 
 ## The agreed way of working
 
@@ -908,18 +908,35 @@ should all be there without anybody relogging.
   the skilltree across. The cost is a guess; at 1 in 100 a first pet is
   now about 10,000 rolls on the root alone.
 
+**V216 to V218, 25 September, untested in game:**
+
+- **V216.** Every tracked First rarity gets the run-up (Leon's server
+  tracks Epic, which went straight to the banner). The fireworks fail on
+  their own instead of ending the run-up. First banners and titles use
+  `styleHeading` (colour and bold only), so Divine's underline and
+  italic no longer crowd them.
+- **V217.** Your own aura on "hidden" also hides its particles. In "out
+  of your way" your own copy of the particles skips your face. Divine's
+  slanted ring (`PlateRing.behind()`) turns with your head, raised side
+  behind.
+- **V218, auras by rank.** `auras.by-rank.looks`: linked sigil, comet
+  ember, nova eclipse, supernova ascend. The tag rarity colours the look
+  and keeps its accent; shiny looks are unchanged. /aura lists which
+  rank wears which look. Ember and eclipse as the middle steps were my
+  pick, Leon never answered; he can change them in config.
+
 **Queue from the same message, one jar each, in this order:**
 
 1. **The roll reveal.** Mythical is barely audible, the rest is good.
    Particles on the ground at every rarity instead of the block and item
    displays on the ground (those are the auras' look). The question mark
    is gone since V210, so its small to big growth is moot.
-2. **Auras by rank.** Every rarity from Epic up wears what Divine wears
+2. **Auras by rank.** Done in V218. Every rarity from Epic up wears what Divine wears
    now (ascend), in the rarity's colour, but only at Supernova. Smaller
    looks for lower ranks, and Linked wears what Epic wears now (sigil),
    at every rarity from Epic, only the colour changing. Nova and Comet
    are in between: ask whether ember and eclipse are the middle steps.
-3. **Divine's ground stars.** The stars that shot outward over the
+3. **Divine's ground stars.** Done in V214, on every rarity for Supernova since V218. The stars that shot outward over the
    ground are missed. Bring them back inside the first ring.
 4. **The sea lanterns.** Done in V210. At knee height in "out of your way"; they sat
    in faces now. "Everything" keeps them where they are.

@@ -75,6 +75,8 @@ public final class ConfigMigrator {
             "roll-item.comet.head-scale",
             // V210: the falling comet and the question mark, both off.
             "roll-item.comet.falling", "roll-item.comet.question-mark",
+            // V218: the aura look by rank.
+            "auras.by-rank",
             // V200: how far a ground piece clears the block under it.
             "auras.ground-lift",
             // V202: the floor under the crate reel's step time.
