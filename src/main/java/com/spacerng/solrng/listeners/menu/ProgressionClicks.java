@@ -214,10 +214,18 @@ final class ProgressionClicks {
         }
 
         if (rawSlot == PrestigeGui.LEVEL_SLOT) {
-            if (prestige.levelUp(data)) {
+            // Shift click climbs as far as the rolls reach (V220), rather
+            // than one click and one menu redraw per level.
+            int gained = 0;
+            while (prestige.levelUp(data)) {
+                gained++;
+                if (!event.isShiftClick()) break;
+            }
+            if (gained > 0) {
                 player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "LEVEL UP! "
                         + ChatColor.RESET + ChatColor.GRAY + "You're now level "
-                        + ChatColor.WHITE + data.getLevel() + ChatColor.GRAY + ".");
+                        + ChatColor.WHITE + data.getLevel() + ChatColor.GRAY
+                        + (gained > 1 ? " (+" + gained + ")." : "."));
                 player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_LEVELUP, 0.8f, 1.5f);
             } else {
                 player.sendMessage(ChatColor.RED + "You need more rolls to level up.");
