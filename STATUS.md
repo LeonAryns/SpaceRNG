@@ -5,7 +5,7 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V208**, 25 September 2026.
+Last updated at **V209**, 25 September 2026.
 
 ## The agreed way of working
 
@@ -844,6 +844,39 @@ nobody.
   tag, also the heavy fallback), prism, pyre and empyrean (the Epic,
   Legendary and Divine shinies). beacon and zenith still have theirs, no
   rarity wears them.
+
+**V209, the drop names, untested in game.** Leon, 25 September: V206's
+bold and italic never showed, because a drop's name is drawn in its
+OWN style (its colours, or its block's) and only the rarity label read
+the rarity's weight. Now every drop wears its rarity's weight, and from
+Epic up the gradient has the rarity colour woven through it with more
+stops (3 / 4 / 5 / 5). Tab and chat carry the same flickering flair as
+the nametag, his call. The Divine is "First Star" (was "Halo of the
+First Star"); `RarityManager.RENAMED` maps the old name so discoveries,
+tags, found counts and items in inventories keep working, and a
+`renamed-drops` patch renames it in the live config.
+
+**The rank gradient in tab needs one line in TAB's config.** TAB writes
+the tab list itself and throws away the name the plugin sets.
+`%spacerng_name%` is the whole name (badge, rank colours, title),
+`%spacerng_name_colored%` the name alone, `%spacerng_rank_badge%` the
+letter. `/rngadmin placeholders` shows what they resolve to.
+
+**Queue from the same message, one jar each, in this order:**
+
+1. **The roll reveal.** Mythical is barely audible, the rest is good.
+   Particles on the ground at every rarity instead of the block and item
+   displays on the ground (those are the auras' look). The question mark
+   head should move during the build-up, small to big, every rarity.
+2. **Auras by rank.** Every rarity from Epic up wears what Divine wears
+   now (ascend), in the rarity's colour, but only at Supernova. Smaller
+   looks for lower ranks, and Linked wears what Epic wears now (sigil),
+   at every rarity from Epic, only the colour changing. Nova and Comet
+   are in between: ask whether ember and eclipse are the middle steps.
+3. **Divine's ground stars.** The stars that shot outward over the
+   ground are missed. Bring them back inside the first ring.
+4. **The sea lanterns.** At knee height in "out of your way"; they sit
+   in faces now. "Everything" keeps them where they are.
 
 **Deliberately not done in V186, and why:** the +10% Coins and Gems per
 crop. Those are the `CROP_YIELD` nodes, and they are the spine of the

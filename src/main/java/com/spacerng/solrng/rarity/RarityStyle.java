@@ -41,6 +41,22 @@ public class RarityStyle {
         this.italic = italic;
     }
 
+    /** The colour stops, first to last. */
+    public List<int[]> stops() {
+        return colorStopsRgb;
+    }
+
+    /**
+     * These colours with the weight of another style on top: its bold,
+     * underline, strikethrough and italic added to whatever this one had.
+     * A drop keeps its own colours and wears its rarity's weight.
+     */
+    public RarityStyle withWeightOf(RarityStyle weight) {
+        if (weight == null) return this;
+        return new RarityStyle(colorStopsRgb, bold || weight.bold, underline || weight.underline,
+                strikethrough || weight.strikethrough, italic || weight.italic);
+    }
+
     /** Applies this style's color(s) and formatting to the given text. */
     public String apply(String text) {
         return apply(text, false);

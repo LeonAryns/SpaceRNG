@@ -88,8 +88,40 @@ public final class BlockColours {
     /** Two gradient stops for a name: the colour, and a lighter shade of it. */
     public static List<String> gradientFor(Material material) {
         int[] base = readable(base(material));
-        int[] light = mix(base, new int[]{255, 250, 235}, 0.35);
+        int[] light = mix(base, CREAM, 0.35);
         return List.of(hex(base), hex(light));
+    }
+
+    private static final int[] CREAM = {255, 250, 235};
+
+    /**
+     * The same, with more colour in it the rarer the drop. Up to Rare a name
+     * is its colour fading to a lighter shade. From Epic up Leon wanted more
+     * difference than one smooth fade (V209), so the rarity's own colour is
+     * woven through the drop's and the stops multiply: three for Epic, four
+     * for Legendary, five for Mythical and Divine. Every stop still goes
+     * through readable(), so none of them lands on white.
+     */
+    public static List<String> gradientFor(Material material, Rarity rarity, List<int[]> rarityStops) {
+        if (rarity == null || rarity.ordinal() < Rarity.EPIC.ordinal()
+                || rarityStops == null || rarityStops.isEmpty()) {
+            return gradientFor(material);
+        }
+        int[] base = readable(base(material));
+        int[] bright = readable(mix(base, CREAM, 0.6));
+        int[] accent = readable(rarityStops.get(0));
+        return switch (rarity) {
+            case EPIC -> List.of(hex(base), hex(readable(mix(base, accent, 0.7))), hex(bright));
+            case LEGENDARY -> List.of(hex(accent), hex(base), hex(bright), hex(accent));
+            case MYTHICAL -> List.of(hex(base), hex(accent), hex(bright), hex(accent), hex(base));
+            default -> {
+                // Divine's label is a palette of its own: its warm and its
+                // cool stop go through the drop's colour.
+                int[] warm = readable(rarityStops.get(Math.min(1, rarityStops.size() - 1)));
+                int[] cool = readable(rarityStops.get(Math.min(3, rarityStops.size() - 1)));
+                yield List.of(hex(base), hex(warm), hex(bright), hex(cool), hex(base));
+            }
+        };
     }
 
     private static int[] base(Material material) {

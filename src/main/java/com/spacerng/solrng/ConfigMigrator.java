@@ -603,6 +603,25 @@ public final class ConfigMigrator {
             applied.add("band-odds-no-overlap");
             changed = true;
         }
+        // V209: renamed drops, only where the old name is still on disk.
+        if (!applied.contains("renamed-drops")) {
+            List<Map<?, ?>> items = disk.getMapList("items");
+            boolean renamed = false;
+            for (Map<?, ?> entry : items) {
+                String now = com.spacerng.solrng.rarity.RarityManager.RENAMED.get(String.valueOf(entry.get("name")));
+                if (now == null) continue;
+                @SuppressWarnings("unchecked")
+                Map<Object, Object> editable = (Map<Object, Object>) entry;
+                editable.put("name", now);
+                renamed = true;
+            }
+            if (renamed) {
+                disk.set("items", items);
+                plugin.getLogger().info("Config patch renamed-drops: items renamed");
+            }
+            applied.add("renamed-drops");
+            changed = true;
+        }
         for (TextPatch patch : TEXT_PATCHES) {
             if (applied.contains(patch.id())) continue;
             List<?> list = disk.getList(patch.path());

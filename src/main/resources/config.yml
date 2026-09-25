@@ -1073,10 +1073,11 @@ rarities:
   # Strikethrough is supported and left off, because a struck out name
   # reads as something that was cancelled.
   #
-  # symbol-char is the mark on either side of the name in tab and in chat.
-  # The `symbol: true` flair is an obfuscated character, which flickers,
-  # and flickering text in a tab list is unreadable, so that one is only
-  # used on the floating nametag and this is used everywhere else.
+  # The weight goes on every drop of the rarity, not just its label, and
+  # from Epic up the drop's own colour gets the rarity's colour woven
+  # through it. The `symbol: true` flair, the flickering mark on either
+  # side of a name, is used in tab and chat too since V209. symbol-char is
+  # kept for anything that cannot take a flicker.
   EPIC:
     colors: ["&5"]
     symbol: true
@@ -1882,7 +1883,7 @@ items:
     odds: 1000000
   # --- Divine ---
   - material: CONDUIT
-    name: "Halo of the First Star"
+    name: "First Star"
     rarity: DIVINE
     odds: 10000000
 index:

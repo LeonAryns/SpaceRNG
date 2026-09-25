@@ -183,7 +183,7 @@ public final class FirstTenManager {
      *   ------------------------------------------   rule, rarity colour
      *   ✦ SERVER FIRST 10 ✦ (preview)
      *   Leon is #1 of the first 10 to find a Divine
-     *   Drop: ✦ Halo of the First Star ✦
+     *   Drop: ✦ First Star ✦
      *   ▬▬▬▬▬▬▬▬▬▬  9 spots left
      *   ------------------------------------------
      *

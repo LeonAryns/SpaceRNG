@@ -120,7 +120,9 @@ public class PlayerDataManager {
         data.setHoeTier(yml.getInt("hoe-tier", 0));
         data.addFreeSkills(yml.getInt("free-skills", 0));
         data.setAbilityReadyAt(yml.getLong("ability-ready-at", 0L));
-        data.getDiscoveredShiny().addAll(yml.getStringList("discovered-shiny"));
+        for (String itemName : yml.getStringList("discovered-shiny")) {
+            data.getDiscoveredShiny().add(com.spacerng.solrng.rarity.RarityManager.currentName(itemName));
+        }
         for (String rarityName : yml.getStringList("disabled-auras")) {
             try {
                 data.setAuraEnabled(Rarity.valueOf(rarityName), false);
@@ -218,7 +220,7 @@ public class PlayerDataManager {
             }
         }
         for (String itemName : yml.getStringList("discovered-items")) {
-            data.getDiscoveredItems().add(itemName);
+            data.getDiscoveredItems().add(com.spacerng.solrng.rarity.RarityManager.currentName(itemName));
         }
         for (String rarityName : yml.getStringList("auto-convert-rarities")) {
             try {
@@ -241,7 +243,7 @@ public class PlayerDataManager {
         String tagItem = yml.getString("tag-item", null);
         String tagRarity = yml.getString("tag-rarity", null);
         if (tagItem != null) {
-            data.setEquippedTag(tagItem, tagRarity);
+            data.setEquippedTag(com.spacerng.solrng.rarity.RarityManager.currentName(tagItem), tagRarity);
         }
 
         data.setRespecCount(yml.getInt("respec-count", 0));

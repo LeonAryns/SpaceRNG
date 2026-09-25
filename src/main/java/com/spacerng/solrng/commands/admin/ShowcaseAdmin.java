@@ -694,7 +694,7 @@ final class ShowcaseAdmin extends AdminTools {
         }
 
         sender.sendMessage(ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + "SolRNG placeholders");
-        for (String key : List.of("tag", "tag_plain", "tag_name", "tag_odds", "tag_multiplier",
+        for (String key : List.of("tag", "tag_plain", "tag_name", "tag_odds", "tag_multiplier", "name", "rank_badge",
                 "prestige", "prestige_roman", "prestige_badge", "level", "level_number",
                 "potion_rolls", "potion_luck", "potion_speed", "potion_active", "roll_charges")) {
             String value = me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(player, "%spacerng_" + key + "%");

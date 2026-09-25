@@ -292,16 +292,25 @@ public class RankManager {
      * rainbow instead.
      */
     public void refreshName(Player player) {
+        Component component = LegacyComponentSerializer.legacySection().deserialize(fullName(player));
+        player.playerListName(component);
+        player.displayName(component);
+    }
+
+    /**
+     * The badge, the name in the rank's colours and the cosmetic title, as
+     * legacy text. Also %spacerng_name%: the TAB plugin writes the tab list
+     * itself and throws away the name set above, so the rank gradient only
+     * shows in tab when TAB's format asks for this.
+     */
+    public String fullName(Player player) {
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         RankTier tier = rankOf(data);
         String title = plugin.getCosmeticManager() == null
                 ? "" : plugin.getCosmeticManager().suffixOf(data);
         String[] stops = plugin.getCosmeticManager() == null
                 ? null : plugin.getCosmeticManager().stopsFor(data);
-        Component component = LegacyComponentSerializer.legacySection()
-                .deserialize(badgeOf(tier, stops) + coloredName(player) + title);
-        player.playerListName(component);
-        player.displayName(component);
+        return badgeOf(tier, stops) + coloredName(player) + title;
     }
 
     /**

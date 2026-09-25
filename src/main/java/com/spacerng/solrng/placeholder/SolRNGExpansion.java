@@ -107,6 +107,14 @@ public class SolRNGExpansion extends PlaceholderExpansion {
             case "tag_multiplier":
                 return String.format("%.2f", plugin.getRarityManager().tagMultiplierFor(data));
 
+            // --- the name as the plugin draws it, for TAB (V209) ---
+            case "name":
+                return plugin.getRankManager().fullName(player);
+            case "name_colored":
+                return plugin.getRankManager().coloredName(player);
+            case "rank_badge":
+                return plugin.getRankManager().badgeOf(player);
+
             // --- stats and boosts, for the tab list (V162) ---
             case "luck":
                 return statText(data, com.spacerng.solrng.stats.StatSources.Id.LUCK);

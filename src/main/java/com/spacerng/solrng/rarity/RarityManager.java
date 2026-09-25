@@ -129,8 +129,17 @@ public class RarityManager {
                 long odds = Long.parseLong(String.valueOf(raw.get("odds")));
                 if (rarity == null) continue;
                 RarityStyle style = parseItemStyle(raw);
-                // No colours of its own: the name takes the colour of its block.
-                if (style == null) style = parseStyle(BlockColours.gradientFor(material), false, false, false);
+                RarityStyle rarityStyle = styles.get(rarity);
+                // No colours of its own: the name takes the colour of its
+                // block, with more colour in it the rarer it is.
+                if (style == null) {
+                    style = parseStyle(BlockColours.gradientFor(material, rarity,
+                            rarityStyle == null ? null : rarityStyle.stops()), false, false, false);
+                }
+                // Every drop wears its rarity's weight on its own name. V206
+                // set bold and italic on the rarity and only the rarity
+                // label ever used it, so no drop name changed.
+                style = style.withWeightOf(rarityStyle);
                 items.add(new RollableItem(material, name, rarity, odds, style));
             } catch (Exception ex) {
                 logger.warning("Skipped a malformed item entry in config.yml: " + raw);
@@ -144,6 +153,12 @@ public class RarityManager {
         for (RollableItem item : items) {
             byName.put(item.getDisplayName(), item);
         }
+        // A drop that was renamed still answers to its old name, for the
+        // items already in inventories and anything saved under it.
+        RENAMED.forEach((old, now) -> {
+            RollableItem item = byName.get(now);
+            if (item != null) byName.putIfAbsent(old, item);
+        });
 
         logger.info("Loaded " + items.size() + " rollable items across " + luckFactors.size() + " rarities.");
     }
@@ -187,6 +202,18 @@ public class RarityManager {
                 item.setLuckMultiplier(low + t * (high - low));
             }
         }
+    }
+
+    /**
+     * Drops that were renamed, old name to new. Discoveries, found counts
+     * and tags are saved under a drop's name, so player data is read
+     * through {@link #currentName} and an old save keeps what it had.
+     * V209: the Divine was too long for tab ("Halo of the First Star").
+     */
+    public static final Map<String, String> RENAMED = Map.of("Halo of the First Star", "First Star");
+
+    public static String currentName(String name) {
+        return name == null ? null : RENAMED.getOrDefault(name, name);
     }
 
     /** O(1) lookup used when recomputing a player's index multiplier. */
@@ -369,31 +396,17 @@ public class RarityManager {
     }
 
     /**
-     * Same, but the flair can be suppressed. The flair is an obfuscated
-     * character, which is fine on a nametag but reads as flickering noise
-     * in a tab list - so %solrng_tag_plain% asks for it without.
+     * Same, but false is the copy that shares a line (tab and chat), cut
+     * to tag.max-name-length. Both wear the same flickering flair: V205
+     * gave the shared copy a fixed star instead, and Leon wants the mark
+     * that is really on either side of the name (V209).
      */
-    public String styleItemName(RollableItem item, boolean withFlair) {
-        String name = shorten(item.getDisplayName(), withFlair);
+    public String styleItemName(RollableItem item, boolean full) {
+        String name = shorten(item.getDisplayName(), full);
         String colored = item.getStyle() != null
                 ? item.getStyle().apply(name)
                 : RollFormat.naturalColor(item.getMaterial()) + name;
-        // With the flicker, or with a real glyph in its place. The plain
-        // path used to come back bare, which is why the tab tag had no
-        // marks on either side of the drop at all.
-        return withFlair ? withFlair(item, colored) : marked(item, colored);
-    }
-
-    /**
-     * A drop's name wrapped in its rarity's own glyph, for the places an
-     * obfuscated character cannot go.
-     */
-    private String marked(RollableItem item, String colored) {
-        String mark = markFor(item.getRarity());
-        if (mark.isEmpty()) return colored;
-        String left = leadingCodes(colored);
-        String right = lastColour(colored);
-        return left + mark + " " + colored + " " + right + mark;
+        return withFlair(item, colored);
     }
 
     /**

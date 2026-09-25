@@ -35,7 +35,9 @@ public final class FoundCounts {
         counts.clear();
         if (file.exists()) {
             YamlConfiguration yml = YamlConfiguration.loadConfiguration(file);
-            for (String key : yml.getKeys(false)) counts.put(key, yml.getInt(key));
+            for (String key : yml.getKeys(false)) {
+                counts.merge(com.spacerng.solrng.rarity.RarityManager.currentName(key), yml.getInt(key), Integer::sum);
+            }
         } else {
             Bukkit.getScheduler().runTaskAsynchronously(plugin, this::countPlayerFiles);
         }
@@ -48,7 +50,7 @@ public final class FoundCounts {
         if (files != null) {
             for (File player : files) {
                 for (String name : YamlConfiguration.loadConfiguration(player).getStringList("discovered-items")) {
-                    scanned.merge(name, 1, Integer::sum);
+                    scanned.merge(com.spacerng.solrng.rarity.RarityManager.currentName(name), 1, Integer::sum);
                 }
             }
         }
