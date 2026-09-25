@@ -188,6 +188,19 @@ final class SignatureConcepts {
      * It had a column of light over the head until V208, when Leon took the
      * beam off every rarity's look.
      */
+    /**
+     * Divine's sea lantern atom, three tilted orbits at the chest. Its own
+     * wearer in "out of your way" sees the same six lanterns going round one
+     * level ring at the knees instead, because the tilted orbits swing up
+     * across the face (V210). Everybody else, and the wearer in
+     * "everything", keeps the atom.
+     */
+    private static AuraConcept lanterns() {
+        return new AuraConcepts.OwnView(
+                new AuraConcepts.SolidAtom(Material.SEA_LANTERN, -0.70f, 1.45f, 0.42f, false, 0, 2, 20.0),
+                AuraConcepts.SolidAtom.level(Material.SEA_LANTERN, 0.15f, 1.45f, 0.42f, 2, 20.0));
+    }
+
     private static AuraConcept ascend(Color color) {
         Color soft = softer(color);
         return new AuraConcepts.Combined(
@@ -195,7 +208,7 @@ final class SignatureConcepts {
                 new PlateRing(soft, 165, FEET + 0.02f, 3.30f, 10, 0.08f, 0.45f, 0f, 4, 5.0, 0.0),
                 new PlateRing(soft, 120, FEET + 0.03f, 4.10f, 8, 0.06f, 0.35f, 0f, 8, -5.5, 0.0),
                 new PlateRing(color, 215, -0.85f, 2.55f, 10, 0.10f, 0.8f, 25f, 5, 9.0, 5.0),
-                new AuraConcepts.SolidAtom(Material.SEA_LANTERN, -0.70f, 1.45f, 0.42f, false, 0, 2, 20.0));
+                lanterns());
     }
 
     // ------------------------------------------------------- the four shinies
@@ -250,7 +263,7 @@ final class SignatureConcepts {
                 new PlateRing(color, 240, FEET + 0.01f, 2.30f, 16, 0.13f, 1.0f, 0f, 0, 0.0, 0.0),
                 new PlateRing(soft, 165, FEET + 0.02f, 3.40f, 10, 0.08f, 0.45f, 0f, 5, 6.0, 0.0),
                 new PlateRing(color, 215, -0.85f, 2.55f, 10, 0.10f, 0.8f, 25f, 5, 9.0, 5.0),
-                new AuraConcepts.SolidAtom(Material.SEA_LANTERN, -0.70f, 1.45f, 0.42f, false, 0, 2, 20.0),
+                lanterns(),
                 new PlateWings(soft, 210),
                 new Petals(soft, 215, 0.16f, 0.42f, 6, 0.12f, 0.34f, 12f, 5, 16));
     }

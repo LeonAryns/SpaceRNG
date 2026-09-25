@@ -73,6 +73,8 @@ public final class ConfigMigrator {
             "roll-item.comet.screen",
             // V200: how big the question mark head is drawn.
             "roll-item.comet.head-scale",
+            // V210: the falling comet and the question mark, both off.
+            "roll-item.comet.falling", "roll-item.comet.question-mark",
             // V200: how far a ground piece clears the block under it.
             "auras.ground-lift",
             // V202: the floor under the crate reel's step time.
@@ -328,7 +330,12 @@ public final class ConfigMigrator {
             new Patch("shiny-aura-legendary-embers", "auras.shiny.LEGENDARY.accent", "sparkle", "embers"),
             new Patch("shiny-aura-mythical-rift", "auras.shiny.MYTHICAL.concept", "titan", "rift"),
             new Patch("shiny-aura-divine-empyrean", "auras.shiny.DIVINE.concept", "supernova", "empyrean"),
-            new Patch("heavy-fallback-ascend", "auras.heavy.fallback", "galaxy-grand", "ascend"));
+            new Patch("heavy-fallback-ascend", "auras.heavy.fallback", "galaxy-grand", "ascend"),
+            // V210: the flicker is gone and every rarity has its own mark.
+            new Patch("symbol-epic-diamond", "rarities.EPIC.symbol-char", "✦", "◆"),
+            new Patch("symbol-mythical-ornate", "rarities.MYTHICAL.symbol-char", "✧", "❖"),
+            // V210: the odds counter sits in the middle of the screen.
+            new Patch("counter-centred", "roll-item.comet.screen.counter-up", 0.35, 0.0));
 
     // V159: every hoe enchant runs to level 10,000, except Credit Finder,
     // which stays at 1,000 because it pays Credits.

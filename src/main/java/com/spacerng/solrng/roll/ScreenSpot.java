@@ -57,7 +57,7 @@ final class ScreenSpot {
     }
 
     static double counterUp(SolRNGPlugin plugin) {
-        return plugin.getConfig().getDouble("roll-item.comet.screen.counter-up", 0.35);
+        return plugin.getConfig().getDouble("roll-item.comet.screen.counter-up", 0.0);
     }
 
     /**

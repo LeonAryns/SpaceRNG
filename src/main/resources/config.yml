@@ -99,6 +99,14 @@ roll-item:
   # changing colour at each band, which is their only tell.
   comet:
     enabled: true
+    # The comet itself, falling out of the sky through each act. Off since
+    # V210: the acts, the counter and the impacts run without it. true
+    # brings it back.
+    falling: false
+    # The question mark head held in front of you during the build-up.
+    # Off since V210, so the counter has the screen to itself; the drop
+    # still appears the moment the counter lands.
+    question-mark: false
     # How long one band lasts, in seconds. This is the whole timing of a
     # reveal: raise it and every rarity gets longer in the same steps.
     stage-seconds: 5.0
@@ -142,7 +150,7 @@ roll-item:
       mode: pinned
       ahead: 1.6
       item-down: 0.45
-      counter-up: 0.35
+      counter-up: 0.0
     # How much room is kept clear around the roller's own eyes, in blocks.
     # Nothing in the reveal is drawn nearer than this TO THAT VIEWER, so
     # the effect is untouched for everybody watching from outside and
@@ -1075,13 +1083,15 @@ rarities:
   #
   # The weight goes on every drop of the rarity, not just its label, and
   # from Epic up the drop's own colour gets the rarity's colour woven
-  # through it. The `symbol: true` flair, the flickering mark on either
-  # side of a name, is used in tab and chat too since V209. symbol-char is
-  # kept for anything that cannot take a flicker.
+  # through it. `symbol: true` puts symbol-char on either side of the
+  # name, everywhere: nametag, tab, chat. It used to be an obfuscated
+  # flicker, which shoved the whole name about in tab and looked the same
+  # on every rarity, so since V210 each rarity has a still mark of its own.
+  # Any character works here, for example ◆ ✦ ✧ ❖ ✪ ✯ ✵ ❂ ★ ☆ ⚝.
   EPIC:
     colors: ["&5"]
     symbol: true
-    symbol-char: "✦"
+    symbol-char: "◆"
     bold: true
     luck-factor: 0.6
     true-odds: true
@@ -1096,7 +1106,7 @@ rarities:
   MYTHICAL:
     colors: ["&c"]
     symbol: true
-    symbol-char: "✧"
+    symbol-char: "❖"
     bold: true
     italic: true
     luck-factor: 1.6

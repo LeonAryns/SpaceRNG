@@ -495,6 +495,11 @@ public class RollListener implements Listener {
                 // ask for it. Gating it twice is how the whole thing can be
                 // invisible to somebody with the wrong toggle off.
                 if (cinematic[0]) {
+                    // V210: Leon took the question mark out, so the counter
+                    // has the screen to itself during the build-up and the
+                    // drop still appears in finishRoll. The head stays
+                    // behind roll-item.comet.question-mark.
+                    if (!plugin.getConfig().getBoolean("roll-item.comet.question-mark", false)) return;
                     // A comet is falling, so the reel steps aside. The drop
                     // used to appear at 78% of the roll, which on a fifteen
                     // second Divine put the answer on the screen while the
@@ -690,6 +695,12 @@ public class RollListener implements Listener {
         clearActionBar(player);
         // The landed item stays in front of the player through the payoff.
         RollShowcase showcase = showcases.get(player.getUniqueId());
+        // Without the question mark nothing held the screen during a
+        // cinematic build-up, so the drop gets its showcase here.
+        if (showcase == null && cinematic && player.isOnline()) {
+            showcase = RollShowcase.start(plugin, player);
+            showcases.put(player.getUniqueId(), showcase);
+        }
         if (showcase != null) {
             // A cinematic roll held a question mark for the whole build-up,
             // so this is where it becomes the drop: on the same frame the

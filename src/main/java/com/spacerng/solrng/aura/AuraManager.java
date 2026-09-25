@@ -335,7 +335,7 @@ public final class AuraManager {
             Worn aura = entry.getValue();
             for (int i = 0; i < aura.displays.size(); i++) {
                 Display display = aura.displays.get(i);
-                if (own ? ownerSees(viewer, aura, i) : visibleTo(viewer)) viewer.showEntity(plugin, display);
+                if (own ? ownerSees(viewer, aura, i) : visibleTo(viewer, aura, i)) viewer.showEntity(plugin, display);
                 else viewer.hideEntity(plugin, display);
             }
         }
@@ -355,15 +355,19 @@ public final class AuraManager {
     private boolean ownerSees(Player owner, Worn aura, int index) {
         var data = plugin.getPlayerDataManager().get(owner.getUniqueId());
         if (!data.isWornAurasVisible()) return false;
+        int audience = aura.concept.audienceAt(index);
         return switch (data.getOwnAuraView()) {
-            case "full" -> true;
+            case "full" -> audience != AuraConcept.OWN;
             case "hidden" -> false;
-            default -> aura.concept instanceof AuraConcepts.Combined combined
-                    ? combined.clearAt(index) : aura.concept.clearOfView();
+            default -> audience == AuraConcept.OWN
+                    || (audience == AuraConcept.EVERYONE && (aura.concept instanceof AuraConcepts.Combined combined
+                            ? combined.clearAt(index) : aura.concept.clearOfView()));
         };
     }
 
-    private boolean visibleTo(Player viewer) {
+    /** Whether somebody else sees piece {@code index}: never one that is only for its wearer. */
+    private boolean visibleTo(Player viewer, Worn aura, int index) {
+        if (aura.concept.audienceAt(index) == AuraConcept.OWN) return false;
         return plugin.getPlayerDataManager().get(viewer.getUniqueId()).isWornAurasVisible();
     }
 
@@ -630,7 +634,7 @@ public final class AuraManager {
         for (Player viewer : Bukkit.getOnlinePlayers()) {
             boolean own = viewer.equals(player);
             for (int i = 0; i < displays.size(); i++) {
-                if (!(own ? ownerSees(viewer, aura, i) : visibleTo(viewer))) {
+                if (!(own ? ownerSees(viewer, aura, i) : visibleTo(viewer, aura, i))) {
                     viewer.hideEntity(plugin, displays.get(i));
                 }
             }

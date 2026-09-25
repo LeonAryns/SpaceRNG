@@ -605,6 +605,23 @@ public final class AuraConcepts {
         /** @param faceViewer a flat sprite such as a nether star, turned along its path so it never goes thin */
         SolidAtom(Material material, float y, float radius, float scale, boolean facing, double phase,
                   int every, double step, boolean faceViewer) {
+            this(material, y, radius, scale, facing, phase, every, step, faceViewer, false);
+        }
+
+        /**
+         * The same pieces going round one flat ring at one height, {@code lift}
+         * blocks above the floor, instead of three tilted orbits. The six are
+         * spread evenly and all turn the same way, so none of them pass.
+         */
+        static SolidAtom level(Material material, float lift, float radius, float scale, int every, double step) {
+            return new SolidAtom(material, lift, radius, scale, false, 0.0, every, step, false, true);
+        }
+
+        private final boolean level;
+
+        private SolidAtom(Material material, float y, float radius, float scale, boolean facing, double phase,
+                          int every, double step, boolean faceViewer, boolean level) {
+            this.level = level;
             this.faceViewer = faceViewer;
             this.every = every;
             this.step = step;
@@ -626,7 +643,7 @@ public final class AuraConcepts {
             // first person camera is pointing: "je hebt de sea lanterns
             // die nogsteeds voor de view gaan". A ring has to be out of
             // the way in BOTH senses now.
-            return radius >= SignatureConcepts.CLEAR_RADIUS && AuraParts.outOfView(y, radius);
+            return radius >= SignatureConcepts.CLEAR_RADIUS && AuraParts.outOfView(height(), radius);
         }
 
         @Override
@@ -662,17 +679,24 @@ public final class AuraConcepts {
             for (int k = 0; k < 3; k++) {
                 for (int side = 0; side < 2; side++) {
                     Vector3f p = offset(k, angle(k, side, steps));
-                    out.add(new Vector(p.x, RIDE + y + p.y, p.z));
+                    out.add(new Vector(p.x, RIDE + height() + p.y, p.z));
                 }
             }
         }
 
+        /** Where the ring sits. A level ring is measured off the floor, read now, as FEET follows the config. */
+        private float height() {
+            return level ? FEET + y : y;
+        }
+
         private double angle(int k, int side, double steps) {
+            if (level) return Math.toRadians(60 * (k * 2 + side) + step * steps);
             return Math.toRadians(phase + 180 * side + Atom.direction(k) * step * steps);
         }
 
         private Vector3f offset(int k, double a) {
-            return Atom.TILTS[k].transform(new Vector3f((float) (radius * Math.cos(a)), 0f, (float) (-radius * Math.sin(a))));
+            Vector3f flat = new Vector3f((float) (radius * Math.cos(a)), 0f, (float) (-radius * Math.sin(a)));
+            return level ? flat : Atom.TILTS[k].transform(flat);
         }
 
         private Transformation pose(int k, int side, double steps) {
@@ -683,7 +707,7 @@ public final class AuraConcepts {
             Quaternionf rotation = facing || faceViewer
                     ? new Quaternionf(Atom.TILTS[k]).rotateY((float) a + rad(90))
                     : new Quaternionf().rotateY((float) (a * 2)).rotateX(rad(35)).rotateZ(rad(45));
-            return at(p.x, y + p.y, p.z, rotation, scale);
+            return at(p.x, height() + p.y, p.z, rotation, scale);
         }
     }
 
@@ -835,6 +859,52 @@ public final class AuraConcepts {
         }
     }
 
+    // --------------------------------------------------------------- own view
+
+    /**
+     * One look for everybody else and a second, lower one for its wearer.
+     *
+     * Leon, V210: the Divine sea lanterns swing up and down across the
+     * face, fine in the wearer's "everything" setting and not in "out of
+     * your way", where they should go round at one height at the knees.
+     * A display has one pose for every viewer, so both are spawned and each
+     * viewer is shown one of them (AuraManager, audienceAt).
+     */
+    static final class OwnView implements AuraConcept {
+        private final AuraConcept shared;
+        private final AuraConcept own;
+        private int split;
+
+        OwnView(AuraConcept shared, AuraConcept own) {
+            this.shared = shared;
+            this.own = own;
+        }
+
+        @Override
+        public List<Display> spawn(Player player, AuraParts parts) {
+            List<Display> displays = new ArrayList<>(shared.spawn(player, parts));
+            split = displays.size();
+            displays.addAll(own.spawn(player, parts));
+            return displays;
+        }
+
+        @Override
+        public void tick(List<Display> displays, long frame) {
+            shared.tick(displays.subList(0, split), frame);
+            own.tick(displays.subList(split, displays.size()), frame);
+        }
+
+        @Override
+        public void stars(long frame, List<Vector> out) {
+            shared.stars(frame, out);
+        }
+
+        @Override
+        public int audienceAt(int index) {
+            return index < split ? SHARED : OWN;
+        }
+    }
+
     // --------------------------------------------------------------- combined
 
     /** Several looks worn at once, each driving its own share of the displays. */
@@ -894,6 +964,16 @@ public final class AuraConcepts {
                 if (!look.clearOfView()) return false;
             }
             return true;
+        }
+
+        @Override
+        public int audienceAt(int index) {
+            for (int i = 0; i < looks.length; i++) {
+                if (index >= starts[i] && index < starts[i + 1]) {
+                    return looks[i].audienceAt(index - starts[i]);
+                }
+            }
+            return EVERYONE;
         }
 
         /** Whether piece {@code index} of this combination belongs to a look that stays out of the wearer's view. */

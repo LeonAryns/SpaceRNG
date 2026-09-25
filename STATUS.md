@@ -5,7 +5,7 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V209**, 25 September 2026.
+Last updated at **V210**, 25 September 2026.
 
 ## The agreed way of working
 
@@ -862,12 +862,30 @@ the tab list itself and throws away the name the plugin sets.
 `%spacerng_name_colored%` the name alone, `%spacerng_rank_badge%` the
 letter. `/rngadmin placeholders` shows what they resolve to.
 
+**V210, untested in game, three small things from one message:**
+
+- **No more flicker.** The obfuscated flair shoved the whole name about
+  in tab and looked the same on every rarity. Every name now wears its
+  rarity's own still mark, everywhere: Epic ◆, Legendary ✦, Mythical ❖,
+  Divine ★ (`symbol-char`, patched on the live config).
+- **The reveal.** The falling comet is off (`roll-item.comet.falling`)
+  and the question mark head is off (`roll-item.comet.question-mark`),
+  both kept in the code. The odds counter sits in the middle of the
+  screen. The drop still appears the moment the counter lands; with no
+  head, `finishRoll` starts the showcase itself.
+- **Divine's sea lanterns.** `AuraConcepts.OwnView` spawns the tilted atom
+  for everybody else and for the wearer in "everything", and a level ring
+  at the knees that only the wearer sees in "out of your way".
+  `AuraConcept.audienceAt` says which piece is for whom.
+- **Rank gradient in tab** is still waiting on TAB's config:
+  `customtabname: "%spacerng_name%"` in TAB's groups.yml.
+
 **Queue from the same message, one jar each, in this order:**
 
 1. **The roll reveal.** Mythical is barely audible, the rest is good.
    Particles on the ground at every rarity instead of the block and item
    displays on the ground (those are the auras' look). The question mark
-   head should move during the build-up, small to big, every rarity.
+   is gone since V210, so its small to big growth is moot.
 2. **Auras by rank.** Every rarity from Epic up wears what Divine wears
    now (ascend), in the rarity's colour, but only at Supernova. Smaller
    looks for lower ranks, and Linked wears what Epic wears now (sigil),
@@ -875,7 +893,7 @@ letter. `/rngadmin placeholders` shows what they resolve to.
    are in between: ask whether ember and eclipse are the middle steps.
 3. **Divine's ground stars.** The stars that shot outward over the
    ground are missed. Bring them back inside the first ring.
-4. **The sea lanterns.** At knee height in "out of your way"; they sit
+4. **The sea lanterns.** Done in V210. At knee height in "out of your way"; they sat
    in faces now. "Everything" keeps them where they are.
 
 **Deliberately not done in V186, and why:** the +10% Coins and Gems per

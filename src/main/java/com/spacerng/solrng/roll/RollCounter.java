@@ -38,8 +38,9 @@ final class RollCounter {
 
     // Pinned only: the camera frame offset, minus Y being down the screen.
     private static final float AHEAD = 1.5f;
-    private static final float ABOVE = 0.45f;
     private static final float RIDE_ABOVE_EYES = 0.18f;
+    // Half the height of one line of text at scale 1, in blocks.
+    private static final float HALF_LINE = 0.125f;
 
     private final SolRNGPlugin plugin;
     private final Player player;
@@ -146,9 +147,15 @@ final class RollCounter {
     }
 
     private Transformation pose(float scale) {
+        // Centred on the middle of the screen since V210. A text display
+        // grows upward from where it stands, so it goes down by half a line
+        // at its own size to put the middle of the number on the eye line.
+        // The translation is not scaled with it, which is why the half line
+        // is worked out per size, and why a pop stays centred too.
+        float halfLine = HALF_LINE * scale;
         Vector3f offset = pinned
-                ? new Vector3f(0f, ABOVE - RIDE_ABOVE_EYES, -AHEAD)
-                : new Vector3f(0f, 0f, 0f);
+                ? new Vector3f(0f, -halfLine - RIDE_ABOVE_EYES, -AHEAD)
+                : new Vector3f(0f, -halfLine, 0f);
         return new Transformation(offset, new Quaternionf(),
                 new Vector3f(scale, scale, scale), new Quaternionf());
     }

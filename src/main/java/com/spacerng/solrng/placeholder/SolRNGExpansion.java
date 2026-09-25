@@ -17,13 +17,11 @@ import org.jetbrains.annotations.NotNull;
  *
  * Two flavours of the tag are offered on purpose:
  *   %solrng_tag%       - exactly what the nametag shows: the item's own
- *                        gradient, the obfuscated flair on Epic+, and a
+ *                        gradient, the rarity's mark on Epic+, and a
  *                        trailing space + reset so a name can follow it.
- *   %solrng_tag_plain% - the same gradient with NO flair and no trailing
- *                        padding. The flair is an obfuscated (&k)
- *                        character, which in a tab list re-scrambles every
- *                        client tick and reads as noise, so this is the
- *                        one to use there.
+ *   %solrng_tag_plain% - the same, cut to tag.max-name-length and with no
+ *                        trailing padding, for tab. The mark is a still
+ *                        glyph since V210; it was an obfuscated flicker.
  *
  * Placeholders never return null for a known key - an unset value comes
  * back as an empty string, so a TAB format never renders the raw

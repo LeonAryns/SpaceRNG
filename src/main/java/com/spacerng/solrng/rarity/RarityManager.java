@@ -442,15 +442,20 @@ public class RarityManager {
     }
 
     /**
-     * Wraps a coloured name in the obfuscated flair when its rarity asks for
+     * Wraps a coloured name in its rarity's mark when the rarity asks for
      * it. Each flair carries the colour of the name beside it: a bare flair
      * inherited whatever came before it, which in a chat line was the grey
      * of ": " and left the first glyph the wrong colour.
      */
     private String withFlair(RollableItem item, String colored) {
-        if (!Boolean.TRUE.equals(symbolFlair.get(item.getRarity()))) return colored;
-        String left = leadingCodes(colored) + ChatColor.MAGIC + "#" + ChatColor.RESET;
-        String right = lastColour(colored) + ChatColor.MAGIC + "#" + ChatColor.RESET;
+        // A still glyph of the rarity's own, not the obfuscated flicker it
+        // was until V210: a flickering character changes width every tick
+        // and shoved the whole name about in tab, and it was the same
+        // noise on every rarity where each one should look different.
+        String mark = markFor(item.getRarity());
+        if (mark.isEmpty()) return colored;
+        String left = leadingCodes(colored) + mark + ChatColor.RESET;
+        String right = lastColour(colored) + mark + ChatColor.RESET;
         return left + " " + colored + ChatColor.RESET + " " + right;
     }
 

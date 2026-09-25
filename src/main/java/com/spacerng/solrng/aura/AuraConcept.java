@@ -61,4 +61,21 @@ public interface AuraConcept {
     default boolean clearOfView() {
         return false;
     }
+
+    /** A piece everybody sees under the usual rules. */
+    int EVERYONE = 0;
+    /** A piece everybody sees except its wearer in the middle setting. */
+    int SHARED = 1;
+    /** A piece only its wearer sees, and only in the middle setting. */
+    int OWN = 2;
+
+    /**
+     * Who sees piece {@code index}. Almost every look is EVERYONE; a look
+     * with a second, low version for its own wearer (the Divine lanterns,
+     * V210) splits into SHARED and OWN, because a display has one pose for
+     * every viewer and the only way to show two is to spawn both.
+     */
+    default int audienceAt(int index) {
+        return EVERYONE;
+    }
 }

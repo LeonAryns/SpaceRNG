@@ -261,6 +261,11 @@ final class RollComet {
         Location at = positionAt(0.0);
         this.last = at;
         if (headPiece != null && headPiece.isValid()) headPiece.remove();
+        headPiece = null;
+        // V210: Leon liked it and does not need it, so it is kept and
+        // switched off. With no head, tick() draws nothing and the acts,
+        // the counter and the impacts run exactly as before.
+        if (!plugin.getConfig().getBoolean("roll-item.comet.falling", false)) return;
         // Reach a little past the starting height, or the head is culled by
         // the client on the frames where it is furthest away and the whole
         // thing appears out of nothing halfway down.
