@@ -5,7 +5,7 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V211**, 25 September 2026.
+Last updated at **V215**, 25 September 2026.
 
 ## The agreed way of working
 
@@ -885,6 +885,28 @@ update is `/plugman reload SpaceRNG` instead of a restart. The plugin was
 not safe for that; see CLAUDE.md for what changed. The first reload is
 the test: sidebar, tag, tab name and %spacerng_% placeholders in TAB
 should all be there without anybody relogging.
+
+**V212 to V215, 25 September, untested in game:**
+
+- **V212.** The rarity marks take colour only (Divine's underline ran
+  under its star). The odds counter sits 0.28 above the crosshair.
+- **V213.** The Server First run-up is five seconds for every rarity,
+  the finder sees the title too (they saw almost nothing, which read as
+  "no build-up"), and real fireworks in the rarity colour go off over
+  the spot; `FirstTenFireworks` cancels their damage. A drop that takes a
+  First spot skips the plain "just found" chat line
+  (`FirstTenManager.wouldTake`). Discord still posts both.
+- **V214.** Divine's ground stars are back (WideRipple, inside the first
+  ring).
+- **V215, pets.** /pets is three screens: main (storage top left, index
+  next to it, head top right, the three slots, Make a pet in the middle
+  and five blocks under it, green per fifth of the price held), Pet
+  Storage (owned pets, wear and upgrade) and Pet Index (every pet, new
+  and at its best). A pet costs 100 Cosmic Dust (was 10). `cosmic_root`
+  moved to page 1 slot 6,1 over Shiny Unlocked, 100,000 Money; it was on
+  page 5 behind the page 4 capstones at 50B. config-version 25 carries
+  the skilltree across. The cost is a guess; at 1 in 100 a first pet is
+  now about 10,000 rolls on the root alone.
 
 **Queue from the same message, one jar each, in this order:**
 

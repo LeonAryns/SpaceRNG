@@ -337,7 +337,9 @@ public final class ConfigMigrator {
             // V210: the odds counter sits in the middle of the screen.
             new Patch("counter-centred", "roll-item.comet.screen.counter-up", 0.35, 0.0),
             // V212: centred sat behind the crosshair, so a little above it.
-            new Patch("counter-above-crosshair", "roll-item.comet.screen.counter-up", 0.0, 0.28));
+            new Patch("counter-above-crosshair", "roll-item.comet.screen.counter-up", 0.0, 0.28),
+            // V215: a pet costs a hundred Cosmic Dust, Leon's call.
+            new Patch("pet-make-cost-100", "pets.upgrades.make-cost", 10, 100));
 
     // V159: every hoe enchant runs to level 10,000, except Credit Finder,
     // which stays at 1,000 because it pays Credits.

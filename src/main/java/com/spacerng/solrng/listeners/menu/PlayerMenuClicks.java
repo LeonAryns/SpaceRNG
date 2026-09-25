@@ -207,10 +207,32 @@ final class PlayerMenuClicks {
         event.setCancelled(true);
         if (event.getClickedInventory() == null
                 || !(event.getClickedInventory().getHolder()
-                        instanceof com.spacerng.solrng.gui.PetsHolder)) return;
+                        instanceof com.spacerng.solrng.gui.PetsHolder holder)) return;
         Player player = (Player) event.getWhoClicked();
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         var pets = plugin.getPetManager();
+        var view = holder.view();
+
+        // V215: the main screen opens storage and the index; both of those
+        // come back to it with the arrow top left.
+        if (view == com.spacerng.solrng.gui.PetsHolder.View.MAIN) {
+            if (com.spacerng.solrng.gui.PetsGui.isStorageButton(event.getSlot())) {
+                player.openInventory(com.spacerng.solrng.gui.PetsGui.storage(plugin, player));
+                player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.4f, 1.6f);
+                return;
+            }
+            if (com.spacerng.solrng.gui.PetsGui.isIndexButton(event.getSlot())) {
+                player.openInventory(com.spacerng.solrng.gui.PetsGui.index(plugin, player));
+                player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.4f, 1.6f);
+                return;
+            }
+        } else if (com.spacerng.solrng.gui.PetsGui.isBack(event.getSlot())) {
+            player.openInventory(com.spacerng.solrng.gui.PetsGui.build(plugin, player));
+            player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.4f, 1.2f);
+            return;
+        }
+        // The index is for reading.
+        if (view == com.spacerng.solrng.gui.PetsHolder.View.INDEX) return;
 
         // The forge star: ten Cosmic Dust becomes a pet, or a rarity on one
         // you already have.
@@ -278,7 +300,9 @@ final class PlayerMenuClicks {
         // The pieces are part of the aura, so the aura is what rebuilds.
         plugin.getPetManager().refresh(player);
         plugin.getScoreboardManager().update(player);
-        player.openInventory(com.spacerng.solrng.gui.PetsGui.build(plugin, player));
+        player.openInventory(view == com.spacerng.solrng.gui.PetsHolder.View.STORAGE
+                ? com.spacerng.solrng.gui.PetsGui.storage(plugin, player)
+                : com.spacerng.solrng.gui.PetsGui.build(plugin, player));
     }
 
     /**
@@ -298,7 +322,7 @@ final class PlayerMenuClicks {
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
 
         if (com.spacerng.solrng.gui.PetUpgradeGui.isBack(event.getSlot())) {
-            player.openInventory(com.spacerng.solrng.gui.PetsGui.build(plugin, player));
+            player.openInventory(com.spacerng.solrng.gui.PetsGui.storage(plugin, player));
             player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.4f, 1.2f);
             return;
         }

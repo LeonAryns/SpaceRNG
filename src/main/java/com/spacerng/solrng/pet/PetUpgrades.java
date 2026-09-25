@@ -28,7 +28,7 @@ public class PetUpgrades {
     private double maxMultiplier = 6.0;
 
     // Cosmic Dust, for making a pet and for rarity.
-    private long makeCost = 10L;
+    private long makeCost = 100L;
     private long rarityBaseCost = 8L;
     private double rarityCostGrowth = 1.35;
     private long shinyCost = 50L;
@@ -52,7 +52,7 @@ public class PetUpgrades {
         shinyBonus = Math.max(0.0, config.getDouble("pets.upgrades.shiny-bonus", 0.10));
         maxMultiplier = Math.max(1.0, config.getDouble("pets.upgrades.max-multiplier", 6.0));
 
-        makeCost = Math.max(1L, config.getLong("pets.upgrades.make-cost", 10L));
+        makeCost = Math.max(1L, config.getLong("pets.upgrades.make-cost", 100L));
         rarityBaseCost = Math.max(1L, config.getLong("pets.upgrades.rarity-base-cost", 8L));
         rarityCostGrowth = Math.max(1.0, config.getDouble("pets.upgrades.rarity-cost-growth", 1.35));
         shinyCost = Math.max(1L, config.getLong("pets.upgrades.shiny-cost", 50L));
@@ -80,6 +80,12 @@ public class PetUpgrades {
                 * (1.0 + tierStep * (pet.tier() - 1));
         if (pet.shiny()) value *= 1.0 + shinyBonus;
         return Math.min(maxMultiplier, value);
+    }
+
+    /** The most any pet can be worth: top rarity, top tier and shiny, under the ceiling. */
+    public double topMultiplier() {
+        return Math.min(maxMultiplier, (1.0 + rarityStep * (maxRarity - 1))
+                * (1.0 + tierStep * (maxTier - 1)) * (1.0 + shinyBonus));
     }
 
     /** True once a pet is pinned against the ceiling, so the menu can say so. */

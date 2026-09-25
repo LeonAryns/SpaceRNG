@@ -21,7 +21,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * /pets: the slots on top, the forge next to them, every pet underneath.
+ * /pets, three screens since V215, laid out the way Leon asked:
+ *
+ *   main     storage top left, the index beside it, your head top right,
+ *            the three slots, and "Make a pet" in the middle with five
+ *            blocks under it that turn green as the Cosmic Dust for the
+ *            next pet comes in, a fifth of the price each
+ *   storage  the pets you own: left click wears one, right click opens it
+ *            for upgrading
+ *   index    every pet there is and what it gives, fresh and at its best,
+ *            like the Perk Index
  *
  * A pet rides in one of the aura's slots and pays a percentage on one
  * stat, so the menu answers two questions at this level: what is in my
@@ -35,10 +44,19 @@ import java.util.List;
 public class PetsGui {
 
     private static final int SIZE = 54;
-    private static final int INFO_SLOT = 4;
-    private static final int FORGE_SLOT = 8;
+    private static final int STORAGE_SLOT = 0;
+    private static final int INDEX_SLOT = 1;
+    private static final int INFO_SLOT = 8;
     private static final int[] SLOT_SLOTS = {11, 13, 15};
-    private static final int FIRST_PET = 27;
+    private static final int FORGE_SLOT = 31;
+    private static final int[] PROGRESS_SLOTS = {38, 39, 40, 41, 42};
+    // Storage and index: the back arrow top left, pets from the second row.
+    private static final int BACK_SLOT = 0;
+    private static final int FIRST_PET = 9;
+
+    public static boolean isStorageButton(int slot) { return slot == STORAGE_SLOT; }
+    public static boolean isIndexButton(int slot) { return slot == INDEX_SLOT; }
+    public static boolean isBack(int slot) { return slot == BACK_SLOT; }
 
     public static NamespacedKey petKey() {
         return SolRNGPlugin.key("solrng_pet");
@@ -49,7 +67,7 @@ public class PetsGui {
     }
 
     public static Inventory build(SolRNGPlugin plugin, Player player) {
-        PetsHolder holder = new PetsHolder();
+        PetsHolder holder = new PetsHolder(PetsHolder.View.MAIN);
         Inventory inv = Bukkit.createInventory(holder, SIZE,
                 ChatColor.DARK_AQUA + "" + ChatColor.BOLD + "Pets");
         holder.setInventory(inv);
@@ -61,8 +79,9 @@ public class PetsGui {
         ItemStack filler = pane(Material.BLACK_STAINED_GLASS_PANE);
         for (int i = 0; i < SIZE; i++) inv.setItem(i, i < 9 || (i >= 18 && i < 27) ? rail : filler);
 
+        inv.setItem(STORAGE_SLOT, storageIcon(plugin, data));
+        inv.setItem(INDEX_SLOT, indexButton(plugin, data));
         inv.setItem(INFO_SLOT, infoIcon(plugin, player, data));
-        inv.setItem(FORGE_SLOT, forgeIcon(plugin, data));
 
         List<PetType> equipped = pets.equipped(data);
         int open = pets.slots(data);
@@ -71,14 +90,158 @@ public class PetsGui {
                     slot < equipped.size() ? equipped.get(slot) : null, slot, slot < open));
         }
 
-        int index = 0;
-        for (PetType pet : pets.getTypes().values()) {
-            int slot = FIRST_PET + index;
-            if (slot >= SIZE) break;
-            inv.setItem(slot, petIcon(plugin, data, pet));
-            index++;
+        inv.setItem(FORGE_SLOT, forgeIcon(plugin, data));
+        long cost = pets.upgrades().makeCost();
+        for (int i = 0; i < PROGRESS_SLOTS.length; i++) {
+            inv.setItem(PROGRESS_SLOTS[i], progressBlock(data.getCosmicDust(), cost, i));
         }
         return inv;
+    }
+
+    /** The pets you own, to wear and to upgrade. */
+    public static Inventory storage(SolRNGPlugin plugin, Player player) {
+        PetsHolder holder = new PetsHolder(PetsHolder.View.STORAGE);
+        Inventory inv = Bukkit.createInventory(holder, SIZE,
+                ChatColor.DARK_AQUA + "" + ChatColor.BOLD + "Pet Storage");
+        holder.setInventory(inv);
+        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+        PetManager pets = plugin.getPetManager();
+        fillSubScreen(inv);
+
+        int slot = FIRST_PET;
+        for (PetType pet : pets.getTypes().values()) {
+            if (slot >= SIZE) break;
+            if (data.getPet(pet.id()) == null) continue;
+            inv.setItem(slot++, petIcon(plugin, data, pet));
+        }
+        if (slot == FIRST_PET) {
+            ItemStack none = new ItemStack(Material.STONE_BUTTON);
+            ItemMeta meta = none.getItemMeta();
+            meta.setDisplayName(Lore.title(ChatColor.DARK_GRAY, "No pets yet"));
+            meta.setLore(List.of(
+                    Lore.line(ChatColor.GRAY, "Make your first one from"),
+                    Lore.line(ChatColor.GRAY, "Cosmic Dust on the pets screen.")));
+            none.setItemMeta(meta);
+            inv.setItem(31, none);
+        }
+        return inv;
+    }
+
+    /** Every pet there is and what it gives, found or not. */
+    public static Inventory index(SolRNGPlugin plugin, Player player) {
+        PetsHolder holder = new PetsHolder(PetsHolder.View.INDEX);
+        Inventory inv = Bukkit.createInventory(holder, SIZE,
+                ChatColor.DARK_AQUA + "" + ChatColor.BOLD + "Pet Index");
+        holder.setInventory(inv);
+        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+        fillSubScreen(inv);
+
+        int slot = FIRST_PET;
+        for (PetType pet : plugin.getPetManager().getTypes().values()) {
+            if (slot >= SIZE) break;
+            inv.setItem(slot++, indexIcon(plugin, data, pet));
+        }
+        return inv;
+    }
+
+    private static void fillSubScreen(Inventory inv) {
+        ItemStack rail = pane(Material.CYAN_STAINED_GLASS_PANE);
+        ItemStack filler = pane(Material.BLACK_STAINED_GLASS_PANE);
+        for (int i = 0; i < SIZE; i++) inv.setItem(i, i < 9 ? rail : filler);
+        ItemStack back = new ItemStack(Material.SPECTRAL_ARROW);
+        ItemMeta meta = back.getItemMeta();
+        meta.setDisplayName(Lore.title(ChatColor.AQUA, "Pets"));
+        meta.setLore(List.of(
+                Lore.line(ChatColor.GRAY, "Your slots and the forge."),
+                "",
+                ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to go back"));
+        back.setItemMeta(meta);
+        inv.setItem(BACK_SLOT, back);
+    }
+
+    private static ItemStack storageIcon(SolRNGPlugin plugin, PlayerData data) {
+        PetManager pets = plugin.getPetManager();
+        ItemStack item = new ItemStack(Material.CHEST);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(Lore.title(ChatColor.AQUA, "Pet Storage"));
+        meta.setLore(List.of(
+                Lore.line(ChatColor.GRAY, "Every pet you own. Wear one or"),
+                Lore.line(ChatColor.GRAY, "open it to upgrade."),
+                "",
+                Lore.stat(ChatColor.AQUA, "Owned", data.getOwnedPets().size() + " / " + pets.getTypes().size()),
+                "",
+                ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to open"));
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    private static ItemStack indexButton(SolRNGPlugin plugin, PlayerData data) {
+        ItemStack item = new ItemStack(Material.KNOWLEDGE_BOOK);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(Lore.title(ChatColor.AQUA, "Pet Index"));
+        meta.setLore(List.of(
+                Lore.line(ChatColor.GRAY, "Every pet there is and the"),
+                Lore.line(ChatColor.GRAY, "boost each one gives."),
+                "",
+                Lore.stat(ChatColor.AQUA, "Found",
+                        data.getOwnedPets().size() + " / " + plugin.getPetManager().getTypes().size()),
+                "",
+                ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to open"));
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    /**
+     * One fifth of the way to the next pet. Green once that fifth of the
+     * price is held, red until then, so the row fills left to right as the
+     * dust comes in. Blocks for now; Leon means to swap in heads.
+     */
+    private static ItemStack progressBlock(long dust, long cost, int index) {
+        long step = Math.max(1L, (long) Math.ceil(cost / 5.0));
+        long needed = Math.min(cost, step * (index + 1));
+        boolean filled = dust >= needed;
+        ItemStack item = new ItemStack(filled ? Material.LIME_CONCRETE : Material.RED_CONCRETE);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(Lore.title(filled ? ChatColor.GREEN : ChatColor.RED, (index + 1) + " / 5"));
+        meta.setLore(List.of(
+                Lore.stat(filled ? ChatColor.GREEN : ChatColor.RED, "Needs",
+                        Currency.COSMIC_DUST.amount(needed)),
+                Lore.stat(ChatColor.AQUA, "You hold", Currency.COSMIC_DUST.amount(Math.min(dust, cost)))));
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    /** A pet as the index shows it: what it gives new, and at its very best. */
+    private static ItemStack indexIcon(SolRNGPlugin plugin, PlayerData data, PetType pet) {
+        PetManager pets = plugin.getPetManager();
+        PetInstance owned = data.getPet(pet.id());
+        ItemStack item = new ItemStack(pet.icon());
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(name(pet, owned));
+        List<String> lore = new ArrayList<>();
+        if (!pet.blurb().isBlank()) {
+            lore.add(Lore.line(ChatColor.GRAY, pet.blurb()));
+            lore.add("");
+        }
+        lore.add(Lore.section(ChatColor.YELLOW, "Boost"));
+        lore.add(Lore.stat(ChatColor.AQUA, "New", pet.boostText()));
+        lore.add(Lore.stat(ChatColor.AQUA, "At its best", pet.boostText(pets.upgrades().topMultiplier())));
+        if (owned != null) {
+            lore.add(Lore.stat(ChatColor.GREEN, "Yours", pet.boostText(pets.upgrades().multiplier(owned))));
+        }
+        lore.add("");
+        lore.add(Lore.stat(ChatColor.AQUA, "Rarity", pet.rarity().displayName()));
+        lore.add("");
+        if (owned != null) {
+            lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "Found");
+        } else {
+            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Not found yet");
+            lore.add(Lore.line(ChatColor.GRAY, "Make pets from Cosmic Dust"));
+        }
+        meta.setLore(lore);
+        if (owned != null) meta.setEnchantmentGlintOverride(Boolean.TRUE);
+        item.setItemMeta(meta);
+        return item;
     }
 
     private static ItemStack infoIcon(SolRNGPlugin plugin, Player player, PlayerData data) {
@@ -113,9 +276,9 @@ public class PetsGui {
     }
 
     /**
-     * The forge: ten Cosmic Dust turned into a pet. It sits in the top row
-     * next to the slots rather than in the grid below, because it is the
-     * one thing here that makes something new.
+     * The forge: Cosmic Dust turned into a pet, a hundred since V215. It
+     * sits in the middle of the screen with the dust row under it, because
+     * it is the one thing here that makes something new.
      */
     private static ItemStack forgeIcon(SolRNGPlugin plugin, PlayerData data) {
         PetManager pets = plugin.getPetManager();
@@ -176,7 +339,7 @@ public class PetsGui {
             meta.setLore(List.of(
                     Lore.line(ChatColor.GRAY, "Empty."),
                     "",
-                    Lore.footnote("Click a pet below to wear it.")));
+                    Lore.footnote("Wear one from Pet Storage.")));
             item.setItemMeta(meta);
             return item;
         }
@@ -222,7 +385,7 @@ public class PetsGui {
                 lore.add(Lore.line(ChatColor.GRAY, "Left click to take it off"));
             } else if (data.getEquippedPets().size() >= pets.slots(data)) {
                 lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Slots full");
-                lore.add(Lore.line(ChatColor.GRAY, "Take one off above first"));
+                lore.add(Lore.line(ChatColor.GRAY, "Take one off on the pets screen"));
             } else {
                 lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Left click to wear");
             }
@@ -233,7 +396,7 @@ public class PetsGui {
             lore.add("");
             lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Locked");
             lore.add(Lore.line(ChatColor.GRAY, "Make pets from Cosmic Dust"));
-            lore.add(Lore.line(ChatColor.GRAY, "with the star above"));
+            lore.add(Lore.line(ChatColor.GRAY, "on the pets screen"));
         }
         meta.setLore(lore);
         if (worn) meta.setEnchantmentGlintOverride(Boolean.TRUE);

@@ -8,7 +8,7 @@
 # their fresh defaults in on top of whatever is on disk, so a server
 # owner never has to delete the whole file to pick up a structural
 # change. Item table, prices and cosmetic tweaks are untouched.
-config-version: 24
+config-version: 25
 
 # One-off value changes the plugin has already made to this file, so none
 # is ever made twice. Managed by the plugin; leave it alone.
@@ -3175,20 +3175,20 @@ skilltree:
     # bought, so the whole pet system has one door and this is it.
     #
     # The chance is written as one in N in the menu. The root is one in a
-    # hundred rolls and a pet costs ten dust, so a first pet is about a
-    # thousand rolls away at the bottom of this page and a few hundred at
-    # the top of it.
+    # hundred rolls and a pet costs a hundred dust since V215, so a first
+    # pet is about ten thousand rolls away on the root alone.
 
-    # Root of the page. Hangs off all three page 4 capstones, the same way
-    # Mastery hangs off page 3.
+    # The door to pets. Since V215 it sits high on page 1, over Shiny
+    # Unlocked, rather than behind the page 4 capstones: Leon wanted pets
+    # reachable from the first tree. The rest of this page still hangs
+    # off it.
     cosmic_root:
       display: "Cosmic Dust"
-      page: 5
-      slot: "5,6"
+      page: 1
+      slot: "6,1"
       icon: AMETHYST_SHARD
-      cost-money: 50000000000
-      requires: "luck_capstone_2"
-      requires-all: ["speed_capstone_2", "money_capstone_2"]
+      cost-money: 100000
+      requires: "shiny_unlock"
       effect: COSMIC_DUST_CHANCE
       value: 0.01
 
@@ -6282,8 +6282,8 @@ pets:
     # Luck cannot pay more than 90% however long it is fed.
     max-multiplier: 6.0
 
-    # Cosmic Dust, out of rolling.
-    make-cost: 10
+    # Cosmic Dust, out of rolling. A hundred since V215, Leon's call.
+    make-cost: 100
     rarity-base-cost: 8
     rarity-cost-growth: 1.35
     shiny-cost: 50
