@@ -502,7 +502,9 @@ public final class AuraManager {
                     if (!audience.isEmpty()) {
                         AuraConcept drawn = aura.concept.followsBody() && !Float.isNaN(aura.lastYaw)
                                 ? turnedStars(aura.concept, aura.lastYaw) : aura.concept;
-                        aura.accent.play(new AuraFx(player, audience, aura.color), drawn, frame, random);
+                        boolean clearFace = !"full".equals(
+                                plugin.getPlayerDataManager().get(player.getUniqueId()).getOwnAuraView());
+                        aura.accent.play(new AuraFx(player, audience, aura.color, clearFace), drawn, frame, random);
                     }
                 }
             } catch (RuntimeException ex) {
@@ -563,6 +565,10 @@ public final class AuraManager {
             if (viewer.getLocation().distanceSquared(at) > rangeSq) continue;
             var data = plugin.getPlayerDataManager().get(viewer.getUniqueId());
             if (!data.isWornAurasVisible() || !data.isAuraEnabled(rarity)) continue;
+            // A wearer who switched their own aura off saw its particles
+            // all the same (V217): the pieces obeyed the setting and this
+            // list never asked it.
+            if (viewer.equals(wearer) && "hidden".equals(data.getOwnAuraView())) continue;
             viewers.add(viewer);
         }
         return viewers;

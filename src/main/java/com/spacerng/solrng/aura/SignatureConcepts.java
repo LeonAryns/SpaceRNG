@@ -217,7 +217,7 @@ final class SignatureConcepts {
                 new PlateRing(color, 240, FEET + 0.01f, 2.30f, 16, 0.13f, 1.0f, 0f, 0, 0.0, 0.0),
                 new PlateRing(soft, 165, FEET + 0.02f, 3.30f, 10, 0.08f, 0.45f, 0f, 4, 5.0, 0.0),
                 new PlateRing(soft, 120, FEET + 0.03f, 4.10f, 8, 0.06f, 0.35f, 0f, 8, -5.5, 0.0),
-                new PlateRing(color, 215, -0.85f, 2.55f, 10, 0.10f, 0.8f, 25f, 5, 9.0, 5.0),
+                new PlateRing(color, 215, -0.85f, 2.55f, 10, 0.10f, 0.8f, 25f, 5, 9.0, 5.0).behind(),
                 groundStars(color),
                 lanterns());
     }
@@ -273,7 +273,7 @@ final class SignatureConcepts {
         return new AuraConcepts.Combined(
                 new PlateRing(color, 240, FEET + 0.01f, 2.30f, 16, 0.13f, 1.0f, 0f, 0, 0.0, 0.0),
                 new PlateRing(soft, 165, FEET + 0.02f, 3.40f, 10, 0.08f, 0.45f, 0f, 5, 6.0, 0.0),
-                new PlateRing(color, 215, -0.85f, 2.55f, 10, 0.10f, 0.8f, 25f, 5, 9.0, 5.0),
+                new PlateRing(color, 215, -0.85f, 2.55f, 10, 0.10f, 0.8f, 25f, 5, 9.0, 5.0).behind(),
                 groundStars(color),
                 lanterns(),
                 new PlateWings(soft, 210),
@@ -568,6 +568,30 @@ final class SignatureConcepts {
         private final double precess;
         private final float chord;
         private final boolean twoSided;
+        // Tipped back and turning with the head, so the raised side is
+        // always behind the wearer (V217). See behind().
+        private boolean behind;
+
+        /**
+         * The same ring held with its raised side behind the wearer: it
+         * stops swinging its plane round and turns with the head instead,
+         * the way the wings do. A tilt of t drops the front t degrees and
+         * lifts the back, so the part in front sits low, under the view.
+         */
+        PlateRing behind() {
+            this.behind = true;
+            return this;
+        }
+
+        @Override
+        public boolean followsBody() {
+            return behind;
+        }
+
+        @Override
+        public boolean followsHead() {
+            return behind;
+        }
 
         /**
          * @param every   frames between moves, 0 for a ring that never moves
@@ -598,8 +622,8 @@ final class SignatureConcepts {
             // A flat ring at the feet is under everybody. A standing or
             // slanted one is clear as long as it is wide enough that the
             // wearer looks through the middle of it rather than having a
-            // segment swing past their nose.
-            return !twoSided || radius >= CLEAR_RADIUS;
+            // segment swing past their nose. One held behind is clear too.
+            return behind || !twoSided || radius >= CLEAR_RADIUS;
         }
 
         @Override
@@ -639,6 +663,7 @@ final class SignatureConcepts {
 
         /** The ring's plane: tipped up by tilt, then swung by however far it has precessed. */
         private Quaternionf plane(double steps) {
+            if (behind) return new Quaternionf().rotateX(rad(tilt));
             return new Quaternionf().rotateY(rad(precess * steps)).rotateX(rad(tilt));
         }
 
