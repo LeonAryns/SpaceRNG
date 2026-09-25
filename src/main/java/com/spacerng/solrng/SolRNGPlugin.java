@@ -200,6 +200,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(rollListener, this);
         this.joinQuitListener = new JoinQuitListener(this);
         getServer().getPluginManager().registerEvents(joinQuitListener, this);
+        getServer().getPluginManager().registerEvents(new com.spacerng.solrng.firsts.FirstTenFireworks(), this);
         getServer().getPluginManager().registerEvents(new ChatListener(this), this);
         getServer().getPluginManager().registerEvents(new GuiListener(this), this);
         getServer().getPluginManager().registerEvents(new FarmingListener(this), this);

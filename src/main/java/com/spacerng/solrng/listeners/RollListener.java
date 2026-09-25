@@ -1030,6 +1030,9 @@ public class RollListener implements Listener {
         // it's worth announcing even at a rarity that normally isn't.
         boolean shinyWorthy = shiny && plugin.getConfig().getBoolean("shiny.broadcast", true);
         if (!shinyWorthy && result.getRarity().ordinal() < minRarity.ordinal()) return;
+        // A Server First announces itself with its own banner a few seconds
+        // later, so the plain "just found" line would be the same news twice.
+        if (plugin.getFirstTenManager().wouldTake(player, result)) return;
 
         Component banner = LegacyComponentSerializer.legacySection()
                 .deserialize(RollFormat.broadcastBanner(plugin, player.getName(), result, shiny))

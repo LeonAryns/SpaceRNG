@@ -29,7 +29,9 @@ import java.util.concurrent.ThreadLocalRandom;
  * ground nobody can tell who it is until the banner and title say so. The
  * last tenth goes quiet, so the burst lands on silence.
  *
- * Three seconds for Legendary, four for Mythical, six for Divine. Drawn per
+ * Five seconds for every rarity since V213 (Leon: "een buildup van 5s en
+ * dan de eind animatie"), with real fireworks in the rarity's colour going
+ * off over the spot the whole time. Drawn per
  * viewer within 180 blocks, honouring the rarity's aura switch, and forced,
  * since a client only draws normal particles within 32 blocks. Everyone
  * who hasn't muted the rarity hears the bells and sees the action bar.
@@ -73,15 +75,9 @@ final class FirstTenBuildUp {
         this.drop = drop;
         this.finder = finder;
         this.burst = burst;
-        this.length = switch (rarity) {
-            // V158 cut this to three, four and six seconds because it
-            // dragged. V186 puts it back up at Leon's request, now that
-            // the opening is loud enough to be worth turning round for:
-            // five, seven and ten seconds. The star hangs for all of it.
-            case DIVINE -> 200L;
-            case MYTHICAL -> 140L;
-            default -> 100L;
-        };
+        // Five seconds whatever the rarity (V213). It was five, seven and
+        // ten; the fireworks carry the difference between rarities now.
+        this.length = 100L;
         this.base = RollAura.colorFor(rarity);
         // Warm near-white, never pure white, which reads as a glitch.
         Color light = mix(base, Color.fromRGB(255, 250, 235), 0.55);
@@ -142,6 +138,7 @@ final class FirstTenBuildUp {
         try {
             double progress = (double) frame / length;
             boolean hush = progress > 0.9;
+            if (!hush && origin != null && frame % 6 == 0) fireworks(progress);
             if (star != null) {
                 star.tick(progress, 4);
                 // People walk in and out of range, and somebody who just
@@ -160,8 +157,10 @@ final class FirstTenBuildUp {
                 // screen wherever the viewer stands (V171). Before this the
                 // run-up was only an action bar and particles within 180
                 // blocks, so most of the server saw nothing until the name
-                // landed. The finder is left to their own roll reveal.
-                if (!own && frame % 10 == 0) {
+                // landed. The finder gets it too since V213: their own
+                // reveal is over by the time this starts, and without it
+                // the finder saw next to nothing and read it as no build-up.
+                if (frame % 10 == 0) {
                     viewer.showTitle(net.kyori.adventure.title.Title.title(title, progressLine(progress),
                             net.kyori.adventure.title.Title.Times.times(java.time.Duration.ZERO,
                                     java.time.Duration.ofMillis(900), java.time.Duration.ofMillis(250))));
@@ -267,6 +266,50 @@ final class FirstTenBuildUp {
             } else {
                 viewer.spawnParticle(Particle.ELECTRIC_SPARK, at, 1, 0.2, 0.2, 0.2, 0.0, null, true);
             }
+        }
+    }
+
+    /**
+     * Real fireworks in the rarity's colour over the spot, more of them as
+     * it nears (V213). Real ones rather than particles, because the whole
+     * server sees and hears a firework the way it does in vanilla, from
+     * any distance a player can see the sky.
+     *
+     * They explode twelve blocks up or higher, well past the five blocks a
+     * firework hurts in, and FirstTenFireworks cancels any damage they do
+     * anyway. Tagged and non-persistent, so a crash leaves none behind.
+     */
+    private void fireworks(double progress) {
+        ThreadLocalRandom random = ThreadLocalRandom.current();
+        org.bukkit.FireworkEffect.Type[] types = {org.bukkit.FireworkEffect.Type.BALL_LARGE,
+                org.bukkit.FireworkEffect.Type.STAR, org.bukkit.FireworkEffect.Type.BURST,
+                org.bukkit.FireworkEffect.Type.BALL};
+        Color light = mix(base, Color.fromRGB(255, 250, 235), 0.55);
+        int count = 1 + (int) Math.round(3 * progress);
+        for (int i = 0; i < count; i++) {
+            double angle = random.nextDouble(Math.PI * 2);
+            double radius = random.nextDouble(4.0, 28.0);
+            Location at = origin.clone().add(Math.cos(angle) * radius, random.nextDouble(12.0, 26.0),
+                    Math.sin(angle) * radius);
+            org.bukkit.FireworkEffect effect = org.bukkit.FireworkEffect.builder()
+                    .with(types[random.nextInt(types.length)])
+                    .withColor(base, light)
+                    .withFade(light)
+                    .flicker(random.nextBoolean())
+                    .trail(true)
+                    .build();
+            org.bukkit.entity.Firework firework = at.getWorld().spawn(at, org.bukkit.entity.Firework.class, f -> {
+                f.setPersistent(false);
+                org.bukkit.inventory.meta.FireworkMeta meta = f.getFireworkMeta();
+                meta.addEffect(effect);
+                meta.setPower(0);
+                f.setFireworkMeta(meta);
+                f.getPersistentDataContainer().set(FirstTenFireworks.KEY,
+                        org.bukkit.persistence.PersistentDataType.BYTE, (byte) 1);
+            });
+            plugin.getServer().getScheduler().runTask(plugin, () -> {
+                if (firework.isValid()) firework.detonate();
+            });
         }
     }
 

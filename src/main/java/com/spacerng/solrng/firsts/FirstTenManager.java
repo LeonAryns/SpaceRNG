@@ -112,14 +112,9 @@ public final class FirstTenManager {
      * schedules the event for after the reveal has played out.
      */
     public void onRoll(Player player, RollableItem item, boolean shiny, long delayTicks) {
+        if (!wouldTake(player, item)) return;
         Rarity rarity = item.getRarity();
-        if (!trackedRarities().contains(rarity)) return;
         List<Entry> list = entries.computeIfAbsent(rarity, key -> new ArrayList<>());
-        if (list.size() >= slots()) return;
-        // One spot per player per rarity, so one lucky streak can't eat the list.
-        for (Entry held : list) {
-            if (held.uuid().equals(player.getUniqueId())) return;
-        }
 
         list.add(new Entry(player.getUniqueId(), player.getName(), item.getDisplayName(),
                 System.currentTimeMillis()));
@@ -132,6 +127,25 @@ public final class FirstTenManager {
                 () -> buildUpThen(rarity, item.getMaterial(), roller,
                         () -> announce(roller, name, item, shiny, place, false)),
                 Math.max(1L, delayTicks));
+    }
+
+    /**
+     * Whether this drop takes a spot: the rarity is tracked, one is still
+     * free and this player doesn't already hold one in it. Asked before the
+     * drop's own chat line too, because a First announces itself and the
+     * ordinary "just found" line on top of it said the same thing twice
+     * (V213).
+     */
+    public boolean wouldTake(Player player, RollableItem item) {
+        Rarity rarity = item.getRarity();
+        if (!trackedRarities().contains(rarity)) return false;
+        List<Entry> list = entries.getOrDefault(rarity, List.of());
+        if (list.size() >= slots()) return false;
+        // One spot per player per rarity, so one lucky streak can't eat the list.
+        for (Entry held : list) {
+            if (held.uuid().equals(player.getUniqueId())) return false;
+        }
+        return true;
     }
 
     /** Plays the whole event without recording anything. */
