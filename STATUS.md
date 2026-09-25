@@ -5,7 +5,7 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V206**, 24 September 2026.
+Last updated at **V208**, 25 September 2026.
 
 ## The agreed way of working
 
@@ -830,6 +830,20 @@ nobody.
 - **`tag.max-name-length`, 18.** Only the shared-line copy is cut. The
   drop, its tooltip and the nametag over somebody's head keep the full
   name.
+
+**V207 and V208, 25 September, untested in game:**
+
+- **V207, the podium.** Heads closer, #1 head 25% bigger, the tags over
+  the top three 15% bigger. The distance was never `podium-spacing`
+  (6.5): it was the floor that keeps the tags from overlapping, 10.2
+  blocks. #1 now stands high enough that its tag clears the other two,
+  which brings the floor to about 7.5. Side effect to check: #1 floats
+  visibly higher than #2 and #3, most on the farming board (three tag
+  rows).
+- **V208, the aura beam.** The `Column` piece is gone from ascend (Divine
+  tag, also the heavy fallback), prism, pyre and empyrean (the Epic,
+  Legendary and Divine shinies). beacon and zenith still have theirs, no
+  rarity wears them.
 
 **Deliberately not done in V186, and why:** the +10% Coins and Gems per
 crop. Those are the `CROP_YIELD` nodes, and they are the spine of the
