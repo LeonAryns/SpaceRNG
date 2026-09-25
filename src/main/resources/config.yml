@@ -8,7 +8,7 @@
 # their fresh defaults in on top of whatever is on disk, so a server
 # owner never has to delete the whole file to pick up a structural
 # change. Item table, prices and cosmetic tweaks are untouched.
-config-version: 25
+config-version: 26
 
 # One-off value changes the plugin has already made to this file, so none
 # is ever made twice. Managed by the plugin; leave it alone.
@@ -3857,8 +3857,8 @@ holograms:
     store:
       title: "<gradient:#F8BBD0:#EC407A:#AB47BC><b>STORE</b></gradient>"
       lines:
-        - "<white>Spend <#F48FB1>Credits</#F48FB1> on a global"
-        - "<white>Luck boost or the premium pass"
+        - "<white>Spend <gradient:#FF5555:#FFAA00:#FFFF55:#55FF55:#55FFFF:#FF55FF:#FF5555>Credits</gradient> on ranks, a global"
+        - "<white>Luck boost, the pass and perk tickets"
     novacore:
       title: "<gradient:#FCE4EC:#F06292:#BA68C8><b>NOVA CORE</b></gradient>"
       lines:
@@ -6067,6 +6067,12 @@ first-ten:
   enabled: true
   slots: 5
   rarities: [LEGENDARY, MYTHICAL, DIVINE]
+
+# /buy and /store. store-url is the web store where Credits are bought;
+# set it and the store menu shows a button that sends the link in chat.
+# Left empty the button is not there.
+buy:
+  store-url: ""
 
 # Worn auras. A player wearing a /tag of Epic or rarer wears the aura set
 # here for that rarity: a concept, and an optional particle accent drawn

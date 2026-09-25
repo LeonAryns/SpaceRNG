@@ -145,7 +145,7 @@ public class ShopGui {
                 Currency.CREDITS.colour() + Lore.BULLET + " " + Currency.CREDITS.amount(data.getPoints()),
                 "",
                 ChatColor.DARK_GRAY + Lore.BULLET + " Drops buy armor, potions and Starforges.",
-                ChatColor.DARK_GRAY + Lore.BULLET + " Credits only come from the store."));
+                ChatColor.DARK_GRAY + Lore.BULLET + " Spend Credits in /buy."));
         item.setItemMeta(meta);
         return item;
     }

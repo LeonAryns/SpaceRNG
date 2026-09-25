@@ -228,6 +228,29 @@ final class ShopClicks {
         Player player = (Player) event.getWhoClicked();
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
 
+        // V220: ranks and perk tickets open the menus that sell them, and
+        // the web store hands over its link.
+        if (event.getRawSlot() == BuyGui.RANKS_SLOT) {
+            player.openInventory(com.spacerng.solrng.gui.RanksGui.build(plugin, player));
+            player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.4f, 1.6f);
+            return;
+        }
+        if (event.getRawSlot() == BuyGui.PERKS_SLOT) {
+            player.openInventory(com.spacerng.solrng.gui.PerkRollerGui.build(plugin, player));
+            player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.4f, 1.6f);
+            return;
+        }
+        if (event.getRawSlot() == BuyGui.WEBSTORE_SLOT && !BuyGui.storeUrl(plugin).isEmpty()) {
+            String url = BuyGui.storeUrl(plugin);
+            player.closeInventory();
+            player.sendMessage(net.kyori.adventure.text.Component.text("Buy Credits: ",
+                            net.kyori.adventure.text.format.NamedTextColor.GRAY)
+                    .append(net.kyori.adventure.text.Component.text(url,
+                                    net.kyori.adventure.text.format.NamedTextColor.LIGHT_PURPLE)
+                            .clickEvent(net.kyori.adventure.text.event.ClickEvent.openUrl(url))));
+            return;
+        }
+
         if (event.getRawSlot() == BuyGui.BATTLEPASS_SLOT) {
             if (data.isPassPremium()) return;
             if (!plugin.getPassManager().buyPremium(player, data)) {

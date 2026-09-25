@@ -5,7 +5,7 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V218**, 25 September 2026.
+Last updated at **V221**, 25 September 2026.
 
 ## The agreed way of working
 
@@ -924,6 +924,22 @@ should all be there without anybody relogging.
   and keeps its accent; shiny looks are unchanged. /aura lists which
   rank wears which look. Ember and eclipse as the middle steps were my
   pick, Leon never answered; he can change them in config.
+
+**V219 to V221, 25 September, untested in game:**
+
+- **V219.** Credits keep the sidebar's rainbow everywhere, also as an
+  unaffordable price (`Currency.price`); the red footer says it instead.
+  Perk confirmation is on for every level of Fortune, Nova and Universe,
+  once per player (`default:perk-confirm-legendary` in completed
+  quests). Roll Perk lost its level chances line.
+- **V220.** /prestige rebuilt to the house style: 45 slots, overview,
+  your head, Level up · Prestige · Upgrades, a seven pane road to the
+  next prestige, no state tags, standard footers, shift click to level
+  as far as the rolls reach. Upgrades show now, next and max.
+- **V221.** /buy rebuilt: Ranks · Global Luck · Premium Pass · Perk
+  Tickets, your Credits with where they come from, and a web store
+  button once `buy.store-url` is set (Leon has not given the link).
+  config-version 26 for the store panel text.
 
 **Queue from the same message, one jar each, in this order:**
 
