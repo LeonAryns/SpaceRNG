@@ -56,7 +56,7 @@ final class SignatureConcepts {
         d.put("sigil", "a broken circle turning over a still one, with four spokes");
         d.put("ember", "two circles on the floor and six flames breathing at the waist");
         d.put("eclipse", "a ring standing round the body, sweeping over a wide floor");
-        d.put("ascend", "a slanted orbit and a lantern atom");
+        d.put("ascend", "a slanted orbit, stars bursting over the floor and a lantern atom");
         d.put("signature", "whichever of the four painted looks the rarity wears");
         d.put("prism", "the sigil with a ring standing through it");
         d.put("pyre", "the flames with wings of fire off the back");
@@ -195,6 +195,16 @@ final class SignatureConcepts {
      * across the face (V210). Everybody else, and the wearer in
      * "everything", keeps the atom.
      */
+    /**
+     * Stars bursting outward along the ground, the part of the old Divine
+     * look (atom-grand, before V174) Leon missed. That one reached four and
+     * a half blocks; these stop inside the first floor circle, 2.3 across:
+     * 14 spaces put the star 0.7 blocks out at scale 1, so 3.2 is 2.24.
+     */
+    static AuraConcept groundStars(Color color) {
+        return new MassiveConcepts.WideRipple(color, 14, 3.2f, 20, 3);
+    }
+
     private static AuraConcept lanterns() {
         return new AuraConcepts.OwnView(
                 new AuraConcepts.SolidAtom(Material.SEA_LANTERN, -0.70f, 1.45f, 0.42f, false, 0, 2, 20.0),
@@ -208,6 +218,7 @@ final class SignatureConcepts {
                 new PlateRing(soft, 165, FEET + 0.02f, 3.30f, 10, 0.08f, 0.45f, 0f, 4, 5.0, 0.0),
                 new PlateRing(soft, 120, FEET + 0.03f, 4.10f, 8, 0.06f, 0.35f, 0f, 8, -5.5, 0.0),
                 new PlateRing(color, 215, -0.85f, 2.55f, 10, 0.10f, 0.8f, 25f, 5, 9.0, 5.0),
+                groundStars(color),
                 lanterns());
     }
 
@@ -263,6 +274,7 @@ final class SignatureConcepts {
                 new PlateRing(color, 240, FEET + 0.01f, 2.30f, 16, 0.13f, 1.0f, 0f, 0, 0.0, 0.0),
                 new PlateRing(soft, 165, FEET + 0.02f, 3.40f, 10, 0.08f, 0.45f, 0f, 5, 6.0, 0.0),
                 new PlateRing(color, 215, -0.85f, 2.55f, 10, 0.10f, 0.8f, 25f, 5, 9.0, 5.0),
+                groundStars(color),
                 lanterns(),
                 new PlateWings(soft, 210),
                 new Petals(soft, 215, 0.16f, 0.42f, 6, 0.12f, 0.34f, 12f, 5, 16));
