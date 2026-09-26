@@ -52,7 +52,7 @@ public class PerkIndexGui {
         int confirmations = 0;
         for (PerkType type : perks.types()) {
             if (index >= TYPE_SLOTS.length) break;
-            inv.setItem(TYPE_SLOTS[index++], PerkLore.indexItem(plugin, data, type));
+            inv.setItem(TYPE_SLOTS[index++], PerkLore.indexItem(plugin, data, type, com.spacerng.solrng.platform.Bedrock.is(player)));
             for (int level = 1; level <= 5; level++) {
                 if (data.getPerkConfirm().contains(type.key(level))) confirmations++;
             }

@@ -92,6 +92,8 @@ public final class HoloManager {
     private final Map<String, Map<String, Object>> unresolved = new LinkedHashMap<>();
     private final Map<String, List<Display>> drawn = new HashMap<>();
     private final Map<String, TextDisplay> boardBodies = new HashMap<>();
+    // The same rows without heads, seen only by Bedrock players (V223).
+    private final Map<String, TextDisplay> bedrockBodies = new HashMap<>();
     private final MiniMessage mini = MiniMessage.miniMessage();
 
     private float viewRange = 1.0f;
@@ -377,7 +379,9 @@ public final class HoloManager {
             draw(spot);
         } else if (refresh && spot.kind() == Kind.BOARD) {
             TextDisplay body = boardBodies.get(spot.id());
-            if (body != null && body.isValid()) body.text(boardBody(spot.key()));
+            if (body != null && body.isValid()) body.text(boardBody(spot.key(), true));
+            TextDisplay bedrock = bedrockBodies.get(spot.id());
+            if (bedrock != null && bedrock.isValid()) bedrock.text(boardBody(spot.key(), false));
         } else if (spot.kind() == Kind.LEADER) {
             tickPodium(spot, refresh || ticks % 100 == 0);
         }
@@ -420,6 +424,7 @@ public final class HoloManager {
             }
         }
         boardBodies.remove(id);
+        bedrockBodies.remove(id);
     }
 
     private void despawnAll() {
@@ -508,11 +513,19 @@ public final class HoloManager {
         pieces.add(footer);
         y.add(0, LINE * textScale * 0.9 + GAP * 2, 0);
 
-        Component body = boardBody(board);
+        Component body = boardBody(board, true);
         int rows = Math.max(1, PlainTextComponentSerializer.plainText().serialize(body).split("\n", -1).length);
         TextDisplay bodyDisplay = text(spot, y, body, textScale);
         pieces.add(bodyDisplay);
         boardBodies.put(spot.id(), bodyDisplay);
+        // Bedrock (V223) cannot draw a head inside text and prints "[unknown
+        // player head]" in its place, so it gets its own copy of the rows
+        // without them, standing in the same spot.
+        TextDisplay bedrockBody = text(spot, y, boardBody(board, false), textScale);
+        pieces.add(bedrockBody);
+        bedrockBodies.put(spot.id(), bedrockBody);
+        plugin.getBedrockSupport().claim(bodyDisplay, com.spacerng.solrng.platform.BedrockSupport.JAVA);
+        plugin.getBedrockSupport().claim(bedrockBody, com.spacerng.solrng.platform.BedrockSupport.BEDROCK);
         y.add(0, rows * LINE * textScale + GAP * 2, 0);
 
         pieces.add(text(spot, y, parse("<dark_gray><b>LEADERBOARD</b>"), textScale * 1.1f));
@@ -818,8 +831,8 @@ public final class HoloManager {
         return value instanceof Number n ? n.doubleValue() : 0.0;
     }
 
-    /** The top ten as text, each row with the player's head in front of the name. */
-    private Component boardBody(String board) {
+    /** The top ten as text, each row with the player's head in front of the name, or without for Bedrock. */
+    private Component boardBody(String board, boolean heads) {
         ConfigurationSection s = plugin.getConfig().getConfigurationSection("holograms.boards." + board);
         String colour = s == null ? BOARD_COLOURS.getOrDefault(board, "#FFD54F")
                 : s.getString("color", BOARD_COLOURS.getOrDefault(board, "#FFD54F"));
@@ -836,8 +849,8 @@ public final class HoloManager {
             place++;
             rows.add(Component.text()
                     .append(Component.text("#" + place + " ", place == 1 ? NamedTextColor.GOLD : NamedTextColor.GRAY))
-                    .append(Component.object(ObjectContents.playerHead(entry.uuid())))
-                    .append(Component.text(" " + entry.name(), NamedTextColor.WHITE))
+                    .append(heads ? Component.object(ObjectContents.playerHead(entry.uuid())) : Component.empty())
+                    .append(Component.text(heads ? " " + entry.name() : entry.name(), NamedTextColor.WHITE))
                     .append(Component.text("  →  ", NamedTextColor.DARK_GRAY))
                     .append(Component.text(Lore.shorten(value), valueColour))
                     .append(Component.text(unit.isEmpty() ? "" : " " + unit, NamedTextColor.GRAY))

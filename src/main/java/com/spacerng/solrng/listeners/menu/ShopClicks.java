@@ -77,6 +77,7 @@ final class ShopClicks {
         Integer bundle = com.spacerng.solrng.gui.PerkRollerGui.buyAmountAt(plugin, slot);
         if (bundle != null) {
             long price = perks.ticketPrices().getOrDefault(bundle, 0L);
+            if (!com.spacerng.solrng.platform.BedrockConfirm.go(player, event, "tickets:" + bundle)) return;
             if (!perks.buyTickets(data, bundle)) {
                 player.sendMessage(ChatColor.RED + "You need " + Currency.CREDITS.amount(price)
                         + ChatColor.RED + " for " + bundle + " Perk Tickets.");
@@ -168,7 +169,25 @@ final class ShopClicks {
         }
         String typeId = com.spacerng.solrng.gui.PerkIndexGui.clickedType(event.getCurrentItem());
         if (typeId == null) return;
-        if (event.getClick() == org.bukkit.event.inventory.ClickType.NUMBER_KEY) {
+        if (com.spacerng.solrng.platform.Bedrock.is(player)) {
+            // Bedrock has no number keys in a menu (V223). Each click asks
+            // from one level lower: V, then IV and V, down to all five,
+            // then none. A mix set on Java starts over at V.
+            int lowest = 6;
+            for (int level = 5; level >= 1; level--) {
+                if (data.getPerkConfirm().contains(typeId + ":" + level)) lowest = level;
+                else break;
+            }
+            boolean below = false;
+            for (int level = 1; level < lowest; level++) {
+                if (data.getPerkConfirm().contains(typeId + ":" + level)) below = true;
+            }
+            int from = below ? 5 : (lowest == 1 ? 6 : lowest - 1);
+            for (int level = 1; level <= 5; level++) {
+                if (level >= from) data.getPerkConfirm().add(typeId + ":" + level);
+                else data.getPerkConfirm().remove(typeId + ":" + level);
+            }
+        } else if (event.getClick() == org.bukkit.event.inventory.ClickType.NUMBER_KEY) {
             int level = event.getHotbarButton() + 1;
             if (level < 1 || level > 5) return;
             String key = typeId + ":" + level;
@@ -210,6 +229,7 @@ final class ShopClicks {
                     + ChatColor.GRAY + ".");
             return;
         }
+        if (!com.spacerng.solrng.platform.BedrockConfirm.go(player, event, "rank:" + tier.id())) return;
         if (!ranks.buy(player, data, tier)) {
             player.sendMessage(ChatColor.RED + "You need " + Currency.CREDITS.amount(tier.price())
                     + ChatColor.RED + " for that rank.");
@@ -253,6 +273,7 @@ final class ShopClicks {
 
         if (event.getRawSlot() == BuyGui.BATTLEPASS_SLOT) {
             if (data.isPassPremium()) return;
+            if (!com.spacerng.solrng.platform.BedrockConfirm.go(player, event, "pass")) return;
             if (!plugin.getPassManager().buyPremium(player, data)) {
                 player.sendMessage(ChatColor.RED + "You need "
                         + String.format("%,d", plugin.getPassManager().getPremiumCost())
@@ -268,6 +289,7 @@ final class ShopClicks {
             player.sendMessage(ChatColor.RED + "The boost is already at its cap for this run.");
             return;
         }
+        if (!com.spacerng.solrng.platform.BedrockConfirm.go(player, event, "boost")) return;
         if (!plugin.getBoostManager().purchase(player, data)) {
             player.sendMessage(ChatColor.RED + "You need "
                     + String.format("%,d", plugin.getBoostManager().nextCost()) + " Credits for that.");

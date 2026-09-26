@@ -308,7 +308,7 @@ public class RollListener implements Listener {
      * Left-clicking the Starforge flips Auto Roll, but only once the Auto
      * Roll skill is unlocked - otherwise it just points them at the tree.
      */
-    private void toggleAutoRoll(Player player, PlayerData data) {
+    public void toggleAutoRoll(Player player, PlayerData data) {
         if (!data.hasUnlocked("auto_roll_root")) {
             sendActionBar(player, ChatColor.RED + "Unlock \"Auto Roll\" in /skilltree first!");
             return;

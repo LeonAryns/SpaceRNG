@@ -111,7 +111,7 @@ public class ScoreboardManager {
         List<String> lines = buildLines(player);
         int total = lines.size();
         for (int i = 0; i < total; i++) {
-            setLine(objective, i, total - i, lines.get(i));
+            setLine(player, objective, i, total - i, lines.get(i));
         }
         // Line count can vary - clear anything left
         // over from a longer previous frame so old lines don't linger.
@@ -228,12 +228,12 @@ public class ScoreboardManager {
      * value controlling vertical position (higher = higher up). content:
      * the fully-colored line text.
      */
-    private void setLine(Objective objective, int index, int order, String content) {
+    private void setLine(Player player, Objective objective, int index, int order, String content) {
         String entry = ChatColor.RESET.toString().repeat(index + 1); // unique, invisible placeholder
         Score score = objective.getScore(entry);
         score.setScore(order);
         Component component = content.isEmpty() ? Component.empty()
-                : com.spacerng.solrng.gui.Icons.render(plugin, content);
+                : com.spacerng.solrng.gui.Icons.render(plugin, content, player);
         score.customName(component);
         score.numberFormat(NumberFormat.blank());
     }

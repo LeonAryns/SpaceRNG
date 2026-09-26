@@ -193,6 +193,13 @@ Packages are by feature under `com.spacerng.solrng`. Where new things go:
   `JoinQuitListener.drawFor` for everyone already online. Anything new
   that is drawn on join, or registered somewhere outside Bukkit, needs
   the same treatment or it doubles or goes missing after a reload.
+- **Bedrock players (since V223)** come in through Geyser, which cannot
+  show item or block displays, text objects (sprites, heads in text),
+  hover text or clickable chat, and cannot tell left from right click or
+  send number keys in a menu. Ask `platform/Bedrock.is(player)` and give
+  them a fallback: a title, a button, a twin display tagged
+  `solrng_edition` via `BedrockSupport`. `/rngadmin bedrock on` tests the
+  logic on a Java account.
 - **Java 21 only.** Leon's server runs Paper on Java 21, and a jar
   compiled for a newer release does not load. The VS Code Java upgrade
   tool creates `appmod/java-upgrade-*` branches that switch everything to

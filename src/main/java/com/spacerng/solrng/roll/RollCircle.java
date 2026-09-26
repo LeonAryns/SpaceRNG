@@ -101,8 +101,9 @@ final class RollCircle {
     /** Hidden from anybody who switched this rarity's aura off, like the particles. */
     void refreshAudience() {
         for (Player viewer : Bukkit.getOnlinePlayers()) {
-            boolean allowed = plugin.getPlayerDataManager()
-                    .get(viewer.getUniqueId()).isAuraEnabled(rarity);
+            // Painted plates are empty name tag boxes on Bedrock (V223).
+            boolean allowed = !com.spacerng.solrng.platform.Bedrock.is(viewer)
+                    && plugin.getPlayerDataManager().get(viewer.getUniqueId()).isAuraEnabled(rarity);
             for (Display piece : pieces) {
                 if (!piece.isValid()) continue;
                 if (allowed) viewer.showEntity(plugin, piece);

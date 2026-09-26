@@ -176,8 +176,12 @@ final class FirstTenStar {
     /** Who may see it: anybody who has not muted this rarity's aura. */
     void refreshAudience() {
         for (Player viewer : Bukkit.getOnlinePlayers()) {
-            boolean allowed = viewer.getUniqueId().equals(forced)
-                    || plugin.getPlayerDataManager().get(viewer.getUniqueId()).isAuraEnabled(rarity);
+            // Painted plates are empty name tag boxes on Bedrock, and the
+            // star and beam are displays it cannot draw at all (V223). The
+            // chat, the title and the sound of the event still reach them.
+            boolean allowed = !com.spacerng.solrng.platform.Bedrock.is(viewer)
+                    && (viewer.getUniqueId().equals(forced)
+                    || plugin.getPlayerDataManager().get(viewer.getUniqueId()).isAuraEnabled(rarity));
             for (Display piece : everything) {
                 if (!piece.isValid()) continue;
                 if (allowed) viewer.showEntity(plugin, piece);

@@ -38,7 +38,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
 
     private static final List<String> SUBCOMMANDS = List.of(
             "reload", "setspawn", "starforge", "reset", "give", "drops",
-            "bank", "rank", "cosmetic", "aura", "auras", "head", "reveal", "nextroll", "roll", "unlock", "unlockall", "lockall", "odds", "farmblock", "farmscan", "farmwheat", "farmland",
+            "bank", "rank", "cosmetic", "bedrock", "aura", "auras", "head", "reveal", "nextroll", "roll", "unlock", "unlockall", "lockall", "odds", "farmblock", "farmscan", "farmwheat", "farmland",
             "hoe", "consumable", "gradient", "welcome", "crops", "farmclear",
             "milestones", "farmfill", "boost", "crowd", "nova", "placeholders", "payout", "crate", "tophead", "floatingitem", "boss", "pet", "dust", "discord", "advancements", "icon", "shiny", "firsts", "lorestyles", "tagstyles", "menustyles", "hoestyles", "standingstyles", "enchantstyles", "novastyles", "auratest", "holo", "help");
     private static final List<String> CURRENCIES = List.of("money", "coins", "gems", "credits", "luck", "speed", "tickets");
@@ -74,6 +74,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             case "give" -> players.doGive(sender, args);
             case "rank" -> players.doRank(sender, args);
             case "cosmetic" -> players.doCosmetic(sender, args);
+            case "bedrock" -> players.doBedrock(sender, args);
             case "drops" -> players.doDrops(sender, args, false);
             case "bank" -> players.doDrops(sender, args, true);
             case "aura" -> showcase.doAura(sender, args);
@@ -142,6 +143,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
                 "Top up a currency, or add permanent Luck or Speed in percent");
         line(sender, "rank", "<set|clear> [rank] [player]", "Grant or clear a rank, for store purchases");
         line(sender, "cosmetic", "<give|take|list> <title> [player]", "Hand out a /cosmetics title");
+        line(sender, "bedrock", "[on|off] [player]", "Who is on Bedrock, or test Bedrock mode on a Java account");
         line(sender, "drops", "<rarity|all> <amount> [player]", "Physical rolled drops in the inventory");
         line(sender, "bank", "<rarity|all> <amount> [player]", "Stored drops (the /convert bank)");
         line(sender, "aura", "<epic|legendary|mythical|divine> [player]", "Replay the full reveal build-up + burst");
@@ -245,6 +247,10 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         }
         String sub = args[0].toLowerCase(Locale.ROOT);
         if (sub.equals("crate")) return crateTab(args);
+        if (sub.equals("bedrock")) {
+            if (args.length == 2) return partial(args[1], List.of("on", "off"));
+            return args.length == 3 ? null : List.of();
+        }
         if (sub.equals("advancements")) {
             return args.length == 2 ? partial(args[1], List.of("off", "on")) : List.of();
         }

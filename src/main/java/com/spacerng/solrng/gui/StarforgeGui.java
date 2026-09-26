@@ -58,7 +58,37 @@ public class StarforgeGui {
         }
 
         inv.setItem(BALANCE_SLOT, buildBalance(plugin, player, current));
+        // Bedrock (V223): Auto Roll is a left click in the air with the
+        // Starforge, which a phone or a controller may never send. The
+        // switch is here for them as well.
+        if (com.spacerng.solrng.platform.Bedrock.is(player)) {
+            inv.setItem(AUTO_ROLL_SLOT, buildAutoRoll(data));
+        }
         return inv;
+    }
+
+    public static final int AUTO_ROLL_SLOT = 42;
+
+    private static ItemStack buildAutoRoll(PlayerData data) {
+        boolean unlocked = data.hasUnlocked("auto_roll_root");
+        boolean on = data.isAutoRollEnabled();
+        ItemStack item = new ItemStack(Material.CLOCK);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(Lore.title(on ? ChatColor.GREEN : ChatColor.AQUA, "Auto Roll"));
+        List<String> lore = new ArrayList<>();
+        lore.add(Lore.line(ChatColor.GRAY, "Rolls for you on your roll speed."));
+        lore.add(Lore.stat(on ? ChatColor.GREEN : ChatColor.RED, "Now", on ? "On" : "Off"));
+        lore.add("");
+        if (!unlocked) {
+            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Locked");
+            lore.add(Lore.line(ChatColor.GRAY, "Unlock it in /skilltree"));
+        } else {
+            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + (on ? "Click to switch off" : "Click to switch on"));
+        }
+        meta.setLore(lore);
+        if (on) meta.setEnchantmentGlintOverride(Boolean.TRUE);
+        item.setItemMeta(meta);
+        return item;
     }
 
     private static ItemStack buildTierIcon(SolRNGPlugin plugin, Player player, StarforgeTier tier, int currentOrder) {

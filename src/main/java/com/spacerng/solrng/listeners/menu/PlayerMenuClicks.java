@@ -266,7 +266,12 @@ final class PlayerMenuClicks {
         if (pet == null) return;
 
         // A right click opens the pet for upgrading instead of wearing it.
-        if (event.isRightClick() && data.ownsPet(pet.id())) {
+        // Bedrock cannot right click in a menu (V223), so any click in
+        // storage opens it there, and the pet screen has a wear button for
+        // them. The worn slots on the main screen still take a pet off.
+        if ((event.isRightClick() || (com.spacerng.solrng.platform.Bedrock.is(player)
+                        && view == com.spacerng.solrng.gui.PetsHolder.View.STORAGE))
+                && data.ownsPet(pet.id())) {
             player.openInventory(com.spacerng.solrng.gui.PetUpgradeGui.build(plugin, player, pet.id()));
             player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.4f, 1.6f);
             return;
@@ -306,6 +311,41 @@ final class PlayerMenuClicks {
     }
 
     /**
+     * The wear button on the pet screen, which only Bedrock players get
+     * (V223): on Java a left click on the pets screen wears a pet, and
+     * Bedrock cannot tell that click from the right click that opens it.
+     */
+    private void wearFromUpgrade(Player player, PlayerData data, com.spacerng.solrng.pet.PetType type) {
+        var pets = plugin.getPetManager();
+        String shown = com.spacerng.solrng.gui.Lore.gradient(type.display(), true, type.stops());
+        switch (pets.toggle(data, type)) {
+            case EQUIPPED -> {
+                player.sendMessage(ChatColor.GREEN + "Wearing " + ChatColor.RESET + shown
+                        + ChatColor.GREEN + ". " + ChatColor.GRAY + type.boostText() + ".");
+                player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_BEACON_ACTIVATE, 0.5f, 1.6f);
+            }
+            case UNEQUIPPED -> {
+                player.sendMessage(ChatColor.GRAY + "Took off " + ChatColor.RESET + shown + ChatColor.GRAY + ".");
+                player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_BEACON_DEACTIVATE, 0.5f, 1.4f);
+            }
+            case FULL -> {
+                player.sendMessage(ChatColor.RED + "Your " + pets.slots(data)
+                        + " slot(s) are full. Take one off first.");
+                player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
+                return;
+            }
+            case LOCKED -> {
+                player.sendMessage(ChatColor.RED + "You have not found that pet yet.");
+                player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
+                return;
+            }
+        }
+        pets.refresh(player);
+        plugin.getScoreboardManager().update(player);
+        player.openInventory(com.spacerng.solrng.gui.PetUpgradeGui.build(plugin, player, type.id()));
+    }
+
+    /**
      * The pet upgrade menu: rarity, tier and shiny.
      *
      * A failed tier attempt is the one outcome here that costs something
@@ -332,6 +372,11 @@ final class PlayerMenuClicks {
         var pets = plugin.getPetManager();
         var type = pets.get(holder.getPetId());
         if (type == null) return;
+
+        if ("wear".equals(action)) {
+            wearFromUpgrade(player, data, type);
+            return;
+        }
 
         var result = switch (action) {
             case "rarity" -> pets.upgradeRarity(data, type.id());

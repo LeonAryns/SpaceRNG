@@ -38,6 +38,24 @@ public final class Icons {
         return ICON + name + ICON;
     }
 
+    private static final java.util.regex.Pattern MARKER = java.util.regex.Pattern.compile(
+            java.util.regex.Pattern.quote(ICON) + "[^" + ICON + "]*" + java.util.regex.Pattern.quote(ICON) + " ?");
+
+    /**
+     * The same line for one viewer. Bedrock (V223) cannot draw a sprite:
+     * Geyser writes out the object's description in its place, so a Bedrock
+     * player saw a bracketed texture name in front of every sidebar line.
+     * For them the icon goes, with the space that followed it.
+     */
+    public static Component render(SolRNGPlugin plugin, String legacy, org.bukkit.entity.Player viewer) {
+        return render(plugin, com.spacerng.solrng.platform.Bedrock.is(viewer) ? strip(legacy) : legacy);
+    }
+
+    /** A line with every icon marker, and the space after it, taken out. */
+    public static String strip(String legacy) {
+        return legacy.indexOf(ICON) < 0 ? legacy : MARKER.matcher(legacy).replaceAll("");
+    }
+
     /** A legacy string with icon markers, as a component with the sprites drawn. */
     public static Component render(SolRNGPlugin plugin, String legacy) {
         if (legacy.indexOf(ICON) < 0) return LEGACY.deserialize(legacy);

@@ -112,7 +112,7 @@ public class PetsGui {
         for (PetType pet : pets.getTypes().values()) {
             if (slot >= SIZE) break;
             if (data.getPet(pet.id()) == null) continue;
-            inv.setItem(slot++, petIcon(plugin, data, pet));
+            inv.setItem(slot++, petIcon(plugin, data, pet, com.spacerng.solrng.platform.Bedrock.is(player)));
         }
         if (slot == FIRST_PET) {
             ItemStack none = new ItemStack(Material.STONE_BUTTON);
@@ -360,7 +360,7 @@ public class PetsGui {
         return item;
     }
 
-    private static ItemStack petIcon(SolRNGPlugin plugin, PlayerData data, PetType pet) {
+    private static ItemStack petIcon(SolRNGPlugin plugin, PlayerData data, PetType pet, boolean bedrock) {
         PetManager pets = plugin.getPetManager();
         PetInstance owned = data.getPet(pet.id());
         boolean worn = data.getEquippedPets().contains(pet.id());
@@ -380,7 +380,13 @@ public class PetsGui {
                     owned.tier() + " / " + pets.upgrades().maxTier()));
             if (owned.shiny()) lore.add(Lore.stat(ChatColor.LIGHT_PURPLE, "Shiny", Lore.SPARK));
             lore.add("");
-            if (worn) {
+            if (bedrock) {
+                // One click opens the pet on Bedrock, where wearing it is a
+                // button of its own (V223).
+                if (worn) lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "Worn");
+                lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to open");
+                lore.add(Lore.footnote("Wear it and upgrade it in there."));
+            } else if (worn) {
                 lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "Worn");
                 lore.add(Lore.line(ChatColor.GRAY, "Left click to take it off"));
             } else if (data.getEquippedPets().size() >= pets.slots(data)) {
@@ -389,7 +395,7 @@ public class PetsGui {
             } else {
                 lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Left click to wear");
             }
-            lore.add(Lore.footnote("Right click to upgrade it."));
+            if (!bedrock) lore.add(Lore.footnote("Right click to upgrade it."));
         } else {
             lore.add(Lore.stat(ChatColor.AQUA, "Rarity", pet.rarity().displayName()));
             lore.add(Lore.stat(ChatColor.AQUA, "Gives", pet.boostText()));

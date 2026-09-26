@@ -650,6 +650,34 @@ public final class ConfigMigrator {
             applied.add(patch.id());
             changed = true;
         }
+        // V223: Bedrock joins through its own address, with .bedrock before
+        // minehut. The server card gave the Java address with the Bedrock
+        // port, which does not connect. The field sits in a list of maps,
+        // which none of the patches above can reach.
+        if (!applied.contains("bedrock-address-card")) {
+            List<?> fields = disk.getList("discord.cards.server.fields");
+            if (fields != null) {
+                List<Object> rewritten = new ArrayList<>();
+                boolean hit = false;
+                for (Object field : fields) {
+                    if (field instanceof java.util.Map<?, ?> map
+                            && "`spacerng.minehut.gg` port `19132`".equals(map.get("value"))) {
+                        java.util.Map<Object, Object> copy = new java.util.LinkedHashMap<>(map);
+                        copy.put("value", "`spacerng.bedrock.minehut.gg` port `19132`");
+                        rewritten.add(copy);
+                        hit = true;
+                    } else {
+                        rewritten.add(field);
+                    }
+                }
+                if (hit) {
+                    disk.set("discord.cards.server.fields", rewritten);
+                    plugin.getLogger().info("Config patch bedrock-address-card: discord.cards.server.fields updated");
+                }
+            }
+            applied.add("bedrock-address-card");
+            changed = true;
+        }
         if (changed) disk.set("applied-patches", applied);
         return changed;
     }

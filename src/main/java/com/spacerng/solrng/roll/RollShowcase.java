@@ -97,6 +97,13 @@ public final class RollShowcase {
         this.plugin = plugin;
         this.player = player;
         this.pinned = ScreenSpot.pinned(plugin);
+        // Bedrock has no item displays (V223), so it gets no showcase at
+        // all. The reel still reaches it: every frame is also a title.
+        if (com.spacerng.solrng.platform.Bedrock.is(player)) {
+            this.display = null;
+            this.watch = null;
+            return;
+        }
         Location at = spot();
         this.display = player.getWorld().spawn(at, ItemDisplay.class, piece -> {
             piece.setPersistent(false);
@@ -127,7 +134,7 @@ public final class RollShowcase {
 
     /** Shows one frame of the reel; the landing frame also swells the item. */
     public void show(ItemStack item, boolean land) {
-        if (!display.isValid()) return;
+        if (display == null || !display.isValid()) return;
         boolean wasBlockShaped = blockShaped;
         blockShaped = item != null && item.getType() == Material.PLAYER_HEAD;
         display.setItemStack(item);
@@ -153,7 +160,7 @@ public final class RollShowcase {
      * its own and a spin to go with it.
      */
     public void grow(float factor) {
-        if (!display.isValid() || landed || Math.abs(factor - growth) < 0.01f) return;
+        if (display == null || !display.isValid() || landed || Math.abs(factor - growth) < 0.01f) return;
         growth = factor;
         display.setInterpolationDelay(0);
         display.setInterpolationDuration(4);
@@ -162,7 +169,7 @@ public final class RollShowcase {
 
     /** One quarter turn at the landed size; the first one also settles the pulse. */
     private void spinStep() {
-        if (!display.isValid()) return;
+        if (display == null || !display.isValid()) return;
         quarterTurns = (quarterTurns + 1) % 4;
         display.setInterpolationDelay(0);
         display.setInterpolationDuration((int) SPIN_EVERY);
@@ -176,9 +183,9 @@ public final class RollShowcase {
 
     /** Removes it now. Safe to call more than once. */
     public void cancel() {
-        watch.cancel();
+        if (watch != null) watch.cancel();
         if (spin != null) spin.cancel();
-        if (display.isValid()) display.remove();
+        if (display != null && display.isValid()) display.remove();
     }
 
     /**

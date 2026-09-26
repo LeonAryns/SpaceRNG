@@ -379,6 +379,10 @@ public final class AuraManager {
      * says which view is on so nothing is silently missing.
      */
     private boolean ownerSees(Player owner, Worn aura, int index) {
+        // Bedrock (V223): Geyser draws a text display as a name tag and an
+        // item or block display not at all, so an aura there is a cloud of
+        // empty name tag boxes. The particle accents still reach them.
+        if (com.spacerng.solrng.platform.Bedrock.is(owner)) return false;
         var data = plugin.getPlayerDataManager().get(owner.getUniqueId());
         if (!data.isWornAurasVisible()) return false;
         int audience = aura.concept.audienceAt(index);
@@ -394,6 +398,7 @@ public final class AuraManager {
     /** Whether somebody else sees piece {@code index}: never one that is only for its wearer. */
     private boolean visibleTo(Player viewer, Worn aura, int index) {
         if (aura.concept.audienceAt(index) == AuraConcept.OWN) return false;
+        if (com.spacerng.solrng.platform.Bedrock.is(viewer)) return false;
         return plugin.getPlayerDataManager().get(viewer.getUniqueId()).isWornAurasVisible();
     }
 

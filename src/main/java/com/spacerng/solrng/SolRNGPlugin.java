@@ -72,6 +72,7 @@ public final class SolRNGPlugin extends JavaPlugin {
     private com.spacerng.solrng.crate.CrateManager crateManager;
     private com.spacerng.solrng.discord.DiscordWebhook discordWebhook;
     private com.spacerng.solrng.holo.HoloManager holoManager;
+    private com.spacerng.solrng.platform.BedrockSupport bedrockSupport;
     private com.spacerng.solrng.leaderboard.TopHeadManager topHeadManager;
     private com.spacerng.solrng.pass.PassManager passManager;
     private com.spacerng.solrng.farming.MomentumBar momentumBar;
@@ -172,6 +173,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         this.crateManager = new com.spacerng.solrng.crate.CrateManager(this);
         this.discordWebhook = new com.spacerng.solrng.discord.DiscordWebhook(this);
         this.holoManager = new com.spacerng.solrng.holo.HoloManager(this);
+        this.bedrockSupport = new com.spacerng.solrng.platform.BedrockSupport(this);
         this.topHeadManager = new com.spacerng.solrng.leaderboard.TopHeadManager(this);
         this.perkManager = new com.spacerng.solrng.perk.PerkManager(getLogger());
         this.floatingItemManager = new com.spacerng.solrng.decor.FloatingItemManager(this);
@@ -200,6 +202,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(rollListener, this);
         this.joinQuitListener = new JoinQuitListener(this);
         getServer().getPluginManager().registerEvents(joinQuitListener, this);
+        getServer().getPluginManager().registerEvents(bedrockSupport, this);
         getServer().getPluginManager().registerEvents(new com.spacerng.solrng.firsts.FirstTenFireworks(), this);
         getServer().getPluginManager().registerEvents(new ChatListener(this), this);
         getServer().getPluginManager().registerEvents(new GuiListener(this), this);
@@ -272,6 +275,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         registerPlaceholderExpansion();
         topHeadManager.start();
         holoManager.start();
+        bedrockSupport.start();
         auraManager.start();
         tabListManager.start();
         floatingItemManager.start();
@@ -312,6 +316,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         if (foundCounts != null) foundCounts.save();
         if (topHeadManager != null) topHeadManager.stop();
         if (holoManager != null) holoManager.stop();
+        if (bedrockSupport != null) bedrockSupport.stop();
         if (auraManager != null) auraManager.stop();
         if (tabListManager != null) tabListManager.stop();
         if (floatingItemManager != null) floatingItemManager.stop();
@@ -577,6 +582,10 @@ public final class SolRNGPlugin extends JavaPlugin {
     /** How many players have found each drop, for /index. */
     public com.spacerng.solrng.player.FoundCounts getFoundCounts() {
         return foundCounts;
+    }
+
+    public com.spacerng.solrng.platform.BedrockSupport getBedrockSupport() {
+        return bedrockSupport;
     }
 
     public com.spacerng.solrng.holo.HoloManager getHoloManager() {

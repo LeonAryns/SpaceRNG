@@ -51,11 +51,25 @@ final class RollCounter {
     private final BukkitTask watch;
     private float scale;
 
+    // Bedrock (V223): Geyser draws a text display as a name tag with no
+    // scale and no place in front of the camera, so the counter goes up
+    // as a title instead, which Bedrock shows big in the middle of the
+    // screen. It is sent when the number changes rather than every tick.
+    private final boolean titles;
+    private Component lastTitle;
+    private long lastTitleAt;
+
     RollCounter(SolRNGPlugin plugin, Player player, float scale) {
         this.plugin = plugin;
         this.player = player;
         this.scale = scale;
         this.pinned = ScreenSpot.pinned(plugin);
+        this.titles = com.spacerng.solrng.platform.Bedrock.is(player);
+        if (titles) {
+            this.display = null;
+            this.watch = null;
+            return;
+        }
         this.display = player.getWorld().spawn(spot(), TextDisplay.class, piece -> {
             piece.setPersistent(false);
             piece.setBillboard(Display.Billboard.CENTER);
@@ -88,8 +102,30 @@ final class RollCounter {
 
     /** One ordinary frame of the counter: new text, same size. */
     void show(Component text) {
+        if (titles) {
+            title(text, false);
+            return;
+        }
         if (!display.isValid()) return;
         display.text(text);
+    }
+
+    /** The counter as a title, for a Bedrock roller. A promotion always goes out and plays a hit. */
+    private void title(Component text, boolean promotion) {
+        if (!player.isOnline()) return;
+        long now = System.currentTimeMillis();
+        // A title that is not refreshed fades out, so an unchanged number
+        // is sent again once a second to keep it up.
+        // A climbing number is sent at most ten times a second.
+        if (!promotion && now - lastTitleAt < (text.equals(lastTitle) ? 1000L : 100L)) return;
+        lastTitle = text;
+        lastTitleAt = now;
+        player.showTitle(net.kyori.adventure.title.Title.title(text, Component.empty(),
+                net.kyori.adventure.title.Title.Times.times(java.time.Duration.ZERO,
+                        java.time.Duration.ofMillis(1500), java.time.Duration.ofMillis(250))));
+        if (promotion) {
+            player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_NOTE_BLOCK_PLING, 0.8f, 1.6f);
+        }
     }
 
     /**
@@ -99,6 +135,10 @@ final class RollCounter {
      * rather than as a zoom.
      */
     void pop(Component text, float newScale) {
+        if (titles) {
+            title(text, true);
+            return;
+        }
         if (!display.isValid()) return;
         this.scale = newScale;
         display.text(text);
@@ -115,6 +155,7 @@ final class RollCounter {
 
     /** Removes it now. Safe to call more than once. */
     void stop() {
+        if (titles) return;
         watch.cancel();
         if (display.isValid()) display.remove();
     }

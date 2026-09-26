@@ -63,6 +63,16 @@ final class ProgressionClicks {
         ItemStack clicked = event.getCurrentItem();
         if (clicked == null || clicked.getItemMeta() == null) return;
 
+        // The Auto Roll switch only Bedrock players get (V223).
+        if (event.getRawSlot() == com.spacerng.solrng.gui.StarforgeGui.AUTO_ROLL_SLOT
+                && com.spacerng.solrng.platform.Bedrock.is((Player) event.getWhoClicked())) {
+            Player player = (Player) event.getWhoClicked();
+            plugin.getRollListener().toggleAutoRoll(player,
+                    plugin.getPlayerDataManager().get(player.getUniqueId()));
+            player.openInventory(com.spacerng.solrng.gui.StarforgeGui.build(plugin, player));
+            return;
+        }
+
         NamespacedKey tierIdKey = com.spacerng.solrng.gui.StarforgeGui.tierIdKey(plugin);
         String tierId = clicked.getItemMeta().getPersistentDataContainer().get(tierIdKey, PersistentDataType.STRING);
         if (tierId == null) return;

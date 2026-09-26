@@ -5,7 +5,7 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V221**, 25 September 2026.
+Last updated at **V223**, 26 September 2026.
 
 ## The agreed way of working
 
@@ -940,6 +940,39 @@ should all be there without anybody relogging.
   Tickets, your Credits with where they come from, and a web store
   button once `buy.store-url` is set (Leon has not given the link).
   config-version 26 for the store panel text.
+
+**V222 and V223, 26 September, untested in game:**
+
+- **V222.** Cosmetic titles stay out of tab.
+- **V223, Bedrock.** Leon has no Bedrock device, so nothing here has
+  been seen through Geyser. `platform/Bedrock` recognises a Bedrock
+  player (Floodgate UUID, Geyser brand, or the Floodgate/Geyser API) and
+  `/rngadmin bedrock on|off [player]` forces the mode on a Java account
+  to walk the logic. What changed for Bedrock players only:
+  - the big-drop odds counter is a title instead of a text display; the
+    item showcase is not spawned (the reel was already titles);
+  - auras, the roll circle and the First 10 star are hidden from them
+    (Geyser draws text displays as name tags and item or block displays
+    not at all), particle accents still reach them;
+  - sprites (sidebar icons, the Coins line on the hoe) are left out,
+    because Geyser prints the object's description in their place;
+  - each leaderboard wall has a twin without player heads, tagged
+    `solrng_edition` and shown only to Bedrock (`platform/BedrockSupport`);
+  - a crate shows as an ender chest on its barrier, resent every 2 s;
+  - pets: a click in storage opens the pet, which has a Wear button;
+    perk index: a click asks from one level lower (no number keys);
+    Starforge menu: an Auto Roll switch (left click in air is unsure on
+    touch);
+  - the first tap on a Credits purchase (rank, pass, boost, tickets)
+    only arms it, a second tap buys, because on touch reading a tooltip
+    is a tap;
+  - chat hover texts ([stats]) are written out behind the tag;
+  - the Discord server card gives `spacerng.bedrock.minehut.gg` port
+    19132 (one-off patch `bedrock-address-card`).
+  Known and not fixable server side: red score numbers on the Bedrock
+  sidebar, no tab header or footer, hex colours rounded to the 16 legacy
+  ones, textured heads in menus shown as plain heads, the boss body,
+  floating leaderboard heads and decor items invisible.
 
 **Queue from the same message, one jar each, in this order:**
 

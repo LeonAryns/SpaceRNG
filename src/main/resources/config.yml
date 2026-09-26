@@ -5715,7 +5715,7 @@ discord:
           value: "`spacerng.minehut.gg`"
           inline: true
         - name: "Bedrock"
-          value: "`spacerng.minehut.gg` port `19132`"
+          value: "`spacerng.bedrock.minehut.gg` port `19132`"
           inline: true
         - name: "Link your account"
           value: "Type `/discord link` in game and follow the code."

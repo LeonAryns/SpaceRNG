@@ -58,10 +58,19 @@ public class ChatListener implements Listener {
     public void onChat(AsyncChatEvent event) {
         PlayerData data = plugin.getPlayerDataManager().get(event.getPlayer().getUniqueId());
         if (data == null) return;
-        // Viewer unaware: the line reads the same for everybody, so it is
-        // built once per message instead of once per person in range.
-        event.renderer(ChatRenderer.viewerUnaware((source, displayName, message) ->
-                LEGACY.deserialize(prefix(source)).append(message)));
+        // The line reads the same for everybody, so it is built once per
+        // message instead of once per person in range. The one exception is
+        // a Bedrock reader (V223), who cannot hover, so they get a second
+        // copy, also built once, with the hover texts written out.
+        net.kyori.adventure.text.Component[] built = new net.kyori.adventure.text.Component[2];
+        event.renderer((source, displayName, message, viewer) -> {
+            if (built[0] == null) built[0] = LEGACY.deserialize(prefix(source)).append(message);
+            if (viewer instanceof Player reader && com.spacerng.solrng.platform.Bedrock.is(reader)) {
+                if (built[1] == null) built[1] = com.spacerng.solrng.platform.BedrockText.showHovers(built[0]);
+                return built[1];
+            }
+            return built[0];
+        });
     }
 
     /** "[IV] [Solar Flare] Leon -> ", in legacy codes. */

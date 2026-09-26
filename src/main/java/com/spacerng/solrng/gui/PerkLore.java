@@ -45,7 +45,7 @@ public final class PerkLore {
     }
 
     /** A perk with all five levels and each level's confirmation, as the perk index shows it. */
-    public static ItemStack indexItem(SolRNGPlugin plugin, PlayerData data, PerkType type) {
+    public static ItemStack indexItem(SolRNGPlugin plugin, PlayerData data, PerkType type, boolean bedrock) {
         PerkManager perks = plugin.getPerkManager();
         ItemStack item = new ItemStack(type.icon());
         ItemMeta meta = item.getItemMeta();
@@ -79,9 +79,17 @@ public final class PerkLore {
         lore.add("");
         lore.add(Lore.stat(ChatColor.AQUA, "Chance per roll", PerkIndexGui.percent(perks.chanceOf(type))));
         lore.add("");
-        lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Press 1 to 5 to switch a level");
-        lore.add(Lore.footnote("Click to switch all five. A level with"));
-        lore.add(Lore.footnote("confirmation on asks before a roll replaces it."));
+        if (bedrock) {
+            // No number keys in a Bedrock menu (V223): a click moves the
+            // level it starts asking from down by one, then back to none.
+            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to ask from one level lower");
+            lore.add(Lore.footnote("A level with confirmation on asks"));
+            lore.add(Lore.footnote("before a roll replaces it."));
+        } else {
+            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Press 1 to 5 to switch a level");
+            lore.add(Lore.footnote("Click to switch all five. A level with"));
+            lore.add(Lore.footnote("confirmation on asks before a roll replaces it."));
+        }
         meta.setLore(lore);
         if (found >= 5) meta.setEnchantmentGlintOverride(Boolean.TRUE);
         meta.getPersistentDataContainer().set(PerkIndexGui.typeKey(), PersistentDataType.STRING, type.id());

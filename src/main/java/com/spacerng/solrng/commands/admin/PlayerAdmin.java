@@ -245,6 +245,48 @@ final class PlayerAdmin extends AdminTools {
         return true;
     }
 
+    /**
+     * /rngadmin bedrock lists who is on Bedrock and how that was told.
+     * /rngadmin bedrock on|off [player] switches Bedrock mode on for a Java
+     * account, so every Bedrock path (the counter as a title, the pet and
+     * perk clicks, the Auto Roll button, the icons left out, no auras, the
+     * leaderboard without heads) can be walked through without a Bedrock
+     * device. What Geyser itself draws can only be seen on a real one.
+     */
+    boolean doBedrock(CommandSender sender, String[] args) {
+        if (args.length >= 2 && (args[1].equalsIgnoreCase("on") || args[1].equalsIgnoreCase("off"))) {
+            Player target = resolve(sender, args.length >= 3 ? args[2] : null);
+            if (target == null) return true;
+            boolean on = args[1].equalsIgnoreCase("on");
+            if (!on && com.spacerng.solrng.platform.Bedrock.isReally(target)) {
+                sender.sendMessage(ChatColor.RED + target.getName() + " really is on Bedrock, so that stays on.");
+                return true;
+            }
+            com.spacerng.solrng.platform.Bedrock.force(target, on);
+            plugin.getBedrockSupport().applyTo(target);
+            plugin.getScoreboardManager().update(target);
+            target.closeInventory();
+            sender.sendMessage(ChatColor.GREEN + "Bedrock mode " + (on ? "on" : "off") + " for "
+                    + target.getName() + "." + ChatColor.GRAY + (on
+                            ? " Menus, the roll counter and the sidebar now behave as they do on Bedrock."
+                            : " Back to Java."));
+            return true;
+        }
+        sender.sendMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "Bedrock players online");
+        int bedrock = 0;
+        for (Player online : Bukkit.getOnlinePlayers()) {
+            boolean is = com.spacerng.solrng.platform.Bedrock.is(online);
+            if (is) bedrock++;
+            sender.sendMessage(ChatColor.DARK_GRAY + com.spacerng.solrng.gui.Lore.BULLET + " " + ChatColor.WHITE + online.getName()
+                    + ChatColor.DARK_GRAY + "  " + (is ? ChatColor.GREEN + "Bedrock" : ChatColor.GRAY + "Java")
+                    + ChatColor.DARK_GRAY + " (" + com.spacerng.solrng.platform.Bedrock.how(online)
+                    + (online.getClientBrandName() == null ? "" : ", brand " + online.getClientBrandName()) + ")");
+        }
+        sender.sendMessage(ChatColor.GRAY + "" + bedrock + " of " + Bukkit.getOnlinePlayers().size()
+                + " on Bedrock. " + ChatColor.DARK_GRAY + "/rngadmin bedrock on|off [player] to test.");
+        return true;
+    }
+
     boolean doRank(CommandSender sender, String[] args) {
         var ranks = plugin.getRankManager();
         List<String> ids = new ArrayList<>();

@@ -109,7 +109,7 @@ public class HoeGui {
         }
 
         inv.setItem(HOE_SLOT, buildHoeCard(plugin, player, data, tier));
-        inv.setItem(COINS_SLOT, buildCoins(plugin, data));
+        inv.setItem(COINS_SLOT, buildCoins(plugin, player, data));
         inv.setItem(FARM_TREE_SLOT, buildFarmTree(plugin, data));
         inv.setItem(FARM_SOUND_SLOT, buildToggle(Material.NOTE_BLOCK, "Farming Sounds",
                 data.isFarmSoundEnabled(), "The click of a crop coming up."));
@@ -327,11 +327,11 @@ public class HoeGui {
      * description (V190). The gold ingot in the first line is the same
      * sprite the sidebar uses, not a glyph.
      */
-    private static ItemStack buildCoins(SolRNGPlugin plugin, PlayerData data) {
+    private static ItemStack buildCoins(SolRNGPlugin plugin, Player player, PlayerData data) {
         ItemStack item = new ItemStack(Material.HAY_BLOCK);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(Lore.title(Currency.COINS.colour(), "Your Coins"));
-        Lore.lore(plugin, meta, List.of(
+        Lore.lore(plugin, player, meta, List.of(
                 Currency.COINS.colour() + Lore.BULLET + " " + Icons.of("coins") + " "
                         + Currency.COINS.exact(data.getTokens()),
                 "",

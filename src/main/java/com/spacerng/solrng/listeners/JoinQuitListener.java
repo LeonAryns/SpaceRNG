@@ -91,7 +91,10 @@ public class JoinQuitListener implements Listener {
         // whatever time is left, otherwise the event is invisible to them.
         plugin.getBossManager().onJoin(player);
         plugin.getFarmPlotManager().render(player);
-        plugin.getAuraManager().refreshVisibility(player);
+        // Also refreshes the auras: a Bedrock viewer is shown none of the
+        // pieces, and gets the Bedrock copy of every leaderboard wall and
+        // an ender chest on every crate.
+        plugin.getBedrockSupport().applyTo(player);
     }
 
     @EventHandler

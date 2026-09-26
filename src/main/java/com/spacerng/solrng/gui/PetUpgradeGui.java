@@ -72,7 +72,40 @@ public class PetUpgradeGui {
         inv.setItem(TIER_SLOT, tierButton(plugin, data, owned));
         inv.setItem(SHINY_SLOT, shinyButton(plugin, data, type, owned));
         inv.setItem(BACK_SLOT, back());
+        // Bedrock (V223): a menu there cannot tell a left click from a
+        // right one, so a click on the pets screen always opens this one,
+        // and wearing a pet happens here instead.
+        if (com.spacerng.solrng.platform.Bedrock.is(player)) {
+            inv.setItem(WEAR_SLOT, wearButton(plugin, data, type));
+        }
         return inv;
+    }
+
+    private static final int WEAR_SLOT = 22;
+
+    /** Wear or take off this pet, for Bedrock players. */
+    private static ItemStack wearButton(SolRNGPlugin plugin, PlayerData data, PetType type) {
+        boolean worn = data.getEquippedPets().contains(type.id());
+        boolean full = !worn && data.getEquippedPets().size() >= plugin.getPetManager().slots(data);
+        ItemStack item = new ItemStack(worn ? Material.LIME_DYE : Material.GRAY_DYE);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(Lore.title(worn ? ChatColor.GREEN : ChatColor.AQUA, worn ? "Worn" : "Wear"));
+        List<String> lore = new ArrayList<>();
+        lore.add(Lore.line(ChatColor.GRAY, "Gives " + type.boostText() + " while worn."));
+        lore.add("");
+        if (worn) {
+            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to take off");
+        } else if (full) {
+            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Slots full");
+            lore.add(Lore.line(ChatColor.GRAY, "Take one off on the pets screen"));
+        } else {
+            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to wear");
+        }
+        meta.setLore(lore);
+        if (worn) meta.setEnchantmentGlintOverride(Boolean.TRUE);
+        meta.getPersistentDataContainer().set(actionKey(), PersistentDataType.STRING, "wear");
+        item.setItemMeta(meta);
+        return item;
     }
 
     /** What the pet is worth as it stands. */

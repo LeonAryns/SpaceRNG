@@ -468,4 +468,16 @@ public final class Lore {
         }
         meta.lore(out);
     }
+
+    /** The same for one viewer: a Bedrock player gets the lines without their sprites (V223). */
+    public static void lore(com.spacerng.solrng.SolRNGPlugin plugin, org.bukkit.entity.Player viewer,
+                            org.bukkit.inventory.meta.ItemMeta meta, java.util.List<String> lines) {
+        if (!com.spacerng.solrng.platform.Bedrock.is(viewer)) {
+            lore(plugin, meta, lines);
+            return;
+        }
+        java.util.List<String> plain = new java.util.ArrayList<>(lines.size());
+        for (String line : lines) plain.add(Icons.strip(line));
+        lore(plugin, meta, plain);
+    }
 }
