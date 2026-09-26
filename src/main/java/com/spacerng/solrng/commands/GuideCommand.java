@@ -69,6 +69,8 @@ public class GuideCommand implements CommandExecutor {
         if (current == null) {
             player.sendMessage("");
             player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "Guide complete - you've seen it all.");
+            player.sendMessage(ChatColor.GRAY + "Type " + ChatColor.YELLOW + "/help" + ChatColor.GRAY
+                    + " to see how every feature works.");
         }
         player.sendMessage("");
         return true;

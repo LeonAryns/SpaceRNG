@@ -109,6 +109,9 @@ public class GuiListener implements Listener {
             shops.handleDailyClick(event);
         } else if (topInventory.getHolder() instanceof com.spacerng.solrng.gui.StatsHolder) {
             playerMenus.handleStatsClick(event);
+        } else if (topInventory.getHolder() instanceof com.spacerng.solrng.gui.HelpHolder) {
+            // /help is only read, never clicked (V224).
+            event.setCancelled(true);
         } else if (topInventory.getHolder() instanceof com.spacerng.solrng.gui.LeaderboardHolder) {
             // Nothing to click - the menu is purely something to read, but
             // an uncancelled click would let a player walk off with the

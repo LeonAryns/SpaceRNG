@@ -5,7 +5,7 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V223**, 26 September 2026.
+Last updated at **V224**, 26 September 2026.
 
 ## The agreed way of working
 
@@ -941,7 +941,7 @@ should all be there without anybody relogging.
   button once `buy.store-url` is set (Leon has not given the link).
   config-version 26 for the store panel text.
 
-**V222 and V223, 26 September, untested in game:**
+**V222 to V224, 26 September, untested in game:**
 
 - **V222.** Cosmetic titles stay out of tab.
 - **V223, Bedrock.** Leon has no Bedrock device, so nothing here has
@@ -973,6 +973,14 @@ should all be there without anybody relogging.
   sidebar, no tab header or footer, hex colours rounded to the 16 legacy
   ones, textured heads in menus shown as plain heads, the boss body,
   floating leaderboard heads and decor items invisible.
+
+- **V224, /help.** Asked for while V223 was still untested. A read only
+  54 slot menu (`gui/HelpGui`, aliases /rnghelp and /features): an
+  overview, four framed rows (Rolling, Progression, Farming, Rewards) of
+  seven features each, and the handy commands. Nothing in it is
+  clickable, on purpose: on Bedrock reading a tooltip is a click. The
+  end of /guide and the guide's completion message point to it. If
+  another plugin (Essentials) takes /help, /rnghelp still works.
 
 **Queue from the same message, one jar each, in this order:**
 

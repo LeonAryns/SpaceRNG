@@ -234,6 +234,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         getCommand("novacore").setExecutor(new NovaCoreCommand(this));
         getCommand("farmtree").setExecutor(new FarmTreeCommand(this));
         getCommand("guide").setExecutor(new GuideCommand(this));
+        getCommand("help").setExecutor(new com.spacerng.solrng.commands.HelpCommand(this));
         getCommand("daily").setExecutor(new DailyCommand(this));
         TopCommand topCommand = new TopCommand(this);
         getCommand("top").setExecutor(topCommand);

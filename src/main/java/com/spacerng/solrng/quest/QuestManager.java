@@ -233,6 +233,8 @@ public class QuestManager {
                         + "  Spend it on anything in /skilltree, whatever it costs.");
             }
             player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "You've finished the starting guide!");
+            player.sendMessage(ChatColor.GRAY + "  Type " + ChatColor.YELLOW + "/help" + ChatColor.GRAY
+                    + " to see how every feature works.");
             player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0f, 1.0f);
         } else {
             player.sendMessage(ChatColor.GRAY + "Next: " + ChatColor.YELLOW + next.getDisplay());

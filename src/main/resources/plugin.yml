@@ -57,6 +57,10 @@ commands:
     description: Open the farming skill tree
     usage: /farmtree
     aliases: [farmskills]
+  help:
+    description: Every feature explained on one screen
+    usage: /help
+    aliases: [rnghelp, features]
   guide:
     description: See the starting guide and what's next
     usage: /guide
