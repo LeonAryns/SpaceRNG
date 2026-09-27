@@ -78,6 +78,29 @@ public class TagCommand implements CommandExecutor {
     }
 
     /**
+     * The rank perk auto-tag (V227, Supernova): whenever a drop is found
+     * whose tag is worth more Luck than the one being worn, it is put on
+     * for the player. Only ever an upgrade, so somebody who picked a tag by
+     * hand keeps it until something better turns up.
+     */
+    public static void autoEquipBest(SolRNGPlugin plugin, Player player, PlayerData data) {
+        if (player == null || !plugin.getRankManager().has(data, "auto-tag")) return;
+        if (!data.hasUnlocked(INDEX_LUCK_NODE)) return;
+        RollableItem best = null;
+        for (String name : data.getDiscoveredItems()) {
+            RollableItem item = plugin.getRarityManager().findByDisplayName(name);
+            if (item == null) continue;
+            if (best == null || item.getLuckMultiplier() > best.getLuckMultiplier()) best = item;
+        }
+        if (best == null) return;
+        RollableItem worn = data.getEquippedTagItemKey() == null ? null
+                : plugin.getRarityManager().findByDisplayName(data.getEquippedTagItemKey());
+        if (worn != null && worn.getLuckMultiplier() >= best.getLuckMultiplier()) return;
+        player.sendMessage(ChatColor.LIGHT_PURPLE + "Auto tag: " + ChatColor.GRAY + "your best tag goes on.");
+        equip(plugin, player, data, best.getDisplayName(), best.getRarity().name());
+    }
+
+    /**
      * Equips a tag by item name + rarity, shared by /tag equip (reads a
      * held item) and the /index GUI (reads a clicked collection-log entry).
      */

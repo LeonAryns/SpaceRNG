@@ -84,6 +84,8 @@ public final class ConfigMigrator {
             "discord.bot.link-channel", "discord.bot.cards-channel",
             // V226: three eggs, and the Prestige pets open at.
             "pets.eggs", "pets.min-prestige",
+            // V227: Supernova wears its best tag on its own.
+            "ranks.tiers.supernova.auto-tag",
             // V200: how far a ground piece clears the block under it.
             "auras.ground-lift",
             // V202: the floor under the crate reel's step time.

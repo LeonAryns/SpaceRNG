@@ -324,6 +324,7 @@ final class PlayerAdmin extends AdminTools {
         data.setRank(tier.id());
         ranks.refreshName(target);
         if (plugin.getDiscordBot() != null) plugin.getDiscordBot().syncRoles(target);
+        com.spacerng.solrng.commands.TagCommand.autoEquipBest(plugin, target, data);
         plugin.getScoreboardManager().update(target);
         plugin.getLuckBarManager().update(target);
         target.sendMessage(ChatColor.GREEN + "You are now " + ranks.styled(tier) + ChatColor.GREEN + ".");

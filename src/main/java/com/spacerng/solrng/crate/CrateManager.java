@@ -504,6 +504,7 @@ public class CrateManager {
             if (!data.hasDiscovered(drop.getDisplayName())) {
                 data.markDiscovered(drop.getDisplayName());
                 plugin.getFoundCounts().record(drop.getDisplayName());
+                com.spacerng.solrng.commands.TagCommand.autoEquipBest(plugin, player, data);
             }
             ItemStack item = plugin.getRollListener().buildTaggedItem(drop);
             com.spacerng.solrng.player.Stash.give(plugin, player, item);

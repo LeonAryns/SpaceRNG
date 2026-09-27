@@ -136,6 +136,9 @@ public class RanksGui {
         if (tier.rgbName()) {
             lore.add(Lore.stat(ChatColor.LIGHT_PURPLE, "Name", "its own colours, moving"));
         }
+        if (tier.autoTag()) {
+            lore.add(Lore.stat(ChatColor.GREEN, "Tag", "your best one, worn for you"));
+        }
 
         List<String> commands = new ArrayList<>();
         if (tier.fly()) commands.add("/fly");

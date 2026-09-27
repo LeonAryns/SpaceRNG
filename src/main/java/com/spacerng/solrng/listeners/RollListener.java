@@ -975,6 +975,7 @@ public class RollListener implements Listener {
         if (newBase) {
             data.markDiscovered(result.getDisplayName());
             plugin.getFoundCounts().record(result.getDisplayName());
+            com.spacerng.solrng.commands.TagCommand.autoEquipBest(plugin, player, data);
         }
         if (newShiny) data.markShinyDiscovered(result.getDisplayName());
         if (silent) return;

@@ -5973,6 +5973,9 @@ ranks:
       nick: true
       size: true
       rgb-name: true
+      # Wears the best tag found so far, and swaps up on its own whenever
+      # a better one is found (V227).
+      auto-tag: true
 # ---------------------------------------------------------------------
 # The tab list (V186)
 #

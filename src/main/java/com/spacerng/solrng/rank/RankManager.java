@@ -76,7 +76,8 @@ public class RankManager {
                         Math.max(0, t.getInt("keyall-amount", 0)),
                         Math.max(0, t.getInt("vault-pages", 0)),
                         t.getBoolean("fly", false), t.getBoolean("nick", false),
-                        t.getBoolean("size", false), t.getBoolean("rgb-name", false)));
+                        t.getBoolean("size", false), t.getBoolean("rgb-name", false),
+                        t.getBoolean("auto-tag", false)));
             }
         }
         plugin.getLogger().info("Loaded " + tiers.size() + " ranks.");
@@ -170,6 +171,7 @@ public class RankManager {
             case "nick" -> tier.nick();
             case "size" -> tier.size();
             case "rgb" -> tier.rgbName();
+            case "auto-tag" -> tier.autoTag();
             default -> false;
         };
     }
@@ -245,6 +247,7 @@ public class RankManager {
         // The Discord role follows the rank the moment it is bought,
         // rather than the next time they log in.
         if (plugin.getDiscordBot() != null) plugin.getDiscordBot().syncRoles(player);
+        com.spacerng.solrng.commands.TagCommand.autoEquipBest(plugin, player, data);
         Bukkit.broadcastMessage(Lore.gradient("SpaceRNG", true, "#B388FF", "#40C4FF") + ChatColor.DARK_GRAY + " » "
                 + ChatColor.WHITE + player.getName() + ChatColor.GRAY + " is now "
                 + styled(tier) + ChatColor.GRAY + ".");
