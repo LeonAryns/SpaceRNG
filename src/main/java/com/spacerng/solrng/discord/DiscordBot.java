@@ -588,9 +588,46 @@ public class DiscordBot extends ListenerAdapter implements BotHooks {
     // ---------------------------------------------------------------
 
     /**
-     * Makes the rank roles in Discord and remembers their ids. A role that
-     * already exists by name is adopted rather than duplicated, so running
-     * it twice is safe. A bot can only hand out roles BELOW its own.
+     * One role the server should have, from discord.roles in config, in
+     * the order they should stand in the list, top first.
+     */
+    private record RoleSpec(String key, String name, String emoji, List<String> colors,
+                            boolean hoist, String rank, boolean auto) {
+        String fullName() {
+            return emoji.isEmpty() ? name : emoji + " " + name;
+        }
+    }
+
+    private List<RoleSpec> roleSpecs() {
+        List<RoleSpec> specs = new ArrayList<>();
+        ConfigurationSection section = plugin.getConfig().getConfigurationSection("discord.roles");
+        if (section == null) return specs;
+        for (String key : section.getKeys(false)) {
+            ConfigurationSection r = section.getConfigurationSection(key);
+            if (r == null) continue;
+            String rank = r.getString("rank", "").toLowerCase(Locale.ROOT);
+            List<String> colors = r.getStringList("colors");
+            if (colors.isEmpty() && !rank.isEmpty() && plugin.getRankManager().tier(rank) != null) {
+                colors = plugin.getRankManager().tier(rank).colors();
+            }
+            if (colors.isEmpty()) colors = List.of("#B0BEC5");
+            specs.add(new RoleSpec(key.toLowerCase(Locale.ROOT), r.getString("name", key), r.getString("emoji", ""),
+                    colors, r.getBoolean("hoist", true), rank, r.getBoolean("auto", false)));
+        }
+        return specs;
+    }
+
+    /**
+     * Builds the server's roles from discord.roles: finds each one by the
+     * id it had, or by its name with or without the emoji, or makes it,
+     * then gives it its name, emoji, colour and place in the list. A role
+     * adopted by name keeps its members, so DiscordSRV's old Linked role
+     * simply becomes ours. Running it twice is safe.
+     *
+     * Colours: a gradient when the server has Discord's enhanced role
+     * colours (a boosted server), otherwise the middle of the gradient as
+     * one colour. The emoji also goes on as the role icon when the server
+     * is boosted far enough to allow icons.
      */
     @Override
     public void setupRoles(Consumer<String> say) {
@@ -599,42 +636,202 @@ public class DiscordBot extends ListenerAdapter implements BotHooks {
             say.accept("The bot is not connected. " + problem);
             return;
         }
-        Member self = guild.getSelfMember();
-        if (!self.hasPermission(Permission.MANAGE_ROLES)) {
+        if (!guild.getSelfMember().hasPermission(Permission.MANAGE_ROLES)) {
             say.accept("The bot has no Manage Roles permission in Discord.");
             return;
         }
-        for (var tier : plugin.getRankManager().tiers()) {
-            String id = tier.id();
-            if (rankRoles.containsKey(id)) {
-                Role existing = guild.getRoleById(rankRoles.get(id));
-                if (existing != null) {
-                    say.accept("Already have a role for " + id + ": " + existing.getName());
-                    continue;
-                }
+        List<RoleSpec> specs = roleSpecs();
+        if (specs.isEmpty()) {
+            say.accept("There is no discord.roles section in config.yml.");
+            return;
+        }
+        List<java.util.concurrent.CompletableFuture<Role>> found = new ArrayList<>();
+        for (RoleSpec spec : specs) {
+            Role role = findRole(guild, spec);
+            if (role != null) {
+                found.add(java.util.concurrent.CompletableFuture.completedFuture(role));
+            } else {
+                found.add(guild.createRole().setName(spec.fullName()).submit());
             }
-            String name = strip(tier.display());
+        }
+        java.util.concurrent.CompletableFuture.allOf(found.toArray(new java.util.concurrent.CompletableFuture[0]))
+                .whenComplete((ignored, error) -> {
+                    List<Role> roles = new ArrayList<>();
+                    for (int i = 0; i < specs.size(); i++) {
+                        Role role = found.get(i).getNow(null);
+                        if (role == null || found.get(i).isCompletedExceptionally()) {
+                            say.accept("Could not make " + specs.get(i).fullName() + ".");
+                            continue;
+                        }
+                        style(guild, specs.get(i), role, say);
+                        remember(specs.get(i), role);
+                        roles.add(role);
+                    }
+                    saveMade();
+                    order(guild, roles, say);
+                    giveAutoRoles(guild);
+                    say.accept("Roles done: " + roles.size() + " of " + specs.size() + ".");
+                    plugin.getServer().getScheduler().runTask(plugin, this::syncAll);
+                });
+    }
+
+    private Role findRole(Guild guild, RoleSpec spec) {
+        String stored = madeRoles.get("role:" + spec.key());
+        if (stored == null && !spec.rank().isEmpty()) stored = madeRoles.get(spec.rank());
+        if (stored != null && guild.getRoleById(stored) != null) return guild.getRoleById(stored);
+        for (String name : List.of(spec.fullName(), spec.name())) {
             List<Role> byName = guild.getRolesByName(name, true);
-            if (!byName.isEmpty()) {
-                adopt(id, byName.get(0), say, "adopted");
-                continue;
+            if (!byName.isEmpty()) return byName.get(0);
+        }
+        return null;
+    }
+
+    private void style(Guild guild, RoleSpec spec, Role role, Consumer<String> say) {
+        if (!guild.getSelfMember().canInteract(role)) {
+            say.accept(role.getName() + " sits above the bot's own role. Drag the bot's role to the top and run setup again.");
+            return;
+        }
+        int solid = colourOf(spec.colors().get(spec.colors().size() / 2));
+        var manager = role.getManager().setName(spec.fullName()).setColor(solid).setHoisted(spec.hoist());
+        boolean icons = guild.getFeatures().contains("ROLE_ICONS");
+        if (icons && !spec.emoji().isEmpty()) {
+            try {
+                manager = manager.setIcon(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode(spec.emoji()));
+            } catch (Throwable ignored) {
+                // Not every emoji is allowed as an icon; the name still has it.
             }
-            int colour = colourOf(tier.colors().isEmpty() ? "#FFFFFF" : tier.colors().get(0));
-            guild.createRole().setName(name).setColor(colour).setHoisted(true).queue(
-                    role -> adopt(id, role, say, "created"),
-                    error -> say.accept("Could not create the role for " + id + ": " + error.getMessage()));
+        }
+        manager.queue(null, error -> say.accept("Could not style " + spec.fullName() + ": " + error.getMessage()));
+        if (guild.getFeatures().contains("ENHANCED_ROLE_COLORS") && spec.colors().size() >= 2) {
+            // Not in JDA 5 yet, so the one field is sent by hand.
+            var colors = net.dv8tion.jda.api.utils.data.DataObject.empty()
+                    .put("primary_color", colourOf(spec.colors().get(0)))
+                    .put("secondary_color", colourOf(spec.colors().get(spec.colors().size() - 1)));
+            var body = net.dv8tion.jda.api.utils.data.DataObject.empty().put("colors", colors);
+            new net.dv8tion.jda.internal.requests.RestActionImpl<Void>(guild.getJDA(),
+                    net.dv8tion.jda.api.requests.Route.Roles.MODIFY_ROLE.compile(guild.getId(), role.getId()), body)
+                    .queue(null, error -> { });
         }
     }
 
-    private void adopt(String rank, Role role, Consumer<String> say, String what) {
-        rankRoles.put(rank, role.getId());
-        madeRoles.put(rank, role.getId());
-        if (rank.equals("linked") && plugin.getConfig().getString("discord.bot.linked-role", "").isBlank()) {
-            linkedRole = role.getId();
+    private void remember(RoleSpec spec, Role role) {
+        madeRoles.put("role:" + spec.key(), role.getId());
+        if (!spec.rank().isEmpty()) {
+            madeRoles.put(spec.rank(), role.getId());
+            rankRoles.put(spec.rank(), role.getId());
+            if (spec.rank().equals("linked") && plugin.getConfig().getString("discord.bot.linked-role", "").isBlank()) {
+                linkedRole = role.getId();
+            }
         }
-        saveMade();
-        say.accept(what + " the role " + role.getName() + " for " + rank + ".");
-        plugin.getServer().getScheduler().runTask(plugin, this::syncAll);
+    }
+
+    /**
+     * Puts our roles straight under the bot's own, in config order, and
+     * leaves everything else where it was relative to each other.
+     */
+    private void order(Guild guild, List<Role> ours, Consumer<String> say) {
+        try {
+            Role top = guild.getSelfMember().getRoles().isEmpty() ? null : guild.getSelfMember().getRoles().get(0);
+            List<Role> current = new ArrayList<>(guild.getRoles());
+            current.remove(guild.getPublicRole());
+            List<Role> desired = new ArrayList<>();
+            for (Role role : current) {
+                if (top != null && role.getPosition() >= top.getPosition() && !ours.contains(role)) desired.add(role);
+            }
+            desired.addAll(ours);
+            for (Role role : current) if (!desired.contains(role)) desired.add(role);
+            guild.modifyRolePositions(false)
+                    .sortOrder(java.util.Comparator.comparingInt(desired::indexOf))
+                    .queue(null, error -> say.accept("Could not reorder the roles: " + error.getMessage()));
+        } catch (Throwable t) {
+            say.accept("Could not reorder the roles: " + t.getMessage());
+        }
+    }
+
+    /** Roles with auto: true (Member) go to everybody who does not have them. */
+    private void giveAutoRoles(Guild guild) {
+        List<Role> auto = autoRoles(guild);
+        if (auto.isEmpty()) return;
+        guild.loadMembers().onSuccess(members -> {
+            for (Member member : members) {
+                if (member.getUser().isBot()) continue;
+                for (Role role : auto) {
+                    if (!member.getRoles().contains(role)) guild.addRoleToMember(member, role).queue(null, error -> { });
+                }
+            }
+        });
+    }
+
+    private List<Role> autoRoles(Guild guild) {
+        List<Role> auto = new ArrayList<>();
+        for (RoleSpec spec : roleSpecs()) {
+            if (!spec.auto()) continue;
+            String id = madeRoles.get("role:" + spec.key());
+            Role role = id == null ? null : guild.getRoleById(id);
+            if (role != null) auto.add(role);
+        }
+        return auto;
+    }
+
+    /** Somebody new joins the Discord: they get Member straight away. */
+    @Override
+    public void onGuildMemberJoin(net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent event) {
+        if (event.getUser().isBot()) return;
+        for (Role role : autoRoles(event.getGuild())) {
+            event.getGuild().addRoleToMember(event.getMember(), role).queue(null, error -> { });
+        }
+    }
+
+    /**
+     * Every role that is not one of ours: not @everyone, not a bot's own
+     * managed role, and below the bot so it could be removed at all.
+     */
+    private List<Role> strangers(Guild guild) {
+        java.util.Set<String> ours = new java.util.HashSet<>();
+        for (Map.Entry<String, String> entry : madeRoles.entrySet()) {
+            if (entry.getKey().startsWith("role:")) ours.add(entry.getValue());
+        }
+        List<Role> strangers = new ArrayList<>();
+        for (Role role : guild.getRoles()) {
+            if (role.isPublicRole() || role.isManaged() || ours.contains(role.getId())) continue;
+            if (!guild.getSelfMember().canInteract(role)) continue;
+            strangers.add(role);
+        }
+        return strangers;
+    }
+
+    /**
+     * /rngadmin discord cleanup lists what would go; with confirm it goes.
+     * Deleting a role cannot be undone, which is why the list comes first.
+     */
+    @Override
+    public void cleanupRoles(boolean confirm, Consumer<String> say) {
+        Guild guild = guild();
+        if (!ready || guild == null) {
+            say.accept("The bot is not connected. " + problem);
+            return;
+        }
+        if (madeRoles.keySet().stream().noneMatch(k -> k.startsWith("role:"))) {
+            say.accept("Run /rngadmin discord setup first, so it knows which roles are ours.");
+            return;
+        }
+        List<Role> strangers = strangers(guild);
+        if (strangers.isEmpty()) {
+            say.accept("Nothing to remove: every role left is ours, a bot's, or above the bot.");
+            return;
+        }
+        List<String> names = new ArrayList<>();
+        for (Role role : strangers) names.add(role.getName());
+        if (!confirm) {
+            say.accept("These " + strangers.size() + " roles would be deleted: " + String.join(", ", names));
+            say.accept("Roles above the bot's own and bots' roles are left alone.");
+            say.accept("Type /rngadmin discord cleanup confirm to delete them. This cannot be undone.");
+            return;
+        }
+        for (Role role : strangers) {
+            role.delete().queue(done -> say.accept("Deleted " + role.getName() + "."),
+                    error -> say.accept("Could not delete " + role.getName() + ": " + error.getMessage()));
+        }
     }
 
     @Override

@@ -5744,6 +5744,54 @@ discord:
           inline: false
       footer: "Codes run out after 5 minutes. Still stuck? Run /link again for a new code."
 
+  # The server's roles (V233), top of the list first. /rngadmin discord
+  # setup makes them, or takes over a role with the same name, and gives
+  # each its emoji, colour and place. rank: ties a role to a rank, which
+  # the bot then hands out and takes back on its own; a rank role with no
+  # colors: wears the rank's own. auto: true goes to everybody in the
+  # Discord (Member). Owner, Staff and OG are given by hand in Discord.
+  # Two colours are a gradient on a boosted server with enhanced role
+  # colours, otherwise the middle one is used. The emoji also becomes the
+  # role icon once the server is boosted far enough for icons.
+  # /rngadmin discord cleanup lists every other role; with confirm it
+  # deletes them.
+  roles:
+    owner:
+      name: "Owner"
+      emoji: "👑"
+      colors: ["#FFE082", "#FF8F00"]
+    staff:
+      name: "Staff"
+      emoji: "🛡️"
+      colors: ["#80D8FF", "#536DFE"]
+    supernova:
+      name: "Supernova"
+      emoji: "⚡"
+      rank: supernova
+    nova:
+      name: "Nova"
+      emoji: "🌌"
+      rank: nova
+    comet:
+      name: "Comet"
+      emoji: "☄️"
+      rank: comet
+    linked:
+      name: "Linked"
+      emoji: "🔗"
+      colors: ["#7289DA", "#5865F2"]
+      rank: linked
+    og:
+      name: "OG"
+      emoji: "🌟"
+      colors: ["#FF80AB", "#B388FF"]
+    member:
+      name: "Member"
+      emoji: "👤"
+      colors: ["#CFD8DC", "#90A4AE"]
+      hoist: false
+      auto: true
+
   # The bot (V230): our own, running inside the plugin. It stays offline
   # until token is filled in: Discord Developer Portal, your app, Bot,
   # Reset Token, Copy. Switch on Server Members Intent and Message Content

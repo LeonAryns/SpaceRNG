@@ -47,5 +47,8 @@ public interface BotHooks {
     /** Logs out and in again, for a new token without a restart. */
     void restart();
 
+    /** Lists the roles that are not ours; with confirm, deletes them. */
+    void cleanupRoles(boolean confirm, java.util.function.Consumer<String> say);
+
     void shutdown();
 }

@@ -782,6 +782,16 @@ final class WorldAdmin extends AdminTools {
                     () -> sender.sendMessage(ChatColor.GRAY + "  " + line)));
             return true;
         }
+        if (action.equals("cleanup")) {
+            if (plugin.getDiscordBot() == null) {
+                sender.sendMessage(ChatColor.RED + "The bot could not be built, see the console.");
+                return true;
+            }
+            boolean confirm = args.length >= 3 && args[2].equalsIgnoreCase("confirm");
+            plugin.getDiscordBot().cleanupRoles(confirm, line -> plugin.getServer().getScheduler().runTask(plugin,
+                    () -> sender.sendMessage(ChatColor.GRAY + "  " + line)));
+            return true;
+        }
         if (action.equals("post")) {
             if (plugin.getDiscordBot() == null) {
                 sender.sendMessage(ChatColor.RED + "DiscordSRV is not installed, so there is no bot.");
@@ -802,6 +812,8 @@ final class WorldAdmin extends AdminTools {
                     + ChatColor.GRAY + " - is the bot online, and if not, why");
             sender.sendMessage(ChatColor.YELLOW + "/rngadmin discord restart"
                     + ChatColor.GRAY + " - log in again after changing the token");
+            sender.sendMessage(ChatColor.YELLOW + "/rngadmin discord cleanup [confirm]"
+                    + ChatColor.GRAY + " - list, then delete, every role that is not ours");
             sender.sendMessage(ChatColor.YELLOW + "/rngadmin discord setup"
                     + ChatColor.GRAY + " - make the rank roles in Discord");
             sender.sendMessage(ChatColor.YELLOW + "/rngadmin discord post <id> [channel id]"
