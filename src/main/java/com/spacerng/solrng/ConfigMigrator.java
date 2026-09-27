@@ -82,6 +82,8 @@ public final class ConfigMigrator {
             // V225: the channel the bot reads link codes in, and where it
             // posts cards.
             "discord.bot.link-channel", "discord.bot.cards-channel",
+            // V230: the bot logs in on its own.
+            "discord.bot.token", "discord.bot.guild-id", "discord.bot.link-button",
             // V226: three eggs, and the Prestige pets open at.
             "pets.eggs", "pets.min-prestige",
             // V227: Supernova wears its best tag on its own.
@@ -162,6 +164,9 @@ public final class ConfigMigrator {
     }
 
     private static final List<Patch> PATCHES = List.of(
+            // V230: Leon's own channels, empty since V225.
+            new Patch("discord-link-channel-leon", "discord.bot.link-channel", "", "1553697805690994749"),
+            new Patch("discord-cards-channel-leon", "discord.bot.cards-channel", "", "1545800590280630272"),
             // V204: the ground pieces were still sinking at 0.30.
             new Patch("aura-ground-lift-45", "auras.ground-lift", 0.30, 0.45),
             // V203: the floating heads turned a full circle every four
@@ -711,6 +716,26 @@ public final class ConfigMigrator {
                 }
             }
             applied.add("link-card-v225");
+            changed = true;
+        }
+        // V230: the link card gets its button. Swapped whole, and only while
+        // it has no link-button key, which no card before V230 had.
+        if (!applied.contains("link-card-v230")) {
+            if (disk.isConfigurationSection("discord.cards.link") && !disk.contains("discord.cards.link.link-button", true)) {
+                InputStream stream = plugin.getResource("config.yml");
+                if (stream != null) {
+                    try (InputStreamReader reader = new InputStreamReader(stream, StandardCharsets.UTF_8)) {
+                        YamlConfiguration jar = YamlConfiguration.loadConfiguration(reader);
+                        if (jar.isConfigurationSection("discord.cards.link")) {
+                            disk.set("discord.cards.link", jar.get("discord.cards.link"));
+                            plugin.getLogger().info("Config patch link-card-v230: discord.cards.link replaced");
+                        }
+                    } catch (IOException ignored) {
+                        // Left as it was.
+                    }
+                }
+            }
+            applied.add("link-card-v230");
             changed = true;
         }
         if (changed) disk.set("applied-patches", applied);

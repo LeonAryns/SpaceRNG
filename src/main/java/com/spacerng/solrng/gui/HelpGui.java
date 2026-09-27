@@ -226,7 +226,7 @@ public final class HelpGui {
                 List.of("Link your account for free perks."),
                 List.of("Gives you the Linked rank",
                         "Lets your tag wear an aura",
-                        "Type /discord link to start"),
+                        "Type /link to start"),
                 "Status", "/linked"));
         inv.setItem(43, entry(Material.ARMOR_STAND, ChatColor.AQUA, "Cosmetics",
                 List.of("Titles, auras and name colours."),

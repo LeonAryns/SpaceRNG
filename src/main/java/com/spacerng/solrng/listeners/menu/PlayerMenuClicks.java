@@ -184,7 +184,7 @@ final class PlayerMenuClicks {
 
         if (plugin.getRankManager().rankOf(data) == null
                 && plugin.getConfig().getBoolean("auras.require-linked", true)) {
-            player.sendMessage(ChatColor.RED + "Auras need a linked Discord. Use /discord link.");
+            player.sendMessage(ChatColor.RED + "Auras need a linked Discord. Use /link.");
             player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
             return;
         }

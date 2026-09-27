@@ -1519,9 +1519,9 @@ record and says WHY, not only what: `git log` for the list,
 - **Pets live in the aura's three slots**, not as mobs walking behind the
   player, and they pay a percentage on one stat rather than a multiplier.
 - **The boss is per player**, not one shared health pool.
-- **No second Discord bot process.** It rides on DiscordSRV's connection;
-  the bot's name and picture are its own application in the Discord
-  Developer Portal.
+- **The bot runs inside the plugin (V230)**, on its own JDA 5, because
+  Leon wanted a button that opens a box for the link code and
+  DiscordSRV's JDA cannot do modals. DiscordSRV only relays chat.
 - **The plugin cannot pull players back after an update on Minehut.**
   That needs control of the proxy, which means self hosting.
 - **The jar is always `SpaceRNG.jar`**, one file, uploaded over the old

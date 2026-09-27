@@ -82,6 +82,11 @@ public final class SolRNGPlugin extends JavaPlugin {
     private com.spacerng.solrng.decor.FloatingItemManager floatingItemManager;
     private com.spacerng.solrng.realm.RealmManager realmManager;
     private com.spacerng.solrng.discord.LinkedAccountManager linkedAccountManager;
+    private com.spacerng.solrng.discord.LinkStore linkStore;
+
+    public com.spacerng.solrng.discord.LinkStore getLinkStore() {
+        return linkStore;
+    }
 
     /** The namespace every PersistentDataContainer tag is written under. */
     private static final String TAG_NAMESPACE = "solrng";
@@ -178,6 +183,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         this.topHeadManager = new com.spacerng.solrng.leaderboard.TopHeadManager(this);
         this.perkManager = new com.spacerng.solrng.perk.PerkManager(getLogger());
         this.floatingItemManager = new com.spacerng.solrng.decor.FloatingItemManager(this);
+        this.linkStore = new com.spacerng.solrng.discord.LinkStore(this);
         this.linkedAccountManager = new com.spacerng.solrng.discord.LinkedAccountManager(this);
         this.rankManager = new com.spacerng.solrng.rank.RankManager(this);
         this.cosmeticManager = new com.spacerng.solrng.cosmetic.CosmeticManager(this);
@@ -188,17 +194,15 @@ public final class SolRNGPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(realmManager, this);
         realmManager.start();
         this.dustManager = new com.spacerng.solrng.pet.DustManager(this);
-        // Only built when DiscordSRV is actually installed. The class
-        // mentions its types, so touching it without the plugin present
-        // would be a NoClassDefFoundError on startup.
-        if (getServer().getPluginManager().getPlugin("DiscordSRV") != null) {
-            try {
-                com.spacerng.solrng.discord.DiscordBot bot = new com.spacerng.solrng.discord.DiscordBot(this);
-                bot.start();
-                this.discordBot = bot;
-            } catch (Throwable t) {
-                getLogger().warning("Discord bot could not start: " + t);
-            }
+        // The bot is our own since V230 (JDA 5, shaded). It stays offline
+        // until discord.bot.token is filled in.
+        try {
+            com.spacerng.solrng.discord.DiscordBot bot =
+                    new com.spacerng.solrng.discord.DiscordBot(this, linkStore);
+            bot.start();
+            this.discordBot = bot;
+        } catch (Throwable t) {
+            getLogger().warning("Discord bot could not start: " + t);
         }
 
         reloadAll();

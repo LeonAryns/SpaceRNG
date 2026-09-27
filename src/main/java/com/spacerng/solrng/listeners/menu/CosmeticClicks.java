@@ -48,7 +48,7 @@ final class CosmeticClicks {
         if (slot == CosmeticsGui.auraSlot()) {
             if (plugin.getRankManager().rankOf(data) == null) {
                 player.sendMessage(ChatColor.GRAY + "Auras open up once your Discord is linked. "
-                        + ChatColor.YELLOW + "/discord link");
+                        + ChatColor.YELLOW + "/link");
                 deny(player);
                 return;
             }

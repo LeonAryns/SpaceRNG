@@ -118,7 +118,7 @@ public final class StatSources {
                 plugin.getRealmManager() == null ? 0.0 : plugin.getRealmManager().luckFor(data), Op.ADD));
         parts.add(new Part("Potions", "Draughts from /potion",
                 data.getPotionLuck(), Op.ADD));
-        parts.add(new Part("Linked account", "Link with /discord link",
+        parts.add(new Part("Linked account", "Link with /link",
                 plugin.getLinkedAccountManager().bonusFor(data.getUuid(), PerkStat.LUCK_PERCENT),
                 Op.ADD));
 
@@ -234,7 +234,7 @@ public final class StatSources {
                 Op.MULTIPLY));
         parts.add(new Part("Pets", "Wear pets in /pets",
                 1.0 + plugin.getPetManager().totalOf(data, Id.MONEY), Op.MULTIPLY));
-        parts.add(new Part("Linked account", "Link with /discord link",
+        parts.add(new Part("Linked account", "Link with /link",
                 1.0 + plugin.getLinkedAccountManager().bonusFor(data.getUuid(), PerkStat.MONEY_PERCENT),
                 Op.MULTIPLY));
         parts.add(new Part("Rank", "Buy a rank in /ranks",
@@ -293,7 +293,7 @@ public final class StatSources {
                 Op.MULTIPLY));
         parts.add(new Part("Pets", "Wear pets in /pets",
                 1.0 + plugin.getPetManager().totalOf(data, Id.COINS), Op.MULTIPLY));
-        parts.add(new Part("Linked account", "Link with /discord link",
+        parts.add(new Part("Linked account", "Link with /link",
                 1.0 + plugin.getLinkedAccountManager().bonusFor(data.getUuid(), PerkStat.COINS_PERCENT),
                 Op.MULTIPLY));
 
@@ -341,7 +341,7 @@ public final class StatSources {
                 Op.MULTIPLY));
         parts.add(new Part("Pets", "Wear pets in /pets",
                 1.0 + plugin.getPetManager().totalOf(data, Id.SHINY), Op.MULTIPLY));
-        parts.add(new Part("Linked account", "Link with /discord link",
+        parts.add(new Part("Linked account", "Link with /link",
                 1.0 + plugin.getLinkedAccountManager().bonusFor(data.getUuid(), PerkStat.SHINY_PERCENT),
                 Op.MULTIPLY));
 

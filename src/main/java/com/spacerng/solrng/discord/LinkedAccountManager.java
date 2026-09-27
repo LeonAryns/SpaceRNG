@@ -120,9 +120,15 @@ public class LinkedAccountManager {
         return available;
     }
 
-    /** Whether this player currently has a linked Discord account. */
+    /**
+     * Whether this player currently has a linked Discord account. Our own
+     * links.yml first (V230); a link made through DiscordSRV before that
+     * still counts, so nobody loses their rank over the switch.
+     */
     public boolean isLinked(UUID uuid) {
-        if (!available || !enabled) return false;
+        if (!enabled) return false;
+        if (plugin.getLinkStore() != null && plugin.getLinkStore().discordOf(uuid) != null) return true;
+        if (!available) return false;
         try {
             Object instance = getPluginMethod.invoke(null);
             Object linkManager = getAccountLinkManagerMethod.invoke(instance);
@@ -174,7 +180,7 @@ public class LinkedAccountManager {
     }
 
     private void pollAll() {
-        if (!available || !enabled) return;
+        if (!enabled) return;
         for (Player player : Bukkit.getOnlinePlayers()) {
             UUID uuid = player.getUniqueId();
             boolean linked = isLinked(uuid);

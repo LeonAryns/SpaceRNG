@@ -135,7 +135,7 @@ public class CosmeticsGui {
             lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to pick one");
         } else {
             lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Locked");
-            lore.add(Lore.line(ChatColor.GRAY, "Link your Discord with /discord link."));
+            lore.add(Lore.line(ChatColor.GRAY, "Link your Discord with /link."));
         }
         meta.setLore(lore);
         item.setItemMeta(meta);

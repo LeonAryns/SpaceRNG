@@ -77,7 +77,7 @@ public class AuraGui {
             lore.add(Lore.footnote("Switch it off entirely in /options."));
         } else {
             lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Locked");
-            lore.add(Lore.line(ChatColor.GRAY, "Link your Discord with /discord link."));
+            lore.add(Lore.line(ChatColor.GRAY, "Link your Discord with /link."));
         }
         meta.setLore(lore);
         item.setItemMeta(meta);
@@ -133,7 +133,7 @@ public class AuraGui {
                     : "Roll any " + ChatColor.stripColor(rarity.displayName()) + " to unlock it."));
         } else if (!linked) {
             lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Locked");
-            lore.add(Lore.line(ChatColor.GRAY, "Link your Discord with /discord link."));
+            lore.add(Lore.line(ChatColor.GRAY, "Link your Discord with /link."));
         } else if (worn) {
             lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "Worn");
             lore.add(Lore.footnote("Click to go back to your tag."));

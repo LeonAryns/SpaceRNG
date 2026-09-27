@@ -225,7 +225,7 @@ final class ShopClicks {
             return;
         }
         if (tier.price() <= 0) {
-            player.sendMessage(ChatColor.GRAY + "Linked is free: use " + ChatColor.YELLOW + "/discord link"
+            player.sendMessage(ChatColor.GRAY + "Linked is free: use " + ChatColor.YELLOW + "/link"
                     + ChatColor.GRAY + ".");
             return;
         }

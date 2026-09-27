@@ -78,8 +78,13 @@ Packages are by feature under `com.spacerng.solrng`. Where new things go:
   Leon has FancyHolograms and FancyNpcs; NPCs stay in FancyNpcs, the text
   is ours.
 - **Discord.** `discord/DiscordWebhook` posts rare drops, shinies, First
-  10 and the farming payout to a webhook URL. DiscordSRV only relays chat
-  and handles /discord link; our broadcasts never pass through chat.
+  10 and the farming payout to a webhook URL. Since V230 the bot is our
+  own: `discord/DiscordBot` on JDA 5, shaded and relocated in the jar,
+  logging in with `discord.bot.token`, links kept in `links.yml` by
+  `discord/LinkStore` (/link in game gives a code, the button on the link
+  card opens a box for it). DiscordSRV only relays chat; its JDA is too
+  old for modals. Never commit the token; it lives only in the live
+  config.
 - **A new top-level config section** reaches the live server only if it
   is listed in `ConfigMigrator.ADDED_SECTIONS`, which copies it across
   once when the server's config lacks it.

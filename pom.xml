@@ -6,7 +6,7 @@
 
     <groupId>com.spacerng</groupId>
     <artifactId>sol-rng</artifactId>
-    <version>229</version>
+    <version>230</version>
     <packaging>jar</packaging>
 
     <properties>
@@ -27,10 +27,6 @@
         <repository>
             <id>placeholderapi</id>
             <url>https://repo.helpch.at/releases</url>
-        </repository>
-        <repository>
-            <id>scarsz</id>
-            <url>https://nexus.scarsz.me/content/groups/public/</url>
         </repository>
     </repositories>
 
@@ -59,19 +55,30 @@
             <version>2.11.6</version>
             <scope>provided</scope>
         </dependency>
-        <!-- DiscordSRV: it already runs the bot, holds the Discord connection
-             and knows which Discord account belongs to which player, so the
-             slash commands and the role sync ride on that rather than on a
-             second program with a second token. Provided, so nothing of it
-             ships inside SpaceRNG.jar, and every call is guarded: without
-             DiscordSRV installed the bot is simply never built. JDA lives
-             relocated inside this jar, which is why the imports say
-             github.scarsz.discordsrv.dependencies.jda. -->
+        <!-- JDA: the Discord bot, ours since V230. DiscordSRV's JDA is too
+             old to open a modal, which the link button needs. Shaded into
+             SpaceRNG.jar and relocated (see the shade plugin below), so it
+             can never meet DiscordSRV's copy or any other plugin's. Voice
+             is left out: opus-java and tink only serve audio. slf4j is
+             Paper's own. -->
         <dependency>
-            <groupId>com.discordsrv</groupId>
-            <artifactId>discordsrv</artifactId>
-            <version>1.29.0</version>
-            <scope>provided</scope>
+            <groupId>net.dv8tion</groupId>
+            <artifactId>JDA</artifactId>
+            <version>5.6.1</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>club.minnced</groupId>
+                    <artifactId>opus-java</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.google.crypto.tink</groupId>
+                    <artifactId>tink</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 
@@ -114,6 +121,44 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
                 <version>3.3.1</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.6.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <relocations>
+                                <relocation><pattern>net.dv8tion</pattern><shadedPattern>com.spacerng.libs.jda</shadedPattern></relocation>
+                                <relocation><pattern>okhttp3</pattern><shadedPattern>com.spacerng.libs.okhttp3</shadedPattern></relocation>
+                                <relocation><pattern>okio</pattern><shadedPattern>com.spacerng.libs.okio</shadedPattern></relocation>
+                                <relocation><pattern>kotlin</pattern><shadedPattern>com.spacerng.libs.kotlin</shadedPattern></relocation>
+                                <relocation><pattern>com.fasterxml</pattern><shadedPattern>com.spacerng.libs.fasterxml</shadedPattern></relocation>
+                                <relocation><pattern>com.neovisionaries</pattern><shadedPattern>com.spacerng.libs.neovisionaries</shadedPattern></relocation>
+                                <relocation><pattern>gnu.trove</pattern><shadedPattern>com.spacerng.libs.trove</shadedPattern></relocation>
+                                <relocation><pattern>org.apache.commons.collections4</pattern><shadedPattern>com.spacerng.libs.collections4</shadedPattern></relocation>
+                            </relocations>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                        <exclude>META-INF/versions/**/module-info.class</exclude>
+                                        <exclude>module-info.class</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

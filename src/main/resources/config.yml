@@ -5647,7 +5647,7 @@ shiny:
   broadcast: true
 
 # DiscordSRV integration. When a player links their Minecraft account
-# to Discord (typically via /discord link, provided by DiscordSRV), a
+# to Discord (with /link and the bot, since V230), a
 # passive bonus turns on until they unlink again. The first ever link
 # also hands out a one-time gift, and cannot be farmed by unlinking
 # and relinking - the "claimed" flag stays set forever.
@@ -5682,8 +5682,7 @@ linked-account:
 # Discord announcements through a webhook. In Discord: Edit Channel,
 # Integrations, Webhooks, New Webhook, Copy Webhook URL, then paste it
 # below and run /rngadmin reload. Empty turns announcements off. No bot or
-# DiscordSRV is needed for this part; DiscordSRV still does chat relay and
-# /discord link.
+# DiscordSRV is needed for this part; DiscordSRV only does chat relay.
 discord:
   webhook-url: ""
   username: "SpaceRNG"
@@ -5718,13 +5717,16 @@ discord:
           value: "`spacerng.bedrock.minehut.gg` port `19132`"
           inline: true
         - name: "Link your account"
-          value: "Type `/discord link` in game and follow the code."
+          value: "Type `/link` in game and enter the code in {link-channel}."
           inline: false
     # In the style of the card Leon liked. {link-channel} becomes a
-    # clickable mention of discord.bot.link-channel when the bot posts it.
+    # clickable mention of discord.bot.link-channel, {link-button} the
+    # button's text. link-button: true puts the Link account button under
+    # the card; pressing it opens a box for the code.
     link:
       title: "How to Link"
       color: "#43A047"
+      link-button: true
       description:
         - "Connect your Minecraft account on **spacerng.minehut.gg** to Discord to unlock the rest of the server and your in-game link rewards."
       fields:
@@ -5732,12 +5734,12 @@ discord:
           value: "Hop on **spacerng.minehut.gg** in Minecraft."
           inline: false
         - name: "🔗 Run `/link` in chat"
-          value: "The server hands you a code."
+          value: "The server hands you a 6 digit code. Click it to copy."
           inline: false
-        - name: "💬 Send the code here"
+        - name: "✅ Press the button below"
           value:
-            - "Post **only the code** in {link-channel}."
-            - "Typing the command does not work in Discord."
+            - "Press **{link-button}** and type in the code."
+            - "Posting only the code in this channel works too."
           inline: false
         - name: "🎁 Link Rewards"
           value:
@@ -5746,16 +5748,24 @@ discord:
             - "A one-time gift of 100 Credits and 25,000 Coins"
             - "Your Discord role follows your rank"
           inline: false
-      footer: "Codes run out after a few minutes. Still stuck? Run /link again and send the new code."
+      footer: "Codes run out after 5 minutes. Still stuck? Run /link again for a new code."
 
-  # The bot. It is not a bot of its own: DiscordSRV already runs one, so
-  # the slash commands appear under that bot and the roles are handed out
-  # by it. Without DiscordSRV installed none of this exists.
+  # The bot (V230): our own, running inside the plugin. It stays offline
+  # until token is filled in: Discord Developer Portal, your app, Bot,
+  # Reset Token, Copy. Switch on Server Members Intent and Message Content
+  # Intent on that same page. A new token needs a restart.
+  # DiscordSRV is only needed for chat between the game and Discord, and
+  # can use the same token.
   #
-  # Role ids are the long numbers you get by right clicking a role with
-  # Developer Mode on. Leave one empty to not sync it.
+  # Role ids are the long numbers at the end of a role's link, or from
+  # right clicking with Developer Mode on. Leave one empty to not sync it.
   bot:
     enabled: true
+    token: ""
+    # The Discord server, the first number in a channel's link.
+    guild-id: "1541464806161383575"
+    # The text on the button under the link card.
+    link-button: "Link account"
     # Where slash commands may be used. Empty means anywhere.
     command-channel: ""
     # Given to everybody whose account is linked.
@@ -5769,9 +5779,9 @@ discord:
     # The channel where players post the code from /link. The bot reads
     # every message there, links the account, and deletes the message so
     # the card stays on its own. Empty means only private messages work.
-    link-channel: ""
+    link-channel: "1553697805690994749"
     # Where /rngadmin discord post puts a card when no channel is named.
-    cards-channel: ""
+    cards-channel: "1545800590280630272"
     # Take back the role of a rank somebody no longer has.
     remove-old-roles: true
 

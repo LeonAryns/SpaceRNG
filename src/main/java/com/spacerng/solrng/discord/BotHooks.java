@@ -35,5 +35,11 @@ public interface BotHooks {
      */
     void setupRoles(java.util.function.Consumer<String> say);
 
+    /** Takes every SpaceRNG role off a Discord account that was unlinked. */
+    void clearRoles(String discordId);
+
+    /** Whether the bot is logged in and ready. */
+    boolean isOnline();
+
     void shutdown();
 }

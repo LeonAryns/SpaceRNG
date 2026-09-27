@@ -74,7 +74,7 @@ public class RanksGui {
                     left <= 0 ? "ready, use /keyall" : "in " + RankManager.timeLeft(left)));
         }
         lore.add("");
-        lore.add(Lore.footnote("Linked comes free with /discord link."));
+        lore.add(Lore.footnote("Linked comes free with /link."));
         meta.setLore(lore);
         item.setItemMeta(meta);
         return item;
@@ -162,7 +162,7 @@ public class RanksGui {
             lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "Yours");
         } else if (free) {
             lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Link your Discord");
-            lore.add(Lore.line(ChatColor.GRAY, "Use /discord link in game."));
+            lore.add(Lore.line(ChatColor.GRAY, "Use /link in game."));
         } else if (affordable) {
             lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to buy");
         } else {
