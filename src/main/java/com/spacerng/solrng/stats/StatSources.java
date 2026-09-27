@@ -114,6 +114,8 @@ public final class StatSources {
                 Op.ADD));
         parts.add(new Part("Permanent", "Fortune rewards you've drunk",
                 data.getFlatLuck(), Op.ADD));
+        parts.add(new Part("Secret Index", "Secrets from the Secret Realm, /realm",
+                plugin.getRealmManager() == null ? 0.0 : plugin.getRealmManager().luckFor(data), Op.ADD));
         parts.add(new Part("Potions", "Draughts from /potion",
                 data.getPotionLuck(), Op.ADD));
         parts.add(new Part("Linked account", "Link with /discord link",

@@ -804,6 +804,56 @@ final class WorldAdmin extends AdminTools {
         return true;
     }
 
+    /** The Secret Realm (V229): where it is, and opening or closing it by hand. */
+    boolean doRealm(CommandSender sender, String[] args) {
+        var realm = plugin.getRealmManager();
+        String action = args.length >= 2 ? args[1].toLowerCase(Locale.ROOT) : "status";
+        switch (action) {
+            case "here" -> {
+                if (!(sender instanceof org.bukkit.entity.Player player)) {
+                    sender.sendMessage(ChatColor.RED + "Stand where players should arrive.");
+                    return true;
+                }
+                realm.setSpot(player.getLocation());
+                sender.sendMessage(ChatColor.GREEN + "The Secret Realm is here now: " + realm.spotText());
+            }
+            case "open" -> {
+                if (realm.spot() == null) {
+                    sender.sendMessage(ChatColor.RED + "Set the spot first with /rngadmin realm here.");
+                    return true;
+                }
+                if (realm.isOpen()) {
+                    sender.sendMessage(ChatColor.GRAY + "It is already open.");
+                    return true;
+                }
+                realm.open();
+            }
+            case "close" -> {
+                if (!realm.isOpen()) {
+                    sender.sendMessage(ChatColor.GRAY + "It is not open.");
+                    return true;
+                }
+                realm.close();
+            }
+            default -> {
+                sender.sendMessage(ChatColor.LIGHT_PURPLE + "Secret Realm" + ChatColor.GRAY
+                        + (realm.isEnabled() ? "" : ChatColor.RED + " (switched off)"));
+                sender.sendMessage(ChatColor.GRAY + "  Spot: " + ChatColor.WHITE + realm.spotText());
+                long now = System.currentTimeMillis();
+                if (realm.isOpen()) {
+                    sender.sendMessage(ChatColor.GRAY + "  Open, closes in "
+                            + ChatColor.WHITE + ((realm.openUntil() - now) / 1000L) + "s");
+                } else {
+                    sender.sendMessage(ChatColor.GRAY + "  Closed, opens in about "
+                            + ChatColor.WHITE + Math.max(0L, (realm.nextOpenAt() - now) / 60_000L) + " minutes");
+                }
+                sender.sendMessage(ChatColor.GRAY + "  Prestige " + realm.minPrestige() + "+, a secret 1 in "
+                        + realm.findOneIn() + " rolls, " + realm.secrets().size() + " secrets");
+            }
+        }
+        return true;
+    }
+
     private static final String PACK = "spacerng_no_advancements";
 
     /**

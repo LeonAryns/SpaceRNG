@@ -80,6 +80,7 @@ public final class SolRNGPlugin extends JavaPlugin {
     private com.spacerng.solrng.welcome.WelcomeManager welcomeManager;
     private com.spacerng.solrng.perk.PerkManager perkManager;
     private com.spacerng.solrng.decor.FloatingItemManager floatingItemManager;
+    private com.spacerng.solrng.realm.RealmManager realmManager;
     private com.spacerng.solrng.discord.LinkedAccountManager linkedAccountManager;
 
     /** The namespace every PersistentDataContainer tag is written under. */
@@ -182,6 +183,10 @@ public final class SolRNGPlugin extends JavaPlugin {
         this.cosmeticManager = new com.spacerng.solrng.cosmetic.CosmeticManager(this);
         this.bossManager = new com.spacerng.solrng.boss.BossManager(this);
         this.petManager = new com.spacerng.solrng.pet.PetManager(this);
+        this.realmManager = new com.spacerng.solrng.realm.RealmManager(this);
+        realmManager.load();
+        getServer().getPluginManager().registerEvents(realmManager, this);
+        realmManager.start();
         this.dustManager = new com.spacerng.solrng.pet.DustManager(this);
         // Only built when DiscordSRV is actually installed. The class
         // mentions its types, so touching it without the plugin present
@@ -260,6 +265,8 @@ public final class SolRNGPlugin extends JavaPlugin {
         getCommand("size").setExecutor(new com.spacerng.solrng.commands.SizeCommand(this));
         getCommand("boss").setExecutor(new com.spacerng.solrng.commands.BossCommand(this));
         getCommand("pets").setExecutor(new com.spacerng.solrng.commands.PetsCommand(this));
+        getCommand("realm").setExecutor(new com.spacerng.solrng.commands.RealmCommand(this));
+        getCommand("secretindex").setExecutor(new com.spacerng.solrng.commands.RealmCommand(this));
         getCommand("stash").setExecutor(new com.spacerng.solrng.commands.StashCommand(this));
         getCommand("leaderboards").setExecutor(
                 new com.spacerng.solrng.commands.LeaderboardsCommand(this));
@@ -325,6 +332,8 @@ public final class SolRNGPlugin extends JavaPlugin {
         if (linkedAccountManager != null) linkedAccountManager.stop();
         if (rankManager != null) rankManager.stop();
         if (bossManager != null) bossManager.stop();
+        // Everybody in the Secret Realm goes back before the save.
+        if (realmManager != null) realmManager.stop();
         if (discordBot != null) discordBot.shutdown();
         if (momentumBar != null) momentumBar.removeAll();
         if (playerDataManager != null) {
@@ -437,6 +446,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         cosmeticManager.load(getConfig());
         bossManager.load(getConfig());
         petManager.load(getConfig());
+        realmManager.load();
         dustManager.load(getConfig());
     }
 
@@ -560,6 +570,10 @@ public final class SolRNGPlugin extends JavaPlugin {
     /** Pets: what a player owns, what they wear and what it pays. */
     public com.spacerng.solrng.pet.DustManager getDustManager() {
         return dustManager;
+    }
+
+    public com.spacerng.solrng.realm.RealmManager getRealmManager() {
+        return realmManager;
     }
 
     public com.spacerng.solrng.pet.PetManager getPetManager() {

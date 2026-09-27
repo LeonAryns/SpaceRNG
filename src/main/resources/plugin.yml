@@ -147,6 +147,13 @@ commands:
   pets:
     description: Your pet slots and every pet
     usage: /pets
+  realm:
+    description: Go through to the Secret Realm while it is open
+    usage: /realm [leave]
+  secretindex:
+    description: The secrets you found in the Secret Realm
+    usage: /secretindex
+    aliases: [secrets]
   rngadmin:
     description: Admin tools for SpaceRNG
     usage: /rngadmin <subcommand>, or /rngadmin alone for the full list

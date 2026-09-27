@@ -38,6 +38,8 @@ public class PlayerData {
     // Folding them into the normal ones would mean a 1-in-100 find could be
     // eaten by a toggle set for the common version of the same drop.
     private final Set<String> discoveredShiny = new HashSet<>();
+    // Ids of the secrets found in the Secret Realm (V229).
+    private final Set<String> secretsFound = new java.util.LinkedHashSet<>();
     private final Map<Rarity, Long> shinyBank = new EnumMap<>(Rarity.class);
     private boolean autoConvertShiny = false;
     // Rarities whose reveal aura this player has switched off. Stored as
@@ -745,6 +747,10 @@ public class PlayerData {
 
     public void setHoeEnchantLevel(String id, int level) {
         hoeEnchantLevels.put(id, Math.max(0, level));
+    }
+
+    public Set<String> getSecretsFound() {
+        return secretsFound;
     }
 
     public Set<String> getDiscoveredShiny() {

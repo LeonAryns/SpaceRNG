@@ -86,6 +86,8 @@ public final class ConfigMigrator {
             "pets.eggs", "pets.min-prestige",
             // V227: Supernova wears its best tag on its own.
             "ranks.tiers.supernova.auto-tag",
+            // V229: the Secret Realm.
+            "secret-realm",
             // V200: how far a ground piece clears the block under it.
             "auras.ground-lift",
             // V202: the floor under the crate reel's step time.
@@ -431,6 +433,9 @@ public final class ConfigMigrator {
     private static final String DASH = String.valueOf((char) 0x2014);
 
     private static final List<TextPatch> TEXT_PATCHES = List.of(
+            // V228: Perk Tickets left the store.
+            new TextPatch("store-panel-no-tickets", "holograms.panels.store.lines",
+                    "<white>Luck boost, the pass and perk tickets", "<white>Luck boost and the Battle Pass"),
             // V132: the Discord and Perks tips in the same look as every other tip.
             new TextPatch("tip-discord-1", "announcements.messages", "&5&l| DISCORD SERVER",
                     "&3▎ &e▸ &7Join our &9&lDiscord&7 for giveaways, news and updates."),

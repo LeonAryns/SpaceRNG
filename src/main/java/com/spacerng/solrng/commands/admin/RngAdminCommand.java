@@ -40,7 +40,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             "reload", "setspawn", "starforge", "reset", "give", "drops",
             "bank", "rank", "cosmetic", "bedrock", "aura", "auras", "head", "reveal", "nextroll", "roll", "unlock", "unlockall", "lockall", "odds", "farmblock", "farmscan", "farmwheat", "farmland",
             "hoe", "consumable", "gradient", "welcome", "crops", "farmclear",
-            "milestones", "farmfill", "boost", "crowd", "nova", "placeholders", "payout", "crate", "tophead", "floatingitem", "boss", "pet", "dust", "discord", "advancements", "icon", "shiny", "firsts", "lorestyles", "tagstyles", "menustyles", "hoestyles", "standingstyles", "enchantstyles", "novastyles", "auratest", "holo", "help");
+            "milestones", "farmfill", "boost", "crowd", "nova", "placeholders", "payout", "crate", "tophead", "floatingitem", "boss", "pet", "dust", "discord", "realm", "advancements", "icon", "shiny", "firsts", "lorestyles", "tagstyles", "menustyles", "hoestyles", "standingstyles", "enchantstyles", "novastyles", "auratest", "holo", "help");
     private static final List<String> CURRENCIES = List.of("money", "coins", "gems", "credits", "luck", "speed", "tickets");
 
     private final SolRNGPlugin plugin;
@@ -122,6 +122,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             case "pet" -> players.doPet(sender, args);
             case "dust" -> players.doDust(sender, args);
             case "discord" -> world.doDiscord(sender, args);
+            case "realm" -> world.doRealm(sender, args);
             case "advancements" -> world.doAdvancements(sender, args);
             case "icon" -> showcase.doIcon(sender, args);
             default -> {
@@ -180,6 +181,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         line(sender, "pet", "<give|take|list> <pet|all> [player]", "Hand out a pet, until they can be earned");
         line(sender, "dust", "<cosmic|farm> <amount> [player]", "Hand out pet dust, for testing");
         line(sender, "discord", "<setup|post <id> [channel]|card <id>>", "Discord roles, a card by the bot or by webhook");
+        line(sender, "realm", "<here|open|close|status>", "Where the Secret Realm is, and open or close it now");
         line(sender, "advancements", "<off|on>", "Hide every vanilla advancement, toasts included");
         line(sender, "icon", "<name|atlas|sprite>", "Show a sidebar icon, or any game sprite, in chat");
         line(sender, "tophead", "<set|podium|remove|clear|list>", "Floating heads for a leaderboard");
@@ -250,6 +252,9 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         if (sub.equals("bedrock")) {
             if (args.length == 2) return partial(args[1], List.of("on", "off"));
             return args.length == 3 ? null : List.of();
+        }
+        if (sub.equals("realm")) {
+            return args.length == 2 ? partial(args[1], List.of("here", "open", "close", "status")) : List.of();
         }
         if (sub.equals("advancements")) {
             return args.length == 2 ? partial(args[1], List.of("off", "on")) : List.of();

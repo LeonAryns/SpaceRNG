@@ -6450,3 +6450,80 @@ pets:
       percent: 0.15
       weight: 0.2
       blurb: "The last thing a star leaves behind."
+
+# ---------------------------------------------------------------------
+# The Secret Realm (V229)
+#
+# A place that opens on its own at a random time, stays open for a few
+# minutes, and only lets in players at min-prestige or higher. /realm
+# takes them there and back; everybody inside goes home when it closes.
+# Every roll made inside has a 1 in find-one-in chance of a secret. A
+# secret goes into /secretindex, and each one found is luck-per-secret
+# of permanent Luck (0.02 is +2%).
+#
+#   /rngadmin realm here      stand where players should arrive
+#   /rngadmin realm open      open it now, to test
+#   /rngadmin realm close     close it now
+#   /rngadmin realm status    where it is and when it opens next
+#
+# The spot and the next opening live in realm.yml.
+secret-realm:
+  enabled: true
+  min-prestige: 25
+  open-seconds: 600
+  min-gap-minutes: 90
+  max-gap-minutes: 240
+  find-one-in: 40
+  luck-per-secret: 0.02
+  # How far from the spot still counts as inside.
+  radius: 64
+  # weight is how often a find is this secret against the others.
+  secrets:
+    quiet_comet:
+      display: "The Quiet Comet"
+      colors: ["#E1F5FE", "#4FC3F7"]
+      icon: PRISMARINE_CRYSTALS
+      weight: 30
+      hint: "It passed over once and nobody heard it."
+    veiled_nebula:
+      display: "Veiled Nebula"
+      colors: ["#F3E5F5", "#BA68C8"]
+      icon: AMETHYST_CLUSTER
+      weight: 24
+      hint: "A cloud that hides what it is making."
+    hollow_moon:
+      display: "Hollow Moon"
+      colors: ["#ECEFF1", "#90A4AE"]
+      icon: SNOWBALL
+      weight: 18
+      hint: "Knock on it and something knocks back."
+    starless_key:
+      display: "Starless Key"
+      colors: ["#FFF8E1", "#FFB300"]
+      icon: TRIAL_KEY
+      weight: 12
+      hint: "It opens a sky with nothing in it."
+    eclipse_shard:
+      display: "Eclipse Shard"
+      colors: ["#FFCCBC", "#BF360C"]
+      icon: BLAZE_POWDER
+      weight: 8
+      hint: "A piece of the moment the light went out."
+    lost_constellation:
+      display: "Lost Constellation"
+      colors: ["#E8EAF6", "#5C6BC0"]
+      icon: ECHO_SHARD
+      weight: 5
+      hint: "Seven stars nobody has drawn a line through."
+    whisper_of_the_void:
+      display: "Whisper of the Void"
+      colors: ["#D1C4E9", "#311B92"]
+      icon: ENDER_EYE
+      weight: 2.5
+      hint: "It says your name, but not out loud."
+    origin_spark:
+      display: "Origin Spark"
+      colors: ["#FFFDE7", "#FFD54F", "#FF6F00"]
+      icon: NETHER_STAR
+      weight: 0.5
+      hint: "What was there before the first star."

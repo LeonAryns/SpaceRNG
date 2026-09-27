@@ -120,6 +120,7 @@ public class PlayerDataManager {
         data.setHoeTier(yml.getInt("hoe-tier", 0));
         data.addFreeSkills(yml.getInt("free-skills", 0));
         data.setAbilityReadyAt(yml.getLong("ability-ready-at", 0L));
+        data.getSecretsFound().addAll(yml.getStringList("secrets-found"));
         for (String itemName : yml.getStringList("discovered-shiny")) {
             data.getDiscoveredShiny().add(com.spacerng.solrng.rarity.RarityManager.currentName(itemName));
         }
@@ -383,6 +384,7 @@ public class PlayerDataManager {
         }
         yml.set("auto-convert-shiny", data.isAutoConvertShiny());
         yml.set("discovered-shiny", new java.util.ArrayList<>(data.getDiscoveredShiny()));
+        yml.set("secrets-found", new java.util.ArrayList<>(data.getSecretsFound()));
         java.util.List<String> disabledAuras = new java.util.ArrayList<>();
         for (Rarity r : data.getDisabledAuras()) disabledAuras.add(r.name());
         yml.set("disabled-auras", disabledAuras);

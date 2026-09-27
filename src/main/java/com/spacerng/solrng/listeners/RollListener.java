@@ -907,6 +907,7 @@ public class RollListener implements Listener {
         // the action bar stays with the Auto Roll line.
         maybeRegisterDiscovery(player, data, result, silent, shiny, auto);
         maybeBroadcast(player, result, previewItem, shiny);
+        if (plugin.getRealmManager() != null) plugin.getRealmManager().onRoll(player, data);
     }
 
     /**
