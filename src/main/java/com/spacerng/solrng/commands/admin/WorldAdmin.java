@@ -765,6 +765,23 @@ final class WorldAdmin extends AdminTools {
                     () -> sender.sendMessage(ChatColor.GRAY + "  " + line)));
             return true;
         }
+        if (action.equals("status") || action.equals("restart")) {
+            if (plugin.getDiscordBot() == null) {
+                sender.sendMessage(ChatColor.RED + "The bot could not be built, see the console.");
+                return true;
+            }
+            if (action.equals("restart")) {
+                // A new token or intent counts from here, no server restart.
+                plugin.reloadConfig();
+                plugin.getDiscordBot().restart();
+                sender.sendMessage(ChatColor.GRAY + "Logging in again. Try /rngadmin discord status in a few seconds.");
+                return true;
+            }
+            sender.sendMessage(ChatColor.LIGHT_PURPLE + "Discord bot");
+            plugin.getDiscordBot().status(line -> plugin.getServer().getScheduler().runTask(plugin,
+                    () -> sender.sendMessage(ChatColor.GRAY + "  " + line)));
+            return true;
+        }
         if (action.equals("post")) {
             if (plugin.getDiscordBot() == null) {
                 sender.sendMessage(ChatColor.RED + "DiscordSRV is not installed, so there is no bot.");
@@ -781,6 +798,10 @@ final class WorldAdmin extends AdminTools {
             return true;
         }
         if (!action.equals("card")) {
+            sender.sendMessage(ChatColor.YELLOW + "/rngadmin discord status"
+                    + ChatColor.GRAY + " - is the bot online, and if not, why");
+            sender.sendMessage(ChatColor.YELLOW + "/rngadmin discord restart"
+                    + ChatColor.GRAY + " - log in again after changing the token");
             sender.sendMessage(ChatColor.YELLOW + "/rngadmin discord setup"
                     + ChatColor.GRAY + " - make the rank roles in Discord");
             sender.sendMessage(ChatColor.YELLOW + "/rngadmin discord post <id> [channel id]"

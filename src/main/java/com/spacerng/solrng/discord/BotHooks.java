@@ -41,5 +41,11 @@ public interface BotHooks {
     /** Whether the bot is logged in and ready. */
     boolean isOnline();
 
+    /** Prints what is wrong, if anything. */
+    void status(java.util.function.Consumer<String> say);
+
+    /** Logs out and in again, for a new token without a restart. */
+    void restart();
+
     void shutdown();
 }

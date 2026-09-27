@@ -180,7 +180,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         line(sender, "boss", "<here|start|stop|process> [type]", "The boss spot, one by hand, and the timer");
         line(sender, "pet", "<give|take|list> <pet|all> [player]", "Hand out a pet, until they can be earned");
         line(sender, "dust", "<cosmic|farm> <amount> [player]", "Hand out pet dust, for testing");
-        line(sender, "discord", "<setup|post <id> [channel]|card <id>>", "Discord roles, a card by the bot or by webhook");
+        line(sender, "discord", "<status|restart|setup|post <id>|card <id>>", "The bot: what is wrong, log in again, roles, cards");
         line(sender, "realm", "<here|open|close|status>", "Where the Secret Realm is, and open or close it now");
         line(sender, "advancements", "<off|on>", "Hide every vanilla advancement, toasts included");
         line(sender, "icon", "<name|atlas|sprite>", "Show a sidebar icon, or any game sprite, in chat");
@@ -260,7 +260,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             return args.length == 2 ? partial(args[1], List.of("off", "on")) : List.of();
         }
         if (sub.equals("discord")) {
-            if (args.length == 2) return partial(args[1], List.of("card", "post", "setup"));
+            if (args.length == 2) return partial(args[1], List.of("status", "restart", "setup", "post", "card"));
             if (args.length == 3) {
                 var cards = plugin.getConfig().getConfigurationSection("discord.cards");
                 return cards == null ? List.of() : partial(args[2], new ArrayList<>(cards.getKeys(false)));

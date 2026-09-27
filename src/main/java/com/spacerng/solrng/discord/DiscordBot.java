@@ -78,6 +78,9 @@ public class DiscordBot extends ListenerAdapter implements BotHooks {
     private final LinkStore links;
     private volatile JDA jda;
     private volatile boolean ready;
+    // What is wrong right now, in words Leon can act on. Shown by
+    // /rngadmin discord status and by every command that needs the bot.
+    private volatile String problem = "Not started yet.";
 
     // Config
     private String token = "";
@@ -171,11 +174,16 @@ public class DiscordBot extends ListenerAdapter implements BotHooks {
      * the state of every server until Leon pastes one in.
      */
     public void start() {
-        if (!plugin.getConfig().getBoolean("discord.bot.enabled", true)) return;
+        if (!plugin.getConfig().getBoolean("discord.bot.enabled", true)) {
+            problem = "discord.bot.enabled is false in config.yml.";
+            return;
+        }
         if (token.isEmpty()) {
+            problem = "No token: discord.bot.token in plugins/SpaceRNG/config.yml is empty.";
             plugin.getLogger().info("Discord bot: no discord.bot.token set, so the bot stays offline.");
             return;
         }
+        problem = "Logging in...";
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
                 jda = JDABuilder.createLight(token,
@@ -185,18 +193,58 @@ public class DiscordBot extends ListenerAdapter implements BotHooks {
                         .addEventListeners(this)
                         .build();
             } catch (Throwable t) {
-                plugin.getLogger().warning("Discord bot: could not log in (" + t.getMessage()
-                        + "). Check discord.bot.token, and that Server Members Intent and Message"
-                        + " Content Intent are switched on in the Developer Portal.");
+                problem = "Login failed: " + t.getMessage()
+                        + ". Is the token right? Copy it again from Developer Portal, Bot, Reset Token.";
+                plugin.getLogger().warning("Discord bot: " + problem);
             }
         });
     }
 
+    /** Logs out and in again with whatever config says now. */
+    @Override
+    public void restart() {
+        shutdown();
+        load();
+        start();
+    }
+
     @Override
     public void onReady(ReadyEvent event) {
+        connectGuild();
+    }
+
+    /** Invited while already running: no restart needed. */
+    @Override
+    public void onGuildJoin(net.dv8tion.jda.api.events.guild.GuildJoinEvent event) {
+        if (!ready) connectGuild();
+    }
+
+    /**
+     * Discord closed the connection. The close code says why, and the two
+     * that matter here each have one fix.
+     */
+    @Override
+    public void onShutdown(net.dv8tion.jda.api.events.session.ShutdownEvent event) {
+        ready = false;
+        var code = event.getCloseCode();
+        if (code == null) return;
+        if (code == net.dv8tion.jda.api.requests.CloseCode.DISALLOWED_INTENTS) {
+            problem = "Discord refused the intents. Developer Portal, your app, Bot: switch on Server Members"
+                    + " Intent and Message Content Intent, Save, then /rngadmin discord restart.";
+        } else if (code == net.dv8tion.jda.api.requests.CloseCode.AUTHENTICATION_FAILED) {
+            problem = "The token is wrong. Reset it in the Developer Portal and paste the new one.";
+        } else {
+            problem = "Discord closed the connection: " + code.getMeaning();
+        }
+        plugin.getLogger().warning("Discord bot: " + problem);
+    }
+
+    private void connectGuild() {
         Guild guild = guild();
         if (guild == null) {
-            plugin.getLogger().warning("Discord bot: logged in, but it is not in any server. Invite it first.");
+            problem = "Logged in, but the bot is not in your Discord server. Invite it with the"
+                    + " OAuth2 URL Generator link (scopes bot and applications.commands).";
+            plugin.getLogger().warning("Discord bot: " + problem);
             return;
         }
         List<CommandData> commands = List.of(
@@ -216,6 +264,7 @@ public class DiscordBot extends ListenerAdapter implements BotHooks {
                             + "). Invite the bot with the applications.commands scope."));
         }
         ready = true;
+        problem = "";
         plugin.getLogger().info("Discord bot: online in " + guild.getName() + ", "
                 + commands.size() + " slash commands sent.");
         plugin.getServer().getScheduler().runTask(plugin, this::syncAll);
@@ -491,7 +540,7 @@ public class DiscordBot extends ListenerAdapter implements BotHooks {
     public void postCard(String id, String channelId, Consumer<String> say) {
         Guild guild = guild();
         if (!ready || guild == null) {
-            say.accept("The bot is not connected to Discord. Check discord.bot.token and the console.");
+            say.accept("The bot is not connected. " + problem);
             return;
         }
         ConfigurationSection card = plugin.getConfig().getConfigurationSection("discord.cards." + id);
@@ -544,7 +593,7 @@ public class DiscordBot extends ListenerAdapter implements BotHooks {
     public void setupRoles(Consumer<String> say) {
         Guild guild = guild();
         if (!ready || guild == null) {
-            say.accept("The bot is not connected to Discord. Check discord.bot.token and the console.");
+            say.accept("The bot is not connected. " + problem);
             return;
         }
         Member self = guild.getSelfMember();
@@ -658,6 +707,21 @@ public class DiscordBot extends ListenerAdapter implements BotHooks {
     @Override
     public boolean isOnline() {
         return ready && jda != null;
+    }
+
+    /** Everything worth knowing when the bot does not answer. */
+    @Override
+    public void status(Consumer<String> say) {
+        JDA current = jda;
+        say.accept("Token: " + (token.isEmpty() ? "empty" : "set (" + token.length() + " characters)"));
+        say.accept("Connection: " + (current == null ? "none" : current.getStatus().name()));
+        if (current != null && current.getStatus() == JDA.Status.CONNECTED) {
+            List<String> names = new ArrayList<>();
+            for (Guild guild : current.getGuilds()) names.add(guild.getName() + " (" + guild.getId() + ")");
+            say.accept("Servers: " + (names.isEmpty() ? "none, invite the bot" : String.join(", ", names)));
+            say.accept("Bot account: " + current.getSelfUser().getName());
+        }
+        say.accept(ready ? "Ready." : "Problem: " + problem);
     }
 
     // ---------------------------------------------------------------
