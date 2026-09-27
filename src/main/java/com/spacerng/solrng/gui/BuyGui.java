@@ -28,7 +28,9 @@ import java.util.Map;
  * the Discord link gift all disprove.
  *
  *    row 0   rail, the store's name in the middle, your Credits top right
- *    row 2   Ranks · Global Luck · Premium Pass · Perk Tickets
+ *    row 2   Ranks · Global Luck · Premium Pass
+ *            (Perk Tickets left the shelf in V228, Leon's call; they are
+ *            still sold in /perks)
  *    row 4   rail, the web store in the middle when a link is set
  *
  * Every product is the description block from the menu-design skill:
@@ -42,10 +44,9 @@ public class BuyGui {
     private static final int SIZE = 45;
     private static final int HEADER_SLOT = 4;
     private static final int WALLET_SLOT = 8;
-    public static final int RANKS_SLOT = 19;
-    public static final int BOOST_SLOT = 21;
-    public static final int BATTLEPASS_SLOT = 23;
-    public static final int PERKS_SLOT = 25;
+    public static final int RANKS_SLOT = 20;
+    public static final int BOOST_SLOT = 22;
+    public static final int BATTLEPASS_SLOT = 24;
     public static final int WEBSTORE_SLOT = 40;
 
     public static Inventory build(SolRNGPlugin plugin, Player player) {
@@ -65,7 +66,6 @@ public class BuyGui {
         inv.setItem(RANKS_SLOT, ranks(plugin, data));
         inv.setItem(BOOST_SLOT, boost(plugin, data));
         inv.setItem(BATTLEPASS_SLOT, pass(plugin, data));
-        inv.setItem(PERKS_SLOT, perkTickets(plugin, data));
         if (!storeUrl(plugin).isEmpty()) inv.setItem(WEBSTORE_SLOT, webStore());
         return inv;
     }
@@ -213,30 +213,6 @@ public class BuyGui {
         }
         meta.setLore(lore);
         if (owned) meta.setEnchantmentGlintOverride(Boolean.TRUE);
-        item.setItemMeta(meta);
-        return item;
-    }
-
-    private static ItemStack perkTickets(SolRNGPlugin plugin, PlayerData data) {
-        ItemStack item = new ItemStack(Material.ENDER_EYE);
-        ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(Lore.gradient("Perk Tickets", true, "#D1C4E9", "#7E57C2"));
-
-        List<String> lore = new ArrayList<>();
-        lore.add(ChatColor.DARK_GRAY + "One ticket is one perk roll");
-        lore.add("");
-        lore.add(ChatColor.GRAY + "Roll for a perk that boosts one stat,");
-        lore.add(ChatColor.GRAY + "all the way up to the Universe perk.");
-        lore.add("");
-        lore.add(Lore.section(ChatColor.AQUA, "Packs"));
-        for (Map.Entry<Integer, Long> pack : plugin.getPerkManager().ticketPrices().entrySet()) {
-            lore.add(Lore.stat(ChatColor.AQUA, pack.getKey() + "x", Currency.CREDITS.amount(pack.getValue())));
-        }
-        lore.add("");
-        lore.add(Lore.stat(ChatColor.GREEN, "You have", String.format("%,d", data.getPerkTickets())));
-        lore.add("");
-        lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to open");
-        meta.setLore(lore);
         item.setItemMeta(meta);
         return item;
     }

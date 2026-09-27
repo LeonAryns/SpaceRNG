@@ -255,11 +255,6 @@ final class ShopClicks {
             player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.4f, 1.6f);
             return;
         }
-        if (event.getRawSlot() == BuyGui.PERKS_SLOT) {
-            player.openInventory(com.spacerng.solrng.gui.PerkRollerGui.build(plugin, player));
-            player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.4f, 1.6f);
-            return;
-        }
         if (event.getRawSlot() == BuyGui.WEBSTORE_SLOT && !BuyGui.storeUrl(plugin).isEmpty()) {
             String url = BuyGui.storeUrl(plugin);
             player.closeInventory();

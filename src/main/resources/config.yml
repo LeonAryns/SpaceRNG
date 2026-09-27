@@ -3858,7 +3858,7 @@ holograms:
       title: "<gradient:#F8BBD0:#EC407A:#AB47BC><b>STORE</b></gradient>"
       lines:
         - "<white>Spend <gradient:#FF5555:#FFAA00:#FFFF55:#55FF55:#55FFFF:#FF55FF:#FF5555>Credits</gradient> on ranks, a global"
-        - "<white>Luck boost, the pass and perk tickets"
+        - "<white>Luck boost and the Battle Pass"
     novacore:
       title: "<gradient:#FCE4EC:#F06292:#BA68C8><b>NOVA CORE</b></gradient>"
       lines:
