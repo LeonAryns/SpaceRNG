@@ -92,7 +92,7 @@ public class LinkedAccountManager {
                 "&cUnlinked from Discord. &7Bonuses removed."));
         broadcastEnabled = config.getBoolean("linked-account.broadcast.enabled", true);
         broadcastTitle = config.getString("linked-account.broadcast.title", "DISCORD");
-        broadcastSubtitle = config.getString("linked-account.broadcast.subtitle", "COMMUNITY");
+        broadcastSubtitle = config.getString("linked-account.broadcast.subtitle", "");
         broadcastLines = config.getStringList("linked-account.broadcast.lines");
         if (broadcastLines.isEmpty()) {
             broadcastLines = java.util.List.of(
@@ -197,7 +197,8 @@ public class LinkedAccountManager {
 
     private void onJustLinked(Player player) {
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
-        if (!linkAnnounce.isEmpty()) player.sendMessage(linkAnnounce);
+        if (!linkAnnounce.isEmpty()) player.sendMessage(fill(linkAnnounce, player));
+        player.playSound(player.getLocation(), org.bukkit.Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.7f, 1.4f);
         // First-link gift only fires when the flag isn't set. A relink
         // does nothing so nobody farms the gift with unlink/relink
         // loops, which is exactly the failure mode this gate covers.
@@ -229,8 +230,6 @@ public class LinkedAccountManager {
                 gift.append(Currency.MONEY.amount(firstLinkMoney));
             }
             if (any) player.sendMessage(gift.toString());
-            player.playSound(player.getLocation(),
-                    org.bukkit.Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.7f, 1.4f);
         }
     }
 
@@ -246,15 +245,13 @@ public class LinkedAccountManager {
         if (!broadcastEnabled) return;
 
         String title = com.spacerng.solrng.gui.Lore.gradient(broadcastTitle, true, BLURPLE);
-        String subtitle = ChatColor.DARK_GRAY + broadcastSubtitle;
 
         for (Player online : Bukkit.getOnlinePlayers()) {
             online.sendMessage("");
             online.sendMessage(title);
-            online.sendMessage(subtitle);
-            online.sendMessage("");
+            if (!broadcastSubtitle.isBlank()) online.sendMessage(ChatColor.DARK_GRAY + broadcastSubtitle);
             for (String line : broadcastLines) {
-                online.sendMessage(colour(line.replace("{player}", player.getName())));
+                online.sendMessage(fill(colour(line), player));
             }
             online.sendMessage("");
             online.playSound(online.getLocation(),
@@ -263,6 +260,17 @@ public class LinkedAccountManager {
     }
 
     private void onJustUnlinked(Player player) {
-        if (!unlinkAnnounce.isEmpty()) player.sendMessage(unlinkAnnounce);
+        if (!unlinkAnnounce.isEmpty()) player.sendMessage(fill(unlinkAnnounce, player));
+    }
+
+    /** {player} and {luck} in a configured line. */
+    private String fill(String line, Player player) {
+        return line.replace("{player}", player.getName()).replace("{luck}", percent(luckBonus));
+    }
+
+    /** 1.0 as "100%", 0.25 as "25%". */
+    public static String percent(double value) {
+        double shown = value * 100.0;
+        return (shown == Math.rint(shown) ? String.valueOf((long) shown) : String.format("%.1f", shown)) + "%";
     }
 }

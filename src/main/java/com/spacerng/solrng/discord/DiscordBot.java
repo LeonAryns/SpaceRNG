@@ -347,7 +347,10 @@ public class DiscordBot extends ListenerAdapter implements BotHooks {
             Player online = Bukkit.getPlayer(uuid);
             if (online != null) plugin.getRankManager().refreshName(online);
         });
-        return "Linked to **" + safe(name) + "**. Your Linked rank and rewards follow in a few seconds.";
+        double luck = plugin.getLinkedAccountManager().luckBonus();
+        return "\u2705 Linked to **" + safe(name) + "**."
+                + (luck > 0 ? " You now roll with **+" + LinkedAccountManager.percent(luck)
+                        + " Luck** in game, for as long as you stay linked." : "");
     }
 
     /**

@@ -738,6 +738,27 @@ public final class ConfigMigrator {
             applied.add("link-card-v230");
             changed = true;
         }
+        // V232: the link pays +100% Luck and nothing else, so the card's
+        // reward lines are replaced while they still promise the old ones.
+        if (!applied.contains("link-card-rewards-v232")) {
+            Object fields = disk.get("discord.cards.link.fields");
+            if (fields != null && String.valueOf(fields).contains("+10% Luck, Money, Coins and Shiny")) {
+                InputStream stream = plugin.getResource("config.yml");
+                if (stream != null) {
+                    try (InputStreamReader reader = new InputStreamReader(stream, StandardCharsets.UTF_8)) {
+                        YamlConfiguration jar = YamlConfiguration.loadConfiguration(reader);
+                        if (jar.isConfigurationSection("discord.cards.link")) {
+                            disk.set("discord.cards.link", jar.get("discord.cards.link"));
+                            plugin.getLogger().info("Config patch link-card-rewards-v232: discord.cards.link replaced");
+                        }
+                    } catch (IOException ignored) {
+                        // Left as it was.
+                    }
+                }
+            }
+            applied.add("link-card-rewards-v232");
+            changed = true;
+        }
         if (changed) disk.set("applied-patches", applied);
         return changed;
     }

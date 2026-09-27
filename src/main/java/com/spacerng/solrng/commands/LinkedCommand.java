@@ -56,37 +56,47 @@ public class LinkedCommand implements CommandExecutor {
         }
 
         boolean isLinked = linked.isLinked(player.getUniqueId());
+        String reward = rewardText(linked);
         player.sendMessage("");
-        player.sendMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "Discord Link");
-        player.sendMessage(ChatColor.GRAY + "Status: "
-                + (isLinked ? ChatColor.GREEN + "linked" : ChatColor.RED + "not linked"));
-        if (!isLinked) {
-            if (bot == null || !bot.isOnline()) {
-                player.sendMessage(ChatColor.GRAY + "The Discord bot is offline right now, try again later.");
-            } else {
-                String code = store.newCode(player.getUniqueId());
-                player.sendMessage(Component.text("Your code: ", NamedTextColor.GRAY)
-                        .append(Component.text(code, NamedTextColor.GOLD, TextDecoration.BOLD)
-                                .clickEvent(ClickEvent.copyToClipboard(code))
-                                .hoverEvent(HoverEvent.showText(Component.text("Click to copy"))))
-                        .append(Component.text("  (click to copy, valid 5 minutes)", NamedTextColor.DARK_GRAY)));
-                player.sendMessage(ChatColor.WHITE + "In Discord, press " + ChatColor.GREEN + "Link account"
-                        + ChatColor.WHITE + " in the link channel and enter it.");
+        player.sendMessage(com.spacerng.solrng.gui.Lore.gradient("DISCORD LINK", true, "#5865F2", "#7289DA"));
+        if (isLinked) {
+            player.sendMessage(ChatColor.GREEN + " \u258E " + ChatColor.GRAY + "Linked " + ChatColor.GREEN + "\u2714");
+            if (!reward.isEmpty()) {
+                player.sendMessage(ChatColor.GREEN + " \u258E " + ChatColor.GRAY + "You roll with "
+                        + ChatColor.GREEN + reward + ChatColor.GRAY + " while you stay linked");
             }
+            player.sendMessage(ChatColor.DARK_GRAY + " /link unlink takes it off again");
+        } else if (bot == null || !bot.isOnline()) {
+            player.sendMessage(ChatColor.RED + " \u258E " + ChatColor.GRAY + "The Discord bot is offline, try again later.");
         } else {
-            player.sendMessage(ChatColor.DARK_GRAY + "/link unlink takes the link off again.");
+            String code = store.newCode(player.getUniqueId());
+            player.sendMessage(Component.text(" \u258E ", NamedTextColor.YELLOW)
+                    .append(Component.text("Your code  ", NamedTextColor.GRAY))
+                    .append(Component.text(code, NamedTextColor.GOLD, TextDecoration.BOLD)
+                            .clickEvent(ClickEvent.copyToClipboard(code))
+                            .hoverEvent(HoverEvent.showText(Component.text("Click to copy"))))
+                    .append(Component.text("  click to copy", NamedTextColor.DARK_GRAY)));
+            player.sendMessage(ChatColor.YELLOW + " \u258E " + ChatColor.GRAY + "In Discord, press "
+                    + ChatColor.GREEN + "Link account" + ChatColor.GRAY + " in the link channel and type it in");
+            player.sendMessage(ChatColor.YELLOW + " \u258E " + ChatColor.GRAY + "The code works for 5 minutes");
+            if (!reward.isEmpty()) {
+                player.sendMessage("");
+                player.sendMessage(ChatColor.GRAY + " Reward: " + ChatColor.GREEN + reward
+                        + ChatColor.GRAY + " for as long as you stay linked");
+            }
         }
-        player.sendMessage(ChatColor.GRAY + "Bonuses while linked:");
-        player.sendMessage(bonusLine(ChatColor.GOLD, "Money", linked.moneyBonus()));
-        player.sendMessage(bonusLine(ChatColor.YELLOW, "Coins", linked.coinsBonus()));
-        player.sendMessage(bonusLine(ChatColor.GREEN, "Luck", linked.luckBonus()));
-        player.sendMessage(bonusLine(ChatColor.AQUA, "Shiny", linked.shinyBonus()));
         player.sendMessage("");
         return true;
     }
 
-    private static String bonusLine(ChatColor colour, String label, double amount) {
-        return colour + " ▎ " + ChatColor.GRAY + label + ": " + ChatColor.WHITE
-                + "+" + Math.round(amount * 100) + "%";
+    /** "+100% Luck", or several joined, from whatever the config pays. */
+    private static String rewardText(LinkedAccountManager linked) {
+        java.util.List<String> parts = new java.util.ArrayList<>();
+        if (linked.luckBonus() > 0) parts.add("+" + LinkedAccountManager.percent(linked.luckBonus()) + " Luck");
+        if (linked.moneyBonus() > 0) parts.add("+" + LinkedAccountManager.percent(linked.moneyBonus()) + " Money");
+        if (linked.coinsBonus() > 0) parts.add("+" + LinkedAccountManager.percent(linked.coinsBonus()) + " Coins");
+        if (linked.shinyBonus() > 0) parts.add("+" + LinkedAccountManager.percent(linked.shinyBonus()) + " Shiny");
+        return String.join(", ", parts);
     }
+
 }
