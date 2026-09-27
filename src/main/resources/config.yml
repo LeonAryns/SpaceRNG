@@ -5720,28 +5720,33 @@ discord:
         - name: "Link your account"
           value: "Type `/discord link` in game and follow the code."
           inline: false
+    # In the style of the card Leon liked. {link-channel} becomes a
+    # clickable mention of discord.bot.link-channel when the bot posts it.
     link:
       title: "How to Link"
       color: "#43A047"
       description:
-        - "Connect your Minecraft account to Discord to unlock your link"
-        - "rewards and the rest of the server."
+        - "Connect your Minecraft account on **spacerng.minehut.gg** to Discord to unlock the rest of the server and your in-game link rewards."
       fields:
-        - name: "1. Join the server"
-          value: "Hop on `spacerng.minehut.gg` in Minecraft."
+        - name: "🎮 Join the server"
+          value: "Hop on **spacerng.minehut.gg** in Minecraft."
           inline: false
-        - name: "2. Run /discord link in chat"
+        - name: "🔗 Run `/link` in chat"
           value: "The server hands you a code."
           inline: false
-        - name: "3. Send the code here"
-          value: "Post **only the code** in the link channel. Typing the command in Discord does not work."
-          inline: false
-        - name: "What you get"
+        - name: "💬 Send the code here"
           value:
-            - "A one-time gift of Credits and Coins"
-            - "A passive bonus on Luck, Money, Coins and Shiny"
-            - "The Linked rank, which opens auras and `/pv 1`"
+            - "Post **only the code** in {link-channel}."
+            - "Typing the command does not work in Discord."
           inline: false
+        - name: "🎁 Link Rewards"
+          value:
+            - "The **Linked** rank: auras and `/pv 1`"
+            - "+10% Luck, Money, Coins and Shiny while you stay linked"
+            - "A one-time gift of 100 Credits and 25,000 Coins"
+            - "Your Discord role follows your rank"
+          inline: false
+      footer: "Codes run out after a few minutes. Still stuck? Run /link again and send the new code."
 
   # The bot. It is not a bot of its own: DiscordSRV already runs one, so
   # the slash commands appear under that bot and the roles are handed out
@@ -5761,6 +5766,12 @@ discord:
       comet: ""
       nova: ""
       supernova: ""
+    # The channel where players post the code from /link. The bot reads
+    # every message there, links the account, and deletes the message so
+    # the card stays on its own. Empty means only private messages work.
+    link-channel: ""
+    # Where /rngadmin discord post puts a card when no channel is named.
+    cards-channel: ""
     # Take back the role of a rank somebody no longer has.
     remove-old-roles: true
 

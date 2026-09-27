@@ -62,6 +62,13 @@ public class DiscordBot extends ListenerAdapter implements BotHooks {
     private String linkedRole = "";
     private final Map<String, String> rankRoles = new LinkedHashMap<>();
     private boolean removeOldRoles = true;
+    // Where a player posts the code /link gave them. DiscordSRV itself only
+    // reads codes sent to the bot in a private message, which nobody finds.
+    private String linkChannel = "";
+    // Where /rngadmin discord post puts a card when no channel is named.
+    private String cardsChannel = "";
+    // card id to "channel:message", so posting a card again edits it.
+    private final Map<String, String> posted = new LinkedHashMap<>();
 
     // Roles this plugin made itself, kept in their own file. Writing them
     // back into config.yml would mean rewriting it, and Bukkit's writer
@@ -81,8 +88,11 @@ public class DiscordBot extends ListenerAdapter implements BotHooks {
         commandChannel = config.getString("discord.bot.command-channel", "").trim();
         linkedRole = config.getString("discord.bot.linked-role", "").trim();
         removeOldRoles = config.getBoolean("discord.bot.remove-old-roles", true);
+        linkChannel = config.getString("discord.bot.link-channel", "").trim();
+        cardsChannel = config.getString("discord.bot.cards-channel", "").trim();
         rankRoles.clear();
         madeRoles.clear();
+        posted.clear();
         // What /rngadmin discord setup made, first, so a rank that has no
         // id in config still has one.
         if (file.exists()) {
@@ -97,6 +107,10 @@ public class DiscordBot extends ListenerAdapter implements BotHooks {
             rankRoles.putAll(madeRoles);
             String linked = yml.getString("linked-role", "").trim();
             if (!linked.isEmpty() && linkedRole.isEmpty()) linkedRole = linked;
+            var cards = yml.getConfigurationSection("posted");
+            if (cards != null) {
+                for (String card : cards.getKeys(false)) posted.put(card, cards.getString(card, ""));
+            }
         }
         // Anything written by hand in config wins over what was made.
         ConfigurationSection section = config.getConfigurationSection("discord.bot.rank-roles");
@@ -106,12 +120,20 @@ public class DiscordBot extends ListenerAdapter implements BotHooks {
                 if (!id.isEmpty()) rankRoles.put(rank.toLowerCase(Locale.ROOT), id);
             }
         }
+        if (linkedRole.isEmpty() && rankRoles.containsKey("linked")) linkedRole = rankRoles.get("linked");
     }
 
     private void saveMade() {
         var yml = new org.bukkit.configuration.file.YamlConfiguration();
         for (Map.Entry<String, String> entry : madeRoles.entrySet()) {
             yml.set("rank-roles." + entry.getKey(), entry.getValue());
+        }
+        // The Linked rank's role doubles as the role every linked account
+        // wears, so a Supernova who is linked keeps it too.
+        String madeLinked = madeRoles.get("linked");
+        if (madeLinked != null) yml.set("linked-role", madeLinked);
+        for (Map.Entry<String, String> entry : posted.entrySet()) {
+            yml.set("posted." + entry.getKey(), entry.getValue());
         }
         try {
             yml.save(file);
@@ -172,6 +194,9 @@ public class DiscordBot extends ListenerAdapter implements BotHooks {
     private void adopt(String rank, Role role, java.util.function.Consumer<String> say, String what) {
         rankRoles.put(rank, role.getId());
         madeRoles.put(rank, role.getId());
+        if (rank.equals("linked") && plugin.getConfig().getString("discord.bot.linked-role", "").isBlank()) {
+            linkedRole = role.getId();
+        }
         saveMade();
         say.accept(what + " the role " + role.getName() + " for " + rank + ".");
         syncAll();
@@ -385,10 +410,11 @@ public class DiscordBot extends ListenerAdapter implements BotHooks {
     /** One of the config cards as an embed, the same shape the webhook posts. */
     private MessageEmbed cardEmbed(ConfigurationSection card) {
         EmbedBuilder embed = new EmbedBuilder()
-                .setTitle(card.getString("title", "SpaceRNG"))
+                .setTitle(fill(card.getString("title", "SpaceRNG")))
                 .setColor(colourOf(card.getString("color", "#C77DFF")));
         List<String> description = card.getStringList("description");
-        if (!description.isEmpty()) embed.setDescription(String.join("\n", description));
+        if (description.isEmpty() && card.isString("description")) description = List.of(card.getString("description"));
+        if (!description.isEmpty()) embed.setDescription(fill(String.join("\n", description)));
         for (Map<?, ?> raw : card.getMapList("fields")) {
             Object name = raw.get("name");
             Object value = raw.get("value");
@@ -396,9 +422,131 @@ public class DiscordBot extends ListenerAdapter implements BotHooks {
             String text = value instanceof List<?> lines
                     ? String.join("\n", lines.stream().map(String::valueOf).toList())
                     : String.valueOf(value);
-            embed.addField(String.valueOf(name), text, raw.get("inline") == Boolean.TRUE);
+            embed.addField(fill(String.valueOf(name)), fill(text), raw.get("inline") == Boolean.TRUE);
         }
+        String footer = card.getString("footer", "");
+        if (!footer.isBlank()) embed.setFooter(fill(footer));
+        String image = card.getString("image", "");
+        if (!image.isBlank()) embed.setImage(image);
+        String thumbnail = card.getString("thumbnail", "");
+        if (!thumbnail.isBlank()) embed.setThumbnail(thumbnail);
         return embed.build();
+    }
+
+    /** {link-channel} becomes a clickable mention of the link channel. */
+    private String fill(String text) {
+        if (text == null) return "";
+        return text.replace("{link-channel}", linkChannel.isEmpty() ? "the link channel" : "<#" + linkChannel + ">");
+    }
+
+    /**
+     * Posts a config card as the bot, in a channel of the guild.
+     *
+     * The first post is remembered in discord.yml, so posting the same card
+     * again edits that message in place instead of stacking a second copy
+     * under it. Deleting the message in Discord makes the next post a new
+     * one.
+     */
+    @Override
+    public void postCard(String id, String channelId, java.util.function.Consumer<String> say) {
+        if (!commandsRegistered) {
+            say.accept("The bot is not connected to Discord yet. Wait a few seconds and try again.");
+            return;
+        }
+        ConfigurationSection card = plugin.getConfig().getConfigurationSection("discord.cards." + id);
+        if (card == null) {
+            say.accept("There is no card called " + id + " under discord.cards.");
+            return;
+        }
+        Guild guild = DiscordSRV.getPlugin().getMainGuild();
+        if (guild == null) {
+            say.accept("DiscordSRV has no main guild set.");
+            return;
+        }
+        String previous = posted.getOrDefault(id, "");
+        String[] parts = previous.split(":", 2);
+        String wanted = channelId == null || channelId.isBlank()
+                ? (parts.length == 2 ? parts[0] : cardsChannel) : channelId.trim();
+        if (wanted.isEmpty()) {
+            say.accept("Name a channel id, or set discord.bot.cards-channel in config.");
+            return;
+        }
+        var channel = guild.getTextChannelById(wanted);
+        if (channel == null) {
+            say.accept("The bot cannot see a text channel with id " + wanted + ".");
+            return;
+        }
+        MessageEmbed embed = cardEmbed(card);
+        Runnable fresh = () -> channel.sendMessageEmbeds(embed).queue(message -> {
+            posted.put(id, channel.getId() + ":" + message.getId());
+            saveMade();
+            say.accept("Posted " + id + " in #" + channel.getName() + ".");
+        }, error -> say.accept("Could not post: " + error.getMessage()
+                + ". The bot needs Send Messages and Embed Links there."));
+        if (parts.length == 2 && parts[0].equals(channel.getId())) {
+            channel.editMessageEmbedsById(parts[1], embed).queue(
+                    message -> say.accept("Updated " + id + " in #" + channel.getName() + "."),
+                    error -> fresh.run());
+        } else {
+            fresh.run();
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // The link channel
+    // ---------------------------------------------------------------
+
+    /**
+     * A code posted in the link channel links the account, the same as
+     * sending it to the bot privately.
+     *
+     * Everything else posted there is removed, so the card at the top stays
+     * the only thing in the channel and nobody's code sits around for others
+     * to read. The answer is removed after a few seconds for the same reason.
+     */
+    @Override
+    public void onGuildMessageReceived(github.scarsz.discordsrv.dependencies.jda.api.events.message.guild.GuildMessageReceivedEvent event) {
+        if (linkChannel.isEmpty() || !linkChannel.equals(event.getChannel().getId())) return;
+        if (event.getAuthor().isBot() || event.isWebhookMessage()) return;
+        var message = event.getMessage();
+        String text = message.getContentRaw().trim();
+        String userId = event.getAuthor().getId();
+        String reply;
+        boolean linked = false;
+        try {
+            var links = DiscordSRV.getPlugin().getAccountLinkManager();
+            if (!text.matches("\\d{4,8}")) {
+                reply = "Post only the code. Run `/link` in game to get one.";
+            } else if (links.getUuid(userId) != null) {
+                reply = "Your Discord account is already linked.";
+            } else if (!links.getLinkingCodes().containsKey(text)) {
+                reply = "That code is not valid. Codes run out, so run `/link` in game again.";
+            } else {
+                String answer = links.process(text, userId);
+                linked = links.getUuid(userId) != null;
+                reply = linked ? "Linked. Your rank and rewards follow within half a minute."
+                        : (answer == null || answer.isBlank() ? "That did not work, try a new code." : strip(answer));
+            }
+        } catch (Throwable t) {
+            reply = "The server could not read that code right now.";
+        }
+        try {
+            message.delete().queue(null, error -> { });
+        } catch (Throwable ignored) {
+            // Manage Messages missing. The reply still goes out.
+        }
+        String finished = "<@" + userId + "> " + reply;
+        event.getChannel().sendMessage(finished).queue(sent ->
+                sent.delete().queueAfter(15, java.util.concurrent.TimeUnit.SECONDS, null, error -> { }), error -> { });
+        if (linked) {
+            UUID uuid = linkedUuid(userId);
+            if (uuid != null) {
+                plugin.getServer().getScheduler().runTask(plugin, () -> {
+                    plugin.getLinkedAccountManager().checkNow();
+                    syncRoles(uuid);
+                });
+            }
+        }
     }
 
     // ---------------------------------------------------------------
@@ -420,15 +568,23 @@ public class DiscordBot extends ListenerAdapter implements BotHooks {
      */
     @Override
     public void syncRoles(Player player) {
+        syncRoles(player.getUniqueId());
+    }
+
+    /**
+     * By UUID, so a player who links from Discord while offline gets their
+     * roles at once rather than on their next login.
+     */
+    @Override
+    public void syncRoles(UUID uuid) {
         if (!enabled || !commandsRegistered) return;
         try {
-            String discordId = DiscordSRV.getPlugin().getAccountLinkManager()
-                    .getDiscordId(player.getUniqueId());
+            String discordId = DiscordSRV.getPlugin().getAccountLinkManager().getDiscordId(uuid);
             if (discordId == null) return;
             Guild guild = DiscordSRV.getPlugin().getMainGuild();
             if (guild == null) return;
 
-            PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+            PlayerData data = plugin.getPlayerDataManager().get(uuid);
             var rank = plugin.getRankManager().rankOf(data);
             String rankId = rank == null ? "" : rank.id();
 
@@ -444,6 +600,9 @@ public class DiscordBot extends ListenerAdapter implements BotHooks {
                 if (entry.getKey().equals(rankId)) wanted.add(role);
                 else if (removeOldRoles) unwanted.add(role);
             }
+            // The Linked role is also a rank role, and a linked Supernova
+            // must keep it rather than have it given and taken in one go.
+            unwanted.removeAll(wanted);
             if (wanted.isEmpty() && unwanted.isEmpty()) return;
 
             guild.retrieveMemberById(discordId).queue(member -> apply(guild, member, wanted, unwanted),
@@ -451,7 +610,7 @@ public class DiscordBot extends ListenerAdapter implements BotHooks {
                         // Linked, but not in the guild any more. Nothing to do.
                     });
         } catch (Throwable t) {
-            plugin.getLogger().warning("Discord bot: role sync failed for " + player.getName() + " (" + t + ").");
+            plugin.getLogger().warning("Discord bot: role sync failed for " + uuid + " (" + t + ").");
         }
     }
 

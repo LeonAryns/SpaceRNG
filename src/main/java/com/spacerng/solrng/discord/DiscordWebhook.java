@@ -137,8 +137,8 @@ public final class DiscordWebhook {
                     ? String.join(String.valueOf(NEWLINE), lines.stream().map(String::valueOf).toList())
                     : String.valueOf(value);
             if (fields.length() > 0) fields.append(',');
-            fields.append('{').append(key("name")).append(json(String.valueOf(name))).append(',')
-                    .append(key("value")).append(json(text)).append(',')
+            fields.append('{').append(key("name")).append(json(fill(config, String.valueOf(name)))).append(',')
+                    .append(key("value")).append(json(fill(config, text))).append(',')
                     .append(key("inline")).append(raw.get("inline") == Boolean.TRUE).append('}');
         }
 
@@ -146,15 +146,25 @@ public final class DiscordWebhook {
                 .append(key("title")).append(json(title)).append(',')
                 .append(key("color")).append(colour);
         if (!description.isBlank()) {
-            embed.append(',').append(key("description")).append(json(description));
+            embed.append(',').append(key("description")).append(json(fill(config, description)));
         }
         if (fields.length() > 0) {
             embed.append(',').append(key("fields")).append('[').append(fields).append(']');
+        }
+        String footer = config.getString(path + ".footer", "");
+        if (!footer.isBlank()) {
+            embed.append(',').append(key("footer")).append('{').append(key("text")).append(json(fill(config, footer))).append('}');
         }
         embed.append('}');
 
         send("{" + key("username") + json(username) + "," + key("embeds") + "[" + embed + "]}");
         return true;
+    }
+
+    /** {link-channel} becomes a mention of the link channel, as the bot does it. */
+    private static String fill(FileConfiguration config, String text) {
+        String channel = config.getString("discord.bot.link-channel", "").trim();
+        return text.replace("{link-channel}", channel.isEmpty() ? "the link channel" : "<#" + channel + ">");
     }
 
     /** "#RRGGBB" or a plain number, falling back to Discord's green. */

@@ -16,6 +16,15 @@ public interface BotHooks {
     /** Puts this player's Discord roles in step with their rank and link. */
     void syncRoles(Player player);
 
+    /** Same, by UUID, for a player who may be offline. */
+    void syncRoles(java.util.UUID uuid);
+
+    /**
+     * Posts a card from discord.cards as the bot, in a channel, or edits the
+     * copy it posted before. Every message goes back through {@code say}.
+     */
+    void postCard(String id, String channelId, java.util.function.Consumer<String> say);
+
     /** Same, for everybody online. */
     void syncAll();
 

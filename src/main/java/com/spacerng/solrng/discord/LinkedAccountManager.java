@@ -168,6 +168,11 @@ public class LinkedAccountManager {
         }
     }
 
+    /** Runs the poll now, for a link made from the Discord side. */
+    public void checkNow() {
+        pollAll();
+    }
+
     private void pollAll() {
         if (!available || !enabled) return;
         for (Player player : Bukkit.getOnlinePlayers()) {

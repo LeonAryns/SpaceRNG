@@ -765,9 +765,26 @@ final class WorldAdmin extends AdminTools {
                     () -> sender.sendMessage(ChatColor.GRAY + "  " + line)));
             return true;
         }
+        if (action.equals("post")) {
+            if (plugin.getDiscordBot() == null) {
+                sender.sendMessage(ChatColor.RED + "DiscordSRV is not installed, so there is no bot.");
+                return true;
+            }
+            String card = args.length >= 3 ? args[2].toLowerCase(Locale.ROOT) : "";
+            if (cards == null || !cards.contains(card)) {
+                sender.sendMessage(ChatColor.RED + "Unknown card. There is: " + ids);
+                return true;
+            }
+            String channel = args.length >= 4 ? args[3] : null;
+            plugin.getDiscordBot().postCard(card, channel, line -> plugin.getServer().getScheduler().runTask(plugin,
+                    () -> sender.sendMessage(ChatColor.GRAY + "  " + line)));
+            return true;
+        }
         if (!action.equals("card")) {
             sender.sendMessage(ChatColor.YELLOW + "/rngadmin discord setup"
                     + ChatColor.GRAY + " - make the rank roles in Discord");
+            sender.sendMessage(ChatColor.YELLOW + "/rngadmin discord post <id> [channel id]"
+                    + ChatColor.GRAY + " - the bot posts a card, or updates the one it posted");
             sender.sendMessage(ChatColor.YELLOW + "/rngadmin discord card <id>"
                     + ChatColor.GRAY + " - post a card to the webhook");
             sender.sendMessage(ChatColor.DARK_GRAY + "Cards: " + ids);

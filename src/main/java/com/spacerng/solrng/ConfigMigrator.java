@@ -79,6 +79,9 @@ public final class ConfigMigrator {
             "auras.by-rank",
             // V220: the web store link for /buy.
             "buy",
+            // V225: the channel the bot reads link codes in, and where it
+            // posts cards.
+            "discord.bot.link-channel", "discord.bot.cards-channel",
             // V200: how far a ground piece clears the block under it.
             "auras.ground-lift",
             // V202: the floor under the crate reel's step time.
@@ -676,6 +679,29 @@ public final class ConfigMigrator {
                 }
             }
             applied.add("bedrock-address-card");
+            changed = true;
+        }
+        // V225: the How to Link card in the layout Leon showed. It is a
+        // list of maps, so it is swapped whole, and only while it is still
+        // the untouched V143 card.
+        if (!applied.contains("link-card-v225")) {
+            List<?> fields = disk.getList("discord.cards.link.fields");
+            if (fields != null && !fields.isEmpty() && fields.get(0) instanceof java.util.Map<?, ?> first
+                    && "1. Join the server".equals(first.get("name"))) {
+                InputStream stream = plugin.getResource("config.yml");
+                if (stream != null) {
+                    try (InputStreamReader reader = new InputStreamReader(stream, StandardCharsets.UTF_8)) {
+                        YamlConfiguration jar = YamlConfiguration.loadConfiguration(reader);
+                        if (jar.isConfigurationSection("discord.cards.link")) {
+                            disk.set("discord.cards.link", jar.get("discord.cards.link"));
+                            plugin.getLogger().info("Config patch link-card-v225: discord.cards.link replaced");
+                        }
+                    } catch (IOException ignored) {
+                        // Left as it was.
+                    }
+                }
+            }
+            applied.add("link-card-v225");
             changed = true;
         }
         if (changed) disk.set("applied-patches", applied);
