@@ -5,7 +5,7 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V224**, 26 September 2026.
+Last updated at **V229**, 27 September 2026.
 
 ## The agreed way of working
 
@@ -982,6 +982,54 @@ should all be there without anybody relogging.
   end of /guide and the guide's completion message point to it. If
   another plugin (Essentials) takes /help, /rnghelp still works.
 
+**V225 to V229, 27 September, untested in game.** One message, one jar
+per subject:
+
+- **V225, the Discord bot.** `discord.bot.link-channel`: a code posted
+  there links the account through DiscordSRV, the message is deleted,
+  the answer vanishes after 15 s, and the Linked rank and roles follow
+  at once. `/rngadmin discord post <card> [channel]` posts a card as the
+  bot and edits it in place the next time. The link card is rewritten
+  in the layout of the MoneyMC screenshot. Roles sync by UUID, so an
+  offline link gets its role too.
+- **V226, eggs.** Stardust 100 (P10), Nebula 1,000 (P20, 20x weight on
+  Epic and rarer pets), Supernova 10,000 (P20, 400x). Each egg shows its
+  live odds per pet rarity. Pets as a whole need Prestige 10
+  (`pets.min-prestige`). Because the weights are normalised, 20x the
+  weight is not 20x the chance: Divine goes 0.44% to 3.3% to 4.3%.
+- **V227, Supernova auto tag.** Rank key `auto-tag`: the best tag (highest
+  Luck multiplier) goes on by itself, only ever as an upgrade.
+- **V228, /buy** without Perk Tickets (still sold in /perks).
+- **V229, the Secret Realm.** Opens every 90 to 240 minutes for 10, P25+,
+  `/realm`, `/realm leave`, `/secretindex`, 1 in 40 rolls inside is a
+  secret, +2% Luck per secret. Needs `/rngadmin realm here` once before
+  it can ever open.
+
+**Answered in the same message:** always day has been in since V171
+(`world-time.lock: 6000`, pinned every second). By hand on 1.21.11 the
+rule is `/gamerule advance_time false`. The "custom crate" is the Nebula
+Crate, for rank key alls and events (`/rngadmin crate keyall nebula 1`).
+
+## Leon's idea list: what is still to do
+
+When Leon asks what is left, answer from this list and from the open
+questions further down. Keep it current.
+
+1. **The Discord bot, testing.** Everything in V225 needs his setup and a
+   try in game and in Discord.
+2. **/buy and /store better** (idea, 27 September). Not specified yet.
+3. **The season safe item** (on hold, his word). An item that survives a
+   season reset and is extremely hard to get. There is no season reset
+   in the plugin yet, only the Battle Pass season number, so the reset
+   itself has to be defined first.
+4. **The egg hatch animation** from the pets blueprint, still not built.
+5. **The Nova Core menu** in the description block, waiting on his
+   screenshots.
+6. **Enchant Mastery I and II** buy nothing since V190; what should they do?
+7. **The crop yield nodes**: he wants something else there (crop level?).
+8. **Secret Realm follow ups**: what a secret should do beyond Luck, and
+   whether the realm needs its own build.
+
 **Queue from the same message, one jar each, in this order:**
 
 1. **The roll reveal.** Mythical is barely audible, the rest is good.
@@ -1433,7 +1481,7 @@ record and says WHY, not only what: `git log` for the list,
 
 ## Open questions for Leon
 
-1. **How is a pet earned?** Answered on 24 September: an egg, bought with
+1. **How is a pet earned?** (Eggs since V226, three tiers, see above.) Answered on 24 September: an egg, bought with
    100 Cosmic Dust, hatched with an animation. Cosmic Dust comes from
    rolling once `cosmic_root` is bought and its levels raise the chance,
    which is what the jar already does; the cost in config is still 10 and
@@ -1471,7 +1519,9 @@ record and says WHY, not only what: `git log` for the list,
 - **Pets live in the aura's three slots**, not as mobs walking behind the
   player, and they pay a percentage on one stat rather than a multiplier.
 - **The boss is per player**, not one shared health pool.
-- **No second Discord bot.** It rides on DiscordSRV.
+- **No second Discord bot process.** It rides on DiscordSRV's connection;
+  the bot's name and picture are its own application in the Discord
+  Developer Portal.
 - **The plugin cannot pull players back after an update on Minehut.**
   That needs control of the proxy, which means self hosting.
 - **The jar is always `SpaceRNG.jar`**, one file, uploaded over the old
