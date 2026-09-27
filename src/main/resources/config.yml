@@ -6289,6 +6289,39 @@ pets:
   # can see the player, not just on the owner.
   base-slots: 1
 
+  # The Prestige a player needs before any egg can be hatched. Pets
+  # already owned stay worn whatever this says.
+  min-prestige: 10
+
+  # The eggs on the pets screen, cheapest first. Every egg draws from the
+  # same pets; boost multiplies the weight of every pet at boosted-from
+  # or rarer, so a dearer egg makes the rare pets likelier. The odds on
+  # each egg's tooltip are worked out from these same numbers.
+  eggs:
+    boosted-from: EPIC
+    tiers:
+      stardust:
+        display: "Stardust Egg"
+        colors: ["#C9D6FF", "#7FDBFF"]
+        icon: TURTLE_EGG
+        cost: 100
+        boost: 1
+        min-prestige: 10
+      nebula:
+        display: "Nebula Egg"
+        colors: ["#C77DFF", "#FF7AD9"]
+        icon: SNIFFER_EGG
+        cost: 1000
+        boost: 20
+        min-prestige: 20
+      supernova:
+        display: "Supernova Egg"
+        colors: ["#FFD54F", "#FF6F3C"]
+        icon: DRAGON_EGG
+        cost: 10000
+        boost: 400
+        min-prestige: 20
+
   dust:
     # The action bar line when a dust falls. Rolling is fast and dust is
     # rare, so it is a quiet line rather than a title in the way of the

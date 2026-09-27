@@ -29,6 +29,12 @@ public class PetUpgrades {
 
     // Cosmic Dust, for making a pet and for rarity.
     private long makeCost = 100L;
+
+    // The eggs, cheapest first, and where their boost starts.
+    private final java.util.List<PetEgg> eggs = new java.util.ArrayList<>();
+    private com.spacerng.solrng.rarity.Rarity boostedFrom = com.spacerng.solrng.rarity.Rarity.EPIC;
+    // The Prestige a player needs before any pet can be made.
+    private int minPrestige = 10;
     private long rarityBaseCost = 8L;
     private double rarityCostGrowth = 1.35;
     private long shinyCost = 50L;
@@ -53,6 +59,7 @@ public class PetUpgrades {
         maxMultiplier = Math.max(1.0, config.getDouble("pets.upgrades.max-multiplier", 6.0));
 
         makeCost = Math.max(1L, config.getLong("pets.upgrades.make-cost", 100L));
+        loadEggs(config);
         rarityBaseCost = Math.max(1L, config.getLong("pets.upgrades.rarity-base-cost", 8L));
         rarityCostGrowth = Math.max(1.0, config.getDouble("pets.upgrades.rarity-cost-growth", 1.35));
         shinyCost = Math.max(1L, config.getLong("pets.upgrades.shiny-cost", 50L));
@@ -63,6 +70,63 @@ public class PetUpgrades {
         tierBaseChance = clamp(config.getDouble("pets.upgrades.tier-base-chance", 0.80));
         tierChanceFalloff = Math.max(0.0, config.getDouble("pets.upgrades.tier-chance-falloff", 0.06));
         tierMinChance = clamp(config.getDouble("pets.upgrades.tier-min-chance", 0.15));
+    }
+
+    /**
+     * The eggs from pets.eggs.tiers. A config without them gets the three
+     * Leon asked for, built off make-cost so a tuned price is still the
+     * first egg's price.
+     */
+    private void loadEggs(org.bukkit.configuration.file.FileConfiguration config) {
+        eggs.clear();
+        minPrestige = Math.max(0, config.getInt("pets.min-prestige", 10));
+        try {
+            boostedFrom = com.spacerng.solrng.rarity.Rarity.valueOf(
+                    config.getString("pets.eggs.boosted-from", "EPIC").toUpperCase(java.util.Locale.ROOT));
+        } catch (IllegalArgumentException ex) {
+            boostedFrom = com.spacerng.solrng.rarity.Rarity.EPIC;
+        }
+        var tiers = config.getConfigurationSection("pets.eggs.tiers");
+        if (tiers != null) {
+            for (String id : tiers.getKeys(false)) {
+                var egg = tiers.getConfigurationSection(id);
+                if (egg == null) continue;
+                org.bukkit.Material icon = org.bukkit.Material.matchMaterial(egg.getString("icon", "TURTLE_EGG"));
+                java.util.List<String> colors = egg.getStringList("colors");
+                eggs.add(new PetEgg(id, egg.getString("display", id),
+                        colors.isEmpty() ? java.util.List.of("#C77DFF", "#7FDBFF") : colors,
+                        icon == null ? org.bukkit.Material.TURTLE_EGG : icon,
+                        Math.max(1L, egg.getLong("cost", makeCost)),
+                        Math.max(1.0, egg.getDouble("boost", 1.0)),
+                        Math.max(0, egg.getInt("min-prestige", minPrestige))));
+            }
+        }
+        if (eggs.isEmpty()) {
+            eggs.add(new PetEgg("stardust", "Stardust Egg", java.util.List.of("#C9D6FF", "#7FDBFF"),
+                    org.bukkit.Material.TURTLE_EGG, makeCost, 1.0, minPrestige));
+            eggs.add(new PetEgg("nebula", "Nebula Egg", java.util.List.of("#C77DFF", "#FF7AD9"),
+                    org.bukkit.Material.SNIFFER_EGG, makeCost * 10L, 20.0, 20));
+            eggs.add(new PetEgg("supernova", "Supernova Egg", java.util.List.of("#FFD54F", "#FF6F3C"),
+                    org.bukkit.Material.DRAGON_EGG, makeCost * 100L, 400.0, 20));
+        }
+        eggs.sort(java.util.Comparator.comparingLong(PetEgg::cost));
+    }
+
+    public java.util.List<PetEgg> eggs() {
+        return eggs;
+    }
+
+    public PetEgg egg(String id) {
+        for (PetEgg egg : eggs) if (egg.id().equals(id)) return egg;
+        return null;
+    }
+
+    public com.spacerng.solrng.rarity.Rarity boostedFrom() {
+        return boostedFrom;
+    }
+
+    public int minPrestige() {
+        return minPrestige;
     }
 
     // ---------------------------------------------------------------

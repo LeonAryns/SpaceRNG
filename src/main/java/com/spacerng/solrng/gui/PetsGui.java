@@ -90,8 +90,20 @@ public class PetsGui {
                     slot < equipped.size() ? equipped.get(slot) : null, slot, slot < open));
         }
 
-        inv.setItem(FORGE_SLOT, forgeIcon(plugin, data));
+        var eggs = pets.upgrades().eggs();
+        int[] eggSlots = eggs.size() == 1 ? new int[]{FORGE_SLOT}
+                : eggs.size() == 2 ? new int[]{30, 32} : new int[]{29, 31, 33};
+        for (int i = 0; i < eggs.size() && i < eggSlots.length; i++) {
+            inv.setItem(eggSlots[i], eggIcon(plugin, data, eggs.get(i), i + 1));
+        }
+        // The row under the eggs fills toward the next egg you can open
+        // but cannot pay for yet.
         long cost = pets.upgrades().makeCost();
+        for (var egg : eggs) {
+            if (data.getPrestige() < egg.minPrestige()) break;
+            cost = egg.cost();
+            if (data.getCosmicDust() < egg.cost()) break;
+        }
         for (int i = 0; i < PROGRESS_SLOTS.length; i++) {
             inv.setItem(PROGRESS_SLOTS[i], progressBlock(data.getCosmicDust(), cost, i));
         }
@@ -280,42 +292,68 @@ public class PetsGui {
      * sits in the middle of the screen with the dust row under it, because
      * it is the one thing here that makes something new.
      */
-    private static ItemStack forgeIcon(SolRNGPlugin plugin, PlayerData data) {
+    /**
+     * One egg: Cosmic Dust turned into a pet. Since V226 there are three,
+     * and a dearer egg buys better odds on the rare pets rather than a
+     * different pool. The odds on the tooltip are the live ones for this
+     * player, with maxed pets already taken out.
+     */
+    private static ItemStack eggIcon(SolRNGPlugin plugin, PlayerData data,
+                                     com.spacerng.solrng.pet.PetEgg egg, int tier) {
         PetManager pets = plugin.getPetManager();
-        PetUpgrades upgrades = pets.upgrades();
-        long cost = upgrades.makeCost();
+        long cost = egg.cost();
         boolean canPay = data.getCosmicDust() >= cost;
+        boolean prestigeOk = data.getPrestige() >= egg.minPrestige();
         double chance = plugin.getDustManager().cosmicChance(data);
 
-        ItemStack item = new ItemStack(Material.NETHER_STAR);
+        ItemStack item = new ItemStack(egg.icon());
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(Lore.title(ChatColor.LIGHT_PURPLE, "Make a pet"));
+        meta.setDisplayName(Lore.gradient(egg.display(), true, egg.stops()));
 
         List<String> lore = new ArrayList<>();
-        lore.add(Lore.line(ChatColor.GRAY, "Cosmic Dust falls rarely while"));
-        lore.add(Lore.line(ChatColor.GRAY, "you roll. Spend it here for a"));
-        lore.add(Lore.line(ChatColor.GRAY, "pet you do not have yet."));
+        lore.add(ChatColor.DARK_GRAY + "Tier " + tier + " egg");
         lore.add("");
-        lore.add(Lore.stat(ChatColor.AQUA, "Cost", Currency.COSMIC_DUST.price(cost, canPay)));
-        lore.add(Lore.stat(ChatColor.AQUA, "You hold", Currency.COSMIC_DUST.amount(data.getCosmicDust())));
+        if (egg.boost() > 1.0) {
+            lore.add(Lore.line(ChatColor.GRAY, trim(egg.boost()) + "x the weight on every"));
+            lore.add(Lore.line(ChatColor.GRAY, pets.upgrades().boostedFrom().displayName() + " or rarer pet."));
+        } else {
+            lore.add(Lore.line(ChatColor.GRAY, "Hatches a pet you do not have,"));
+            lore.add(Lore.line(ChatColor.GRAY, "or a rarity on one you do."));
+        }
         lore.add("");
-        lore.add(Lore.line(ChatColor.GRAY, "A pet you already own gains a"));
-        lore.add(Lore.line(ChatColor.GRAY, "rarity instead, so the dust is"));
-        lore.add(Lore.line(ChatColor.GRAY, "never wasted."));
+        lore.add(Lore.section(ChatColor.YELLOW, "Odds"));
+        for (var entry : pets.odds(data, egg).entrySet()) {
+            lore.add(Lore.stat(ChatColor.AQUA, entry.getKey().displayName(), percent(entry.getValue())));
+        }
         lore.add("");
-        if (chance <= 0.0) {
+        lore.add(Lore.stat(ChatColor.AQUA, "Price", Currency.COSMIC_DUST.price(cost, canPay)));
+        lore.add("");
+        if (!prestigeOk) {
+            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Locked");
+            lore.add(Lore.line(ChatColor.GRAY, "Reach Prestige " + egg.minPrestige() + " in /prestige"));
+        } else if (chance <= 0.0 && data.getCosmicDust() < cost) {
             lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Locked");
             lore.add(Lore.line(ChatColor.GRAY, "Unlock Cosmic Dust in /skilltree"));
         } else if (canPay) {
-            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to make one");
+            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to hatch");
         } else {
             lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Not enough Cosmic Dust");
         }
         meta.setLore(lore);
-        if (canPay && chance > 0.0) meta.setEnchantmentGlintOverride(Boolean.TRUE);
-        meta.getPersistentDataContainer().set(forgeKey(), PersistentDataType.INTEGER, 1);
+        if (canPay && prestigeOk) meta.setEnchantmentGlintOverride(Boolean.TRUE);
+        meta.getPersistentDataContainer().set(forgeKey(), PersistentDataType.STRING, egg.id());
         item.setItemMeta(meta);
         return item;
+    }
+
+    private static String percent(double chance) {
+        double value = chance * 100.0;
+        return (value >= 10 ? String.format("%.1f", value) : value >= 1 ? String.format("%.2f", value)
+                : String.format("%.3f", value)) + "%";
+    }
+
+    private static String trim(double value) {
+        return value == Math.rint(value) ? String.format("%,d", (long) value) : String.valueOf(value);
     }
 
     private static ItemStack slotIcon(SolRNGPlugin plugin, PlayerData data,
@@ -428,10 +466,10 @@ public class PetsGui {
         return item.getItemMeta().getPersistentDataContainer().get(petKey(), PersistentDataType.STRING);
     }
 
-    /** True when the clicked item is the forge star. */
-    public static boolean clickedForge(ItemStack item) {
-        if (item == null || item.getItemMeta() == null) return false;
-        return item.getItemMeta().getPersistentDataContainer().has(forgeKey(), PersistentDataType.INTEGER);
+    /** The egg id on a clicked egg, or null when it is not one. */
+    public static String clickedEgg(ItemStack item) {
+        if (item == null || item.getItemMeta() == null) return null;
+        return item.getItemMeta().getPersistentDataContainer().get(forgeKey(), PersistentDataType.STRING);
     }
 
     private static ItemStack pane(Material material) {

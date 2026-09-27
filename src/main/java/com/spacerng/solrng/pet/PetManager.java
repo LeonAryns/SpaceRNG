@@ -139,11 +139,17 @@ public class PetManager {
      * nothing to buy and the dust stays where it is.
      */
     public Made make(PlayerData data) {
-        if (!enabled || types.isEmpty()) return Made.none();
-        long cost = upgrades.makeCost();
+        return upgrades.eggs().isEmpty() ? Made.none() : make(data, upgrades.eggs().get(0));
+    }
+
+    /** Hatches one egg: its price in Cosmic Dust, its odds on the roll. */
+    public Made make(PlayerData data, PetEgg egg) {
+        if (!enabled || types.isEmpty() || egg == null) return Made.none();
+        if (data.getPrestige() < egg.minPrestige()) return Made.none();
+        long cost = egg.cost();
         if (data.getCosmicDust() < cost) return Made.none();
 
-        PetType picked = roll(data);
+        PetType picked = roll(data, egg);
         if (picked == null) return Made.none();
         if (!data.spendCosmicDust(cost)) return Made.none();
 
@@ -178,24 +184,52 @@ public class PetManager {
      * Types already sitting at max rarity are left out, because paying for
      * one would do nothing.
      */
-    private PetType roll(PlayerData data) {
-        List<PetType> pool = new ArrayList<>();
+    private PetType roll(PlayerData data, PetEgg egg) {
+        Map<PetType, Double> pool = pool(data, egg);
         double total = 0.0;
+        for (double weight : pool.values()) total += weight;
+        if (pool.isEmpty() || total <= 0.0) return null;
+
+        double pick = ThreadLocalRandom.current().nextDouble() * total;
+        PetType last = null;
+        for (Map.Entry<PetType, Double> entry : pool.entrySet()) {
+            last = entry.getKey();
+            pick -= entry.getValue();
+            if (pick <= 0.0) return last;
+        }
+        return last;
+    }
+
+    /**
+     * What an egg can hatch for this player and how heavy each pet is.
+     * Pets already at max rarity are left out, because paying for one
+     * would do nothing.
+     */
+    private Map<PetType, Double> pool(PlayerData data, PetEgg egg) {
+        Map<PetType, Double> pool = new java.util.LinkedHashMap<>();
         for (PetType type : types.values()) {
             PetInstance had = data.getPet(type.id());
             if (had != null && had.rarity() >= upgrades.maxRarity()) continue;
             if (type.weight() <= 0.0) continue;
-            pool.add(type);
-            total += type.weight();
+            double weight = type.weight();
+            if (type.rarity().ordinal() >= upgrades.boostedFrom().ordinal()) weight *= egg.boost();
+            pool.put(type, weight);
         }
-        if (pool.isEmpty() || total <= 0.0) return null;
+        return pool;
+    }
 
-        double pick = ThreadLocalRandom.current().nextDouble() * total;
-        for (PetType type : pool) {
-            pick -= type.weight();
-            if (pick <= 0.0) return type;
+    /** The chance of each pet rarity out of this egg, for the tooltip. */
+    public Map<com.spacerng.solrng.rarity.Rarity, Double> odds(PlayerData data, PetEgg egg) {
+        Map<PetType, Double> pool = pool(data, egg);
+        double total = 0.0;
+        for (double weight : pool.values()) total += weight;
+        Map<com.spacerng.solrng.rarity.Rarity, Double> odds =
+                new java.util.EnumMap<>(com.spacerng.solrng.rarity.Rarity.class);
+        if (total <= 0.0) return odds;
+        for (Map.Entry<PetType, Double> entry : pool.entrySet()) {
+            odds.merge(entry.getKey().rarity(), entry.getValue() / total, Double::sum);
         }
-        return pool.get(pool.size() - 1);
+        return odds;
     }
 
     /** Buys one rarity level with Cosmic Dust. Always takes. */

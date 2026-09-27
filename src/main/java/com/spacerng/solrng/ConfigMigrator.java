@@ -82,6 +82,8 @@ public final class ConfigMigrator {
             // V225: the channel the bot reads link codes in, and where it
             // posts cards.
             "discord.bot.link-channel", "discord.bot.cards-channel",
+            // V226: three eggs, and the Prestige pets open at.
+            "pets.eggs", "pets.min-prestige",
             // V200: how far a ground piece clears the block under it.
             "auras.ground-lift",
             // V202: the floor under the crate reel's step time.

@@ -236,8 +236,16 @@ final class PlayerMenuClicks {
 
         // The forge star: ten Cosmic Dust becomes a pet, or a rarity on one
         // you already have.
-        if (com.spacerng.solrng.gui.PetsGui.clickedForge(event.getCurrentItem())) {
-            var made = pets.make(data);
+        String eggId = com.spacerng.solrng.gui.PetsGui.clickedEgg(event.getCurrentItem());
+        if (eggId != null) {
+            var egg = pets.upgrades().egg(eggId);
+            if (egg != null && data.getPrestige() < egg.minPrestige()) {
+                player.sendMessage(ChatColor.RED + "The " + ChatColor.stripColor(egg.display())
+                        + " opens at Prestige " + egg.minPrestige() + ".");
+                player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
+                return;
+            }
+            var made = pets.make(data, egg);
             if (!made.happened()) {
                 player.sendMessage(ChatColor.RED + "Not enough Cosmic Dust, or every pet is already maxed.");
                 player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
