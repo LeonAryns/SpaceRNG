@@ -48,7 +48,7 @@ public class RanksGui {
         for (int i = 0; i < SIZE; i++) inv.setItem(i, i < 9 || i >= 36 ? rail : filler);
 
         inv.setItem(SELF_SLOT, selfIcon(plugin, player, data));
-        List<RankTier> tiers = ranks.tiers();
+        List<RankTier> tiers = ranks.ladder();
         for (int i = 0; i < tiers.size() && i < TIER_SLOTS.length; i++) {
             inv.setItem(TIER_SLOTS[i], tierIcon(plugin, data, tiers.get(i)));
         }

@@ -116,7 +116,7 @@ public class AuraGui {
         if (!shiny && auras.rankConcept(data) != null) {
             lore.add(Lore.section(ChatColor.YELLOW, "By rank"));
             String yours = auras.rankConcept(data);
-            for (var tier : plugin.getRankManager().tiers()) {
+            for (var tier : plugin.getRankManager().ladder()) {
                 String concept = plugin.getConfig().getString("auras.by-rank.looks." + tier.id());
                 if (concept == null || concept.isBlank()) continue;
                 boolean mine = concept.equalsIgnoreCase(yours)

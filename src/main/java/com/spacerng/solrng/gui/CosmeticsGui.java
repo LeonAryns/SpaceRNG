@@ -190,7 +190,7 @@ public class CosmeticsGui {
 
     /** The rank that carries rgb-name, so a locked line can name the way in. */
     private static String topRankName(SolRNGPlugin plugin) {
-        for (RankTier tier : plugin.getRankManager().tiers()) {
+        for (RankTier tier : plugin.getRankManager().ladder()) {
             if (tier.rgbName()) return tier.display();
         }
         return "the top rank";
@@ -205,7 +205,7 @@ public class CosmeticsGui {
         lore.add(Lore.stat(ChatColor.LIGHT_PURPLE, "Your rank", plugin.getRankManager().styled(tier)));
         lore.add("");
         lore.add(Lore.section(ChatColor.AQUA, "Cosmetic only"));
-        for (RankTier each : plugin.getRankManager().tiers()) {
+        for (RankTier each : plugin.getRankManager().ladder()) {
             lore.add(Lore.stat(ChatColor.AQUA, each.display(),
                     String.format("%.2f", plugin.getAuraManager().rankScale(each.id())) + "x aura"
                             + (each.rgbName() ? ChatColor.DARK_GRAY + ", own name colour" : "")));

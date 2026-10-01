@@ -119,7 +119,7 @@ public class BuyGui {
         lore.add(ChatColor.GRAY + "Speed, and wears a bigger aura.");
         lore.add("");
         lore.add(Lore.section(ChatColor.AQUA, "The ladder"));
-        for (RankTier tier : ranks.tiers()) {
+        for (RankTier tier : ranks.ladder()) {
             boolean owned = current != null && ranks.indexOf(current) >= ranks.indexOf(tier);
             String price = tier.price() <= 0 ? ChatColor.GREEN + "free when linked"
                     : Currency.CREDITS.amount(tier.price());

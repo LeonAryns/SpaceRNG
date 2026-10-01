@@ -88,6 +88,10 @@ public final class ConfigMigrator {
             "discord.roles",
             // V234: no rain.
             "world-time.clear-weather",
+            // V235: the Owner and Member ranks, and Owner's aura.
+            "ranks.tiers.member", "ranks.tiers.owner",
+            "auras.by-rank.looks.owner", "auras.rank-scale.owner",
+            "discord.roles.owner.rank",
             // V226: three eggs, and the Prestige pets open at.
             "pets.eggs", "pets.min-prestige",
             // V227: Supernova wears its best tag on its own.
@@ -168,6 +172,9 @@ public final class ConfigMigrator {
     }
 
     private static final List<Patch> PATCHES = List.of(
+            // V235: Owner is red, Leon's call.
+            new Patch("discord-owner-red", "discord.roles.owner.colors",
+                    List.of("#FFE082", "#FF8F00"), List.of("#FF6B6B", "#D50000")),
             // V230: Leon's own channels, empty since V225.
             new Patch("discord-link-channel-leon", "discord.bot.link-channel", "", "1553697805690994749"),
             new Patch("discord-cards-channel-leon", "discord.bot.cards-channel", "", "1545800590280630272"),

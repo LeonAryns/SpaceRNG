@@ -5761,7 +5761,8 @@ discord:
     owner:
       name: "Owner"
       emoji: "👑"
-      colors: ["#FFE082", "#FF8F00"]
+      colors: ["#FF6B6B", "#D50000"]
+      rank: owner
     staff:
       name: "Staff"
       emoji: "🛡️"
@@ -6030,6 +6031,41 @@ ranks:
       # Wears the best tag found so far, and swaps up on its own whenever
       # a better one is found (V227).
       auto-tag: true
+    # Two ranks that are never sold (V235). hidden keeps them out of
+    # /ranks and /buy; /rngadmin rank set owner|member hands them out.
+    # priority puts them on the ladder: Member under everything, so a
+    # linked Member shows as Linked, and Owner over everything. bold
+    # draws the name in bold.
+    member:
+      display: "Member"
+      hidden: true
+      priority: -100
+      colors: ["#B0BEC5"]
+      tag: ""
+      letter: "M"
+      icon: PAPER
+      price-credits: 0
+      multiplier: 1.0
+      vault-pages: 1
+    owner:
+      display: "Owner"
+      hidden: true
+      priority: 10000
+      bold: true
+      colors: ["#FF3B3B"]
+      tag: ""
+      letter: "O"
+      icon: COMMAND_BLOCK
+      price-credits: 0
+      multiplier: 1.5
+      keyall-crate: nebula
+      keyall-amount: 3
+      vault-pages: 8
+      fly: true
+      nick: true
+      size: true
+      rgb-name: false
+      auto-tag: true
 # ---------------------------------------------------------------------
 # The tab list (V186)
 #
@@ -6193,6 +6229,7 @@ auras:
     comet: 0.85
     nova: 1.0
     supernova: 1.30
+    owner: 1.30
   # The heavy looks (singularity, titan, supernova, rift, empyrean) cost
   # about a hundred updates a second for each player watching. Only
   # max-nearby of them run within radius blocks of each other; whoever put
@@ -6214,6 +6251,7 @@ auras:
       comet: ember
       nova: eclipse
       supernova: ascend
+      owner: ascend
   # What a tag of each rarity wears. The four below are the signature
   # looks: rings, flames and columns painted in the rarity's own colour
   # rather than star glyphs round a sea lantern. /rngadmin auratest list

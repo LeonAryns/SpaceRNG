@@ -55,8 +55,21 @@ public class RankManager {
         sizeMax = config.getDouble("ranks.size.max", 1.5);
 
         ConfigurationSection section = config.getConfigurationSection("ranks.tiers");
+        // The ladder runs by priority (V235), config order where none is
+        // given. A section copied into a live config lands at its end, so
+        // Member could never be put at the bottom by its place in the file.
+        Map<String, Integer> priority = new java.util.HashMap<>();
         if (section != null) {
+            int index = 0;
             for (String id : section.getKeys(false)) {
+                priority.put(id.toLowerCase(Locale.ROOT), section.getInt(id + ".priority", index * 10));
+                index++;
+            }
+        }
+        if (section != null) {
+            List<String> ordered = new ArrayList<>(section.getKeys(false));
+            ordered.sort(java.util.Comparator.comparingInt(id -> priority.get(id.toLowerCase(Locale.ROOT))));
+            for (String id : ordered) {
                 ConfigurationSection t = section.getConfigurationSection(id);
                 if (t == null) continue;
                 List<String> colors = t.getStringList("colors");
@@ -77,7 +90,8 @@ public class RankManager {
                         Math.max(0, t.getInt("vault-pages", 0)),
                         t.getBoolean("fly", false), t.getBoolean("nick", false),
                         t.getBoolean("size", false), t.getBoolean("rgb-name", false),
-                        t.getBoolean("auto-tag", false)));
+                        t.getBoolean("auto-tag", false),
+                        t.getBoolean("hidden", false), t.getBoolean("bold", false)));
             }
         }
         plugin.getLogger().info("Loaded " + tiers.size() + " ranks.");
@@ -111,10 +125,23 @@ public class RankManager {
         return -1;
     }
 
-    /** The first rank on the ladder, the one a Discord link grants. */
+    /** The rank a Discord link grants: "linked", or else the first one on sale. */
     public RankTier linkedTier() {
-        for (RankTier tier : tiers.values()) return tier;
+        RankTier linked = tiers.get("linked");
+        if (linked != null) return linked;
+        for (RankTier tier : tiers.values()) if (!tier.hidden()) return tier;
         return null;
+    }
+
+    /**
+     * The ranks a player can see and buy, without the hidden ones (V235):
+     * Owner and Member are handed out with /rngadmin rank set and never
+     * appear in /ranks or /buy.
+     */
+    public List<RankTier> ladder() {
+        List<RankTier> ladder = new ArrayList<>();
+        for (RankTier tier : tiers.values()) if (!tier.hidden()) ladder.add(tier);
+        return ladder;
     }
 
     /**
@@ -186,6 +213,7 @@ public class RankManager {
         if (tier == null) return ChatColor.DARK_GRAY + "No rank";
         String name = tier.tag().isEmpty() ? tier.display() : tier.display() + " " + tier.tag();
         return tier.colors().size() > 1 ? Lore.gradient(name, true, tier.colors().toArray(new String[0]))
+                : tier.colors().size() == 1 ? Lore.gradient(name, true, tier.colors().get(0))
                 : ChatColor.WHITE + name;
     }
 
@@ -238,7 +266,7 @@ public class RankManager {
      * a price they cannot pay.
      */
     public boolean buy(Player player, PlayerData data, RankTier tier) {
-        if (tier == null || tier.price() <= 0) return false;
+        if (tier == null || tier.price() <= 0 || tier.hidden()) return false;
         RankTier current = rankOf(data);
         if (current != null && indexOf(current) >= indexOf(tier)) return false;
         if (!data.spendPoints(tier.price())) return false;
@@ -359,10 +387,10 @@ public class RankManager {
                     : Lore.drift(name, false, phase, stops);
         }
         if (tier != null && tier.colors().size() > 1) {
-            return Lore.gradient(name, false, tier.colors().toArray(new String[0]));
+            return Lore.gradient(name, tier.bold(), tier.colors().toArray(new String[0]));
         }
         if (tier != null && tier.colors().size() == 1) {
-            return Lore.gradient(name, false, tier.colors().get(0));
+            return Lore.gradient(name, tier.bold(), tier.colors().get(0));
         }
         return ChatColor.WHITE + name;
     }

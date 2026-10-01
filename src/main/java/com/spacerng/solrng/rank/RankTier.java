@@ -13,7 +13,7 @@ public record RankTier(String id, String display, List<String> colors, String ta
                        String icon, long price,
                        double multiplier, String keyallCrate, int keyallAmount, int vaultPages,
                        boolean fly, boolean nick, boolean size, boolean rgbName,
-                       boolean autoTag) {
+                       boolean autoTag, boolean hidden, boolean bold) {
 
     /** Whether this rank can start a key all at all. */
     public boolean hasKeyall() {
