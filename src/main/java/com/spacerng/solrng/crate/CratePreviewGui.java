@@ -24,7 +24,7 @@ import java.util.List;
  */
 public final class CratePreviewGui {
 
-    private static final int KEY_SLOT = 49;
+    private static final int KEY_SLOT = 4;
     private static final int[] REWARD_SLOTS = {
             10, 11, 12, 13, 14, 15, 16,
             19, 20, 21, 22, 23, 24, 25,
@@ -38,17 +38,17 @@ public final class CratePreviewGui {
     public static Inventory build(SolRNGPlugin plugin, Player player, Crate crate) {
         CrateManager manager = plugin.getCrateManager();
         CratePreviewHolder holder = new CratePreviewHolder();
+        String[] stops = crate.colors() == null || crate.colors().isEmpty()
+                ? new String[]{"#FFE082", "#FF8F00"} : crate.colors().toArray(new String[0]);
         Inventory inv = Bukkit.createInventory(holder, 54,
-                ChatColor.GOLD + "" + ChatColor.BOLD + crate.display() + ChatColor.GRAY + " - rewards");
+                com.spacerng.solrng.gui.MenuStyle.title(crate.display(), stops));
         holder.setInventory(inv);
 
-        ItemStack rim = pane(Material.ORANGE_STAINED_GLASS_PANE);
-        ItemStack fill = pane(Material.BLACK_STAINED_GLASS_PANE);
-        for (int slot = 0; slot < 54; slot++) {
-            int column = slot % 9;
-            int row = slot / 9;
-            inv.setItem(slot, row == 0 || row == 5 || column == 0 || column == 8 ? rim : fill);
-        }
+        // V239: the shared look, the inside left empty so the rewards stand
+        // on their own the way Leon's reference crate does.
+        com.spacerng.solrng.gui.MenuStyle.frame(inv, com.spacerng.solrng.gui.MenuStyle.Palette.PURPLE);
+        for (int slot : REWARD_SLOTS) inv.setItem(slot, null);
+        com.spacerng.solrng.gui.MenuStyle.close(inv);
 
         List<CrateReward> rewards = new ArrayList<>(crate.rewards());
         rewards.sort(Comparator.comparingDouble(CrateReward::weight).reversed());

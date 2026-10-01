@@ -28,7 +28,7 @@ public class RanksGui {
     private static final int SIZE = 45;
     private static final int SELF_SLOT = 4;
     private static final int[] TIER_SLOTS = {19, 21, 23, 25};
-    private static final int CREDITS_SLOT = 40;
+    private static final int CREDITS_SLOT = 31;
 
     public static NamespacedKey rankKey() {
         return SolRNGPlugin.key("solrng_rank");
@@ -37,15 +37,14 @@ public class RanksGui {
     public static Inventory build(SolRNGPlugin plugin, Player player) {
         RanksHolder holder = new RanksHolder();
         Inventory inv = Bukkit.createInventory(holder, SIZE,
-                ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "Ranks");
+                MenuStyle.title("Ranks", "#FF7AD9", "#C77DFF"));
         holder.setInventory(inv);
 
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         RankManager ranks = plugin.getRankManager();
 
-        ItemStack rail = pane(Material.MAGENTA_STAINED_GLASS_PANE);
-        ItemStack filler = pane(Material.BLACK_STAINED_GLASS_PANE);
-        for (int i = 0; i < SIZE; i++) inv.setItem(i, i < 9 || i >= 36 ? rail : filler);
+        MenuStyle.frame(inv, MenuStyle.Palette.PURPLE);
+        MenuStyle.close(inv);
 
         inv.setItem(SELF_SLOT, selfIcon(plugin, player, data));
         List<RankTier> tiers = ranks.ladder();
@@ -100,9 +99,19 @@ public class RanksGui {
         boolean affordable = data.getPoints() >= cost;
         boolean free = tier.price() <= 0;
 
-        Material material = Material.matchMaterial(tier.icon());
-        ItemStack item = new ItemStack(material == null ? Material.NETHER_STAR : material);
+        // V239: every rank is a chestplate dyed in its own colour, so the
+        // ladder reads as one set at a glance.
+        ItemStack item = new ItemStack(Material.LEATHER_CHESTPLATE);
         ItemMeta meta = item.getItemMeta();
+        if (meta instanceof org.bukkit.inventory.meta.LeatherArmorMeta leather && !tier.colors().isEmpty()) {
+            try {
+                leather.setColor(org.bukkit.Color.fromRGB(Integer.parseInt(
+                        tier.colors().get(tier.colors().size() / 2).replace("#", ""), 16)));
+            } catch (NumberFormatException ignored) {
+                // Undyed is still a chestplate.
+            }
+        }
+        meta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_DYE, org.bukkit.inventory.ItemFlag.HIDE_ATTRIBUTES);
         meta.setDisplayName(ranks.styled(tier));
 
         List<String> lore = new ArrayList<>();

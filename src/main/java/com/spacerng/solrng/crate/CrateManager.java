@@ -570,16 +570,37 @@ public class CrateManager {
         meta.getPersistentDataContainer().remove(consumables.idKey());
         meta.setDisplayName(label(reward));
 
+        // V239: name, what kind of thing it is, what it does in two short
+        // lines, then the chance, like the reference crate Leon showed.
         List<String> lore = new ArrayList<>();
-        if (crate.isJackpot(reward)) {
-            lore.add(Lore.state("jackpot"));
-            lore.add("");
-        }
-        lore.add(Lore.stat(ChatColor.AQUA, "Chance", chanceText(crate.chanceOf(reward))));
-        lore.add(Lore.footnote(describe(reward, consumable)));
+        lore.add(crate.isJackpot(reward)
+                ? ChatColor.GOLD + "Jackpot reward"
+                : ChatColor.DARK_GRAY + "Reward");
+        lore.add("");
+        for (String line : wrap(describe(reward, consumable), 34)) lore.add(ChatColor.GRAY + line);
+        lore.add("");
+        lore.add(Lore.stat(crate.isJackpot(reward) ? ChatColor.GOLD : ChatColor.AQUA,
+                "Chance", chanceText(crate.chanceOf(reward))));
         meta.setLore(lore);
+        meta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_ATTRIBUTES, org.bukkit.inventory.ItemFlag.HIDE_ENCHANTS);
         item.setItemMeta(meta);
         return item;
+    }
+
+    /** Breaks a sentence into lines of at most {@code max} characters. */
+    private static List<String> wrap(String text, int max) {
+        List<String> lines = new ArrayList<>();
+        StringBuilder line = new StringBuilder();
+        for (String word : text.split(" ")) {
+            if (line.length() > 0 && line.length() + 1 + word.length() > max) {
+                lines.add(line.toString());
+                line.setLength(0);
+            }
+            if (line.length() > 0) line.append(' ');
+            line.append(word);
+        }
+        if (line.length() > 0) lines.add(line.toString());
+        return lines;
     }
 
     private static String describe(CrateReward reward, Consumable consumable) {
@@ -599,8 +620,10 @@ public class CrateManager {
 
     private static Material defaultIcon(CrateReward reward) {
         return switch (reward.type()) {
-            case COINS -> Material.RAW_GOLD;
-            case GEMS -> Material.PRISMARINE_CRYSTALS;
+            // The same pictures as the sidebar, so a reward reads as the
+            // currency it pays before its name is read.
+            case COINS -> Material.GOLD_INGOT;
+            case GEMS -> Material.DIAMOND;
             case MONEY -> Material.EMERALD;
             case CREDITS -> Material.AMETHYST_SHARD;
             case TICKETS -> Material.NAME_TAG;

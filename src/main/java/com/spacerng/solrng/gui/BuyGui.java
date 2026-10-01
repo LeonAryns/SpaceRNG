@@ -47,17 +47,16 @@ public class BuyGui {
     public static final int RANKS_SLOT = 20;
     public static final int BOOST_SLOT = 22;
     public static final int BATTLEPASS_SLOT = 24;
-    public static final int WEBSTORE_SLOT = 40;
+    public static final int WEBSTORE_SLOT = 31;
 
     public static Inventory build(SolRNGPlugin plugin, Player player) {
         BuyHolder holder = new BuyHolder();
         Inventory inv = Bukkit.createInventory(holder, SIZE,
-                ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + "SpaceRNG Store");
+                MenuStyle.title("Store", "#FF7AD9", "#C77DFF", "#7C4DFF"));
         holder.setInventory(inv);
 
-        ItemStack rail = pane(Material.MAGENTA_STAINED_GLASS_PANE);
-        ItemStack filler = pane(Material.BLACK_STAINED_GLASS_PANE);
-        for (int i = 0; i < SIZE; i++) inv.setItem(i, i < 9 || i >= 36 ? rail : filler);
+        MenuStyle.frame(inv, MenuStyle.Palette.PURPLE);
+        MenuStyle.close(inv);
 
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
 

@@ -77,6 +77,15 @@ public class GuiListener implements Listener {
     @EventHandler
     public void onClick(InventoryClickEvent event) {
         Inventory topInventory = event.getView().getTopInventory();
+        // V239: the close button of the shared menu look, for every menu.
+        if ((topInventory.getHolder() instanceof com.spacerng.solrng.gui.MenuHolder
+                || topInventory.getHolder() instanceof com.spacerng.solrng.crate.CratePreviewHolder)
+                && topInventory.equals(event.getClickedInventory())
+                && com.spacerng.solrng.gui.MenuStyle.isClose(event.getCurrentItem())) {
+            event.setCancelled(true);
+            event.getWhoClicked().closeInventory();
+            return;
+        }
         if (topInventory.getHolder() instanceof SkillTreeHolder) {
             skillTree.handleSkillTreeClick(event);
         } else if (topInventory.getHolder() instanceof com.spacerng.solrng.gui.RespecHolder) {
