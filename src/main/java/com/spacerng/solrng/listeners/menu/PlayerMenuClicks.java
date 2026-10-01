@@ -238,6 +238,10 @@ final class PlayerMenuClicks {
         // you already have.
         String eggId = com.spacerng.solrng.gui.PetsGui.clickedEgg(event.getCurrentItem());
         if (eggId != null) {
+            if (com.spacerng.solrng.pet.PetHatch.isHatching(player)) {
+                player.sendMessage(ChatColor.GRAY + "Your egg is still hatching.");
+                return;
+            }
             var egg = pets.upgrades().egg(eggId);
             if (egg != null && data.getPrestige() < egg.minPrestige()) {
                 player.sendMessage(ChatColor.RED + "The " + ChatColor.stripColor(egg.display())
@@ -253,17 +257,21 @@ final class PlayerMenuClicks {
             }
             String shown = com.spacerng.solrng.gui.Lore.gradient(
                     made.type().display(), true, made.type().stops());
-            if (made.isNew()) {
-                player.sendMessage(ChatColor.LIGHT_PURPLE + "A new pet took shape: " + ChatColor.RESET
-                        + shown + ChatColor.GRAY + ".");
-            } else {
-                player.sendMessage(ChatColor.LIGHT_PURPLE + "The dust went into " + ChatColor.RESET + shown
-                        + ChatColor.GRAY + ", now rarity " + made.pet().rarity() + ".");
-            }
-            player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_BEACON_POWER_SELECT, 0.7f, 1.4f);
-            plugin.getPetManager().refresh(player);
-            plugin.getScoreboardManager().update(player);
-            player.openInventory(com.spacerng.solrng.gui.PetsGui.build(plugin, player));
+            // V238: the pet is saved now; the hatch decides when the player
+            // sees it, and the chat line and the worn pets wait for it.
+            int tier = pets.upgrades().eggs().indexOf(egg) + 1;
+            player.closeInventory();
+            com.spacerng.solrng.pet.PetHatch.start(plugin, player, egg, tier, made, () -> {
+                if (made.isNew()) {
+                    player.sendMessage(ChatColor.LIGHT_PURPLE + "A new pet hatched: " + ChatColor.RESET
+                            + shown + ChatColor.GRAY + ".");
+                } else {
+                    player.sendMessage(ChatColor.LIGHT_PURPLE + "It was " + ChatColor.RESET + shown
+                            + ChatColor.GRAY + " again, now rarity " + made.pet().rarity() + ".");
+                }
+                plugin.getPetManager().refresh(player);
+                plugin.getScoreboardManager().update(player);
+            });
             return;
         }
 
