@@ -35,7 +35,7 @@ public class DailyGui {
     public static Inventory build(SolRNGPlugin plugin, Player player) {
         DailyHolder holder = new DailyHolder();
         Inventory inv = Bukkit.createInventory(holder, 54,
-                ChatColor.GOLD + "" + ChatColor.BOLD + "Daily Streak");
+                MenuStyle.title("Daily Streak", "#FFE082", "#FF8F00"));
         holder.setInventory(inv);
 
         ItemStack filler = pane(Material.BLACK_STAINED_GLASS_PANE);
@@ -58,6 +58,7 @@ public class DailyGui {
 
         inv.setItem(INFO_SLOT, buildInfo(plugin, data, daily, streak));
         inv.setItem(CLAIM_SLOT, buildClaim(daily, data, next, ready));
+        MenuStyle.apply(inv, MenuStyle.Palette.GOLD);
         return inv;
     }
 

@@ -38,7 +38,7 @@ public class PerkIndexGui {
     public static Inventory build(SolRNGPlugin plugin, Player player) {
         PerkIndexHolder holder = new PerkIndexHolder();
         Inventory inv = Bukkit.createInventory(holder, SIZE,
-                ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + "Perk Index");
+                MenuStyle.title("Perk Index", "#FF7AD9", "#C77DFF"));
         holder.setInventory(inv);
 
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
@@ -67,6 +67,7 @@ public class PerkIndexGui {
 
         inv.setItem(BACK_SLOT, back());
         inv.setItem(INFO_SLOT, info(found, total, confirmations));
+        MenuStyle.apply(inv, MenuStyle.Palette.PURPLE);
         return inv;
     }
 

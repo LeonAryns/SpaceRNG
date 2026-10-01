@@ -33,7 +33,7 @@ public class SecretIndexGui {
     public static Inventory build(SolRNGPlugin plugin, Player player) {
         SecretIndexHolder holder = new SecretIndexHolder();
         Inventory inv = Bukkit.createInventory(holder, SIZE,
-                ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + "Secret Index");
+                MenuStyle.title("Secret Index", "#FF7AD9", "#C77DFF"));
         holder.setInventory(inv);
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         RealmManager realm = plugin.getRealmManager();
@@ -51,6 +51,7 @@ public class SecretIndexGui {
             if (slot >= SIZE) break;
             inv.setItem(slot++, secretIcon(realm, secret, data.getSecretsFound().contains(secret.id())));
         }
+        MenuStyle.apply(inv, MenuStyle.Palette.PURPLE);
         return inv;
     }
 

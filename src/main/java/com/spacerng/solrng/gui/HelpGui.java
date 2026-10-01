@@ -36,7 +36,7 @@ public final class HelpGui {
     public static Inventory build() {
         HelpHolder holder = new HelpHolder();
         Inventory inv = Bukkit.createInventory(holder, SIZE,
-                ChatColor.BLUE + "" + ChatColor.BOLD + "Help" + ChatColor.GRAY + " - How it all works");
+                MenuStyle.title("Help", "#80D8FF", "#536DFE"));
         holder.setInventory(inv);
 
         ItemStack filler = pane(Material.BLACK_STAINED_GLASS_PANE, " ");
@@ -245,6 +245,7 @@ public final class HelpGui {
                         "/shop  every shop in one place",
                         "/leaderboards  every standing"),
                 null, null));
+        MenuStyle.apply(inv, MenuStyle.Palette.BLUE);
         return inv;
     }
 

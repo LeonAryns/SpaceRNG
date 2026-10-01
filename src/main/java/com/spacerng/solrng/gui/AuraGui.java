@@ -41,7 +41,7 @@ public class AuraGui {
     public static Inventory build(SolRNGPlugin plugin, Player player) {
         AuraHolder holder = new AuraHolder();
         Inventory inv = Bukkit.createInventory(holder, SIZE,
-                ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + "Auras");
+                MenuStyle.title("Auras", "#FF7AD9", "#C77DFF"));
         holder.setInventory(inv);
 
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
@@ -55,6 +55,7 @@ public class AuraGui {
             inv.setItem(SHINY_SLOTS[i], auraIcon(plugin, data, SHOWN[i], true));
         }
         inv.setItem(FOLLOW_SLOT, followIcon(data));
+        MenuStyle.apply(inv, MenuStyle.Palette.PURPLE);
         return inv;
     }
 

@@ -39,7 +39,7 @@ public class StarforgeGui {
     public static Inventory build(SolRNGPlugin plugin, Player player) {
         StarforgeHolder holder = new StarforgeHolder();
         Inventory inv = Bukkit.createInventory(holder, 45,
-                ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "Starforge");
+                MenuStyle.title("Starforge", "#FF7AD9", "#C77DFF"));
         holder.setInventory(inv);
 
         ItemStack filler = filler();
@@ -64,6 +64,7 @@ public class StarforgeGui {
         if (com.spacerng.solrng.platform.Bedrock.is(player)) {
             inv.setItem(AUTO_ROLL_SLOT, buildAutoRoll(data));
         }
+        MenuStyle.apply(inv, MenuStyle.Palette.PURPLE);
         return inv;
     }
 

@@ -63,7 +63,7 @@ public class PrestigeGui {
     private static Inventory buildMain(SolRNGPlugin plugin, Player player) {
         PrestigeHolder holder = new PrestigeHolder();
         Inventory inv = Bukkit.createInventory(holder, MAIN_SIZE,
-                ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + "Prestige");
+                MenuStyle.title("Prestige", "#FF7AD9", "#C77DFF"));
         holder.setInventory(inv);
 
         ItemStack rail = pane(Material.PURPLE_STAINED_GLASS_PANE);
@@ -83,6 +83,7 @@ public class PrestigeGui {
         for (int i = 0; i < ROAD_SLOTS.length; i++) {
             inv.setItem(ROAD_SLOTS[i], roadPane(data.getLevel(), needed, i));
         }
+        MenuStyle.apply(inv, MenuStyle.Palette.PURPLE);
         return inv;
     }
 
@@ -242,7 +243,7 @@ public class PrestigeGui {
         holder.setUpgradesPage(true);
 
         Inventory inv = Bukkit.createInventory(holder, 54,
-                ChatColor.GOLD + "" + ChatColor.BOLD + "Prestige Upgrades");
+                MenuStyle.title("Upgrades", "#FF7AD9", "#C77DFF"));
         holder.setInventory(inv);
         ItemStack rail = pane(Material.ORANGE_STAINED_GLASS_PANE);
         ItemStack filler = pane(Material.BLACK_STAINED_GLASS_PANE);
@@ -258,6 +259,7 @@ public class PrestigeGui {
 
         inv.setItem(BACK_SLOT, back());
         inv.setItem(POINTS_SLOT, pointsPanel(data));
+        MenuStyle.apply(inv, MenuStyle.Palette.PURPLE);
         return inv;
     }
 

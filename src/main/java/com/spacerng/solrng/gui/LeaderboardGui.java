@@ -59,7 +59,7 @@ public class LeaderboardGui {
     public static Inventory build(SolRNGPlugin plugin, Player player) {
         LeaderboardHolder holder = new LeaderboardHolder();
         Inventory inv = Bukkit.createInventory(holder, SIZE,
-                ChatColor.GOLD + "" + ChatColor.BOLD + "Leaderboards");
+                MenuStyle.title("Leaderboards", "#FFE082", "#FF8F00"));
         holder.setInventory(inv);
 
         ItemStack frame = pane(Material.YELLOW_STAINED_GLASS_PANE);
@@ -76,7 +76,8 @@ public class LeaderboardGui {
             inv.setItem(card.slot(), buildCard(boards, player, card));
         }
         inv.setItem(DAILY_SLOT, buildDaily());
-        inv.setItem(SELF_SLOT, selfItem(plugin, player, plugin.getConfig().getString("standings-style", "summary")));
+        inv.setItem(SELF_SLOT, selfItem(plugin, player, plugin.getConfig().getString("standings-style", "summary")));
+        MenuStyle.apply(inv, MenuStyle.Palette.GOLD);
         return inv;
     }
 

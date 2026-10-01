@@ -89,6 +89,7 @@ public class CosmeticsGui {
         inv.setItem(TITLE_SLOT, titleDoor(plugin, data));
         inv.setItem(COLOUR_SLOT, colourDoor(plugin, data));
         inv.setItem(RANK_SLOT, rankNote(plugin, data));
+        MenuStyle.apply(inv, MenuStyle.Palette.PURPLE);
         return inv;
     }
 
@@ -229,6 +230,7 @@ public class CosmeticsGui {
         }
         inv.setItem(NONE_SLOT, noneIcon("No title", data.getWornCosmeticTag() == null));
         inv.setItem(BACK_SLOT, backIcon());
+        MenuStyle.apply(inv, MenuStyle.Palette.PURPLE);
         return inv;
     }
 
@@ -275,6 +277,7 @@ public class CosmeticsGui {
         }
         inv.setItem(NONE_SLOT, noneIcon("Your rank's own", data.getNameColour() == null));
         inv.setItem(BACK_SLOT, backIcon());
+        MenuStyle.apply(inv, MenuStyle.Palette.PURPLE);
         return inv;
     }
 
@@ -311,11 +314,12 @@ public class CosmeticsGui {
         CosmeticsHolder holder = new CosmeticsHolder();
         holder.setSection(section);
         Inventory inv = Bukkit.createInventory(holder, SIZE,
-                ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + name);
+                MenuStyle.title(name, "#FF7AD9", "#C77DFF"));
         holder.setInventory(inv);
         ItemStack rail = pane(Material.MAGENTA_STAINED_GLASS_PANE);
         ItemStack filler = pane(Material.BLACK_STAINED_GLASS_PANE);
         for (int i = 0; i < SIZE; i++) inv.setItem(i, i < 9 || i >= 36 ? rail : filler);
+        MenuStyle.apply(inv, MenuStyle.Palette.PURPLE);
         return inv;
     }
 

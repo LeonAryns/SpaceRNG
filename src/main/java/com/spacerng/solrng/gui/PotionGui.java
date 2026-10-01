@@ -41,7 +41,7 @@ public class PotionGui {
     public static Inventory build(SolRNGPlugin plugin, Player player) {
         PotionHolder holder = new PotionHolder();
         Inventory inv = Bukkit.createInventory(holder, 54,
-                ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "Brewing Shelf");
+                MenuStyle.title("Potions", "#FF7AD9", "#C77DFF"));
         holder.setInventory(inv);
 
         ItemStack frame = pane(Material.PURPLE_STAINED_GLASS_PANE);
@@ -65,6 +65,7 @@ public class PotionGui {
         }
 
         inv.setItem(DROPS_SLOT, buildDrops(plugin, player, data));
+        MenuStyle.apply(inv, MenuStyle.Palette.PURPLE);
         return inv;
     }
 

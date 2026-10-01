@@ -59,7 +59,8 @@ public class MilestoneGui {
         if (tracks.isEmpty()) {
             MilestoneHolder empty = new MilestoneHolder();
             Inventory inv = Bukkit.createInventory(empty, 54, ChatColor.DARK_PURPLE + "Milestones");
-            empty.setInventory(inv);
+            empty.setInventory(inv);
+            MenuStyle.apply(inv, MenuStyle.Palette.PURPLE);
             return inv;
         }
 
@@ -70,8 +71,7 @@ public class MilestoneGui {
         holder.setTrackId(track.getId());
 
         Inventory inv = Bukkit.createInventory(holder, 54,
-                ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + "Milestones " + ChatColor.DARK_GRAY + "» "
-                        + ChatColor.WHITE + track.getDisplay());
+                MenuStyle.title(org.bukkit.ChatColor.stripColor(track.getDisplay()), "#FF7AD9", "#C77DFF"));
         holder.setInventory(inv);
 
         ItemStack filler = pane(Material.GRAY_STAINED_GLASS_PANE);
@@ -114,7 +114,8 @@ public class MilestoneGui {
         if (page < totalPages - 1) {
             inv.setItem(NEXT_SLOT, button(Material.ARROW, ChatColor.YELLOW + "Next ▶",
                     ChatColor.GRAY + "Page " + (page + 2) + "/" + totalPages));
-        }
+        }
+        MenuStyle.apply(inv, MenuStyle.Palette.PURPLE);
         return inv;
     }
 

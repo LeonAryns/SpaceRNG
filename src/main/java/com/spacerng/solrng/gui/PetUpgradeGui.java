@@ -51,8 +51,7 @@ public class PetUpgradeGui {
         PetType type = pets.get(petId);
         PetUpgradeHolder holder = new PetUpgradeHolder(petId);
         Inventory inv = Bukkit.createInventory(holder, SIZE,
-                ChatColor.DARK_AQUA + "" + ChatColor.BOLD + "Pet"
-                        + (type == null ? "" : ChatColor.GRAY + " - " + stripped(type.display())));
+                MenuStyle.title((type == null ? "Pet" : stripped(type.display())), "#80DEEA", "#26C6DA"));
         holder.setInventory(inv);
 
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
@@ -64,6 +63,7 @@ public class PetUpgradeGui {
         if (type == null || owned == null) {
             inv.setItem(CARD_SLOT, missing());
             inv.setItem(BACK_SLOT, back());
+            MenuStyle.apply(inv, MenuStyle.Palette.CYAN);
             return inv;
         }
 
@@ -78,6 +78,7 @@ public class PetUpgradeGui {
         if (com.spacerng.solrng.platform.Bedrock.is(player)) {
             inv.setItem(WEAR_SLOT, wearButton(plugin, data, type));
         }
+        MenuStyle.apply(inv, MenuStyle.Palette.CYAN);
         return inv;
     }
 

@@ -100,7 +100,7 @@ public class IndexGui {
         page = Math.max(0, Math.min(page, totalPages - 1));
         holder.setPage(page);
 
-        Inventory inv = Bukkit.createInventory(holder, 54, ChatColor.DARK_AQUA + "" + ChatColor.BOLD + "Your Index");
+        Inventory inv = Bukkit.createInventory(holder, 54, MenuStyle.title("Index", "#80DEEA", "#26C6DA"));
         holder.setInventory(inv);
         holder.setShinyView(shinyView);
 
@@ -131,7 +131,9 @@ public class IndexGui {
         for (RollableItem item : shown.subList(from, to)) {
             inv.setItem(slot, buildEntry(plugin, data, item, shinyView));
             slot++;
-        }
+        }
+
+        MenuStyle.apply(inv, MenuStyle.Palette.CYAN);
 
         return inv;
     }

@@ -31,7 +31,7 @@ public class CropsGui {
 
     public static Inventory build(SolRNGPlugin plugin, Player player) {
         CropsHolder holder = new CropsHolder();
-        Inventory inv = Bukkit.createInventory(holder, 36, ChatColor.DARK_GREEN + "" + ChatColor.BOLD + "Your Crops");
+        Inventory inv = Bukkit.createInventory(holder, 36, MenuStyle.title("Crops", "#B9F6CA", "#00C853"));
         holder.setInventory(inv);
 
         ItemStack filler = filler();
@@ -52,6 +52,7 @@ public class CropsGui {
         }
 
         inv.setItem(31, info(plugin, data, farm));
+        MenuStyle.apply(inv, MenuStyle.Palette.GREEN);
         return inv;
     }
 

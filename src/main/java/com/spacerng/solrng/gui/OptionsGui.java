@@ -24,7 +24,7 @@ public class OptionsGui {
 
     public static Inventory build(SolRNGPlugin plugin, Player player) {
         OptionsHolder holder = new OptionsHolder();
-        Inventory inv = Bukkit.createInventory(holder, 45, ChatColor.DARK_GRAY + "" + ChatColor.BOLD + "Options");
+        Inventory inv = Bukkit.createInventory(holder, 45, MenuStyle.title("Options", "#80D8FF", "#536DFE"));
         holder.setInventory(inv);
 
         ItemStack filler = pane();
@@ -59,6 +59,8 @@ public class OptionsGui {
         for (Rarity rarity : Rarity.values()) {
             inv.setItem(slot++, dropToggle(plugin, data, rarity));
         }
+
+        MenuStyle.apply(inv, MenuStyle.Palette.BLUE);
 
         return inv;
     }

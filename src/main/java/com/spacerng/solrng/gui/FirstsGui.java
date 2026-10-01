@@ -34,7 +34,7 @@ public class FirstsGui {
     public static Inventory build(SolRNGPlugin plugin, Player player) {
         FirstsHolder holder = new FirstsHolder();
         Inventory inv = Bukkit.createInventory(holder, SIZE,
-                ChatColor.GOLD + "" + ChatColor.BOLD + "Server Firsts");
+                MenuStyle.title("Server Firsts", "#FFE082", "#FF8F00"));
         holder.setInventory(inv);
 
         ItemStack rail = pane(Material.ORANGE_STAINED_GLASS_PANE);
@@ -47,6 +47,7 @@ public class FirstsGui {
         for (int i = 0; i < tracked.size() && i < RARITY_SLOTS.length; i++) {
             inv.setItem(RARITY_SLOTS[i], rarityIcon(plugin, tracked.get(i)));
         }
+        MenuStyle.apply(inv, MenuStyle.Palette.GOLD);
         return inv;
     }
 

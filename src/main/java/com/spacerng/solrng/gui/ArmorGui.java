@@ -50,7 +50,7 @@ public class ArmorGui {
 
     public static Inventory build(SolRNGPlugin plugin, Player player) {
         ArmorHolder holder = new ArmorHolder();
-        Inventory inv = Bukkit.createInventory(holder, 45, ChatColor.GOLD + "" + ChatColor.BOLD + "Armor Shop");
+        Inventory inv = Bukkit.createInventory(holder, 45, MenuStyle.title("Armor", "#FFE082", "#FF8F00"));
         holder.setInventory(inv);
 
         ItemStack filler = glassFiller(Material.GRAY_STAINED_GLASS_PANE);
@@ -83,6 +83,8 @@ public class ArmorGui {
         }
 
         inv.setItem(STATS_SLOT, buildDropTotals(plugin, player, data));
+
+        MenuStyle.apply(inv, MenuStyle.Palette.GOLD);
 
         return inv;
     }

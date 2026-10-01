@@ -69,7 +69,7 @@ public class PetsGui {
     public static Inventory build(SolRNGPlugin plugin, Player player) {
         PetsHolder holder = new PetsHolder(PetsHolder.View.MAIN);
         Inventory inv = Bukkit.createInventory(holder, SIZE,
-                ChatColor.DARK_AQUA + "" + ChatColor.BOLD + "Pets");
+                MenuStyle.title("Pets", "#80DEEA", "#26C6DA"));
         holder.setInventory(inv);
 
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
@@ -107,6 +107,7 @@ public class PetsGui {
         for (int i = 0; i < PROGRESS_SLOTS.length; i++) {
             inv.setItem(PROGRESS_SLOTS[i], progressBlock(data.getCosmicDust(), cost, i));
         }
+        MenuStyle.apply(inv, MenuStyle.Palette.CYAN);
         return inv;
     }
 
@@ -114,7 +115,7 @@ public class PetsGui {
     public static Inventory storage(SolRNGPlugin plugin, Player player) {
         PetsHolder holder = new PetsHolder(PetsHolder.View.STORAGE);
         Inventory inv = Bukkit.createInventory(holder, SIZE,
-                ChatColor.DARK_AQUA + "" + ChatColor.BOLD + "Pet Storage");
+                MenuStyle.title("Pet Storage", "#80DEEA", "#26C6DA"));
         holder.setInventory(inv);
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         PetManager pets = plugin.getPetManager();
@@ -136,6 +137,7 @@ public class PetsGui {
             none.setItemMeta(meta);
             inv.setItem(31, none);
         }
+        MenuStyle.apply(inv, MenuStyle.Palette.CYAN);
         return inv;
     }
 
@@ -143,7 +145,7 @@ public class PetsGui {
     public static Inventory index(SolRNGPlugin plugin, Player player) {
         PetsHolder holder = new PetsHolder(PetsHolder.View.INDEX);
         Inventory inv = Bukkit.createInventory(holder, SIZE,
-                ChatColor.DARK_AQUA + "" + ChatColor.BOLD + "Pet Index");
+                MenuStyle.title("Pet Index", "#80DEEA", "#26C6DA"));
         holder.setInventory(inv);
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         fillSubScreen(inv);
@@ -153,6 +155,7 @@ public class PetsGui {
             if (slot >= SIZE) break;
             inv.setItem(slot++, indexIcon(plugin, data, pet));
         }
+        MenuStyle.apply(inv, MenuStyle.Palette.CYAN);
         return inv;
     }
 

@@ -79,8 +79,7 @@ public class PassGui {
         PassHolder holder = new PassHolder();
         holder.setPage(page);
         Inventory inv = Bukkit.createInventory(holder, 54,
-                ChatColor.GOLD + "" + ChatColor.BOLD + "Battle Pass"
-                        + ChatColor.GRAY + " - " + pass.getSeasonName());
+                MenuStyle.title("Battle Pass", "#FFE082", "#FF8F00"));
         holder.setInventory(inv);
 
         ItemStack divider = pane(Material.BLACK_STAINED_GLASS_PANE, " ");
@@ -115,6 +114,7 @@ public class PassGui {
         if (page < totalPages - 1) {
             inv.setItem(NEXT_SLOT, navButton(Material.ARROW, "Next ▶", page + 2, totalPages));
         }
+        MenuStyle.apply(inv, MenuStyle.Palette.GOLD);
         return inv;
     }
 

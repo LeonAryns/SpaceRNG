@@ -44,7 +44,7 @@ public class NovaCoreGui {
 
     public static Inventory build(SolRNGPlugin plugin, Player player) {
         NovaCoreHolder holder = new NovaCoreHolder();
-        Inventory inv = Bukkit.createInventory(holder, 54, plugin.getNovaCoreManager().styledTitle());
+        Inventory inv = Bukkit.createInventory(holder, 54, MenuStyle.title("Nova Core", "#FF7AD9", "#C77DFF"));
         holder.setInventory(inv);
 
         ItemStack filler = pane(Material.BLACK_STAINED_GLASS_PANE, " ");
@@ -63,6 +63,7 @@ public class NovaCoreGui {
 
         inv.setItem(INFO_SLOT, buildInfo(plugin, data, nova, tier));
         inv.setItem(FORGE_SLOT, buildForge(plugin, player, data, nova, tier));
+        MenuStyle.apply(inv, MenuStyle.Palette.PURPLE);
         return inv;
     }
 

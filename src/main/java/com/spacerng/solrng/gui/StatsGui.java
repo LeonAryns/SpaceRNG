@@ -69,7 +69,7 @@ public class StatsGui {
     public static Inventory overview(SolRNGPlugin plugin, UUID target, String targetName) {
         StatsHolder holder = new StatsHolder(target, targetName, null);
         Inventory inv = Bukkit.createInventory(holder, 54,
-                ChatColor.AQUA + "" + ChatColor.BOLD + "Stats" + ChatColor.DARK_GRAY + " - " + targetName);
+                MenuStyle.title("Stats", "#80DEEA", "#26C6DA"));
         holder.setInventory(inv);
         frame(inv);
 
@@ -78,6 +78,7 @@ public class StatsGui {
         for (Card card : CARDS) {
             inv.setItem(card.slot(), summaryCard(plugin, data, card));
         }
+        MenuStyle.apply(inv, MenuStyle.Palette.CYAN);
         return inv;
     }
 
@@ -131,7 +132,7 @@ public class StatsGui {
         StatSources.Stat stat = StatSources.of(plugin, data, id);
 
         Inventory inv = Bukkit.createInventory(holder, 54,
-                ChatColor.AQUA + "" + ChatColor.BOLD + stat.name() + ChatColor.DARK_GRAY + " - " + targetName);
+                MenuStyle.title(stat.name(), "#80DEEA", "#26C6DA"));
         holder.setInventory(inv);
         frame(inv);
 
@@ -153,6 +154,7 @@ public class StatsGui {
         }
 
         inv.setItem(BACK_SLOT, back(targetName));
+        MenuStyle.apply(inv, MenuStyle.Palette.CYAN);
         return inv;
     }
 

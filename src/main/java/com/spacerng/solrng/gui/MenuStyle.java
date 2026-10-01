@@ -146,6 +146,33 @@ public final class MenuStyle {
         return ring;
     }
 
+    /**
+     * Puts the look on a menu that is already built (V240): every filler
+     * pane (a pane named " ") becomes the frame on the edge and grey glass
+     * inside; everything else, including panes that mean something like a
+     * progress bar, stays exactly where it was. The close button goes in
+     * only when the bottom centre is filler, so no menu loses a button to
+     * it. Empty slots stay empty, which is what keeps storage menus safe.
+     */
+    public static void apply(Inventory inv, Palette palette) {
+        int size = inv.getSize();
+        int rows = size / 9;
+        List<Integer> ring = ring(rows);
+        ItemStack inside = pane(Material.GRAY_STAINED_GLASS_PANE);
+        for (int slot = 0; slot < size; slot++) {
+            if (!isFiller(inv.getItem(slot))) continue;
+            int index = ring.indexOf(slot);
+            inv.setItem(slot, index >= 0 ? pane(palette.panes[index % palette.panes.length]) : inside);
+        }
+        if (rows >= 3 && isFiller(inv.getItem(size - 5))) close(inv);
+    }
+
+    private static boolean isFiller(ItemStack item) {
+        if (item == null || !item.getType().name().endsWith("_STAINED_GLASS_PANE")) return false;
+        ItemMeta meta = item.getItemMeta();
+        return meta == null || !meta.hasDisplayName() || meta.getDisplayName().isBlank();
+    }
+
     /** The close button, bottom centre. */
     public static void close(Inventory inv) {
         ItemStack item = new ItemStack(Material.BARRIER);

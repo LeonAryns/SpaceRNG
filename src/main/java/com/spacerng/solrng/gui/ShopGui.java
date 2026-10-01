@@ -74,7 +74,7 @@ public class ShopGui {
     public static Inventory build(SolRNGPlugin plugin, Player player) {
         ShopHolder holder = new ShopHolder();
         Inventory inv = Bukkit.createInventory(holder, 54,
-                ChatColor.GOLD + "" + ChatColor.BOLD + "Shops");
+                MenuStyle.title("Shops", "#FFE082", "#FF8F00"));
         holder.setInventory(inv);
 
         ItemStack frame = pane(Material.ORANGE_STAINED_GLASS_PANE);
@@ -90,6 +90,7 @@ public class ShopGui {
             inv.setItem(shop.slot(), buildCard(plugin, data, shop));
         }
         inv.setItem(SELF_SLOT, buildSelf(plugin, player, data));
+        MenuStyle.apply(inv, MenuStyle.Palette.GOLD);
         return inv;
     }
 
