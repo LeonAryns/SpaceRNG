@@ -5,7 +5,7 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V229**, 27 September 2026.
+Last updated at **V237**, 1 October 2026.
 
 ## The agreed way of working
 
@@ -1009,6 +1009,27 @@ per subject:
 (`world-time.lock: 6000`, pinned every second). By hand on 1.21.11 the
 rule is `/gamerule advance_time false`. The "custom crate" is the Nebula
 Crate, for rank key alls and events (`/rngadmin crate keyall nebula 1`).
+
+**V230 to V237, 27 September to 1 October, untested in game except that
+linking worked on V230:**
+
+- **V230, our own bot.** JDA 5 shaded in the jar, token in
+  `discord.bot.token` (never in the repo). /link gives a code, the Link
+  account button in #linking opens a box for it. Links in `links.yml`.
+  DiscordSRV only for chat relay, if Leon keeps it.
+- **V231** `/rngadmin discord status` and `restart`.
+- **V232** Linking pays +100% Luck and nothing else (Leon's call, no
+  Credits or Coins), all link texts rewritten. config-version 27.
+- **V233** `discord.roles`: Owner, Staff, Supernova, Nova, Comet, Linked,
+  OG, Member with emoji, colours, order; `setup` builds them,
+  `cleanup` lists and `cleanup confirm` deletes every other role.
+- **V234** The sun is pinned with `GameRules.ADVANCE_TIME`, and
+  `world-time.clear-weather` stops rain.
+- **V235** Hidden ranks Owner ([O], red bold) and Member ([M], grey),
+  given with `/rngadmin rank set`. Ranks sort by `priority`.
+- **V236** A rank upgrade costs the difference with the rank you have.
+- **V237** Nova's aura is heartfall, so the rank looks climb: sigil,
+  ember, heartfall, ascend.
 
 ## Leon's idea list: what is still to do
 
