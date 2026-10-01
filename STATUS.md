@@ -5,7 +5,7 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V237**, 1 October 2026.
+Last updated at **V241**, 1 October 2026.
 
 ## The agreed way of working
 
@@ -1030,6 +1030,26 @@ linking worked on V230:**
 - **V236** A rank upgrade costs the difference with the rank you have.
 - **V237** Nova's aura is heartfall, so the rank looks climb: sigil,
   ember, heartfall, ascend.
+
+**V238 to V241, 1 October, untested in game:**
+
+- **V238** The egg hatch animation (`pet/PetHatch`): wobble, three cracks,
+  a hatch burst in the pet's colours, the pet settles. Only the hatcher
+  sees it.
+- **V239** `gui/MenuStyle`, the look from Leon's reference screenshots:
+  "» [NAME] «" gradient title, a three-pane edge pattern, grey inside, a
+  close barrier bottom centre. On Ranks (dyed chestplates), Store and the
+  crate preview (rewards read name, Reward, two lines, chance).
+- **V240** `MenuStyle.apply` puts it on 22 more menus by replacing only
+  filler panes. Trees, convert, hoe, vaults, stash, perk roller and the
+  crate reel are left alone.
+- **V241** The bot's status shows "{online} on spacerng.minehut.gg";
+  every role becomes a gradient, but only on a boosted server with
+  Discord's enhanced role colours.
+
+**Waiting on Leon:** the tab he wants. His screenshot arrived a few pixels
+wide; ask for it again. TAB plugin defaults were the ugly tab; advice
+given to remove TAB so ours draws it.
 
 ## Leon's idea list: what is still to do
 
