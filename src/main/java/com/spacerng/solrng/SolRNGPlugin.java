@@ -391,28 +391,40 @@ public final class SolRNGPlugin extends JavaPlugin {
                 com.spacerng.solrng.player.SkillNode.Effect.CONVERT_CAP));
     }
 
+    /**
+     * The sun and the sky stay put (V171, weather V234). world-time.lock is
+     * the time of day to hold, -1 lets it run; world-time.clear-weather
+     * keeps it from raining.
+     *
+     * Before V234 the daylight rule was looked up by name, old name first,
+     * and the loop stopped at the first one found. On 1.21.11 the rule is
+     * advance_time, and if the old name still resolves without the value
+     * sticking, the clock kept running on the client and was snapped back
+     * every second, which reads as a sun that creeps and jumps. The
+     * constants from GameRules are used now, no names.
+     */
     private void holdTime() {
         long lock = getConfig().getLong("world-time.lock", 6000L);
-        if (lock < 0) return;
+        boolean clear = getConfig().getBoolean("world-time.clear-weather", true);
         for (org.bukkit.World world : getServer().getWorlds()) {
             if (world.getEnvironment() != org.bukkit.World.Environment.NORMAL) continue;
-            stopDaylightCycle(world);
-            if (Math.abs(world.getTime() - lock) > 20) world.setTime(lock);
+            if (lock >= 0) {
+                setRule(world, org.bukkit.GameRules.ADVANCE_TIME, false);
+                if (world.getTime() != lock) world.setTime(lock);
+            }
+            if (clear) {
+                setRule(world, org.bukkit.GameRules.ADVANCE_WEATHER, false);
+                if (world.hasStorm()) world.setStorm(false);
+                if (world.isThundering()) world.setThundering(false);
+            }
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private void stopDaylightCycle(org.bukkit.World world) {
-        for (String name : new String[]{"doDaylightCycle", "advance_time", "minecraft:advance_time"}) {
-            try {
-                org.bukkit.GameRule<?> rule = org.bukkit.GameRule.getByName(name);
-                if (rule == null || rule.getType() != Boolean.class) continue;
-                org.bukkit.GameRule<Boolean> daylight = (org.bukkit.GameRule<Boolean>) rule;
-                if (!Boolean.FALSE.equals(world.getGameRuleValue(daylight))) world.setGameRule(daylight, false);
-                return;
-            } catch (RuntimeException ignored) {
-                // not this name on this version, try the next
-            }
+    private static void setRule(org.bukkit.World world, org.bukkit.GameRule<Boolean> rule, boolean value) {
+        try {
+            if (!Boolean.valueOf(value).equals(world.getGameRuleValue(rule))) world.setGameRule(rule, value);
+        } catch (RuntimeException ignored) {
+            // A rule this server does not know; the time is still pinned below.
         }
     }
 

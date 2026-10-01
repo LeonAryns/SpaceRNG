@@ -31,6 +31,8 @@ standings-style: summary
 # noon, 12000 sunset, 18000 midnight. -1 lets the sun move again.
 world-time:
   lock: 6000
+  # No rain or thunder, ever (V234).
+  clear-weather: true
 
 # The sidebar's fixed text. Colour codes use "&".
 scoreboard:

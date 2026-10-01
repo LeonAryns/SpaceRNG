@@ -86,6 +86,8 @@ public final class ConfigMigrator {
             "discord.bot.token", "discord.bot.guild-id", "discord.bot.link-button",
             // V233: the server's roles with emoji and colours.
             "discord.roles",
+            // V234: no rain.
+            "world-time.clear-weather",
             // V226: three eggs, and the Prestige pets open at.
             "pets.eggs", "pets.min-prestige",
             // V227: Supernova wears its best tag on its own.
