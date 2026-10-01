@@ -6244,12 +6244,18 @@ auras:
   # wears what Epic used to (sigil). A rank left out here, or enabled
   # false, falls back to the rarity's own look under tag: below. The
   # accent always stays the rarity's.
+  #
+  # V237: a ladder, each rank adding to the one below it. Linked two
+  # circles and spokes; Comet two floor circles and six flames; Nova a
+  # beating heart with lanterns sailing round it over star bands;
+  # Supernova (and Owner) the slanted orbit, bursting floor stars and the
+  # lantern atom. Try any look with /rngadmin auratest <look> <rarity>.
   by-rank:
     enabled: true
     looks:
       linked: sigil
       comet: ember
-      nova: eclipse
+      nova: heartfall
       supernova: ascend
       owner: ascend
   # What a tag of each rarity wears. The four below are the signature

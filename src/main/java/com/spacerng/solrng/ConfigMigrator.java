@@ -172,6 +172,8 @@ public final class ConfigMigrator {
     }
 
     private static final List<Patch> PATCHES = List.of(
+            // V237: Nova climbs above Comet instead of standing beside it.
+            new Patch("rank-aura-nova-heartfall", "auras.by-rank.looks.nova", "eclipse", "heartfall"),
             // V235: Owner is red, Leon's call.
             new Patch("discord-owner-red", "discord.roles.owner.colors",
                     List.of("#FFE082", "#FF8F00"), List.of("#FF6B6B", "#D50000")),
