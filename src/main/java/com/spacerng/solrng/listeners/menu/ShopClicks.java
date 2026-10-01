@@ -231,7 +231,7 @@ final class ShopClicks {
         }
         if (!com.spacerng.solrng.platform.BedrockConfirm.go(player, event, "rank:" + tier.id())) return;
         if (!ranks.buy(player, data, tier)) {
-            player.sendMessage(ChatColor.RED + "You need " + Currency.CREDITS.amount(tier.price())
+            player.sendMessage(ChatColor.RED + "You need " + Currency.CREDITS.amount(ranks.priceFor(data, tier))
                     + ChatColor.RED + " for that rank.");
             player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
             return;

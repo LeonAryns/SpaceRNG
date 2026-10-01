@@ -96,7 +96,8 @@ public class RanksGui {
         RankManager ranks = plugin.getRankManager();
         RankTier current = ranks.rankOf(data);
         boolean owned = current != null && ranks.indexOf(current) >= ranks.indexOf(tier);
-        boolean affordable = data.getPoints() >= tier.price();
+        long cost = ranks.priceFor(data, tier);
+        boolean affordable = data.getPoints() >= cost;
         boolean free = tier.price() <= 0;
 
         Material material = Material.matchMaterial(tier.icon());
@@ -156,7 +157,10 @@ public class RanksGui {
         lore.add(free
                 ? Lore.stat(ChatColor.LIGHT_PURPLE, "Price", "free")
                 : Lore.stat(ChatColor.LIGHT_PURPLE, "Price",
-                        Currency.CREDITS.price(tier.price(), affordable)));
+                        Currency.CREDITS.price(cost, affordable)));
+        if (!free && !owned && cost < tier.price()) {
+            lore.add(Lore.footnote(String.format("%,d", tier.price()) + " minus what your rank cost"));
+        }
         lore.add("");
         if (owned) {
             lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "Yours");

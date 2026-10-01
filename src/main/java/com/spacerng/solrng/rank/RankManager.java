@@ -262,6 +262,19 @@ public class RankManager {
     }
 
     /**
+     * What this rank costs this player (V236): its price minus the price
+     * of the rank they already have, so climbing from Comet to Supernova
+     * costs the difference rather than the whole price again. Never below
+     * zero.
+     */
+    public long priceFor(PlayerData data, RankTier tier) {
+        if (tier == null) return 0L;
+        RankTier current = rankOf(data);
+        long paid = current == null || indexOf(current) >= indexOf(tier) ? 0L : current.price();
+        return Math.max(0L, tier.price() - paid);
+    }
+
+    /**
      * Buys a rank with Credits. Refuses one the player already outranks and
      * a price they cannot pay.
      */
@@ -269,7 +282,7 @@ public class RankManager {
         if (tier == null || tier.price() <= 0 || tier.hidden()) return false;
         RankTier current = rankOf(data);
         if (current != null && indexOf(current) >= indexOf(tier)) return false;
-        if (!data.spendPoints(tier.price())) return false;
+        if (!data.spendPoints(priceFor(data, tier))) return false;
         data.setRank(tier.id());
         refreshName(player);
         // The Discord role follows the rank the moment it is bought,

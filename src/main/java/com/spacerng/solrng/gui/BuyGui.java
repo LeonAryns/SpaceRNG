@@ -122,7 +122,7 @@ public class BuyGui {
         for (RankTier tier : ranks.ladder()) {
             boolean owned = current != null && ranks.indexOf(current) >= ranks.indexOf(tier);
             String price = tier.price() <= 0 ? ChatColor.GREEN + "free when linked"
-                    : Currency.CREDITS.amount(tier.price());
+                    : Currency.CREDITS.amount(ranks.priceFor(data, tier));
             lore.add(Lore.mark(owned ? ChatColor.GREEN : ChatColor.DARK_GRAY) + ranks.styled(tier)
                     + ChatColor.DARK_GRAY + "  " + (owned ? ChatColor.GREEN + Lore.TICK : price));
         }
