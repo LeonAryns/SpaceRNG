@@ -81,6 +81,9 @@ public class DiscordBot extends ListenerAdapter implements BotHooks {
     // What is wrong right now, in words Leon can act on. Shown by
     // /rngadmin discord status and by every command that needs the bot.
     private volatile String problem = "Not started yet.";
+    // The line under the bot's name in Discord (V241): "3 on ...".
+    private org.bukkit.scheduler.BukkitTask statusTask;
+    private String lastStatus = "";
 
     // Config
     private String token = "";
@@ -265,6 +268,7 @@ public class DiscordBot extends ListenerAdapter implements BotHooks {
         }
         ready = true;
         problem = "";
+        startStatus();
         plugin.getLogger().info("Discord bot: online in " + guild.getName() + ", "
                 + commands.size() + " slash commands sent.");
         plugin.getServer().getScheduler().runTask(plugin, this::syncAll);
@@ -280,8 +284,38 @@ public class DiscordBot extends ListenerAdapter implements BotHooks {
         return current.getGuilds().isEmpty() ? null : current.getGuilds().get(0);
     }
 
+    /**
+     * Keeps the bot's custom status on the player count, like the bot Leon
+     * pointed at ("73 on MoneyMC.net"). Checked every 30 seconds and only
+     * sent when it changed, because Discord limits presence updates to
+     * five a minute.
+     */
+    private void startStatus() {
+        String format = plugin.getConfig().getString("discord.bot.status", "{online} on spacerng.minehut.gg");
+        if (format == null || format.isBlank() || statusTask != null) return;
+        statusTask = plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
+            JDA current = jda;
+            if (current == null) return;
+            int online = Bukkit.getOnlinePlayers().size();
+            String text = format.replace("{online}", String.valueOf(online))
+                    .replace("{max}", String.valueOf(Bukkit.getMaxPlayers()));
+            if (text.equals(lastStatus)) return;
+            lastStatus = text;
+            try {
+                current.getPresence().setActivity(net.dv8tion.jda.api.entities.Activity.customStatus(text));
+            } catch (Throwable ignored) {
+                // Presence is cosmetic; never worth an error.
+            }
+        }, 20L, 600L);
+    }
+
     @Override
     public void shutdown() {
+        if (statusTask != null) {
+            statusTask.cancel();
+            statusTask = null;
+        }
+        lastStatus = "";
         JDA current = jda;
         jda = null;
         ready = false;
@@ -645,6 +679,11 @@ public class DiscordBot extends ListenerAdapter implements BotHooks {
             say.accept("There is no discord.roles section in config.yml.");
             return;
         }
+        if (!guild.getFeatures().contains("ENHANCED_ROLE_COLORS")) {
+            say.accept("This server cannot show role gradients yet: Discord only allows them on a boosted"
+                    + " server with enhanced role colours. Every role gets one colour from its gradient"
+                    + " for now; run setup again once the server has it and they turn into gradients.");
+        }
         List<java.util.concurrent.CompletableFuture<Role>> found = new ArrayList<>();
         for (RoleSpec spec : specs) {
             Role role = findRole(guild, spec);
@@ -702,11 +741,15 @@ public class DiscordBot extends ListenerAdapter implements BotHooks {
             }
         }
         manager.queue(null, error -> say.accept("Could not style " + spec.fullName() + ": " + error.getMessage()));
-        if (guild.getFeatures().contains("ENHANCED_ROLE_COLORS") && spec.colors().size() >= 2) {
-            // Not in JDA 5 yet, so the one field is sent by hand.
+        if (guild.getFeatures().contains("ENHANCED_ROLE_COLORS")) {
+            // Not in JDA 5 yet, so the one field is sent by hand. A role
+            // with a single colour fades into a lighter copy of it, so
+            // every role is a gradient.
+            int first = colourOf(spec.colors().get(0));
+            int last = spec.colors().size() >= 2 ? colourOf(spec.colors().get(spec.colors().size() - 1)) : lighter(first);
             var colors = net.dv8tion.jda.api.utils.data.DataObject.empty()
-                    .put("primary_color", colourOf(spec.colors().get(0)))
-                    .put("secondary_color", colourOf(spec.colors().get(spec.colors().size() - 1)));
+                    .put("primary_color", first)
+                    .put("secondary_color", last);
             var body = net.dv8tion.jda.api.utils.data.DataObject.empty().put("colors", colors);
             new net.dv8tion.jda.internal.requests.RestActionImpl<Void>(guild.getJDA(),
                     net.dv8tion.jda.api.requests.Route.Roles.MODIFY_ROLE.compile(guild.getId(), role.getId()), body)
@@ -950,6 +993,12 @@ public class DiscordBot extends ListenerAdapter implements BotHooks {
             out.append(c);
         }
         return out.toString();
+    }
+
+    /** Halfway to white, for the second stop of a one colour role. */
+    private static int lighter(int rgb) {
+        int r = (rgb >> 16) & 0xFF, g = (rgb >> 8) & 0xFF, b = rgb & 0xFF;
+        return ((r + (255 - r) / 2) << 16) | ((g + (255 - g) / 2) << 8) | (b + (255 - b) / 2);
     }
 
     private static int colourOf(String hex) {

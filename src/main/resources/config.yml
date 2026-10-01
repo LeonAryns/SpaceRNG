@@ -5811,6 +5811,9 @@ discord:
     guild-id: "1541464806161383575"
     # The text on the button under the link card.
     link-button: "Link account"
+    # The line under the bot's name in Discord, updated as players come
+    # and go. {online} and {max}. Empty switches it off.
+    status: "{online} on spacerng.minehut.gg"
     # Where slash commands may be used. Empty means anywhere.
     command-channel: ""
     # Given to everybody whose account is linked.

@@ -88,6 +88,8 @@ public final class ConfigMigrator {
             "discord.roles",
             // V234: no rain.
             "world-time.clear-weather",
+            // V241: the player count under the bot's name.
+            "discord.bot.status",
             // V235: the Owner and Member ranks, and Owner's aura.
             "ranks.tiers.member", "ranks.tiers.owner",
             "auras.by-rank.looks.owner", "auras.rank-scale.owner",
