@@ -163,6 +163,11 @@ public class PlayerDataManager {
             data.setAnnounced(rarity, yml.getInt("announced." + rarity.name(), 0));
         }
         data.setShiniesAnnounced(yml.getInt("announced.SHINY", 0));
+        data.setAutoStoreKeys(yml.getBoolean("auto-store-keys", true));
+        org.bukkit.configuration.ConfigurationSection keys = yml.getConfigurationSection("stored-keys");
+        if (keys != null) {
+            for (String id : keys.getKeys(false)) data.addStoredKeys(id, keys.getLong(id));
+        }
         org.bukkit.configuration.ConfigurationSection stored = yml.getConfigurationSection("stored-boosters");
         if (stored != null) {
             for (String id : stored.getKeys(false)) data.addStoredBooster(id, stored.getLong(id));
@@ -453,6 +458,9 @@ public class PlayerDataManager {
             if (count > 0) yml.set("announced." + rarity.name(), count);
         }
         if (data.getShiniesAnnounced() > 0) yml.set("announced.SHINY", data.getShiniesAnnounced());
+        yml.set("auto-store-keys", data.isAutoStoreKeys());
+        yml.set("stored-keys", null);
+        data.getStoredKeys().forEach((id, amount) -> yml.set("stored-keys." + id, amount));
         yml.set("stored-boosters", null);
         data.getStoredBoosters().forEach((id, amount) -> yml.set("stored-boosters." + id, amount));
         yml.set("roll-charge-multiplier", data.getRollChargeMultiplier());

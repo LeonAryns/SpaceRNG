@@ -290,6 +290,16 @@ public class CrateManager {
 
     // --------------------------------------------------------------- keys
 
+    /**
+     * Whether this consumable is a key /keys keeps (V282): it opens a crate
+     * that stands somewhere. A Boss Box opens from the item itself, so it
+     * stays an item.
+     */
+    public boolean isStorableKey(String consumableId) {
+        Crate crate = crateForKey(consumableId);
+        return crate != null && isPlaced(crate);
+    }
+
     /** The crate a consumable id opens, or null when it isn't a key. */
     public Crate crateForKey(String consumableId) {
         for (Crate crate : crates.values()) {
@@ -306,7 +316,9 @@ public class CrateManager {
 
     public int keysHeld(Player player, Crate crate) {
         PlayerInventory inventory = player.getInventory();
-        int count = 0;
+        // Keys kept in /keys count too (V282), and are spent first.
+        long stored = plugin.getPlayerDataManager().get(player.getUniqueId()).storedKeys(crate.keyId());
+        int count = (int) Math.min(Integer.MAX_VALUE / 2, stored);
         for (int slot = 0; slot < INVENTORY_STORAGE; slot++) {
             ItemStack stack = inventory.getItem(slot);
             if (isKeyFor(stack, crate)) count += stack.getAmount();
@@ -318,7 +330,8 @@ public class CrateManager {
     private boolean takeKeys(Player player, Crate crate, int amount) {
         if (keysHeld(player, crate) < amount) return false;
         PlayerInventory inventory = player.getInventory();
-        int left = amount;
+        int left = amount - (int) plugin.getPlayerDataManager().get(player.getUniqueId())
+                .takeStoredKeys(crate.keyId(), amount);
         for (int slot = 0; slot < INVENTORY_STORAGE && left > 0; slot++) {
             ItemStack stack = inventory.getItem(slot);
             if (!isKeyFor(stack, crate)) continue;

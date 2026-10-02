@@ -55,6 +55,52 @@ final class PlayerMenuClicks {
         this.plugin = plugin;
     }
 
+    /**
+     * /keys (V282): click a key to take one out as an item, shift-click for
+     * a stack; the switch turns auto storing on or off; the chest puts
+     * every key from the inventory in.
+     */
+    void handleKeysClick(InventoryClickEvent event) {
+        event.setCancelled(true);
+        if (!(event.getClickedInventory() != null
+                && event.getClickedInventory().getHolder() instanceof com.spacerng.solrng.gui.KeysHolder holder)) return;
+        Player player = (Player) event.getWhoClicked();
+        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+        int slot = event.getRawSlot();
+        if (slot == com.spacerng.solrng.gui.KeysGui.TOGGLE_SLOT) {
+            data.setAutoStoreKeys(!data.isAutoStoreKeys());
+            player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.7f,
+                    data.isAutoStoreKeys() ? 1.5f : 0.8f);
+        } else if (slot == com.spacerng.solrng.gui.KeysGui.STORE_SLOT) {
+            int moved = 0;
+            var inventory = player.getInventory();
+            for (int i = 0; i < 36; i++) {
+                ItemStack stack = inventory.getItem(i);
+                var consumable = plugin.getConsumableManager().from(stack);
+                if (consumable == null || !plugin.getCrateManager().isStorableKey(consumable.id())) continue;
+                data.addStoredKeys(consumable.id(), stack.getAmount());
+                moved += stack.getAmount();
+                inventory.setItem(i, null);
+            }
+            player.sendMessage(moved > 0 ? ChatColor.GREEN + "Stored " + moved + " key" + (moved == 1 ? "" : "s") + "."
+                    : ChatColor.GRAY + "No keys in your inventory.");
+            player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_CHEST_CLOSE, 0.6f, 1.2f);
+        } else {
+            String id = holder.slots().get(slot);
+            if (id == null) return;
+            var consumable = plugin.getConsumableManager().get(id);
+            if (consumable == null) return;
+            long took = data.takeStoredKeys(id, event.isShiftClick() ? 64 : 1);
+            if (took <= 0) return;
+            // Straight to the inventory, past the auto store this would
+            // otherwise put it back into.
+            com.spacerng.solrng.player.Stash.give(plugin, player,
+                    plugin.getConsumableManager().build(consumable, (int) took));
+            player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_ITEM_PICKUP, 0.6f, 1.2f);
+        }
+        player.openInventory(com.spacerng.solrng.gui.KeysGui.build(plugin, player));
+    }
+
     /** /boosters: a click on a stored potion drinks one (V264). */
     void handleBoostersClick(InventoryClickEvent event) {
         event.setCancelled(true);

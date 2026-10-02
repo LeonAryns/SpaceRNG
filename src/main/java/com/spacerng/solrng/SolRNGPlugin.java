@@ -257,6 +257,11 @@ public final class SolRNGPlugin extends JavaPlugin {
         getCommand("discord").setExecutor(new com.spacerng.solrng.commands.DiscordCommand(this));
         getCommand("trash").setExecutor(new com.spacerng.solrng.commands.TrashCommand());
         getCommand("boosters").setExecutor(new com.spacerng.solrng.commands.BoostersCommand(this));
+        getCommand("keys").setExecutor((sender, command, label, args) -> {
+            if (sender instanceof Player p) p.openInventory(com.spacerng.solrng.gui.KeysGui.build(this, p));
+            else sender.sendMessage("Only players have keys.");
+            return true;
+        });
         getCommand("potion").setExecutor(new com.spacerng.solrng.commands.PotionCommand(this));
         getCommand("shop").setExecutor(new com.spacerng.solrng.commands.ShopCommand(this));
         getCommand("ranks").setExecutor(new com.spacerng.solrng.commands.RanksCommand(this));

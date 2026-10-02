@@ -373,6 +373,18 @@ public class ConsumableManager {
     /** Hands one over, dropping the overflow rather than eating it. */
     public void give(Player player, Consumable consumable, int amount) {
         if (consumable == null || amount <= 0) return;
+        // A crate key goes to /keys on its own while that is switched on
+        // (V282), the way drops auto convert.
+        if (plugin.getCrateManager() != null && plugin.getCrateManager().isStorableKey(consumable.id())) {
+            var data = plugin.getPlayerDataManager().get(player.getUniqueId());
+            if (data.isAutoStoreKeys()) {
+                data.addStoredKeys(consumable.id(), amount);
+                player.sendActionBar(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
+                        .legacySection().deserialize(ChatColor.GOLD + "+" + amount + " " + ChatColor.stripColor(consumable.display())
+                                + ChatColor.GRAY + "  stored in " + ChatColor.YELLOW + "/keys"));
+                return;
+            }
+        }
         ItemStack item = build(consumable, amount);
         com.spacerng.solrng.player.Stash.give(plugin, player, item);
     }

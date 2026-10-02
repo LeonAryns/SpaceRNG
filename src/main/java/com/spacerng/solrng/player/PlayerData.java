@@ -924,6 +924,41 @@ public class PlayerData {
         return true;
     }
 
+    // Crate keys kept in /keys instead of the inventory (V282), by key id,
+    // and whether new keys go there on their own.
+    private final Map<String, Long> storedKeys = new LinkedHashMap<>();
+    private boolean autoStoreKeys = true;
+
+    public Map<String, Long> getStoredKeys() {
+        return storedKeys;
+    }
+
+    public long storedKeys(String id) {
+        return storedKeys.getOrDefault(id, 0L);
+    }
+
+    public void addStoredKeys(String id, long amount) {
+        if (id == null || amount <= 0) return;
+        storedKeys.merge(id, amount, Long::sum);
+    }
+
+    /** Takes up to this many out; returns how many it took. */
+    public long takeStoredKeys(String id, long amount) {
+        long have = storedKeys(id);
+        long take = Math.min(have, Math.max(0L, amount));
+        if (have - take <= 0) storedKeys.remove(id);
+        else storedKeys.put(id, have - take);
+        return take;
+    }
+
+    public boolean isAutoStoreKeys() {
+        return autoStoreKeys;
+    }
+
+    public void setAutoStoreKeys(boolean autoStoreKeys) {
+        this.autoStoreKeys = autoStoreKeys;
+    }
+
     // Shinies that went to chat (V280), counted apart from the rarities.
     private int shiniesAnnounced = 0;
 
