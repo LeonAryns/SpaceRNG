@@ -189,8 +189,14 @@ final class SkillTreeClicks {
             }
 
             if (nodeId.equals("farming_unlock")) {
-                com.spacerng.solrng.player.Stash.give(plugin, player, plugin.getFarmingManager().createBoundHoe(data));
-                player.sendMessage(ChatColor.GREEN + "You received a Farmer's Hoe - bound to you!");
+                // After a respec the old hoe is still around: refresh it
+                // rather than hand out a second one (V254).
+                if (plugin.getFarmingManager().hasBoundHoe(player)) {
+                    plugin.getFarmingManager().refreshHoe(player, data);
+                } else {
+                    com.spacerng.solrng.player.Stash.give(plugin, player, plugin.getFarmingManager().createBoundHoe(data));
+                    player.sendMessage(ChatColor.GREEN + "You received a Farmer's Hoe - bound to you!");
+                }
             }
 
             if (node != null) {

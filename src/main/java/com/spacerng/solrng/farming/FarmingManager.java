@@ -214,11 +214,14 @@ public class FarmingManager {
     /** Rewrites every bound hoe the player is carrying, so the lore is true. */
     public void refreshHeldHoe(org.bukkit.entity.Player player,
                                com.spacerng.solrng.player.PlayerData data) {
-        ItemStack[] contents = player.getInventory().getContents();
-        for (int i = 0; i < contents.length; i++) {
-            if (isBoundHoe(contents[i])) contents[i] = createBoundHoe(data);
-        }
-        player.getInventory().setContents(contents);
+        refreshHoe(player, data);
+    }
+
+    /** True if the player carries a bound hoe, in the inventory or the ender chest. */
+    public boolean hasBoundHoe(org.bukkit.entity.Player player) {
+        for (ItemStack item : player.getInventory().getContents()) if (isBoundHoe(item)) return true;
+        for (ItemStack item : player.getEnderChest().getContents()) if (isBoundHoe(item)) return true;
+        return false;
     }
 
     public java.util.List<HoeTier> getHoeTiers() {
@@ -451,15 +454,32 @@ public class FarmingManager {
         return lore;
     }
 
-    /** Rewrites a held hoe in place so its lore matches what's been bought. */
+    /**
+     * Rewrites a held hoe in place so its lore matches what's been bought,
+     * and keeps exactly one (V254). A respec cleared farming_unlock and
+     * buying it again handed out a second hoe, while the first sat in the
+     * ender chest with its old lore. The first hoe found is kept and
+     * rebuilt, in the inventory before the ender chest; every other copy
+     * is taken away.
+     */
     public void refreshHoe(org.bukkit.entity.Player player, com.spacerng.solrng.player.PlayerData data) {
+        boolean kept = false;
         ItemStack[] contents = player.getInventory().getContents();
         for (int i = 0; i < contents.length; i++) {
-            if (isBoundHoe(contents[i])) {
-                contents[i] = createBoundHoe(data);
-            }
+            if (!isBoundHoe(contents[i])) continue;
+            contents[i] = kept ? null : createBoundHoe(data);
+            kept = true;
         }
         player.getInventory().setContents(contents);
+        ItemStack[] ender = player.getEnderChest().getContents();
+        boolean changed = false;
+        for (int i = 0; i < ender.length; i++) {
+            if (!isBoundHoe(ender[i])) continue;
+            ender[i] = kept ? null : createBoundHoe(data);
+            kept = true;
+            changed = true;
+        }
+        if (changed) player.getEnderChest().setContents(ender);
     }
 
     /** The hoe's look climbs every band of tiers: wood, stone, gold, diamond, then netherite. */

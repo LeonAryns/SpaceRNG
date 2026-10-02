@@ -70,6 +70,48 @@ public class FarmingListener implements Listener {
                 () -> replant(regrowTarget, material), farming.getRegrowTicks());
     }
 
+    /**
+     * The bound hoe stays with its owner (V254): it cannot be put in a
+     * chest, a barrel or anything else that is not their own inventory or
+     * ender chest, where nothing could refresh it and anyone could take it.
+     */
+    @EventHandler(ignoreCancelled = true)
+    public void onStore(org.bukkit.event.inventory.InventoryClickEvent event) {
+        var top = event.getView().getTopInventory();
+        var type = top.getType();
+        if (type == org.bukkit.event.inventory.InventoryType.CRAFTING
+                || type == org.bukkit.event.inventory.InventoryType.ENDER_CHEST) return;
+        if (!(event.getWhoClicked() instanceof Player player)) return;
+        FarmingManager farming = plugin.getFarmingManager();
+        boolean hoeInvolved = farming.isBoundHoe(event.getCurrentItem())
+                || farming.isBoundHoe(event.getCursor())
+                || (event.getHotbarButton() >= 0
+                        && farming.isBoundHoe(player.getInventory().getItem(event.getHotbarButton())))
+                || (event.getClick() == org.bukkit.event.inventory.ClickType.SWAP_OFFHAND
+                        && farming.isBoundHoe(player.getInventory().getItemInOffHand()));
+        if (!hoeInvolved) return;
+        boolean intoTop = event.getClickedInventory() == top || event.isShiftClick();
+        if (intoTop) {
+            event.setCancelled(true);
+            sendActionBar(player, ChatColor.RED + "Your Farmer's Hoe stays with you.");
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onStoreDrag(org.bukkit.event.inventory.InventoryDragEvent event) {
+        var type = event.getView().getTopInventory().getType();
+        if (type == org.bukkit.event.inventory.InventoryType.CRAFTING
+                || type == org.bukkit.event.inventory.InventoryType.ENDER_CHEST) return;
+        if (!plugin.getFarmingManager().isBoundHoe(event.getOldCursor())) return;
+        int topSize = event.getView().getTopInventory().getSize();
+        for (int raw : event.getRawSlots()) {
+            if (raw < topSize) {
+                event.setCancelled(true);
+                return;
+            }
+        }
+    }
+
     @EventHandler
     public void onDrop(PlayerDropItemEvent event) {
         if (plugin.getFarmingManager().isBoundHoe(event.getItemDrop().getItemStack())) {

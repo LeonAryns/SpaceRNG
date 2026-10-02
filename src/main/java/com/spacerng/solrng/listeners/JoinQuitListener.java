@@ -49,6 +49,8 @@ public class JoinQuitListener implements Listener {
         // linked while they were away.
         if (plugin.getDiscordBot() != null) plugin.getDiscordBot().syncRoles(event.getPlayer());
         drawFor(event.getPlayer(), data);
+        // One Farmer's Hoe, with true lore: extra copies from before V254 go.
+        plugin.getFarmingManager().refreshHoe(event.getPlayer(), data);
         com.spacerng.solrng.commands.TagCommand.autoEquipBest(plugin, event.getPlayer(), data);
 
         if (!event.getPlayer().hasPlayedBefore()) {
