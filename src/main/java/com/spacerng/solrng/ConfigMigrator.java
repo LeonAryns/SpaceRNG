@@ -174,6 +174,8 @@ public final class ConfigMigrator {
     }
 
     private static final List<Patch> PATCHES = List.of(
+            // V246: Leon's Tebex store, for the button in /buy.
+            new Patch("store-url-tebex", "buy.store-url", "", "https://spacerng.tebex.store/"),
             // V245: Leon's numbers. Intermediate +50 Speed, and a finished
             // rarity 2x Luck, a finished shiny rarity 5x.
             new Patch("starforge-intermediate-speed-50", "starforge.tiers.INTERMEDIATE.speed-bonus", 5.0, 0.50),

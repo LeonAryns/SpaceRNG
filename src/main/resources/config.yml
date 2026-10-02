@@ -6185,7 +6185,7 @@ first-ten:
 # set it and the store menu shows a button that sends the link in chat.
 # Left empty the button is not there.
 buy:
-  store-url: ""
+  store-url: "https://spacerng.tebex.store/"
 
 # Worn auras. A player wearing a /tag of Epic or rarer wears the aura set
 # here for that rarity: a concept, and an optional particle accent drawn
