@@ -400,11 +400,20 @@ public class CrateManager {
      * be a jackpot is still announced one by one.
      */
     public void quickOpen(Player player, Block block, Crate crate) {
+        quickOpen(player, block.getLocation().add(0.5, 1.0, 0.5), crate, quickOpenMax);
+    }
+
+    /**
+     * The same, at a point and for up to {@code most} keys: /keys opens its
+     * stored keys where the player stands (V286). Items that do not fit go
+     * to /stash, as every crate reward already does.
+     */
+    public void quickOpen(Player player, org.bukkit.Location at, Crate crate, int most) {
         if (spins.containsKey(player.getUniqueId())) {
             player.sendMessage(ChatColor.RED + "Finish the crate you are already opening first.");
             return;
         }
-        int amount = Math.min(quickOpenMax, keysHeld(player, crate));
+        int amount = Math.min(Math.max(1, most), keysHeld(player, crate));
         if (amount <= 0 || !takeKeys(player, crate, amount)) {
             noKey(player, crate);
             return;
@@ -432,7 +441,7 @@ public class CrateManager {
         }
         player.sendMessage("");
         player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.9f, 1.3f);
-        CrateFx.burst(plugin, player, block.getLocation().add(0.5, 1.0, 0.5), crate, jackpot);
+        CrateFx.burst(plugin, player, at, crate, jackpot);
     }
 
     /** Pays one reward. `tell` is false inside a quick open, which summarises instead. */

@@ -67,7 +67,7 @@ public final class KeysGui {
             lore.add(stored > 0
                     ? ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to take one out"
                     : ChatColor.DARK_GRAY + "" + ChatColor.BOLD + "None stored");
-            if (stored > 0) lore.add(ChatColor.DARK_GRAY + "Shift-click for a stack.");
+            if (stored > 0) lore.add(ChatColor.DARK_GRAY + "Shift-click to open them all.");
             meta.setLore(lore);
             meta.setEnchantmentGlintOverride(stored > 0 ? Boolean.TRUE : null);
             item.setItemMeta(meta);

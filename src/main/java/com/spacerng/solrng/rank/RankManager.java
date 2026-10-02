@@ -366,7 +366,10 @@ public class RankManager {
                 tagScore = 1 + (int) Math.round(Math.log10(item.getOdds()) * 10.0);
             }
         }
-        int rank = indexOf(shownRankOf(data)) + 1;
+        RankTier shown = shownRankOf(data);
+        // V286: Owner sits at the top of tab whatever tag they wear.
+        if (shown != null && "owner".equals(shown.id())) return Integer.MAX_VALUE / 2;
+        int rank = indexOf(shown) + 1;
         return tagScore * 100 + Math.max(0, Math.min(99, rank));
     }
 

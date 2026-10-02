@@ -90,7 +90,17 @@ final class PlayerMenuClicks {
             if (id == null) return;
             var consumable = plugin.getConsumableManager().get(id);
             if (consumable == null) return;
-            long took = data.takeStoredKeys(id, event.isShiftClick() ? 64 : 1);
+            // V286: shift-click uses them up, opening the crate where you
+            // stand; rewards that do not fit go to /stash.
+            if (event.isShiftClick()) {
+                var crate = plugin.getCrateManager().crateForKey(id);
+                if (crate == null || data.storedKeys(id) <= 0) return;
+                player.closeInventory();
+                plugin.getCrateManager().quickOpen(player, player.getLocation().add(0, 1.0, 0), crate,
+                        (int) Math.min(500L, data.storedKeys(id)));
+                return;
+            }
+            long took = data.takeStoredKeys(id, 1);
             if (took <= 0) return;
             // Straight to the inventory, past the auto store this would
             // otherwise put it back into.

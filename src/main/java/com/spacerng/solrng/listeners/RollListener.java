@@ -1015,6 +1015,9 @@ public class RollListener implements Listener {
         return item;
     }
 
+    /** When a drop was last told to the server, for the quiet-minute rule (V286). */
+    private long lastAnnouncedAt = 0L;
+
     private void maybeBroadcast(Player player, RollableItem result, ItemStack previewItem, boolean shiny) {
         // Discord has its own list of rarities, so it's asked before the in-game threshold.
         plugin.getDiscordWebhook().drop(player.getName(), result, shiny);
@@ -1039,16 +1042,22 @@ public class RollListener implements Listener {
         // A player's first few drops of each rarity go to chat, then theirs
         // stop (V271, Leon: after three it is noise), Epic and up alike.
         // Shinies count on their own and stop after three too (V280).
+        // V286: past the limit, one drop still comes through when nothing
+        // has been announced for a minute (broadcast.quiet-seconds), so a
+        // quiet chat still shows somebody is finding things.
         PlayerData roller = plugin.getPlayerDataManager().get(player.getUniqueId());
         int limit = plugin.getConfig().getInt("broadcast.announce-limit", 3);
+        long now = System.currentTimeMillis();
+        boolean quiet = now - lastAnnouncedAt >= plugin.getConfig().getLong("broadcast.quiet-seconds", 60L) * 1000L;
         if (shiny) {
-            if (limit >= 0 && roller.getShiniesAnnounced() >= limit) return;
+            if (limit >= 0 && roller.getShiniesAnnounced() >= limit && !quiet) return;
             roller.setShiniesAnnounced(roller.getShiniesAnnounced() + 1);
         } else {
             Rarity rarity = result.getRarity();
-            if (limit >= 0 && roller.getAnnounced(rarity) >= limit) return;
+            if (limit >= 0 && roller.getAnnounced(rarity) >= limit && !quiet) return;
             roller.setAnnounced(rarity, roller.getAnnounced(rarity) + 1);
         }
+        lastAnnouncedAt = now;
 
         Component banner = LegacyComponentSerializer.legacySection()
                 .deserialize(RollFormat.broadcastBanner(plugin, player.getName(), result, shiny))

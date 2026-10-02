@@ -6270,6 +6270,9 @@ broadcast:
   # theirs stop (V271), Epic, Legendary, Mythical and Divine alike. A
   # shiny always is. -1 for no limit.
   announce-limit: 3
+  # Past that limit one drop still comes through when nothing has been
+  # announced for this many seconds (V286).
+  quiet-seconds: 60
 
 # Server First 10. The first players to roll a tracked rarity each take a
 # numbered spot, and the whole server is told: a banner in chat, a toast,
