@@ -6055,7 +6055,9 @@ ranks:
       hidden: true
       priority: 10000
       bold: true
-      colors: ["#FF3B3B"]
+      # V243: one flat red read as dull. Red into a crown gold; the badge
+      # takes the first stop, so [O] stays red.
+      colors: ["#FF1744", "#FF3D00", "#FFC400"]
       tag: ""
       letter: "O"
       icon: COMMAND_BLOCK
@@ -6079,21 +6081,27 @@ ranks:
 # {prestige} {online} {max} {ping}. Colour codes are "&" as everywhere
 # else, and a blank string is a blank line.
 #
+# "||" splits a line into two columns side by side (V243). Every cell is
+# padded to the widest cell of its column in the same block, so a label
+# and the value under it stay lined up. column-gap is the spaces between
+# the two columns.
+#
 # Switch this off if the TAB plugin is installed: it owns the same two
 # blocks and would overwrite these every second.
 tab:
   enabled: true
   refresh-ticks: 40
   title: "SPACERNG"
+  column-gap: 16
   header:
     - ""
     - "{title}"
-    - "&8{online}&7/&8{max} online"
+    - "&7ʟᴀᴛᴇɴᴄʏ &b⌚ {ping} || &7ᴏɴʟɪɴᴇ ᴘʟᴀʏᴇʀѕ &a☺ &a{online}"
     - ""
   footer:
     - ""
-    - "&7Rank &r{rank}   &8|&r   &7Luck &f{luck}   &8|&r   &7Rolls &f{rolls}"
-    - "&8spacerng.minehut.gg"
+    - "&7ʏᴏᴜ'ʀᴇ ᴘʟᴀʏɪɴɢ ᴏɴ || &7ᴊᴏɪɴ ᴏᴜʀ ᴅɪѕᴄᴏʀᴅ ᴀᴛ"
+    - "&d&lѕᴘᴀᴄᴇʀɴɢ.ᴍɪɴᴇʜᴜᴛ.ɢɢ || &9&lᴅɪѕᴄᴏʀᴅ.ɢɢ/ѕᴘᴀᴄᴇʀɴɢ"
     - ""
 
 # The line in chat when somebody joins or leaves.

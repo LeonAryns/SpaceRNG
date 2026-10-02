@@ -162,7 +162,9 @@ final class SignatureConcepts {
         return new AuraConcepts.Combined(
                 new PlateRing(color, 240, FEET + 0.01f, 1.95f, 16, 0.11f, 1.0f, 0f, 0, 0.0, 0.0),
                 new PlateRing(soft, 170, FEET + 0.02f, 2.55f, 10, 0.07f, 0.5f, 0f, 3, 5.0, 0.0),
-                new Petals(color, 200, -1.15f, 1.05f, 6, 0.34f, 1.15f, 18f, 5, 12));
+                // V243: the flames reached up to the eyes and swept across
+                // the wearer's own view; kept below the waist now.
+                new Petals(color, 200, -1.15f, 1.05f, 6, 0.26f, 0.55f, 18f, 5, 12));
     }
 
     /**
@@ -518,12 +520,16 @@ final class SignatureConcepts {
     private static AuraConcept heartfall(Rarity rarity, Color color) {
         Color soft = softer(color);
         return new AuraConcepts.Combined(
-                new Core(Material.NETHER_STAR, color, -0.60f, 0.60f),
-                new GrandConcepts.FlatOrbit(AuraConcepts.lantern(rarity), false, -0.55f,
-                        new float[]{1.35f, 2.25f}, 2, 0.34f, 2, 7.0),
-                new GrandConcepts.StarRing(color, FEET + 0.02f, 22, 2.3f, 3, 18, -1, "✦"),
-                new GrandConcepts.StarRing(soft, FEET + 0.03f, 12, 1.8f, 2, 13, 1, "✧"),
-                new PlateRing(color, 235, FEET + 0.01f, 2.00f, 12, 0.10f, 1.0f, 0f, 0, 0.0, 0.0));
+                // V243: Leon found Nova too big and the lanterns too high.
+                // Lanterns from the chest down to the waist, every ring a
+                // fifth smaller, and fewer floor stars, which also halves
+                // the accent motes, one per star.
+                new Core(Material.NETHER_STAR, color, -0.60f, 0.55f),
+                new GrandConcepts.FlatOrbit(AuraConcepts.lantern(rarity), false, -1.05f,
+                        new float[]{1.10f, 1.80f}, 2, 0.30f, 2, 7.0),
+                new GrandConcepts.StarRing(color, FEET + 0.02f, 18, 2.0f, 2, 18, -1, "✦"),
+                new GrandConcepts.StarRing(soft, FEET + 0.03f, 10, 1.6f, 1, 13, 1, "✧"),
+                new PlateRing(color, 235, FEET + 0.01f, 1.65f, 12, 0.10f, 1.0f, 0f, 0, 0.0, 0.0));
     }
 
     /**

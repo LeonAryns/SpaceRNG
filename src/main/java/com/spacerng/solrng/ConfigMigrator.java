@@ -174,6 +174,18 @@ public final class ConfigMigrator {
     }
 
     private static final List<Patch> PATCHES = List.of(
+            // V243: the tab in two columns, the layout Leon pointed at.
+            new Patch("tab-header-columns", "tab.header",
+                    List.of("", "{title}", "&8{online}&7/&8{max} online", ""),
+                    List.of("", "{title}", "&7ʟᴀᴛᴇɴᴄʏ &b⌚ {ping} || &7ᴏɴʟɪɴᴇ ᴘʟᴀʏᴇʀѕ &a☺ &a{online}", "")),
+            new Patch("tab-footer-columns", "tab.footer",
+                    List.of("", "&7Rank &r{rank}   &8|&r   &7Luck &f{luck}   &8|&r   &7Rolls &f{rolls}",
+                            "&8spacerng.minehut.gg", ""),
+                    List.of("", "&7ʏᴏᴜ'ʀᴇ ᴘʟᴀʏɪɴɢ ᴏɴ || &7ᴊᴏɪɴ ᴏᴜʀ ᴅɪѕᴄᴏʀᴅ ᴀᴛ",
+                            "&d&lѕᴘᴀᴄᴇʀɴɢ.ᴍɪɴᴇʜᴜᴛ.ɢɢ || &9&lᴅɪѕᴄᴏʀᴅ.ɢɢ/ѕᴘᴀᴄᴇʀɴɢ", "")),
+            // V243: Owner's flat red becomes red into gold.
+            new Patch("rank-owner-gradient", "ranks.tiers.owner.colors",
+                    List.of("#FF3B3B"), List.of("#FF1744", "#FF3D00", "#FFC400")),
             // V237: Nova climbs above Comet instead of standing beside it.
             new Patch("rank-aura-nova-heartfall", "auras.by-rank.looks.nova", "eclipse", "heartfall"),
             // V235: Owner is red, Leon's call.

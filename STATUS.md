@@ -1052,6 +1052,13 @@ linking worked on V230:**
   the waist), not on any rank yet. `/rngadmin auratest rank [rank]
   [rarity]` wears exactly what a rank gets, to judge the ladder.
 
+- **V243, untested.** Tab: `&` codes now translated (they showed as
+  text), and a two column layout from Leon's Solar Skies screenshot
+  (`||` in a tab line splits it, cells padded per column). Nova
+  (heartfall) a fifth smaller, lanterns at the waist, fewer floor stars.
+  Comet's flames (ember, so also Legendary and pyre) half as tall, out of
+  the face. Owner red into gold. Linked and Comet otherwise approved.
+
 **The tab (2 October).** In game the tab still shows "Server name",
 "Used memory", "www.domain.com" and "Ping" behind names. None of that is
 in our code. It was the TAB plugin after all, still in `plugins`; Leon

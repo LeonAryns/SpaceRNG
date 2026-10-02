@@ -9,6 +9,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -65,15 +66,87 @@ public final class TabListManager {
         }
     }
 
-    /** One block of lines, tokens filled and joined with newlines. */
+    /**
+     * One block of lines, tokens filled and joined with newlines.
+     *
+     * A line with {@code ||} in it is two cells, drawn as two columns side
+     * by side (V243, the layout Leon pointed at). The client centres every
+     * line on its own, so a column only lines up with the one under it if
+     * both rows are the same width: each cell is padded with spaces, evenly
+     * on both sides, to the widest cell in its column within the block.
+     */
     private Component block(Player player, List<String> lines) {
         if (lines.isEmpty()) return Component.empty();
+        List<String[]> rows = new ArrayList<>();
+        for (String line : lines) {
+            // The config writes colours as &7, which the section serializer
+            // below does not read, so every code showed as text (V243).
+            String filled = fill(player, org.bukkit.ChatColor.translateAlternateColorCodes('&', line));
+            String[] cells = filled.split(java.util.regex.Pattern.quote("||"), -1);
+            for (int c = 0; c < cells.length; c++) cells[c] = cells[c].strip();
+            rows.add(cells);
+        }
+        int columns = 0;
+        for (String[] row : rows) columns = Math.max(columns, row.length);
+        int[] widest = new int[columns];
+        for (String[] row : rows) {
+            if (row.length < 2) continue;
+            for (int c = 0; c < row.length; c++) widest[c] = Math.max(widest[c], width(row[c]));
+        }
+        String gap = " ".repeat(Math.max(1, plugin.getConfig().getInt("tab.column-gap", 16)));
         StringBuilder out = new StringBuilder();
-        for (int i = 0; i < lines.size(); i++) {
+        for (int i = 0; i < rows.size(); i++) {
             if (i > 0) out.append('\n');
-            out.append(fill(player, lines.get(i)));
+            String[] row = rows.get(i);
+            if (row.length < 2) {
+                out.append(row[0]);
+                continue;
+            }
+            for (int c = 0; c < row.length; c++) {
+                if (c > 0) out.append(org.bukkit.ChatColor.RESET).append(gap);
+                int spaces = Math.max(0, Math.round((widest[c] - width(row[c])) / (float) SPACE));
+                out.append(" ".repeat(spaces / 2)).append(row[c]).append(org.bukkit.ChatColor.RESET)
+                        .append(" ".repeat(spaces - spaces / 2));
+            }
         }
         return LEGACY.deserialize(out.toString());
+    }
+
+    /** Pixels a plain space takes in the default font, the padding unit. */
+    private static final int SPACE = 4;
+
+    /**
+     * How wide a legacy coloured string draws in the default font, in
+     * pixels with the gap after each glyph. Good to a pixel or two, which is
+     * all the padding can do with four pixel spaces anyway. Small caps and
+     * other letters past ASCII take six; symbols from the unicode font nine.
+     */
+    static int width(String text) {
+        int total = 0;
+        boolean bold = false;
+        for (int i = 0; i < text.length(); i++) {
+            char ch = text.charAt(i);
+            if (ch == org.bukkit.ChatColor.COLOR_CHAR && i + 1 < text.length()) {
+                char code = Character.toLowerCase(text.charAt(++i));
+                if (code == 'l') bold = true;
+                else if (code == 'r' || (code >= '0' && code <= '9') || (code >= 'a' && code <= 'f') || code == 'x') bold = false;
+                continue;
+            }
+            int w;
+            if (ch >= 0x2000) w = 9;
+            else if (ch > 0x7E) w = 6;
+            else w = switch (ch) {
+                case ' ' -> 4;
+                case 'i', '!', '.', ',', ':', ';', '|', '\'' -> 2;
+                case 'l', '`' -> 3;
+                case 't', 'I', '[', ']' -> 4;
+                case 'f', 'k', '<', '>', '(', ')', '{', '}', '"', '*' -> 5;
+                case '@', '~' -> 7;
+                default -> 6;
+            };
+            total += w + (bold && ch != ' ' ? 1 : 0);
+        }
+        return total;
     }
 
     /**
@@ -113,7 +186,11 @@ public final class TabListManager {
             out = out.replace("{max}", String.valueOf(Bukkit.getMaxPlayers()));
         }
         if (out.contains("{ping}")) {
-            out = out.replace("{ping}", player.getPing() + "ms");
+            int ping = player.getPing();
+            // Coloured by how it feels: green is fine, red is lag.
+            org.bukkit.ChatColor tone = ping < 80 ? org.bukkit.ChatColor.GREEN
+                    : ping < 160 ? org.bukkit.ChatColor.YELLOW : org.bukkit.ChatColor.RED;
+            out = out.replace("{ping}", tone.toString() + ping + "ᴍѕ");
         }
         return out;
     }
