@@ -487,8 +487,9 @@ farming:
       color: "&6"
       max-level: 10000
       base-cap: 10000
-      per-level: 0.00005
-      # 5% of crops at the ceiling. Level 1 costs 1,048, level 1,000 costs 569,352,
+      # V272: 0.5% at the ceiling after proc-scale (x0.2), Leon's call.
+      per-level: 0.0000025
+      # 2.5% before proc-scale, 0.5% after. Level 1 costs 1,048, level 1,000 costs 569,352,
       # 215,233,605 Coins for all of it.
 
     BLAST_HARVEST:
@@ -519,8 +520,9 @@ farming:
       color: "&d"
       max-level: 10000
       base-cap: 10000
-      per-level: 0.00004
-      # 4% of crops at the ceiling. Level 1 costs 1,880, level 1,000 costs 1,021,197,
+      # V272: 1% at the ceiling after proc-scale (x0.2), Leon's call.
+      per-level: 0.000005
+      # 5% before proc-scale, 1% after. Level 1 costs 1,880, level 1,000 costs 1,021,197,
       # 386,045,873 Coins for all of it.
 
     LIGHTNING:

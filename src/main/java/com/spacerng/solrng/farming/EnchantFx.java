@@ -55,7 +55,7 @@ public final class EnchantFx {
                 player.playSound(core, Sound.BLOCK_RESPAWN_ANCHOR_CHARGE, 0.7f, 0.5f);
             }
             if (frame == 29) {
-                player.spawnParticle(Particle.FLASH, core, 1);
+                player.spawnParticle(Particle.FLASH, core, 1, 0, 0, 0, 0, GOLD);
                 player.spawnParticle(Particle.EXPLOSION, core, 3, 0.3, 0.3, 0.3, 0.0);
                 player.playSound(core, Sound.ENTITY_WARDEN_SONIC_BOOM, 0.8f, 1.6f);
             }
@@ -188,7 +188,7 @@ public final class EnchantFx {
         Location core = centre.clone().add(0.5, 1.4, 0.5);
         run(plugin, 34, frame -> {
             if (frame == 1) {
-                player.spawnParticle(Particle.FLASH, core, 1);
+                player.spawnParticle(Particle.FLASH, core, 1, 0, 0, 0, 0, GOLD);
                 player.playSound(core, Sound.ITEM_TRIDENT_THUNDER, 1.0f, 1.2f);
                 player.playSound(core, Sound.ENTITY_LIGHTNING_BOLT_IMPACT, 0.9f, 0.7f);
             }

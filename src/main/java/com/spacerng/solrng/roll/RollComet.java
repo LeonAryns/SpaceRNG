@@ -380,7 +380,7 @@ final class RollComet {
             }
             if (i % 3 == 0) {
                 Location at = eye.clone().add(Math.cos(a) * CLEAR, 0.1, Math.sin(a) * CLEAR);
-                player.spawnParticle(accent, at, 2, 0.1, 0.2, 0.1, 0.02, null, true);
+                player.spawnParticle(accent, at, 2, 0.1, 0.2, 0.1, 0.02, RollAura.dataFor(accent, colour), true);
             }
         }
     }
@@ -469,7 +469,7 @@ final class RollComet {
     private void core(Location at) {
         player.spawnParticle(Particle.DUST, at, 8, 0.35, 0.35, 0.35, 0.0, headDust, true);
         player.spawnParticle(Particle.DUST, at, 4, 0.12, 0.12, 0.12, 0.0, spark, true);
-        player.spawnParticle(accent, at, 5, 0.3, 0.3, 0.3, 0.01, null, true);
+        player.spawnParticle(accent, at, 5, 0.3, 0.3, 0.3, 0.01, RollAura.dataFor(accent, colour), true);
     }
 
     /** The trail, laid down along the ground it covered since the last step. */
@@ -485,7 +485,7 @@ final class RollComet {
         }
         if (to.distanceSquared(eye) < clearSq) return;
         // Embers shedding off the head, thrown backwards along the path.
-        player.spawnParticle(accent, to, 3, 0.25, 0.25, 0.25, 0.02, null, true);
+        player.spawnParticle(accent, to, 3, 0.25, 0.25, 0.25, 0.02, RollAura.dataFor(accent, colour), true);
         player.spawnParticle(Particle.DUST, to, 2, 0.4, 0.4, 0.4, 0.0, spark, true);
     }
 

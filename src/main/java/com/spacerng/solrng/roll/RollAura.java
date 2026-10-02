@@ -472,10 +472,29 @@ public final class RollAura {
     }
 
     private void puff(Particle particle, Location at, int count, double sx, double sy, double sz, double extra) {
+        Object data = dataFor(particle, colorFor(rarity));
         for (int i = 0; i < audience.size(); i++) {
             if (tooClose(i, at)) continue;
-            audience.get(i).spawnParticle(particle, at, count, sx, sy, sz, extra, null, true);
+            audience.get(i).spawnParticle(particle, at, count, sx, sy, sz, extra, data, true);
         }
+    }
+
+    /**
+     * The data a particle needs, or null for one that needs none (V272).
+     * On 1.21.11 FLASH takes a Color and DRAGON_BREATH a Float, and a
+     * spawn with no data throws. The Mythical reveal used both bare, so
+     * its first frame threw, safely() cancelled it, and a Mythical played
+     * no reveal at all.
+     */
+    public static Object dataFor(Particle particle, Color colour) {
+        Class<?> type = particle.getDataType();
+        if (type == Void.class) return null;
+        if (type == Color.class) return colour;
+        if (type == Float.class) return 1.0f;
+        if (type == Integer.class) return 0;
+        if (type == Particle.Spell.class) return new Particle.Spell(colour, 1.0f);
+        if (type == Particle.DustOptions.class) return new Particle.DustOptions(colour, 1.0f);
+        return null;
     }
 
     /** Whether this point would land in viewer {@code i}'s own face. */
@@ -510,11 +529,12 @@ public final class RollAura {
 
     /** The same shell for a particle that takes no colour. */
     private void shellPuff(Particle particle, Location centre, int count, double extra) {
+        Object data = dataFor(particle, colorFor(rarity));
         for (int n = 0; n < count; n++) {
             Location at = onShell(centre);
             for (int i = 0; i < audience.size(); i++) {
                 if (tooClose(i, at)) continue;
-                audience.get(i).spawnParticle(particle, at, 1, 0.0, 0.0, 0.0, extra, null, true);
+                audience.get(i).spawnParticle(particle, at, 1, 0.0, 0.0, 0.0, extra, data, true);
             }
         }
     }

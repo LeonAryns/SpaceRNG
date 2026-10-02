@@ -176,6 +176,9 @@ public final class ConfigMigrator {
     }
 
     private static final List<Patch> PATCHES = List.of(
+            // V272: Key Finder 0.5% and Potion Finder 1% at the ceiling.
+            new Patch("key-finder-0.5", "farming.enchants.KEY_FINDER.per-level", 0.00005, 0.0000025),
+            new Patch("potion-finder-1", "farming.enchants.POTION_FINDER.per-level", 0.00004, 0.000005),
             // V270: Speed to +250%, Nova Finder to 0.1% at the ceiling.
             new Patch("walk-speed-250", "farming.enchants.WALK_SPEED.per-level", 0.0005, 0.00025),
             new Patch("nova-finder-0.1", "farming.enchants.NOVA_FINDER.per-level", 0.00001, 0.0000005),
