@@ -79,7 +79,12 @@ public class AnnouncerManager {
     }
 
     private String colour(String raw) {
-        return raw == null ? "" : ChatColor.translateAlternateColorCodes('&', raw);
+        if (raw == null) return "";
+        // The tips were written with discord.gg/spacerng, which is not the
+        // real invite; they follow discord.invite now (V248).
+        String invite = plugin.getConfig().getString("discord.invite", "https://discord.gg/E8V67kjAj")
+                .replaceFirst("^https?://", "");
+        return ChatColor.translateAlternateColorCodes('&', raw.replace("discord.gg/spacerng", invite));
     }
 
     public int getIntervalTicks() {

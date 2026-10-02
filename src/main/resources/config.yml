@@ -5679,6 +5679,8 @@ linked-account:
 # below and run /rngadmin reload. Empty turns announcements off. No bot or
 # DiscordSRV is needed for this part; DiscordSRV only does chat relay.
 discord:
+  # What /discord, the tab footer and the chat tips send people to (V248).
+  invite: "https://discord.gg/E8V67kjAj"
   webhook-url: ""
   username: "SpaceRNG"
   announce:
@@ -6100,8 +6102,8 @@ tab:
     - ""
   footer:
     - ""
-    - "&7ʏᴏᴜ'ʀᴇ ᴘʟᴀʏɪɴɢ ᴏɴ || &7ᴊᴏɪɴ ᴏᴜʀ ᴅɪѕᴄᴏʀᴅ ᴀᴛ"
-    - "&d&lѕᴘᴀᴄᴇʀɴɢ.ᴍɪɴᴇʜᴜᴛ.ɢɢ || &9&lᴅɪѕᴄᴏʀᴅ.ɢɢ/ѕᴘᴀᴄᴇʀɴɢ"
+    - "&7ʏᴏᴜ'ʀᴇ ᴘʟᴀʏɪɴɢ ᴏɴ || &7ᴊᴏɪɴ ᴏᴜʀ ᴅɪѕᴄᴏʀᴅ"
+    - "&d&lѕᴘᴀᴄᴇʀɴɢ.ᴍɪɴᴇʜᴜᴛ.ɢɢ || &9&l/ᴅɪѕᴄᴏʀᴅ"
     - ""
 
 # The line in chat when somebody joins or leaves.

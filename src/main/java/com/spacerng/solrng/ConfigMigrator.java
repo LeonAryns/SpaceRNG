@@ -174,6 +174,13 @@ public final class ConfigMigrator {
     }
 
     private static final List<Patch> PATCHES = List.of(
+            // V248: the footer pointed at discord.gg/spacerng, which is not
+            // the invite, and an invite code cannot be written in small caps.
+            new Patch("tab-footer-discord-command", "tab.footer",
+                    List.of("", "&7ʏᴏᴜ'ʀᴇ ᴘʟᴀʏɪɴɢ ᴏɴ || &7ᴊᴏɪɴ ᴏᴜʀ ᴅɪѕᴄᴏʀᴅ ᴀᴛ",
+                            "&d&lѕᴘᴀᴄᴇʀɴɢ.ᴍɪɴᴇʜᴜᴛ.ɢɢ || &9&lᴅɪѕᴄᴏʀᴅ.ɢɢ/ѕᴘᴀᴄᴇʀɴɢ", ""),
+                    List.of("", "&7ʏᴏᴜ'ʀᴇ ᴘʟᴀʏɪɴɢ ᴏɴ || &7ᴊᴏɪɴ ᴏᴜʀ ᴅɪѕᴄᴏʀᴅ",
+                            "&d&lѕᴘᴀᴄᴇʀɴɢ.ᴍɪɴᴇʜᴜᴛ.ɢɢ || &9&l/ᴅɪѕᴄᴏʀᴅ", "")),
             // V247: Linked wears a check mark in a really light blue.
             new Patch("rank-linked-check", "ranks.tiers.linked.letter", "L", "✔"),
             new Patch("rank-linked-light-blue", "ranks.tiers.linked.colors",

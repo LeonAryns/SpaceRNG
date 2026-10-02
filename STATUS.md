@@ -1073,6 +1073,12 @@ linking worked on V230:**
   wears a check mark again in a very light blue (the letter L was there
   since V187, hidden while TAB drew the list).
 
+- **V248** `/discord` (invite in `discord.invite`, clickable and written
+  out for Bedrock). Tab footer says /discord; chat tips follow the real
+  invite. Leon is removing DiscordSRV: our bot does links, roles and
+  slash commands; only the game/Discord chat relay goes, and links made
+  through DiscordSRV before V230 need a new /link.
+
 **The tab (2 October).** In game the tab still shows "Server name",
 "Used memory", "www.domain.com" and "Ping" behind names. None of that is
 in our code. It was the TAB plugin after all, still in `plugins`; Leon

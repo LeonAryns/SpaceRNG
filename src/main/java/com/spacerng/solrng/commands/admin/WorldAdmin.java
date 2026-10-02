@@ -755,7 +755,7 @@ final class WorldAdmin extends AdminTools {
         String ids = cards == null ? "" : String.join(", ", cards.getKeys(false));
         if (action.equals("setup")) {
             if (plugin.getDiscordBot() == null) {
-                sender.sendMessage(ChatColor.RED + "DiscordSRV is not installed, so there is no bot.");
+                sender.sendMessage(ChatColor.RED + "The Discord bot is not running. Check discord.bot.enabled and the token.");
                 return true;
             }
             sender.sendMessage(ChatColor.GRAY + "Making the rank roles in Discord...");
@@ -794,7 +794,7 @@ final class WorldAdmin extends AdminTools {
         }
         if (action.equals("post")) {
             if (plugin.getDiscordBot() == null) {
-                sender.sendMessage(ChatColor.RED + "DiscordSRV is not installed, so there is no bot.");
+                sender.sendMessage(ChatColor.RED + "The Discord bot is not running. Check discord.bot.enabled and the token.");
                 return true;
             }
             String card = args.length >= 3 ? args[2].toLowerCase(Locale.ROOT) : "";

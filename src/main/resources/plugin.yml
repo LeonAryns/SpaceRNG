@@ -113,6 +113,9 @@ commands:
     description: See your Discord link status and its bonuses
     usage: /linked
     aliases: [link, discordlink]
+  discord:
+    description: Join the SpaceRNG Discord
+    usage: /discord
   stash:
     description: Collect items that didn't fit in your inventory
     usage: /stash
