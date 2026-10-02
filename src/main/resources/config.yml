@@ -836,6 +836,11 @@ farming:
   # V279: each next crop opens by itself after this many crops farmed, at
   # no cost; its farm tree node is granted with it and cannot be bought.
   # Leave a crop out (or 0) to open it through the farm tree again.
+  # V289: staff are told when someone breaks this many crops a second by
+  # hand for this many seconds in a row. /rngadmin cropwatch to look.
+  watch:
+    alert-per-second: 30
+    alert-seconds: 5
   crop-unlock-at:
     CARROTS: 10000
     POTATOES: 25000

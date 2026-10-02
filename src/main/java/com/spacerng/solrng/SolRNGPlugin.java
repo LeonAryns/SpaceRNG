@@ -163,6 +163,8 @@ public final class SolRNGPlugin extends JavaPlugin {
         this.spawnManager = new SpawnManager(this);
         this.starforgeManager = new StarforgeManager(this);
         this.farmPlotManager = new com.spacerng.solrng.farming.FarmPlotManager(this);
+        this.cropWatch = new com.spacerng.solrng.farming.CropWatch(this);
+        this.cropWatch.start();
         this.milestoneManager = new com.spacerng.solrng.milestone.MilestoneManager(this);
         this.boostManager = new com.spacerng.solrng.boost.BoostManager(this);
         this.crowdBoostManager = new com.spacerng.solrng.boost.CrowdBoostManager(this);
@@ -567,6 +569,12 @@ public final class SolRNGPlugin extends JavaPlugin {
 
     public SpawnManager getSpawnManager() {
         return spawnManager;
+    }
+
+    private com.spacerng.solrng.farming.CropWatch cropWatch;
+
+    public com.spacerng.solrng.farming.CropWatch getCropWatch() {
+        return cropWatch;
     }
 
     public com.spacerng.solrng.farming.FarmPlotManager getFarmPlotManager() {

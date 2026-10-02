@@ -646,7 +646,10 @@ public class FarmPlotManager {
      * regrows. Returns false if it's already been taken.
      */
     public boolean harvest(Player player, Location location) {
-        return harvest(player, location, true);
+        boolean done = harvest(player, location, true);
+        // V289: a crop broken by hand, for staff's crop watch.
+        if (done && plugin.getCropWatch() != null) plugin.getCropWatch().record(player);
+        return done;
     }
 
     /**

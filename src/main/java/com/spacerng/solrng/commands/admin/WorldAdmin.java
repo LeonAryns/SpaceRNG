@@ -948,6 +948,44 @@ final class WorldAdmin extends AdminTools {
      * format does not match the server's exact version is disabled on
      * sight, and that number moves with every Minecraft release.
      */
+    /** /rngadmin cropwatch <player|list|off> (V289). */
+    boolean doCropWatch(CommandSender sender, String[] args) {
+        var watch = plugin.getCropWatch();
+        String action = args.length >= 2 ? args[1] : "list";
+        if (action.equalsIgnoreCase("list")) {
+            var active = watch.active();
+            if (active.isEmpty()) {
+                sender.sendMessage(ChatColor.GRAY + "Nobody has broken a crop in the last ten seconds.");
+                return true;
+            }
+            sender.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "Crop watch" + ChatColor.GRAY + "  last ten seconds");
+            for (java.util.UUID uuid : active) {
+                org.bukkit.entity.Player p = org.bukkit.Bukkit.getPlayer(uuid);
+                if (p == null) continue;
+                sender.sendMessage(ChatColor.YELLOW + "  " + p.getName() + ChatColor.GRAY + "  "
+                        + watch.rate(uuid) + "/s now, avg " + String.format("%.1f", watch.average(uuid)) + "/s");
+            }
+            return true;
+        }
+        if (!(sender instanceof org.bukkit.entity.Player staff)) {
+            sender.sendMessage(ChatColor.RED + "Only a player can watch, the rate goes on the action bar.");
+            return true;
+        }
+        if (action.equalsIgnoreCase("off")) {
+            sender.sendMessage(watch.unwatch(staff) ? ChatColor.GRAY + "Crop watch off." : ChatColor.GRAY + "You were not watching anyone.");
+            return true;
+        }
+        org.bukkit.entity.Player target = org.bukkit.Bukkit.getPlayerExact(action);
+        if (target == null) {
+            sender.sendMessage(ChatColor.RED + "Player not found or offline.");
+            return true;
+        }
+        watch.watch(staff, target);
+        sender.sendMessage(ChatColor.GREEN + "Watching " + target.getName() + "'s crops per second on your action bar. "
+                + ChatColor.GRAY + "/rngadmin cropwatch off to stop.");
+        return true;
+    }
+
     boolean doProtect(CommandSender sender, String[] args) {
         String action = args.length >= 2 ? args[1].toLowerCase(Locale.ROOT) : "";
         if (!action.equals("on") && !action.equals("off")) {
