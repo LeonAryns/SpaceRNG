@@ -551,11 +551,12 @@ public final class RollAura {
                 Math.sin(theta) * ring * radius);
     }
 
+    /**
+     * The roller alone hears it (V276). The score used to play for everyone
+     * in view, so a farm full of auto rollers was a wall of chimes.
+     */
     private void sound(Sound sound, float volume, float pitch) {
-        Location at = player.getLocation();
-        for (Player viewer : audience) {
-            viewer.playSound(at, sound, volume, pitch);
-        }
+        if (player.isOnline()) player.playSound(player.getLocation(), sound, volume, pitch);
     }
 
     // ---------------------------------------------------------------- frames
