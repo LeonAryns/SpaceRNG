@@ -1011,7 +1011,9 @@ final class WorldAdmin extends AdminTools {
                   "pack": {
                     "description": "SpaceRNG: no vanilla advancements",
                     "pack_format": 61,
-                    "supported_formats": { "min_inclusive": 4, "max_inclusive": 200 }
+                    "supported_formats": { "min_inclusive": 4, "max_inclusive": 200 },
+                    "min_format": 4,
+                    "max_format": 200
                   },
                   "filter": {
                     "block": [ { "namespace": "minecraft", "path": "advancements?/.*" } ]
@@ -1026,10 +1028,16 @@ final class WorldAdmin extends AdminTools {
             return true;
         }
 
+        // V255: the pack used to wait for a reload Leon had to run himself,
+        // and 1.21.9 and up read min_format/max_format, which it lacked, so
+        // the server could list it as incompatible and leave it off. Both
+        // are in the file now, and the reload and enable happen here.
+        var console = plugin.getServer().getConsoleSender();
+        plugin.getServer().dispatchCommand(console, "minecraft:reload");
+        plugin.getServer().dispatchCommand(console, "minecraft:datapack enable \"file/" + PACK + "\"");
         sender.sendMessage(ChatColor.GREEN + "Advancements are off and will stay off.");
-        sender.sendMessage(ChatColor.GRAY + "Written to " + ChatColor.WHITE + "world/datapacks/" + PACK);
-        sender.sendMessage(ChatColor.GRAY + "Run " + ChatColor.YELLOW + "/minecraft:reload"
-                + ChatColor.GRAY + " once, or restart, and the toasts are gone for good.");
+        sender.sendMessage(ChatColor.GRAY + "Written to " + ChatColor.WHITE + worldFolder.getName() + "/datapacks/" + PACK
+                + ChatColor.GRAY + ", reloaded and enabled. Check with " + ChatColor.YELLOW + "/datapack list" + ChatColor.GRAY + ".");
         return true;
     }
 }
