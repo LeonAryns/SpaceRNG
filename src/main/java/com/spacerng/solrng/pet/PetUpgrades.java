@@ -93,23 +93,38 @@ public class PetUpgrades {
                 if (egg == null) continue;
                 org.bukkit.Material icon = org.bukkit.Material.matchMaterial(egg.getString("icon", "TURTLE_EGG"));
                 java.util.List<String> colors = egg.getStringList("colors");
+                var band = PetEgg.defaultBand(id);
                 eggs.add(new PetEgg(id, egg.getString("display", id),
                         colors.isEmpty() ? java.util.List.of("#C77DFF", "#7FDBFF") : colors,
                         icon == null ? org.bukkit.Material.TURTLE_EGG : icon,
                         Math.max(1L, egg.getLong("cost", makeCost)),
                         Math.max(1.0, egg.getDouble("boost", 1.0)),
-                        Math.max(0, egg.getInt("min-prestige", minPrestige))));
+                        Math.max(0, egg.getInt("min-prestige", minPrestige)),
+                        rarityOr(egg.getString("min-rarity"), band[0]),
+                        rarityOr(egg.getString("max-rarity"), band[1])));
             }
         }
         if (eggs.isEmpty()) {
             eggs.add(new PetEgg("stardust", "Stardust Egg", java.util.List.of("#C9D6FF", "#7FDBFF"),
-                    org.bukkit.Material.TURTLE_EGG, makeCost, 1.0, minPrestige));
+                    org.bukkit.Material.TURTLE_EGG, makeCost, 1.0, minPrestige,
+                    PetEgg.defaultBand("stardust")[0], PetEgg.defaultBand("stardust")[1]));
             eggs.add(new PetEgg("nebula", "Nebula Egg", java.util.List.of("#C77DFF", "#FF7AD9"),
-                    org.bukkit.Material.SNIFFER_EGG, makeCost * 10L, 20.0, 20));
+                    org.bukkit.Material.SNIFFER_EGG, makeCost * 10L, 20.0, 20,
+                    PetEgg.defaultBand("nebula")[0], PetEgg.defaultBand("nebula")[1]));
             eggs.add(new PetEgg("supernova", "Supernova Egg", java.util.List.of("#FFD54F", "#FF6F3C"),
-                    org.bukkit.Material.DRAGON_EGG, makeCost * 100L, 400.0, 20));
+                    org.bukkit.Material.DRAGON_EGG, makeCost * 100L, 400.0, 20,
+                    PetEgg.defaultBand("supernova")[0], PetEgg.defaultBand("supernova")[1]));
         }
         eggs.sort(java.util.Comparator.comparingLong(PetEgg::cost));
+    }
+
+    private static com.spacerng.solrng.rarity.Rarity rarityOr(String raw, com.spacerng.solrng.rarity.Rarity fallback) {
+        if (raw == null || raw.isBlank()) return fallback;
+        try {
+            return com.spacerng.solrng.rarity.Rarity.valueOf(raw.trim().toUpperCase(java.util.Locale.ROOT));
+        } catch (IllegalArgumentException ex) {
+            return fallback;
+        }
     }
 
     public java.util.List<PetEgg> eggs() {

@@ -211,6 +211,7 @@ public class PetManager {
             PetInstance had = data.getPet(type.id());
             if (had != null && had.rarity() >= upgrades.maxRarity()) continue;
             if (type.weight() <= 0.0) continue;
+            if (!egg.hatches(type.rarity())) continue;
             double weight = type.weight();
             if (type.rarity().ordinal() >= upgrades.boostedFrom().ordinal()) weight *= egg.boost();
             pool.put(type, weight);

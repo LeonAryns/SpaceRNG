@@ -4174,7 +4174,8 @@ consumables:
     description: "Won by beating a boss. Right click it to open it."
   nova_core:
     display: "Nova Core"
-    material: ENDER_PEARL
+    # V284: a Heart of the Sea again, Leon's call (V190 made it a pearl).
+    material: HEART_OF_THE_SEA
     colors: ["#7FE7FF", "#00B0FF"]
     description: "Forge it in /novacore for a shot at the next tier.\nEvery tier multiplies your Luck, Money and Coins.\nMiss and you fall back to your last checkpoint.\nThe more Luck you have, the better your odds."
   free_skill:
@@ -6524,6 +6525,9 @@ pets:
         cost: 100
         boost: 1
         min-prestige: 10
+        # V284: the band this egg hatches from.
+        min-rarity: COMMON
+        max-rarity: RARE
       nebula:
         display: "Nebula Egg"
         colors: ["#C77DFF", "#FF7AD9"]
@@ -6531,6 +6535,9 @@ pets:
         cost: 1000
         boost: 20
         min-prestige: 20
+        # V284: the band this egg hatches from.
+        min-rarity: UNCOMMON
+        max-rarity: LEGENDARY
       supernova:
         display: "Supernova Egg"
         colors: ["#FFD54F", "#FF6F3C"]
@@ -6538,6 +6545,9 @@ pets:
         cost: 10000
         boost: 400
         min-prestige: 20
+        # V284: the band this egg hatches from.
+        min-rarity: RARE
+        max-rarity: DIVINE
 
   dust:
     # The action bar line when a dust falls. Rolling is fast and dust is

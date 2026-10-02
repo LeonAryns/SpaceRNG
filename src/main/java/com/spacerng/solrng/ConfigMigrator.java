@@ -176,6 +176,9 @@ public final class ConfigMigrator {
     }
 
     private static final List<Patch> PATCHES = List.of(
+            // V284: the Nova Core is a Heart of the Sea again.
+            new Patch("nova-core-heart-again", "consumables.nova_core.material",
+                    "ENDER_PEARL", "HEART_OF_THE_SEA"),
             // V281: Coins nerfed at the sources, Leon's call. Coin Greed to +1,000%,
             // the farm tree Coins nodes a tenth each, Nuke pays 500 crops.
             new Patch("coin-greed-tenth", "farming.enchants.TOKEN_GREED.per-level", 0.01, 0.001),
