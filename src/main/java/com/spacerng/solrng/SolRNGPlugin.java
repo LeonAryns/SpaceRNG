@@ -489,8 +489,10 @@ public final class SolRNGPlugin extends JavaPlugin {
                 PlayerData data = playerDataManager.get(player.getUniqueId());
                 if (!prestigeManager.canLevelUp(data)) continue;
                 player.sendActionBar(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
-                        .legacySection().deserialize(org.bukkit.ChatColor.GREEN + "" + org.bukkit.ChatColor.BOLD
-                                + "Level up available " + org.bukkit.ChatColor.GRAY + "(/prestige)"));
+                        // Small caps and no bold (V259): Leon wants it as small as the
+                        // action bar allows. Text size itself needs a resource pack.
+                        .legacySection().deserialize(org.bukkit.ChatColor.GREEN + "ʟᴇᴠᴇʟ ᴜᴘ ᴀᴠᴀɪʟᴀʙʟᴇ "
+                                + org.bukkit.ChatColor.DARK_GRAY + "(/ᴘʀᴇѕᴛɪɢᴇ)"));
             }
         }, 60L, 60L);
     }
