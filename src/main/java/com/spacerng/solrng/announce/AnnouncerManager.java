@@ -60,6 +60,7 @@ public class AnnouncerManager {
 
         enabled = config.getBoolean("announcements.enabled", true);
         intervalTicks = Math.max(20, config.getInt("announcements.interval-seconds", 300) * 20);
+        discordEvery = Math.max(0, config.getInt("announcements.discord-every", 2));
         header = colour(config.getString("announcements.header", ""));
         footer = colour(config.getString("announcements.footer", ""));
 
@@ -95,11 +96,37 @@ public class AnnouncerManager {
         return enabled && !messages.isEmpty();
     }
 
+    /**
+     * The Discord tip comes round more often than the rest (V260): every
+     * discord-every-th announcement is that one, and the normal rotation
+     * skips it. 0 puts it back in line with the others.
+     */
+    private int discordEvery = 2;
+    private int sent;
+
+    private int discordBlock() {
+        for (int i = 0; i < messages.size(); i++) {
+            for (String line : messages.get(i)) {
+                if (line.toLowerCase(java.util.Locale.ROOT).contains("discord.gg")) return i;
+            }
+        }
+        return -1;
+    }
+
     /** Sends the next block, then moves the pointer on. */
     public void broadcastNext() {
         if (!isEnabled()) return;
         if (Bukkit.getOnlinePlayers().isEmpty()) return; // nothing to say it to
 
+        int discord = discordEvery > 0 ? discordBlock() : -1;
+        sent++;
+        if (discord >= 0 && sent % discordEvery == 0) {
+            send(messages.get(discord));
+            return;
+        }
+        if (discord >= 0 && next % messages.size() == discord && messages.size() > 1) {
+            next = (next + 1) % messages.size();
+        }
         List<String> block = messages.get(next % messages.size());
         next = (next + 1) % messages.size();
         send(block);

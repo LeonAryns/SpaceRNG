@@ -3369,6 +3369,10 @@ leaderboard:
 announcements:
   enabled: true
   interval-seconds: 300
+  # Every this-many-th announcement is the Discord one (V260); 2 is every
+  # other, so with 300 seconds above it comes round every ten minutes.
+  # 0 keeps it in the normal rotation.
+  discord-every: 2
   # A banner frame around every announcement. Header runs above every
   # block, footer below. Two thin bars turn a short message into a
   # visible "spot" in chat instead of another grey line, and the
