@@ -380,7 +380,10 @@ public class RankManager {
         player.playerListName(LegacyComponentSerializer.legacySection().deserialize(tabName(player)));
         player.setPlayerListOrder(listOrder(player));
         // The name over the head is ours now (V267), so it follows too.
-        if (plugin.getTagManager() != null) plugin.getTagManager().refreshNameplate(player);
+        if (plugin.getTagManager() != null) {
+            plugin.getTagManager().refreshNameplate(player);
+            plugin.getTagManager().refreshOwnerTag(player);
+        }
         player.displayName(LegacyComponentSerializer.legacySection().deserialize(fullName(player)));
     }
 

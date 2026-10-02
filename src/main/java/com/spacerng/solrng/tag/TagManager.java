@@ -181,11 +181,33 @@ public class TagManager {
         data.clearEquippedTag();
         refreshPrefix(player, data);
         hideHologram(player);
+        refreshOwnerTag(player);
     }
 
     /** The equipped-tag prefix only - no level/prestige. Used in chat. */
     public String getPrefix(Player player) {
+        // V288: Owner wears no drop tag in tab or chat; the badge says Owner.
+        if (isOwner(player)) return "";
         return prefixCache.getOrDefault(player.getUniqueId(), "");
+    }
+
+    /** Whether this player holds the Owner rank (V288). */
+    public boolean isOwner(Player player) {
+        if (plugin.getRankManager() == null) return false;
+        var tier = plugin.getRankManager().rankOf(player);
+        return tier != null && "owner".equals(tier.id());
+    }
+
+    private String ownerTitle(Player player) {
+        return plugin.getRankManager().styled(plugin.getRankManager().rankOf(player));
+    }
+
+    /** Puts "Owner" over an Owner's head when nothing floats there yet. */
+    public void refreshOwnerTag(Player player) {
+        if (!player.isOnline() || player.isDead() || !isOwner(player)) return;
+        TextDisplay[] current = holograms.get(player.getUniqueId());
+        if (current != null) return;
+        spawnHologram(player, ownerTitle(player), "");
     }
 
     /**
@@ -218,7 +240,12 @@ public class TagManager {
      * comes entirely from their own Transformation offsets.
      */
     public void showHologram(Player player, String itemNameColored, String oddsText) {
-        spawnHologram(player, itemNameColored, oddsText);
+        // V288: Owner floats "Owner" and nothing else, over any tag.
+        if (isOwner(player)) {
+            spawnHologram(player, ownerTitle(player), "");
+        } else {
+            spawnHologram(player, itemNameColored, oddsText);
+        }
         if (plugin.getAuraManager() != null) {
             plugin.getAuraManager().applyTag(player);
         }

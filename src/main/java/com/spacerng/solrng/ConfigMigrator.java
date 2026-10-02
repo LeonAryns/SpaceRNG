@@ -176,6 +176,8 @@ public final class ConfigMigrator {
     }
 
     private static final List<Patch> PATCHES = List.of(
+            // V288: Owner's badge is the whole word.
+            new Patch("owner-badge-word", "ranks.tiers.owner.letter", "O", "Owner"),
             // V285: Luck lifts the Nova forge a tenth as much.
             new Patch("nova-luck-weight-tenth", "novacore.luck-weight", 1.0, 0.1),
             // V284: the Nova Core is a Heart of the Sea again.

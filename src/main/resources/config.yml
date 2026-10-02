@@ -6150,7 +6150,8 @@ ranks:
       # takes the first stop, so [O] stays red.
       colors: ["#FF1744", "#FF3D00", "#FFC400"]
       tag: ""
-      letter: "O"
+      # V288: the whole word, [Owner], Leon's call.
+      letter: "Owner"
       icon: COMMAND_BLOCK
       price-credits: 0
       multiplier: 1.5

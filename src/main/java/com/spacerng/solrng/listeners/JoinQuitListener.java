@@ -172,7 +172,11 @@ public class JoinQuitListener implements Listener {
         }
 
         PlayerData data = plugin.getPlayerDataManager().get(event.getPlayer().getUniqueId());
-        if (data.getEquippedTagItemKey() == null || data.getEquippedTagRarity() == null) return;
+        if (data.getEquippedTagItemKey() == null || data.getEquippedTagRarity() == null) {
+            plugin.getServer().getScheduler().runTaskLater(plugin,
+                    () -> plugin.getTagManager().refreshOwnerTag(event.getPlayer()), 1L);
+            return;
+        }
 
         // Respawn teleport happens after this event fires, so wait a tick
         // before re-mounting or the displays spawn at the death location.
@@ -182,7 +186,10 @@ public class JoinQuitListener implements Listener {
 
     private void reattachHologram(org.bukkit.entity.Player player, PlayerData data) {
         RollableItem rollable = plugin.getRarityManager().findByDisplayName(data.getEquippedTagItemKey());
-        if (rollable == null) return;
+        if (rollable == null) {
+            plugin.getTagManager().refreshOwnerTag(player);
+            return;
+        }
         // The item's own colors, matching how it's named everywhere else.
         plugin.getTagManager().showHologram(player,
                 plugin.getRarityManager().styleTagName(rollable),
