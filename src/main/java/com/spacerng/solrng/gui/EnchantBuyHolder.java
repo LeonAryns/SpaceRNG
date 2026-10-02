@@ -14,6 +14,7 @@ public class EnchantBuyHolder implements MenuHolder {
     public static final int HUNDRED_SLOT = 14;
     public static final int MAX_SLOT = 16;
     public static final int BACK_SLOT = 22;
+    public static final int TOGGLE_SLOT = 18;
 
     private Inventory inventory;
     private final String enchantId;

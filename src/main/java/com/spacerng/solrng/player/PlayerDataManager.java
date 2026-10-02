@@ -143,6 +143,7 @@ public class PlayerDataManager {
         data.addBonusSpeed(yml.getDouble("bonus-speed", 0.0));
         data.setPotion(yml.getDouble("potion-luck", 0.0), yml.getDouble("potion-speed", 0.0),
                 yml.getLong("potion-rolls", 0L));
+        data.getDisabledEnchants().addAll(yml.getStringList("disabled-enchants"));
         org.bukkit.configuration.ConfigurationSection stored = yml.getConfigurationSection("stored-boosters");
         if (stored != null) {
             for (String id : stored.getKeys(false)) data.addStoredBooster(id, stored.getLong(id));
@@ -416,6 +417,7 @@ public class PlayerDataManager {
         yml.set("potion-luck", data.getPotionLuck());
         yml.set("potion-speed", data.getPotionSpeed());
         yml.set("potion-rolls", data.getPotionRolls());
+        yml.set("disabled-enchants", new java.util.ArrayList<>(data.getDisabledEnchants()));
         yml.set("stored-boosters", null);
         data.getStoredBoosters().forEach((id, amount) -> yml.set("stored-boosters." + id, amount));
         yml.set("roll-charge-multiplier", data.getRollChargeMultiplier());

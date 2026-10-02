@@ -265,6 +265,8 @@ public class HoeEnchantManager {
     public double powerOf(PlayerData data, String enchantId) {
         Enchant enchant = get(enchantId);
         if (enchant == null || enchant.comingSoon()) return 0.0;
+        // Switched off in the level screen (V266): levels kept, no effect.
+        if (!data.isEnchantOn(enchant.id())) return 0.0;
         // Proc Chance lifts every enchant at once, so it multiplies the
         // total rather than adding levels - a flat level bonus would be
         // worth wildly different amounts to a 0.02/level enchant and a

@@ -203,8 +203,17 @@ public class HoeGui {
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(Lore.title(unlocked ? ChatColor.YELLOW : ChatColor.DARK_GRAY, enchant.display()));
 
-        meta.setLore(enchantLore(plugin, data, hoe, enchant, plugin.getConfig().getString("enchant-style", "classic")));
-        meta.setEnchantmentGlintOverride(unlocked && level > 0 ? Boolean.TRUE : null);
+        List<String> lore = new ArrayList<>(enchantLore(plugin, data, hoe, enchant,
+                plugin.getConfig().getString("enchant-style", "classic")));
+        boolean on = data.isEnchantOn(enchant.id());
+        if (unlocked && level > 0) {
+            // V266: the state and how to flip it, right under what it does.
+            lore.add("");
+            lore.add(on ? Lore.line(ChatColor.GREEN, "Switched on. Right-click to switch off.")
+                    : Lore.line(ChatColor.RED, "Switched off. Right-click to switch on."));
+        }
+        meta.setLore(lore);
+        meta.setEnchantmentGlintOverride(unlocked && level > 0 && on ? Boolean.TRUE : null);
         meta.getPersistentDataContainer().set(enchantKey(plugin), PersistentDataType.STRING, enchant.id());
         item.setItemMeta(meta);
         return item;

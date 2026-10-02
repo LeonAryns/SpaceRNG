@@ -128,6 +128,8 @@ public class PlayerData {
     private double potionLuck = 0.0;
     private double potionSpeed = 0.0;
     private long potionRolls = 0L;
+    // Hoe enchants the player switched off (V266); they keep their levels.
+    private final java.util.Set<String> disabledEnchants = new java.util.HashSet<>();
     // Potions from Potion Finder waiting in /boosters (V264), by consumable id.
     private final Map<String, Long> storedBoosters = new java.util.LinkedHashMap<>();
     // Multiplies Tokens earned from harvesting farm crops. 1.0 = base
@@ -875,6 +877,23 @@ public class PlayerData {
 
     public double getPotionSpeed() {
         return potionRolls > 0 ? potionSpeed : 0.0;
+    }
+
+    public java.util.Set<String> getDisabledEnchants() {
+        return disabledEnchants;
+    }
+
+    public boolean isEnchantOn(String id) {
+        return !disabledEnchants.contains(id);
+    }
+
+    /** Flips an enchant on or off; returns whether it is on now. */
+    public boolean toggleEnchant(String id) {
+        if (!disabledEnchants.remove(id)) {
+            disabledEnchants.add(id);
+            return false;
+        }
+        return true;
     }
 
     public Map<String, Long> getStoredBoosters() {

@@ -547,6 +547,17 @@ final class PlayerMenuClicks {
             player.openInventory(SkillTreeGui.build(plugin, player, "farmtree", 0));
             return;
         }
+        // Right-click switches an owned enchant on or off (V266), the same
+        // as the switch in its level screen, which Bedrock players use.
+        if (event.isRightClick() && hoe.levelOf(data, id) > 0) {
+            boolean on = data.toggleEnchant(id);
+            player.sendMessage(enchant.colour() + enchant.display() + (on
+                    ? ChatColor.GREEN + " is switched on." : ChatColor.RED + " is switched off."));
+            player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.7f, on ? 1.5f : 0.8f);
+            plugin.getFarmingManager().refreshHoe(player, data);
+            player.openInventory(HoeGui.build(plugin, player));
+            return;
+        }
         // Levels are bought in their own screen now (V161): +1, +10, +100 or max.
         player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.6f, 1.3f);
         player.openInventory(com.spacerng.solrng.gui.EnchantBuyGui.build(plugin, player, id, null, 0));
@@ -568,6 +579,19 @@ final class PlayerMenuClicks {
             player.openInventory(holder.getTree() == null
                     ? HoeGui.build(plugin, player)
                     : com.spacerng.solrng.gui.SkillTreeGui.build(plugin, player, holder.getTree(), holder.getPage()));
+            return;
+        }
+
+        if (slot == com.spacerng.solrng.gui.EnchantBuyHolder.TOGGLE_SLOT) {
+            var toggled = plugin.getHoeEnchantManager().get(holder.getEnchantId());
+            if (toggled == null || plugin.getHoeEnchantManager().levelOf(data, toggled.id()) <= 0) return;
+            boolean on = data.toggleEnchant(toggled.id());
+            player.sendMessage(toggled.colour() + toggled.display() + (on
+                    ? ChatColor.GREEN + " is switched on." : ChatColor.RED + " is switched off."));
+            player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.7f, on ? 1.5f : 0.8f);
+            plugin.getFarmingManager().refreshHoe(player, data);
+            player.openInventory(com.spacerng.solrng.gui.EnchantBuyGui.build(plugin, player,
+                    toggled.id(), holder.getTree(), holder.getPage()));
             return;
         }
 

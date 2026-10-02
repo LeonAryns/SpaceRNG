@@ -45,7 +45,27 @@ public class EnchantBuyGui {
         inv.setItem(EnchantBuyHolder.TEN_SLOT, button(data, hoe, enchant, 10, Material.EMERALD));
         inv.setItem(EnchantBuyHolder.HUNDRED_SLOT, button(data, hoe, enchant, 100, Material.EMERALD_BLOCK));
         inv.setItem(EnchantBuyHolder.MAX_SLOT, maxButton(data, hoe, enchant));
+        if (hoe.levelOf(data, enchant.id()) > 0) {
+            inv.setItem(EnchantBuyHolder.TOGGLE_SLOT, toggle(data, enchant));
+        }
         return inv;
+    }
+
+    /** On or off, for an enchant that has levels (V266). The levels stay either way. */
+    private static ItemStack toggle(PlayerData data, HoeEnchantManager.Enchant enchant) {
+        boolean on = data.isEnchantOn(enchant.id());
+        ItemStack item = new ItemStack(on ? Material.REDSTONE_TORCH : Material.LEVER);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(Lore.title(on ? ChatColor.GREEN : ChatColor.RED, on ? "Switched on" : "Switched off"));
+        List<String> lore = new ArrayList<>();
+        lore.add(Lore.line(ChatColor.GRAY, on ? "It fires while you farm." : "It does nothing until you switch it on."));
+        lore.add(Lore.line(ChatColor.GRAY, "Your levels stay either way."));
+        lore.add("");
+        lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + (on ? "Click to switch off" : "Click to switch on"));
+        meta.setLore(lore);
+        meta.setEnchantmentGlintOverride(on ? Boolean.TRUE : null);
+        item.setItemMeta(meta);
+        return item;
     }
 
     private static ItemStack info(SolRNGPlugin plugin, PlayerData data, HoeEnchantManager hoe,

@@ -856,24 +856,47 @@ public class FarmPlotManager {
             // a 669-block-wide square out of a single click.
             int radius = Math.min(blastMaxRadius,
                     blastBaseRadius + hoe.levelOf(data, "BLAST_HARVEST") / blastLevelsPerRadius);
-            int swept = 0;
-            for (int dx = -radius; dx <= radius; dx++) {
-                for (int dz = -radius; dz <= radius; dz++) {
-                    if (dx == 0 && dz == 0) continue;
-                    Location near = plot.clone().add(dx, 0, dz);
-                    if (!plots.contains(normalise(near))) continue;
-                    if (harvest(player, near, false)) swept++;
-                }
+            // V266: a fuse first and the blast a second later, so the
+            // farmer is not standing in it, and a round blast rather than
+            // a square one. Drawn for the farmer alone.
+            Location centre = plot.clone();
+            Location mid = centre.clone().add(0.5, 0.6, 0.5);
+            player.spawnParticle(org.bukkit.Particle.SMOKE, mid, 12, 0.2, 0.2, 0.2, 0.01);
+            if (data.isEnchantSoundEnabled()) {
+                player.playSound(mid, org.bukkit.Sound.ENTITY_TNT_PRIMED, 0.8f, 1.0f);
             }
-            if (swept > 0) {
-                player.getWorld().spawnParticle(org.bukkit.Particle.EXPLOSION, plot.clone().add(0.5, 0.5, 0.5),
-                        2, 0.4, 0.2, 0.4, 0.0);
+            sendActionBar(player, ChatColor.RED + "" + ChatColor.BOLD + "TNT  "
+                    + ChatColor.RESET + ChatColor.GRAY + "lit, one second");
+            plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+                if (!player.isOnline()) return;
+                int swept = 0;
+                // A circle: the corners of the square stay standing. r*r + r
+                // rounds the edge out so small blasts are not a plus sign.
+                int reach = radius * radius + radius;
+                for (int dx = -radius; dx <= radius; dx++) {
+                    for (int dz = -radius; dz <= radius; dz++) {
+                        if (dx == 0 && dz == 0) continue;
+                        if (dx * dx + dz * dz > reach) continue;
+                        Location near = centre.clone().add(dx, 0, dz);
+                        if (!plots.contains(normalise(near))) continue;
+                        if (harvest(player, near, false)) swept++;
+                    }
+                }
+                player.spawnParticle(org.bukkit.Particle.EXPLOSION_EMITTER, mid, 1, 0, 0, 0, 0);
+                for (int i = 0; i < 24; i++) {
+                    double a = Math.PI * 2 * i / 24;
+                    player.spawnParticle(org.bukkit.Particle.EXPLOSION,
+                            mid.clone().add(Math.cos(a) * radius * 0.8, 0, Math.sin(a) * radius * 0.8),
+                            1, 0, 0, 0, 0);
+                }
                 if (data.isEnchantSoundEnabled()) {
-                    player.playSound(plot, org.bukkit.Sound.ENTITY_GENERIC_EXPLODE, 0.5f, 1.6f);
+                    player.playSound(mid, org.bukkit.Sound.ENTITY_GENERIC_EXPLODE, 0.7f, 1.2f);
                 }
-                sendActionBar(player, ChatColor.RED + "" + ChatColor.BOLD + "Blast  "
-                        + ChatColor.RESET + ChatColor.GRAY + swept + " extra crops");
-            }
+                if (swept > 0) {
+                    sendActionBar(player, ChatColor.RED + "" + ChatColor.BOLD + "Blast  "
+                            + ChatColor.RESET + ChatColor.GRAY + swept + " extra crops");
+                }
+            }, 20L);
         }
 
         double lightning = hoe.powerOf(data, "LIGHTNING");
