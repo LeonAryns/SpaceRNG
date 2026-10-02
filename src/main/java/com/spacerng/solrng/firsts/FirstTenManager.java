@@ -54,6 +54,9 @@ public final class FirstTenManager {
     private final SolRNGPlugin plugin;
     private final File file;
     private final Map<Rarity, List<Entry>> entries = new EnumMap<>(Rarity.class);
+    // V278: the first players to roll a shiny of any rarity, its own list,
+    // saved under SHINY in firsts.yml.
+    private final List<Entry> shinyEntries = new ArrayList<>();
 
     public FirstTenManager(SolRNGPlugin plugin) {
         this.plugin = plugin;
@@ -86,6 +89,29 @@ public final class FirstTenManager {
 
     // ---------------------------------------------------------------- reads
 
+    public List<Entry> shinyEntries() {
+        return List.copyOf(shinyEntries);
+    }
+
+    /** This player's place in the shiny list, or 0. */
+    public int shinyPlaceOf(UUID uuid) {
+        for (int i = 0; i < shinyEntries.size(); i++) {
+            if (shinyEntries.get(i).uuid().equals(uuid)) return i + 1;
+        }
+        return 0;
+    }
+
+    public boolean shinyTracked() {
+        return plugin.getConfig().getBoolean("first-ten.enabled", true)
+                && plugin.getConfig().getBoolean("first-ten.shiny", true);
+    }
+
+    /** Whether a shiny from this player takes a spot in the shiny list. */
+    public boolean wouldTakeShiny(Player player) {
+        if (!shinyTracked() || shinyEntries.size() >= slots()) return false;
+        return shinyPlaceOf(player.getUniqueId()) == 0;
+    }
+
     public List<Entry> entries(Rarity rarity) {
         return List.copyOf(entries.getOrDefault(rarity, List.of()));
     }
@@ -112,6 +138,20 @@ public final class FirstTenManager {
      * schedules the event for after the reveal has played out.
      */
     public void onRoll(Player player, RollableItem item, boolean shiny, long delayTicks) {
+        boolean shinySpot = shiny && wouldTakeShiny(player);
+        if (shinySpot) {
+            shinyEntries.add(new Entry(player.getUniqueId(), player.getName(), item.getDisplayName(),
+                    System.currentTimeMillis()));
+            save();
+            int shinyPlace = shinyEntries.size();
+            UUID roller = player.getUniqueId();
+            String name = player.getName();
+            // After the reveal, and after a rarity First's own banner when
+            // the same drop takes both.
+            long wait = Math.max(1L, delayTicks) + (wouldTake(player, item) ? 140L : 0L);
+            plugin.getServer().getScheduler().runTaskLater(plugin,
+                    () -> announceShiny(roller, name, item, shinyPlace), wait);
+        }
         if (!wouldTake(player, item)) return;
         Rarity rarity = item.getRarity();
         List<Entry> list = entries.computeIfAbsent(rarity, key -> new ArrayList<>());
@@ -182,6 +222,20 @@ public final class FirstTenManager {
      * Takes one player's spot out of a rarity's First 10 (V264); everyone
      * under them moves up a place. Returns how many entries went.
      */
+    /** Takes a player out of the shiny list; returns how many entries went. */
+    public int removeShiny(String playerName) {
+        int before = shinyEntries.size();
+        shinyEntries.removeIf(entry -> entry.name().equalsIgnoreCase(playerName));
+        int removed = before - shinyEntries.size();
+        if (removed > 0) save();
+        return removed;
+    }
+
+    public void resetShiny() {
+        shinyEntries.clear();
+        save();
+    }
+
     public int remove(Rarity rarity, String playerName) {
         List<Entry> held = entries.get(rarity);
         if (held == null) return 0;
@@ -199,6 +253,7 @@ public final class FirstTenManager {
 
     public void resetAll() {
         entries.clear();
+        shinyEntries.clear();
         save();
     }
 
@@ -217,6 +272,31 @@ public final class FirstTenManager {
      * The rarity's colour carries the frame, the place and the rarity word;
      * everything else stays grey so those three are what the eye lands on.
      */
+    /** The shiny list's banner (V278): the same shape as a rarity First, in the shiny colours. */
+    private void announceShiny(UUID roller, String name, RollableItem item, int place) {
+        int slots = slots();
+        int left = Math.max(0, slots - place);
+        var rarities = plugin.getRarityManager();
+        String rule = ChatColor.AQUA + "" + ChatColor.STRIKETHROUGH + " ".repeat(52);
+        String header = rarities.styleShiny("✦ SHINY FIRST " + slots + " ✦");
+        String line = ChatColor.YELLOW + name + ChatColor.GRAY + " is " + rarities.styleShiny("#" + place)
+                + ChatColor.GRAY + " of the first " + ChatColor.WHITE + slots
+                + ChatColor.GRAY + " to find a " + rarities.styleShiny("shiny");
+        String drop = ChatColor.GRAY + "Drop: " + RollFormat.displayName(plugin, item, true);
+        String meter = rarities.styleShiny("▬".repeat(place)) + ChatColor.DARK_GRAY + "▬".repeat(left);
+        String footer = meter + "  " + (left > 0
+                ? ChatColor.WHITE + "" + left + ChatColor.GRAY + (left == 1 ? " spot left" : " spots left")
+                : ChatColor.RED + "Every spot is taken");
+        Component banner = LegacyComponentSerializer.legacySection()
+                .deserialize(rule + "\n" + header + "\n" + line + "\n" + drop + "\n" + footer + "\n" + rule);
+        for (Player online : Bukkit.getOnlinePlayers()) {
+            online.sendMessage(banner);
+            online.playSound(online.getLocation(), Sound.BLOCK_AMETHYST_BLOCK_RESONATE, 1.0f, 1.2f);
+            online.playSound(online.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.8f, 1.4f);
+        }
+        Bukkit.getConsoleSender().sendMessage(banner);
+    }
+
     private void announce(UUID roller, String name, RollableItem item, boolean shiny, int place, boolean preview) {
         Rarity rarity = item.getRarity();
         int slots = slots();
@@ -423,8 +503,17 @@ public final class FirstTenManager {
 
     public void load() {
         entries.clear();
+        shinyEntries.clear();
         if (!file.exists()) return;
         YamlConfiguration yml = YamlConfiguration.loadConfiguration(file);
+        for (Map<?, ?> row : yml.getMapList("SHINY")) {
+            try {
+                shinyEntries.add(new Entry(UUID.fromString(String.valueOf(row.get("uuid"))),
+                        String.valueOf(row.get("name")), String.valueOf(row.get("item")),
+                        row.get("at") instanceof Number number ? number.longValue() : 0L));
+            } catch (IllegalArgumentException ignored) {
+            }
+        }
         for (Rarity rarity : Rarity.values()) {
             List<Map<?, ?>> rows = yml.getMapList(rarity.name());
             if (rows.isEmpty()) continue;
@@ -456,6 +545,16 @@ public final class FirstTenManager {
             }
             yml.set(row.getKey().name(), list);
         }
+        List<Map<String, Object>> shiny = new ArrayList<>();
+        for (Entry entry : shinyEntries) {
+            Map<String, Object> map = new LinkedHashMap<>();
+            map.put("uuid", entry.uuid().toString());
+            map.put("name", entry.name());
+            map.put("item", entry.item());
+            map.put("at", entry.at());
+            shiny.add(map);
+        }
+        if (!shiny.isEmpty()) yml.set("SHINY", shiny);
         try {
             yml.save(file);
         } catch (IOException ex) {

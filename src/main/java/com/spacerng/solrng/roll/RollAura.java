@@ -552,11 +552,21 @@ public final class RollAura {
     }
 
     /**
-     * The roller alone hears it (V276). The score used to play for everyone
-     * in view, so a farm full of auto rollers was a wall of chimes.
+     * The roller hears it in full (V276). Anyone close by who can see the
+     * effect hears it too, but quietly (V278): a fifth of the volume, at
+     * most a fifth, and only within twelve blocks. This only ever plays
+     * during an animation, so a plain roll stays silent for others.
      */
     private void sound(Sound sound, float volume, float pitch) {
-        if (player.isOnline()) player.playSound(player.getLocation(), sound, volume, pitch);
+        if (!player.isOnline()) return;
+        Location at = player.getLocation();
+        player.playSound(at, sound, volume, pitch);
+        float quiet = Math.min(1.0f, volume) * 0.2f;
+        for (Player viewer : audience) {
+            if (viewer.equals(player) || !viewer.getWorld().equals(at.getWorld())) continue;
+            if (viewer.getLocation().distanceSquared(at) > 12.0 * 12.0) continue;
+            viewer.playSound(at, sound, quiet, pitch);
+        }
     }
 
     // ---------------------------------------------------------------- frames

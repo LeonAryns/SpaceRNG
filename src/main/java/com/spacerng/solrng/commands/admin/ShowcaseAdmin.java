@@ -476,7 +476,10 @@ final class ShowcaseAdmin extends AdminTools {
                     sender.sendMessage(usage);
                     return true;
                 }
-                if (args[2].equalsIgnoreCase("all")) {
+                if (args[2].equalsIgnoreCase("shiny")) {
+                    firsts.resetShiny();
+                    sender.sendMessage(ChatColor.GREEN + "The Shiny First 10 spots are free again.");
+                } else if (args[2].equalsIgnoreCase("all")) {
                     firsts.resetAll();
                     sender.sendMessage(ChatColor.GREEN + "Every First 10 spot is free again.");
                 } else {
@@ -489,6 +492,12 @@ final class ShowcaseAdmin extends AdminTools {
             case "remove" -> {
                 if (args.length < 4) {
                     sender.sendMessage(usage);
+                    return true;
+                }
+                if (args[2].equalsIgnoreCase("shiny")) {
+                    int gone = firsts.removeShiny(args[3]);
+                    sender.sendMessage(gone > 0 ? ChatColor.GREEN + "Took " + args[3] + " out of the Shiny First 10."
+                            : ChatColor.RED + args[3] + " holds no Shiny First 10 spot.");
                     return true;
                 }
                 List<Rarity> from = args[2].equalsIgnoreCase("all") ? firsts.trackedRarities() : null;

@@ -47,8 +47,49 @@ public class FirstsGui {
         for (int i = 0; i < tracked.size() && i < RARITY_SLOTS.length; i++) {
             inv.setItem(RARITY_SLOTS[i], rarityIcon(plugin, tracked.get(i)));
         }
+        if (plugin.getFirstTenManager().shinyTracked()) {
+            inv.setItem(SHINY_SLOT, shinyIcon(plugin));
+        }
         MenuStyle.apply(inv, MenuStyle.Palette.GOLD);
         return inv;
+    }
+
+    private static final int SHINY_SLOT = 40;
+
+    /** The shiny list (V278), shaped like a rarity's card. */
+    private static ItemStack shinyIcon(SolRNGPlugin plugin) {
+        FirstTenManager firsts = plugin.getFirstTenManager();
+        List<FirstTenManager.Entry> entries = firsts.shinyEntries();
+        int slots = firsts.slots();
+        int left = Math.max(0, slots - entries.size());
+        ItemStack item = new ItemStack(Material.AMETHYST_CLUSTER);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(plugin.getRarityManager().styleShiny("Shiny"));
+        List<String> lore = new ArrayList<>();
+        lore.add(ChatColor.GRAY + "The first " + slots + " players ever to");
+        lore.add(ChatColor.GRAY + "roll a shiny, of any rarity.");
+        lore.add("");
+        lore.add(Lore.stat(left > 0 ? ChatColor.GREEN : ChatColor.DARK_GRAY, "Taken",
+                entries.size() + " of " + slots));
+        lore.add("");
+        if (entries.isEmpty()) {
+            lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " Nobody has one yet.");
+        } else {
+            for (int i = 0; i < entries.size(); i++) {
+                FirstTenManager.Entry entry = entries.get(i);
+                lore.add(plugin.getRarityManager().styleShiny(Lore.BULLET + " #" + (i + 1)) + " "
+                        + ChatColor.WHITE + entry.name()
+                        + ChatColor.DARK_GRAY + "  " + drop(plugin, entry.item()));
+            }
+        }
+        lore.add("");
+        lore.add(left > 0
+                ? ChatColor.YELLOW + "" + ChatColor.BOLD + (left == 1 ? "1 spot left" : left + " spots left")
+                : ChatColor.DARK_GRAY + "" + ChatColor.BOLD + "All taken");
+        meta.setLore(lore);
+        if (left <= 0) meta.setEnchantmentGlintOverride(Boolean.TRUE);
+        item.setItemMeta(meta);
+        return item;
     }
 
     /** What this player holds, which is the first thing anybody opens this for. */
@@ -72,6 +113,11 @@ public class FirstsGui {
                 lore.add(ChatColor.GOLD + Lore.BULLET + " " + ChatColor.WHITE + "#" + spot.place()
                         + ChatColor.GRAY + " in "
                         + plugin.getRarityManager().style(spot.rarity(), spot.rarity().displayName()));
+            }
+            int shinyPlace = plugin.getFirstTenManager().shinyPlaceOf(player.getUniqueId());
+            if (shinyPlace > 0) {
+                lore.add(ChatColor.GOLD + Lore.BULLET + " " + ChatColor.WHITE + "#" + shinyPlace
+                        + ChatColor.GRAY + " in " + plugin.getRarityManager().styleShiny("Shiny"));
             }
         }
         lore.add("");

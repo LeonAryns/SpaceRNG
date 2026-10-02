@@ -365,7 +365,8 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
                 case "auratest" -> args[1].equalsIgnoreCase("rank") ? partial(args[2], rankAuraKeys())
                         : partial(args[2], List.of("epic", "legendary", "mythical", "divine"));
                 case "firsts" -> partial(args[2], args[1].equalsIgnoreCase("reset") || args[1].equalsIgnoreCase("remove")
-                        ? withAll(rarityNames()) : rarityNames());
+                        ? java.util.stream.Stream.concat(withAll(rarityNames()).stream(), java.util.stream.Stream.of("shiny")).toList()
+                        : rarityNames());
                 case "aura", "roll", "nextroll", "unlock", "starforge", "milestones", "farmblock" ->
                         partial(args[2], playerNames());
                 case "consumable" -> partial(args[2], List.of("1", "3", "5"));

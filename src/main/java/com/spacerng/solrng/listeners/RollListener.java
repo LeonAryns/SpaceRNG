@@ -1034,6 +1034,8 @@ public class RollListener implements Listener {
         // A Server First announces itself with its own banner a few seconds
         // later, so the plain "just found" line would be the same news twice.
         if (plugin.getFirstTenManager().wouldTake(player, result)) return;
+        // Likewise a Shiny First, which brings its own banner (V278).
+        if (shiny && plugin.getFirstTenManager().wouldTakeShiny(player)) return;
         // A player's first few drops of each rarity go to chat, then theirs
         // stop (V271, Leon: after three it is noise), Epic and up alike. A
         // shiny is always announced.

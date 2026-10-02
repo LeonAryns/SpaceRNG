@@ -6256,6 +6256,9 @@ broadcast:
 #   placeholders: %solrng_first10% and %solrng_first10_count%
 # Not a structural section, so tuning here survives a jar update.
 first-ten:
+  # V278: a Shiny First 10 as well, the first players to roll a shiny of
+  # any rarity, with its own banner and its card in /firsts.
+  shiny: true
   enabled: true
   slots: 5
   rarities: [LEGENDARY, MYTHICAL, DIVINE]
