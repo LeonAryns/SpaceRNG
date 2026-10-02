@@ -1112,6 +1112,14 @@ questions further down. Keep it current.
 7. **The crop yield nodes**: he wants something else there (crop level?).
 8. **Secret Realm follow ups**: what a secret should do beyond Luck, and
    whether the realm needs its own build.
+9. **More realms, later** (Leon, 3 October). Realms as a family: the
+   Secret Realm with its own secret index (that part exists since V229:
+   /realm, /secretindex), and a **Shiny Realm** that opens at random times
+   through the day. Not specified yet: what rolling inside it does
+   (presumably a far higher shiny chance), who may enter, how long it
+   stays open, and whether it gets its own index too. The realm code in
+   `realm/RealmManager` is built for one realm and would need to hold
+   several.
 
 **Queue from the same message, one jar each, in this order:**
 
