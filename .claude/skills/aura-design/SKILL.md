@@ -151,10 +151,13 @@ changed since 1.21.4 and the published javadocs are wrong about them.
 | `FALLING_DUST` | `BlockData` | |
 | `ITEM` | `ItemStack` | |
 
-Passing `null` data still works on all of them (the server falls back to
-a default), which is why the existing `DRAGON_BREATH` and `FLASH` calls
-did not break on the version bump. Passing data of the **wrong** class
-throws `IllegalArgumentException`, so never guess.
+**Never pass `null` to one of these.** This file used to say null falls
+back to a default; it does not. The Mythical reveal spawned bare
+`DRAGON_BREATH` and `FLASH`, the frame threw, `safely()` cancelled the
+reveal, and every Mythical drop played nothing until V272. Pass the right
+class, or use `RollAura.dataFor(particle, colour)`, which reads
+`getDataType()` and returns what it asks for. Data of the **wrong** class
+throws `IllegalArgumentException` too, so never guess.
 
 ### Colour is only available through five of them
 
