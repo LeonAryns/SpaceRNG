@@ -54,6 +54,22 @@ public class JoinQuitListener implements Listener {
         com.spacerng.solrng.commands.TagCommand.autoEquipBest(plugin, event.getPlayer(), data);
 
         if (!event.getPlayer().hasPlayedBefore()) {
+            // Another plugin's starter kit (Essentials' "tools") hands out
+            // stone tools nobody here needs; take them back a tick later,
+            // once that kit has landed (V256).
+            org.bukkit.entity.Player fresh = event.getPlayer();
+            plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+                if (!fresh.isOnline()) return;
+                var inv = fresh.getInventory();
+                for (int i = 0; i < inv.getSize(); i++) {
+                    var item = inv.getItem(i);
+                    if (item == null) continue;
+                    switch (item.getType()) {
+                        case STONE_SWORD, STONE_PICKAXE, STONE_AXE, STONE_SHOVEL -> inv.setItem(i, null);
+                        default -> { }
+                    }
+                }
+            }, 5L);
             plugin.getWelcomeManager().broadcastNewPlayer(event.getPlayer());
             com.spacerng.solrng.player.Stash.give(plugin, event.getPlayer(), RollItemFactory.create(plugin, 1));
             event.getPlayer().sendMessage(ChatColor.GREEN + "Welcome to SpaceRNG! "

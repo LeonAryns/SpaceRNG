@@ -487,7 +487,10 @@ public class RollListener implements Listener {
                 // The chime belongs to the moment the drop lands, not to the
                 // end of the hold after it. A big drop's aura brings its own.
                 if (step >= 19 && !RollAura.isBigDrop(result.getRarity())) {
-                    player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.8f, 1.2f);
+                    // Rolling Sound off silences the landing chime too (V256).
+                    if (data.isRollSoundEnabled()) {
+                        player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.8f, 1.2f);
+                    }
                     chimedOnLanding.add(player.getUniqueId());
                 }
                 // NOT gated on Rolling Animation. That switch belongs to the
@@ -715,7 +718,8 @@ public class RollListener implements Listener {
         // The level-up chime would land on the same tick as a big drop's
         // detonation and just clutter it - the aura brings its own. A roll
         // that reached its landing frame already chimed there.
-        if (!RollAura.isBigDrop(result.getRarity()) && !chimedOnLanding.remove(player.getUniqueId())) {
+        if (!RollAura.isBigDrop(result.getRarity()) && !chimedOnLanding.remove(player.getUniqueId())
+                && data.isRollSoundEnabled()) {
             player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.8f, 1.2f);
         }
 

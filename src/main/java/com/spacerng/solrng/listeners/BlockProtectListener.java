@@ -26,13 +26,57 @@ public class BlockProtectListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onBreak(BlockBreakEvent event) {
-        if (!plugin.getConfig().getBoolean("protection.block-break", true)) return;
-        Player player = event.getPlayer();
-        if (player.getGameMode() == GameMode.CREATIVE && player.hasPermission("solrng.admin")) return;
+        if (!guarded(event.getPlayer())) return;
         Block block = event.getBlock();
         if (plugin.getFarmPlotManager().isPlot(block.getLocation())) return;
         if (plugin.getFarmingManager().isCrop(block.getType())) return;
         event.setCancelled(true);
+    }
+
+    /** Whether this player is held to the protection right now. */
+    private boolean guarded(Player player) {
+        if (!plugin.getConfig().getBoolean("protection.block-break", true)) return false;
+        return !(player.getGameMode() == GameMode.CREATIVE && player.hasPermission("solrng.admin"));
+    }
+
+    /** No placing either (V256), with the same admin-in-creative exception. */
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onPlace(org.bukkit.event.block.BlockPlaceEvent event) {
+        if (guarded(event.getPlayer())) event.setCancelled(true);
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onBucketEmpty(org.bukkit.event.player.PlayerBucketEmptyEvent event) {
+        if (guarded(event.getPlayer())) event.setCancelled(true);
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onBucketFill(org.bukkit.event.player.PlayerBucketFillEvent event) {
+        if (guarded(event.getPlayer())) event.setCancelled(true);
+    }
+
+    /** Paintings and item frames are blocks to a player, so they are kept too. */
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onHangingBreak(org.bukkit.event.hanging.HangingBreakByEntityEvent event) {
+        if (event.getRemover() instanceof Player player && guarded(player)) event.setCancelled(true);
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onHangingPlace(org.bukkit.event.hanging.HangingPlaceEvent event) {
+        if (event.getPlayer() != null && guarded(event.getPlayer())) event.setCancelled(true);
+    }
+
+    /**
+     * No vanilla advancements (V256). The data pack route from
+     * /rngadmin advancements needs a reload and a format the server
+     * accepts; this stops every minecraft: criterion from being granted at
+     * all, so there is no toast and no chat line, from the moment the
+     * plugin loads. advancements.block in config, on by default.
+     */
+    @EventHandler(ignoreCancelled = true)
+    public void onAdvancement(com.destroystokyo.paper.event.player.PlayerAdvancementCriterionGrantEvent event) {
+        if (!plugin.getConfig().getBoolean("advancements.block", true)) return;
+        if (event.getAdvancement().getKey().getNamespace().equals("minecraft")) event.setCancelled(true);
     }
 
     /**
