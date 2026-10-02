@@ -1047,6 +1047,16 @@ linking worked on V230:**
   every role becomes a gradient, but only on a boosted server with
   Discord's enhanced role colours.
 
+- **V242, untested.** New look `solstice` (ascend without the sea
+  lanterns: a second slanted orbit turning the other way, six flames at
+  the waist), not on any rank yet. `/rngadmin auratest rank [rank]
+  [rarity]` wears exactly what a rank gets, to judge the ladder.
+
+**The tab (2 October).** In game the tab still shows "Server name",
+"Used memory", "www.domain.com" and "Ping" behind names. None of that is
+in our code. Leon says there is no TAB jar; whatever draws it overwrites
+our `TabListManager`. Asked him for `/plugins` and `/tab` to find it.
+
 **Waiting on Leon:** the tab he wants. His screenshot arrived a few pixels
 wide; ask for it again. TAB plugin defaults were the ugly tab; advice
 given to remove TAB so ours draws it.
