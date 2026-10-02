@@ -367,7 +367,10 @@ public class RankManager {
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         String[] stops = plugin.getCosmeticManager() == null
                 ? null : plugin.getCosmeticManager().stopsFor(data);
-        return badgeOf(shownRankOf(data), stops) + coloredName(player);
+        // The equipped index tag leads (V252). TAB used to put it there;
+        // since TAB went the tab showed only the badge and the name.
+        String tag = plugin.getTagManager() == null ? "" : plugin.getTagManager().getPrefix(player);
+        return tag + badgeOf(shownRankOf(data), stops) + coloredName(player);
     }
 
     /** The badge, the name in the rank's colours and the cosmetic title, for chat and join lines. */

@@ -165,6 +165,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         line(sender, "farmscan", "[radius] [legacy]", "Re-register farm plots by scanning the world");
         line(sender, "farmwheat", "[radius]", "Turn every wheat block around you into a farm plot");
         line(sender, "farmland", "[radius]", "Put a farm plot on every farmland block around you");
+        line(sender, "farmland", "<dry|wet> [radius]", "Make the farmland around you dry or wet, and keep it");
         line(sender, "farmclear", "confirm", "Remove every farm plot, everywhere");
         line(sender, "lockall", "[player]", "Wipe every skill, to test the tree from scratch");
         line(sender, "odds", "[rarity]", "Label vs. true odds, and each tier's real share");

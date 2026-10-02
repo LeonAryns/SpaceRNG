@@ -23,6 +23,16 @@ public class FarmlandListener implements Listener {
         if (event.getBlock().getType() == Material.FARMLAND) event.setCancelled(true);
     }
 
+    /**
+     * Wet or dry stays as it was set (V252, /rngadmin farmland dry|wet).
+     * Without this, water nearby darkens dry farmland again and soil away
+     * from water slowly dries.
+     */
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onMoisture(org.bukkit.event.block.MoistureChangeEvent event) {
+        if (event.getBlock().getType() == Material.FARMLAND) event.setCancelled(true);
+    }
+
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onTrample(PlayerInteractEvent event) {
         Block block = event.getClickedBlock();

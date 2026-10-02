@@ -72,10 +72,54 @@ final class WorldAdmin extends AdminTools {
      * A farm plot on every farmland block around you (V167): tilled fields
      * on a map become the farm, planted or not. Only loaded chunks are read.
      */
+    /**
+     * /rngadmin farmland dry|wet [radius] (V252): every farmland block
+     * around you made dry or wet. FarmlandListener keeps it that way, so
+     * water nearby no longer darkens a field that was meant to look dry.
+     * Sixteen blocks up and down; only loaded chunks are read.
+     */
+    private boolean setMoisture(Player player, boolean wet, String radiusArg) {
+        int radius = 48;
+        if (radiusArg != null) {
+            try {
+                radius = Math.max(1, Math.min(128, Integer.parseInt(radiusArg)));
+            } catch (NumberFormatException ex) {
+                player.sendMessage(ChatColor.RED + "Radius must be a number.");
+                return true;
+            }
+        }
+        org.bukkit.World world = player.getWorld();
+        org.bukkit.Location at = player.getLocation();
+        int cx = at.getBlockX(), cy = at.getBlockY(), cz = at.getBlockZ();
+        int minY = Math.max(world.getMinHeight(), cy - 16);
+        int maxY = Math.min(world.getMaxHeight() - 1, cy + 16);
+        int changed = 0;
+        for (int x = cx - radius; x <= cx + radius; x++) {
+            for (int z = cz - radius; z <= cz + radius; z++) {
+                if (!world.isChunkLoaded(x >> 4, z >> 4)) continue;
+                for (int y = minY; y <= maxY; y++) {
+                    org.bukkit.block.Block block = world.getBlockAt(x, y, z);
+                    if (!(block.getBlockData() instanceof org.bukkit.block.data.type.Farmland soil)) continue;
+                    int want = wet ? soil.getMaximumMoisture() : 0;
+                    if (soil.getMoisture() == want) continue;
+                    soil.setMoisture(want);
+                    block.setBlockData(soil, false);
+                    changed++;
+                }
+            }
+        }
+        player.sendMessage(ChatColor.GREEN + "Made " + ChatColor.WHITE + changed + ChatColor.GREEN
+                + " farmland block(s) " + (wet ? "wet" : "dry") + " within " + radius + " blocks.");
+        return true;
+    }
+
     boolean doFarmland(CommandSender sender, String[] args) {
         if (!(sender instanceof Player player)) {
             sender.sendMessage(ChatColor.RED + "Run this in-game, standing in the middle of the fields.");
             return true;
+        }
+        if (args.length >= 2 && (args[1].equalsIgnoreCase("dry") || args[1].equalsIgnoreCase("wet"))) {
+            return setMoisture(player, args[1].equalsIgnoreCase("wet"), args.length >= 3 ? args[2] : null);
         }
         int radius = 64;
         if (args.length >= 2) {

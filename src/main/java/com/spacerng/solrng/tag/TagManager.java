@@ -96,6 +96,8 @@ public class TagManager {
         // Cached either way - %solrng_tag% reads from here, so the
         // placeholder keeps working even when TAB owns the nametag.
         prefixCache.put(player.getUniqueId(), prefix);
+        // The tab name carries the tag (V252), so it follows every change.
+        if (plugin.getRankManager() != null) plugin.getRankManager().refreshName(player);
 
         if (managesNametag()) {
             pushTeamToAllViewers(player, prefix);
