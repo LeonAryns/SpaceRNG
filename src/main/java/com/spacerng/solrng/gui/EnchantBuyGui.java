@@ -47,8 +47,29 @@ public class EnchantBuyGui {
         inv.setItem(EnchantBuyHolder.MAX_SLOT, maxButton(data, hoe, enchant));
         if (hoe.levelOf(data, enchant.id()) > 0) {
             inv.setItem(EnchantBuyHolder.TOGGLE_SLOT, toggle(data, enchant));
+            inv.setItem(EnchantBuyHolder.MESSAGE_SLOT, messageToggle(data, enchant));
         }
         return inv;
+    }
+
+    /** Whether this enchant's proc lines reach chat and the action bar (V271). */
+    private static ItemStack messageToggle(PlayerData data, HoeEnchantManager.Enchant enchant) {
+        boolean on = data.isEnchantMessageOn(enchant.id());
+        ItemStack item = new ItemStack(on ? Material.OAK_SIGN : Material.DARK_OAK_SIGN);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(Lore.title(on ? ChatColor.GREEN : ChatColor.RED, "Message Toggle"));
+        List<String> lore = new ArrayList<>();
+        lore.add(Lore.stat(on ? ChatColor.GREEN : ChatColor.RED, "Messages",
+                on ? ChatColor.GREEN + "Shown" : ChatColor.RED + "Hidden"));
+        lore.add("");
+        lore.add(Lore.line(ChatColor.GRAY, "The line in chat or over the hotbar"));
+        lore.add(Lore.line(ChatColor.GRAY, "when this enchant fires."));
+        lore.add("");
+        lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + (on ? "Click to hide" : "Click to show"));
+        meta.setLore(lore);
+        meta.setEnchantmentGlintOverride(on ? Boolean.TRUE : null);
+        item.setItemMeta(meta);
+        return item;
     }
 
     /** On or off, for an enchant that has levels (V266). The levels stay either way. */
@@ -56,8 +77,12 @@ public class EnchantBuyGui {
         boolean on = data.isEnchantOn(enchant.id());
         ItemStack item = new ItemStack(on ? Material.REDSTONE_TORCH : Material.LEVER);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(Lore.title(on ? ChatColor.GREEN : ChatColor.RED, on ? "Switched on" : "Switched off"));
+        // V271: named for what it is; "Switched on" alone did not say so.
+        meta.setDisplayName(Lore.title(on ? ChatColor.GREEN : ChatColor.RED, "Enchant Toggle"));
         List<String> lore = new ArrayList<>();
+        lore.add(Lore.stat(on ? ChatColor.GREEN : ChatColor.RED, ChatColor.stripColor(enchant.display()),
+                on ? ChatColor.GREEN + "On" : ChatColor.RED + "Off"));
+        lore.add("");
         lore.add(Lore.line(ChatColor.GRAY, on ? "It fires while you farm." : "It does nothing until you switch it on."));
         lore.add(Lore.line(ChatColor.GRAY, "Your levels stay either way."));
         lore.add("");

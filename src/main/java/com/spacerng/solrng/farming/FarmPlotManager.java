@@ -762,6 +762,16 @@ public class FarmPlotManager {
      * boss bar exists so nobody is quietly sitting on a number they can't
      * see.
      */
+    /** A proc's action bar line, unless its messages are switched off (V271). */
+    private void procBar(Player player, PlayerData data, String enchantId, String text) {
+        if (data.isEnchantMessageOn(enchantId)) sendActionBar(player, text);
+    }
+
+    /** A proc's chat line, unless its messages are switched off (V271). */
+    private void procChat(Player player, PlayerData data, String enchantId, String text) {
+        if (data.isEnchantMessageOn(enchantId)) player.sendMessage(text);
+    }
+
     private double momentumMultiplier(Player player, HoeEnchantManager hoe, PlayerData data, boolean chain) {
         // Switched off counts as no levels (V269); powerOf already does this
         // for every other enchant, Momentum reads its level directly.
@@ -868,7 +878,7 @@ public class FarmPlotManager {
             if (data.isEnchantSoundEnabled()) {
                 player.playSound(mid, org.bukkit.Sound.ENTITY_TNT_PRIMED, 0.8f, 1.0f);
             }
-            sendActionBar(player, ChatColor.RED + "" + ChatColor.BOLD + "TNT  "
+            procBar(player, data, "BLAST_HARVEST", ChatColor.RED + "" + ChatColor.BOLD + "TNT  "
                     + ChatColor.RESET + ChatColor.GRAY + "lit, one second");
             plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
                 if (!player.isOnline()) return;
@@ -897,7 +907,7 @@ public class FarmPlotManager {
                     player.playSound(mid, org.bukkit.Sound.ENTITY_GENERIC_EXPLODE, 0.7f, 1.2f);
                 }
                 if (swept > 0) {
-                    sendActionBar(player, ChatColor.RED + "" + ChatColor.BOLD + "Blast  "
+                    procBar(player, data, "BLAST_HARVEST", ChatColor.RED + "" + ChatColor.BOLD + "Blast  "
                             + ChatColor.RESET + ChatColor.GRAY + swept + " extra crops");
                 }
             }, 20L);
@@ -917,7 +927,7 @@ public class FarmPlotManager {
                 if (harvest(player, near, false)) struck++;
             }
             if (struck > 0) {
-                sendActionBar(player, ChatColor.YELLOW + "" + ChatColor.BOLD + "Lightning  "
+                procBar(player, data, "LIGHTNING", ChatColor.YELLOW + "" + ChatColor.BOLD + "Lightning  "
                         + ChatColor.RESET + ChatColor.GRAY + struck + " crops struck");
             }
         }
@@ -933,7 +943,7 @@ public class FarmPlotManager {
             // farmed, the boss, the pass and Farm Dust as well, which is
             // how players showed more crops farmed than anyone could break.
             player.getWorld().createExplosion(plot.clone().add(0.5, 1.0, 0.5), 3.0f, false, false);
-            player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Nuke  "
+            procChat(player, data, "NUKE", ChatColor.RED + "" + ChatColor.BOLD + "Nuke  "
                     + ChatColor.RESET + ChatColor.GRAY + String.format("%,d", nukeCrops)
                     + " crops vaporised for " + Currency.COINS.amount(paid) + ChatColor.GRAY + ".");
             playProc(player, data, 0.5f);
@@ -944,7 +954,7 @@ public class FarmPlotManager {
             long minute = data.coinsInLastMinute();
             if (minute > 0) {
                 data.addTokens(minute);
-                player.sendMessage(Currency.COINS.colour() + "" + ChatColor.BOLD + "Coin Factory  "
+                procChat(player, data, "COIN_FACTORY", Currency.COINS.colour() + "" + ChatColor.BOLD + "Coin Factory  "
                         + ChatColor.RESET + ChatColor.GRAY + "the last minute again: "
                         + Currency.COINS.amount(minute));
                 playProc(player, data, 1.5f);
@@ -959,7 +969,7 @@ public class FarmPlotManager {
             var found = plugin.getConsumableManager().get(rare ? keyFinderRareReward : keyFinderReward);
             if (found != null) {
                 plugin.getConsumableManager().give(player, found, 1);
-                player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "Key found  "
+                procChat(player, data, "KEY_FINDER", ChatColor.GOLD + "" + ChatColor.BOLD + "Key found  "
                         + ChatColor.RESET + ChatColor.GRAY + "something was buried under that one.");
                 playProc(player, data, 1.7f);
             }
@@ -974,7 +984,7 @@ public class FarmPlotManager {
             if (found != null) {
                 // Into /boosters, not the inventory (V264).
                 data.addStoredBooster(found.id(), 1);
-                player.sendMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "Potion found  "
+                procChat(player, data, "POTION_FINDER", ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "Potion found  "
                         + ChatColor.RESET + ChatColor.GRAY + found.display()
                         + ChatColor.DARK_GRAY + "  stored in " + ChatColor.LIGHT_PURPLE + "/boosters");
                 playProc(player, data, 1.4f);
@@ -988,7 +998,7 @@ public class FarmPlotManager {
             String[] names = {"Coins", "Gems", "enchant procs"};
             int pick = ThreadLocalRandom.current().nextInt(keys.length);
             data.applyBoost(keys[pick], gambaMultiplier, gambaSeconds * 1000L);
-            player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "Gamba  "
+            procChat(player, data, "GAMBA", ChatColor.GOLD + "" + ChatColor.BOLD + "Gamba  "
                     + ChatColor.RESET + ChatColor.GRAY + "it landed on "
                     + ChatColor.WHITE + names[pick] + ChatColor.GRAY + ", "
                     + ChatColor.GOLD + trimTimes(gambaMultiplier)
@@ -1003,7 +1013,7 @@ public class FarmPlotManager {
             // What a proc pays is config, since Credits are the store currency.
             long amount = Math.max(1L, plugin.getConfig().getLong("farming.procs.credit-finder-amount", 1L));
             data.addPoints(amount);
-            player.sendMessage(Currency.CREDITS.colour() + "" + ChatColor.BOLD + "Credit found  "
+            procChat(player, data, "CREDIT_FINDER", Currency.CREDITS.colour() + "" + ChatColor.BOLD + "Credit found  "
                     + ChatColor.RESET + ChatColor.GRAY + "worth "
                     + Currency.CREDITS.amount(amount) + ChatColor.GRAY + ", straight out of the soil.");
             playProc(player, data, 1.2f);
@@ -1012,7 +1022,7 @@ public class FarmPlotManager {
 
         double nova = hoe.powerOf(data, "NOVA_FINDER");
         if (nova > 0 && ThreadLocalRandom.current().nextDouble() < nova) {
-            player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "Nova spark  "
+            procChat(player, data, "NOVA_FINDER", ChatColor.AQUA + "" + ChatColor.BOLD + "Nova spark  "
                     + ChatColor.RESET + ChatColor.GRAY + "A free Nova Core forge attempt.");
             playProc(player, data, 0.9f);
             plugin.getNovaCoreManager().attempt(player, data, false);
@@ -1038,7 +1048,7 @@ public class FarmPlotManager {
             long gems = Math.max(1L, Math.round(base * prospectorShare));
             data.addShards(gems);
             EnchantFx.pulse(plugin, player, plot, true);
-            sendActionBar(player, ChatColor.AQUA + "" + ChatColor.BOLD + "Prospector  "
+            procBar(player, data, "PROSPECTOR", ChatColor.AQUA + "" + ChatColor.BOLD + "Prospector  "
                     + ChatColor.RESET + ChatColor.GRAY + "+" + gems + " Gems");
         }
 
@@ -1046,7 +1056,7 @@ public class FarmPlotManager {
         if (golden > 0 && ThreadLocalRandom.current().nextDouble() < golden) {
             data.applyBoost("TOKENS", goldenTouchMultiplier, goldenTouchSeconds * 1000L);
             EnchantFx.coinStorm(plugin, player, (int) (goldenTouchSeconds * 20L));
-            player.sendMessage(Currency.COINS.colour() + "" + ChatColor.BOLD + "Golden Touch  "
+            procChat(player, data, "GOLDEN_TOUCH", Currency.COINS.colour() + "" + ChatColor.BOLD + "Golden Touch  "
                     + ChatColor.RESET + ChatColor.GRAY + "Coins x" + trimTimes(goldenTouchMultiplier)
                     + " for " + goldenTouchSeconds + "s.");
         }
@@ -1055,7 +1065,7 @@ public class FarmPlotManager {
         if (rush > 0 && ThreadLocalRandom.current().nextDouble() < rush) {
             data.applyBoost("GEMS", gemRushMultiplier, gemRushSeconds * 1000L);
             EnchantFx.gemRush(plugin, player, (int) (gemRushSeconds * 20L));
-            player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "Gem Rush  "
+            procChat(player, data, "GEM_RUSH", ChatColor.AQUA + "" + ChatColor.BOLD + "Gem Rush  "
                     + ChatColor.RESET + ChatColor.GRAY + "Gems x" + trimTimes(gemRushMultiplier)
                     + " for " + gemRushSeconds + "s.");
         }
@@ -1066,7 +1076,7 @@ public class FarmPlotManager {
             data.addTokens(paid);
             data.trackCoins(paid);
             EnchantFx.pulse(plugin, player, plot, false);
-            sendActionBar(player, ChatColor.GOLD + "" + ChatColor.BOLD + "Echo x" + echoRepeats
+            procBar(player, data, "HARVEST_ECHO", ChatColor.GOLD + "" + ChatColor.BOLD + "Echo x" + echoRepeats
                     + "  " + ChatColor.RESET + ChatColor.GRAY + Currency.COINS.amount(paid));
         }
 
@@ -1077,7 +1087,7 @@ public class FarmPlotManager {
             if (gems > 0 && data.spendTokens(spent)) {
                 data.addShards(gems);
                 EnchantFx.transmute(plugin, player, plot);
-                player.sendMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "Alchemy  "
+                procChat(player, data, "ALCHEMY", ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "Alchemy  "
                         + ChatColor.RESET + ChatColor.GRAY + Currency.COINS.amount(spent)
                         + ChatColor.GRAY + " into " + ChatColor.AQUA + gems + " Gems"
                         + ChatColor.GRAY + ".");
@@ -1099,7 +1109,7 @@ public class FarmPlotManager {
             }
             if (gems > 0) {
                 data.addShards(gems);
-                sendActionBar(player, ChatColor.AQUA + "" + ChatColor.BOLD + "Cascade  "
+                procBar(player, data, "GEM_CASCADE", ChatColor.AQUA + "" + ChatColor.BOLD + "Cascade  "
                         + ChatColor.RESET + ChatColor.GRAY + "+" + gems + " Gems");
             }
         }
@@ -1110,7 +1120,7 @@ public class FarmPlotManager {
             data.addTokens(paid);
             data.trackCoins(paid);
             EnchantFx.coinStorm(plugin, player, 40);
-            player.sendMessage(Currency.COINS.colour() + "" + ChatColor.BOLD + "Coin Storm  "
+            procChat(player, data, "COIN_STORM", Currency.COINS.colour() + "" + ChatColor.BOLD + "Coin Storm  "
                     + ChatColor.RESET + ChatColor.GRAY + Currency.COINS.amount(paid)
                     + ChatColor.GRAY + " out of the sky.");
         }
@@ -1123,7 +1133,7 @@ public class FarmPlotManager {
                 long paid = base * hit;
                 data.addTokens(paid);
                 data.trackCoins(paid);
-                sendActionBar(player, ChatColor.RED + "" + ChatColor.BOLD + "Meteor  "
+                procBar(player, data, "METEOR", ChatColor.RED + "" + ChatColor.BOLD + "Meteor  "
                         + ChatColor.RESET + ChatColor.GRAY + hit + " crops, paid twice");
             }
         }
@@ -1137,7 +1147,7 @@ public class FarmPlotManager {
                 data.addTokens(paid);
                 data.trackCoins(paid);
                 data.addShards(pulled);
-                player.sendMessage(ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + "Black Hole  "
+                procChat(player, data, "BLACK_HOLE", ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + "Black Hole  "
                         + ChatColor.RESET + ChatColor.GRAY + pulled + " crops swallowed for "
                         + Currency.COINS.amount(paid) + ChatColor.GRAY + " and " + ChatColor.AQUA
                         + pulled + " Gems" + ChatColor.GRAY + ".");
@@ -1151,9 +1161,9 @@ public class FarmPlotManager {
             data.trackCoins(coins);
             data.addShards(supernovaGems);
             EnchantFx.supernova(plugin, player, plot);
-            player.sendMessage("");
-            player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "Supernova");
-            player.sendMessage(ChatColor.GRAY + "  " + Currency.COINS.amount(coins)
+            procChat(player, data, "SUPERNOVA", "");
+            procChat(player, data, "SUPERNOVA", ChatColor.GOLD + "" + ChatColor.BOLD + "Supernova");
+            procChat(player, data, "SUPERNOVA", ChatColor.GRAY + "  " + Currency.COINS.amount(coins)
                     + ChatColor.GRAY + " and " + ChatColor.AQUA + supernovaGems + " Gems"
                     + ChatColor.GRAY + " out of a single crop.");
             // Nova Finder gives you one free climb. Supernova is the same
@@ -1162,9 +1172,9 @@ public class FarmPlotManager {
             for (int i = 0; i < supernovaAttempts; i++) {
                 plugin.getNovaCoreManager().attempt(player, data, false);
             }
-            player.sendMessage(ChatColor.AQUA + "  " + supernovaAttempts
+            procChat(player, data, "SUPERNOVA", ChatColor.AQUA + "  " + supernovaAttempts
                     + " free Nova Core climbs on top.");
-            player.sendMessage("");
+            procChat(player, data, "SUPERNOVA", "");
         }
     }
 

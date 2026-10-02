@@ -1021,6 +1021,16 @@ public class RollListener implements Listener {
         // A Server First announces itself with its own banner a few seconds
         // later, so the plain "just found" line would be the same news twice.
         if (plugin.getFirstTenManager().wouldTake(player, result)) return;
+        // A player's first few drops of each rarity go to chat, then theirs
+        // stop (V271, Leon: after three it is noise), Epic and up alike. A
+        // shiny is always announced.
+        if (!shiny) {
+            PlayerData roller = plugin.getPlayerDataManager().get(player.getUniqueId());
+            int limit = plugin.getConfig().getInt("broadcast.announce-limit", 3);
+            Rarity rarity = result.getRarity();
+            if (limit >= 0 && roller.getAnnounced(rarity) >= limit) return;
+            roller.setAnnounced(rarity, roller.getAnnounced(rarity) + 1);
+        }
 
         Component banner = LegacyComponentSerializer.legacySection()
                 .deserialize(RollFormat.broadcastBanner(plugin, player.getName(), result, shiny))

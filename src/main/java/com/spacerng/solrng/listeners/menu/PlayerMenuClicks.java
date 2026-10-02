@@ -582,6 +582,17 @@ final class PlayerMenuClicks {
             return;
         }
 
+        if (slot == com.spacerng.solrng.gui.EnchantBuyHolder.MESSAGE_SLOT) {
+            var muted = plugin.getHoeEnchantManager().get(holder.getEnchantId());
+            if (muted == null || plugin.getHoeEnchantManager().levelOf(data, muted.id()) <= 0) return;
+            boolean shown = data.toggleEnchantMessage(muted.id());
+            player.sendMessage(muted.colour() + muted.display() + (shown
+                    ? ChatColor.GREEN + " messages are shown." : ChatColor.RED + " messages are hidden."));
+            player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.7f, shown ? 1.5f : 0.8f);
+            player.openInventory(com.spacerng.solrng.gui.EnchantBuyGui.build(plugin, player,
+                    muted.id(), holder.getTree(), holder.getPage()));
+            return;
+        }
         if (slot == com.spacerng.solrng.gui.EnchantBuyHolder.TOGGLE_SLOT) {
             var toggled = plugin.getHoeEnchantManager().get(holder.getEnchantId());
             if (toggled == null || plugin.getHoeEnchantManager().levelOf(data, toggled.id()) <= 0) return;

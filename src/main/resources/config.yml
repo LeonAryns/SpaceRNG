@@ -3678,6 +3678,8 @@ welcome:
 # jackpot-below: a reward rarer than this share is announced to the whole
 # server and gets the big finish.
 crates:
+  # A jackpot told to the whole server (V271: off, Leon's call).
+  announce-jackpots: false
   # The reel: how many items pass, how long the QUICKEST step waits and
   # how much is added to the slowest one, both in ticks.
   #
@@ -6223,6 +6225,10 @@ cosmetics:
 # Rolls of this rarity or higher get broadcast to the whole server.
 broadcast:
   min-rarity-to-broadcast: EPIC
+  # A player's first this-many drops of each rarity are announced, then
+  # theirs stop (V271), Epic, Legendary, Mythical and Divine alike. A
+  # shiny always is. -1 for no limit.
+  announce-limit: 3
 
 # Server First 10. The first players to roll a tracked rarity each take a
 # numbered spot, and the whole server is told: a banner in chat, a toast,

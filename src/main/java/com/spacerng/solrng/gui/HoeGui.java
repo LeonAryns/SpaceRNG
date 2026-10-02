@@ -209,8 +209,10 @@ public class HoeGui {
         if (unlocked && level > 0) {
             // V266: the state and how to flip it, right under what it does.
             lore.add("");
-            lore.add(on ? Lore.line(ChatColor.GREEN, "Switched on. Right-click to switch off.")
-                    : Lore.line(ChatColor.RED, "Switched off. Right-click to switch on."));
+            lore.add(Lore.stat(on ? ChatColor.GREEN : ChatColor.RED, "Enchant Toggle",
+                    (on ? ChatColor.GREEN + "On" : ChatColor.RED + "Off") + ChatColor.DARK_GRAY + "  right-click"));
+            lore.add(Lore.stat(ChatColor.GRAY, "Messages", data.isEnchantMessageOn(enchant.id())
+                    ? ChatColor.GREEN + "Shown" : ChatColor.RED + "Hidden"));
         }
         meta.setLore(lore);
         meta.setEnchantmentGlintOverride(unlocked && level > 0 && on ? Boolean.TRUE : null);

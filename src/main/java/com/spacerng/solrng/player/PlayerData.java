@@ -130,6 +130,11 @@ public class PlayerData {
     private long potionRolls = 0L;
     // Hoe enchants the player switched off (V266); they keep their levels.
     private final java.util.Set<String> disabledEnchants = new java.util.HashSet<>();
+    // How many of this player's drops of each rarity went to chat (V271);
+    // past the limit they stop being announced.
+    private final Map<Rarity, Integer> announced = new java.util.EnumMap<>(Rarity.class);
+    // Enchants whose proc messages the player switched off (V271).
+    private final java.util.Set<String> mutedEnchantMessages = new java.util.HashSet<>();
     // Potions from Potion Finder waiting in /boosters (V264), by consumable id.
     private final Map<String, Long> storedBoosters = new java.util.LinkedHashMap<>();
     // Multiplies Tokens earned from harvesting farm crops. 1.0 = base
@@ -891,6 +896,31 @@ public class PlayerData {
     public boolean toggleEnchant(String id) {
         if (!disabledEnchants.remove(id)) {
             disabledEnchants.add(id);
+            return false;
+        }
+        return true;
+    }
+
+    public int getAnnounced(Rarity rarity) {
+        return announced.getOrDefault(rarity, 0);
+    }
+
+    public void setAnnounced(Rarity rarity, int count) {
+        announced.put(rarity, count);
+    }
+
+    public java.util.Set<String> getMutedEnchantMessages() {
+        return mutedEnchantMessages;
+    }
+
+    public boolean isEnchantMessageOn(String id) {
+        return !mutedEnchantMessages.contains(id);
+    }
+
+    /** Flips an enchant's proc messages; returns whether they show now. */
+    public boolean toggleEnchantMessage(String id) {
+        if (!mutedEnchantMessages.remove(id)) {
+            mutedEnchantMessages.add(id);
             return false;
         }
         return true;

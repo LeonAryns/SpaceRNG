@@ -462,7 +462,8 @@ public class CrateManager {
             player.sendMessage(styledName(crate) + ChatColor.GRAY + "  You won " + ChatColor.RESET + label(reward)
                     + ChatColor.DARK_GRAY + "  (" + chanceText(crate.chanceOf(reward)) + ")");
         }
-        if (crate.isJackpot(reward)) {
+        // V271: off by default, Leon wants no crate lines in chat.
+        if (crate.isJackpot(reward) && plugin.getConfig().getBoolean("crates.announce-jackpots", false)) {
             String line = styledName(crate) + ChatColor.GRAY + "  " + ChatColor.WHITE + player.getName()
                     + ChatColor.GRAY + " won " + ChatColor.RESET + label(reward) + ChatColor.DARK_GRAY
                     + "  (" + chanceText(crate.chanceOf(reward)) + ")";

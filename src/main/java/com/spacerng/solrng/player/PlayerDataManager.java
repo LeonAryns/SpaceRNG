@@ -144,6 +144,10 @@ public class PlayerDataManager {
         data.setPotion(yml.getDouble("potion-luck", 0.0), yml.getDouble("potion-speed", 0.0),
                 yml.getLong("potion-rolls", 0L));
         data.getDisabledEnchants().addAll(yml.getStringList("disabled-enchants"));
+        data.getMutedEnchantMessages().addAll(yml.getStringList("muted-enchant-messages"));
+        for (Rarity rarity : Rarity.values()) {
+            data.setAnnounced(rarity, yml.getInt("announced." + rarity.name(), 0));
+        }
         org.bukkit.configuration.ConfigurationSection stored = yml.getConfigurationSection("stored-boosters");
         if (stored != null) {
             for (String id : stored.getKeys(false)) data.addStoredBooster(id, stored.getLong(id));
@@ -418,6 +422,11 @@ public class PlayerDataManager {
         yml.set("potion-speed", data.getPotionSpeed());
         yml.set("potion-rolls", data.getPotionRolls());
         yml.set("disabled-enchants", new java.util.ArrayList<>(data.getDisabledEnchants()));
+        yml.set("muted-enchant-messages", new java.util.ArrayList<>(data.getMutedEnchantMessages()));
+        for (Rarity rarity : Rarity.values()) {
+            int count = data.getAnnounced(rarity);
+            if (count > 0) yml.set("announced." + rarity.name(), count);
+        }
         yml.set("stored-boosters", null);
         data.getStoredBoosters().forEach((id, amount) -> yml.set("stored-boosters." + id, amount));
         yml.set("roll-charge-multiplier", data.getRollChargeMultiplier());
