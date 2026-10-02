@@ -1038,6 +1038,17 @@ prestige:
       unit: "%"
       max-level: 40
       cost-points: 2
+    # V291: every secret's chance in the Secret Realm, 1.1x per level,
+    # compounding (6.7x at 20). Luck does not touch secrets; this does.
+    secret_seeker:
+      display: "Secret Seeker"
+      icon: ENDER_EYE
+      slot: "5,4"
+      effect: SECRET_CHANCE
+      per-level: 0.1
+      unit: "x"
+      max-level: 20
+      cost-points: 2
     nova_touch:
       display: "Nova Touch"
       icon: HEART_OF_THE_SEA
@@ -6703,9 +6714,10 @@ pets:
 # The spot and the next opening live in realm.yml.
 secret-realm:
   enabled: true
-  min-prestige: 25
-  open-seconds: 600
-  min-gap-minutes: 90
+  # V291: no prestige needed, fifteen minutes open, two hours apart at least.
+  min-prestige: 0
+  open-seconds: 900
+  min-gap-minutes: 120
   max-gap-minutes: 240
   find-one-in: 40
   luck-per-secret: 0.02
@@ -6719,45 +6731,61 @@ secret-realm:
       icon: PRISMARINE_CRYSTALS
       weight: 30
       hint: "It passed over once and nobody heard it."
+      one-in: 1000
+      multiplier: 1.5
     veiled_nebula:
       display: "Veiled Nebula"
       colors: ["#F3E5F5", "#BA68C8"]
       icon: AMETHYST_CLUSTER
       weight: 24
       hint: "A cloud that hides what it is making."
+      one-in: 2500
+      multiplier: 2.0
     hollow_moon:
       display: "Hollow Moon"
       colors: ["#ECEFF1", "#90A4AE"]
       icon: SNOWBALL
       weight: 18
       hint: "Knock on it and something knocks back."
+      one-in: 5000
+      multiplier: 2.5
     starless_key:
       display: "Starless Key"
       colors: ["#FFF8E1", "#FFB300"]
       icon: TRIAL_KEY
       weight: 12
       hint: "It opens a sky with nothing in it."
+      one-in: 10000
+      multiplier: 3.0
     eclipse_shard:
       display: "Eclipse Shard"
       colors: ["#FFCCBC", "#BF360C"]
       icon: BLAZE_POWDER
       weight: 8
       hint: "A piece of the moment the light went out."
+      one-in: 25000
+      multiplier: 4.0
     lost_constellation:
       display: "Lost Constellation"
       colors: ["#E8EAF6", "#5C6BC0"]
       icon: ECHO_SHARD
       weight: 5
       hint: "Seven stars nobody has drawn a line through."
+      one-in: 50000
+      multiplier: 5.0
     whisper_of_the_void:
       display: "Whisper of the Void"
       colors: ["#D1C4E9", "#311B92"]
       icon: ENDER_EYE
       weight: 2.5
       hint: "It says your name, but not out loud."
+      one-in: 100000
+      multiplier: 7.0
     origin_spark:
       display: "Origin Spark"
       colors: ["#FFFDE7", "#FFD54F", "#FF6F00"]
       icon: NETHER_STAR
       weight: 0.5
       hint: "What was there before the first star."
+      one-in: 250000
+      multiplier: 10.0

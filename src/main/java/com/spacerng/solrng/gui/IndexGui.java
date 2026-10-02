@@ -131,7 +131,8 @@ public class IndexGui {
         for (RollableItem item : shown.subList(from, to)) {
             inv.setItem(slot, buildEntry(plugin, data, item, shinyView));
             slot++;
-        }
+        }
+
 
         MenuStyle.apply(inv, MenuStyle.Palette.CYAN);
 
@@ -235,7 +236,7 @@ public class IndexGui {
         lore.add(Lore.bar(total <= 0 ? 0.0 : (double) discovered / total));
         lore.add(ChatColor.AQUA + "▎ " + ChatColor.GRAY + "Shinies: " + ChatColor.AQUA
                 + data.getDiscoveredShiny().size() + ChatColor.DARK_GRAY + "/" + ChatColor.AQUA + total);
-        lore.add(ChatColor.GREEN + "▎ " + ChatColor.GRAY + "Tag Luck: " + ChatColor.GREEN
+        lore.add(ChatColor.GREEN + "▎ " + ChatColor.GRAY + "Secret Luck: " + ChatColor.GREEN
                 + String.format("%.2f", plugin.getRarityManager().tagMultiplierFor(data)) + "x");
         double completion = plugin.getPrestigeManager().indexCompletion(data);
         lore.add((completion > 1.0 ? ChatColor.GREEN : ChatColor.DARK_GRAY) + "▎ "
@@ -361,8 +362,6 @@ public class IndexGui {
             // The odds show even before it's found - that's the hook that
             // makes an undiscovered slot worth chasing.
             lore.add(Lore.statArrow(ChatColor.AQUA, "Chance", RollFormat.chance(item.getOdds())));
-            lore.add(Lore.statArrow(ChatColor.AQUA, "Tag Luck",
-                    String.format("%.2f", item.getLuckMultiplier()) + "x"));
             lore.add(foundBy(plugin, item));
             lore.add("");
             lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Not yet discovered");

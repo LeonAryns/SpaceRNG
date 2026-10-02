@@ -984,8 +984,7 @@ public class RollListener implements Listener {
                 ? ChatColor.AQUA + "" + ChatColor.BOLD + "New shiny  "
                 : ChatColor.GREEN + "" + ChatColor.BOLD + "New  ")
                 + ChatColor.RESET + RollFormat.displayName(plugin, result, shiny)
-                + ChatColor.GRAY + " added to your index "
-                + ChatColor.DARK_AQUA + "(" + String.format("%.2f", result.getLuckMultiplier()) + "x Luck)";
+                + ChatColor.GRAY + " added to your index";
         player.sendMessage(notice);
         if (!auto) sendActionBar(player, notice);
         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.8f, newShiny ? 1.8f : 1.3f);

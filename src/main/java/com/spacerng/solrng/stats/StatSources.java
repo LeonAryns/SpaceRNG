@@ -130,8 +130,6 @@ public final class StatSources {
                 Op.ADD));
         parts.add(new Part("Permanent", "Fortune rewards you've drunk",
                 data.getFlatLuck(), Op.ADD));
-        parts.add(new Part("Secret Index", "Secrets from the Secret Realm, /realm",
-                plugin.getRealmManager() == null ? 0.0 : plugin.getRealmManager().luckFor(data), Op.ADD));
         parts.add(new Part("Potions", "Draughts from /potion",
                 data.getPotionLuck(), Op.ADD));
         parts.add(new Part("Linked account", "Link with /link",
@@ -139,7 +137,7 @@ public final class StatSources {
                 Op.ADD));
 
         // Tag Mastery scales how far the tag's multiplier sits above 1.
-        parts.add(new Part("Equipped tag", "Equip a rarer drop in /index",
+        parts.add(new Part("Secret", "Pick a found secret in /secretindex",
                 1.0 + (plugin.getRarityManager().tagMultiplierFor(data) - 1.0)
                         * skills.multiplierOf(data, SkillNode.Effect.TAG_MASTERY), Op.MULTIPLY));
         parts.add(new Part("Index completion", "Finish whole rarities in /index",

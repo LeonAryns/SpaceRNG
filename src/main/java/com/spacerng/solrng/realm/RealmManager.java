@@ -79,12 +79,28 @@ public class RealmManager implements Listener {
     private KeyedBossBar bar;
     private BukkitTask task;
 
+    /**
+     * V291: a secret has its own odds, 1 in oneIn per roll inside, which
+     * Luck does not touch, and the Luck multiplier it gives when picked in
+     * /secretindex. That pick replaced the equipped drop's Tag Luck.
+     */
     public record Secret(String id, String display, List<String> colors, Material icon,
-                         double weight, String hint) {
+                         double weight, String hint, long oneIn, double multiplier) {
         public String[] stops() {
             return colors.toArray(new String[0]);
         }
     }
+
+    /** One-in and multiplier per secret, for a live config without them (V291). */
+    private static final Map<String, double[]> DEFAULTS = Map.of(
+            "quiet_comet", new double[]{1_000, 1.5},
+            "veiled_nebula", new double[]{2_500, 2.0},
+            "hollow_moon", new double[]{5_000, 2.5},
+            "starless_key", new double[]{10_000, 3.0},
+            "eclipse_shard", new double[]{25_000, 4.0},
+            "lost_constellation", new double[]{50_000, 5.0},
+            "whisper_of_the_void", new double[]{100_000, 7.0},
+            "origin_spark", new double[]{250_000, 10.0});
 
     public RealmManager(SolRNGPlugin plugin) {
         this.plugin = plugin;
@@ -94,9 +110,10 @@ public class RealmManager implements Listener {
     public void load() {
         var config = plugin.getConfig();
         enabled = config.getBoolean("secret-realm.enabled", true);
-        minPrestige = Math.max(0, config.getInt("secret-realm.min-prestige", 25));
-        openMillis = Math.max(30L, config.getLong("secret-realm.open-seconds", 600L)) * 1000L;
-        minGapMillis = Math.max(1L, config.getLong("secret-realm.min-gap-minutes", 90L)) * 60_000L;
+        minPrestige = Math.max(0, config.getInt("secret-realm.min-prestige", 0));
+        openMillis = Math.max(30L, config.getLong("secret-realm.open-seconds", 900L)) * 1000L;
+        // Never less than two hours apart (V291, Leon's call).
+        minGapMillis = Math.max(120L, config.getLong("secret-realm.min-gap-minutes", 120L)) * 60_000L;
         maxGapMillis = Math.max(minGapMillis, config.getLong("secret-realm.max-gap-minutes", 240L) * 60_000L);
         findOneIn = Math.max(1, config.getInt("secret-realm.find-one-in", 40));
         luckPerSecret = Math.max(0.0, config.getDouble("secret-realm.luck-per-secret", 0.02));
@@ -110,10 +127,13 @@ public class RealmManager implements Listener {
                 if (s == null) continue;
                 Material icon = Material.matchMaterial(s.getString("icon", "AMETHYST_SHARD"));
                 List<String> colors = s.getStringList("colors");
+                double[] fallback = DEFAULTS.getOrDefault(id, new double[]{10_000, 2.0});
                 secrets.put(id, new Secret(id, s.getString("display", id),
                         colors.isEmpty() ? List.of("#B388FF", "#40C4FF") : colors,
                         icon == null ? Material.AMETHYST_SHARD : icon,
-                        Math.max(0.0, s.getDouble("weight", 1.0)), s.getString("hint", "")));
+                        Math.max(0.0, s.getDouble("weight", 1.0)), s.getString("hint", ""),
+                        Math.max(1L, s.getLong("one-in", (long) fallback[0])),
+                        Math.max(1.0, s.getDouble("multiplier", fallback[1]))));
             }
         }
 
@@ -326,11 +346,24 @@ public class RealmManager implements Listener {
     // Secrets
     // ---------------------------------------------------------------
 
-    /** Called for every finished roll. Almost always does nothing. */
+    /**
+     * Called for every finished roll. Each secret is its own 1 in N, rarest
+     * first, and the first that hits is found (V291). Luck plays no part;
+     * the Secret Seeker prestige upgrade multiplies every chance.
+     */
     public void onRoll(Player player, PlayerData data) {
         if (secrets.isEmpty() || !inside(player)) return;
-        if (ThreadLocalRandom.current().nextInt(findOneIn) != 0) return;
-        Secret found = pick();
+        double boost = plugin.getPrestigeManager().upgradeMultiplier(data,
+                com.spacerng.solrng.player.PrestigeUpgrade.Effect.SECRET_CHANCE);
+        Secret found = null;
+        List<Secret> rarestFirst = new ArrayList<>(secrets.values());
+        rarestFirst.sort((a, b) -> Long.compare(b.oneIn(), a.oneIn()));
+        for (Secret secret : rarestFirst) {
+            if (ThreadLocalRandom.current().nextDouble() < boost / secret.oneIn()) {
+                found = secret;
+                break;
+            }
+        }
         if (found == null) return;
         String name = Lore.gradient(found.display(), true, found.stops());
         if (data.getSecretsFound().add(found.id())) {
@@ -339,8 +372,10 @@ public class RealmManager implements Listener {
                         + player.getName() + " found " + ChatColor.RESET + name
                         + ChatColor.GRAY + " in the Secret Realm.");
             }
-            player.sendTitle(name, ChatColor.GRAY + "a new secret, " + ChatColor.GREEN + "+"
-                    + trim(luckPerSecret * 100.0) + "% Luck", 5, 50, 15);
+            player.sendTitle(name, ChatColor.GRAY + "a new secret, " + ChatColor.GREEN
+                    + trim(found.multiplier()) + "x Luck" + ChatColor.GRAY + " in /secretindex", 5, 50, 15);
+            // The first one found is picked straight away.
+            if (data.getSelectedSecret() == null) data.setSelectedSecret(found.id());
             player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.8f, 1.2f);
         } else {
             player.sendMessage(ChatColor.DARK_GRAY + "You found " + ChatColor.RESET + name
@@ -369,11 +404,24 @@ public class RealmManager implements Listener {
         return total <= 0.0 ? 0.0 : secret.weight() / total;
     }
 
-    /** Luck from the Secret Index, read by StatSources. */
+    /** Flat Luck from secrets: none since V291, the picked secret multiplies instead. */
     public double luckFor(PlayerData data) {
-        int count = 0;
-        for (String id : data.getSecretsFound()) if (secrets.containsKey(id)) count++;
-        return count * luckPerSecret;
+        return 0.0;
+    }
+
+    /** The Luck multiplier of the secret picked in /secretindex, 1 when none (V291). */
+    public double multiplierFor(PlayerData data) {
+        String id = data.getSelectedSecret();
+        if (id == null || !data.getSecretsFound().contains(id)) return 1.0;
+        Secret secret = secrets.get(id);
+        return secret == null ? 1.0 : secret.multiplier();
+    }
+
+    /** The chance per roll inside of this secret for this player, with Secret Seeker. */
+    public double chanceFor(PlayerData data, Secret secret) {
+        double boost = plugin.getPrestigeManager().upgradeMultiplier(data,
+                com.spacerng.solrng.player.PrestigeUpgrade.Effect.SECRET_CHANCE);
+        return Math.min(1.0, boost / secret.oneIn());
     }
 
     // ---------------------------------------------------------------

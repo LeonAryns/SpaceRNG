@@ -90,6 +90,8 @@ public final class ConfigMigrator {
             "world-time.clear-weather",
             // V241: the player count under the bot's name.
             "discord.bot.status",
+            // V291: the Secret Seeker prestige upgrade.
+            "prestige.upgrades.secret_seeker",
             // V265: the Speed enchant on the hoe.
             "farming.enchants.WALK_SPEED",
             // V235: the Owner and Member ranks, and Owner's aura.
@@ -176,6 +178,10 @@ public final class ConfigMigrator {
     }
 
     private static final List<Patch> PATCHES = List.of(
+            // V291: the Secret Realm for everyone, fifteen minutes, two hours apart.
+            new Patch("realm-no-prestige", "secret-realm.min-prestige", 25, 0),
+            new Patch("realm-fifteen-minutes", "secret-realm.open-seconds", 600, 900),
+            new Patch("realm-two-hours", "secret-realm.min-gap-minutes", 90, 120),
             // V288: Owner's badge is the whole word.
             new Patch("owner-badge-word", "ranks.tiers.owner.letter", "O", "Owner"),
             // V285: Luck lifts the Nova forge a tenth as much.

@@ -227,15 +227,14 @@ public class RarityManager {
      * or 1.0 with nothing equipped. Grinding a deeper index is what gives
      * you a rarer drop to equip, and equipping it is what cashes it in.
      */
+    /**
+     * The index tag's Luck multiplier. Since V291 it is the secret picked in
+     * /secretindex, not the equipped drop: a tag is cosmetic now, and only
+     * secrets from the Secret Realm multiply Luck. Not gated on any skill.
+     */
     public double tagMultiplierFor(com.spacerng.solrng.player.PlayerData data) {
-        // Gated behind the Tag Luck skill - until that's bought the
-        // equipped tag is cosmetic and the multiplier reads a flat 1.00x.
-        if (!data.hasUnlocked("index_luck")) return 1.0;
-
-        String equipped = data.getEquippedTagItemKey();
-        if (equipped == null) return 1.0;
-        RollableItem item = byName.get(equipped);
-        return item == null ? 1.0 : item.getLuckMultiplier();
+        var plugin = org.bukkit.plugin.java.JavaPlugin.getPlugin(com.spacerng.solrng.SolRNGPlugin.class);
+        return plugin.getRealmManager() == null ? 1.0 : plugin.getRealmManager().multiplierFor(data);
     }
 
     /** How many rollable items a rarity has, for completion counting. */

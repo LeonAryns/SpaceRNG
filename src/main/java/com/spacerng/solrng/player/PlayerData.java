@@ -924,6 +924,18 @@ public class PlayerData {
         return true;
     }
 
+    // The secret picked in /secretindex, whose multiplier is the Luck the
+    // equipped tag used to give (V291).
+    private String selectedSecret;
+
+    public String getSelectedSecret() {
+        return selectedSecret;
+    }
+
+    public void setSelectedSecret(String selectedSecret) {
+        this.selectedSecret = selectedSecret;
+    }
+
     // Crate keys kept in /keys instead of the inventory (V282), by key id,
     // and whether new keys go there on their own.
     private final Map<String, Long> storedKeys = new LinkedHashMap<>();

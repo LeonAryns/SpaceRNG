@@ -55,6 +55,30 @@ final class PlayerMenuClicks {
         this.plugin = plugin;
     }
 
+    /** /secretindex (V291): a click on a found secret picks it as your Luck multiplier. */
+    void handleSecretIndexClick(InventoryClickEvent event) {
+        event.setCancelled(true);
+        if (!(event.getClickedInventory() != null
+                && event.getClickedInventory().getHolder() instanceof com.spacerng.solrng.gui.SecretIndexHolder holder)) return;
+        String id = holder.slots().get(event.getRawSlot());
+        if (id == null) return;
+        Player player = (Player) event.getWhoClicked();
+        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+        if (!data.getSecretsFound().contains(id)) {
+            player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.6f, 1.0f);
+            return;
+        }
+        data.setSelectedSecret(id);
+        var secret = plugin.getRealmManager().secrets().get(id);
+        player.sendMessage(ChatColor.LIGHT_PURPLE + "Picked " + ChatColor.RESET
+                + (secret == null ? id : com.spacerng.solrng.gui.Lore.gradient(secret.display(), true, secret.stops()))
+                + ChatColor.GRAY + ", " + ChatColor.GREEN + plugin.getRealmManager().multiplierFor(data) + "x Luck"
+                + ChatColor.GRAY + ".");
+        player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_AMETHYST_BLOCK_CHIME, 0.8f, 1.4f);
+        plugin.getScoreboardManager().update(player);
+        player.openInventory(com.spacerng.solrng.gui.SecretIndexGui.build(plugin, player));
+    }
+
     /**
      * /keys (V282): click a key to take one out as an item, shift-click for
      * a stack; the switch turns auto storing on or off; the chest puts

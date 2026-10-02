@@ -164,6 +164,7 @@ public class PlayerDataManager {
         }
         data.setShiniesAnnounced(yml.getInt("announced.SHINY", 0));
         data.setAutoStoreKeys(yml.getBoolean("auto-store-keys", true));
+        data.setSelectedSecret(yml.getString("selected-secret", null));
         org.bukkit.configuration.ConfigurationSection keys = yml.getConfigurationSection("stored-keys");
         if (keys != null) {
             for (String id : keys.getKeys(false)) data.addStoredKeys(id, keys.getLong(id));
@@ -459,6 +460,7 @@ public class PlayerDataManager {
         }
         if (data.getShiniesAnnounced() > 0) yml.set("announced.SHINY", data.getShiniesAnnounced());
         yml.set("auto-store-keys", data.isAutoStoreKeys());
+        yml.set("selected-secret", data.getSelectedSecret());
         yml.set("stored-keys", null);
         data.getStoredKeys().forEach((id, amount) -> yml.set("stored-keys." + id, amount));
         yml.set("stored-boosters", null);

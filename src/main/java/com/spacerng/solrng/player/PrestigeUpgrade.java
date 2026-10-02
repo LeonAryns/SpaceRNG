@@ -14,7 +14,8 @@ public class PrestigeUpgrade {
         TOKEN_BONUS,    // x(1+value) farm Coins per level, compounding
         MONEY_BONUS,    // x(1+value) roll Money per level, compounding
         SHARD_BONUS,    // +value chance of a bonus Shard per farm harvest
-        NOVA_ODDS       // +value to the Nova Core success roll per level
+        NOVA_ODDS,      // +value to the Nova Core success roll per level
+        SECRET_CHANCE   // x(1+value) every secret's chance in the Secret Realm per level (V291)
     }
 
     private final String id;
@@ -93,7 +94,8 @@ public class PrestigeUpgrade {
     public boolean isMultiplicative() {
         return effect == Effect.LUCK_BONUS
                 || effect == Effect.TOKEN_BONUS
-                || effect == Effect.MONEY_BONUS;
+                || effect == Effect.MONEY_BONUS
+                || effect == Effect.SECRET_CHANCE;
     }
 
     /** The compounding total at a given level, as a multiplier. */

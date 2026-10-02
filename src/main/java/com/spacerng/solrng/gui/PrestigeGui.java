@@ -321,6 +321,7 @@ public class PrestigeGui {
             case MONEY_BONUS -> "Multiplies the Money your rolls pay.";
             case SHARD_BONUS -> "A chance at Gems on every harvest.";
             case NOVA_ODDS -> "Better odds on every Nova Core forge.";
+            case SECRET_CHANCE -> "Better odds on every Secret Realm secret.";
         };
     }
 
@@ -332,6 +333,7 @@ public class PrestigeGui {
             case MONEY_BONUS -> "Money";
             case SHARD_BONUS -> "Gem chance";
             case NOVA_ODDS -> "Nova Core odds";
+            case SECRET_CHANCE -> "Secret odds";
         };
     }
 

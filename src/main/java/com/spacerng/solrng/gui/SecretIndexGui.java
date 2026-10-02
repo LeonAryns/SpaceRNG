@@ -21,7 +21,11 @@ import java.util.List;
  * Laid out like the Pet Index: a rail on top with the realm's own card in
  * the middle and your head top right, the secrets from the third row. A
  * secret not found yet is a stone button with a hint, never its name, so
- * the index keeps something to find. Nothing here is clickable.
+ * the index keeps something to find.
+ *
+ * V291: every secret shows its own odds and the Luck multiplier it gives,
+ * and a click on a found one picks it. The picked secret is the index
+ * tag's Luck now; the equipped drop no longer gives any.
  */
 public class SecretIndexGui {
 
@@ -49,7 +53,8 @@ public class SecretIndexGui {
         for (RealmManager.Secret secret : realm.secrets().values()) {
             if (slot % 9 == 8) slot += 2;
             if (slot >= SIZE) break;
-            inv.setItem(slot++, secretIcon(realm, secret, data.getSecretsFound().contains(secret.id())));
+            holder.slots().put(slot, secret.id());
+            inv.setItem(slot++, secretIcon(realm, data, secret, data.getSecretsFound().contains(secret.id())));
         }
         MenuStyle.apply(inv, MenuStyle.Palette.PURPLE);
         return inv;
@@ -61,11 +66,11 @@ public class SecretIndexGui {
         meta.setDisplayName(Lore.gradient("Secret Realm", true, "#B388FF", "#40C4FF"));
         List<String> lore = new ArrayList<>();
         lore.add(Lore.line(ChatColor.GRAY, "Opens on its own at random times"));
-        lore.add(Lore.line(ChatColor.GRAY, "for a few minutes. Roll inside it"));
+        lore.add(Lore.line(ChatColor.GRAY, "for fifteen minutes. Roll inside it"));
         lore.add(Lore.line(ChatColor.GRAY, "for a chance at a secret."));
         lore.add("");
-        lore.add(Lore.stat(ChatColor.AQUA, "A secret", "1 in " + realm.findOneIn() + " rolls inside"));
-        lore.add(Lore.stat(ChatColor.GREEN, "Each one found", "+" + trim(realm.luckPerSecret() * 100.0) + "% Luck"));
+        lore.add(Lore.line(ChatColor.GRAY, "Luck does not change the odds."));
+        lore.add(Lore.line(ChatColor.GRAY, "Secret Seeker in /prestige does."));
         lore.add("");
         if (realm.isOpen()) {
             long left = Math.max(0L, realm.openUntil() - System.currentTimeMillis());
@@ -88,32 +93,41 @@ public class SecretIndexGui {
         meta.setDisplayName(Lore.title(ChatColor.LIGHT_PURPLE, "Your secrets"));
         int found = 0;
         for (String id : data.getSecretsFound()) if (realm.secrets().containsKey(id)) found++;
+        var picked = data.getSelectedSecret() == null ? null : realm.secrets().get(data.getSelectedSecret());
         meta.setLore(List.of(
                 Lore.stat(ChatColor.AQUA, "Found", found + " / " + realm.secrets().size()),
-                Lore.stat(ChatColor.GREEN, "Luck from them", "+" + trim(realm.luckFor(data) * 100.0) + "%"),
+                Lore.stat(ChatColor.GREEN, "Picked", picked == null || !data.getSecretsFound().contains(picked.id())
+                        ? "none" : ChatColor.stripColor(picked.display())),
+                Lore.stat(ChatColor.GREEN, "Luck", trim(realm.multiplierFor(data)) + "x"),
                 "",
-                Lore.footnote("It is in /stats with your other Luck.")));
+                Lore.footnote("Click a found secret to pick it.")));
         item.setItemMeta(meta);
         return item;
     }
 
-    private static ItemStack secretIcon(RealmManager realm, RealmManager.Secret secret, boolean found) {
+    private static ItemStack secretIcon(RealmManager realm, PlayerData data, RealmManager.Secret secret,
+                                        boolean found) {
         ItemStack item = new ItemStack(found ? secret.icon() : Material.STONE_BUTTON);
         ItemMeta meta = item.getItemMeta();
         List<String> lore = new ArrayList<>();
+        boolean picked = found && secret.id().equals(data.getSelectedSecret());
+        long oneIn = Math.max(1L, Math.round(1.0 / Math.max(1e-12, realm.chanceFor(data, secret))));
         if (found) {
             meta.setDisplayName(Lore.gradient(secret.display(), true, secret.stops()));
             if (!secret.hint().isBlank()) {
                 lore.add(Lore.line(ChatColor.GRAY, secret.hint()));
                 lore.add("");
             }
-            lore.add(Lore.stat(ChatColor.AQUA, "Share of finds", percent(realm.shareOf(secret))));
+            lore.add(Lore.stat(ChatColor.GREEN, "Luck", trim(secret.multiplier()) + "x"));
+            lore.add(Lore.stat(ChatColor.AQUA, "Chance", "1 in " + String.format("%,d", oneIn) + " rolls inside"));
             lore.add("");
-            lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "Found");
-            meta.setEnchantmentGlintOverride(Boolean.TRUE);
+            lore.add(picked ? ChatColor.GREEN + "" + ChatColor.BOLD + "Picked"
+                    : ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to pick");
+            if (picked) meta.setEnchantmentGlintOverride(Boolean.TRUE);
         } else {
             meta.setDisplayName(ChatColor.DARK_GRAY + "???");
-            lore.add(Lore.stat(ChatColor.AQUA, "Share of finds", percent(realm.shareOf(secret))));
+            lore.add(Lore.stat(ChatColor.GREEN, "Luck", trim(secret.multiplier()) + "x"));
+            lore.add(Lore.stat(ChatColor.AQUA, "Chance", "1 in " + String.format("%,d", oneIn) + " rolls inside"));
             lore.add("");
             lore.add(ChatColor.DARK_GRAY + "" + ChatColor.BOLD + "Not found yet");
             lore.add(Lore.line(ChatColor.GRAY, "Only found in the Secret Realm"));

@@ -2,8 +2,14 @@ package com.spacerng.solrng.gui;
 
 import org.bukkit.inventory.Inventory;
 
-/** Marks /secretindex. Read only, so it needs no click route of its own. */
+/** Marks /secretindex; since V291 a click on a found secret picks it. */
 public class SecretIndexHolder implements MenuHolder {
+
+    private final java.util.Map<Integer, String> slots = new java.util.HashMap<>();
+
+    public java.util.Map<Integer, String> slots() {
+        return slots;
+    }
 
     private Inventory inventory;
 
