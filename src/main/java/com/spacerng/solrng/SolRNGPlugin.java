@@ -286,6 +286,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         startAutoRollTask();
         startScoreboardRefreshTask();
         startArmorRefreshTask();
+        startLevelHintTask();
         registerPlaceholderExpansion();
         topHeadManager.start();
         holoManager.start();
@@ -477,6 +478,23 @@ public final class SolRNGPlugin extends JavaPlugin {
      * comes out right for free since the roll itself takes exactly as
      * long as the player's Speed says it should.
      */
+    /**
+     * "Level up available (/prestige)" just above the hotbar while a level
+     * is waiting to be taken (V257). Every three seconds, so it stays up
+     * without fighting anything else that uses the action bar.
+     */
+    private void startLevelHintTask() {
+        getServer().getScheduler().runTaskTimer(this, () -> {
+            for (Player player : getServer().getOnlinePlayers()) {
+                PlayerData data = playerDataManager.get(player.getUniqueId());
+                if (!prestigeManager.canLevelUp(data)) continue;
+                player.sendActionBar(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
+                        .legacySection().deserialize(org.bukkit.ChatColor.GREEN + "" + org.bukkit.ChatColor.BOLD
+                                + "Level up available " + org.bukkit.ChatColor.GRAY + "(/prestige)"));
+            }
+        }, 60L, 60L);
+    }
+
     private void startAutoRollTask() {
         final long periodTicks = 5L;
         getServer().getScheduler().runTaskTimer(this, () -> {

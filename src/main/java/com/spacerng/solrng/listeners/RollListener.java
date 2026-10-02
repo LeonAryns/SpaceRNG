@@ -164,22 +164,6 @@ public class RollListener implements Listener {
         return pool.get(random.nextInt(pool.size()));
     }
 
-    private final Map<java.util.UUID, Long> vaultWarned = new java.util.HashMap<>();
-
-    /** Says the vault is full, at most once a minute. */
-    private void warnVaultFull(Player player, Rarity rarity) {
-        if (!plugin.getPlayerDataManager().get(player.getUniqueId()).isVaultFullMessage()) return;
-        long now = System.currentTimeMillis();
-        Long last = vaultWarned.get(player.getUniqueId());
-        if (last != null && now - last < 60_000L) return;
-        vaultWarned.put(player.getUniqueId(), now);
-
-        player.sendMessage(ChatColor.RED + "Your "
-                + plugin.getRarityManager().style(rarity, rarity.displayName())
-                + ChatColor.RED + " vault is full. "
-                + ChatColor.GRAY + "Spend some, or buy Vault Space in /skilltree.");
-    }
-
     public double shinyChance(PlayerData data) {
         return com.spacerng.solrng.stats.StatSources.shiny(plugin, data).total();
     }
@@ -861,11 +845,8 @@ public class RollListener implements Listener {
                 data.addBankedShiny(rarity, 1L);
             } else {
                 long banked = data.addBankedDrops(rarity, 1L, plugin.convertCap(data));
-                if (banked == 0) {
-                    warnVaultFull(player, rarity);
-                } else {
-                    data.addConverted(rarity, banked);
-                }
+                // A full vault says nothing (V257, Leon scrapped the message).
+                if (banked > 0) data.addConverted(rarity, banked);
             }
             if (!silent && !auto) {
                 // Auto-convert is a bulk mode: the full name and the odds

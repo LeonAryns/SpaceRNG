@@ -98,8 +98,6 @@ public class PlayerData {
     private final Set<String> purchasedArmorTiers = new HashSet<>();
     // /options toggles.
     private boolean rollSoundEnabled = true;
-    // The chat line when a vault is full (V253, /options).
-    private boolean vaultFullMessage = true;
     private boolean rollAnimationEnabled = true;
     // Farming's own two, toggled from the hoe menu rather than /options -
     // they belong next to the thing that makes the noise.
@@ -794,14 +792,6 @@ public class PlayerData {
 
     public void setAutoConvertShiny(boolean autoConvertShiny) {
         this.autoConvertShiny = autoConvertShiny;
-    }
-
-    public boolean isVaultFullMessage() {
-        return vaultFullMessage;
-    }
-
-    public void setVaultFullMessage(boolean vaultFullMessage) {
-        this.vaultFullMessage = vaultFullMessage;
     }
 
     public boolean isRollSoundEnabled() {

@@ -460,6 +460,12 @@ public final class ConfigMigrator {
 
     private static final List<EntryPatch> ENTRY_PATCHES = List.of(
             // V114 moved Index Luck, Armor and Farming earlier in the skill tree.
+            // V257: say where levelling up happens.
+            new EntryPatch("guide-level-display-prestige", "guide.quests", "reach_level", "display",
+                    "Reach level 5", "Reach level 5 in /prestige"),
+            new EntryPatch("guide-level-hint-prestige", "guide.quests", "reach_level", "hint",
+                    "Rolling levels you up. Spend levels in /prestige.",
+                    "Rolling fills your level bar. Level up in /prestige."),
             new EntryPatch("guide-hint-index-luck", "guide.quests", "index_luck", "hint",
                     "In /skilltree, right of Luck. It's what lets you equip a tag.",
                     "In /skilltree, right above Luck I. It's what lets you equip a tag."),

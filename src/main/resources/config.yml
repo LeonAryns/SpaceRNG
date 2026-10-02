@@ -3550,8 +3550,8 @@ guide:
       goal: MILESTONES_CLAIMED
       amount: 1
     - id: reach_level
-      display: "Reach level 5"
-      hint: "Rolling levels you up. Spend levels in /prestige."
+      display: "Reach level 5 in /prestige"
+      hint: "Rolling fills your level bar. Level up in /prestige."
       goal: LEVEL
       amount: 5
     - id: first_prestige
