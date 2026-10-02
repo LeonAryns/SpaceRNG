@@ -904,6 +904,24 @@ final class WorldAdmin extends AdminTools {
      * format does not match the server's exact version is disabled on
      * sight, and that number moves with every Minecraft release.
      */
+    boolean doProtect(CommandSender sender, String[] args) {
+        String action = args.length >= 2 ? args[1].toLowerCase(Locale.ROOT) : "";
+        if (!action.equals("on") && !action.equals("off")) {
+            boolean on = plugin.getConfig().getBoolean("protection.block-break", true);
+            sender.sendMessage(ChatColor.GRAY + "Block protection is " + (on ? ChatColor.GREEN + "on" : ChatColor.RED + "off")
+                    + ChatColor.GRAY + ". " + ChatColor.YELLOW + "/rngadmin protect <on|off>");
+            sender.sendMessage(ChatColor.DARK_GRAY + "On: players break farm blocks only. Admins in creative still build.");
+            return true;
+        }
+        boolean on = action.equals("on");
+        plugin.getConfig().set("protection.block-break", on);
+        plugin.saveConfig();
+        sender.sendMessage(on
+                ? ChatColor.GREEN + "Protection on. " + ChatColor.GRAY + "Players can only break farm blocks."
+                : ChatColor.RED + "Protection off. " + ChatColor.GRAY + "Everyone can break blocks again.");
+        return true;
+    }
+
     boolean doAdvancements(CommandSender sender, String[] args) {
         String action = args.length >= 2 ? args[1].toLowerCase(Locale.ROOT) : "";
         if (!action.equals("off") && !action.equals("on")) {

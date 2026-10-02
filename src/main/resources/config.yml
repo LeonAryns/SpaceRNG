@@ -337,7 +337,9 @@ starforge:
 #   %solrng_level%          the Lv/prestige badge
 #   %solrng_level_number%   raw level
 tag:
-  manage-nametag: true
+  # V251: false. The tag floats over the head on its own; the prefix put
+  # it a second time in front of the name on the same nameplate.
+  manage-nametag: false
   # The longest a drop's name may be where it has to share a line: the tab
   # list and chat. A tab entry is a name, a rank badge, a tag and the odds
   # side by side, and a long drop name pushes the rest off the row. Only
@@ -6110,6 +6112,12 @@ tab:
     - "&7ʏᴏᴜ'ʀᴇ ᴘʟᴀʏɪɴɢ ᴏɴ || &7ᴊᴏɪɴ ᴏᴜʀ ᴅɪѕᴄᴏʀᴅ"
     - "&d&lѕᴘᴀᴄᴇʀɴɢ.ᴍɪɴᴇʜᴜᴛ.ɢɢ || &9&l/ᴅɪѕᴄᴏʀᴅ"
     - ""
+
+# Players can break farm plots and farm crops and nothing else (V251).
+# Someone with solrng.admin in creative still builds. /rngadmin protect
+# on|off switches it in game.
+protection:
+  block-break: true
 
 # The line in chat when somebody joins or leaves.
 #

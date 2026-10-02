@@ -174,6 +174,8 @@ public final class ConfigMigrator {
     }
 
     private static final List<Patch> PATCHES = List.of(
+            // V251: the tag showed twice, floating and in front of the name.
+            new Patch("tag-no-nametag-prefix", "tag.manage-nametag", true, false),
             // V249: Member is what every starter wears now; mint, not grey.
             new Patch("rank-member-mint", "ranks.tiers.member.colors",
                     List.of("#B0BEC5"), List.of("#B9F6CA", "#69F0AE")),

@@ -112,7 +112,7 @@ public class TagManager {
      * tagprefix/tabprefix at %solrng_tag% instead.
      */
     private boolean managesNametag() {
-        return plugin.getConfig().getBoolean("tag.manage-nametag", true);
+        return plugin.getConfig().getBoolean("tag.manage-nametag", false);
     }
 
     private void removeTeamFromAllViewers(Player subject) {
