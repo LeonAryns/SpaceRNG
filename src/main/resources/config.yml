@@ -5959,12 +5959,14 @@ ranks:
       # character, so it takes the first stop; the second only shapes the
       # name behind it. The old second colour was grey, which washed a
       # linked player's name out halfway across.
-      colors: ["#5865F2", "#7289DA"]
+      # V247: a really light blue, Leon's call.
+      colors: ["#CFEFFF", "#A9DDFF"]
       tag: "✔"
       # The badge in front of a name, in tab and in chat: [C] for Comet.
       # Leave it out and a rank wears the first letter of its own name, so
-      # a new rank added here needs nothing extra to look right.
-      letter: "L"
+      # a new rank added here needs nothing extra to look right. Linked
+      # wears its check mark (V247).
+      letter: "✔"
       icon: NAME_TAG
       price-credits: 0
       multiplier: 1.0

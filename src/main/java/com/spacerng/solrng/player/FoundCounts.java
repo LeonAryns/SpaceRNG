@@ -70,6 +70,13 @@ public final class FoundCounts {
         dirty = true;
     }
 
+    /** The season reset: nobody has found anything. */
+    public void clear() {
+        counts.clear();
+        dirty = true;
+        save();
+    }
+
     public int count(String itemName) {
         return counts.getOrDefault(itemName, 0);
     }

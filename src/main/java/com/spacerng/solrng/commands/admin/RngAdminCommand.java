@@ -37,7 +37,7 @@ import java.util.UUID;
 public class RngAdminCommand implements CommandExecutor, TabCompleter {
 
     private static final List<String> SUBCOMMANDS = List.of(
-            "reload", "setspawn", "starforge", "reset", "give", "drops",
+            "reload", "setspawn", "starforge", "reset", "season", "give", "drops",
             "bank", "rank", "cosmetic", "bedrock", "aura", "auras", "head", "reveal", "nextroll", "roll", "unlock", "unlockall", "lockall", "odds", "farmblock", "farmscan", "farmwheat", "farmland",
             "hoe", "consumable", "gradient", "welcome", "crops", "farmclear",
             "milestones", "farmfill", "boost", "crowd", "nova", "placeholders", "payout", "crate", "tophead", "floatingitem", "boss", "pet", "dust", "discord", "realm", "advancements", "icon", "shiny", "firsts", "lorestyles", "tagstyles", "menustyles", "hoestyles", "standingstyles", "enchantstyles", "novastyles", "auratest", "holo", "help");
@@ -71,6 +71,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             case "setspawn" -> world.doSetSpawn(sender);
             case "starforge" -> players.doStarforge(sender, args);
             case "reset" -> players.doReset(sender, args);
+            case "season" -> players.doSeason(sender, args);
             case "give" -> players.doGive(sender, args);
             case "rank" -> players.doRank(sender, args);
             case "cosmetic" -> players.doCosmetic(sender, args);
@@ -140,6 +141,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         line(sender, "setspawn", "", "Set the join/spawn point to where you stand");
         line(sender, "starforge", "[tier] [player]", "Give a Starforge (defaults to the tier they own)");
         line(sender, "reset", "<player> confirm", "Wipe a player back to a brand-new account");
+        line(sender, "season", "reset confirm", "New season: wipe every player, the boards, First 10 and found counts");
         line(sender, "give", "<money|coins|gems|credits|luck|speed> <amount> [player]",
                 "Top up a currency, or add permanent Luck or Speed in percent");
         line(sender, "rank", "<set|clear> [rank] [player]", "Grant or clear a rank, for store purchases");
@@ -338,6 +340,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
                         "#B9F6CA,#00C853", "#E1BEE7,#8E24AA"));
                 case "starforge" -> partial(args[1], tierIds());
                 case "reset" -> partial(args[1], playerNames());
+                case "season" -> partial(args[1], List.of("reset"));
                 case "crops" -> partial(args[1], List.of("unlock", "lock"));
                 case "milestones" -> partial(args[1], List.of("check", "reset"));
                 case "farmblock" -> partial(args[1], List.of("1", "16", "64"));
@@ -349,7 +352,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         }
         if (args.length == 3) {
             return switch (sub) {
-                case "reset" -> partial(args[2], List.of("confirm"));
+                case "reset", "season" -> partial(args[2], List.of("confirm"));
                 case "farmfill" -> partial(args[2], List.of("confirm"));
                 case "nova" -> partial(args[2], playerNames());
                 case "give", "drops", "bank" -> partial(args[2], List.of("1", "10", "100", "1000"));

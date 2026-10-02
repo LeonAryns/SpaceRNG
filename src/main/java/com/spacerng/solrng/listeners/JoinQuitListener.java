@@ -33,6 +33,8 @@ public class JoinQuitListener implements Listener {
         }
 
         PlayerData data = plugin.getPlayerDataManager().get(event.getPlayer().getUniqueId());
+        // Offline at the season reset: their inventory goes now.
+        com.spacerng.solrng.player.SeasonWipe.onJoin(plugin, event.getPlayer());
 
         // Level/Prestige is intentionally NOT part of this - it's
         // tab-list-only via %solrng_level%, never the join broadcast.

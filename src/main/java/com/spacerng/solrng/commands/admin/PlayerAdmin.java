@@ -2,6 +2,7 @@ package com.spacerng.solrng.commands.admin;
 
 import com.spacerng.solrng.SolRNGPlugin;
 import com.spacerng.solrng.player.PlayerData;
+import com.spacerng.solrng.player.SeasonWipe;
 import com.spacerng.solrng.player.SkillNode;
 import com.spacerng.solrng.rarity.Rarity;
 import com.spacerng.solrng.rarity.RollFormat;
@@ -93,9 +94,24 @@ final class PlayerAdmin extends AdminTools {
             return true;
         }
 
+        wipe(target, null);
+
+        target.sendMessage(ChatColor.RED + "Your SpaceRNG progress has been reset.");
+        sender.sendMessage(ChatColor.GREEN + "Reset " + target.getName() + " to a new account.");
+        return true;
+    }
+
+    /**
+     * Wipes one online player back to a brand-new account: save file,
+     * Money, playtime, leaderboard row, inventory and ender chest, with a
+     * Roll item and the starter Starforge handed back. {@code keepRank} is
+     * put back on the fresh account, for the season reset keeping Owner.
+     */
+    private PlayerData wipe(Player target, String keepRank) {
         UUID uuid = target.getUniqueId();
         plugin.getRollListener().cancelRoll(uuid);
         PlayerData fresh = plugin.getPlayerDataManager().reset(uuid);
+        if (keepRank != null) fresh.setRank(keepRank);
 
         // Coins, Gems and Credits live on PlayerData and go with it. Money
         // does not: it lives in the economy plugin, so a reset that only
@@ -133,9 +149,73 @@ final class PlayerAdmin extends AdminTools {
         target.getInventory().addItem(
                 com.spacerng.solrng.roll.RollItemFactory.create(plugin, 1));
         plugin.getScoreboardManager().update(target);
+        plugin.getRankManager().refreshName(target);
+        return fresh;
+    }
 
-        target.sendMessage(ChatColor.RED + "Your SpaceRNG progress has been reset.");
-        sender.sendMessage(ChatColor.GREEN + "Reset " + target.getName() + " to a new account.");
+    /**
+     * /rngadmin season reset confirm (V247). A new season: every player's
+     * progress, Money, the leaderboards, the First 10 and the found counts.
+     * Online players are wiped on the spot; offline players lose their save
+     * file now and their inventory on their next join (SeasonWipe). Owner
+     * and Member stay, because they are handed out rather than earned.
+     * Kept: Discord links, crates, holograms, plots, spawn, config.
+     */
+    boolean doSeason(CommandSender sender, String[] args) {
+        if (args.length < 2 || !args[1].equalsIgnoreCase("reset")) {
+            sender.sendMessage(ChatColor.RED + "Usage: /rngadmin season reset confirm");
+            return true;
+        }
+        if (args.length < 3 || !args[2].equalsIgnoreCase("confirm")) {
+            sender.sendMessage(ChatColor.RED + "This wipes EVERY player: levels, index, Coins, Gems, Credits,"
+                    + " Money, ranks bought with Credits, tags, pets, inventories, and the leaderboards,"
+                    + " the First 10 and how often each drop was found. It cannot be undone.");
+            sender.sendMessage(ChatColor.RED + "Run " + ChatColor.YELLOW + "/rngadmin season reset confirm"
+                    + ChatColor.RED + " if you're sure.");
+            return true;
+        }
+
+        java.util.function.Predicate<String> handedOut = rank -> {
+            var tier = plugin.getRankManager().tier(rank.toLowerCase(java.util.Locale.ROOT));
+            return tier != null && tier.hidden();
+        };
+
+        java.util.Set<UUID> online = new java.util.HashSet<>();
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            online.add(player.getUniqueId());
+            String rank = plugin.getPlayerDataManager().get(player.getUniqueId()).getRank();
+            wipe(player, rank != null && handedOut.test(rank) ? rank : null);
+            player.sendMessage(ChatColor.LIGHT_PURPLE + "A new season has started. Good luck!");
+        }
+
+        java.util.List<UUID> offline = plugin.getPlayerDataManager().wipeAllExcept(online, handedOut);
+        SeasonWipe.queue(plugin, offline);
+
+        // Money of everyone who is not online, through the economy plugin.
+        var economyReg = Bukkit.getServicesManager()
+                .getRegistration(net.milkbowl.vault.economy.Economy.class);
+        if (economyReg != null) {
+            var economy = economyReg.getProvider();
+            for (org.bukkit.OfflinePlayer player : Bukkit.getOfflinePlayers()) {
+                if (online.contains(player.getUniqueId())) continue;
+                try {
+                    double balance = economy.getBalance(player);
+                    if (balance > 0) economy.withdrawPlayer(player, balance);
+                } catch (RuntimeException ex) {
+                    plugin.getLogger().warning("Season reset: Money of " + player.getUniqueId() + ": " + ex);
+                }
+            }
+        }
+
+        plugin.getLeaderboardManager().clearAll();
+        plugin.getFirstTenManager().resetAll();
+        plugin.getFoundCounts().clear();
+
+        sender.sendMessage(ChatColor.GREEN + "New season. Wiped " + online.size() + " online and "
+                + offline.size() + " offline players; leaderboards, First 10 and found counts cleared.");
+        sender.sendMessage(ChatColor.GRAY + "Offline players lose their inventory when they next join.");
+        plugin.getLogger().info("Season reset by " + sender.getName() + ": " + online.size()
+                + " online, " + offline.size() + " offline.");
         return true;
     }
 

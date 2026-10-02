@@ -46,6 +46,41 @@ public class PlayerDataManager {
         return fresh;
     }
 
+    /**
+     * The season reset (V247): deletes every save file except the players
+     * in {@code skip}, who are wiped one by one while online. A rank that
+     * {@code keepRank} accepts (Owner, Member: handed out, never earned)
+     * survives in an otherwise empty file. Returns whose files went.
+     */
+    public java.util.List<UUID> wipeAllExcept(java.util.Set<UUID> skip,
+                                              java.util.function.Predicate<String> keepRank) {
+        java.util.List<UUID> wiped = new java.util.ArrayList<>();
+        File[] files = dataFolder.listFiles((dir, name) -> name.endsWith(".yml"));
+        if (files == null) return wiped;
+        for (File file : files) {
+            UUID uuid;
+            try {
+                uuid = UUID.fromString(file.getName().substring(0, file.getName().length() - 4));
+            } catch (IllegalArgumentException notAPlayer) {
+                continue;
+            }
+            if (skip.contains(uuid)) continue;
+            String rank = org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(file).getString("rank");
+            cache.remove(uuid);
+            if (!file.delete()) {
+                plugin.getLogger().warning("Couldn't delete player data file for " + uuid);
+                continue;
+            }
+            wiped.add(uuid);
+            if (rank != null && keepRank.test(rank)) {
+                PlayerData fresh = new PlayerData(uuid);
+                fresh.setRank(rank);
+                save(fresh);
+            }
+        }
+        return wiped;
+    }
+
     public void unload(UUID uuid) {
         PlayerData data = cache.remove(uuid);
         if (data != null) {

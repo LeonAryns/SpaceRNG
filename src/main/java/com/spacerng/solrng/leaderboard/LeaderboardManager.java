@@ -240,6 +240,12 @@ public class LeaderboardManager {
         index.remove(uuid);
     }
 
+    /** The season reset: every board empty, on disk as well. */
+    public void clearAll() {
+        index.clear();
+        saveIndex();
+    }
+
     public Entry entryOf(UUID uuid) {
         return index.get(uuid);
     }

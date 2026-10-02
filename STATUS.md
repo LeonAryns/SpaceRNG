@@ -1065,9 +1065,13 @@ linking worked on V230:**
   2x Luck (was 1.25x), a finished shiny rarity 5x (was 2x). Money in
   /stats and the [stats] chat tag shows the 10x base as 1x
   (`Stat.shown()`); payouts still read `total()`.
-- **Leaderboard reset:** no command. Boards mirror player data, so a
-  wipe is server off, delete `plugins/SpaceRNG/playerdata/` and
-  `leaderboard.yml`. Asked Leon whether he wants a command instead.
+- **V246** /buy store button: https://spacerng.tebex.store/
+- **V247, season launch.** `/rngadmin season reset confirm` wipes every
+  player (online now, offline save files now and inventories on next
+  join via `season-wipe.yml`), Money through Vault, leaderboards, First
+  10, found counts. Owner and Member (hidden ranks) survive. Linked
+  wears a check mark again in a very light blue (the letter L was there
+  since V187, hidden while TAB drew the list).
 
 **The tab (2 October).** In game the tab still shows "Server name",
 "Used memory", "www.domain.com" and "Ping" behind names. None of that is

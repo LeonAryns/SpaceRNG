@@ -174,6 +174,10 @@ public final class ConfigMigrator {
     }
 
     private static final List<Patch> PATCHES = List.of(
+            // V247: Linked wears a check mark in a really light blue.
+            new Patch("rank-linked-check", "ranks.tiers.linked.letter", "L", "✔"),
+            new Patch("rank-linked-light-blue", "ranks.tiers.linked.colors",
+                    List.of("#5865F2", "#7289DA"), List.of("#CFEFFF", "#A9DDFF")),
             // V246: Leon's Tebex store, for the button in /buy.
             new Patch("store-url-tebex", "buy.store-url", "", "https://spacerng.tebex.store/"),
             // V245: Leon's numbers. Intermediate +50 Speed, and a finished
