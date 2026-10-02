@@ -763,7 +763,9 @@ public class FarmPlotManager {
      * see.
      */
     private double momentumMultiplier(Player player, HoeEnchantManager hoe, PlayerData data, boolean chain) {
-        int level = hoe.levelOf(data, "MOMENTUM");
+        // Switched off counts as no levels (V269); powerOf already does this
+        // for every other enchant, Momentum reads its level directly.
+        int level = data.isEnchantOn("MOMENTUM") ? hoe.levelOf(data, "MOMENTUM") : 0;
         double cap = momentumPerLevelCap * level;
         if (cap <= 0) {
             plugin.getMomentumBar().hide(player.getUniqueId());
@@ -814,7 +816,8 @@ public class FarmPlotManager {
             }
 
             PlayerData data = plugin.getPlayerDataManager().get(entry.getKey());
-            double cap = momentumPerLevelCap * hoe.levelOf(data, "MOMENTUM");
+            double cap = momentumPerLevelCap
+                    * (data.isEnchantOn("MOMENTUM") ? hoe.levelOf(data, "MOMENTUM") : 0);
             if (cap <= 0) {
                 it.remove();
                 plugin.getMomentumBar().hide(entry.getKey());
