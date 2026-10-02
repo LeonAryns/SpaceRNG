@@ -124,6 +124,7 @@ public class JoinQuitListener implements Listener {
                 "&8[&c-&8] {name}"));
         plugin.getRollListener().cancelRoll(event.getPlayer().getUniqueId());
         plugin.getTagManager().hideHologram(event.getPlayer().getUniqueId());
+        plugin.getTagManager().removeNameplate(event.getPlayer().getUniqueId());
         plugin.getAuraManager().hide(event.getPlayer().getUniqueId());
         plugin.getTagManager().forgetPrefix(event.getPlayer().getUniqueId());
         plugin.getFarmPlotManager().forget(event.getPlayer().getUniqueId());

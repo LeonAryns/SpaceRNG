@@ -284,6 +284,14 @@ public class HoeEnchantManager {
                 * data.boostMultiplier("ENCHANT_PROC")
                 * plugin.getFarmingManager().tierOf(data).procMultiplier();
         raw *= proc;
+        // V267: every proc fires five times less often, Leon's call ("all
+        // enchants are too broken"), as one knob: farming.proc-scale. TNT
+        // Blast has its own number and is left out (proc-scale-exempt).
+        java.util.List<String> exempt = plugin.getConfig().contains("farming.proc-scale-exempt")
+                ? plugin.getConfig().getStringList("farming.proc-scale-exempt") : java.util.List.of("BLAST_HARVEST");
+        if (!exempt.contains(enchant.id())) {
+            raw *= Math.max(0.0, plugin.getConfig().getDouble("farming.proc-scale", 0.2));
+        }
         // Everything else is a chance rolled per crop. With 10,000 levels
         // (V159) the straight product ran past 100% on half of them, so it
         // bends toward a ceiling instead: about the raw number while small,

@@ -176,6 +176,16 @@ public final class ConfigMigrator {
     }
 
     private static final List<Patch> PATCHES = List.of(
+            // V267: Leon's numbers. Speed to +500%, TNT Blast 3x rarer and
+            // smaller, Momentum to 5x, and no lp commands for the vault.
+            new Patch("walk-speed-500", "farming.enchants.WALK_SPEED.per-level", 0.00005, 0.0005),
+            new Patch("blast-chance-3x-lower", "farming.enchants.BLAST_HARVEST.per-level", 0.000004, 0.0000013),
+            new Patch("blast-radius-4", "farming.blast.max-radius", 7, 4),
+            new Patch("momentum-enchant-5x", "farming.enchants.MOMENTUM.per-level", 0.004, 0.0004),
+            new Patch("momentum-cap-5x", "farming.momentum.per-level-cap", 0.05, 0.0004),
+            new Patch("private-vault-no-lp", "unlock-commands.private-vault",
+                    List.of("lp user {player} permission set playervaults.amount.1 true",
+                            "lp user {player} permission set playervaults.use true"), List.of()),
             // V265: TNT Blast fires 50x less often, Leon's call.
             new Patch("blast-chance-50x-lower", "farming.enchants.BLAST_HARVEST.per-level", 0.0002, 0.000004),
             // V251: the tag showed twice, floating and in front of the name.

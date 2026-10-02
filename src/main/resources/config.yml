@@ -453,7 +453,8 @@ farming:
       color: "&2"
       max-level: 10000
       base-cap: 10000
-      per-level: 0.004
+      # V267: up to 5x at the ceiling, matching momentum.per-level-cap.
+      per-level: 0.0004
 
     # ---- Procs ----
       # +400% at the ceiling. Level 1 costs 1,547, level 1,000 costs 840,492,
@@ -502,8 +503,9 @@ farming:
       max-level: 10000
       base-cap: 10000
       # V265: 50x lower, Leon's call; it was 0.0002 (20% at the ceiling).
-      per-level: 0.000004
-      # 0.4% of crops at the ceiling. Level 1 costs 1,274, level 1,000 costs 691,763,
+      # V267: three times lower again.
+      per-level: 0.0000013
+      # 0.13% of crops at the ceiling. Level 1 costs 1,274, level 1,000 costs 691,763,
       # 261,508,830 Coins for all of it.
 
     POTION_FINDER:
@@ -740,7 +742,7 @@ farming:
       # 8,706,815,878 Coins for all of it.
 
     # V265: walking speed while the hoe is in your hand. Always on and
-    # unlocked from the start, no farm tree node. Capped at +50% in code.
+    # unlocked from the start, no farm tree node. Capped at +500% in code.
     WALK_SPEED:
       display: "Speed"
       icon: SUGAR
@@ -753,8 +755,8 @@ farming:
       color: "&b"
       max-level: 10000
       base-cap: 10000
-      per-level: 0.00005
-      # +50% walking speed at the ceiling. Level 1 costs 580, level 1,000 costs 280,500,
+      per-level: 0.0005
+      # +500% walking speed at the ceiling (V267). Level 1 costs 580, level 1,000 costs 280,500,
       # 107,306,700 Coins for all of it.
 
   # ---- The golden crop ----
@@ -857,7 +859,8 @@ farming:
   blast:
     base-radius: 1
     levels-per-radius: 150
-    max-radius: 7
+    # V267: 4, smaller than the 7 it was.
+    max-radius: 4
 
   # ---- Momentum ----
   # A farming RUN. Every crop you take adds to it, and the whole thing is
@@ -875,7 +878,9 @@ farming:
     # Reaching a +5.00x ceiling at 0.01 per thousand takes 500,000 crops in
     # one run. Set per-thousand-crops to 0.10 if you want that to be
     # 50,000 instead.
-    per-level-cap: 0.05
+    # V267: 0.0004, so 10,000 levels top out at +4, a 5x multiplier. At
+    # 0.05 the ceiling was +500.
+    per-level-cap: 0.0004
     # Seconds without a harvest before the run ends.
     idle-seconds: 30
     # After you stop swinging, the multiplier slides from wherever it got
@@ -925,6 +930,11 @@ farming:
   # toward this ceiling as it grows, so Blast at level 10,000 fires on
   # about half the crops instead of every one.
   proc-cap: 0.5
+  # V267: every proc chance times this; 0.2 is five times less often.
+  # Always on enchants (Coin Greed, Momentum, Speed) are not chances and
+  # ignore it, and the listed ones keep their own number.
+  proc-scale: 0.2
+  proc-scale-exempt: [BLAST_HARVEST]
   hoe-ladder:
     bands: 5
     tiers-per-band: 10
@@ -5664,9 +5674,9 @@ pass:
 # expects a /pv-style plugin to be present; PlayerVaults X (with LuckPerms
 # for the permission) is the usual pairing on Paper 1.21.
 unlock-commands:
-  private-vault:
-    - "lp user {player} permission set playervaults.amount.1 true"
-    - "lp user {player} permission set playervaults.use true"
+  # V267: empty. /pv is the plugin's own; these only filled staff chat
+  # with LuckPerms log lines.
+  private-vault: []
 
 shiny:
   # Base 1 in 2,500. Shiny Boost nodes in /skilltree multiply this.

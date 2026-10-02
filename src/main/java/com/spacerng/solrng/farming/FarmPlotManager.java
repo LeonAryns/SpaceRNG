@@ -872,7 +872,8 @@ public class FarmPlotManager {
                 int swept = 0;
                 // A circle: the corners of the square stay standing. r*r + r
                 // rounds the edge out so small blasts are not a plus sign.
-                int reach = radius * radius + radius;
+                // V267: r*r + 1, rounder than r*r + r, which left flat sides.
+                int reach = radius * radius + 1;
                 for (int dx = -radius; dx <= radius; dx++) {
                     for (int dz = -radius; dz <= radius; dz++) {
                         if (dx == 0 && dz == 0) continue;

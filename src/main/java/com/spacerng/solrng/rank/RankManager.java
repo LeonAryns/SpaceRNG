@@ -218,7 +218,9 @@ public class RankManager {
     }
 
     public int vaultPages(PlayerData data) {
-        RankTier tier = rankOf(data);
+        // A starter counts as Member here (V267), whose vault-pages is 1:
+        // /pv 1 told every new player they had no pages at all.
+        RankTier tier = shownRankOf(data);
         return tier == null ? 0 : tier.vaultPages();
     }
 
@@ -374,6 +376,8 @@ public class RankManager {
         // does not want it in tab, where every row already carries a tag.
         player.playerListName(LegacyComponentSerializer.legacySection().deserialize(tabName(player)));
         player.setPlayerListOrder(listOrder(player));
+        // The name over the head is ours now (V267), so it follows too.
+        if (plugin.getTagManager() != null) plugin.getTagManager().refreshNameplate(player);
         player.displayName(LegacyComponentSerializer.legacySection().deserialize(fullName(player)));
     }
 

@@ -288,7 +288,8 @@ public final class SolRNGPlugin extends JavaPlugin {
         startAutoRollTask();
         startScoreboardRefreshTask();
         startArmorRefreshTask();
-        startLevelHintTask();
+        // V267: the action bar hint is off, Leon's call; the boss bar
+        // still shows a waiting level now and then.
         registerPlaceholderExpansion();
         topHeadManager.start();
         holoManager.start();

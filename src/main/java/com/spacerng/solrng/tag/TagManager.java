@@ -258,6 +258,7 @@ public class TagManager {
      */
     public void hideAll() {
         for (UUID uuid : new ArrayList<>(holograms.keySet())) removeDisplays(uuid);
+        for (UUID uuid : new ArrayList<>(nameplates.keySet())) removeNameplate(uuid);
         hologramTexts.clear();
     }
 
@@ -267,6 +268,7 @@ public class TagManager {
      * ticker, this rebuilds any tag that is no longer riding its player.
      */
     public void keepMounted() {
+        keepNameplatesMounted();
         for (Map.Entry<UUID, TextDisplay[]> entry : new ArrayList<>(holograms.entrySet())) {
             Player player = Bukkit.getPlayer(entry.getKey());
             if (player == null || !player.isOnline() || player.isDead()) continue;
@@ -312,6 +314,62 @@ public class TagManager {
         for (TextDisplay display : displays) {
             if (display != null && !display.isDead()) {
                 display.remove();
+            }
+        }
+    }
+
+    // ------------------------------------------------------------- nameplate
+
+    /**
+     * Our own nameplate (V267). Minecraft draws no nametag over an entity
+     * that carries passengers, and the tag, the aura and pets all ride the
+     * player, so anyone wearing a tag lost their name. Every player now
+     * carries one text display with their rank badge and name where the
+     * vanilla one sits, hidden from themselves the way vanilla hides your
+     * own name.
+     */
+    private final Map<UUID, TextDisplay> nameplates = new HashMap<>();
+    private static final float NAME_OFFSET = 0.42f;
+
+    public void refreshNameplate(Player player) {
+        if (!player.isOnline() || player.isDead()) return;
+        String text = plugin.getRankManager().badgeOf(player) + plugin.getRankManager().coloredName(player);
+        TextDisplay current = nameplates.get(player.getUniqueId());
+        if (current != null && current.isValid() && player.getPassengers().contains(current)) {
+            current.text(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
+                    .legacySection().deserialize(text));
+            return;
+        }
+        removeNameplate(player.getUniqueId());
+        TextDisplay display = (TextDisplay) player.getWorld().spawnEntity(player.getLocation(), EntityType.TEXT_DISPLAY);
+        display.setInvulnerable(true);
+        display.setGravity(false);
+        display.setPersistent(false);
+        display.setBillboard(Display.Billboard.CENTER);
+        // The vanilla plate's faint dark backing, so a name reads against the sky.
+        display.setBackgroundColor(Color.fromARGB(64, 0, 0, 0));
+        display.setShadowRadius(0f);
+        display.setTransformation(new Transformation(
+                new Vector3f(0f, NAME_OFFSET, 0f), new Quaternionf(),
+                new Vector3f(1f, 1f, 1f), new Quaternionf()));
+        display.text(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
+                .legacySection().deserialize(text));
+        player.hideEntity(plugin, display);
+        player.addPassenger(display);
+        nameplates.put(player.getUniqueId(), display);
+    }
+
+    public void removeNameplate(UUID uuid) {
+        TextDisplay display = nameplates.remove(uuid);
+        if (display != null && !display.isDead()) display.remove();
+    }
+
+    private void keepNameplatesMounted() {
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            if (player.isDead()) continue;
+            TextDisplay display = nameplates.get(player.getUniqueId());
+            if (display == null || !display.isValid() || !player.getPassengers().contains(display)) {
+                refreshNameplate(player);
             }
         }
     }
