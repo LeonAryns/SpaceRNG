@@ -1054,8 +1054,8 @@ linking worked on V230:**
 
 **The tab (2 October).** In game the tab still shows "Server name",
 "Used memory", "www.domain.com" and "Ping" behind names. None of that is
-in our code. Leon says there is no TAB jar; whatever draws it overwrites
-our `TabListManager`. Asked him for `/plugins` and `/tab` to find it.
+in our code. It was the TAB plugin after all, still in `plugins`; Leon
+removed it with V242. Check our header, footer and rank names show.
 
 **Waiting on Leon:** the tab he wants. His screenshot arrived a few pixels
 wide; ask for it again. TAB plugin defaults were the ugly tab; advice
