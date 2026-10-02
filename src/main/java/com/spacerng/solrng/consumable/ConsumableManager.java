@@ -314,6 +314,18 @@ public class ConsumableManager {
                     + "  Your next purchase in /skilltree costs nothing.");
         }
         if (consumable.isCharge()) {
+            // One kind of charged roll at a time (V274). A 10x on top of a
+            // banked 100x used to be added at 100x, and a 100x on top of a
+            // 10x threw the 10x away. The same kind adds; another kind is
+            // refused and the item kept.
+            if (data.getRollCharges() > 0
+                    && Math.abs(data.getRollChargeMultiplier() - consumable.rollLuckMultiplier()) > 1e-9) {
+                player.sendMessage(ChatColor.RED + "You already have a "
+                        + trim(data.getRollChargeMultiplier()) + "x roll waiting. "
+                        + ChatColor.WHITE + "Roll it first, or use another "
+                        + trim(data.getRollChargeMultiplier()) + "x to add to it.");
+                return false;
+            }
             data.addRollCharges(consumable.charges(), consumable.rollLuckMultiplier());
             player.sendMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "Charged "
                     + ChatColor.RESET + ChatColor.GRAY + "your next "

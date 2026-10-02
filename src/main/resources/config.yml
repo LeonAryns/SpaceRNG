@@ -472,7 +472,8 @@ farming:
       color: "&b"
       max-level: 10000
       base-cap: 10000
-      per-level: 0.0008
+      # V274: 1% of crops at the ceiling after proc-scale, Leon's call.
+      per-level: 0.000005
       # 80% of crops at the ceiling. Level 1 costs 862, level 1,000 costs 468,603,
       # 177,147,000 Coins for all of it.
 
@@ -536,7 +537,8 @@ farming:
       color: "&e"
       max-level: 10000
       base-cap: 10000
-      per-level: 0.0001
+      # V274: 1% of crops at the ceiling after proc-scale, Leon's call.
+      per-level: 0.000005
       # 10% of crops at the ceiling. Level 1 costs 2,284, level 1,000 costs 1,240,757,
       # 469,045,735 Coins for all of it.
 
@@ -569,6 +571,7 @@ farming:
       color: "&4"
       max-level: 10000
       base-cap: 10000
+      # V274: 0.1% of crops at the ceiling after proc-scale, Leon's call.
       per-level: 0.0000005
       # 0.05% of crops at the ceiling. Level 1 costs 34,894, level 1,000 costs 18,956,329,
       # 7,166,103,604 Coins for all of it.
@@ -584,7 +587,8 @@ farming:
       color: "&6"
       max-level: 10000
       base-cap: 10000
-      per-level: 0.000015
+      # V274: 0.1% of crops at the ceiling after proc-scale, Leon's call.
+      per-level: 0.0000005
       # 1.5% of crops at the ceiling. Level 1 costs 3,372, level 1,000 costs 1,831,635,
       # 692,417,041 Coins for all of it.
 
@@ -614,7 +618,8 @@ farming:
       color: "&6"
       max-level: 10000
       base-cap: 10000
-      per-level: 0.000008
+      # V274: 0.1% of crops at the ceiling after proc-scale, Leon's call.
+      per-level: 0.0000005
 
     # ---- Wealth ----
     # Ten enchants about one thing: Coins and Gems. Every one of them
@@ -633,7 +638,8 @@ farming:
       color: "&b"
       max-level: 10000
       base-cap: 10000
-      per-level: 0.00003
+      # V274: 0.1% of crops at the ceiling after proc-scale, Leon's call.
+      per-level: 0.0000005
       # 3% of crops at the ceiling. Level 1 costs 4,096, level 1,000 costs 2,225,437,
       # 841,286,704 Coins for all of it.
 
@@ -649,7 +655,8 @@ farming:
       color: "&b"
       max-level: 10000
       base-cap: 10000
-      per-level: 0.000005
+      # V274: 0.1% of crops at the ceiling after proc-scale, Leon's call.
+      per-level: 0.0000005
       # 0.5% of crops at the ceiling. Level 1 costs 6,048, level 1,000 costs 3,285,244,
       # 1,241,928,465 Coins for all of it.
 
@@ -664,7 +671,8 @@ farming:
       color: "&d"
       max-level: 10000
       base-cap: 10000
-      per-level: 0.000004
+      # V274: 0.1% of crops at the ceiling after proc-scale, Leon's call.
+      per-level: 0.0000005
       # 0.4% of crops at the ceiling. Level 1 costs 8,927, level 1,000 costs 4,849,761,
       # 1,833,365,848 Coins for all of it.
 
@@ -680,7 +688,8 @@ farming:
       color: "&b"
       max-level: 10000
       base-cap: 10000
-      per-level: 0.000008
+      # V274: 0.1% of crops at the ceiling after proc-scale, Leon's call.
+      per-level: 0.0000005
       # 0.8% of crops at the ceiling. Level 1 costs 10,846, level 1,000 costs 5,892,460,
       # 2,227,539,506 Coins for all of it.
 
@@ -695,7 +704,8 @@ farming:
       color: "&6"
       max-level: 10000
       base-cap: 10000
-      per-level: 0.000003
+      # V274: 0.1% of crops at the ceiling after proc-scale, Leon's call.
+      per-level: 0.0000005
       # 0.3% of crops at the ceiling. Level 1 costs 13,179, level 1,000 costs 7,159,338,
       # 2,706,460,500 Coins for all of it.
 
@@ -710,7 +720,8 @@ farming:
       color: "&c"
       max-level: 10000
       base-cap: 10000
-      per-level: 0.000004
+      # V274: 0.1% of crops at the ceiling after proc-scale, Leon's call.
+      per-level: 0.0000005
       # 0.4% of crops at the ceiling. Level 1 costs 16,012, level 1,000 costs 8,698,596,
       # 3,288,349,507 Coins for all of it.
 
@@ -725,7 +736,8 @@ farming:
       color: "&5"
       max-level: 10000
       base-cap: 10000
-      per-level: 0.0000015
+      # V274: 0.1% of crops at the ceiling after proc-scale, Leon's call.
+      per-level: 0.0000005
       # 0.15% of crops at the ceiling. Level 1 costs 28,719, level 1,000 costs 15,601,917,
       # 5,898,027,657 Coins for all of it.
 
@@ -740,7 +752,8 @@ farming:
       color: "&6"
       max-level: 10000
       base-cap: 10000
-      per-level: 0.0000003
+      # V274: 0.1% of crops at the ceiling after proc-scale, Leon's call.
+      per-level: 0.0000005
       # 0.03% of crops at the ceiling. Level 1 costs 42,396, level 1,000 costs 23,031,941,
       # 8,706,815,878 Coins for all of it.
 

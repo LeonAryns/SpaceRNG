@@ -176,6 +176,20 @@ public final class ConfigMigrator {
     }
 
     private static final List<Patch> PATCHES = List.of(
+            // V274: the procs not yet retuned, 1% for the early two, 0.1% for the late ones.
+            new Patch("proc-v274-shard_greed", "farming.enchants.SHARD_GREED.per-level", 0.0008, 0.000005),
+            new Patch("proc-v274-lightning", "farming.enchants.LIGHTNING.per-level", 0.0001, 0.000005),
+            new Patch("proc-v274-nuke", "farming.enchants.NUKE.per-level", 0.0000005, 0.0000005),
+            new Patch("proc-v274-coin_factory", "farming.enchants.COIN_FACTORY.per-level", 0.000015, 0.0000005),
+            new Patch("proc-v274-gamba", "farming.enchants.GAMBA.per-level", 0.000008, 0.0000005),
+            new Patch("proc-v274-prospector", "farming.enchants.PROSPECTOR.per-level", 0.00003, 0.0000005),
+            new Patch("proc-v274-gem_rush", "farming.enchants.GEM_RUSH.per-level", 0.000005, 0.0000005),
+            new Patch("proc-v274-alchemy", "farming.enchants.ALCHEMY.per-level", 0.000004, 0.0000005),
+            new Patch("proc-v274-gem_cascade", "farming.enchants.GEM_CASCADE.per-level", 0.000008, 0.0000005),
+            new Patch("proc-v274-coin_storm", "farming.enchants.COIN_STORM.per-level", 0.000003, 0.0000005),
+            new Patch("proc-v274-meteor", "farming.enchants.METEOR.per-level", 0.000004, 0.0000005),
+            new Patch("proc-v274-black_hole", "farming.enchants.BLACK_HOLE.per-level", 0.0000015, 0.0000005),
+            new Patch("proc-v274-supernova", "farming.enchants.SUPERNOVA.per-level", 0.0000003, 0.0000005),
             // V272: Key Finder 0.5% and Potion Finder 1% at the ceiling.
             new Patch("key-finder-0.5", "farming.enchants.KEY_FINDER.per-level", 0.00005, 0.0000025),
             new Patch("potion-finder-1", "farming.enchants.POTION_FINDER.per-level", 0.00004, 0.000005),

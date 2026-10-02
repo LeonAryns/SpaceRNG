@@ -59,7 +59,18 @@ final class RollCounter {
     private Component lastTitle;
     private long lastTitleAt;
 
+    /**
+     * The one counter each player may have (V274). Two showed at once and
+     * their digits ran over each other: a reveal that died before landing
+     * (the Mythical one, V272) never stopped its counter, and the next
+     * roll put a second one on top. A new counter now takes the old one
+     * down first.
+     */
+    private static final java.util.Map<java.util.UUID, RollCounter> LIVE = new java.util.HashMap<>();
+
     RollCounter(SolRNGPlugin plugin, Player player, float scale) {
+        RollCounter previous = LIVE.put(player.getUniqueId(), this);
+        if (previous != null) previous.stop();
         this.plugin = plugin;
         this.player = player;
         this.scale = scale;
@@ -155,6 +166,7 @@ final class RollCounter {
 
     /** Removes it now. Safe to call more than once. */
     void stop() {
+        LIVE.remove(player.getUniqueId(), this);
         if (titles) return;
         watch.cancel();
         if (display.isValid()) display.remove();
