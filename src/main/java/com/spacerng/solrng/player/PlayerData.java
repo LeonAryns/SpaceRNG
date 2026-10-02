@@ -924,6 +924,17 @@ public class PlayerData {
         return true;
     }
 
+    // Shinies that went to chat (V280), counted apart from the rarities.
+    private int shiniesAnnounced = 0;
+
+    public int getShiniesAnnounced() {
+        return shiniesAnnounced;
+    }
+
+    public void setShiniesAnnounced(int count) {
+        this.shiniesAnnounced = count;
+    }
+
     public int getAnnounced(Rarity rarity) {
         return announced.getOrDefault(rarity, 0);
     }

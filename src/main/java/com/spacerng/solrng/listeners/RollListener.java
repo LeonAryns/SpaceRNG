@@ -1037,11 +1037,14 @@ public class RollListener implements Listener {
         // Likewise a Shiny First, which brings its own banner (V278).
         if (shiny && plugin.getFirstTenManager().wouldTakeShiny(player)) return;
         // A player's first few drops of each rarity go to chat, then theirs
-        // stop (V271, Leon: after three it is noise), Epic and up alike. A
-        // shiny is always announced.
-        if (!shiny) {
-            PlayerData roller = plugin.getPlayerDataManager().get(player.getUniqueId());
-            int limit = plugin.getConfig().getInt("broadcast.announce-limit", 3);
+        // stop (V271, Leon: after three it is noise), Epic and up alike.
+        // Shinies count on their own and stop after three too (V280).
+        PlayerData roller = plugin.getPlayerDataManager().get(player.getUniqueId());
+        int limit = plugin.getConfig().getInt("broadcast.announce-limit", 3);
+        if (shiny) {
+            if (limit >= 0 && roller.getShiniesAnnounced() >= limit) return;
+            roller.setShiniesAnnounced(roller.getShiniesAnnounced() + 1);
+        } else {
             Rarity rarity = result.getRarity();
             if (limit >= 0 && roller.getAnnounced(rarity) >= limit) return;
             roller.setAnnounced(rarity, roller.getAnnounced(rarity) + 1);

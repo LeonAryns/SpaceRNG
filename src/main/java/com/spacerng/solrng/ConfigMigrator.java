@@ -176,6 +176,8 @@ public final class ConfigMigrator {
     }
 
     private static final List<Patch> PATCHES = List.of(
+            // V280: the rarity Firsts hold ten again.
+            new Patch("first-ten-slots-10", "first-ten.slots", 5, 10),
             // V277: Sweet Berries becomes Fern, and Potion Finder ten times rarer.
             new Patch("crop-fern-display", "farming.crop-types.SWEET_BERRIES.display", "Sweet Berries", "Fern"),
             new Patch("crop-fern-material", "farming.crop-types.SWEET_BERRIES.material", "SWEET_BERRY_BUSH", "FERN"),

@@ -6272,7 +6272,8 @@ first-ten:
   # V279: the shiny list holds five, the rarity lists keep slots below.
   shiny-slots: 5
   enabled: true
-  slots: 5
+  # V280: ten, Leon's call.
+  slots: 10
   rarities: [LEGENDARY, MYTHICAL, DIVINE]
 
 # /buy and /store. store-url is the web store where Credits are bought;

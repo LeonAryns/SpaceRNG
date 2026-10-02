@@ -287,7 +287,9 @@ public class FarmPlotManager {
     /** The crop a player is currently growing, falling back to the first configured one. */
     public CropType cropFor(PlayerData data) {
         CropType crop = getCrop(data.getSelectedCrop());
-        if (crop != null) return crop;
+        // A crop that is locked again (V280: it opens by crops farmed only)
+        // stops growing; the field falls back to the first crop.
+        if (crop != null && isUnlocked(data, crop)) return crop;
         return crops.isEmpty() ? null : crops.values().iterator().next();
     }
 
@@ -297,9 +299,12 @@ public class FarmPlotManager {
      */
     public boolean isUnlocked(PlayerData data, CropType crop) {
         if (crop.isFree()) return true;
-        if (data.hasUnlockedCrop(crop.getId())) return true;
+        // V280: a crop with a count opens on that count and nothing else. A
+        // node bought before V279, or the unlock it left in the save, no
+        // longer counts, which is why crops still looked open.
         long at = unlockAt(crop);
-        if (at > 0 && data.getCropsHarvested() >= at) return true;
+        if (at > 0) return data.getCropsHarvested() >= at;
+        if (data.hasUnlockedCrop(crop.getId())) return true;
         return data.hasUnlocked(crop.getRequiresNode());
     }
 
@@ -330,6 +335,7 @@ public class FarmPlotManager {
         for (CropType crop : crops.values()) {
             long at = unlockAt(crop);
             if (at <= 0 || data.getCropsHarvested() < at) continue;
+            // Announced once: the unlock it leaves in the save marks it as told.
             if (data.hasUnlockedCrop(crop.getId())) continue;
             data.getUnlockedCrops().add(crop.getId());
             String node = crop.getRequiresNode();

@@ -162,6 +162,7 @@ public class PlayerDataManager {
         for (Rarity rarity : Rarity.values()) {
             data.setAnnounced(rarity, yml.getInt("announced." + rarity.name(), 0));
         }
+        data.setShiniesAnnounced(yml.getInt("announced.SHINY", 0));
         org.bukkit.configuration.ConfigurationSection stored = yml.getConfigurationSection("stored-boosters");
         if (stored != null) {
             for (String id : stored.getKeys(false)) data.addStoredBooster(id, stored.getLong(id));
@@ -451,6 +452,7 @@ public class PlayerDataManager {
             int count = data.getAnnounced(rarity);
             if (count > 0) yml.set("announced." + rarity.name(), count);
         }
+        if (data.getShiniesAnnounced() > 0) yml.set("announced.SHINY", data.getShiniesAnnounced());
         yml.set("stored-boosters", null);
         data.getStoredBoosters().forEach((id, amount) -> yml.set("stored-boosters." + id, amount));
         yml.set("roll-charge-multiplier", data.getRollChargeMultiplier());
