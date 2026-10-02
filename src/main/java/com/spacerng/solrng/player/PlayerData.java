@@ -519,6 +519,18 @@ public class PlayerData {
     }
 
     /** How much of your own Luck you have chosen to roll with, 0 to 100. */
+    // V279: the Luck a player chose with /limitluck, as a fraction (5.0 is
+    // +500%); below 0 means no limit.
+    private double luckCap = -1.0;
+
+    public double getLuckCap() {
+        return luckCap;
+    }
+
+    public void setLuckCap(double luckCap) {
+        this.luckCap = luckCap < 0 ? -1.0 : luckCap;
+    }
+
     public int getLuckLimitPercent() {
         return luckLimitPercent;
     }

@@ -101,6 +101,11 @@ public final class FirstTenManager {
         return 0;
     }
 
+    /** How many spots the shiny list has (V279: five, Leon's call). */
+    public int shinySlots() {
+        return Math.max(1, plugin.getConfig().getInt("first-ten.shiny-slots", 5));
+    }
+
     public boolean shinyTracked() {
         return plugin.getConfig().getBoolean("first-ten.enabled", true)
                 && plugin.getConfig().getBoolean("first-ten.shiny", true);
@@ -108,7 +113,7 @@ public final class FirstTenManager {
 
     /** Whether a shiny from this player takes a spot in the shiny list. */
     public boolean wouldTakeShiny(Player player) {
-        if (!shinyTracked() || shinyEntries.size() >= slots()) return false;
+        if (!shinyTracked() || shinyEntries.size() >= shinySlots()) return false;
         return shinyPlaceOf(player.getUniqueId()) == 0;
     }
 
@@ -274,7 +279,7 @@ public final class FirstTenManager {
      */
     /** The shiny list's banner (V278): the same shape as a rarity First, in the shiny colours. */
     private void announceShiny(UUID roller, String name, RollableItem item, int place) {
-        int slots = slots();
+        int slots = shinySlots();
         int left = Math.max(0, slots - place);
         var rarities = plugin.getRarityManager();
         String rule = ChatColor.AQUA + "" + ChatColor.STRIKETHROUGH + " ".repeat(52);

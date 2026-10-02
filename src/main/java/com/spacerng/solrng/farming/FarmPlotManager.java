@@ -298,7 +298,56 @@ public class FarmPlotManager {
     public boolean isUnlocked(PlayerData data, CropType crop) {
         if (crop.isFree()) return true;
         if (data.hasUnlockedCrop(crop.getId())) return true;
+        long at = unlockAt(crop);
+        if (at > 0 && data.getCropsHarvested() >= at) return true;
         return data.hasUnlocked(crop.getRequiresNode());
+    }
+
+    /**
+     * Crops farmed that open this crop, or 0 if it opens the old way
+     * (V279, Leon: no cost, it comes with farming). farming.crop-unlock-at.
+     */
+    public long unlockAt(CropType crop) {
+        String path = "farming.crop-unlock-at." + crop.getId();
+        if (plugin.getConfig().contains("farming.crop-unlock-at")) {
+            return Math.max(0L, plugin.getConfig().getLong(path, 0L));
+        }
+        return switch (crop.getId()) {
+            case "CARROTS" -> 10_000L;
+            case "POTATOES" -> 25_000L;
+            case "BEETROOTS" -> 50_000L;
+            case "NETHER_WART" -> 100_000L;
+            case "SWEET_BERRIES" -> 250_000L;
+            default -> 0L;
+        };
+    }
+
+    /**
+     * Opens every crop whose count has been reached, with its farm tree node
+     * so the tree goes on from it, and says so. Run after each harvest.
+     */
+    public void checkCropUnlocks(Player player, PlayerData data) {
+        for (CropType crop : crops.values()) {
+            long at = unlockAt(crop);
+            if (at <= 0 || data.getCropsHarvested() < at) continue;
+            if (data.hasUnlockedCrop(crop.getId())) continue;
+            data.getUnlockedCrops().add(crop.getId());
+            String node = crop.getRequiresNode();
+            if (node != null && !node.isEmpty()) data.getUnlockedNodes().add(node);
+            player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "New crop  " + ChatColor.RESET
+                    + ChatColor.YELLOW + crop.getDisplay() + ChatColor.GRAY + " after "
+                    + String.format("%,d", at) + " crops. Plant it in " + ChatColor.YELLOW + "/crops"
+                    + ChatColor.GRAY + ".");
+            player.playSound(player.getLocation(), org.bukkit.Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.8f, 1.2f);
+        }
+    }
+
+    /** The crop a farm tree node opens, if that crop now opens by crops farmed. */
+    public CropType cropOpenedByCount(String nodeId) {
+        for (CropType crop : crops.values()) {
+            if (nodeId.equals(crop.getRequiresNode()) && unlockAt(crop) > 0) return crop;
+        }
+        return null;
     }
 
     /** Shards only pay once the farming shard node (or an admin grant) says so. */
@@ -669,6 +718,7 @@ public class FarmPlotManager {
         }
         if (shards > 0) data.addShards(shards);
         data.addCropsHarvested(1L);
+        checkCropUnlocks(player, data);
         // A boss is measured in crops, so it moves with the same counter
         // rather than with the Coins the crop happened to pay.
         plugin.getBossManager().onHarvest(player, 1L);

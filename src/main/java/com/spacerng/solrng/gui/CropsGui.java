@@ -98,8 +98,18 @@ public class CropsGui {
             lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to plant");
         } else {
             lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Locked");
-            lore.add(ChatColor.RED + Lore.BULLET + " " + ChatColor.GRAY + "Unlock it in "
-                    + ChatColor.YELLOW + "/farmtree");
+            long at = farm.unlockAt(crop);
+            if (at > 0) {
+                // V279: opens with farming, no price.
+                long have = Math.min(at, data.getCropsHarvested());
+                lore.add(Lore.stat(ChatColor.AQUA, "Crops farmed",
+                        String.format("%,d", have) + " / " + String.format("%,d", at)));
+                lore.add(Lore.bar(have / (double) at));
+                lore.add(ChatColor.RED + Lore.BULLET + " " + ChatColor.GRAY + "Opens by itself, no cost");
+            } else {
+                lore.add(ChatColor.RED + Lore.BULLET + " " + ChatColor.GRAY + "Unlock it in "
+                        + ChatColor.YELLOW + "/farmtree");
+            }
         }
 
         meta.setLore(lore);

@@ -387,6 +387,19 @@ public class SkillTreeManager {
             return false;
         }
         if (!requirementMet(data, node)) return false;
+        // V279: a crop that opens by crops farmed cannot be bought.
+        if (node.getEffect() == SkillNode.Effect.UNLOCK_CROP) {
+            var plugin = org.bukkit.plugin.java.JavaPlugin.getPlugin(com.spacerng.solrng.SolRNGPlugin.class);
+            var crop = plugin.getFarmPlotManager().cropOpenedByCount(nodeId);
+            if (crop != null) {
+                player.sendMessage(ChatColor.YELLOW + crop.getDisplay() + ChatColor.GRAY
+                        + " opens by itself at " + ChatColor.WHITE
+                        + String.format("%,d", plugin.getFarmPlotManager().unlockAt(crop))
+                        + ChatColor.GRAY + " crops farmed. You have "
+                        + String.format("%,d", data.getCropsHarvested()) + ".");
+                return false;
+            }
+        }
 
         double price = priceFor(data, node);
         // A free purchase is spent before any currency is looked at, so it

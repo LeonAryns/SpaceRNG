@@ -178,6 +178,16 @@ public final class StatSources {
             parts.add(new Part("Luck limit", "Raise it with /limitluck",
                     data.getLuckLimitPercent() / 100.0, Op.MULTIPLY));
         }
+        // V279: /limitluck picks the Luck itself. Never raises it: only when
+        // the real figure is above the choice does it scale down to it.
+        double cap = data.getLuckCap();
+        if (cap >= 0) {
+            double raw = fold(parts);
+            if (raw > cap) {
+                parts.add(new Part("Luck limit", "Change it with /limitluck",
+                        raw <= 0 ? 0.0 : cap / raw, Op.MULTIPLY));
+            }
+        }
 
         return new Stat(Id.LUCK, "Luck",
                 "Shifts every roll toward the rarer end of the table.",

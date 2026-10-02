@@ -830,6 +830,16 @@ farming:
       - coin_potion
       - enchant_potion
 
+  # V279: each next crop opens by itself after this many crops farmed, at
+  # no cost; its farm tree node is granted with it and cannot be bought.
+  # Leave a crop out (or 0) to open it through the farm tree again.
+  crop-unlock-at:
+    CARROTS: 10000
+    POTATOES: 25000
+    BEETROOTS: 50000
+    NETHER_WART: 100000
+    SWEET_BERRIES: 250000
+
   crop-types:
     WHEAT:
       display: "Wheat"
@@ -6259,6 +6269,8 @@ first-ten:
   # V278: a Shiny First 10 as well, the first players to roll a shiny of
   # any rarity, with its own banner and its card in /firsts.
   shiny: true
+  # V279: the shiny list holds five, the rarity lists keep slots below.
+  shiny-slots: 5
   enabled: true
   slots: 5
   rarities: [LEGENDARY, MYTHICAL, DIVINE]

@@ -60,7 +60,7 @@ public class FirstsGui {
     private static ItemStack shinyIcon(SolRNGPlugin plugin) {
         FirstTenManager firsts = plugin.getFirstTenManager();
         List<FirstTenManager.Entry> entries = firsts.shinyEntries();
-        int slots = firsts.slots();
+        int slots = firsts.shinySlots();
         int left = Math.max(0, slots - entries.size());
         ItemStack item = new ItemStack(Material.AMETHYST_CLUSTER);
         ItemMeta meta = item.getItemMeta();
