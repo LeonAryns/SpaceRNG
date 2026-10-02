@@ -57,6 +57,7 @@ final class SignatureConcepts {
         d.put("ember", "two circles on the floor and six flames breathing at the waist");
         d.put("eclipse", "a ring standing round the body, sweeping over a wide floor");
         d.put("ascend", "a slanted orbit, stars bursting over the floor and a lantern atom");
+        d.put("solstice", "ascend without the lanterns: two slanted orbits crossing, flames at the waist");
         d.put("signature", "whichever of the four painted looks the rarity wears");
         d.put("prism", "the sigil with a ring standing through it");
         d.put("pyre", "the flames with wings of fire off the back");
@@ -87,6 +88,7 @@ final class SignatureConcepts {
             case "ember" -> ember(color);
             case "eclipse" -> eclipse(color);
             case "ascend" -> ascend(color);
+            case "solstice" -> solstice(color);
             case "signature" -> forRarity(rarity, color);
             case "prism" -> prism(color);
             case "pyre" -> pyre(color);
@@ -220,6 +222,26 @@ final class SignatureConcepts {
                 new PlateRing(color, 215, -0.85f, 2.55f, 10, 0.10f, 0.8f, 25f, 5, 9.0, 5.0).behind(),
                 groundStars(color),
                 lanterns());
+    }
+
+    /**
+     * Ascend without the sea lantern atom, for Supernova (V242). The three
+     * floor circles, the bursting floor stars and the slanted orbit stay;
+     * where the lanterns were, a second orbit tipped the same amount swings
+     * the other way, so the two cross and part round the body, and six
+     * flames breathe at the waist, Comet's flames carried up the ladder.
+     * Plates only, so all of it wears the tag's colour.
+     */
+    private static AuraConcept solstice(Color color) {
+        Color soft = softer(color);
+        return new AuraConcepts.Combined(
+                new PlateRing(color, 240, FEET + 0.01f, 2.30f, 16, 0.13f, 1.0f, 0f, 0, 0.0, 0.0),
+                new PlateRing(soft, 165, FEET + 0.02f, 3.30f, 10, 0.08f, 0.45f, 0f, 4, 5.0, 0.0),
+                new PlateRing(soft, 120, FEET + 0.03f, 4.10f, 8, 0.06f, 0.35f, 0f, 8, -5.5, 0.0),
+                new PlateRing(color, 215, -0.85f, 2.55f, 10, 0.10f, 0.8f, 25f, 5, 9.0, 5.0).behind(),
+                new PlateRing(soft, 195, -0.85f, 2.20f, 10, 0.09f, 0.7f, 25f, 5, -9.0, -5.0).behind(),
+                groundStars(color),
+                new Petals(soft, 195, -1.15f, 1.20f, 6, 0.30f, 1.00f, 18f, 5, 12));
     }
 
     // ------------------------------------------------------- the four shinies

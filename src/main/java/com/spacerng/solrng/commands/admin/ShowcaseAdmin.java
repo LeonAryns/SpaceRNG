@@ -277,6 +277,54 @@ final class ShowcaseAdmin extends AdminTools {
         return true;
     }
 
+    /**
+     * /rngadmin auratest rank <rank> [rarity]: wears exactly what that rank
+     * gets from auras.by-rank, in the rarity's colours and with its accent,
+     * so the ladder can be walked rank by rank without changing anyone's
+     * rank (V242). With no rank it lists what each rank wears.
+     */
+    private boolean doRankAuraTest(Player player, String[] args) {
+        org.bukkit.configuration.ConfigurationSection looks =
+                plugin.getConfig().getConfigurationSection("auras.by-rank.looks");
+        if (looks == null || looks.getKeys(false).isEmpty()) {
+            player.sendMessage(ChatColor.RED + "No rank auras in config (auras.by-rank.looks).");
+            return true;
+        }
+        if (args.length < 3) {
+            player.sendMessage(ChatColor.AQUA + "Rank auras:");
+            for (String rank : looks.getKeys(false)) {
+                player.sendMessage(ChatColor.YELLOW + " " + rank + ChatColor.GRAY + "  " + looks.getString(rank));
+            }
+            player.sendMessage(ChatColor.GRAY + "/rngadmin auratest rank <rank> [rarity]");
+            return true;
+        }
+        String rank = args[2].toLowerCase(Locale.ROOT);
+        String look = looks.getString(rank);
+        if (look == null || look.isBlank()) {
+            player.sendMessage(ChatColor.RED + "No aura for rank " + rank + ". Try "
+                    + String.join("|", looks.getKeys(false)) + ".");
+            return true;
+        }
+        Rarity rarity = Rarity.DIVINE;
+        if (args.length >= 4) {
+            rarity = parseRarity(player, args[3]);
+            if (rarity == null) return true;
+        }
+        String[] own = plugin.getAuraManager().lookFor(rarity);
+        com.spacerng.solrng.aura.AuraAccent accent = own == null ? null
+                : com.spacerng.solrng.aura.AuraAccent.parse(own[1]);
+        if (accent == null) accent = com.spacerng.solrng.aura.AuraAccent.NONE;
+        look = look.toLowerCase(Locale.ROOT);
+        if (!plugin.getAuraManager().show(player, look, rarity, accent)) {
+            player.sendMessage(ChatColor.RED + "Rank " + rank + " names a look that does not exist: " + look + ".");
+            return true;
+        }
+        player.sendMessage(ChatColor.GREEN + "Wearing the " + ChatColor.WHITE + rank + ChatColor.GREEN
+                + " aura (" + look + ") in " + plugin.getRarityManager().style(rarity, rarity.displayName())
+                + ChatColor.GREEN + " colours. " + ChatColor.GRAY + "/rngadmin auratest off to remove.");
+        return true;
+    }
+
     private static String yesNo(boolean on) {
         return (on ? ChatColor.GREEN + "on" : ChatColor.RED + "off") + ChatColor.GRAY;
     }
@@ -304,6 +352,7 @@ final class ShowcaseAdmin extends AdminTools {
                     + String.join(", ", com.spacerng.solrng.aura.AuraAccent.KEYS));
             return true;
         }
+        if (key.equals("rank")) return doRankAuraTest(player, args);
         if (key.equals("off")) {
             plugin.getAuraManager().endTest(player);
             sender.sendMessage(ChatColor.GRAY + "Aura removed.");

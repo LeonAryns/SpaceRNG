@@ -195,6 +195,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         line(sender, "enchantstyles", "[style] [enchant]", "An enchant card in every style");
         line(sender, "novastyles", "[style] [consumable]", "The Nova Core and other consumables in every style");
         line(sender, "auratest", "<look|off|list> [rarity] [accent]", "Wear a worn aura look to test it");
+        line(sender, "auratest rank", "<rank> [rarity]", "Wear the aura a rank gets");
     }
 
     private boolean doReload(CommandSender sender) {
@@ -245,6 +246,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         }
 
         if (args.length == 4 && args[0].equalsIgnoreCase("auratest")) {
+            if (args[1].equalsIgnoreCase("rank")) return partial(args[3], List.of("epic", "legendary", "mythical", "divine"));
             return partial(args[3], com.spacerng.solrng.aura.AuraAccent.KEYS);
         }
         String sub = args[0].toLowerCase(Locale.ROOT);
@@ -326,7 +328,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
                 case "standingstyles" -> partial(args[1], com.spacerng.solrng.gui.LeaderboardGui.STANDINGS_STYLES);
                 case "enchantstyles" -> partial(args[1], com.spacerng.solrng.gui.HoeGui.ENCHANT_STYLES);
                 case "novastyles" -> partial(args[1], com.spacerng.solrng.consumable.ConsumableManager.CONSUMABLE_STYLES);
-                case "auratest" -> partial(args[1], java.util.stream.Stream.concat(com.spacerng.solrng.aura.AuraConcepts.KEYS.stream(), java.util.stream.Stream.of("off", "list")).toList());
+                case "auratest" -> partial(args[1], java.util.stream.Stream.concat(com.spacerng.solrng.aura.AuraConcepts.KEYS.stream(), java.util.stream.Stream.of("off", "list", "rank")).toList());
                 case "roll", "nextroll", "odds" -> partial(args[1], rarityNames());
                 case "unlock" -> partial(args[1], withAll(nodeIds()));
                 case "consumable" -> partial(args[1],
@@ -351,7 +353,8 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
                 case "farmfill" -> partial(args[2], List.of("confirm"));
                 case "nova" -> partial(args[2], playerNames());
                 case "give", "drops", "bank" -> partial(args[2], List.of("1", "10", "100", "1000"));
-                case "auratest" -> partial(args[2], List.of("epic", "legendary", "mythical", "divine"));
+                case "auratest" -> args[1].equalsIgnoreCase("rank") ? partial(args[2], rankAuraKeys())
+                        : partial(args[2], List.of("epic", "legendary", "mythical", "divine"));
                 case "firsts" -> partial(args[2], args[1].equalsIgnoreCase("reset") ? withAll(rarityNames()) : rarityNames());
                 case "aura", "roll", "nextroll", "unlock", "starforge", "milestones", "farmblock" ->
                         partial(args[2], playerNames());
@@ -407,6 +410,11 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         out.add("gems");
         out.add("all");
         return out;
+    }
+
+    private List<String> rankAuraKeys() {
+        var looks = plugin.getConfig().getConfigurationSection("auras.by-rank.looks");
+        return looks == null ? List.of() : List.copyOf(looks.getKeys(false));
     }
 
     private List<String> playerNames() {
