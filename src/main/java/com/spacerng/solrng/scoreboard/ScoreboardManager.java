@@ -132,7 +132,7 @@ public class ScoreboardManager {
         long need = prestige.rollsNeededForLevel(level);
         long previous = level <= 1 ? 0L : prestige.rollsNeededForLevel(level - 1);
         double span = Math.max(1.0, need - previous);
-        float progress = (float) Math.max(0.0, Math.min(0.999, (data.getTotalRolls() - previous) / span));
+        float progress = (float) Math.max(0.0, Math.min(0.999, (data.getRollsThisPrestige() - previous) / span));
         player.setLevel((int) Math.min(Integer.MAX_VALUE, data.getRollsThisPrestige()));
         player.setExp(progress);
     }

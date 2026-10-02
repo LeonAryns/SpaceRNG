@@ -147,8 +147,15 @@ public class PrestigeManager {
         return firstPrestigeLevels + data.getPrestige() * levelsIncrementPerPrestige;
     }
 
+    /**
+     * V290: rolls since the last prestige, not lifetime rolls. A prestige
+     * sets the level back to 1 and the prestige counter to 0, but this
+     * asked the lifetime count, so straight after a prestige every old roll
+     * still counted and the levels could be bought straight back (a
+     * player's bug report).
+     */
     public boolean canLevelUp(PlayerData data) {
-        return data.getTotalRolls() >= rollsNeededForNextLevel(data);
+        return data.getRollsThisPrestige() >= rollsNeededForNextLevel(data);
     }
 
     public boolean canPrestige(PlayerData data) {

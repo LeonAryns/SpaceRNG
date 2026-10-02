@@ -248,6 +248,8 @@ final class ProgressionClicks {
                         + ChatColor.LIGHT_PURPLE + "+" + prestige.getPointsPerPrestige()
                         + ChatColor.GRAY + " Prestige Points to spend.");
                 player.playSound(player.getLocation(), org.bukkit.Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0f, 1.0f);
+                // The prestige shows in tab (V290).
+                plugin.getRankManager().refreshName(player);
             } else {
                 player.sendMessage(ChatColor.RED + "You don't have enough levels to ascend yet.");
                 return;

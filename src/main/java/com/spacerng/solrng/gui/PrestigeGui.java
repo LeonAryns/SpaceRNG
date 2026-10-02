@@ -134,8 +134,9 @@ public class PrestigeGui {
         lore.add(Lore.line(ChatColor.GRAY, "levels are what a prestige asks for."));
         lore.add("");
         lore.add(Lore.section(ChatColor.YELLOW, "Requirements"));
-        lore.add(Lore.requirement("Rolls", Lore.shorten(data.getTotalRolls()), Lore.shorten(needed), can));
-        lore.add(Lore.bar(needed <= 0 ? 1.0 : (double) data.getTotalRolls() / needed));
+        // Rolls since the last prestige, the number the level up asks (V290).
+        lore.add(Lore.requirement("Rolls", Lore.shorten(data.getRollsThisPrestige()), Lore.shorten(needed), can));
+        lore.add(Lore.bar(needed <= 0 ? 1.0 : (double) data.getRollsThisPrestige() / needed));
         lore.add("");
         if (can) {
             lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to level up");

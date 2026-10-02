@@ -401,7 +401,11 @@ public class RankManager {
         // since TAB went the tab showed only the badge and the name.
         String tag = plugin.getTagManager() == null ? "" : plugin.getTagManager().getPrefix(player);
         // A starter wears [M] (V257: Leon put it back after V253 took it off).
-        return tag + badgeOf(shownRankOf(data), stops) + coloredName(player);
+        // V290: the prestige after the name, once there is one.
+        String prestige = data.getPrestige() > 0
+                ? ChatColor.DARK_GRAY + " [" + ChatColor.LIGHT_PURPLE + "P" + data.getPrestige() + ChatColor.DARK_GRAY + "]"
+                : "";
+        return tag + badgeOf(shownRankOf(data), stops) + coloredName(player) + prestige;
     }
 
     /** The badge, the name in the rank's colours and the cosmetic title, for chat and join lines. */
