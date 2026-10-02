@@ -501,8 +501,9 @@ farming:
       color: "&c"
       max-level: 10000
       base-cap: 10000
-      per-level: 0.0002
-      # 20% of crops at the ceiling. Level 1 costs 1,274, level 1,000 costs 691,763,
+      # V265: 50x lower, Leon's call; it was 0.0002 (20% at the ceiling).
+      per-level: 0.000004
+      # 0.4% of crops at the ceiling. Level 1 costs 1,274, level 1,000 costs 691,763,
       # 261,508,830 Coins for all of it.
 
     POTION_FINDER:
@@ -737,6 +738,24 @@ farming:
       per-level: 0.0000003
       # 0.03% of crops at the ceiling. Level 1 costs 42,396, level 1,000 costs 23,031,941,
       # 8,706,815,878 Coins for all of it.
+
+    # V265: walking speed while the hoe is in your hand. Always on and
+    # unlocked from the start, no farm tree node. Capped at +50% in code.
+    WALK_SPEED:
+      display: "Speed"
+      icon: SUGAR
+      always-unlocked: true
+      base-cost: 500
+      cost-linear: 80
+      cost-step: 0.2
+      cost-power: 2.0
+      description: "Walk faster while you hold the hoe."
+      color: "&b"
+      max-level: 10000
+      base-cap: 10000
+      per-level: 0.00005
+      # +50% walking speed at the ceiling. Level 1 costs 580, level 1,000 costs 280,500,
+      # 107,306,700 Coins for all of it.
 
   # ---- The golden crop ----
   # Exactly one plot in the field is worth many times the others, per

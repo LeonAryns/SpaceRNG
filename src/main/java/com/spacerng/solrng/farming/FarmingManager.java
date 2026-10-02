@@ -217,6 +217,30 @@ public class FarmingManager {
         refreshHoe(player, data);
     }
 
+    private static final org.bukkit.NamespacedKey WALK_SPEED_KEY =
+            com.spacerng.solrng.SolRNGPlugin.key("hoe_walk_speed");
+
+    /**
+     * The Speed enchant (V265): extra walking speed while the bound hoe is
+     * in the main hand, never more than +50%. Transient, so nothing is
+     * saved on the player and a missing plugin leaves no speed behind.
+     */
+    public void refreshWalkSpeed(org.bukkit.entity.Player player, com.spacerng.solrng.player.PlayerData data) {
+        var attribute = player.getAttribute(org.bukkit.attribute.Attribute.MOVEMENT_SPEED);
+        if (attribute == null) return;
+        double want = 0.0;
+        if (isBoundHoe(player.getInventory().getItemInMainHand())) {
+            want = Math.max(0.0, Math.min(0.5, plugin.getHoeEnchantManager().powerOf(data, "WALK_SPEED")));
+        }
+        var current = attribute.getModifier(WALK_SPEED_KEY);
+        if (current != null && Math.abs(current.getAmount() - want) < 1e-9) return;
+        if (current != null) attribute.removeModifier(current);
+        if (want > 0) {
+            attribute.addTransientModifier(new org.bukkit.attribute.AttributeModifier(WALK_SPEED_KEY, want,
+                    org.bukkit.attribute.AttributeModifier.Operation.ADD_SCALAR));
+        }
+    }
+
     /** True if the player carries a bound hoe, in the inventory or the ender chest. */
     public boolean hasBoundHoe(org.bukkit.entity.Player player) {
         for (ItemStack item : player.getInventory().getContents()) if (isBoundHoe(item)) return true;

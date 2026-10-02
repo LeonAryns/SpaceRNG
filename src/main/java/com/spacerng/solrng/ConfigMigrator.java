@@ -90,6 +90,8 @@ public final class ConfigMigrator {
             "world-time.clear-weather",
             // V241: the player count under the bot's name.
             "discord.bot.status",
+            // V265: the Speed enchant on the hoe.
+            "farming.enchants.WALK_SPEED",
             // V235: the Owner and Member ranks, and Owner's aura.
             "ranks.tiers.member", "ranks.tiers.owner",
             "auras.by-rank.looks.owner", "auras.rank-scale.owner",
@@ -174,6 +176,8 @@ public final class ConfigMigrator {
     }
 
     private static final List<Patch> PATCHES = List.of(
+            // V265: TNT Blast fires 50x less often, Leon's call.
+            new Patch("blast-chance-50x-lower", "farming.enchants.BLAST_HARVEST.per-level", 0.0002, 0.000004),
             // V251: the tag showed twice, floating and in front of the name.
             new Patch("tag-no-nametag-prefix", "tag.manage-nametag", true, false),
             // V249: Member is what every starter wears now; mint, not grey.

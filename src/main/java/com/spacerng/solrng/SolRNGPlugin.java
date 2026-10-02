@@ -726,6 +726,7 @@ public final class SolRNGPlugin extends JavaPlugin {
             for (Player player : getServer().getOnlinePlayers()) {
                 PlayerData data = playerDataManager.get(player.getUniqueId());
                 data.setSkillSpeedBonus(skillTreeManager.skillSpeed(data));
+                farmingManager.refreshWalkSpeed(player, data);
             }
         }, 5L, 5L);
 

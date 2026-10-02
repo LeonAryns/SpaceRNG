@@ -293,7 +293,7 @@ public class HoeEnchantManager {
     }
 
     /** Enchants whose number is a bonus rather than a chance; they grow without a ceiling. */
-    private static final java.util.Set<String> ALWAYS_ON = java.util.Set.of("TOKEN_GREED", "MOMENTUM");
+    private static final java.util.Set<String> ALWAYS_ON = java.util.Set.of("TOKEN_GREED", "MOMENTUM", "WALK_SPEED");
 
     /** The same figure the skill tree quotes, for one player. */
     public String describePower(PlayerData data, String enchantId) {
