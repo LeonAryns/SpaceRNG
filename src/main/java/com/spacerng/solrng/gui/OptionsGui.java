@@ -40,6 +40,9 @@ public class OptionsGui {
         inv.setItem(OptionsHolder.ANIMATION_SLOT, toggleItem(Material.ITEM_FRAME,
                 "Rolling Animation", data.isRollAnimationEnabled(),
                 "The item names flashing on screen mid-roll."));
+        inv.setItem(OptionsHolder.VAULT_MESSAGE_SLOT, toggleItem(Material.CHEST,
+                "Vault Full Message", data.isVaultFullMessage(),
+                "The line in chat when one of", "your vaults is full."));
         inv.setItem(OptionsHolder.WORN_AURA_SLOT, toggleItem(Material.AMETHYST_CLUSTER,
                 "Worn Auras", data.isWornAurasVisible(),
                 "The auras players wear with an", "Epic or rarer tag, yours too."));

@@ -264,7 +264,7 @@ public class RankManager {
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         String[] stops = plugin.getCosmeticManager() == null
                 ? null : plugin.getCosmeticManager().stopsFor(data);
-        return badgeOf(shownRankOf(data), stops);
+        return badgeOf(rankOf(data), stops);
     }
 
     /** The tag alone, in the rank colours. Kept for anywhere the symbol still reads better. */
@@ -370,13 +370,15 @@ public class RankManager {
         // The equipped index tag leads (V252). TAB used to put it there;
         // since TAB went the tab showed only the badge and the name.
         String tag = plugin.getTagManager() == null ? "" : plugin.getTagManager().getPrefix(player);
-        return tag + badgeOf(shownRankOf(data), stops) + coloredName(player);
+        // The badge only for a real rank or a link (V253): a starter wears
+        // Member's colours but no [M].
+        return tag + badgeOf(rankOf(data), stops) + coloredName(player);
     }
 
     /** The badge, the name in the rank's colours and the cosmetic title, for chat and join lines. */
     public String fullName(Player player) {
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
-        RankTier tier = shownRankOf(data);
+        RankTier tier = rankOf(data);
         String title = plugin.getCosmeticManager() == null
                 ? "" : plugin.getCosmeticManager().suffixOf(data);
         String[] stops = plugin.getCosmeticManager() == null

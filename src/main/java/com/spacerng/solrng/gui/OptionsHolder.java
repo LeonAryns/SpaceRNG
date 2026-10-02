@@ -20,6 +20,7 @@ public class OptionsHolder implements MenuHolder {
     // you at all. Two different questions - a player can want the party
     // without the chat spam, or the other way round.
     public static final int SOUND_SLOT = 11;
+    public static final int VAULT_MESSAGE_SLOT = 4;
     public static final int ANIMATION_SLOT = 15;
     public static final int WORN_AURA_SLOT = 13;
     public static final int OWN_AURA_SLOT = 22;

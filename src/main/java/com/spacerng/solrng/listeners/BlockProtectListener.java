@@ -34,4 +34,13 @@ public class BlockProtectListener implements Listener {
         if (plugin.getFarmingManager().isCrop(block.getType())) return;
         event.setCancelled(true);
     }
+
+    /**
+     * Bought armor never wears out (V253). New pieces are marked
+     * unbreakable; this covers the pieces handed out before that.
+     */
+    @EventHandler(ignoreCancelled = true)
+    public void onArmorDamage(org.bukkit.event.player.PlayerItemDamageEvent event) {
+        if (plugin.getArmorManager().isPluginArmor(event.getItem())) event.setCancelled(true);
+    }
 }

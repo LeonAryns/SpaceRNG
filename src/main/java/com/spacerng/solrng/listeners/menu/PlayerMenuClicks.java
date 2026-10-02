@@ -66,6 +66,9 @@ final class PlayerMenuClicks {
         if (rawSlot == OptionsHolder.SOUND_SLOT) {
             data.setRollSoundEnabled(!data.isRollSoundEnabled());
             player.openInventory(OptionsGui.build(plugin, player));
+        } else if (rawSlot == OptionsHolder.VAULT_MESSAGE_SLOT) {
+            data.setVaultFullMessage(!data.isVaultFullMessage());
+            player.openInventory(OptionsGui.build(plugin, player));
         } else if (rawSlot == OptionsHolder.ANIMATION_SLOT) {
             data.setRollAnimationEnabled(!data.isRollAnimationEnabled());
             player.openInventory(OptionsGui.build(plugin, player));

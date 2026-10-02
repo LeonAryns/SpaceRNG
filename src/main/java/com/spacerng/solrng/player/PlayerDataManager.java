@@ -133,6 +133,7 @@ public class PlayerDataManager {
         data.setLevel(yml.getInt("level", 1));
         data.setPrestige(yml.getInt("prestige", 0));
         data.setRollSoundEnabled(yml.getBoolean("roll-sound-enabled", true));
+        data.setVaultFullMessage(yml.getBoolean("vault-full-message", true));
         data.setRollAnimationEnabled(yml.getBoolean("roll-animation-enabled", true));
         data.setWornAurasVisible(yml.getBoolean("worn-auras-visible", true));
         data.setOwnAuraView(yml.getString("own-aura-view", "ground"));
@@ -402,6 +403,7 @@ public class PlayerDataManager {
         yml.set("level", data.getLevel());
         yml.set("prestige", data.getPrestige());
         yml.set("roll-sound-enabled", data.isRollSoundEnabled());
+        yml.set("vault-full-message", data.isVaultFullMessage());
         yml.set("roll-animation-enabled", data.isRollAnimationEnabled());
         yml.set("worn-auras-visible", data.isWornAurasVisible());
         yml.set("own-aura-view", data.getOwnAuraView());

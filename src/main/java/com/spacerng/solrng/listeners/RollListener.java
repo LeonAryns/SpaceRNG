@@ -168,6 +168,7 @@ public class RollListener implements Listener {
 
     /** Says the vault is full, at most once a minute. */
     private void warnVaultFull(Player player, Rarity rarity) {
+        if (!plugin.getPlayerDataManager().get(player.getUniqueId()).isVaultFullMessage()) return;
         long now = System.currentTimeMillis();
         Long last = vaultWarned.get(player.getUniqueId());
         if (last != null && now - last < 60_000L) return;

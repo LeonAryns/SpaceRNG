@@ -118,6 +118,9 @@ public class ArmorManager {
         meta.setDisplayName(ChatColor.AQUA + tier.pieceDisplay(piece));
         meta.setLore(statLines(tier));
         meta.getPersistentDataContainer().set(tierKey, PersistentDataType.STRING, tier.getId());
+        // Bought armor never wears out (V253).
+        meta.setUnbreakable(true);
+        meta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_UNBREAKABLE);
         item.setItemMeta(meta);
 
         // Straight onto the body when it beats what's there: an empty slot,
@@ -187,6 +190,11 @@ public class ArmorManager {
             data.setArmorLuckBonus(luck);
             data.setArmorSpeedBonus(speed);
         }
+    }
+
+    /** Plugin armor, which never takes durability damage (V253). */
+    public boolean isPluginArmor(ItemStack piece) {
+        return tierOf(piece) != null;
     }
 
     private String tierOf(ItemStack piece) {
