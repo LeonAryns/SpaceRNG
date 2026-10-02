@@ -222,7 +222,7 @@ public class FarmingManager {
 
     /**
      * The Speed enchant (V265): extra walking speed while the bound hoe is
-     * in the main hand, never more than +500% (V267). Transient, so nothing is
+     * in the main hand, never more than +250% (V270). Transient, so nothing is
      * saved on the player and a missing plugin leaves no speed behind.
      */
     public void refreshWalkSpeed(org.bukkit.entity.Player player, com.spacerng.solrng.player.PlayerData data) {
@@ -230,7 +230,7 @@ public class FarmingManager {
         if (attribute == null) return;
         double want = 0.0;
         if (isBoundHoe(player.getInventory().getItemInMainHand())) {
-            want = Math.max(0.0, Math.min(5.0, plugin.getHoeEnchantManager().powerOf(data, "WALK_SPEED")));
+            want = Math.max(0.0, Math.min(2.5, plugin.getHoeEnchantManager().powerOf(data, "WALK_SPEED")));
         }
         var current = attribute.getModifier(WALK_SPEED_KEY);
         if (current != null && Math.abs(current.getAmount() - want) < 1e-9) return;

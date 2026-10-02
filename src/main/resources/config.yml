@@ -549,10 +549,11 @@ farming:
       color: "&b"
       max-level: 10000
       base-cap: 10000
-      per-level: 0.00001
+      # V270: 0.1% of crops at the ceiling after proc-scale (x0.2), Leon's call.
+      per-level: 0.0000005
 
     # ---- The late ones ----
-      # 1% of crops at the ceiling. Level 1 costs 2,775, level 1,000 costs 1,507,518,
+      # 0.5% before proc-scale, 0.1% after. Level 1 costs 2,775, level 1,000 costs 1,507,518,
       # 569,890,568 Coins for all of it.
 
     NUKE:
@@ -742,7 +743,7 @@ farming:
       # 8,706,815,878 Coins for all of it.
 
     # V265: walking speed while the hoe is in your hand. Always on and
-    # unlocked from the start, no farm tree node. Capped at +500% in code.
+    # unlocked from the start, no farm tree node. Capped at +250% in code.
     WALK_SPEED:
       display: "Speed"
       icon: SUGAR
@@ -755,8 +756,8 @@ farming:
       color: "&b"
       max-level: 10000
       base-cap: 10000
-      per-level: 0.0005
-      # +500% walking speed at the ceiling (V267). Level 1 costs 580, level 1,000 costs 280,500,
+      per-level: 0.00025
+      # +250% walking speed at the ceiling (V270). Level 1 costs 580, level 1,000 costs 280,500,
       # 107,306,700 Coins for all of it.
 
   # ---- The golden crop ----

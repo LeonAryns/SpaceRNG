@@ -176,6 +176,9 @@ public final class ConfigMigrator {
     }
 
     private static final List<Patch> PATCHES = List.of(
+            // V270: Speed to +250%, Nova Finder to 0.1% at the ceiling.
+            new Patch("walk-speed-250", "farming.enchants.WALK_SPEED.per-level", 0.0005, 0.00025),
+            new Patch("nova-finder-0.1", "farming.enchants.NOVA_FINDER.per-level", 0.00001, 0.0000005),
             // V268: Momentum climbs ten times faster.
             new Patch("momentum-10x-faster", "farming.momentum.per-thousand-crops", 0.01, 0.1),
             // V267: Leon's numbers. Speed to +500%, TNT Blast 3x rarer and
