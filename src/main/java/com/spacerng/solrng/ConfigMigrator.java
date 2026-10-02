@@ -174,6 +174,11 @@ public final class ConfigMigrator {
     }
 
     private static final List<Patch> PATCHES = List.of(
+            // V245: Leon's numbers. Intermediate +50 Speed, and a finished
+            // rarity 2x Luck, a finished shiny rarity 5x.
+            new Patch("starforge-intermediate-speed-50", "starforge.tiers.INTERMEDIATE.speed-bonus", 5.0, 0.50),
+            new Patch("index-completion-2x", "index.completion.per-rarity", 1.25, 2.0),
+            new Patch("index-completion-shiny-5x", "index.completion.per-shiny-rarity", 2.0, 5.0),
             // V243: the tab in two columns, the layout Leon pointed at.
             new Patch("tab-header-columns", "tab.header",
                     List.of("", "{title}", "&8{online}&7/&8{max} online", ""),

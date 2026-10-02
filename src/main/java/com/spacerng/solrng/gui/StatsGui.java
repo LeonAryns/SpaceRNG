@@ -98,7 +98,7 @@ public class StatsGui {
         lore.add(Lore.line(card.accent(), stat.blurb()));
         lore.add("");
         lore.add(card.accent() + Lore.BULLET + " " + ChatColor.GRAY + "Total: "
-                + card.accent() + ChatColor.BOLD + format(stat.format(), stat.total()));
+                + card.accent() + ChatColor.BOLD + format(stat.format(), stat.shown()));
         lore.add("");
 
         List<StatSources.Part> ranked = new ArrayList<>(stat.parts());
@@ -167,7 +167,7 @@ public class StatsGui {
         lore.add(Lore.line(accent, stat.blurb()));
         lore.add("");
         lore.add(accent + Lore.BULLET + " " + ChatColor.GRAY + "Total: "
-                + accent + ChatColor.BOLD + format(stat.format(), stat.total()));
+                + accent + ChatColor.BOLD + format(stat.format(), stat.shown()));
         if (!stat.note().isEmpty()) {
             lore.add("");
             lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " " + stat.note());

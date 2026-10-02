@@ -123,7 +123,7 @@ public class ChatTagsListener implements Listener {
 
     /** The same reading /stats gives: +150% for Luck, 150 for Speed, 1.50x for the rest. */
     public static String format(StatSources.Stat stat) {
-        double v = stat.total();
+        double v = stat.shown();
         return switch (stat.id()) {
             case LUCK -> "+" + String.format("%,.2f", v * 100.0) + "%";
             case SPEED -> String.format("%,d", Math.round(v * 100.0));

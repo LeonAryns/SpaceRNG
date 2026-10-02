@@ -69,8 +69,24 @@ public final class StatSources {
     }
 
     /** A finished stat: what it's called, what built it, what it came to. */
+    /**
+     * @param scale what the total is divided by before it is shown. Money
+     *              pays at a base of 10x odds; Leon wants that base to read
+     *              as a normal 1x and only the real multipliers to show
+     *              on top of it (V245). Payouts keep reading total().
+     */
     public record Stat(Id id, String name, String blurb, Format format,
-                       List<Part> parts, double total, String note) {
+                       List<Part> parts, double total, String note, double scale) {
+
+        public Stat(Id id, String name, String blurb, Format format,
+                    List<Part> parts, double total, String note) {
+            this(id, name, blurb, format, parts, total, note, 1.0);
+        }
+
+        /** The number a player is shown. */
+        public double shown() {
+            return scale == 0.0 ? total : total / scale;
+        }
     }
 
     private StatSources() {
@@ -218,8 +234,8 @@ public final class StatSources {
         SkillTreeManager skills = plugin.getSkillTreeManager();
         List<Part> parts = new ArrayList<>();
 
-        parts.add(new Part("Base rate", "Every roll pays odds x this",
-                plugin.getConfig().getDouble("economy.money-per-odds-multiplier", 10.0), Op.ADD, false));
+        double base = plugin.getConfig().getDouble("economy.money-per-odds-multiplier", 10.0);
+        parts.add(new Part("Base rate", "Every roll pays odds x this", base, Op.ADD, false));
         parts.add(new Part("Nova Core", "Hold Nova Cores - see /nova",
                 plugin.getNovaCoreManager().multiplierAt(data.getNovaTier()), Op.MULTIPLY));
         parts.add(new Part("Prestige upgrades", "Spend Prestige Points in /prestige",
@@ -245,7 +261,7 @@ public final class StatSources {
         return new Stat(Id.MONEY, "Money",
                 "What rolling pays. Rarer drops pay more of it.",
                 Format.MULTIPLIER, parts, fold(parts),
-                "A duplicate pays extra on top, if you've bought Duplicate Value.");
+                "A duplicate pays extra on top, if you've bought Duplicate Value.", base);
     }
 
     // ------------------------------------------------------------ coins

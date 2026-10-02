@@ -213,11 +213,9 @@ starforge:
       display: "Intermediate Starforge"
       colors: ["#2FBF4F", "#A6F26B"]
       luck-bonus: 0.50
-      # Leon asked for +5 Speed here rather than the 0.05 it was. Speed
-      # divides the roll time, so the pile starting at 1.0 and this adding
-      # 5 makes a roll six times faster, which is quicker than every tier
-      # above it. Left as asked; those tiers need raising to match.
-      speed-bonus: 5.0
+      # +50 Speed, as the sidebar counts it (V245, Leon's call; it was 5.0,
+      # +500, faster than every tier above it).
+      speed-bonus: 0.50
       costs:
         COMMON: 75
         UNCOMMON: 25
@@ -1922,8 +1920,8 @@ index:
   # Gated behind the same Tag Luck skill the tag multiplier is: until
   # that's bought, the index is a collection log and nothing more.
   completion:
-    per-rarity: 1.25
-    per-shiny-rarity: 2.0
+    per-rarity: 2.0
+    per-shiny-rarity: 5.0
 
 # How many points ("Credits") a single item of each rarity is worth
 # when converted via /convert.

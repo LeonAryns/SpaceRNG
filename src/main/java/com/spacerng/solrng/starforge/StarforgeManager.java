@@ -297,7 +297,9 @@ public class StarforgeManager {
         lore.add((speed < 0 ? ChatColor.RED : ChatColor.AQUA)
                 + com.spacerng.solrng.gui.Lore.BULLET + " " + ChatColor.GRAY + "Speed: "
                 + (speed < 0 ? ChatColor.RED : ChatColor.WHITE)
-                + (speed < 0 ? "-" : "+") + formatPercent(Math.abs(speed)) + "%");
+                // Speed is a stat, as on the sidebar (0.50 is +50 Speed),
+                // not a percent (V245).
+                + (speed < 0 ? "-" : "+") + Math.round(Math.abs(speed) * 100.0) + " Speed");
 
         StarforgeTier.Ability ability = tier.getAbility();
         lore.add("");
