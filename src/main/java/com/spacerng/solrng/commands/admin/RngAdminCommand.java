@@ -326,7 +326,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
                 case "drops", "bank" -> partial(args[1], withAll(rarityNames()));
                 case "aura" -> partial(args[1], List.of("epic", "legendary", "mythical", "divine"));
                 case "shiny", "head", "reveal" -> partial(args[1], playerNames());
-                case "firsts" -> partial(args[1], List.of("list", "reset", "preview"));
+                case "firsts" -> partial(args[1], List.of("list", "reset", "remove", "preview"));
                 case "lorestyles" -> partial(args[1], rarityNames());
                 case "tagstyles" -> partial(args[1], RollFormat.TAG_ODDS_STYLES);
                 case "menustyles" -> partial(args[1], java.util.stream.Stream.concat(
@@ -364,7 +364,8 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
                 case "give", "drops", "bank" -> partial(args[2], List.of("1", "10", "100", "1000"));
                 case "auratest" -> args[1].equalsIgnoreCase("rank") ? partial(args[2], rankAuraKeys())
                         : partial(args[2], List.of("epic", "legendary", "mythical", "divine"));
-                case "firsts" -> partial(args[2], args[1].equalsIgnoreCase("reset") ? withAll(rarityNames()) : rarityNames());
+                case "firsts" -> partial(args[2], args[1].equalsIgnoreCase("reset") || args[1].equalsIgnoreCase("remove")
+                        ? withAll(rarityNames()) : rarityNames());
                 case "aura", "roll", "nextroll", "unlock", "starforge", "milestones", "farmblock" ->
                         partial(args[2], playerNames());
                 case "consumable" -> partial(args[2], List.of("1", "3", "5"));

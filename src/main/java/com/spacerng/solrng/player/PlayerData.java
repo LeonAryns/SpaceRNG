@@ -128,6 +128,8 @@ public class PlayerData {
     private double potionLuck = 0.0;
     private double potionSpeed = 0.0;
     private long potionRolls = 0L;
+    // Potions from Potion Finder waiting in /boosters (V264), by consumable id.
+    private final Map<String, Long> storedBoosters = new java.util.LinkedHashMap<>();
     // Multiplies Tokens earned from harvesting farm crops. 1.0 = base
     // reward. Nothing raises this yet - reserved for future farming
     // upgrades (hoe enchants, prestige tie-in, etc.).
@@ -873,6 +875,24 @@ public class PlayerData {
 
     public double getPotionSpeed() {
         return potionRolls > 0 ? potionSpeed : 0.0;
+    }
+
+    public Map<String, Long> getStoredBoosters() {
+        return storedBoosters;
+    }
+
+    public void addStoredBooster(String id, long amount) {
+        if (id == null || amount <= 0) return;
+        storedBoosters.merge(id, amount, Long::sum);
+    }
+
+    /** Takes one out; false if there was none. */
+    public boolean takeStoredBooster(String id) {
+        Long have = storedBoosters.get(id);
+        if (have == null || have <= 0) return false;
+        if (have == 1) storedBoosters.remove(id);
+        else storedBoosters.put(id, have - 1);
+        return true;
     }
 
     public long getPotionRolls() {

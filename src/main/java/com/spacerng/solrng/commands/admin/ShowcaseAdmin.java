@@ -452,7 +452,7 @@ final class ShowcaseAdmin extends AdminTools {
      */
     boolean doFirsts(CommandSender sender, String[] args) {
         com.spacerng.solrng.firsts.FirstTenManager firsts = plugin.getFirstTenManager();
-        String usage = ChatColor.RED + "Usage: /rngadmin firsts <list | reset <rarity|all> | preview <rarity>>";
+        String usage = ChatColor.RED + "Usage: /rngadmin firsts <list | reset <rarity|all> | remove <rarity|all> <player> | preview <rarity>>";
         String action = args.length >= 2 ? args[1].toLowerCase(Locale.ROOT) : "list";
         switch (action) {
             case "list" -> {
@@ -485,6 +485,24 @@ final class ShowcaseAdmin extends AdminTools {
                     firsts.reset(rarity);
                     sender.sendMessage(ChatColor.GREEN + "The " + rarity.displayName() + " First 10 spots are free again.");
                 }
+            }
+            case "remove" -> {
+                if (args.length < 4) {
+                    sender.sendMessage(usage);
+                    return true;
+                }
+                List<Rarity> from = args[2].equalsIgnoreCase("all") ? firsts.trackedRarities() : null;
+                if (from == null) {
+                    Rarity rarity = parseRarity(sender, args[2]);
+                    if (rarity == null) return true;
+                    from = List.of(rarity);
+                }
+                int removed = 0;
+                for (Rarity rarity : from) removed += firsts.remove(rarity, args[3]);
+                sender.sendMessage(removed > 0
+                        ? ChatColor.GREEN + "Took " + args[3] + " out of " + removed + " First 10 spot"
+                                + (removed == 1 ? "" : "s") + ". Everyone below moved up."
+                        : ChatColor.RED + args[3] + " holds no First 10 spot there.");
             }
             case "preview" -> {
                 if (args.length < 3) {

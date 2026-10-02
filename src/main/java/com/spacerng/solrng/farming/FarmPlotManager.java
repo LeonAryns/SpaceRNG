@@ -884,9 +884,9 @@ public class FarmPlotManager {
                 int dz = ThreadLocalRandom.current().nextInt(-lightningRadius, lightningRadius + 1);
                 Location near = normalise(plot.clone().add(dx, 0, dz));
                 if (!plots.contains(near)) continue;
-                // Effect lightning, never the real thing: the real one sets
-                // fires and kills whoever is standing in the field.
-                player.getWorld().strikeLightningEffect(near.clone().add(0.5, 0, 0.5));
+                // Drawn for the farmer alone (V264). Even effect lightning
+                // flashed and thundered for everyone on the field.
+                EnchantFx.lightning(player, near);
                 if (harvest(player, near, false)) struck++;
             }
             if (struck > 0) {
@@ -946,9 +946,11 @@ public class FarmPlotManager {
                     ThreadLocalRandom.current().nextInt(potionFinderRewards.size()));
             var found = plugin.getConsumableManager().get(id);
             if (found != null) {
-                plugin.getConsumableManager().give(player, found, 1);
+                // Into /boosters, not the inventory (V264).
+                data.addStoredBooster(found.id(), 1);
                 player.sendMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "Potion found  "
-                        + ChatColor.RESET + ChatColor.GRAY + found.display());
+                        + ChatColor.RESET + ChatColor.GRAY + found.display()
+                        + ChatColor.DARK_GRAY + "  stored in " + ChatColor.LIGHT_PURPLE + "/boosters");
                 playProc(player, data, 1.4f);
             }
         }

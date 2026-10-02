@@ -100,6 +100,8 @@ public class GuiListener implements Listener {
             progression.handlePrestigeClick(event);
         } else if (topInventory.getHolder() instanceof ArmorHolder) {
             progression.handleArmorClick(event);
+        } else if (topInventory.getHolder() instanceof com.spacerng.solrng.gui.BoostersHolder) {
+            playerMenus.handleBoostersClick(event);
         } else if (topInventory.getHolder() instanceof OptionsHolder) {
             playerMenus.handleOptionsClick(event);
         } else if (topInventory.getHolder() instanceof com.spacerng.solrng.gui.StarforgeHolder) {

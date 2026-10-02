@@ -116,6 +116,36 @@ public final class EnchantFx {
         });
     }
 
+    private static final Color BOLT = Color.fromRGB(205, 225, 255);
+
+    /**
+     * A bolt onto one crop, for the farmer alone (V264). Vanilla effect
+     * lightning flashes the sky and thunders for everyone near the field;
+     * this is a jagged column of dust from twelve blocks up, a spark burst
+     * and a flash where it lands, and the thunder only they hear.
+     */
+    public static void lightning(Player player, Location crop) {
+        Location ground = crop.clone().add(0.5, 0.2, 0.5);
+        java.util.concurrent.ThreadLocalRandom random = java.util.concurrent.ThreadLocalRandom.current();
+        Location cursor = ground.clone().add(0, 12, 0);
+        while (cursor.getY() > ground.getY()) {
+            Location next = cursor.clone().add(random.nextDouble(-0.45, 0.45), -0.9, random.nextDouble(-0.45, 0.45));
+            if (next.getY() < ground.getY()) next = ground.clone();
+            var step = next.toVector().subtract(cursor.toVector()).multiply(1.0 / 4.0);
+            Location point = cursor.clone();
+            for (int i = 0; i < 4; i++) {
+                dust(player, point, BOLT, 1.4f);
+                point.add(step);
+            }
+            cursor = next;
+        }
+        player.spawnParticle(Particle.FLASH, ground, 1, 0, 0, 0, 0, BOLT);
+        player.spawnParticle(Particle.ELECTRIC_SPARK, ground, 18, 0.4, 0.3, 0.4, 0.25);
+        float pitch = 0.9f + random.nextFloat() * 0.2f;
+        player.playSound(ground, Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 0.35f, pitch);
+        player.playSound(ground, Sound.ENTITY_LIGHTNING_BOLT_IMPACT, 0.6f, pitch + 0.3f);
+    }
+
     /** A visible arc from one crop to the next, for a chaining proc. */
     public static void arc(Player player, Location from, Location to, boolean gem) {
         Location a = from.clone().add(0.5, 0.6, 0.5);

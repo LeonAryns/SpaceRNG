@@ -178,6 +178,20 @@ public final class FirstTenManager {
         build.start();
     }
 
+    /**
+     * Takes one player's spot out of a rarity's First 10 (V264); everyone
+     * under them moves up a place. Returns how many entries went.
+     */
+    public int remove(Rarity rarity, String playerName) {
+        List<Entry> held = entries.get(rarity);
+        if (held == null) return 0;
+        int before = held.size();
+        held.removeIf(entry -> entry.name().equalsIgnoreCase(playerName));
+        int removed = before - held.size();
+        if (removed > 0) save();
+        return removed;
+    }
+
     public void reset(Rarity rarity) {
         entries.remove(rarity);
         save();

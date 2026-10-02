@@ -55,6 +55,25 @@ final class PlayerMenuClicks {
         this.plugin = plugin;
     }
 
+    /** /boosters: a click on a stored potion drinks one (V264). */
+    void handleBoostersClick(InventoryClickEvent event) {
+        event.setCancelled(true);
+        if (!(event.getClickedInventory() != null
+                && event.getClickedInventory().getHolder() instanceof com.spacerng.solrng.gui.BoostersHolder holder)) return;
+        String id = holder.slots().get(event.getRawSlot());
+        if (id == null) return;
+        Player player = (Player) event.getWhoClicked();
+        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+        var consumable = plugin.getConsumableManager().get(id);
+        if (consumable == null || !data.getStoredBoosters().containsKey(id)) return;
+        // Redeem first: a draught refused because another is running
+        // stays stored.
+        if (plugin.getConsumableManager().redeem(player, data, consumable)) {
+            data.takeStoredBooster(id);
+        }
+        player.openInventory(com.spacerng.solrng.gui.BoostersGui.build(plugin, player));
+    }
+
     void handleOptionsClick(InventoryClickEvent event) {
         event.setCancelled(true);
         if (event.getClickedInventory() == null || !(event.getClickedInventory().getHolder() instanceof OptionsHolder)) return;
