@@ -61,10 +61,12 @@ import java.util.UUID;
 public class TagManager {
 
     private static final String TEAM_PREFIX = "solrng_";
-    // Local Y offset (in the entity's own render space) for each display.
-    // Generous values to confidently clear the vanilla nameplate.
-    private static final float TOP_OFFSET = 0.82f;
-    private static final float BOTTOM_OFFSET = 0.50f;
+    // Local Y offset (in the entity's own render space) for each display,
+    // above the point the tag rides at, which is the top of the head. The
+    // vanilla nameplate sits half a block over the head, so at 0.50 the
+    // odds line covered the player's name (V263); both lines go up a line.
+    private static final float TOP_OFFSET = 1.20f;
+    private static final float BOTTOM_OFFSET = 0.86f;
     // TextDisplay entities support a real render scale (unlike chat/scoreboard
     // text, which has no font-size control at all) - this is what actually
     // makes the tag bigger above a player's head.
