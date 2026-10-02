@@ -33,6 +33,10 @@ public class JoinQuitListener implements Listener {
         }
 
         PlayerData data = plugin.getPlayerDataManager().get(event.getPlayer().getUniqueId());
+        // V287: an unlinked player is told twice in their first five
+        // minutes on, where linking is worth the most to a starter.
+        remindLink(event.getPlayer(), 30L * 20L);
+        remindLink(event.getPlayer(), 240L * 20L);
         // Offline at the season reset: their inventory goes now.
         com.spacerng.solrng.player.SeasonWipe.onJoin(plugin, event.getPlayer());
 
@@ -82,6 +86,24 @@ public class JoinQuitListener implements Listener {
         plugin.getLeaderboardManager().notePlayerCount(
                 org.bukkit.Bukkit.getOnlinePlayers().size());
         plugin.getQuestManager().check(event.getPlayer());
+    }
+
+    /** "Link your Discord for +100% Luck", if still unlinked when it is due. */
+    private void remindLink(org.bukkit.entity.Player player, long delayTicks) {
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+            if (!player.isOnline()) return;
+            if (plugin.getLinkedAccountManager().isLinked(player.getUniqueId())) return;
+            long luck = Math.round(plugin.getConfig().getDouble("linked-account.bonus.luck-percent", 1.0) * 100);
+            player.sendMessage("");
+            player.sendMessage(com.spacerng.solrng.gui.Lore.gradient("✦ DISCORD ✦", true, "#5865F2", "#7289DA", "#5865F2"));
+            player.sendMessage(ChatColor.BLUE + com.spacerng.solrng.gui.Lore.BULLET + " " + ChatColor.GRAY
+                    + "Link your Discord for " + ChatColor.GREEN + "+" + luck + "% Luck" + ChatColor.GRAY + ", for good.");
+            player.sendMessage(ChatColor.BLUE + com.spacerng.solrng.gui.Lore.BULLET + " " + ChatColor.GRAY
+                    + "Type " + ChatColor.AQUA + "/link" + ChatColor.GRAY + ", or " + ChatColor.AQUA + "/discord"
+                    + ChatColor.GRAY + " to join first.");
+            player.sendMessage("");
+            player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_NOTE_BLOCK_CHIME, 0.6f, 1.4f);
+        }, delayTicks);
     }
 
     /**

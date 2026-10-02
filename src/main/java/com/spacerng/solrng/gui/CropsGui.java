@@ -82,7 +82,15 @@ public class CropsGui {
         List<String> lore = new ArrayList<>();
         lore.add(ChatColor.DARK_GRAY + "Crop " + place + " of " + of);
         lore.add("");
-        lore.add(Lore.section(ChatColor.GREEN, "Per harvest"));
+        // V287: the unlock first, then what it pays. "Per harvest" over a
+        // Coins and a Gems line read as a price to Leon, so it says Earns.
+        long unlockAt = farm.unlockAt(crop);
+        if (unlockAt > 0) {
+            lore.add(Lore.stat(unlocked ? ChatColor.GREEN : ChatColor.AQUA, "Unlocks at",
+                    String.format("%,d", unlockAt) + " crops farmed"));
+            lore.add("");
+        }
+        lore.add(Lore.section(ChatColor.GREEN, "Earns per crop"));
         lore.add(Currency.COINS.colour() + Lore.BULLET + " " + Currency.COINS.exact(crop.getTokens()));
         if (crop.getShards() > 0) {
             boolean gems = farm.shardsUnlocked(data);
