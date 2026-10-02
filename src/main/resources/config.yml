@@ -438,8 +438,9 @@ farming:
       color: "&e"
       max-level: 10000
       base-cap: 10000
-      per-level: 0.01
-      # +1000% at the ceiling. Level 1 costs 710, level 1,000 costs 385,680,
+      # V281: a tenth, Leon's call; it was +10,000% at level 10,000.
+      per-level: 0.001
+      # +1000% at the ceiling (the line below predates V159's 10,000 levels). Level 1 costs 710, level 1,000 costs 385,680,
       # 145,800,000 Coins for all of it.
 
     MOMENTUM:
@@ -814,7 +815,9 @@ farming:
     supernova-gems: 40
     lightning-radius: 5
     lightning-bolts: 5
-    nuke-crops: 10000
+    # V281: 500, a twentieth; with every Coins multiplier on top one Nuke
+    # paid hundreds of trillions.
+    nuke-crops: 500
     gamba-multiplier: 3.0
     gamba-seconds: 60
     # What one Credit Finder proc pays.
@@ -4456,7 +4459,8 @@ farmtree:
       cost-growth: 1.25
       requires: "crop_wheat"
       effect: "TOKEN_GAIN"
-      value: 0.1
+      # V281: a tenth, the Coins nodes together x10 instead of x92.
+      value: 0.01
       max-level: 10
 
     farming_shards:
@@ -4502,7 +4506,8 @@ farmtree:
       cost-growth: 1.25
       requires: "growth_2"
       effect: "TOKEN_GAIN"
-      value: 0.2
+      # V281: a tenth, the Coins nodes together x10 instead of x92.
+      value: 0.02
       max-level: 10
 
     gems_2:
@@ -4526,7 +4531,8 @@ farmtree:
       cost-growth: 1.25
       requires: "gems_2"
       effect: "TOKEN_GAIN"
-      value: 0.35
+      # V281: a tenth, the Coins nodes together x10 instead of x92.
+      value: 0.035
       max-level: 10
 
     proc_1:
@@ -4728,7 +4734,8 @@ farmtree:
       cost-growth: 1.3
       requires: "crop_potatoes"
       effect: "TOKEN_GAIN"
-      value: 0.5
+      # V281: a tenth, the Coins nodes together x10 instead of x92.
+      value: 0.05
       max-level: 10
 
     proc_2:
@@ -4774,7 +4781,8 @@ farmtree:
       cost-growth: 1.3
       requires: "growth_4"
       effect: "TOKEN_GAIN"
-      value: 0.75
+      # V281: a tenth, the Coins nodes together x10 instead of x92.
+      value: 0.075
       max-level: 10
 
     gems_4:
@@ -4798,7 +4806,8 @@ farmtree:
       cost-growth: 1.3
       requires: "gems_4"
       effect: "TOKEN_GAIN"
-      value: 1
+      # V281: a tenth, the Coins nodes together x10 instead of x92.
+      value: 0.1
       max-level: 10
 
     gems_5:
@@ -5018,7 +5027,8 @@ farmtree:
       cost-growth: 1.35
       requires: "crop_netherwart"
       effect: "TOKEN_GAIN"
-      value: 1.4
+      # V281: a tenth, the Coins nodes together x10 instead of x92.
+      value: 0.14
       max-level: 10
 
     proc_3:
@@ -5064,7 +5074,8 @@ farmtree:
       cost-growth: 1.35
       requires: "growth_6"
       effect: "TOKEN_GAIN"
-      value: 2
+      # V281: a tenth, the Coins nodes together x10 instead of x92.
+      value: 0.2
       max-level: 10
 
     gems_7:
@@ -5088,7 +5099,8 @@ farmtree:
       cost-growth: 1.35
       requires: "gems_7"
       effect: "TOKEN_GAIN"
-      value: 2.8
+      # V281: a tenth, the Coins nodes together x10 instead of x92.
+      value: 0.28
       max-level: 10
 
     mastery_2:

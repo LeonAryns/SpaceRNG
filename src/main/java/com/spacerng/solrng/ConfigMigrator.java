@@ -176,6 +176,19 @@ public final class ConfigMigrator {
     }
 
     private static final List<Patch> PATCHES = List.of(
+            // V281: Coins nerfed at the sources, Leon's call. Coin Greed to +1,000%,
+            // the farm tree Coins nodes a tenth each, Nuke pays 500 crops.
+            new Patch("coin-greed-tenth", "farming.enchants.TOKEN_GREED.per-level", 0.01, 0.001),
+            new Patch("nuke-crops-500", "farming.procs.nuke-crops", 10000, 500),
+            new Patch("coins-node-tenth-tokens_1", "farmtree.nodes.tokens_1.value", 0.1, 0.01),
+            new Patch("coins-node-tenth-tokens_2", "farmtree.nodes.tokens_2.value", 0.2, 0.02),
+            new Patch("coins-node-tenth-tokens_3", "farmtree.nodes.tokens_3.value", 0.35, 0.035),
+            new Patch("coins-node-tenth-tokens_4", "farmtree.nodes.tokens_4.value", 0.5, 0.05),
+            new Patch("coins-node-tenth-tokens_5", "farmtree.nodes.tokens_5.value", 0.75, 0.075),
+            new Patch("coins-node-tenth-tokens_6", "farmtree.nodes.tokens_6.value", 1, 0.1),
+            new Patch("coins-node-tenth-tokens_7", "farmtree.nodes.tokens_7.value", 1.4, 0.14),
+            new Patch("coins-node-tenth-tokens_8", "farmtree.nodes.tokens_8.value", 2, 0.2),
+            new Patch("coins-node-tenth-tokens_9", "farmtree.nodes.tokens_9.value", 2.8, 0.28),
             // V280: the rarity Firsts hold ten again.
             new Patch("first-ten-slots-10", "first-ten.slots", 5, 10),
             // V277: Sweet Berries becomes Fern, and Potion Finder ten times rarer.
