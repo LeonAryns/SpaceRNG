@@ -712,7 +712,20 @@ public class RollListener implements Listener {
         // it has to stay effectively final.
         final long finaleTicks = aura == null ? 0L : RollAura.finaleTicks(result.getRarity());
         if (aura != null) {
-            aura.reveal();
+            // V273: an effect may fail, the drop may not. A Mythical's reveal
+            // threw here (V272), and since the item, the chat line and the
+            // broadcast all come after this call, the player got nothing.
+            try {
+                aura.reveal();
+            } catch (RuntimeException ex) {
+                plugin.getLogger().warning("Reveal of " + result.getRarity() + " for " + player.getName()
+                        + " failed, the drop is still given: " + ex);
+                try {
+                    aura.cancel();
+                } catch (RuntimeException ignored) {
+                    // Already broken; the drop matters more.
+                }
+            }
             // Hold off every other roll until the payoff has finished.
             revealLockUntil.put(player.getUniqueId(), System.currentTimeMillis() + finaleTicks * 50L);
         }
