@@ -412,6 +412,23 @@ public class RarityManager {
      * gave the shared copy a fixed star instead, and Leon wants the mark
      * that is really on either side of the name (V209).
      */
+    /**
+     * A drop's name as a tag wears it (V283): the whole name less a leading
+     * "The", so "The Ender Dragon" floats as "Ender Dragon". Leon wants
+     * tags short; the drop itself and its tooltip keep the full name.
+     */
+    public String styleTagName(RollableItem item) {
+        String name = withoutArticle(item.getDisplayName());
+        String colored = item.getStyle() != null
+                ? item.getStyle().apply(name)
+                : RollFormat.naturalColor(item.getMaterial()) + name;
+        return withFlair(item, colored);
+    }
+
+    private static String withoutArticle(String name) {
+        return name.regionMatches(true, 0, "The ", 0, 4) && name.length() > 4 ? name.substring(4) : name;
+    }
+
     public String styleItemName(RollableItem item, boolean full) {
         String name = shorten(item.getDisplayName(), full);
         String colored = item.getStyle() != null
@@ -431,6 +448,7 @@ public class RarityManager {
      */
     private String shorten(String name, boolean full) {
         if (full) return name;
+        name = withoutArticle(name);
         if (maxPlainName <= 0 || name.length() <= maxPlainName) return name;
         return name.substring(0, Math.max(1, maxPlainName - 1)).trim() + "…";
     }

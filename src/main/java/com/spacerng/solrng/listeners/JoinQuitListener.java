@@ -163,7 +163,7 @@ public class JoinQuitListener implements Listener {
         if (rollable == null) return;
         // The item's own colors, matching how it's named everywhere else.
         plugin.getTagManager().showHologram(player,
-                RollFormat.displayName(plugin, rollable),
+                plugin.getRarityManager().styleTagName(rollable),
                 RollFormat.tagOdds(plugin, rollable));
     }
 

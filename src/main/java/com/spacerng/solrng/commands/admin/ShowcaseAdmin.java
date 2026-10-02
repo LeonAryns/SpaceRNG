@@ -797,7 +797,7 @@ final class ShowcaseAdmin extends AdminTools {
                 RollableItem tagged = data.getEquippedTagItemKey() == null ? null
                         : plugin.getRarityManager().findByDisplayName(data.getEquippedTagItemKey());
                 if (tagged == null) continue;
-                plugin.getTagManager().showHologram(online, RollFormat.displayName(plugin, tagged),
+                plugin.getTagManager().showHologram(online, plugin.getRarityManager().styleTagName(tagged),
                         RollFormat.tagOdds(plugin, tagged));
             }
             sender.sendMessage(ChatColor.GREEN + "Tag odds now use the " + pick + " style.");

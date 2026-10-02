@@ -134,7 +134,7 @@ public class TagManager {
         RollableItem item = plugin.getRarityManager().findByDisplayName(data.getEquippedTagItemKey());
         // The item's own colors, matching how it's named everywhere else.
         String name = item != null
-                ? RollFormat.displayName(plugin, item)
+                ? plugin.getRarityManager().styleTagName(item)
                 : data.getEquippedTagItemKey();
         return name + " " + ChatColor.RESET;
     }

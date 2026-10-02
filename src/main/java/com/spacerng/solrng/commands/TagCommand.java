@@ -124,7 +124,7 @@ public class TagCommand implements CommandExecutor {
         if (rollable != null) {
             // The item's own colors, so the hologram matches how the item
             // itself is named everywhere else.
-            plugin.getTagManager().showHologram(player, RollFormat.displayName(plugin, rollable),
+            plugin.getTagManager().showHologram(player, plugin.getRarityManager().styleTagName(rollable),
                     RollFormat.tagOdds(plugin, rollable));
         }
 
