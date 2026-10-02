@@ -5200,10 +5200,11 @@ novacore:
   # still shows the real chance; only the result is guaranteed.
   first-forge-guaranteed: true
   decay: 0.85
-  # How much Luck lifts the chance. Luck multiplies the tier's base
-  # chance: no Luck keeps it, +100% Luck doubles it, +200% triples it,
-  # always capped at max-chance.
-  luck-weight: 1.0
+  # How much Luck lifts the chance: the base chance times (1 + Luck x
+  # luck-weight), capped at max-chance. The Luck is without the Nova
+  # Core's own multiplier. V285: 0.1, Leon's call; at 1.0 any real Luck
+  # pinned every tier at max-chance.
+  luck-weight: 0.1
   # Shown in chat whenever somebody needs to know where Nova Cores come from.
   how-to-get: "crates, /milestones (Playtime) and the /guide"
   min-chance: 0.02

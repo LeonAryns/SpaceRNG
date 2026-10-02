@@ -188,8 +188,13 @@ public class NovaCoreGui {
             // +100% Luck doubles it, +200% triples it (V158).
             lore.add(Lore.stat(ChatColor.AQUA, "Base chance",
                     String.format("%.1f%%", nova.chanceAt(tier, 0.0) * 100.0)));
-            lore.add(Lore.stat(ChatColor.GREEN, "Your Luck",
+            // V285: said "Your Luck x16" next to a +2155% Luck elsewhere, which
+            // read as a bug. It is the boost Luck gives the forge, and the
+            // Luck behind it leaves out the Nova Core's own multiplier.
+            lore.add(Lore.stat(ChatColor.GREEN, "Luck boost",
                     String.format("x%.2f", 1.0 + Math.max(0.0, luck) * nova.getLuckWeight())));
+            lore.add(ChatColor.DARK_GRAY + "From +" + Math.round(Math.max(0.0, luck) * 100.0)
+                    + "% Luck, without the Nova Core itself.");
             lore.add("");
             if (affordable) {
                 lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to forge");
