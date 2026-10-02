@@ -159,7 +159,7 @@ public class ScoreboardManager {
         lines.add(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Index: " + ChatColor.AQUA + discovered + ChatColor.GRAY + "/" + ChatColor.AQUA + totalItems
                 + ChatColor.WHITE + " ("
                 + String.format("%.2f", plugin.getRarityManager().tagMultiplierFor(data)) + "x)");
-        lines.add(ChatColor.YELLOW + "| " + icon("luck") + ChatColor.WHITE + "Luck: " + ChatColor.GREEN + "+" + String.format("%.2f", luckPercent) + "%");
+        lines.add(ChatColor.YELLOW + "| " + icon("luck") + ChatColor.WHITE + "Luck: " + ChatColor.GREEN + "+" + Math.round(luckPercent) + "%");
         lines.add(ChatColor.YELLOW + "| " + icon("speed") + ChatColor.WHITE + "Speed: " + ChatColor.YELLOW
                 + Math.round(com.spacerng.solrng.stats.StatSources.speed(plugin, data).total() * 100));
         lines.add(ChatColor.YELLOW + "| " + icon("prestige") + prestigeLine(data));
