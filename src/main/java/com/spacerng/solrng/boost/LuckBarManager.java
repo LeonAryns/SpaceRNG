@@ -95,6 +95,17 @@ public class LuckBarManager {
             // rather than a meaningless full line.
             double total = Math.max(1.0, plugin.getConfig().getInt("boost.duration-seconds", 900));
             bar.setProgress(Math.max(0.0, Math.min(1.0, boost.secondsLeft() / total)));
+        } else if (plugin.getPrestigeManager().canLevelUp(data)
+                && (System.currentTimeMillis() / 1000L) % 10L < 3L) {
+            // A level waiting takes the bar for three seconds in every ten,
+            // then it goes back to selling the boost (V261). The action bar
+            // over the hotbar cannot sit any lower, so this is the second
+            // place it shows.
+            title.append(ChatColor.GREEN).append(ChatColor.BOLD).append("LEVEL UP AVAILABLE")
+                    .append(ChatColor.RESET).append(ChatColor.GRAY).append("  in ")
+                    .append(ChatColor.YELLOW).append("/prestige");
+            bar.setColor(BarColor.GREEN);
+            bar.setProgress(1.0);
         } else {
             // No boost running: the bar sells one. Luck already has a
             // permanent home on the sidebar, so repeating it here wastes

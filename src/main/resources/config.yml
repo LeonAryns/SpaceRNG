@@ -3373,6 +3373,10 @@ announcements:
   # other, so with 300 seconds above it comes round every ten minutes.
   # 0 keeps it in the normal rotation.
   discord-every: 2
+  # Takes turns with the Discord tip in that slot (V261).
+  feedback:
+    - "&3▎ &e▸ &7Found a bug or have an idea? You earn &dCredits&7 for it."
+    - "&3▎ &e▸ &7Post it in the &9&lDiscord&7 feedback channel. Type &e/discord&7 to join."
   # A banner frame around every announcement. Header runs above every
   # block, footer below. Two thin bars turn a short message into a
   # visible "spot" in chat instead of another grey line, and the

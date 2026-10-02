@@ -27,7 +27,6 @@ import java.util.List;
 final class CrateFx {
 
     private static final int RISE_TICKS = 14;
-    private static final double RANGE = 24.0;
 
     private CrateFx() {
     }
@@ -40,10 +39,10 @@ final class CrateFx {
         Color to = colour(crate, false, Color.fromRGB(255, 252, 224));
         Particle.DustTransition dust = new Particle.DustTransition(from, to, 1.3f);
 
+        // Only the opener sees their crate open (V261): nobody else gets the
+        // particles, the sound or the ring.
         List<Player> audience = new ArrayList<>();
-        for (Player viewer : world.getPlayers()) {
-            if (viewer.getLocation().distanceSquared(at) <= RANGE * RANGE) audience.add(viewer);
-        }
+        if (opener.isOnline() && opener.getWorld().equals(world)) audience.add(opener);
         if (audience.isEmpty()) return;
 
         new BukkitRunnable() {
@@ -70,7 +69,7 @@ final class CrateFx {
                         }
                     } else if (t == RISE_TICKS) {
                         Location top = at.clone().add(0, 1.9, 0);
-                        shockwave(plugin, top, from, jackpot);
+                        shockwave(plugin, opener, top, from, jackpot);
                         for (Player viewer : audience) {
                             if (!viewer.isOnline()) continue;
                             viewer.spawnParticle(Particle.FIREWORK, top, 30, 0.2, 0.2, 0.2, 0.15);
@@ -104,7 +103,7 @@ final class CrateFx {
      * jackpot in particular is worth somebody across the spawn turning
      * round for, and until now there was nothing to turn round to.
      */
-    private static void shockwave(SolRNGPlugin plugin, Location top, Color colour, boolean jackpot) {
+    private static void shockwave(SolRNGPlugin plugin, Player opener, Location top, Color colour, boolean jackpot) {
         AuraParts parts = plugin.getAuraManager().parts();
         List<Display> pieces = new ArrayList<>();
         int segments = jackpot ? 14 : 10;
@@ -119,6 +118,11 @@ final class CrateFx {
                 pieces.add(parts.plate(top, colour, 90, view, false,
                         AuraParts.plate(0f, 2.6f, 0f, new Quaternionf(), 0.9f, 5.2f, back)));
             }
+        }
+        // Hidden from everyone but the opener.
+        for (Display piece : pieces) {
+            piece.setVisibleByDefault(false);
+            opener.showEntity(plugin, piece);
         }
         float reach = jackpot ? 4.4f : 2.6f;
         for (int i = 0; i < segments; i++) {

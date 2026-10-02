@@ -61,6 +61,10 @@ public class AnnouncerManager {
         enabled = config.getBoolean("announcements.enabled", true);
         intervalTicks = Math.max(20, config.getInt("announcements.interval-seconds", 300) * 20);
         discordEvery = Math.max(0, config.getInt("announcements.discord-every", 2));
+        feedback.clear();
+        List<String> feedbackLines = config.getStringList("announcements.feedback");
+        if (feedbackLines.isEmpty()) feedbackLines = DEFAULT_FEEDBACK;
+        for (String line : feedbackLines) feedback.add(colour(line));
         header = colour(config.getString("announcements.header", ""));
         footer = colour(config.getString("announcements.footer", ""));
 
@@ -104,6 +108,17 @@ public class AnnouncerManager {
     private int discordEvery = 2;
     private int sent;
 
+    /**
+     * Credits for feedback (V261). Takes turns with the Discord tip in its
+     * slot, since both send people to the Discord. From
+     * announcements.feedback, or these lines when the live config has none.
+     */
+    private static final List<String> DEFAULT_FEEDBACK = List.of(
+            "&3▎ &e▸ &7Found a bug or have an idea? You earn &dCredits&7 for it.",
+            "&3▎ &e▸ &7Post it in the &9&lDiscord&7 feedback channel. Type &e/discord&7 to join.");
+    private final List<String> feedback = new ArrayList<>();
+    private boolean feedbackTurn;
+
     private int discordBlock() {
         for (int i = 0; i < messages.size(); i++) {
             for (String line : messages.get(i)) {
@@ -121,7 +136,8 @@ public class AnnouncerManager {
         int discord = discordEvery > 0 ? discordBlock() : -1;
         sent++;
         if (discord >= 0 && sent % discordEvery == 0) {
-            send(messages.get(discord));
+            feedbackTurn = !feedbackTurn;
+            send(feedbackTurn && !feedback.isEmpty() ? feedback : messages.get(discord));
             return;
         }
         if (discord >= 0 && next % messages.size() == discord && messages.size() > 1) {
