@@ -131,6 +131,10 @@ public class StarforgeManager {
         return tier == null ? 0.0 : tier.getLuckBonus();
     }
 
+    /** How long a Starforge may be out of both hands before Auto Roll stops. */
+    private static final long AWAY_GRACE_MS = 1000L;
+    private final Map<java.util.UUID, Long> awaySince = new java.util.concurrent.ConcurrentHashMap<>();
+
     /** True while a Starforge is in either hand - main or off, both count. */
     public boolean isHolding(Player player) {
         return isStarforge(player.getInventory().getItemInMainHand())
@@ -150,7 +154,19 @@ public class StarforgeManager {
             StarforgeTier held = tierOf(data);
             data.setStarforgeSpeedBonus(holding && held != null ? held.getSpeedBonus() : 0.0);
 
-            if (!holding && data.isAutoRollEnabled()) {
+            // Moving the Starforge to the off hand through the inventory
+            // carries it on the cursor for a moment, in neither hand, and
+            // this check runs four times a second, so Auto Roll used to
+            // switch off on the way (V250). On the cursor counts as still
+            // held, and it has to be away for a whole second before Auto
+            // Roll stops.
+            if (holding || isStarforge(player.getItemOnCursor())) {
+                awaySince.remove(player.getUniqueId());
+            } else if (data.isAutoRollEnabled()) {
+                long now = System.currentTimeMillis();
+                long since = awaySince.computeIfAbsent(player.getUniqueId(), id -> now);
+                if (now - since < AWAY_GRACE_MS) continue;
+                awaySince.remove(player.getUniqueId());
                 data.setAutoRollEnabled(false);
                 player.sendActionBar(net.kyori.adventure.text.serializer.legacy
                         .LegacyComponentSerializer.legacySection().deserialize(
