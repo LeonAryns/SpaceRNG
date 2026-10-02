@@ -176,6 +176,8 @@ public final class ConfigMigrator {
     }
 
     private static final List<Patch> PATCHES = List.of(
+            // V268: Momentum climbs ten times faster.
+            new Patch("momentum-10x-faster", "farming.momentum.per-thousand-crops", 0.01, 0.1),
             // V267: Leon's numbers. Speed to +500%, TNT Blast 3x rarer and
             // smaller, Momentum to 5x, and no lp commands for the vault.
             new Patch("walk-speed-500", "farming.enchants.WALK_SPEED.per-level", 0.00005, 0.0005),

@@ -215,7 +215,7 @@ public class FarmPlotManager {
         blastBaseRadius = Math.max(1, config.getInt("farming.blast.base-radius", 1));
         blastLevelsPerRadius = Math.max(1, config.getInt("farming.blast.levels-per-radius", 150));
         blastMaxRadius = Math.max(1, config.getInt("farming.blast.max-radius", 7));
-        momentumPerThousand = config.getDouble("farming.momentum.per-thousand-crops", 0.01);
+        momentumPerThousand = config.getDouble("farming.momentum.per-thousand-crops", 0.1);
         momentumPerLevelCap = config.getDouble("farming.momentum.per-level-cap", 0.05);
         momentumIdleMillis = Math.max(1L, config.getLong("farming.momentum.idle-seconds", 30L)) * 1000L;
 
@@ -926,10 +926,9 @@ public class FarmPlotManager {
             long paid = Math.max(1L, lastCropTokens) * nukeCrops;
             data.addTokens(paid);
             data.trackCoins(paid);
-            data.addCropsHarvested(nukeCrops);
-            plugin.getBossManager().onHarvest(player, nukeCrops);
-            plugin.getPassManager().awardHarvest(player, data, nukeCrops);
-            plugin.getDustManager().onHarvest(player, data, nukeCrops);
+            // V268: Coins only. Nuke used to add its 10,000 crops to crops
+            // farmed, the boss, the pass and Farm Dust as well, which is
+            // how players showed more crops farmed than anyone could break.
             player.getWorld().createExplosion(plot.clone().add(0.5, 1.0, 0.5), 3.0f, false, false);
             player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Nuke  "
                     + ChatColor.RESET + ChatColor.GRAY + String.format("%,d", nukeCrops)

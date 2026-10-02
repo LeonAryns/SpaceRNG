@@ -871,7 +871,8 @@ farming:
   # the ceiling, and the field is what fills it.
   momentum:
     # Added to the multiplier for every 1,000 crops in the current run.
-    per-thousand-crops: 0.01
+    # V268: 0.1, ten times faster; the 5x ceiling now takes 40,000 crops.
+    per-thousand-crops: 0.1
     # The ceiling, per level of the Momentum enchant. At the starting cap
     # of 100 levels that's a +5.00x ceiling.
     #
