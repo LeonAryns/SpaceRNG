@@ -176,6 +176,13 @@ public final class ConfigMigrator {
     }
 
     private static final List<Patch> PATCHES = List.of(
+            // V277: Sweet Berries becomes Fern, and Potion Finder ten times rarer.
+            new Patch("crop-fern-display", "farming.crop-types.SWEET_BERRIES.display", "Sweet Berries", "Fern"),
+            new Patch("crop-fern-material", "farming.crop-types.SWEET_BERRIES.material", "SWEET_BERRY_BUSH", "FERN"),
+            new Patch("node-fern-display", "farmtree.nodes.crop_berries.display", "Sweet Berries", "Fern"),
+            new Patch("node-fern-icon", "farmtree.nodes.crop_berries.icon", "SWEET_BERRIES", "FERN"),
+            new Patch("node-fern-yield", "farmtree.nodes.yield_berries.display", "Sweet Berry Yield", "Fern Yield"),
+            new Patch("potion-finder-0.1", "farming.enchants.POTION_FINDER.per-level", 0.000005, 0.0000005),
             // V274: the procs not yet retuned, 1% for the early two, 0.1% for the late ones.
             new Patch("proc-v274-shard_greed", "farming.enchants.SHARD_GREED.per-level", 0.0008, 0.000005),
             new Patch("proc-v274-lightning", "farming.enchants.LIGHTNING.per-level", 0.0001, 0.000005),

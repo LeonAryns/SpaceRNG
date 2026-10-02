@@ -121,13 +121,13 @@ public class PlayerData {
     // Banked rolls that fire at a multiplied Luck - the "10x Roll" reward.
     private long rollCharges = 0L;
     private double rollChargeMultiplier = 1.0;
-    // The draught currently running: flat Luck and Speed, and how many
-    // rolls are left of it. One at a time on purpose - drinking a second
-    // replaces the first, so two can never be stacked into something the
-    // numbers were never balanced for.
-    private double potionLuck = 0.0;
-    private double potionSpeed = 0.0;
-    private long potionRolls = 0L;
+    // The draughts running: flat Luck and Speed, and how many rolls are
+    // left of each. Until V277 one at a time.
+    //
+    // V277: several draughts at once, Leon's call. Each kind (its Luck and
+    // Speed numbers) runs its own count of rolls; a second of the same kind
+    // adds rolls, a different kind runs beside it and their numbers add.
+    private final List<double[]> draughts = new ArrayList<>(); // {luck, speed, rolls}
     // Hoe enchants the player switched off (V266); they keep their levels.
     private final java.util.Set<String> disabledEnchants = new java.util.HashSet<>();
     // How many of this player's drops of each rarity went to chat (V271);
@@ -876,12 +876,23 @@ public class PlayerData {
 
     // ------------------------------------------------------------ draughts
 
+    /** The Luck of every running draught, added up. */
     public double getPotionLuck() {
-        return potionRolls > 0 ? potionLuck : 0.0;
+        double total = 0.0;
+        for (double[] d : draughts) if (d[2] > 0) total += d[0];
+        return total;
     }
 
+    /** The Speed of every running draught, added up. */
     public double getPotionSpeed() {
-        return potionRolls > 0 ? potionSpeed : 0.0;
+        double total = 0.0;
+        for (double[] d : draughts) if (d[2] > 0) total += d[1];
+        return total;
+    }
+
+    /** Every running draught as {luck, speed, rolls}, for saving and /boosts. */
+    public List<double[]> getDraughts() {
+        return draughts;
     }
 
     public java.util.Set<String> getDisabledEnchants() {
@@ -944,41 +955,53 @@ public class PlayerData {
         return true;
     }
 
+    /** The longest any running draught still has, in rolls; 0 if none runs. */
     public long getPotionRolls() {
-        return Math.max(0L, potionRolls);
+        long most = 0L;
+        for (double[] d : draughts) most = Math.max(most, (long) d[2]);
+        return most;
     }
 
+    /** Rolls left on the draught of this kind, 0 if it is not running. */
+    public long getDraughtRolls(double luck, double speed) {
+        double[] d = draughtOf(luck, speed);
+        return d == null ? 0L : (long) d[2];
+    }
+
+    /** The pre-V277 single draught, read from an old save. */
     public void setPotion(double luck, double speed, long rolls) {
-        this.potionLuck = luck;
-        this.potionSpeed = speed;
-        this.potionRolls = Math.max(0L, rolls);
+        draughts.clear();
+        if (rolls > 0) draughts.add(new double[]{luck, speed, rolls});
     }
 
-    /** Whether a draught with these numbers is the kind already running. */
-    public boolean isSamePotion(double luck, double speed) {
-        return Math.abs(potionLuck - luck) < 1e-9 && Math.abs(potionSpeed - speed) < 1e-9;
+    private double[] draughtOf(double luck, double speed) {
+        for (double[] d : draughts) {
+            if (Math.abs(d[0] - luck) < 1e-9 && Math.abs(d[1] - speed) < 1e-9) return d;
+        }
+        return null;
     }
 
     /** Starts a draught, or adds its rolls to the same kind already running. */
     public void addPotion(double luck, double speed, long rolls) {
-        if (potionRolls > 0 && isSamePotion(luck, speed)) {
-            potionRolls += Math.max(0L, rolls);
-            return;
-        }
-        setPotion(luck, speed, rolls);
+        if (rolls <= 0) return;
+        double[] d = draughtOf(luck, speed);
+        if (d != null) d[2] += rolls;
+        else draughts.add(new double[]{luck, speed, rolls});
     }
 
-    /** Spends one roll of the draught, clearing it when it runs out. */
+    /** Spends one roll of every running draught; true if one ran out. */
     public boolean tickPotion() {
-        if (potionRolls <= 0) return false;
-        potionRolls--;
-        if (potionRolls <= 0) {
-            potionLuck = 0.0;
-            potionSpeed = 0.0;
-            potionRolls = 0L;
-            return true;
+        boolean ended = false;
+        java.util.Iterator<double[]> it = draughts.iterator();
+        while (it.hasNext()) {
+            double[] d = it.next();
+            d[2]--;
+            if (d[2] <= 0) {
+                it.remove();
+                ended = true;
+            }
         }
-        return false;
+        return ended;
     }
 
     public long getRollCharges() {

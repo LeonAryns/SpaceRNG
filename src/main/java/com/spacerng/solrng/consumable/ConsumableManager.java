@@ -337,12 +337,8 @@ public class ConsumableManager {
             // One kind of draught at a time (V158). The same kind again adds
             // its rolls; a different kind is refused and the item kept,
             // where it used to replace the running one without a word.
-            if (data.getPotionRolls() > 0 && !data.isSamePotion(consumable.luck(), consumable.speed())) {
-                player.sendMessage(ChatColor.RED + "You already have a different draught running. "
-                        + ChatColor.WHITE + "Finish its " + String.format("%,d", data.getPotionRolls())
-                        + " rolls first, or drink the same kind to add to it.");
-                return false;
-            }
+            // V277: draughts run side by side; this replaced the one at a
+            // time rule from V158 at Leon's request.
             data.addPotion(consumable.luck(), consumable.speed(), consumable.rolls());
             player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + consumable.display()
                     + ChatColor.RESET + ChatColor.GRAY + "  "
@@ -354,7 +350,8 @@ public class ConsumableManager {
                             ? (consumable.speed() > 0 ? ChatColor.YELLOW : ChatColor.RED)
                                     + signed(consumable.speed() * 100) + " Speed" + ChatColor.GRAY + "  "
                             : "")
-                    + ChatColor.AQUA + String.format("%,d", data.getPotionRolls()) + " rolls left");
+                    + ChatColor.AQUA + String.format("%,d",
+                            data.getDraughtRolls(consumable.luck(), consumable.speed())) + " rolls left");
         }
         if (consumable.isTimed()) {
             if (consumable.coinMultiplier() > 1.0) {

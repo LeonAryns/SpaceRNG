@@ -43,12 +43,14 @@ public class CropsGui {
         FarmPlotManager farm = plugin.getFarmPlotManager();
         CropType selected = farm.cropFor(data);
 
-        int i = 0;
-        for (CropType crop : farm.getCrops().values()) {
-            if (i >= SLOTS.length) break;
-            inv.setItem(SLOTS[i], buildIcon(plugin, data, farm, crop,
-                    selected != null && selected.getId().equals(crop.getId())));
-            i++;
+        // V277: one centred row while the crops fit in it, so six read as a
+        // ladder rather than as a list that stopped early.
+        List<CropType> crops = new ArrayList<>(farm.getCrops().values());
+        int[] slots = crops.size() <= 7 ? centred(crops.size()) : SLOTS;
+        for (int i = 0; i < crops.size() && i < slots.length; i++) {
+            CropType crop = crops.get(i);
+            inv.setItem(slots[i], buildIcon(plugin, data, farm, crop,
+                    selected != null && selected.getId().equals(crop.getId()), i + 1, crops.size()));
         }
 
         inv.setItem(31, info(plugin, data, farm));
@@ -56,17 +58,30 @@ public class CropsGui {
         return inv;
     }
 
+    /** The middle of the row for n crops, with the centre left open when n is even. */
+    private static int[] centred(int n) {
+        int[][] rows = {
+                {}, {13}, {12, 14}, {12, 13, 14}, {11, 12, 14, 15},
+                {11, 12, 13, 14, 15}, {10, 11, 12, 14, 15, 16}, {10, 11, 12, 13, 14, 15, 16}};
+        return rows[Math.max(0, Math.min(7, n))];
+    }
+
     private static ItemStack buildIcon(SolRNGPlugin plugin, PlayerData data, FarmPlotManager farm,
-                                       CropType crop, boolean selected) {
+                                       CropType crop, boolean selected, int place, int of) {
         boolean unlocked = farm.isUnlocked(data, crop);
 
-        ItemStack icon = new ItemStack(unlocked ? seedItem(crop.getMaterial()) : Material.GRAY_DYE);
+        // The real crop even while locked (V277): grey dye said nothing
+        // about what you are working toward.
+        ItemStack icon = new ItemStack(seedItem(crop.getMaterial()));
         ItemMeta meta = icon.getItemMeta();
         meta.setDisplayName(Lore.title(
                 selected ? ChatColor.GREEN : unlocked ? ChatColor.YELLOW : ChatColor.DARK_GRAY,
                 crop.getDisplay()));
+        meta.setEnchantmentGlintOverride(selected ? Boolean.TRUE : null);
 
         List<String> lore = new ArrayList<>();
+        lore.add(ChatColor.DARK_GRAY + "Crop " + place + " of " + of);
+        lore.add("");
         lore.add(Lore.section(ChatColor.GREEN, "Per harvest"));
         lore.add(Currency.COINS.colour() + Lore.BULLET + " " + Currency.COINS.exact(crop.getTokens()));
         if (crop.getShards() > 0) {

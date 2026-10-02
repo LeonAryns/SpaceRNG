@@ -521,9 +521,9 @@ farming:
       color: "&d"
       max-level: 10000
       base-cap: 10000
-      # V272: 1% at the ceiling after proc-scale (x0.2), Leon's call.
-      per-level: 0.000005
-      # 5% before proc-scale, 1% after. Level 1 costs 1,880, level 1,000 costs 1,021,197,
+      # V277: 0.1% at the ceiling after proc-scale (x0.2), Leon's call (was 1%).
+      per-level: 0.0000005
+      # 0.5% before proc-scale, 0.1% after (V277: ten times rarer). Level 1 costs 1,880, level 1,000 costs 1,021,197,
       # 386,045,873 Coins for all of it.
 
     LIGHTNING:
@@ -861,9 +861,11 @@ farming:
       tokens: 4000
       shards: 12
       requires-node: "crop_netherwart"
+    # V277: Fern for now, Leon's call. The id stays SWEET_BERRIES so an
+    # unlocked crop and its yield levels carry over.
     SWEET_BERRIES:
-      display: "Sweet Berries"
-      material: SWEET_BERRY_BUSH
+      display: "Fern"
+      material: FERN
       tokens: 10000
       shards: 30
       requires-node: "crop_berries"
@@ -4802,7 +4804,7 @@ farmtree:
       max-level: 10
 
     # ====================================================================
-    #  PAGE 3 - UNCHARTED: Nether Wart and Sweet Berries
+    #  PAGE 3 - UNCHARTED: Nether Wart and Fern
     # ====================================================================
 
     # -- Middle line --
@@ -4856,10 +4858,10 @@ farmtree:
       max-level: 10
 
     crop_berries:
-      display: "Sweet Berries"
+      display: "Fern"
       page: 3
       slot: "5,2"
-      icon: "SWEET_BERRIES"
+      icon: "FERN"
       cost-money: 74385000
       requires: "growth_5"
       requires-all: ["enchant_meteor", "gems_6"]
@@ -4880,7 +4882,7 @@ farmtree:
       target: "SUPERNOVA"
 
     yield_berries:
-      display: "Sweet Berry Yield"
+      display: "Fern Yield"
       page: 3
       slot: "4,2"
       icon: "COMPOSTER"

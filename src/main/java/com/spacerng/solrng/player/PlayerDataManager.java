@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -141,8 +142,21 @@ public class PlayerDataManager {
         data.setEnchantSoundEnabled(yml.getBoolean("enchant-sound-enabled", true));
         data.setRollCharges(yml.getLong("roll-charges", 0L), yml.getDouble("roll-charge-multiplier", 1.0));
         data.addBonusSpeed(yml.getDouble("bonus-speed", 0.0));
-        data.setPotion(yml.getDouble("potion-luck", 0.0), yml.getDouble("potion-speed", 0.0),
-                yml.getLong("potion-rolls", 0L));
+        if (yml.contains("draughts")) {
+            for (String raw : yml.getStringList("draughts")) {
+                String[] part = raw.split(";");
+                if (part.length != 3) continue;
+                try {
+                    data.addPotion(Double.parseDouble(part[0]), Double.parseDouble(part[1]),
+                            Long.parseLong(part[2]));
+                } catch (NumberFormatException ignored) {
+                    // A broken line loses one draught, not the save.
+                }
+            }
+        } else {
+            data.setPotion(yml.getDouble("potion-luck", 0.0), yml.getDouble("potion-speed", 0.0),
+                    yml.getLong("potion-rolls", 0L));
+        }
         data.getDisabledEnchants().addAll(yml.getStringList("disabled-enchants"));
         data.getMutedEnchantMessages().addAll(yml.getStringList("muted-enchant-messages"));
         for (Rarity rarity : Rarity.values()) {
@@ -418,9 +432,17 @@ public class PlayerDataManager {
         yml.set("farm-hide-players", data.isFarmHidePlayers());
         yml.set("enchant-sound-enabled", data.isEnchantSoundEnabled());
         yml.set("roll-charges", data.getRollCharges());
-        yml.set("potion-luck", data.getPotionLuck());
-        yml.set("potion-speed", data.getPotionSpeed());
-        yml.set("potion-rolls", data.getPotionRolls());
+        // V277: one line per running draught, "luck;speed;rolls". Plain
+        // decimals, never scientific notation, so they read back as numbers.
+        List<String> draughtLines = new ArrayList<>();
+        for (double[] d : data.getDraughts()) {
+            draughtLines.add(java.math.BigDecimal.valueOf(d[0]).toPlainString() + ";"
+                    + java.math.BigDecimal.valueOf(d[1]).toPlainString() + ";" + (long) d[2]);
+        }
+        yml.set("draughts", draughtLines);
+        yml.set("potion-luck", null);
+        yml.set("potion-speed", null);
+        yml.set("potion-rolls", null);
         yml.set("disabled-enchants", new java.util.ArrayList<>(data.getDisabledEnchants()));
         yml.set("muted-enchant-messages", new java.util.ArrayList<>(data.getMutedEnchantMessages()));
         for (Rarity rarity : Rarity.values()) {
