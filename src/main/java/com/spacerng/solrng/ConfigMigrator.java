@@ -174,6 +174,9 @@ public final class ConfigMigrator {
     }
 
     private static final List<Patch> PATCHES = List.of(
+            // V249: Member is what every starter wears now; mint, not grey.
+            new Patch("rank-member-mint", "ranks.tiers.member.colors",
+                    List.of("#B0BEC5"), List.of("#B9F6CA", "#69F0AE")),
             // V248: the footer pointed at discord.gg/spacerng, which is not
             // the invite, and an invite code cannot be written in small caps.
             new Patch("tab-footer-discord-command", "tab.footer",

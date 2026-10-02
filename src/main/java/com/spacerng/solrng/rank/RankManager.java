@@ -184,6 +184,20 @@ public class RankManager {
         return rankOf(plugin.getPlayerDataManager().get(player.getUniqueId()));
     }
 
+    /**
+     * The rank a name is drawn with (V249): the real one, or Member for a
+     * player who has none, so a starter is not a bare white name in tab and
+     * chat. Looks only. Everything a rank or a link unlocks keeps asking
+     * rankOf, which stays null for them; Member is the rank set by
+     * ranks.starter in config, empty for none.
+     */
+    public RankTier shownRankOf(PlayerData data) {
+        RankTier tier = rankOf(data);
+        if (tier != null || !enabled) return tier;
+        String starter = plugin.getConfig().getString("ranks.starter", "member");
+        return starter == null || starter.isBlank() ? null : tier(starter.toLowerCase(Locale.ROOT));
+    }
+
     /** What the rank multiplies Money, Luck and Speed by. */
     public double multiplierOf(PlayerData data) {
         RankTier tier = rankOf(data);
@@ -250,7 +264,7 @@ public class RankManager {
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         String[] stops = plugin.getCosmeticManager() == null
                 ? null : plugin.getCosmeticManager().stopsFor(data);
-        return badgeOf(rankOf(data), stops);
+        return badgeOf(shownRankOf(data), stops);
     }
 
     /** The tag alone, in the rank colours. Kept for anywhere the symbol still reads better. */
@@ -353,13 +367,13 @@ public class RankManager {
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         String[] stops = plugin.getCosmeticManager() == null
                 ? null : plugin.getCosmeticManager().stopsFor(data);
-        return badgeOf(rankOf(data), stops) + coloredName(player);
+        return badgeOf(shownRankOf(data), stops) + coloredName(player);
     }
 
     /** The badge, the name in the rank's colours and the cosmetic title, for chat and join lines. */
     public String fullName(Player player) {
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
-        RankTier tier = rankOf(data);
+        RankTier tier = shownRankOf(data);
         String title = plugin.getCosmeticManager() == null
                 ? "" : plugin.getCosmeticManager().suffixOf(data);
         String[] stops = plugin.getCosmeticManager() == null
@@ -375,7 +389,7 @@ public class RankManager {
      */
     public String coloredName(Player player) {
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
-        RankTier tier = rankOf(data);
+        RankTier tier = shownRankOf(data);
         String name = data.getNick() == null || data.getNick().isEmpty() ? player.getName() : data.getNick();
         // The top rank paints its own name (V188), and it MOVES: the
         // gradient walks one way along the name for ever, one step a

@@ -1079,6 +1079,11 @@ linking worked on V230:**
   slash commands; only the game/Discord chat relay goes, and links made
   through DiscordSRV before V230 need a new /link.
 
+- **V249** Unranked players are drawn as Member (mint, [M]) in tab and
+  chat via `RankManager.shownRankOf`; `rankOf` stays null so nothing
+  gated on a rank or link opens up. `ranks.starter` in config.
+  Advancements: `/rngadmin advancements off` already existed.
+
 **The tab (2 October).** In game the tab still shows "Server name",
 "Used memory", "www.domain.com" and "Ping" behind names. None of that is
 in our code. It was the TAB plugin after all, still in `plugins`; Leon

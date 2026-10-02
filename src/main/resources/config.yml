@@ -5940,6 +5940,10 @@ perks:
 # has it. The order of tiers is the ladder.
 ranks:
   enabled: true
+  # The rank a player with none is DRAWN as in tab and chat (V249), so a
+  # starter is not a bare white name. Looks only: no perks, no aura, no
+  # cosmetics. Empty for a plain white name again.
+  starter: member
   keyall-cooldown-hours: 8
   commands:
     fly: true
@@ -6045,7 +6049,8 @@ ranks:
       display: "Member"
       hidden: true
       priority: -100
-      colors: ["#B0BEC5"]
+      # V249: every starter wears this now, so a fresh mint instead of grey.
+      colors: ["#B9F6CA", "#69F0AE"]
       tag: ""
       letter: "M"
       icon: PAPER
