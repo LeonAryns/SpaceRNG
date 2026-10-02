@@ -39,6 +39,17 @@ public class BlockProtectListener implements Listener {
         return !(player.getGameMode() == GameMode.CREATIVE && player.hasPermission("solrng.admin"));
     }
 
+    /**
+     * Nobody drops items (V262); /trash is the way to get rid of one.
+     * solrng.admin in creative still can.
+     */
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onDrop(org.bukkit.event.player.PlayerDropItemEvent event) {
+        Player player = event.getPlayer();
+        if (player.getGameMode() == GameMode.CREATIVE && player.hasPermission("solrng.admin")) return;
+        event.setCancelled(true);
+    }
+
     /** No placing either (V256), with the same admin-in-creative exception. */
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onPlace(org.bukkit.event.block.BlockPlaceEvent event) {

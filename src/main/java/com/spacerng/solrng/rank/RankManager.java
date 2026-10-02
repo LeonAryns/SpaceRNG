@@ -349,11 +349,31 @@ public class RankManager {
      * the player name, in the rank colours. Supernova drifts through the
      * rainbow instead.
      */
+    /**
+     * Where a player sits in tab (V262): the rarer their equipped index
+     * tag, the higher; the same tag, the higher rank first; the rest the
+     * client sorts by name. A higher number is drawn higher.
+     */
+    private int listOrder(Player player) {
+        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+        int tagScore = 0;
+        String key = data.getEquippedTagItemKey();
+        if (key != null) {
+            var item = plugin.getRarityManager().findByDisplayName(key);
+            if (item != null && item.getOdds() > 0) {
+                tagScore = 1 + (int) Math.round(Math.log10(item.getOdds()) * 10.0);
+            }
+        }
+        int rank = indexOf(shownRankOf(data)) + 1;
+        return tagScore * 100 + Math.max(0, Math.min(99, rank));
+    }
+
     public void refreshName(Player player) {
         // Tab gets the badge and the name only. The cosmetic title (Beta
         // and the rest) stays in chat and in the join line (V222): Leon
         // does not want it in tab, where every row already carries a tag.
         player.playerListName(LegacyComponentSerializer.legacySection().deserialize(tabName(player)));
+        player.setPlayerListOrder(listOrder(player));
         player.displayName(LegacyComponentSerializer.legacySection().deserialize(fullName(player)));
     }
 
