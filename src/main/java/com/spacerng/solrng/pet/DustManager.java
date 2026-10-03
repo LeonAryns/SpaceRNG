@@ -34,6 +34,11 @@ public class DustManager {
     private final SolRNGPlugin plugin;
 
     private boolean announce = true;
+    // V314: how much one Cosmic Dust find is worth. A range rather than a
+    // flat one, Leon's call, with the Cosmic Yield skill adding to the top
+    // so levels buy the size of a find as well as how often one lands.
+    private long cosmicMin = 1L;
+    private long cosmicMax = 2L;
 
     public DustManager(SolRNGPlugin plugin) {
         this.plugin = plugin;
@@ -41,6 +46,31 @@ public class DustManager {
 
     public void load(FileConfiguration config) {
         announce = config.getBoolean("pets.dust.announce", true);
+        cosmicMin = Math.max(1L, config.getLong("pets.dust.cosmic-min", 1L));
+        cosmicMax = Math.max(cosmicMin, config.getLong("pets.dust.cosmic-max", 2L));
+    }
+
+    /** The top of this player's Cosmic Dust range, skill included. */
+    public long cosmicTop(PlayerData data) {
+        double extra = plugin.getSkillTreeManager().totalOf(data, SkillNode.Effect.COSMIC_DUST_AMOUNT);
+        return Math.max(cosmicMin, cosmicMax + Math.max(0L, Math.round(extra)));
+    }
+
+    public long cosmicFloor() {
+        return cosmicMin;
+    }
+
+    /**
+     * How much one find is worth, rolled fresh each time.
+     *
+     * Uniform between the floor and the top, so a level bought is felt
+     * on every find rather than only on the lucky ones, and the find
+     * still reads as a find rather than as a fixed wage.
+     */
+    private long cosmicAmount(PlayerData data) {
+        long top = cosmicTop(data);
+        if (top <= cosmicMin) return cosmicMin;
+        return cosmicMin + ThreadLocalRandom.current().nextLong(top - cosmicMin + 1L);
     }
 
     /** The chance of one Cosmic Dust on a roll, 0 when the skill is unbought. */
@@ -63,9 +93,10 @@ public class DustManager {
         if (!plugin.getPetManager().isEnabled()) return 0L;
         double chance = cosmicChance(data);
         if (chance <= 0.0 || ThreadLocalRandom.current().nextDouble() >= chance) return 0L;
-        data.addCosmicDust(1L);
-        found(player, Currency.COSMIC_DUST, data.getCosmicDust());
-        return 1L;
+        long fell = cosmicAmount(data);
+        data.addCosmicDust(fell);
+        found(player, Currency.COSMIC_DUST, fell, data.getCosmicDust());
+        return fell;
     }
 
     /**
@@ -96,7 +127,7 @@ public class DustManager {
         if (fell <= 0L) return 0L;
 
         data.addFarmDust(fell);
-        found(player, Currency.FARM_DUST, data.getFarmDust());
+        found(player, Currency.FARM_DUST, fell, data.getFarmDust());
         return fell;
     }
 
@@ -111,7 +142,7 @@ public class DustManager {
         double chance = plugin.getConfig().getDouble("farming.golden-crop.farm-dust-chance", 0.05);
         if (chance <= 0.0 || ThreadLocalRandom.current().nextDouble() >= chance) return 0L;
         data.addFarmDust(1L);
-        found(player, Currency.FARM_DUST, data.getFarmDust());
+        found(player, Currency.FARM_DUST, 1L, data.getFarmDust());
         return 1L;
     }
 
@@ -120,13 +151,17 @@ public class DustManager {
      * rare but rolling is fast, and a title every time would be in the
      * way of the roll it interrupted.
      */
-    private void found(Player player, Currency currency, long held) {
+    private void found(Player player, Currency currency, long fell, long held) {
         if (!announce || player == null || !player.isOnline()) return;
         String text = ChatColor.GRAY + currency.mark() + " " + ChatColor.GRAY + "You found "
-                + currency.amount(1L) + ChatColor.GRAY + ". You hold " + currency.amount(held)
+                + currency.amount(fell) + ChatColor.GRAY + ". You hold " + currency.amount(held)
                 + ChatColor.GRAY + ".";
         Component line = LegacyComponentSerializer.legacySection().deserialize(text);
-        player.sendActionBar(line);
+        // V314: claims the bar for three seconds. The level-up hint fires
+        // every three on its own timer and used to paint straight over
+        // this, which under Auto Roll meant the line was gone before it
+        // could be read. See gui/ActionBar.
+        com.spacerng.solrng.gui.ActionBar.send(player, line, 3000L);
         player.playSound(player.getLocation(), Sound.BLOCK_AMETHYST_BLOCK_CHIME, 0.5f, 1.8f);
     }
 }

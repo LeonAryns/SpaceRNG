@@ -34,8 +34,9 @@ public class SkillNode {
 
         // --- general tree: pets ---
         COSMIC_DUST_CHANCE, // +value chance per roll of one Cosmic Dust
+        COSMIC_DUST_AMOUNT, // +value on the TOP of the Cosmic Dust range (V314)
         PET_SLOTS,          // +value pets worn at once, capped at PetManager.MAX_SLOTS
-        PET_TIER_CHANCE,    // +value to the chance a Farm Dust tier upgrade takes
+        PET_TIER_CHANCE,    // +value to the chance a tier upgrade takes
 
         // --- general tree: gates ---
         AUTO_ROLL,

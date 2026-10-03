@@ -8,7 +8,7 @@
 # their fresh defaults in on top of whatever is on disk, so a server
 # owner never has to delete the whole file to pick up a structural
 # change. Item table, prices and cosmetic tweaks are untouched.
-config-version: 28
+config-version: 29
 
 # One-off value changes the plugin has already made to this file, so none
 # is ever made twice. Managed by the plugin; leave it alone.
@@ -3321,7 +3321,22 @@ skilltree:
       effect: PET_SLOTS
       value: 1
 
-    # -- Tier branch. Farm Dust buys tiers, this makes them stick. --
+    # -- Yield branch. The root says how often dust lands, this says how
+    #    much one find is worth. V314, Leon asked for both to be buyable.
+    #    Ten levels, so a maxed farmer finds 1 to 12 instead of 1 to 2.
+    cosmic_yield:
+      display: "Cosmic Yield"
+      page: 5
+      slot: "6,5"
+      icon: AMETHYST_CLUSTER
+      cost-money: 140000000000
+      cost-growth: 1.35
+      requires: "cosmic_root"
+      effect: COSMIC_DUST_AMOUNT
+      value: 1
+      max-level: 10
+
+    # -- Tier branch. Tiers are bought with Gems, this makes them stick. --
     pet_tier_1:
       display: "Steady Hands"
       page: 5
@@ -6718,8 +6733,15 @@ pets:
   dust:
     # The action bar line when a dust falls. Rolling is fast and dust is
     # rare, so it is a quiet line rather than a title in the way of the
-    # roll it landed on.
+    # roll it landed on. Since V314 it holds the bar for three seconds, so
+    # the level-up hint on its own timer cannot paint over it.
     announce: true
+    # V314: how much one Cosmic Dust find is worth. Rolled fresh between
+    # the two every time, and the Cosmic Yield skill in /skilltree adds to
+    # the top, so levels buy the size of a find as well as how often one
+    # lands. Leon asked for a range rather than a flat one.
+    cosmic-min: 1
+    cosmic-max: 2
 
   # What rarity and tier do to a pet, what they cost, and how likely a
   # tier is to take. A fresh pet is rarity 1 tier 1 and gives exactly the

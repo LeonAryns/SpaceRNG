@@ -64,6 +64,9 @@ public final class ConfigMigrator {
             // falls back to the code default of 0.0 and no egg would ever
             // hatch a Divine.
             "pets.eggs.instant",
+            // V314: the Cosmic Dust range. New keys, so ADDED_SECTIONS
+            // rather than a patch.
+            "pets.dust.cosmic-min", "pets.dust.cosmic-max",
             "pets.eggs.tiers.stardust.divine-chance",
             "pets.eggs.tiers.nebula.divine-chance",
             "pets.eggs.tiers.supernova.divine-chance",

@@ -500,6 +500,11 @@ public final class SolRNGPlugin extends JavaPlugin {
             for (Player player : getServer().getOnlinePlayers()) {
                 PlayerData data = playerDataManager.get(player.getUniqueId());
                 if (!prestigeManager.canLevelUp(data)) continue;
+                // V314: not over somebody else's line. A dust find claims
+                // the bar for three seconds and this fires every three, so
+                // under Auto Roll - where a level is always waiting - the
+                // hint painted over every dust find almost immediately.
+                if (com.spacerng.solrng.gui.ActionBar.isHeld(player)) continue;
                 player.sendActionBar(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
                         // Small caps and no bold (V259): Leon wants it as small as the
                         // action bar allows. Text size itself needs a resource pack.

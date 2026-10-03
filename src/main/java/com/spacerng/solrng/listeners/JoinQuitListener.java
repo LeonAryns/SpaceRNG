@@ -156,6 +156,7 @@ public class JoinQuitListener implements Listener {
         plugin.getLuckBarManager().hide(event.getPlayer().getUniqueId());
         plugin.getBossManager().hideBar(event.getPlayer().getUniqueId());
         plugin.getQuestManager().hide(event.getPlayer().getUniqueId());
+        com.spacerng.solrng.gui.ActionBar.forget(event.getPlayer().getUniqueId());
         plugin.getPlayerDataManager().unload(event.getPlayer().getUniqueId());
     }
 

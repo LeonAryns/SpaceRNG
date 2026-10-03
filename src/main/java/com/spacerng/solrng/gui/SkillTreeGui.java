@@ -515,6 +515,12 @@ public class SkillTreeGui {
                     "+" + pct(value) + "% Money on a drop new to your index", "+" + pct(value * level) + "%", leveled);
             case AUTOPILOT -> scaled(ChatColor.YELLOW,
                     "+" + pct(value) + " Speed while Auto Roll is on", "+" + pct(value * level), leveled);
+            // V314: the top of the Cosmic Dust range, not the chance. A
+            // find is rolled between the floor and the top, so a level is
+            // felt on every find rather than only on the lucky ones.
+            case COSMIC_DUST_AMOUNT -> scaled(ChatColor.LIGHT_PURPLE,
+                    "+" + trim(value) + " on the most Cosmic Dust one find gives",
+                    "+" + trim(value * level), leveled);
             case KEY_ROLL -> scaled(ChatColor.GOLD,
                     "+" + trim(value * 100) + "% chance per roll to find a Farm Key",
                     trim(value * level * 100) + "%", leveled);
