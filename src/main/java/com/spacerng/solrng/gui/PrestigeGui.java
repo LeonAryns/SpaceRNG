@@ -143,7 +143,7 @@ public class PrestigeGui {
             lore.add(Lore.footnote("Shift click to go as far as your rolls reach."));
         } else {
             lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Not enough rolls");
-            lore.add(Lore.line(ChatColor.GRAY, Lore.shorten(needed - data.getTotalRolls()) + " more to go."));
+            lore.add(Lore.line(ChatColor.GRAY, Lore.shorten(needed - data.getRollsThisPrestige()) + " more to go."));
         }
         meta.setLore(lore);
         if (can) meta.setEnchantmentGlintOverride(Boolean.TRUE);
