@@ -58,6 +58,9 @@ scoreboard:
   footer: "SPACERNG.MINEHUT.GG"
 
 roll-item:
+  # V299/V300: an Epic or rarer only gets its reveal (and stops Auto Roll)
+  # when the real chance at the player's Luck was 1 in this many or rarer.
+  animate-from-one-in: 100
   material: NETHER_STAR
   # No cooldown anymore - every roll takes this many seconds to resolve,
   # with an animation/progress bar while it's rolling. The Speed skill

@@ -427,9 +427,11 @@ public class RankManager {
         // since TAB went the tab showed only the badge and the name.
         String tag = plugin.getTagManager() == null ? "" : plugin.getTagManager().getPrefix(player);
         // A starter wears [M] (V257: Leon put it back after V253 took it off).
-        // V296: the prestige in front, the way chat shows it (V290 had a
-        // [P4] after the name, which read as a different thing).
-        return prestigePrefix(data.getPrestige()) + tag + badgeOf(shownRankOf(data), stops) + coloredName(player);
+        // V300: the prestige after the name, in the chat format ([IV] in
+        // gold), Leon's call. V296 had it in front.
+        String prestige = prestigePrefix(data.getPrestige());
+        return tag + badgeOf(shownRankOf(data), stops) + coloredName(player)
+                + (prestige.isEmpty() ? "" : " " + prestige.trim());
     }
 
     private static final String[] ROMAN = {"I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"};

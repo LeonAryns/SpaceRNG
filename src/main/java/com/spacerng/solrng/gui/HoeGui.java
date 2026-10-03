@@ -99,7 +99,7 @@ public class HoeGui {
 
         HoeEnchantManager hoe = plugin.getHoeEnchantManager();
         int i = 0;
-        for (HoeEnchantManager.Enchant enchant : hoe.getEnchants().values()) {
+        for (HoeEnchantManager.Enchant enchant : hoe.ordered()) {
             if (i >= SLOTS.length) break;
             inv.setItem(SLOTS[i], buildEnchant(plugin, data, hoe, enchant));
             i++;

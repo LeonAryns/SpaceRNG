@@ -96,6 +96,21 @@ public class HoeEnchantManager {
         return enchants;
     }
 
+    /**
+     * The enchants in the order the hoe menu shows them: config order,
+     * with Speed second (V300, Leon's call; it also unlocks second in
+     * /farmtree). The live config has it last, where the migrator put it.
+     */
+    public java.util.List<Enchant> ordered() {
+        java.util.List<Enchant> list = new java.util.ArrayList<>(enchants.values());
+        Enchant speed = enchants.get("WALK_SPEED");
+        if (speed != null && list.size() > 1) {
+            list.remove(speed);
+            list.add(1, speed);
+        }
+        return list;
+    }
+
     public Enchant get(String id) {
         return id == null ? null : enchants.get(id.toUpperCase());
     }

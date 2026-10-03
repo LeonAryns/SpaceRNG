@@ -392,7 +392,7 @@ public class RollListener implements Listener {
         // any other drop: no cutscene, and Auto Roll does not stop for it.
         long realOneIn = Math.round(1.0 / Math.max(1e-15, plugin.getRarityManager().actualChance(result, luck)));
         final boolean bigShow = RollAura.isBigDrop(result.getRarity())
-                && (asked != null || realOneIn >= plugin.getConfig().getLong("roll-item.animate-from-one-in", 1000L));
+                && (asked != null || realOneIn >= plugin.getConfig().getLong("roll-item.animate-from-one-in", 100L));
         final com.spacerng.solrng.roll.RollStages stages = bigShow
                 ? com.spacerng.solrng.roll.RollStages.of(plugin, data, result.getRarity(), result.getOdds())
                 : null;

@@ -325,7 +325,7 @@ public class FarmingManager {
         }
         java.util.List<Owned> owned = new java.util.ArrayList<>();
         if (data != null) {
-            for (var enchant : enchants.getEnchants().values()) {
+            for (var enchant : enchants.ordered()) {
                 int level = enchants.levelOf(data, enchant.id());
                 if (level > 0) {
                     owned.add(new Owned(String.valueOf(enchant.colour()), enchant.display(), level,
