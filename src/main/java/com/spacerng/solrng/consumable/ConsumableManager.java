@@ -228,8 +228,12 @@ public class ConsumableManager {
     public java.util.List<String> describe(Consumable consumable) {
         java.util.List<String> lines = new ArrayList<>();
         if (consumable.luck() != 0.0) {
+            // V317: as a multiplier, Leon's call ("noem ze 1.2x luck etc
+            // geen 20% luck"). It is the same number read the other way
+            // round, and it matches how every other Luck source in /stats
+            // and on a tag already reads.
             lines.add(Lore.stat(consumable.luck() > 0 ? ChatColor.GREEN : ChatColor.RED,
-                    "Luck", signed(consumable.luck() * 100) + "%"));
+                    "Luck", luckTimes(consumable.luck())));
         }
         if (consumable.speed() != 0.0) {
             lines.add(Lore.stat(consumable.speed() > 0 ? ChatColor.YELLOW : ChatColor.RED,
@@ -256,6 +260,18 @@ public class ConsumableManager {
                     signed(consumable.permanentLuck() * 100) + "% permanently"));
         }
         return lines;
+    }
+
+    /**
+     * A draught's Luck as a multiplier: 0.50 reads "1.5x", 1.00 reads
+     * "2x" (V317).
+     *
+     * A draught adds to the Luck pile, so a minus draught can in theory
+     * take it below 1 and the multiplier has to be allowed to say so
+     * rather than clamping and quietly lying about the trade.
+     */
+    public static String luckTimes(double luck) {
+        return trim(1.0 + luck) + "x";
     }
 
     /** "+50" / "-25" - the sign is the point, so it's never dropped. */
@@ -344,7 +360,7 @@ public class ConsumableManager {
                     + ChatColor.RESET + ChatColor.GRAY + "  "
                     + (consumable.luck() != 0
                             ? (consumable.luck() > 0 ? ChatColor.GREEN : ChatColor.RED)
-                                    + signed(consumable.luck() * 100) + "% Luck" + ChatColor.GRAY + "  "
+                                    + luckTimes(consumable.luck()) + " Luck" + ChatColor.GRAY + "  "
                             : "")
                     + (consumable.speed() != 0
                             ? (consumable.speed() > 0 ? ChatColor.YELLOW : ChatColor.RED)
@@ -385,8 +401,34 @@ public class ConsumableManager {
                 return;
             }
         }
+        // V317: a potion goes to /boosters the same way, Leon's call
+        // ("potions puur digitaal via /boosters, ook als je ze inkoopt").
+        // Potion Finder has put its finds there since V264 and a bought
+        // one landed in the inventory instead, so the same potion lived
+        // in two places and only one of them stacked.
+        if (isStorableBooster(consumable)) {
+            var data = plugin.getPlayerDataManager().get(player.getUniqueId());
+            data.addStoredBooster(consumable.id(), amount);
+            player.sendActionBar(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
+                    .legacySection().deserialize(ChatColor.LIGHT_PURPLE + "+" + amount + " "
+                            + ChatColor.stripColor(consumable.display())
+                            + ChatColor.GRAY + "  stored in " + ChatColor.LIGHT_PURPLE + "/boosters"));
+            return;
+        }
         ItemStack item = build(consumable, amount);
         com.spacerng.solrng.player.Stash.give(plugin, player, item);
+    }
+
+    /**
+     * Whether this one belongs in /boosters rather than in a slot.
+     *
+     * Draughts and timed potions only. A charge, a Nova Core, a free
+     * skill voucher and a permanent Luck grant stay items on purpose:
+     * /boosters drinks what you click and those are not drinks, and a
+     * permanent grant is something people like holding and gifting.
+     */
+    public boolean isStorableBooster(Consumable consumable) {
+        return consumable != null && (consumable.isDraught() || consumable.isTimed());
     }
 
     /** "2x", "1.5x" - whole numbers without a pointless ".00". */

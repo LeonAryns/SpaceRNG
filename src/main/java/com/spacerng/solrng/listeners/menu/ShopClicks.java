@@ -355,8 +355,14 @@ final class ShopClicks {
             return;
         }
 
+        // V317: a bought potion goes to /boosters rather than a slot, so
+        // the line has to say where it went or it reads as lost.
         player.sendMessage(ChatColor.GREEN + "Brewed " + ChatColor.WHITE + amount + "x "
-                + ChatColor.LIGHT_PURPLE + consumable.display() + ChatColor.GREEN + ".");
+                + ChatColor.LIGHT_PURPLE + consumable.display() + ChatColor.GREEN + "."
+                + (plugin.getConsumableManager().isStorableBooster(consumable)
+                        ? ChatColor.GRAY + "  Drink it in " + ChatColor.LIGHT_PURPLE + "/boosters"
+                                + ChatColor.GRAY + "."
+                        : ""));
         player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_BREWING_STAND_BREW, 0.9f, 1.4f);
         player.openInventory(com.spacerng.solrng.gui.PotionGui.build(plugin, player));
     }

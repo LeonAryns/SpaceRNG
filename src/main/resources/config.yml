@@ -4170,7 +4170,7 @@ consumables:
     colors: ["#B39DDB", "#5E35B1"]
     luck: 1.00
     rolls: 50
-    description: "+100% Luck for your next 50 rolls."
+    description: "2x Luck for your next 50 rolls."
   speed_potion:
     display: "Speed Potion"
     material: POTION
