@@ -34,6 +34,9 @@ public class CrowdBoostManager {
     private int cooldownMinutes = 150;
     private int durationMinutes = 30;
     private int resetHours = 24;
+    private int callWithin = 5;
+    private int callEveryMinutes = 10;
+    private long lastCallAt;
 
     private int threshold;
     private long readyAt;
@@ -49,7 +52,9 @@ public class CrowdBoostManager {
         startThreshold = Math.max(2, config.getInt("boost.crowd.start-threshold", 20));
         minStep = Math.max(1, config.getInt("boost.crowd.min-step", 5));
         growth = Math.max(1.0, config.getDouble("boost.crowd.growth", 1.30));
-        cooldownMinutes = Math.max(1, config.getInt("boost.crowd.cooldown-minutes", 150));
+        cooldownMinutes = Math.max(1, config.getInt("boost.crowd.cooldown-minutes", 60));
+        callWithin = Math.max(0, config.getInt("boost.crowd.call-within", 5));
+        callEveryMinutes = Math.max(1, config.getInt("boost.crowd.call-every-minutes", 10));
         durationMinutes = Math.max(1, config.getInt("boost.crowd.duration-minutes", 30));
         resetHours = Math.max(1, config.getInt("boost.crowd.reset-hours", 24));
         if (threshold <= 0) threshold = startThreshold;
@@ -91,16 +96,43 @@ public class CrowdBoostManager {
 
         if (now < readyAt) return;
         int online = Bukkit.getOnlinePlayers().size();
-        if (online < threshold) return;
+        if (online < threshold) {
+            callForPlayers(online, now);
+            return;
+        }
         if (!plugin.getBoostManager().grantCrowd(online, durationMinutes)) return;
 
         // The bar moves off what actually turned up, not off the old bar,
         // so a night that blew past the target sets a target worth having.
         threshold = Math.max(online + minStep, (int) Math.ceil(online * growth));
+        // V301: a round number to aim for, 25 rather than 26 (Leon's call).
+        threshold = ((threshold + 4) / 5) * 5;
         readyAt = now + cooldownMinutes * 60_000L;
         lastTriggerAt = now;
         plugin.getLogger().info("Crowd boost fired at " + online
                 + " players. Next one needs " + threshold + ".");
+    }
+
+    /**
+     * V301: close to the bar, the server is told how many more it takes,
+     * at most once every call-every-minutes, so players bring a friend
+     * ("15 online, 5 more for 2x Luck"). Not while any boost is running.
+     */
+    private void callForPlayers(int online, long now) {
+        int short_ = threshold - online;
+        if (callWithin <= 0 || short_ > callWithin || online < 1) return;
+        if (now - lastCallAt < callEveryMinutes * 60_000L) return;
+        if (plugin.getBoostManager().isActive()) return;
+        lastCallAt = now;
+        String line = org.bukkit.ChatColor.AQUA + "" + org.bukkit.ChatColor.BOLD + "✦ " + online + " online"
+                + org.bukkit.ChatColor.RESET + org.bukkit.ChatColor.GRAY + "  " + org.bukkit.ChatColor.WHITE + short_
+                + org.bukkit.ChatColor.GRAY + (short_ == 1 ? " more player" : " more players") + " and everyone gets "
+                + org.bukkit.ChatColor.AQUA + org.bukkit.ChatColor.BOLD + "2x Luck" + org.bukkit.ChatColor.RESET
+                + org.bukkit.ChatColor.GRAY + " for " + durationMinutes + " minutes. Bring a friend!";
+        for (org.bukkit.entity.Player p : Bukkit.getOnlinePlayers()) {
+            p.sendMessage(line);
+            p.playSound(p.getLocation(), org.bukkit.Sound.BLOCK_NOTE_BLOCK_PLING, 0.6f, 1.6f);
+        }
     }
 
     // ---------------------------------------------------------------

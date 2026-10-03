@@ -5205,9 +5205,14 @@ boost:
     start-threshold: 20
     min-step: 5
     growth: 1.3
-    cooldown-minutes: 150
+    # V301: an hour between free boosts (was 150 minutes).
+    cooldown-minutes: 60
     duration-minutes: 30
     reset-hours: 24
+    # V301: within this many players of the bar, chat says how many more
+    # it takes, at most once every call-every-minutes.
+    call-within: 5
+    call-every-minutes: 10
   duration-seconds: 900
   base-cost-credits: 250
   cost-growth: 2.5
