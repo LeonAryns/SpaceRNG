@@ -305,6 +305,16 @@ public class StatsGui {
         return part.op() == StatSources.Op.ADD ? part.value() : part.value() - 1.0;
     }
 
+    /** A stat's total as /stats shows it, for the chat hover (V294). */
+    public static String shownValue(StatSources.Stat stat) {
+        return format(stat.format(), stat.shown());
+    }
+
+    /** The colour /stats gives a stat. */
+    public static ChatColor accent(StatSources.Id id) {
+        return accentOf(id);
+    }
+
     private static String format(StatSources.Format format, double value) {
         return switch (format) {
             case PERCENT -> signedPercent(value);

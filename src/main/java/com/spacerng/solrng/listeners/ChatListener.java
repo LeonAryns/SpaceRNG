@@ -62,13 +62,20 @@ public class ChatListener implements Listener {
         // message instead of once per person in range. The one exception is
         // a Bedrock reader (V223), who cannot hover, so they get a second
         // copy, also built once, with the hover texts written out.
+        // V294: hovering the name shows the sender's stats and a click opens
+        // their /stats. Bedrock cannot hover, so its copy goes without, or
+        // showHovers would write the whole card into the chat line.
         net.kyori.adventure.text.Component[] built = new net.kyori.adventure.text.Component[2];
         event.renderer((source, displayName, message, viewer) -> {
-            if (built[0] == null) built[0] = LEGACY.deserialize(prefix(source)).append(message);
             if (viewer instanceof Player reader && com.spacerng.solrng.platform.Bedrock.is(reader)) {
-                if (built[1] == null) built[1] = com.spacerng.solrng.platform.BedrockText.showHovers(built[0]);
+                if (built[1] == null) built[1] = com.spacerng.solrng.platform.BedrockText.showHovers(
+                        LEGACY.deserialize(prefix(source)).append(message));
                 return built[1];
             }
+            if (built[0] == null) built[0] = LEGACY.deserialize(prefix(source))
+                    .hoverEvent(net.kyori.adventure.text.event.HoverEvent.showText(statsCard(source)))
+                    .clickEvent(net.kyori.adventure.text.event.ClickEvent.runCommand("/stats " + source.getName()))
+                    .append(message);
             return built[0];
         });
     }
@@ -94,6 +101,33 @@ public class ChatListener implements Listener {
         line.append(plugin.getCosmeticManager().suffixOf(data));
         line.append(ChatColor.DARK_GRAY).append(" \u2192 ").append(ChatColor.WHITE);
         return line.toString();
+    }
+
+    /** The hover over a name in chat (V294): who they are and their stats. */
+    private net.kyori.adventure.text.Component statsCard(Player player) {
+        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+        StringBuilder card = new StringBuilder();
+        card.append(plugin.getRankManager().coloredName(player)).append("\n");
+        card.append(ChatColor.DARK_GRAY).append("Level ").append(ChatColor.WHITE).append(data.getLevel());
+        if (data.getPrestige() > 0) {
+            card.append(ChatColor.DARK_GRAY).append("  Prestige ").append(ChatColor.GOLD).append(roman(data.getPrestige()));
+        }
+        card.append("\n").append(ChatColor.DARK_GRAY).append("Rolls ").append(ChatColor.WHITE)
+                .append(String.format("%,d", data.getTotalRolls())).append("\n");
+        try {
+            for (com.spacerng.solrng.stats.StatSources.Id id : com.spacerng.solrng.stats.StatSources.Id.values()) {
+                var stat = com.spacerng.solrng.stats.StatSources.of(plugin, data, id);
+                card.append("\n").append(com.spacerng.solrng.gui.StatsGui.accent(id))
+                        .append(com.spacerng.solrng.gui.Lore.BULLET).append(" ").append(ChatColor.GRAY)
+                        .append(stat.name()).append(": ").append(ChatColor.WHITE)
+                        .append(com.spacerng.solrng.gui.StatsGui.shownValue(stat));
+            }
+        } catch (RuntimeException ignored) {
+            // Read off the main thread; a stat that trips over a change in
+            // flight just leaves the card shorter this once.
+        }
+        card.append("\n\n").append(ChatColor.YELLOW).append("Click for their /stats");
+        return LEGACY.deserialize(card.toString());
     }
 
     /** The equipped tag as the drop's own coloured name, or empty. */
