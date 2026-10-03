@@ -33,6 +33,14 @@ public class SecretIndexGui {
     private static final int REALM_SLOT = 4;
     private static final int HEAD_SLOT = 8;
     private static final int FIRST = 19;
+    // V311: the same Index Mode block /index carries, so the three
+    // collections step through one another rather than being three
+    // commands a player has to know about.
+    private static final int MODE_SLOT = 0;
+
+    public static int modeSlot() {
+        return MODE_SLOT;
+    }
 
     public static Inventory build(SolRNGPlugin plugin, Player player) {
         SecretIndexHolder holder = new SecretIndexHolder();
@@ -46,6 +54,7 @@ public class SecretIndexGui {
         ItemStack filler = pane(Material.BLACK_STAINED_GLASS_PANE);
         for (int i = 0; i < SIZE; i++) inv.setItem(i, i < 9 ? rail : filler);
 
+        inv.setItem(MODE_SLOT, IndexGui.modeBlock(plugin, player, data, IndexGui.Mode.SECRET));
         inv.setItem(REALM_SLOT, realmCard(realm));
         inv.setItem(HEAD_SLOT, head(player, data, realm));
 

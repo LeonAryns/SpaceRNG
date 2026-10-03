@@ -127,26 +127,73 @@ public final class Stepper {
      */
     public static ItemStack item(SolRNGPlugin plugin, Material icon, String label, Rarity lowest,
                                  int index, String everything, List<String> description) {
-        int steps = steps(lowest);
-        String state = index == 0 ? ChatColor.GREEN.toString() + ChatColor.BOLD + everything
-                : index >= steps - 1 ? ChatColor.RED.toString() + ChatColor.BOLD + "Off"
-                : ChatColor.YELLOW.toString() + ChatColor.BOLD
-                        + stepLabel(plugin, lowest, index, everything);
+        List<String> steps = new ArrayList<>();
+        for (int step = 0; step < steps(lowest); step++) {
+            steps.add(stepLabel(plugin, lowest, step, everything));
+        }
+        return ladder(icon, label, index, steps, "Shown from", description);
+    }
+
+    /**
+     * The ladder as a breadcrumb over as few lines as it takes.
+     *
+     * One line per step is the clearest shape and it is what /options
+     * uses, but /index's tier block already spends ten lines on what the
+     * selected tier has collected and what finishing it pays, and a
+     * tooltip past about twenty lines is clipped by the client at both
+     * ends (MC-26757). So the steps sit side by side there instead, which
+     * costs two lines whatever the ladder grows to.
+     */
+    public static List<String> breadcrumb(List<String> stepLabels, int index, int perLine) {
+        List<String> lines = new ArrayList<>();
+        StringBuilder line = new StringBuilder();
+        int onThisLine = 0;
+        for (int step = 0; step < stepLabels.size(); step++) {
+            if (onThisLine > 0) line.append(ChatColor.DARK_GRAY).append(" · ");
+            line.append(step == index
+                    ? ChatColor.WHITE.toString() + ChatColor.BOLD + stepLabels.get(step)
+                    : ChatColor.DARK_GRAY + stepLabels.get(step));
+            if (++onThisLine >= perLine || step == stepLabels.size() - 1) {
+                lines.add(ChatColor.DARK_GRAY + Lore.BULLET + " " + line);
+                line.setLength(0);
+                onThisLine = 0;
+            }
+        }
+        return lines;
+    }
+
+    /**
+     * The renderer, for a ladder whose steps are not rarities too.
+     *
+     * /index steps through a tier FILTER rather than a floor, so its steps
+     * read "Common" and not "Common and up", but it is the same block and
+     * the same two clicks and it has to look the same.
+     */
+    public static ItemStack ladder(Material icon, String label, int index, List<String> stepLabels,
+                                   String sectionHeader, List<String> description) {
+        int bounded = Math.max(0, Math.min(index, stepLabels.size() - 1));
+        String current = stepLabels.get(bounded);
+        ChatColor colour = bounded == 0 ? ChatColor.GREEN
+                : "Off".equals(current) ? ChatColor.RED
+                : ChatColor.YELLOW;
 
         ItemStack item = new ItemStack(icon);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(Lore.title(ChatColor.YELLOW, label) + ChatColor.DARK_GRAY + " - " + state);
+        meta.setDisplayName(Lore.title(ChatColor.YELLOW, label) + ChatColor.DARK_GRAY + " - "
+                + colour + ChatColor.BOLD + current);
 
         List<String> lore = new ArrayList<>();
-        lore.add(Lore.section(ChatColor.AQUA, "What it controls"));
-        for (String line : description) {
-            lore.add(Lore.line(ChatColor.AQUA, line));
+        if (!description.isEmpty()) {
+            lore.add(Lore.section(ChatColor.AQUA, "What it controls"));
+            for (String line : description) {
+                lore.add(Lore.line(ChatColor.AQUA, line));
+            }
+            lore.add("");
         }
-        lore.add("");
-        lore.add(Lore.section(ChatColor.YELLOW, "Shown from"));
-        for (int step = 0; step < steps; step++) {
-            String name = stepLabel(plugin, lowest, step, everything);
-            if (step == index) {
+        lore.add(Lore.section(ChatColor.YELLOW, sectionHeader));
+        for (int step = 0; step < stepLabels.size(); step++) {
+            String name = stepLabels.get(step);
+            if (step == bounded) {
                 lore.add(ChatColor.GREEN + Lore.BULLET + " " + ChatColor.WHITE + name
                         + ChatColor.GREEN + "  " + Lore.TICK);
             } else {
@@ -157,7 +204,7 @@ public final class Stepper {
         lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to step up");
         lore.add(Lore.footnote("Right-click steps back."));
         meta.setLore(lore);
-        meta.setEnchantmentGlintOverride(index == 0 ? Boolean.TRUE : null);
+        meta.setEnchantmentGlintOverride(bounded == 0 ? Boolean.TRUE : null);
         item.setItemMeta(meta);
         return item;
     }

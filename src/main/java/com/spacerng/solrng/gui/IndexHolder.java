@@ -9,8 +9,17 @@ public class IndexHolder implements MenuHolder {
     // null = showing every rarity; otherwise filtered to just this one.
     private Rarity filter;
     private int page;
-    // Whether the grid is scoring shiny finds instead of ordinary ones.
-    private boolean shinyView;
+    // V311: which collection the grid is scoring. It was a shiny on/off
+    // before the secret index joined the same block.
+    private IndexGui.Mode mode = IndexGui.Mode.NORMAL;
+
+    public IndexGui.Mode getMode() {
+        return mode;
+    }
+
+    public void setMode(IndexGui.Mode mode) {
+        this.mode = mode == null ? IndexGui.Mode.NORMAL : mode;
+    }
 
     @Override
     public Inventory getInventory() {
@@ -22,11 +31,11 @@ public class IndexHolder implements MenuHolder {
     }
 
     public boolean isShinyView() {
-        return shinyView;
+        return mode == IndexGui.Mode.SHINY;
     }
 
     public void setShinyView(boolean shinyView) {
-        this.shinyView = shinyView;
+        this.mode = shinyView ? IndexGui.Mode.SHINY : IndexGui.Mode.NORMAL;
     }
 
     public Rarity getFilter() {

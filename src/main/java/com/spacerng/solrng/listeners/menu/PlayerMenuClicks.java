@@ -60,6 +60,16 @@ final class PlayerMenuClicks {
         event.setCancelled(true);
         if (!(event.getClickedInventory() != null
                 && event.getClickedInventory().getHolder() instanceof com.spacerng.solrng.gui.SecretIndexHolder holder)) return;
+        Player stepper = (Player) event.getWhoClicked();
+        // V311: the Index Mode block rides along here too, so the secret
+        // index steps back to the shiny and normal ones without a command.
+        if (event.getRawSlot() == com.spacerng.solrng.gui.SecretIndexGui.modeSlot()) {
+            boolean back = event.isRightClick()
+                    && !com.spacerng.solrng.platform.Bedrock.is(stepper);
+            stepper.openInventory(com.spacerng.solrng.gui.IndexGui.build(plugin, stepper, null, 0,
+                    com.spacerng.solrng.gui.IndexGui.Mode.SECRET.step(back)));
+            return;
+        }
         String id = holder.slots().get(event.getRawSlot());
         if (id == null || !plugin.getRealmManager().secretLuck()) return;
         Player player = (Player) event.getWhoClicked();
@@ -737,27 +747,35 @@ final class PlayerMenuClicks {
         Player player = (Player) event.getWhoClicked();
         int rawSlot = event.getRawSlot();
 
+        // V311: two ladders on the top row, stepped the same way /options
+        // steps. Bedrock has no right click of its own, so it only ever
+        // steps forward and relies on the wrap, exactly as in /options.
+        boolean back = event.isRightClick()
+                && !com.spacerng.solrng.platform.Bedrock.is(player);
+
         // Page buttons first: they sit on the divider row, clear of the
-        // tab bar, and they have to win regardless of what else is there.
-        if (rawSlot == IndexGui.shinySlot()) {
+        // top row, and they have to win regardless of what else is there.
+        if (rawSlot == IndexGui.modeSlot()) {
             player.openInventory(IndexGui.build(plugin, player, holder.getFilter(), 0,
-                    !holder.isShinyView()));
+                    holder.getMode().step(back)));
+            return;
+        }
+        if (rawSlot == IndexGui.raritySlot()) {
+            player.openInventory(IndexGui.build(plugin, player,
+                    IndexGui.stepFilter(holder.getFilter(), back), 0, holder.getMode()));
             return;
         }
         if (rawSlot == IndexGui.prevSlot()) {
             player.openInventory(IndexGui.build(plugin, player, holder.getFilter(),
-                    Math.max(0, holder.getPage() - 1), holder.isShinyView()));
+                    Math.max(0, holder.getPage() - 1), holder.getMode()));
             return;
         }
         if (rawSlot == IndexGui.nextSlot()) {
             player.openInventory(IndexGui.build(plugin, player, holder.getFilter(),
-                    holder.getPage() + 1, holder.isShinyView()));
+                    holder.getPage() + 1, holder.getMode()));
             return;
         }
-        if (rawSlot < 9) {
-            handleIndexTopBar(holder, player, rawSlot);
-            return;
-        }
+        if (rawSlot < 18) return; // the rail and the divider carry nothing else
 
         ItemStack clicked = event.getCurrentItem();
         if (clicked == null || clicked.getItemMeta() == null) return;
@@ -771,16 +789,6 @@ final class PlayerMenuClicks {
 
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         TagCommand.equip(plugin, player, data, rollName, rarityName);
-    }
-
-    /** Slots 0 to 6 are the rarity tabs. 7 is a spacer, 8 is your head. */
-    void handleIndexTopBar(IndexHolder holder, Player player, int rawSlot) {
-        Rarity[] rarities = Rarity.values();
-        if (rawSlot >= rarities.length) return;
-
-        Rarity clicked = rarities[rawSlot];
-        Rarity newFilter = holder.getFilter() == clicked ? null : clicked;
-        player.openInventory(IndexGui.build(plugin, player, newFilter, 0, holder.isShinyView()));
     }
 
     /** /stash: click a stack to take it, or the hopper to take as much as fits. */

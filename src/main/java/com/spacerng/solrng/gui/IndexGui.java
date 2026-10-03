@@ -24,48 +24,195 @@ import java.util.Map;
 
 /**
  * Collection log: every rollable item, greyed out until the player has
- * actually rolled it at least once. Top row is a tab bar - a button per
- * rarity (left to right, click to filter, click again to clear it) plus
- * an Index Progress readout and page controls on the right. The 45 slots
- * below page through whatever's currently selected.
+ * actually rolled it at least once.
+ *
+ * V311: the top row is two ladders and your head. It used to be seven
+ * rarity tabs plus a shiny switch, eight buttons answering two questions,
+ * and Leon asked for the stepping block /options got in V310 here as
+ * well. Index Mode steps through the normal, shiny and secret collections;
+ * Index Tier steps through all tiers and then one tier at a time, and
+ * carries what the selected tier has collected and what finishing it
+ * pays. Both take a right click as one step back.
+ *
+ * The 36 slots from the third row page through whatever is selected.
  */
 public class IndexGui {
 
-    // Row 1 is the tab bar, row 2 a glass divider, so entries fill rows 3-6.
+    // Row 1 carries the two ladders and your head, row 2 a glass divider,
+    // so entries fill rows 3-6.
     private static final int PAGE_SIZE = 36;
     private static final int ENTRY_START_SLOT = 18;
     private static final int DIVIDER_ROW_START = 9;
-    // The tab bar is seven rarities wide, so it owns slots 0 to 6 and the
-     // page buttons cannot live there. Slot 6 used to be BOTH the Divine
-     // tab and Previous: the tab was drawn, then painted over, and a click
-     // on it was read as "filter to Divine".
-    // Slot 7 is the one gap between the seven rarity tabs and the head.
-    private static final int SHINY_SLOT = 7;
+    // V311: the top row was seven rarity tabs plus a shiny switch, eight
+    // buttons for two questions. It is two blocks now, which is the same
+    // pattern /options got in V310, and it leaves the row readable.
+    private static final int MODE_SLOT = 0;
+    private static final int RARITY_SLOT = 2;
     private static final int PROGRESS_SLOT = 8;
 
-    public static int shinySlot() {
-        return SHINY_SLOT;
+    /** Which collection the grid is scoring (V311). */
+    public enum Mode {
+        NORMAL("Normal Index", Material.HEART_OF_THE_SEA),
+        SHINY("Shiny Index", Material.NAUTILUS_SHELL),
+        SECRET("Secret Index", Material.END_PORTAL_FRAME);
+
+        private final String label;
+        private final Material icon;
+
+        Mode(String label, Material icon) {
+            this.label = label;
+            this.icon = icon;
+        }
+
+        public String label() {
+            return label;
+        }
+
+        /** Just "Normal", "Shiny", "Secret" for the breadcrumb. */
+        public String shortLabel() {
+            return label.replace(" Index", "");
+        }
+
+        public Material icon() {
+            return icon;
+        }
+
+        public Mode step(boolean back) {
+            Mode[] all = values();
+            int moved = ordinal() + (back ? -1 : 1);
+            if (moved < 0) moved = all.length - 1;
+            if (moved >= all.length) moved = 0;
+            return all[moved];
+        }
     }
 
-    private static ItemStack buildShinyToggle(SolRNGPlugin plugin, PlayerData data, boolean on) {
-        int found = data.getDiscoveredShiny().size();
-        int total = plugin.getRarityManager().getItems().size();
+    public static int modeSlot() {
+        return MODE_SLOT;
+    }
 
-        ItemStack item = new ItemStack(on ? Material.NAUTILUS_SHELL : Material.HEART_OF_THE_SEA);
+    public static int raritySlot() {
+        return RARITY_SLOT;
+    }
+
+    /**
+     * The mode ladder. Secret carries its Prestige floor, because Leon
+     * asked for the requirement to be readable from here rather than only
+     * from the message you get when you are turned away.
+     */
+    static ItemStack modeBlock(SolRNGPlugin plugin, Player player, PlayerData data, Mode mode) {
+        int found = mode == Mode.SHINY ? data.getDiscoveredShiny().size() : data.getDiscoveredItems().size();
+        int total = plugin.getRarityManager().getItems().size();
+        int minPrestige = plugin.getConfig().getInt("secret-realm.min-prestige", 0);
+        boolean allowed = data.getPrestige() >= minPrestige;
+
+        ItemStack item = new ItemStack(mode.icon());
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(Lore.title(ChatColor.AQUA, on ? "Shiny Index" : "Normal Index"));
-        meta.setLore(java.util.List.of(
-                Lore.line(ChatColor.AQUA, on
-                        ? "Scoring shiny finds."
-                        : "Scoring ordinary finds."),
-                "",
-                Lore.statArrow(ChatColor.AQUA, "Shinies", found + " / " + total),
-                Lore.bar(total <= 0 ? 0.0 : (double) found / total),
-                "",
-                ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to switch"));
-        meta.setEnchantmentGlintOverride(on ? Boolean.TRUE : null);
+        meta.setDisplayName(Lore.title(ChatColor.AQUA, "Index Mode") + ChatColor.DARK_GRAY + " - "
+                + ChatColor.YELLOW + ChatColor.BOLD + mode.label());
+
+        List<String> lore = new ArrayList<>();
+        lore.add(Lore.section(ChatColor.AQUA, "What it scores"));
+        switch (mode) {
+            case NORMAL -> lore.add(Lore.line(ChatColor.AQUA, "Ordinary finds."));
+            case SHINY -> lore.add(Lore.line(ChatColor.AQUA, "Shiny finds of the same drops."));
+            case SECRET -> lore.add(Lore.line(ChatColor.AQUA, "Secrets from the Secret Realm."));
+        }
+        lore.add("");
+        if (mode == Mode.SECRET) {
+            lore.add(allowed
+                    ? Lore.stat(ChatColor.GREEN, "Prestige", data.getPrestige() + " of " + minPrestige + " needed")
+                    : Lore.requirement("Prestige", String.valueOf(data.getPrestige()),
+                            String.valueOf(minPrestige), false));
+        } else {
+            lore.add(Lore.statArrow(ChatColor.AQUA, mode == Mode.SHINY ? "Shinies" : "Found",
+                    found + " / " + total));
+            lore.add(Lore.bar(total <= 0 ? 0.0 : (double) found / total));
+        }
+        lore.add("");
+        lore.add(Lore.section(ChatColor.YELLOW, "Modes"));
+        List<String> names = new ArrayList<>();
+        for (Mode option : Mode.values()) names.add(option.shortLabel());
+        lore.addAll(Stepper.breadcrumb(names, mode.ordinal(), names.size()));
+        lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " Secret needs Prestige " + minPrestige + ".");
+        lore.add("");
+        lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to step up");
+        lore.add(Lore.footnote("Right-click steps back."));
+        meta.setLore(lore);
+        meta.setEnchantmentGlintOverride(mode == Mode.NORMAL ? null : Boolean.TRUE);
         item.setItemMeta(meta);
         return item;
+    }
+
+    /**
+     * The tier ladder: all tiers, then one tier at a time.
+     *
+     * It carries what the old per-rarity tab carried, the tier's counts
+     * and what finishing it pays, but only for the tier being shown. That
+     * is the one a player is looking at, and seven tabs each repeating the
+     * block was most of why the top row read as clutter.
+     */
+    private static ItemStack buildRarityBlock(SolRNGPlugin plugin, PlayerData data, Rarity filter) {
+        var rarities = plugin.getRarityManager();
+        var prestige = plugin.getPrestigeManager();
+
+        List<String> steps = new ArrayList<>();
+        steps.add("All tiers");
+        for (Rarity rarity : Rarity.values()) steps.add(rarity.displayName());
+        int index = filter == null ? 0 : filter.ordinal() + 1;
+
+        ItemStack item = new ItemStack(filter == null ? Material.BOOKSHELF : tabMaterial(filter));
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(Lore.title(ChatColor.AQUA, "Index Tier") + ChatColor.DARK_GRAY + " - "
+                + (filter == null
+                        ? ChatColor.GREEN.toString() + ChatColor.BOLD + "All tiers"
+                        : rarities.style(filter, filter.displayName())));
+
+        List<String> lore = new ArrayList<>();
+        int total = filter == null ? rarities.getItems().size() : rarities.countIn(filter);
+        int found = filter == null ? data.getDiscoveredItems().size() : rarities.foundIn(data, filter, false);
+        int shiny = filter == null ? data.getDiscoveredShiny().size() : rarities.foundIn(data, filter, true);
+        boolean done = total > 0 && found >= total;
+        boolean shinyDone = total > 0 && shiny >= total;
+
+        lore.add(Lore.section(ChatColor.AQUA, "Collected"));
+        lore.add(Lore.requirement("Found", String.valueOf(found), String.valueOf(total), done));
+        lore.add(Lore.requirement("Shiny", String.valueOf(shiny), String.valueOf(total), shinyDone));
+        lore.add(Lore.bar(total <= 0 ? 0.0 : (double) found / total));
+        if (filter != null) {
+            double perRarity = rarities.completionFor(filter, prestige.getIndexCompletionPerRarity());
+            double perShiny = prestige.getIndexCompletionPerShiny();
+            lore.add("");
+            lore.add(Lore.section(ChatColor.GREEN, "Completion reward"));
+            lore.add((done ? ChatColor.GREEN : ChatColor.DARK_GRAY) + Lore.BULLET + " "
+                    + ChatColor.GRAY + "Every one found: "
+                    + (done ? ChatColor.GREEN : ChatColor.WHITE) + trim(perRarity) + "x Luck"
+                    + (done ? "  " + ChatColor.GREEN + Lore.TICK : ""));
+            lore.add((shinyDone ? ChatColor.GREEN : ChatColor.DARK_GRAY) + Lore.BULLET + " "
+                    + ChatColor.GRAY + "Every one shiny: "
+                    + (shinyDone ? ChatColor.GREEN : ChatColor.WHITE) + trim(perShiny) + "x Luck"
+                    + (shinyDone ? "  " + ChatColor.GREEN + Lore.TICK : ""));
+            lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " The shiny reward replaces the other.");
+        }
+        lore.add("");
+        lore.add(Lore.section(ChatColor.YELLOW, "Showing"));
+        lore.addAll(Stepper.breadcrumb(steps, index, 4));
+        lore.add("");
+        lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to step up");
+        lore.add(Lore.footnote("Right-click steps back."));
+        meta.setLore(lore);
+        meta.setEnchantmentGlintOverride(done ? Boolean.TRUE : null);
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    /** Steps the tier filter: null is all tiers, then one tier at a time. */
+    public static Rarity stepFilter(Rarity filter, boolean back) {
+        Rarity[] all = Rarity.values();
+        int index = filter == null ? 0 : filter.ordinal() + 1;
+        int moved = index + (back ? -1 : 1);
+        if (moved < 0) moved = all.length;
+        if (moved > all.length) moved = 0;
+        return moved == 0 ? null : all[moved - 1];
     }
     private static final int PREV_SLOT = 9;
     private static final int NEXT_SLOT = 17;
@@ -106,16 +253,32 @@ public class IndexGui {
     }
 
     public static Inventory build(SolRNGPlugin plugin, Player player, Rarity filter, int page) {
-        return build(plugin, player, filter, page, false);
+        return build(plugin, player, filter, page, Mode.NORMAL);
     }
 
     /**
-     * `shinyView` scores the grid on shiny finds rather than ordinary
-     * ones. Two collections live in the same 144 entries and only one of
+     * The shiny view scores the grid on shiny finds rather than ordinary
+     * ones. Two collections live in the same 191 entries and only one of
      * them was ever visible.
      */
     public static Inventory build(SolRNGPlugin plugin, Player player, Rarity filter, int page,
                                   boolean shinyView) {
+        return build(plugin, player, filter, page, shinyView ? Mode.SHINY : Mode.NORMAL);
+    }
+
+    /**
+     * V311: three modes behind one block.
+     *
+     * Secret hands straight over to {@link SecretIndexGui}, which already
+     * is that collection's screen and has its own grid, its own realm card
+     * and its own click handling. Folding its 54 slots into this file
+     * would have meant a second copy of all of it; carrying the same mode
+     * block over there instead costs one slot and reads as one screen.
+     */
+    public static Inventory build(SolRNGPlugin plugin, Player player, Rarity filter, int page,
+                                  Mode mode) {
+        if (mode == Mode.SECRET) return SecretIndexGui.build(plugin, player);
+        boolean shinyView = mode == Mode.SHINY;
         syncHeld(plugin, player);
         IndexHolder holder = new IndexHolder();
         holder.setFilter(filter);
@@ -130,7 +293,7 @@ public class IndexGui {
 
         Inventory inv = Bukkit.createInventory(holder, 54, MenuStyle.title("Index", "#80DEEA", "#26C6DA"));
         holder.setInventory(inv);
-        holder.setShinyView(shinyView);
+        holder.setMode(mode);
 
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
 
@@ -140,11 +303,13 @@ public class IndexGui {
             inv.setItem(slot, divider());
         }
 
-        for (Rarity rarity : Rarity.values()) {
-            inv.setItem(rarity.ordinal(), buildTab(plugin, data, rarity, filter == rarity));
+        // The rest of the top row is the divider's own pane, so the two
+        // blocks and the head read as a rail rather than a half-empty bar.
+        for (int slot = 0; slot < 9; slot++) {
+            inv.setItem(slot, divider());
         }
-
-        inv.setItem(SHINY_SLOT, buildShinyToggle(plugin, data, shinyView));
+        inv.setItem(MODE_SLOT, modeBlock(plugin, player, data, mode));
+        inv.setItem(RARITY_SLOT, buildRarityBlock(plugin, data, filter));
         inv.setItem(PROGRESS_SLOT, buildProfile(plugin, player, data, filter, shown.size()));
         if (page > 0) {
             inv.setItem(PREV_SLOT, buildPageButton(false, page, totalPages));
@@ -172,8 +337,13 @@ public class IndexGui {
      * filter, because "finish this tier for 2x Luck" is the reason to care
      * about a tier at all and it has to be readable from the tier itself.
      */
-    private static ItemStack buildTab(SolRNGPlugin plugin, PlayerData data, Rarity rarity, boolean selected) {
-        Material material = switch (rarity) {
+    /**
+     * The icon a tier is recognised by. It used to live inside the tier's
+     * own tab; the tier block wears it now so the top row still says at a
+     * glance which tier is up.
+     */
+    private static Material tabMaterial(Rarity rarity) {
+        return switch (rarity) {
             // Common moved off white when its label went grey; white is
             // Divine's now, and nothing else in the menu is that bright.
             case COMMON -> Material.LIGHT_GRAY_DYE;
@@ -184,48 +354,6 @@ public class IndexGui {
             case MYTHICAL -> Material.RED_DYE;
             case DIVINE -> Material.WHITE_DYE;
         };
-
-        var rarities = plugin.getRarityManager();
-        var prestige = plugin.getPrestigeManager();
-        int total = rarities.countIn(rarity);
-        int found = rarities.foundIn(data, rarity, false);
-        int shiny = rarities.foundIn(data, rarity, true);
-        boolean done = total > 0 && found >= total;
-        boolean shinyDone = total > 0 && shiny >= total;
-
-        double perRarity = rarities.completionFor(rarity, prestige.getIndexCompletionPerRarity());
-        double perShiny = prestige.getIndexCompletionPerShiny();
-
-        ItemStack tab = new ItemStack(material);
-        ItemMeta meta = tab.getItemMeta();
-        meta.setDisplayName(rarities.style(rarity, rarity.displayName()));
-
-        List<String> lore = new ArrayList<>();
-        lore.add(Lore.section(ChatColor.AQUA, "Collected"));
-        lore.add(Lore.requirement("Found", String.valueOf(found), String.valueOf(total), done));
-        lore.add(Lore.requirement("Shiny", String.valueOf(shiny), String.valueOf(total), shinyDone));
-        lore.add(Lore.bar(total <= 0 ? 0.0 : (double) found / total));
-        lore.add("");
-        lore.add(Lore.section(ChatColor.GREEN, "Completion reward"));
-        lore.add((done ? ChatColor.GREEN : ChatColor.DARK_GRAY) + Lore.BULLET + " "
-                + ChatColor.GRAY + "Every " + rarity.displayName() + " found: "
-                + (done ? ChatColor.GREEN : ChatColor.WHITE) + trim(perRarity) + "x Luck"
-                + (done ? "  " + ChatColor.GREEN + Lore.TICK : ""));
-        lore.add((shinyDone ? ChatColor.GREEN : ChatColor.DARK_GRAY) + Lore.BULLET + " "
-                + ChatColor.GRAY + "Every one shiny: "
-                + (shinyDone ? ChatColor.GREEN : ChatColor.WHITE) + trim(perShiny) + "x Luck"
-                + (shinyDone ? "  " + ChatColor.GREEN + Lore.TICK : ""));
-        lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " The shiny reward replaces the other,");
-        lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " and finished tiers multiply together.");
-        lore.add("");
-        lore.add(selected
-                ? ChatColor.GREEN + "" + ChatColor.BOLD + "Showing this tier"
-                : ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to filter");
-
-        meta.setLore(lore);
-        meta.setEnchantmentGlintOverride(done ? Boolean.TRUE : null);
-        tab.setItemMeta(meta);
-        return tab;
     }
 
     /** "2x" rather than "2.00x" when the number is whole. */
