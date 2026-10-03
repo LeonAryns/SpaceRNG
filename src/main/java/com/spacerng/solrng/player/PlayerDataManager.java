@@ -161,6 +161,7 @@ public class PlayerDataManager {
         data.getMutedEnchantMessages().addAll(yml.getStringList("muted-enchant-messages"));
         for (Rarity rarity : Rarity.values()) {
             data.setAnnounced(rarity, yml.getInt("announced." + rarity.name(), 0));
+            data.setRolled(rarity, yml.getInt("rolled-by-rarity." + rarity.name(), 0));
         }
         data.setShiniesAnnounced(yml.getInt("announced.SHINY", 0));
         data.setAutoStoreKeys(yml.getBoolean("auto-store-keys", true));
@@ -457,6 +458,7 @@ public class PlayerDataManager {
         for (Rarity rarity : Rarity.values()) {
             int count = data.getAnnounced(rarity);
             if (count > 0) yml.set("announced." + rarity.name(), count);
+            if (data.getRolled(rarity) > 0) yml.set("rolled-by-rarity." + rarity.name(), data.getRolled(rarity));
         }
         if (data.getShiniesAnnounced() > 0) yml.set("announced.SHINY", data.getShiniesAnnounced());
         yml.set("auto-store-keys", data.isAutoStoreKeys());

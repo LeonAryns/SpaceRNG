@@ -215,6 +215,31 @@ public class LeaderboardManager {
         }
     }
 
+    /**
+     * Players kept off the farming boards and the farming payout (V298,
+     * /rngadmin farmboard), as UUIDs in leaderboard.farming.excluded.
+     */
+    public boolean isFarmExcluded(UUID uuid) {
+        return plugin.getConfig().getStringList("leaderboard.farming.excluded").contains(uuid.toString());
+    }
+
+    public boolean setFarmExcluded(UUID uuid, boolean excluded) {
+        List<String> list = new ArrayList<>(plugin.getConfig().getStringList("leaderboard.farming.excluded"));
+        boolean changed = excluded ? !list.contains(uuid.toString()) && list.add(uuid.toString())
+                : list.remove(uuid.toString());
+        plugin.getConfig().set("leaderboard.farming.excluded", list);
+        plugin.saveConfig();
+        return changed;
+    }
+
+    /** A player on the boards by name, online or not. */
+    public Entry findByName(String name) {
+        for (Entry entry : index.values()) {
+            if (entry.name() != null && entry.name().equalsIgnoreCase(name)) return entry;
+        }
+        return null;
+    }
+
     /** Top rows on a board, highest first. */
     public List<Entry> top(String board, int limit) {
         String id = board.toLowerCase();
@@ -222,6 +247,7 @@ public class LeaderboardManager {
                 Comparator.comparingLong((Entry entry) -> valueOf(id, entry)).reversed();
 
         List<Entry> rows = new ArrayList<>(index.values());
+        if (id.startsWith("farming")) rows.removeIf(entry -> isFarmExcluded(entry.uuid()));
         rows.sort(order);
         return rows.size() > limit ? rows.subList(0, limit) : rows;
     }

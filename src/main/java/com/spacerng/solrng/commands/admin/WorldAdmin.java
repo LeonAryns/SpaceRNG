@@ -957,6 +957,54 @@ final class WorldAdmin extends AdminTools {
      * sight, and that number moves with every Minecraft release.
      */
     /** /rngadmin cropwatch <player|list|off> (V289). */
+    /** /rngadmin farmboard remove|add|list [player] (V298). */
+    boolean doFarmBoard(CommandSender sender, String[] args) {
+        var boards = plugin.getLeaderboardManager();
+        String action = args.length >= 2 ? args[1].toLowerCase(Locale.ROOT) : "list";
+        if (action.equals("list")) {
+            List<String> ids = plugin.getConfig().getStringList("leaderboard.farming.excluded");
+            if (ids.isEmpty()) {
+                sender.sendMessage(ChatColor.GRAY + "Nobody is kept off the farming leaderboard.");
+                return true;
+            }
+            sender.sendMessage(ChatColor.GOLD + "Off the farming leaderboard:");
+            for (String id : ids) {
+                String name = org.bukkit.Bukkit.getOfflinePlayer(java.util.UUID.fromString(id)).getName();
+                sender.sendMessage(ChatColor.GRAY + "  " + (name == null ? id : name));
+            }
+            return true;
+        }
+        if ((!action.equals("remove") && !action.equals("add")) || args.length < 3) {
+            sender.sendMessage(ChatColor.YELLOW + "/rngadmin farmboard remove <player>" + ChatColor.GRAY
+                    + " - off the farming boards and the payout");
+            sender.sendMessage(ChatColor.YELLOW + "/rngadmin farmboard add <player>" + ChatColor.GRAY + " - back on");
+            sender.sendMessage(ChatColor.YELLOW + "/rngadmin farmboard list");
+            return true;
+        }
+        java.util.UUID uuid;
+        String name = args[2];
+        org.bukkit.entity.Player online = org.bukkit.Bukkit.getPlayerExact(name);
+        if (online != null) {
+            uuid = online.getUniqueId();
+            name = online.getName();
+        } else {
+            var entry = boards.findByName(name);
+            if (entry == null) {
+                sender.sendMessage(ChatColor.RED + "No player called " + name + " on the boards.");
+                return true;
+            }
+            uuid = entry.uuid();
+            name = entry.name();
+        }
+        boolean remove = action.equals("remove");
+        boolean changed = boards.setFarmExcluded(uuid, remove);
+        sender.sendMessage(!changed
+                ? ChatColor.GRAY + name + (remove ? " is already off" : " is already on") + " the farming leaderboard."
+                : remove ? ChatColor.GREEN + name + " is off the farming leaderboard and the farming payout."
+                        : ChatColor.GREEN + name + " is back on the farming leaderboard.");
+        return true;
+    }
+
     boolean doCropWatch(CommandSender sender, String[] args) {
         var watch = plugin.getCropWatch();
         String action = args.length >= 2 ? args[1] : "list";

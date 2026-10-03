@@ -36,7 +36,7 @@ public class RespecGui {
 
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         int cost = data.nextRespecCost();
-        long have = data.totalShinies();
+        long have = com.spacerng.solrng.player.DropWallet.shinies(plugin, player, data);
         long money = plugin.getSkillTreeManager().totalMoneySpent(data);
         long coins = plugin.getSkillTreeManager().totalCoinsSpent(data);
         int owned = 0;

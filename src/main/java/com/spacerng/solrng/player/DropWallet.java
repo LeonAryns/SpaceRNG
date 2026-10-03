@@ -37,6 +37,39 @@ public final class DropWallet {
         return total;
     }
 
+    /** Shiny drops of any rarity in the inventory, not converted (V298). */
+    public static long shiniesInInventory(SolRNGPlugin plugin, Player player) {
+        long total = 0L;
+        for (ItemStack stack : player.getInventory().getStorageContents()) {
+            if (plugin.getRollListener().isShiny(stack) && stack.getItemMeta().getPersistentDataContainer()
+                    .has(rarityKey(plugin), PersistentDataType.STRING)) total += stack.getAmount();
+        }
+        return total;
+    }
+
+    /** Converted and unconverted shinies together, what a respec can spend. */
+    public static long shinies(SolRNGPlugin plugin, Player player, PlayerData data) {
+        return data.totalShinies() + (player == null ? 0L : shiniesInInventory(plugin, player));
+    }
+
+    /** Spends shinies, the ones in the inventory first, then the bank. */
+    public static boolean spendShinies(SolRNGPlugin plugin, Player player, PlayerData data, int amount) {
+        if (shinies(plugin, player, data) < amount) return false;
+        ItemStack[] contents = player.getInventory().getStorageContents();
+        int remaining = amount;
+        for (int i = 0; i < contents.length && remaining > 0; i++) {
+            ItemStack stack = contents[i];
+            if (!plugin.getRollListener().isShiny(stack) || !stack.getItemMeta().getPersistentDataContainer()
+                    .has(rarityKey(plugin), PersistentDataType.STRING)) continue;
+            int take = Math.min(remaining, stack.getAmount());
+            stack.setAmount(stack.getAmount() - take);
+            remaining -= take;
+            if (stack.getAmount() <= 0) contents[i] = null;
+        }
+        player.getInventory().setStorageContents(contents);
+        return remaining <= 0 || data.spendAnyShinies(remaining);
+    }
+
     /** Everything spendable: inventory + bank. */
     public static long total(SolRNGPlugin plugin, Player player, PlayerData data, Rarity rarity) {
         return inInventory(plugin, player, rarity) + data.getBankedDrops(rarity);

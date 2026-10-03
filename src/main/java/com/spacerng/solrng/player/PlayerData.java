@@ -990,6 +990,18 @@ public class PlayerData {
         announced.put(rarity, count);
     }
 
+    // How many drops of each rarity this player has rolled (V298, counted
+    // from then on). Ten Epics in, the Epic reveal plays small and fast.
+    private final Map<Rarity, Integer> rolledByRarity = new java.util.EnumMap<>(Rarity.class);
+
+    public int getRolled(Rarity rarity) {
+        return rolledByRarity.getOrDefault(rarity, 0);
+    }
+
+    public void setRolled(Rarity rarity, int count) {
+        rolledByRarity.put(rarity, count);
+    }
+
     public java.util.Set<String> getMutedEnchantMessages() {
         return mutedEnchantMessages;
     }

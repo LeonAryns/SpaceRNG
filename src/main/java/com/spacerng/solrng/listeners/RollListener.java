@@ -389,7 +389,15 @@ public class RollListener implements Listener {
         final com.spacerng.solrng.roll.RollStages stages = RollAura.isBigDrop(result.getRarity())
                 ? com.spacerng.solrng.roll.RollStages.of(plugin, data, result.getRarity(), result.getOdds())
                 : null;
-        final long actTicks = RollAura.actTicks(plugin);
+        // V298: a rarity this player has rolled ten times or more plays
+        // small and fast, so the hundredth Epic is not the first one again.
+        final boolean seenIt = RollAura.isBigDrop(result.getRarity())
+                && data.getRolled(result.getRarity()) >= plugin.getConfig().getInt("roll-item.veteran.after", 10);
+        final long actTicks = seenIt
+                ? Math.max(20L, Math.round(RollAura.actTicks(plugin)
+                        * plugin.getConfig().getDouble("roll-item.veteran.speed", 0.5)))
+                : RollAura.actTicks(plugin);
+        final double auraSize = seenIt ? plugin.getConfig().getDouble("roll-item.veteran.size", 0.5) : 1.0;
         final long cutscene = RollAura.durationTicks(stages, actTicks);
         // No cutscene means no ladder to walk: the drop's own rarity is
         // switched off in this player's /options, so the roll is an
@@ -416,7 +424,7 @@ public class RollListener implements Listener {
         final boolean[] cinematic = {false};
         if (preTicks == 0L) {
             auraStarted[0] = true;
-            aura[0] = RollAura.start(plugin, player, result.getRarity(), result.getOdds(), stages, actTicks);
+            aura[0] = RollAura.start(plugin, player, result.getRarity(), result.getOdds(), stages, actTicks, auraSize);
             if (aura[0] != null) {
                 activeAuras.put(player.getUniqueId(), aura[0]);
                 cinematic[0] = aura[0].ownsScreen();
@@ -439,7 +447,7 @@ public class RollListener implements Listener {
 
             if (!auraStarted[0]) {
                 auraStarted[0] = true;
-                aura[0] = RollAura.start(plugin, player, result.getRarity(), result.getOdds(), stages, actTicks);
+                aura[0] = RollAura.start(plugin, player, result.getRarity(), result.getOdds(), stages, actTicks, auraSize);
                 if (aura[0] != null) {
                     activeAuras.put(player.getUniqueId(), aura[0]);
                     cinematic[0] = aura[0].ownsScreen();
@@ -684,6 +692,7 @@ public class RollListener implements Listener {
     private void finishRoll(Player player, PlayerData data, RollableItem result, boolean shiny,
                             boolean auto, boolean cinematic) {
         clearActionBar(player);
+        data.setRolled(result.getRarity(), data.getRolled(result.getRarity()) + 1);
         // The landed item stays in front of the player through the payoff.
         RollShowcase showcase = showcases.get(player.getUniqueId());
         // Without the question mark nothing held the screen during a
@@ -1103,21 +1112,21 @@ public class RollListener implements Listener {
     /**
      * Every broadcast.digest-seconds (two minutes): of everything worth
      * announcing since the last one, only the highest tier goes to chat. A
-     * shiny ranks just above the plain drop of its rarity. When that tier
-     * was hit more than digest-max times, the rest is one count line.
+     * shiny ranks just above the plain drop of its rarity. One of them is
+     * shown and the rest are a count line underneath (V298).
      */
     private void flushDigest() {
         if (pending.isEmpty()) return;
         int top = pending.stream().mapToInt(PendingDrop::tier).max().orElse(0);
         java.util.List<PendingDrop> best = pending.stream().filter(d -> d.tier() == top).toList();
         pending.clear();
-        int max = Math.max(1, plugin.getConfig().getInt("broadcast.digest-max", 3));
-        for (int i = 0; i < Math.min(max, best.size()); i++) {
-            PendingDrop d = best.get(i);
-            announce(d.roller(), d.name(), d.result(), d.previewItem(), d.shiny());
-        }
-        if (best.size() > max) {
-            String more = ChatColor.GRAY + "  and " + (best.size() - max) + " more like it in the last two minutes.";
+        // V298: one drop per digest, Leon's call, with a count of the rest.
+        PendingDrop d = best.get(java.util.concurrent.ThreadLocalRandom.current().nextInt(best.size()));
+        announce(d.roller(), d.name(), d.result(), d.previewItem(), d.shiny());
+        if (best.size() > 1) {
+            String kind = (d.shiny() ? "shiny " : "") + d.result().getRarity().displayName();
+            String more = ChatColor.GRAY + "  " + (best.size() - 1) + " more " + kind
+                    + (best.size() == 2 ? " drop" : " drops") + " in the last two minutes.";
             for (Player online : Bukkit.getOnlinePlayers()) online.sendMessage(more);
         }
     }

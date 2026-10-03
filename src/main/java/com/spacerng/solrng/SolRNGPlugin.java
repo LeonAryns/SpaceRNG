@@ -220,6 +220,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new FarmingListener(this), this);
         getServer().getPluginManager().registerEvents(new com.spacerng.solrng.farming.FarmPlotListener(this), this);
         getServer().getPluginManager().registerEvents(new com.spacerng.solrng.listeners.BlockProtectListener(this), this);
+        getServer().getPluginManager().registerEvents(new com.spacerng.solrng.listeners.DropEquipListener(this), this);
         getServer().getPluginManager().registerEvents(new com.spacerng.solrng.listeners.WorldLoadListener(this), this);
         getServer().getPluginManager().registerEvents(new com.spacerng.solrng.listeners.HungerListener(), this);
         getServer().getPluginManager().registerEvents(new com.spacerng.solrng.listeners.FarmlandListener(), this);
@@ -258,6 +259,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         getCommand("linked").setExecutor(new com.spacerng.solrng.commands.LinkedCommand(this));
         getCommand("discord").setExecutor(new com.spacerng.solrng.commands.DiscordCommand(this));
         getCommand("trash").setExecutor(new com.spacerng.solrng.commands.TrashCommand());
+        getCommand("cropwatch").setExecutor(new com.spacerng.solrng.commands.CropWatchCommand());
         getCommand("boosters").setExecutor(new com.spacerng.solrng.commands.BoostersCommand(this));
         getCommand("keys").setExecutor((sender, command, label, args) -> {
             if (sender instanceof Player p) p.openInventory(com.spacerng.solrng.gui.KeysGui.build(this, p));

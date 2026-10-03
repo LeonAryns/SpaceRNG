@@ -97,7 +97,8 @@ final class SkillTreeClicks {
             player.sendMessage(ChatColor.RED + "Nothing to respec.");
             return;
         }
-        if (data.totalShinies() < cost || !data.spendAnyShinies(cost)) {
+        // V298: shinies still in the inventory count too.
+        if (!com.spacerng.solrng.player.DropWallet.spendShinies(plugin, player, data, cost)) {
             player.sendMessage(ChatColor.RED + "You need " + cost + " shinies for that.");
             player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
             return;

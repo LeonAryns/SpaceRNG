@@ -29,6 +29,16 @@ public final class Menus {
     public static void open(SolRNGPlugin plugin, Player player, Supplier<Inventory> menu) {
         plugin.getServer().getScheduler().runTask(plugin, () -> {
             if (!player.isOnline()) return;
+            // V298: a vault page still open server side (a client mod can
+            // close the window without telling the server, and /pv can be
+            // typed from inside it) is closed first, so its close saves the
+            // page BEFORE the next one is built from the saved data. Built
+            // first, the new page showed what the open one had already
+            // handed out, and every item in it doubled.
+            if (player.getOpenInventory().getTopInventory().getHolder()
+                    instanceof PrivateVaultHolder vault && !vault.isSelector()) {
+                player.closeInventory();
+            }
             player.openInventory(menu.get());
         });
     }

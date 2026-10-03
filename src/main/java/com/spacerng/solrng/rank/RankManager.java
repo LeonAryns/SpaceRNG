@@ -305,11 +305,37 @@ public class RankManager {
         // rather than the next time they log in.
         if (plugin.getDiscordBot() != null) plugin.getDiscordBot().syncRoles(player);
         com.spacerng.solrng.commands.TagCommand.autoEquipBest(plugin, player, data);
-        Bukkit.broadcastMessage(Lore.gradient("SpaceRNG", true, "#B388FF", "#40C4FF") + ChatColor.DARK_GRAY + " » "
-                + ChatColor.WHITE + player.getName() + ChatColor.GRAY + " is now "
-                + styled(tier) + ChatColor.GRAY + ".");
-        player.playSound(player.getLocation(), org.bukkit.Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0f, 1.0f);
+        announceRank(player, tier);
         return true;
+    }
+
+    /**
+     * A bought rank, told big (V298): a banner in chat with the rank in
+     * its own colours, a title for the buyer, a subtitle and a chime for
+     * everyone else.
+     */
+    public void announceRank(Player player, RankTier tier) {
+        String rank = styled(tier);
+        String rule = ChatColor.DARK_GRAY + "" + ChatColor.STRIKETHROUGH + "                                        ";
+        for (Player online : Bukkit.getOnlinePlayers()) {
+            online.sendMessage("");
+            online.sendMessage(rule);
+            online.sendMessage("  " + Lore.gradient("NEW RANK", true, "#B388FF", "#40C4FF"));
+            online.sendMessage("  " + ChatColor.WHITE + ChatColor.BOLD + player.getName()
+                    + ChatColor.RESET + ChatColor.GRAY + " is now " + rank + ChatColor.GRAY + "!");
+            online.sendMessage("  " + ChatColor.GRAY + "Thank you for supporting SpaceRNG. "
+                    + ChatColor.LIGHT_PURPLE + "/ranks");
+            online.sendMessage(rule);
+            online.sendMessage("");
+            if (online.equals(player)) {
+                online.sendTitle(rank, ChatColor.GRAY + "Thank you for your support", 10, 70, 20);
+                online.playSound(online.getLocation(), org.bukkit.Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0f, 1.0f);
+            } else {
+                online.sendTitle("", ChatColor.WHITE + player.getName() + ChatColor.GRAY + " is now " + rank, 5, 50, 15);
+                online.playSound(online.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_LEVELUP, 0.6f, 1.2f);
+            }
+        }
+        Bukkit.getConsoleSender().sendMessage(ChatColor.stripColor(player.getName() + " is now " + rank));
     }
 
     // ------------------------------------------------------------- key all

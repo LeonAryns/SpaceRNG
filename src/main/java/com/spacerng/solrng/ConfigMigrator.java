@@ -180,6 +180,17 @@ public final class ConfigMigrator {
     }
 
     private static final List<Patch> PATCHES = List.of(
+            // V298: Owner red only, prestige one level more each time, pass XP nerfed.
+            new Patch("owner-red-only", "ranks.tiers.owner.colors",
+                    List.of("#FF1744", "#FF3D00", "#FFC400"), List.of("#FF1744", "#B71C1C")),
+            new Patch("walk-speed-farmtree", "farming.enchants.WALK_SPEED.always-unlocked", true, false),
+            new Patch("prestige-plus-one-level", "prestige.levels-increment-per-prestige", 5, 1),
+            new Patch("pass-xp-uncommon", "pass.xp.per-roll.UNCOMMON", 100, 20),
+            new Patch("pass-xp-rare", "pass.xp.per-roll.RARE", 1000, 50),
+            new Patch("pass-xp-epic", "pass.xp.per-roll.EPIC", 5000, 250),
+            new Patch("pass-xp-legendary", "pass.xp.per-roll.LEGENDARY", 25000, 1000),
+            new Patch("pass-xp-mythical", "pass.xp.per-roll.MYTHICAL", 100000, 2500),
+            new Patch("pass-xp-divine", "pass.xp.per-roll.DIVINE", 500000, 5000),
             // V291: the Secret Realm for everyone, fifteen minutes, two hours apart.
             new Patch("realm-no-prestige", "secret-realm.min-prestige", 25, 0),
             new Patch("realm-fifteen-minutes", "secret-realm.open-seconds", 600, 900),

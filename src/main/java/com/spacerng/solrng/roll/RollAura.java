@@ -249,6 +249,8 @@ public final class RollAura {
     // The ground circle, the only part of the reveal that is a shape rather
     // than a cloud of particles.
     private RollCircle circle;
+    // How big the whole thing is drawn, 1.0 normally (V298).
+    private double size = 1.0;
     // The comet falling on the roller, and the odds counter under it. The
     // roller's half of the reveal: everything else here is drawn on them
     // and therefore behind their own camera.
@@ -326,9 +328,21 @@ public final class RollAura {
      */
     public static RollAura start(SolRNGPlugin plugin, Player player, Rarity rarity, long odds,
                                  RollStages stages, long actTicks) {
+        return start(plugin, player, rarity, odds, stages, actTicks, 1.0);
+    }
+
+    /**
+     * The same, drawn at {@code size} of its usual reach (V298): a drop the
+     * player has rolled ten times already plays small, and fast through a
+     * shorter {@code actTicks} the caller hands in.
+     */
+    public static RollAura start(SolRNGPlugin plugin, Player player, Rarity rarity, long odds,
+                                 RollStages stages, long actTicks, double size) {
         if (!isBigDrop(rarity)) return null;
 
         RollAura aura = new RollAura(plugin, player, rarity);
+        aura.size = Math.max(0.2, Math.min(1.0, size));
+        aura.maxRadius = maxRadiusFor(rarity) * aura.size;
         aura.stages = stages;
         aura.dropOdds = odds;
         aura.actTicks = Math.max(1L, actTicks);
@@ -703,7 +717,7 @@ public final class RollAura {
         this.look = stage;
         this.score = scoreFor(stage);
         Color colour = colorFor(stage);
-        this.maxRadius = maxRadiusFor(stage);
+        this.maxRadius = maxRadiusFor(stage) * size;
         this.strands = strandsFor(stage);
         this.dust = new Particle.DustOptions(colour, 1.3f);
         this.dustBright = new Particle.DustOptions(colour, 2.4f);
@@ -929,7 +943,7 @@ public final class RollAura {
         // the part that makes the burst visible from inside it.
         if (frame <= 26) {
             double p = frame / 26.0;
-            double radius = CLEAR + ease(p) * 20.0;
+            double radius = CLEAR + ease(p) * 20.0 * size;
             // Thins out as it grows so the far edge doesn't turn into a wall.
             int rings = p < 0.5 ? 7 : 5;
             int points = p < 0.5 ? 18 : 12;
@@ -982,7 +996,7 @@ public final class RollAura {
             for (int wave = 0; wave < 3; wave++) {
                 double wp = ((double) frame / length) - (wave * 0.18);
                 if (wp <= 0.0 || wp > 1.0) continue;
-                double radius = ease(wp) * 24.0;
+                double radius = ease(wp) * 24.0 * size;
                 ring(base, radius, (int) (14 + radius * 1.6), wave == 0 ? dustBright : dust, 0.05);
             }
         }

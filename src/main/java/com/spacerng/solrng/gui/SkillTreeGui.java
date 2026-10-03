@@ -282,7 +282,8 @@ public class SkillTreeGui {
      */
     private static ItemStack buildRespecButton(SolRNGPlugin plugin, PlayerData data) {
         int cost = data.nextRespecCost();
-        long haveShinies = data.totalShinies();
+        long haveShinies = com.spacerng.solrng.player.DropWallet.shinies(plugin,
+                org.bukkit.Bukkit.getPlayer(data.getUuid()), data);
         boolean affordable = haveShinies >= cost;
         int owned = 0;
         for (SkillNode node : plugin.getSkillTreeManager().getNodes().values()) {

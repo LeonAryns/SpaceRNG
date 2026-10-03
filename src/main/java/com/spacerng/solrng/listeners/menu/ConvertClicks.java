@@ -163,8 +163,8 @@ final class ConvertClicks {
 
     /**
      * Convert all (V159): every rolled drop in the player's own inventory
-     * in one click. Shinies stay put, the same promise the shiny switch
-     * makes, because a shiny is the one drop nobody wants banked by accident.
+     * in one click. Since V298 shinies too, banked as shinies: Leon found
+     * no way to convert one, and a respec spends them either way.
      */
     void convertInventory(Player player) {
         ItemStack[] contents = player.getInventory().getStorageContents();
@@ -172,7 +172,7 @@ final class ConvertClicks {
         java.util.List<Integer> slots = new java.util.ArrayList<>();
         for (int slot = 0; slot < contents.length; slot++) {
             ItemStack stack = contents[slot];
-            if (!isDrop(stack) || plugin.getRollListener().isShiny(stack)) continue;
+            if (!isDrop(stack)) continue;
             stacks.add(stack);
             slots.add(slot);
         }

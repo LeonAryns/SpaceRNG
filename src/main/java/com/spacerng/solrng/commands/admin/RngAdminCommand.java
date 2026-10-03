@@ -40,7 +40,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             "reload", "setspawn", "starforge", "reset", "season", "give", "drops",
             "bank", "rank", "cosmetic", "bedrock", "aura", "auras", "head", "reveal", "nextroll", "roll", "unlock", "unlockall", "lockall", "odds", "farmblock", "farmscan", "farmwheat", "farmland",
             "hoe", "consumable", "gradient", "welcome", "crops", "farmclear",
-            "milestones", "farmfill", "boost", "crowd", "nova", "placeholders", "payout", "crate", "tophead", "floatingitem", "boss", "pet", "dust", "discord", "realm", "advancements", "protect", "cropwatch", "icon", "shiny", "firsts", "lorestyles", "tagstyles", "menustyles", "hoestyles", "standingstyles", "enchantstyles", "novastyles", "auratest", "holo", "help");
+            "milestones", "farmfill", "boost", "crowd", "nova", "placeholders", "payout", "crate", "tophead", "floatingitem", "boss", "pet", "dust", "discord", "realm", "advancements", "protect", "cropwatch", "farmboard", "icon", "shiny", "firsts", "lorestyles", "tagstyles", "menustyles", "hoestyles", "standingstyles", "enchantstyles", "novastyles", "auratest", "holo", "help");
     private static final List<String> CURRENCIES = List.of("money", "coins", "gems", "credits", "luck", "speed", "tickets");
 
     private final SolRNGPlugin plugin;
@@ -127,6 +127,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             case "advancements" -> world.doAdvancements(sender, args);
             case "protect" -> world.doProtect(sender, args);
             case "cropwatch" -> world.doCropWatch(sender, args);
+            case "farmboard" -> world.doFarmBoard(sender, args);
             case "icon" -> showcase.doIcon(sender, args);
             default -> {
                 sendHelp(sender);
@@ -190,6 +191,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         line(sender, "advancements", "<off|on>", "Hide every vanilla advancement, toasts included");
         line(sender, "protect", "<on|off>", "Players can break farm blocks only");
         line(sender, "cropwatch", "<player|list|off>", "Watch how fast someone breaks crops");
+        line(sender, "farmboard", "<remove|add|list> [player]", "Keep someone off the farming leaderboard");
         line(sender, "icon", "<name|atlas|sprite>", "Show a sidebar icon, or any game sprite, in chat");
         line(sender, "tophead", "<set|podium|remove|clear|list>", "Floating heads for a leaderboard");
         line(sender, "shiny", "[player]", "Make the next roll shiny");
@@ -264,6 +266,10 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         }
         if (sub.equals("realm")) {
             return args.length == 2 ? partial(args[1], List.of("here", "open", "close", "on", "off", "status")) : List.of();
+        }
+        if (sub.equals("farmboard")) {
+            if (args.length == 2) return partial(args[1], List.of("remove", "add", "list"));
+            return args.length == 3 ? null : List.of();
         }
         if (sub.equals("cropwatch")) {
             if (args.length != 2) return List.of();

@@ -8,7 +8,7 @@
 # their fresh defaults in on top of whatever is on disk, so a server
 # owner never has to delete the whole file to pick up a structural
 # change. Item table, prices and cosmetic tweaks are untouched.
-config-version: 27
+config-version: 28
 
 # One-off value changes the plugin has already made to this file, so none
 # is ever made twice. Managed by the plugin; leave it alone.
@@ -758,12 +758,12 @@ farming:
       # 0.03% of crops at the ceiling. Level 1 costs 42,396, level 1,000 costs 23,031,941,
       # 8,706,815,878 Coins for all of it.
 
-    # V265: walking speed while the hoe is in your hand. Always on and
-    # unlocked from the start, no farm tree node. Capped at +250% in code.
+    # V265: walking speed while the hoe is in your hand. Always on, capped
+    # at +250% in code. V298: unlocked by enchant_speed in /farmtree.
     WALK_SPEED:
       display: "Speed"
       icon: SUGAR
-      always-unlocked: true
+      always-unlocked: false
       base-cost: 500
       cost-linear: 80
       cost-step: 0.2
@@ -1064,7 +1064,8 @@ prestige:
   # levelling into a formality rather than a climb.
   level-cost-growth: 1.15
   first-prestige-levels: 10
-  levels-increment-per-prestige: 5
+  # V298: each prestige asks one level more than the last, not five.
+  levels-increment-per-prestige: 1
   luck-multiplier-per-prestige: 0.10
 
 # /armor - sets bought with rolled drops. Each worn piece grants its
@@ -4261,8 +4262,8 @@ farmtree:
   # Coin sink on the hoe; the second crop costs 3x. Each page's base is 30x
   # the last: 4,000, then 120,000, then 3,600,000.
   #
-  # The Speed enchant is gone at Leon's request; Growth V and VI carry
-  # regrow speed instead.
+  # V298: the Speed enchant (walking speed, WALK_SPEED) is the second
+  # thing to unlock, next to the Wheat root, at Leon's request.
   reserved: []
   pages: 4
   page-names: ["Cultivation", "Abundance", "Uncharted", "Cosmic Soil"]
@@ -4283,6 +4284,17 @@ farmtree:
       effect: "UNLOCK_CROP"
       value: 0
       target: "WHEAT"
+
+    enchant_speed:
+      display: "Speed Enchant"
+      page: 1
+      slot: "4,6"
+      icon: "SUGAR"
+      cost-money: 6500
+      requires: "crop_wheat"
+      effect: "UNLOCK_ENCHANT"
+      value: 0
+      target: "WALK_SPEED"
 
     yield_wheat:
       display: "Wheat Yield"
@@ -5267,14 +5279,16 @@ pass:
   node: "pass_unlock"
   xp:
     # XP per roll, by what the roll landed on.
+    # V298: the whole pass is 250,000 XP, and a Mythical gave 100,000 of
+    # it. Now a Divine is one level and the pass is climbed by playing.
     per-roll:
       COMMON: 10
-      UNCOMMON: 100
-      RARE: 1000
-      EPIC: 5000
-      LEGENDARY: 25000
-      MYTHICAL: 100000
-      DIVINE: 500000
+      UNCOMMON: 20
+      RARE: 50
+      EPIC: 250
+      LEGENDARY: 1000
+      MYTHICAL: 2500
+      DIVINE: 5000
     per-harvest: 1
   # One entry per level, in order. `xp` is what THAT level costs, not a
   # running total. Both tracks are optional per level.
@@ -6205,9 +6219,8 @@ ranks:
       hidden: true
       priority: 10000
       bold: true
-      # V243: one flat red read as dull. Red into a crown gold; the badge
-      # takes the first stop, so [O] stays red.
-      colors: ["#FF1744", "#FF3D00", "#FFC400"]
+      # V298: red only, Leon's call (V243 ran it into a fiery gold).
+      colors: ["#FF1744", "#B71C1C"]
       tag: ""
       # V288: the whole word, [Owner], Leon's call.
       letter: "Owner"
@@ -6334,11 +6347,10 @@ broadcast:
   # announced for this many seconds (V286).
   quiet-seconds: 60
   # V293: drops are told as a digest every this many seconds, and only the
-  # highest tier found in that time (a shiny just above its rarity). At
-  # most digest-max lines, the rest as a count. 0 announces every drop
-  # straight away with the limit above, as before.
+  # highest tier found in that time (a shiny just above its rarity): one
+  # drop, and a count of the others of that tier (V298). 0 announces every
+  # drop straight away with the limit above, as before.
   digest-seconds: 120
-  digest-max: 3
 
 # Server First 10. The first players to roll a tracked rarity each take a
 # numbered spot, and the whole server is told: a banner in chat, a toast,
