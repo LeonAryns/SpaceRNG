@@ -648,8 +648,27 @@ public class FarmPlotManager {
     public boolean harvest(Player player, Location location) {
         boolean done = harvest(player, location, true);
         // V289: a crop broken by hand, for staff's crop watch.
-        if (done && plugin.getCropWatch() != null) plugin.getCropWatch().record(player);
+        if (done && plugin.getCropWatch() != null) plugin.getCropWatch().record(player, normalise(location));
         return done;
+    }
+
+    /**
+     * Draws one plot the way this viewer's own field has it: grown, or
+     * empty while it regrows for them. Crop watch (V297) flashes another
+     * player's breaks at a watcher and puts the watcher's view back after.
+     */
+    public void redraw(Player viewer, Location plot) {
+        if (!viewer.isOnline() || !plots.contains(plot)) return;
+        CropType crop = cropFor(plugin.getPlayerDataManager().get(viewer.getUniqueId()));
+        long until = harvested.getOrDefault(viewer.getUniqueId(), Map.of()).getOrDefault(plot, 0L);
+        viewer.sendBlockChange(plot, crop == null || until > System.currentTimeMillis()
+                ? Bukkit.createBlockData(Material.AIR) : grownData(crop.getMaterial()));
+    }
+
+    /** The crop this player grows, as block data, for crop watch. */
+    public BlockData cropBlockOf(Player player) {
+        CropType crop = cropFor(plugin.getPlayerDataManager().get(player.getUniqueId()));
+        return crop == null ? null : grownData(crop.getMaterial());
     }
 
     /**

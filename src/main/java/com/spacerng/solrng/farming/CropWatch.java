@@ -48,9 +48,30 @@ public final class CropWatch {
         task = null;
     }
 
-    /** One crop broken by hand. */
-    public void record(Player player) {
+    /**
+     * One crop broken by hand. Crops are drawn per player, so a watcher
+     * sees their own field and never the target's breaks; since V297 each
+     * break is shown to whoever watches that player: the crop pops with
+     * its break particles, stays gone for a second, then the watcher's own
+     * view comes back.
+     */
+    public void record(Player player, org.bukkit.Location plot) {
         thisSecond.merge(player.getUniqueId(), 1, Integer::sum);
+        if (watching.isEmpty()) return;
+        for (Map.Entry<UUID, UUID> entry : watching.entrySet()) {
+            if (!entry.getValue().equals(player.getUniqueId())) continue;
+            Player watcher = Bukkit.getPlayer(entry.getKey());
+            if (watcher == null || watcher.equals(player) || !watcher.getWorld().equals(plot.getWorld())
+                    || watcher.getLocation().distanceSquared(plot) > 96 * 96) continue;
+            org.bukkit.block.data.BlockData crop = plugin.getFarmPlotManager().cropBlockOf(player);
+            if (crop != null) {
+                watcher.spawnParticle(org.bukkit.Particle.BLOCK, plot.clone().add(0.5, 0.4, 0.5),
+                        12, 0.25, 0.2, 0.25, 0.0, crop);
+            }
+            watcher.sendBlockChange(plot, Bukkit.createBlockData(org.bukkit.Material.AIR));
+            plugin.getServer().getScheduler().runTaskLater(plugin,
+                    () -> plugin.getFarmPlotManager().redraw(watcher, plot), 20L);
+        }
     }
 
     public int rate(UUID uuid) {
