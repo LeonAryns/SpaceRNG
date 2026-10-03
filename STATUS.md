@@ -5,10 +5,121 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V309**, 3 October 2026. The newest section is the
+Last updated at **V320**, 3 October 2026. The newest section is the
 first one below; older sections further down are history.
 
-## Start here: V242 to V309, 2 and 3 October 2026 (the beta launch)
+## Start here: V310 to V320, 3 October 2026
+
+Leon gave a fourteen item list and then said "bouw alles neem je tijd
+deel het wel op in taken maar ik wil dat alles wordt gemaakt", so the
+one-subject-per-jar rule was set aside at his word. Eleven jars, every
+one pushed and built green. **None of it has been tested in game.**
+
+His three decisions, for the record: egg one hatches anything but a
+Divine, new crates simply stop giving the old permanent Luck and what
+players already hold stays theirs, and the tier above Divine is Astral.
+
+### What shipped
+
+- **V310, the stepping block.** /options drew sixteen per-rarity
+  switches; it is four settings and three ladders. Left click steps the
+  floor up, right click back, the whole ladder is printed in the
+  tooltip. The roll animation is one of them, so a player can ask for
+  the reveal only from Legendary up. `gui/Stepper`.
+- **V311, /index on the same pattern.** Index Mode steps normal, shiny
+  and secret; Index Tier steps all tiers then one at a time and carries
+  what the old per-rarity tab carried. Secret hands over to
+  `SecretIndexGui`, which now wears the same mode block, so the three
+  collections are one screen. The Prestige floor is printed on it.
+- **V312, Tag Luck to the secret index.** `secret-realm.secret-luck`
+  true and `min-prestige` 10, both as patches. The V291 system, finally
+  switched on. Leon keeps the realm itself closed, so Tag Luck is gone
+  with nothing in its place until he opens it; that is deliberate.
+- **V313, the egg ladder.** Divine is a flat chance per egg
+  (`divine-chance`) rather than a weight, because the boost dragged it
+  along and "ten times" could not be expressed. Stardust 100 dust from
+  P0 with no Divine, Nebula 1,500 at P10 at 1 in 1,000, Supernova
+  12,000 at P25 at 1 in 100. Eggs hatch on the spot
+  (`pets.eggs.instant`, false brings the V238 build-up back). Every
+  upgrade is Gems, growth 2.0.
+- **V314, Cosmic Dust as a range.** `pets.dust.cosmic-min` to
+  `cosmic-max`, and the new Cosmic Yield node (page 5, ten levels) adds
+  to the top. config-version 29 for it. Also fixed a real bug: the
+  level-up hint wrote the action bar blind every three seconds and
+  painted over every dust find under Auto Roll. `gui/ActionBar` owns the
+  line now.
+- **V315, permanent Luck in small pieces.** luck_5, luck_10, luck_25.
+  Farm and Vote pay 5, Cosmic 10, Nebula 25, the pass 5 / 10 / 25 at
+  levels 20, 35 and 40. The old luck_50 and luck_250 stay DEFINED and
+  are given out nowhere. Two one-off migrations, because a crate's
+  rewards are a list of maps with no id and neither crates nor pass may
+  join STRUCTURAL.
+- **V316, /crates.** Teleports to the crate placements in
+  `holograms.yml` and your own key count floats over each crate, one
+  private TextDisplay per reader within 12 blocks, the podium's trick.
+  Keys were already digital since V282.
+- **V317, potions digital.** A bought potion goes to /boosters like
+  Potion Finder's finds, so it stacks. Luck reads `1.5x` not `+50%`.
+  Charges, Nova Cores, vouchers and permanent grants stay items.
+- **V318, the trees.** Three nodes drew on the dark border with no frame
+  round them, which is what read as random: enchant_speed at (4,6),
+  auto_convert at (3,4), cosmic_root at (6,1). All 175 nodes checked.
+  The frame grew with mirrors rather than the nodes moving, so every
+  placement Leon asked for is intact.
+- **V319, Astral.** 11 Legendary, 8 Mythical, 10 Divine, 3 Astral, every
+  material verified against the jar. Astral's floor is 5x Divine's
+  ceiling, 1 in 3.75 billion. It has its own reveal scale, violet
+  instead of brighter, FIREFLY accent, armillary and zenith auras.
+- **V320, four of his asks.** Prestige reads P4. /fixhoe, for a
+  sender, a named player or every player online. The crops-farmed gate
+  really fixed this time, see below. And the chat hover was already done
+  in V309, he just had not seen it.
+
+### Two things worth reading
+
+**The crops-farmed gate.** Leon has reported this several times and it
+kept coming back because TWO things had to be wrong at once.
+`farming.crop-unlock-at` is a sub-section added to a `farming:` block
+every older config already had, so it never merged and is absent on the
+live server. Then `unlockAt` asked plain `contains()`, which consults
+the jar as defaults and answered true anyway, so the hardcoded ladder
+below it was unreachable; and `getLong(path, 0L)` answered 0, because an
+EXPLICIT default beats the configured ones (`MemorySection.get(path,
+def)` never looks at the defaults, unlike `get(path)`). Every crop read
+as "no crops needed" and fell through to the old skill node. The ladder
+is the lookup's default now, and the section is in ADDED_SECTIONS.
+
+**A correction.** Earlier in the session Leon was told the drop table
+held 15 Epic, 11 Legendary, 8 Mythical and 5 Divine. That came from a
+grep that swept the whole file past `items:` and counted perks and pets
+too. The real table was 10 Epic, 5 Legendary, 3 Mythical and ONE Divine.
+
+### Open, waiting on Leon
+
+- **"Veel permanente Luck nodig om bepaalde stages te halen"** is half
+  answered: small grants mean a pile of them is needed. WHICH stages
+  should require permanent Luck, and how much, is not specified.
+- **`index_luck`, the 28,700 Coin Tag Luck node**, buys nothing now that
+  V312 moved the Luck to the secret index. Same question as Enchant
+  Mastery I and II, which have bought nothing since V190.
+- **The index completion value for Astral (2.25) is a guess**, like the
+  middle three. He only ever gave Common, Uncommon, Rare and Divine.
+- **Astral has no armor set**, since the V308 ladder is one rarity per
+  set and stops at Mythical. Fine unless he wants one.
+
+### Test first, in this order
+
+1. Upload V320 and check `/version SpaceRNG` says 320. The server was on
+   something older than V287 on 3 October.
+2. `/options` and `/index`: step both blocks forward and back.
+3. `/crops`: a crop that should be locked must be locked. This is the
+   one that has been reported most.
+4. `/fixhoe`, then `/fixhoe all` as staff.
+5. `/pets`: buy a Stardust egg, check it hatches at once and that an
+   upgrade asks for Gems.
+6. A roll with the animation ladder on Mythical: an Epic should land at
+   normal speed with no cutscene.
+## V242 to V309, 2 and 3 October 2026 (the beta launch)
 
 The beta opened on 2 October. Leon tested live with players and sent a
 stream of requests; almost every one became its own jar. Everything
