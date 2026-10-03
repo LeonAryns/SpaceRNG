@@ -59,6 +59,14 @@ public final class ConfigMigrator {
      * server already has, like one more hologram panel.
      */
     private static final List<String> ADDED_SECTIONS = List.of(
+            // V313: brand new keys, so a Patch cannot carry them - there
+            // is no old default to match. Without these the live server
+            // falls back to the code default of 0.0 and no egg would ever
+            // hatch a Divine.
+            "pets.eggs.instant",
+            "pets.eggs.tiers.stardust.divine-chance",
+            "pets.eggs.tiers.nebula.divine-chance",
+            "pets.eggs.tiers.supernova.divine-chance",
             // V195: the comet on an Epic or better roll. A dotted path,
             // because roll-item is in every config there has ever been.
             "roll-item.comet",
@@ -549,7 +557,26 @@ public final class ConfigMigrator {
             // outside a structural section, so the live config keeps the
             // old value unless it is patched across one path at a time.
             new Patch("secret-luck-on", "secret-realm.secret-luck", false, true),
-            new Patch("secret-realm-p10", "secret-realm.min-prestige", 0, 10));
+            new Patch("secret-realm-p10", "secret-realm.min-prestige", 0, 10),
+            // V313: the egg ladder and Gems for every pet upgrade. None of
+            // pets lives in a structural section, so each tuned number has
+            // to come across on its own or the live server keeps the old
+            // one and the new divine-chance keys do nothing.
+            new Patch("pet-min-prestige-0", "pets.min-prestige", 10, 0),
+            new Patch("pet-egg1-p0", "pets.eggs.tiers.stardust.min-prestige", 10, 0),
+            new Patch("pet-egg1-ceiling", "pets.eggs.tiers.stardust.max-rarity", "RARE", "MYTHICAL"),
+            new Patch("pet-egg2-cost", "pets.eggs.tiers.nebula.cost", 1000, 1500),
+            new Patch("pet-egg2-boost", "pets.eggs.tiers.nebula.boost", 20, 25),
+            new Patch("pet-egg2-p10", "pets.eggs.tiers.nebula.min-prestige", 20, 10),
+            new Patch("pet-egg2-ceiling", "pets.eggs.tiers.nebula.max-rarity", "LEGENDARY", "MYTHICAL"),
+            new Patch("pet-egg3-cost", "pets.eggs.tiers.supernova.cost", 10000, 12000),
+            new Patch("pet-egg3-p25", "pets.eggs.tiers.supernova.min-prestige", 20, 25),
+            new Patch("pet-egg3-ceiling", "pets.eggs.tiers.supernova.max-rarity", "DIVINE", "MYTHICAL"),
+            new Patch("pet-rarity-gems", "pets.upgrades.rarity-base-cost", 8, 1000),
+            new Patch("pet-rarity-growth", "pets.upgrades.rarity-cost-growth", 1.35, 2.0),
+            new Patch("pet-tier-gems", "pets.upgrades.tier-base-cost", 25, 1500),
+            new Patch("pet-tier-growth", "pets.upgrades.tier-cost-growth", 1.40, 2.0),
+            new Patch("pet-shiny-gems", "pets.upgrades.shiny-cost", 50, 100000));
 
     // V159: every hoe enchant runs to level 10,000, except Credit Finder,
     // which stays at 1,000 because it pays Credits.

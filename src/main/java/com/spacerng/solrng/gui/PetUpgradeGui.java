@@ -143,7 +143,7 @@ public class PetUpgradeGui {
         PetUpgrades upgrades = plugin.getPetManager().upgrades();
         boolean maxed = owned.rarity() >= upgrades.maxRarity();
         long cost = upgrades.rarityCost(owned.rarity());
-        boolean canPay = data.getCosmicDust() >= cost;
+        boolean canPay = data.getShards() >= cost;
 
         ItemStack item = new ItemStack(Material.AMETHYST_SHARD);
         ItemMeta meta = item.getItemMeta();
@@ -160,13 +160,13 @@ public class PetUpgradeGui {
         } else {
             lore.add(Lore.upgrade(ChatColor.LIGHT_PURPLE, "Rarity",
                     String.valueOf(owned.rarity()), String.valueOf(owned.rarity() + 1)));
-            lore.add(Lore.stat(ChatColor.AQUA, "Cost", Currency.COSMIC_DUST.price(cost, canPay)));
-            lore.add(Lore.stat(ChatColor.AQUA, "You hold", Currency.COSMIC_DUST.amount(data.getCosmicDust())));
+            lore.add(Lore.stat(ChatColor.AQUA, "Cost", Currency.GEMS.price(cost, canPay)));
+            lore.add(Lore.stat(ChatColor.AQUA, "You hold", Currency.GEMS.amount(data.getShards())));
             lore.add("");
             lore.add(canPay
                     ? ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to upgrade"
                     : ChatColor.RED + "" + ChatColor.BOLD + "Not enough Cosmic Dust");
-            if (!canPay) lore.add(Lore.line(ChatColor.GRAY, "Cosmic Dust falls while you roll"));
+            if (!canPay) lore.add(Lore.line(ChatColor.GRAY, "Gems come off the farm and from crates"));
         }
         meta.setLore(lore);
         meta.getPersistentDataContainer().set(actionKey(), PersistentDataType.STRING, "rarity");
@@ -178,7 +178,7 @@ public class PetUpgradeGui {
         PetUpgrades upgrades = plugin.getPetManager().upgrades();
         boolean maxed = owned.tier() >= upgrades.maxTier();
         long cost = upgrades.tierCost(owned.tier());
-        boolean canPay = data.getFarmDust() >= cost;
+        boolean canPay = data.getShards() >= cost;
         double bonus = plugin.getSkillTreeManager().totalOf(data, SkillNode.Effect.PET_TIER_CHANCE);
         double chance = upgrades.tierChance(owned.tier(), bonus);
 
@@ -200,13 +200,13 @@ public class PetUpgradeGui {
                     String.valueOf(owned.tier()), String.valueOf(owned.tier() + 1)));
             lore.add(Lore.stat(ChatColor.AQUA, "Chance", Math.round(chance * 100.0) + "%"));
             lore.add(Lore.bar(chance));
-            lore.add(Lore.stat(ChatColor.AQUA, "Cost", Currency.FARM_DUST.price(cost, canPay)));
-            lore.add(Lore.stat(ChatColor.AQUA, "You hold", Currency.FARM_DUST.amount(data.getFarmDust())));
+            lore.add(Lore.stat(ChatColor.AQUA, "Cost", Currency.GEMS.price(cost, canPay)));
+            lore.add(Lore.stat(ChatColor.AQUA, "You hold", Currency.GEMS.amount(data.getShards())));
             lore.add("");
             lore.add(canPay
                     ? ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to try"
                     : ChatColor.RED + "" + ChatColor.BOLD + "Not enough Farm Dust");
-            if (!canPay) lore.add(Lore.line(ChatColor.GRAY, "Farm Dust falls while you harvest"));
+            if (!canPay) lore.add(Lore.line(ChatColor.GRAY, "Gems come off the farm and from crates"));
         }
         meta.setLore(lore);
         meta.getPersistentDataContainer().set(actionKey(), PersistentDataType.STRING, "tier");
@@ -218,7 +218,7 @@ public class PetUpgradeGui {
                                          PetType type, PetInstance owned) {
         PetUpgrades upgrades = plugin.getPetManager().upgrades();
         long cost = upgrades.shinyCost();
-        boolean canPay = data.getCosmicDust() >= cost;
+        boolean canPay = data.getShards() >= cost;
         boolean hasShiny = plugin.getRarityManager().foundIn(data, type.rarity(), true) > 0;
 
         ItemStack item = new ItemStack(Material.GLOW_INK_SAC);
@@ -238,7 +238,7 @@ public class PetUpgradeGui {
         } else {
             lore.add(Lore.stat(ChatColor.LIGHT_PURPLE, "Adds",
                     "+" + Math.round(upgrades.shinyBonus() * 100.0) + "%"));
-            lore.add(Lore.stat(ChatColor.AQUA, "Cost", Currency.COSMIC_DUST.price(cost, canPay)));
+            lore.add(Lore.stat(ChatColor.AQUA, "Cost", Currency.GEMS.price(cost, canPay)));
             lore.add(Lore.requirement("Shiny " + type.rarity().displayName() + " found",
                     hasShiny ? "1" : "0", "1", hasShiny));
             lore.add("");

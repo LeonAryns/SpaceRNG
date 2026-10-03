@@ -276,9 +276,12 @@ public class PetsGui {
         lore.add(Lore.stat(ChatColor.AQUA, "Worn",
                 Math.min(data.getEquippedPets().size(), pets.slots(data)) + " / " + pets.slots(data)));
         lore.add("");
-        lore.add(Lore.section(ChatColor.YELLOW, "Dust"));
+        // V313: eggs are bought with Cosmic Dust and every upgrade is
+        // paid in Gems, so the panel has to name all three or a player
+        // reads the dust and wonders why the upgrade is still red.
+        lore.add(Lore.section(ChatColor.YELLOW, "What pets cost"));
         lore.add(Lore.pipe(ChatColor.LIGHT_PURPLE, Currency.COSMIC_DUST.amount(data.getCosmicDust())));
-        lore.add(Lore.pipe(ChatColor.GREEN, Currency.FARM_DUST.amount(data.getFarmDust())));
+        lore.add(Lore.pipe(ChatColor.AQUA, Currency.GEMS.amount(data.getShards())));
         lore.add("");
         if (pets.slots(data) < PetManager.MAX_SLOTS) {
             lore.add(Lore.footnote("More slots come from /skilltree."));

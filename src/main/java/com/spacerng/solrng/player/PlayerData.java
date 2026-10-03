@@ -294,6 +294,21 @@ public class PlayerData {
         this.shards += amount;
     }
 
+    /**
+     * Spends Gems, or spends nothing and says no (V312).
+     *
+     * Gems had only a getter and an adder, because until pet upgrades
+     * started charging them nothing ever took any away. All or nothing
+     * like every other spend method: a partial charge on a refused
+     * upgrade is the shape of bug that costs a player their currency.
+     */
+    public boolean spendShards(long amount) {
+        if (amount <= 0) return true;
+        if (shards < amount) return false;
+        shards -= amount;
+        return true;
+    }
+
     public double getRollSpeedMultiplier() {
         return rollSpeedMultiplier;
     }

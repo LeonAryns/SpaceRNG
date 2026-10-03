@@ -373,8 +373,7 @@ final class PlayerMenuClicks {
             // V238: the pet is saved now; the hatch decides when the player
             // sees it, and the chat line and the worn pets wait for it.
             int tier = pets.upgrades().eggs().indexOf(egg) + 1;
-            player.closeInventory();
-            com.spacerng.solrng.pet.PetHatch.start(plugin, player, egg, tier, made, () -> {
+            Runnable landed = () -> {
                 if (made.isNew()) {
                     player.sendMessage(ChatColor.LIGHT_PURPLE + "A new pet hatched: " + ChatColor.RESET
                             + shown + ChatColor.GRAY + ".");
@@ -384,7 +383,19 @@ final class PlayerMenuClicks {
                 }
                 plugin.getPetManager().refresh(player);
                 plugin.getScoreboardManager().update(player);
-            });
+            };
+            // V313: an egg hatches on the spot, Leon's call ("pet eggs die
+            // gelijk hatch"). The V238 build-up is still in the jar behind
+            // pets.eggs.instant, because taking a spectacle out is cheap
+            // to undo and expensive to rewrite.
+            if (plugin.getConfig().getBoolean("pets.eggs.instant", true)) {
+                landed.run();
+                player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_LEVELUP, 0.7f, 1.6f);
+                player.openInventory(com.spacerng.solrng.gui.PetsGui.build(plugin, player));
+                return;
+            }
+            player.closeInventory();
+            com.spacerng.solrng.pet.PetHatch.start(plugin, player, egg, tier, made, landed);
             return;
         }
 

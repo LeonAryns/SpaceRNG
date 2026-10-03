@@ -185,9 +185,50 @@ public class PetManager {
      * one would do nothing.
      */
     private PetType roll(PlayerData data, PetEgg egg) {
+        // V313: Divine is read first, as a flat chance per egg. See the
+        // note on PetEgg.hatchesDivine for why it is not a weight: the
+        // boost would drag it along and "ten times the chance" would stop
+        // being ten times the moment the boost was retuned.
+        if (egg.hatchesDivine() && ThreadLocalRandom.current().nextDouble() < egg.divineChance()) {
+            PetType divine = pickDivine(data);
+            // Nobody left to hatch there (every Divine pet already maxed),
+            // so the roll falls through to the ordinary pool rather than
+            // eating the dust for nothing.
+            if (divine != null) return divine;
+        }
         Map<PetType, Double> pool = pool(data, egg);
         double total = 0.0;
         for (double weight : pool.values()) total += weight;
+        if (pool.isEmpty() || total <= 0.0) return null;
+
+        double pick = ThreadLocalRandom.current().nextDouble() * total;
+        PetType last = null;
+        for (Map.Entry<PetType, Double> entry : pool.entrySet()) {
+            last = entry.getKey();
+            pick -= entry.getValue();
+            if (pick <= 0.0) return last;
+        }
+        return last;
+    }
+
+    /**
+     * One Divine pet, weighted among themselves (V313).
+     *
+     * Weighted rather than picked flat, because there is one Divine pet
+     * today and there will be more, and a flat pick would silently make
+     * each new one as likely as the Starheart.
+     */
+    private PetType pickDivine(PlayerData data) {
+        Map<PetType, Double> pool = new java.util.LinkedHashMap<>();
+        double total = 0.0;
+        for (PetType type : types.values()) {
+            if (type.rarity() != com.spacerng.solrng.rarity.Rarity.DIVINE) continue;
+            if (type.weight() <= 0.0) continue;
+            PetInstance had = data.getPet(type.id());
+            if (had != null && had.rarity() >= upgrades.maxRarity()) continue;
+            pool.put(type, type.weight());
+            total += type.weight();
+        }
         if (pool.isEmpty() || total <= 0.0) return null;
 
         double pick = ThreadLocalRandom.current().nextDouble() * total;
@@ -226,25 +267,36 @@ public class PetManager {
         for (double weight : pool.values()) total += weight;
         Map<com.spacerng.solrng.rarity.Rarity, Double> odds =
                 new java.util.EnumMap<>(com.spacerng.solrng.rarity.Rarity.class);
+        // V313: the Divine chance is read before the pool, so the pool's
+        // own odds are what is left after it. Printing the raw pool here
+        // would have the tooltip claim more than the egg gives, and the
+        // whole point of working the tooltip out from the real numbers is
+        // that it cannot drift from them.
+        double divine = egg.hatchesDivine() && pickDivine(data) != null
+                ? Math.min(1.0, egg.divineChance())
+                : 0.0;
+        if (divine > 0.0) {
+            odds.merge(com.spacerng.solrng.rarity.Rarity.DIVINE, divine, Double::sum);
+        }
         if (total <= 0.0) return odds;
         for (Map.Entry<PetType, Double> entry : pool.entrySet()) {
-            odds.merge(entry.getKey().rarity(), entry.getValue() / total, Double::sum);
+            odds.merge(entry.getKey().rarity(), (1.0 - divine) * entry.getValue() / total, Double::sum);
         }
         return odds;
     }
 
-    /** Buys one rarity level with Cosmic Dust. Always takes. */
+    /** Buys one rarity level with Gems (V313). Always takes. */
     public Result upgradeRarity(PlayerData data, String typeId) {
         PetInstance pet = data.getPet(typeId);
         if (pet == null) return Result.LOCKED;
         if (pet.rarity() >= upgrades.maxRarity()) return Result.MAXED;
-        if (!data.spendCosmicDust(upgrades.rarityCost(pet.rarity()))) return Result.TOO_POOR;
+        if (!data.spendShards(upgrades.rarityCost(pet.rarity()))) return Result.TOO_POOR;
         data.putPet(pet.withRarity(pet.rarity() + 1));
         return Result.DONE;
     }
 
     /**
-     * Attempts one tier with Farm Dust. The dust is spent either way: a
+     * Attempts one tier with Gems (V313). The Gems are spent either way: a
      * tier attempt that cost nothing on a failure would just be a slower
      * guaranteed upgrade, and then the percentage means nothing.
      */
@@ -252,7 +304,7 @@ public class PetManager {
         PetInstance pet = data.getPet(typeId);
         if (pet == null) return Result.LOCKED;
         if (pet.tier() >= upgrades.maxTier()) return Result.MAXED;
-        if (!data.spendFarmDust(upgrades.tierCost(pet.tier()))) return Result.TOO_POOR;
+        if (!data.spendShards(upgrades.tierCost(pet.tier()))) return Result.TOO_POOR;
 
         double bonus = plugin.getSkillTreeManager().totalOf(data, SkillNode.Effect.PET_TIER_CHANCE);
         if (ThreadLocalRandom.current().nextDouble() >= upgrades.tierChance(pet.tier(), bonus)) {
@@ -263,7 +315,7 @@ public class PetManager {
     }
 
     /**
-     * Makes a pet shiny for Cosmic Dust.
+     * Makes a pet shiny for Gems (V313).
      *
      * The gate is having found a shiny of the pet's own rarity, which is
      * the same thing that unlocks that rarity's shiny aura. That is the
@@ -277,7 +329,7 @@ public class PetManager {
         PetType type = get(typeId);
         if (type == null) return Result.LOCKED;
         if (plugin.getRarityManager().foundIn(data, type.rarity(), true) <= 0) return Result.NO_SHINY;
-        if (!data.spendCosmicDust(upgrades.shinyCost())) return Result.TOO_POOR;
+        if (!data.spendShards(upgrades.shinyCost())) return Result.TOO_POOR;
         data.putPet(pet.asShiny());
         return Result.DONE;
     }

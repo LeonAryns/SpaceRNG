@@ -6658,7 +6658,11 @@ pets:
 
   # The Prestige a player needs before any egg can be hatched. Pets
   # already owned stay worn whatever this says.
-  min-prestige: 10
+  #
+  # V313: 0, because the Prestige ladder moved onto the eggs themselves
+  # (0, 10 and 25) and leaving this at 10 would have locked every egg
+  # away from a new player.
+  min-prestige: 0
 
   # The eggs on the pets screen, cheapest first. Every egg draws from the
   # same pets; boost multiplies the weight of every pet at boosted-from
@@ -6666,6 +6670,13 @@ pets:
   # each egg's tooltip are worked out from these same numbers.
   eggs:
     boosted-from: EPIC
+    # V313: an egg hatches the moment it is bought, Leon's call. Set this
+    # false to bring the V238 build-up, shake and crack back.
+    instant: true
+    # V313: Divine is a flat chance per egg rather than a weight in the
+    # pool, so "ten times the chance" stays exactly ten times however the
+    # boosts are retuned. The ordinary band therefore stops at Mythical
+    # on every egg: one route to a Divine, not two that have to agree.
     tiers:
       stardust:
         display: "Stardust Egg"
@@ -6673,30 +6684,36 @@ pets:
         icon: TURTLE_EGG
         cost: 100
         boost: 1
-        min-prestige: 10
-        # V284: the band this egg hatches from.
+        # V313: from the start, and never a Divine.
+        min-prestige: 0
         min-rarity: COMMON
-        max-rarity: RARE
+        max-rarity: MYTHICAL
+        divine-chance: 0.0
       nebula:
         display: "Nebula Egg"
         colors: ["#C77DFF", "#FF7AD9"]
         icon: SNIFFER_EGG
-        cost: 1000
-        boost: 20
-        min-prestige: 20
-        # V284: the band this egg hatches from.
+        cost: 1500
+        boost: 25
+        # V313: Prestige 10, and a very small Divine chance: 1 in 1,000.
+        min-prestige: 10
         min-rarity: UNCOMMON
-        max-rarity: LEGENDARY
+        max-rarity: MYTHICAL
+        divine-chance: 0.001
       supernova:
         display: "Supernova Egg"
         colors: ["#FFD54F", "#FF6F3C"]
         icon: DRAGON_EGG
-        cost: 10000
+        cost: 12000
         boost: 400
-        min-prestige: 20
-        # V284: the band this egg hatches from.
+        # V313: Prestige 25, and ten times the Nebula's Divine chance,
+        # 1 in 100. Eight times the price for ten times the Divine odds
+        # and sixteen times the push on Epic and up, so the dearest egg
+        # is clearly the one to save for.
+        min-prestige: 25
         min-rarity: RARE
-        max-rarity: DIVINE
+        max-rarity: MYTHICAL
+        divine-chance: 0.01
 
   dust:
     # The action bar line when a dust falls. Rolling is fast and dust is
@@ -6722,14 +6739,22 @@ pets:
     max-multiplier: 6.0
 
     # Cosmic Dust, out of rolling. A hundred since V215, Leon's call.
+    # Only the egg is paid in dust; every upgrade below is Gems.
     make-cost: 100
-    rarity-base-cost: 8
-    rarity-cost-growth: 1.35
-    shiny-cost: 50
 
-    # Farm Dust, out of harvesting.
-    tier-base-cost: 25
-    tier-cost-growth: 1.40
+    # V313: Gems, and exponential, Leon's call ("pet upgrade met Gems
+    # exponentieel duurder"). A growth of 2.0 is a doubling per level,
+    # which is the one curve a player can read off the menu without
+    # arithmetic: rarity 10 is 1,000 to 256,000 and 511,000 Gems in all,
+    # tier 10 another 766,500 before a single failed attempt. Gems come
+    # off the farm in the thousands an hour, so this is the long sink at
+    # the end of farming rather than something bought in an evening.
+    rarity-base-cost: 1000
+    rarity-cost-growth: 2.0
+    shiny-cost: 100000
+
+    tier-base-cost: 1500
+    tier-cost-growth: 2.0
 
     # A tier attempt spends the dust whether or not it takes. The chance
     # falls off as the tier climbs and the Steady Hands skill adds back

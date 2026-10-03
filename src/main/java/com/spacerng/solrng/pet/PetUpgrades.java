@@ -101,19 +101,23 @@ public class PetUpgrades {
                         Math.max(1.0, egg.getDouble("boost", 1.0)),
                         Math.max(0, egg.getInt("min-prestige", minPrestige)),
                         rarityOr(egg.getString("min-rarity"), band[0]),
-                        rarityOr(egg.getString("max-rarity"), band[1])));
+                        rarityOr(egg.getString("max-rarity"), band[1]),
+                        Math.max(0.0, egg.getDouble("divine-chance", 0.0))));
             }
         }
         if (eggs.isEmpty()) {
+            // V313: the ladder Leon asked for. Egg one from the start and
+            // never a Divine, egg two at Prestige 10 with a small Divine
+            // chance, egg three at Prestige 25 with exactly ten times it.
             eggs.add(new PetEgg("stardust", "Stardust Egg", java.util.List.of("#C9D6FF", "#7FDBFF"),
-                    org.bukkit.Material.TURTLE_EGG, makeCost, 1.0, minPrestige,
-                    PetEgg.defaultBand("stardust")[0], PetEgg.defaultBand("stardust")[1]));
+                    org.bukkit.Material.TURTLE_EGG, makeCost, 1.0, 0,
+                    PetEgg.defaultBand("stardust")[0], PetEgg.defaultBand("stardust")[1], 0.0));
             eggs.add(new PetEgg("nebula", "Nebula Egg", java.util.List.of("#C77DFF", "#FF7AD9"),
-                    org.bukkit.Material.SNIFFER_EGG, makeCost * 10L, 20.0, 20,
-                    PetEgg.defaultBand("nebula")[0], PetEgg.defaultBand("nebula")[1]));
+                    org.bukkit.Material.SNIFFER_EGG, makeCost * 15L, 25.0, 10,
+                    PetEgg.defaultBand("nebula")[0], PetEgg.defaultBand("nebula")[1], 0.001));
             eggs.add(new PetEgg("supernova", "Supernova Egg", java.util.List.of("#FFD54F", "#FF6F3C"),
-                    org.bukkit.Material.DRAGON_EGG, makeCost * 100L, 400.0, 20,
-                    PetEgg.defaultBand("supernova")[0], PetEgg.defaultBand("supernova")[1]));
+                    org.bukkit.Material.DRAGON_EGG, makeCost * 120L, 400.0, 25,
+                    PetEgg.defaultBand("supernova")[0], PetEgg.defaultBand("supernova")[1], 0.01));
         }
         eggs.sort(java.util.Comparator.comparingLong(PetEgg::cost));
     }
