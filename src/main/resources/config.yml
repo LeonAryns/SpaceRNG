@@ -5794,6 +5794,49 @@ discord:
   # is text, so the wording, the IPs and the vote links change without a
   # new jar. A field's value can be one line or a list of lines.
   cards:
+    # V295: /rngadmin discord post changelog changelog
+    changelog:
+      title: "Changelog, 3 October"
+      color: "#C77DFF"
+      description: "Everything that changed since last night."
+      fields:
+        - name: "Rolling"
+          value:
+            - "- Drop announcements every 2 minutes, only the best tier found in that time"
+            - "- Hover a name in chat to see their stats, click it for their /stats"
+            - "- Roll sounds are for you only, people nearby hear a quiet version"
+            - "- One charged roll at a time, 10x or 100x"
+            - "- Finishing an index rarity gives 2x Luck, a shiny one 5x"
+            - "- Shiny Firsts, the first 5 players to roll a shiny"
+          inline: false
+        - name: "Farming"
+          value:
+            - "- New Speed enchant, and every enchant and its messages can be switched off"
+            - "- Enchants retuned, TNT Blast is now a round blast"
+            - "- Crops open by crops farmed, free. Fern is the last crop"
+            - "- Coin income lowered at the sources"
+            - "- Several potions at once, see /boosters"
+          inline: false
+        - name: "Quality of life"
+          value:
+            - "- Crate keys go to /keys by themselves, shift-click opens them all"
+            - "- New: /trash, /discord, /boosters"
+            - "- Tab in two columns, sorted by index tag and rank, with your prestige"
+            - "- Crate openings are private, level ups show on the boss bar"
+            - "- Armor never breaks, items can no longer be dropped"
+          inline: false
+        - name: "Secret Realm"
+          value:
+            - "- Open to everyone, for 15 minutes, at least 2 hours apart"
+            - "- Every secret has its own odds, Secret Seeker in /prestige raises them"
+          inline: false
+        - name: "Fixes"
+          value:
+            - "- Levels after a prestige need new rolls"
+            - "- A Mythical reveal can no longer lose the drop"
+            - "- Auto Roll keeps going when the Starforge moves to the off hand"
+          inline: false
+      footer: "Feedback? Tell us in Discord."
     server:
       title: "SpaceRNG"
       color: "#C77DFF"

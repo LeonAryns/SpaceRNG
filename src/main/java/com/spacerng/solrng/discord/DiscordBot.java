@@ -594,7 +594,10 @@ public class DiscordBot extends ListenerAdapter implements BotHooks {
             say.accept("Name a channel id, or set discord.bot.cards-channel in config.");
             return;
         }
-        TextChannel channel = guild.getTextChannelById(wanted);
+        // V295: a channel name works too, so "changelog" finds #changelog.
+        TextChannel channel = wanted.chars().allMatch(Character::isDigit)
+                ? guild.getTextChannelById(wanted)
+                : guild.getTextChannelsByName(wanted.replaceFirst("^#", ""), true).stream().findFirst().orElse(null);
         if (channel == null) {
             say.accept("The bot cannot see a text channel with id " + wanted + ".");
             return;

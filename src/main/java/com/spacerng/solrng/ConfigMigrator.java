@@ -159,6 +159,8 @@ public final class ConfigMigrator {
             // V143: the Discord cards, and V145 the bot. Dotted paths,
             // because every server already has a discord section.
             "discord.cards", "discord.bot",
+            // V295: the changelog card for 3 October.
+            "discord.cards.changelog",
             // V148: the podium's own text size.
             "holograms.podium-text-scale",
             // V144: the Boss Box and the item that opens it.

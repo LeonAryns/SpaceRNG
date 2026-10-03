@@ -860,7 +860,7 @@ final class WorldAdmin extends AdminTools {
                     + ChatColor.GRAY + " - list, then delete, every role that is not ours");
             sender.sendMessage(ChatColor.YELLOW + "/rngadmin discord setup"
                     + ChatColor.GRAY + " - make the rank roles in Discord");
-            sender.sendMessage(ChatColor.YELLOW + "/rngadmin discord post <id> [channel id]"
+            sender.sendMessage(ChatColor.YELLOW + "/rngadmin discord post <id> [channel id or name]"
                     + ChatColor.GRAY + " - the bot posts a card, or updates the one it posted");
             sender.sendMessage(ChatColor.YELLOW + "/rngadmin discord card <id>"
                     + ChatColor.GRAY + " - post a card to the webhook");
