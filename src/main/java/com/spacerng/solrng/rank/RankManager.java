@@ -401,11 +401,18 @@ public class RankManager {
         // since TAB went the tab showed only the badge and the name.
         String tag = plugin.getTagManager() == null ? "" : plugin.getTagManager().getPrefix(player);
         // A starter wears [M] (V257: Leon put it back after V253 took it off).
-        // V290: the prestige after the name, once there is one.
-        String prestige = data.getPrestige() > 0
-                ? ChatColor.DARK_GRAY + " [" + ChatColor.LIGHT_PURPLE + "P" + data.getPrestige() + ChatColor.DARK_GRAY + "]"
-                : "";
-        return tag + badgeOf(shownRankOf(data), stops) + coloredName(player) + prestige;
+        // V296: the prestige in front, the way chat shows it (V290 had a
+        // [P4] after the name, which read as a different thing).
+        return prestigePrefix(data.getPrestige()) + tag + badgeOf(shownRankOf(data), stops) + coloredName(player);
+    }
+
+    private static final String[] ROMAN = {"I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"};
+
+    /** "[IV] " in grey brackets and gold numerals, or empty: chat and tab alike. */
+    public static String prestigePrefix(int prestige) {
+        if (prestige <= 0) return "";
+        String n = prestige <= ROMAN.length ? ROMAN[prestige - 1] : String.valueOf(prestige);
+        return ChatColor.DARK_GRAY + "[" + ChatColor.GOLD + n + ChatColor.DARK_GRAY + "] ";
     }
 
     /** The badge, the name in the rank's colours and the cosmetic title, for chat and join lines. */

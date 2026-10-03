@@ -84,10 +84,7 @@ public class ChatListener implements Listener {
     private String prefix(Player player) {
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         StringBuilder line = new StringBuilder();
-        if (data.getPrestige() > 0) {
-            line.append(ChatColor.DARK_GRAY).append("[").append(ChatColor.GOLD)
-                    .append(roman(data.getPrestige())).append(ChatColor.DARK_GRAY).append("] ");
-        }
+        line.append(com.spacerng.solrng.rank.RankManager.prestigePrefix(data.getPrestige()));
         String tag = tag(data);
         if (!tag.isEmpty()) {
             line.append(ChatColor.DARK_GRAY).append("[").append(tag)
