@@ -93,6 +93,15 @@ public class SecretIndexGui {
         meta.setDisplayName(Lore.title(ChatColor.LIGHT_PURPLE, "Your secrets"));
         int found = 0;
         for (String id : data.getSecretsFound()) if (realm.secrets().containsKey(id)) found++;
+        if (!realm.secretLuck()) {
+            meta.setLore(List.of(
+                    Lore.stat(ChatColor.AQUA, "Found", found + " / " + realm.secrets().size()),
+                    Lore.stat(ChatColor.GREEN, "Luck from them", "+" + trim(realm.luckFor(data) * 100.0) + "%"),
+                    "",
+                    Lore.footnote("It is in /stats with your other Luck.")));
+            item.setItemMeta(meta);
+            return item;
+        }
         var picked = data.getSelectedSecret() == null ? null : realm.secrets().get(data.getSelectedSecret());
         meta.setLore(List.of(
                 Lore.stat(ChatColor.AQUA, "Found", found + " / " + realm.secrets().size()),
@@ -118,15 +127,20 @@ public class SecretIndexGui {
                 lore.add(Lore.line(ChatColor.GRAY, secret.hint()));
                 lore.add("");
             }
-            lore.add(Lore.stat(ChatColor.GREEN, "Luck", trim(secret.multiplier()) + "x"));
+            if (realm.secretLuck()) lore.add(Lore.stat(ChatColor.GREEN, "Luck", trim(secret.multiplier()) + "x"));
             lore.add(Lore.stat(ChatColor.AQUA, "Chance", "1 in " + String.format("%,d", oneIn) + " rolls inside"));
             lore.add("");
-            lore.add(picked ? ChatColor.GREEN + "" + ChatColor.BOLD + "Picked"
-                    : ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to pick");
-            if (picked) meta.setEnchantmentGlintOverride(Boolean.TRUE);
+            if (realm.secretLuck()) {
+                lore.add(picked ? ChatColor.GREEN + "" + ChatColor.BOLD + "Picked"
+                        : ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to pick");
+                if (picked) meta.setEnchantmentGlintOverride(Boolean.TRUE);
+            } else {
+                lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "Found");
+                meta.setEnchantmentGlintOverride(Boolean.TRUE);
+            }
         } else {
             meta.setDisplayName(ChatColor.DARK_GRAY + "???");
-            lore.add(Lore.stat(ChatColor.GREEN, "Luck", trim(secret.multiplier()) + "x"));
+            if (realm.secretLuck()) lore.add(Lore.stat(ChatColor.GREEN, "Luck", trim(secret.multiplier()) + "x"));
             lore.add(Lore.stat(ChatColor.AQUA, "Chance", "1 in " + String.format("%,d", oneIn) + " rolls inside"));
             lore.add("");
             lore.add(ChatColor.DARK_GRAY + "" + ChatColor.BOLD + "Not found yet");

@@ -373,7 +373,8 @@ public class RealmManager implements Listener {
                         + ChatColor.GRAY + " in the Secret Realm.");
             }
             player.sendTitle(name, ChatColor.GRAY + "a new secret, " + ChatColor.GREEN
-                    + trim(found.multiplier()) + "x Luck" + ChatColor.GRAY + " in /secretindex", 5, 50, 15);
+                    + (secretLuck() ? trim(found.multiplier()) + "x Luck" + ChatColor.GRAY + " in /secretindex"
+                            : "+" + trim(luckPerSecret * 100.0) + "% Luck"), 5, 50, 15);
             // The first one found is picked straight away.
             if (data.getSelectedSecret() == null) data.setSelectedSecret(found.id());
             player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.8f, 1.2f);
@@ -404,9 +405,20 @@ public class RealmManager implements Listener {
         return total <= 0.0 ? 0.0 : secret.weight() / total;
     }
 
-    /** Flat Luck from secrets: none since V291, the picked secret multiplies instead. */
+    /**
+     * Whether secrets are the index Luck (V291), or each found secret adds a
+     * flat bit of Luck as before (V292: off until Leon switches it on).
+     */
+    public boolean secretLuck() {
+        return plugin.getConfig().getBoolean("secret-realm.secret-luck", false);
+    }
+
+    /** Flat Luck from secrets, while the multiplier system is off. */
     public double luckFor(PlayerData data) {
-        return 0.0;
+        if (secretLuck()) return 0.0;
+        int count = 0;
+        for (String id : data.getSecretsFound()) if (secrets.containsKey(id)) count++;
+        return count * luckPerSecret;
     }
 
     /** The Luck multiplier of the secret picked in /secretindex, 1 when none (V291). */

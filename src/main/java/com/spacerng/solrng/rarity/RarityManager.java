@@ -233,8 +233,20 @@ public class RarityManager {
      * secrets from the Secret Realm multiply Luck. Not gated on any skill.
      */
     public double tagMultiplierFor(com.spacerng.solrng.player.PlayerData data) {
+        // V292: the secret multiplier waits behind secret-realm.secret-luck;
+        // until Leon switches it on the equipped drop gives Tag Luck as before.
         var plugin = org.bukkit.plugin.java.JavaPlugin.getPlugin(com.spacerng.solrng.SolRNGPlugin.class);
-        return plugin.getRealmManager() == null ? 1.0 : plugin.getRealmManager().multiplierFor(data);
+        if (plugin.getRealmManager() != null && plugin.getRealmManager().secretLuck()) {
+            return plugin.getRealmManager().multiplierFor(data);
+        }
+        // Gated behind the Tag Luck skill - until that's bought the
+        // equipped tag is cosmetic and the multiplier reads a flat 1.00x.
+        if (!data.hasUnlocked("index_luck")) return 1.0;
+
+        String equipped = data.getEquippedTagItemKey();
+        if (equipped == null) return 1.0;
+        RollableItem item = byName.get(equipped);
+        return item == null ? 1.0 : item.getLuckMultiplier();
     }
 
     /** How many rollable items a rarity has, for completion counting. */

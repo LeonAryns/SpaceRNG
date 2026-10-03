@@ -137,7 +137,11 @@ public final class StatSources {
                 Op.ADD));
 
         // Tag Mastery scales how far the tag's multiplier sits above 1.
-        parts.add(new Part("Secret", "Pick a found secret in /secretindex",
+        boolean secretLuck = plugin.getRealmManager() != null && plugin.getRealmManager().secretLuck();
+        parts.add(new Part("Secret Index", "Secrets from the Secret Realm, /realm",
+                plugin.getRealmManager() == null ? 0.0 : plugin.getRealmManager().luckFor(data), Op.ADD));
+        parts.add(new Part(secretLuck ? "Secret" : "Equipped tag",
+                secretLuck ? "Pick a found secret in /secretindex" : "Equip a rarer drop in /index",
                 1.0 + (plugin.getRarityManager().tagMultiplierFor(data) - 1.0)
                         * skills.multiplierOf(data, SkillNode.Effect.TAG_MASTERY), Op.MULTIPLY));
         parts.add(new Part("Index completion", "Finish whole rarities in /index",

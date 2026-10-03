@@ -6714,6 +6714,11 @@ pets:
 # The spot and the next opening live in realm.yml.
 secret-realm:
   enabled: true
+  # V291: secrets as the index Luck. On, the secret picked in /secretindex
+  # replaces the equipped drop's Tag Luck and gives its multiplier below;
+  # off (V292, until Leon decides), Tag Luck works as before and each
+  # secret found adds luck-per-secret.
+  secret-luck: false
   # V291: no prestige needed, fifteen minutes open, two hours apart at least.
   min-prestige: 0
   open-seconds: 900

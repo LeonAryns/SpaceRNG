@@ -61,7 +61,7 @@ final class PlayerMenuClicks {
         if (!(event.getClickedInventory() != null
                 && event.getClickedInventory().getHolder() instanceof com.spacerng.solrng.gui.SecretIndexHolder holder)) return;
         String id = holder.slots().get(event.getRawSlot());
-        if (id == null) return;
+        if (id == null || !plugin.getRealmManager().secretLuck()) return;
         Player player = (Player) event.getWhoClicked();
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         if (!data.getSecretsFound().contains(id)) {
