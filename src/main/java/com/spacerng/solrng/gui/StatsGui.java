@@ -344,6 +344,8 @@ public class StatsGui {
     private static String percent(double value) {
         double shown = value * 100.0;
         if (shown == 0.0) return "0%";
+        // V299: +21.6K% rather than +21550%.
+        if (Math.abs(shown) >= 1000.0) return Lore.shorten(shown) + "%";
         int decimals = 0;
         while (decimals < 6 && Math.abs(shown) * Math.pow(10, decimals) < 10.0) decimals++;
         String text = String.format("%." + decimals + "f", shown);

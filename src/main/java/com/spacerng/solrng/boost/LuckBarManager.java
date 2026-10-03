@@ -89,7 +89,9 @@ public class LuckBarManager {
                     .append(ChatColor.WHITE).append(boost.timeLeftText())
                     .append(ChatColor.DARK_GRAY).append("  |  ")
                     .append(ChatColor.WHITE).append("Luck ")
-                    .append(ChatColor.GREEN).append("+").append(String.format("%.2f", luck * 100.0)).append("%");
+                    .append(ChatColor.GREEN).append("+").append(luck * 100.0 >= 1000.0
+                            ? com.spacerng.solrng.gui.Lore.shorten(luck * 100.0)
+                            : String.format("%.2f", luck * 100.0)).append("%");
             bar.setColor(BarColor.PURPLE);
             // Drains over the boost's own window, so the bar is a timer
             // rather than a meaningless full line.

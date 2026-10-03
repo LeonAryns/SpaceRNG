@@ -652,6 +652,22 @@ public class RarityManager {
         return weights;
     }
 
+    /**
+     * The real chance of rolling this item at this Luck (V299): its weight
+     * out of all of them. An Epic labelled 1 in 10,000 is close to certain
+     * at enough Luck, and the reveal is sized by this, not by the label.
+     */
+    public double actualChance(RollableItem item, double luck) {
+        double[] weights = weightsAt(luck, null);
+        double total = 0.0;
+        double mine = 0.0;
+        for (int i = 0; i < weights.length; i++) {
+            total += weights[i];
+            if (items.get(i) == item) mine += weights[i];
+        }
+        return total <= 0.0 ? 1.0 : mine / total;
+    }
+
     public List<RollableItem> getItems() {
         return items;
     }

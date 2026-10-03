@@ -238,6 +238,11 @@ public class SkillTreeGui {
      * way rather than hiding the slot outright - knowing a skill exists and
      * what stands between you and it is most of what makes a tree readable.
      */
+    /** A Luck percentage, with K and M past a thousand (V299). */
+    private static String luckText(double percent) {
+        return percent >= 1000.0 ? Lore.shorten(percent) : String.format("%.2f", percent);
+    }
+
     private static ItemStack lockedNode(SolRNGPlugin plugin, PlayerData data, SkillNode node) {
         List<SkillNode> missing = plugin.getSkillTreeManager().missingRequirements(data, node);
 
@@ -245,13 +250,18 @@ public class SkillTreeGui {
         // reads as one uniform grid until a skill is actually available.
         ItemStack icon = new ItemStack(Material.STONE_BUTTON);
         ItemMeta meta = icon.getItemMeta();
-        meta.setDisplayName(Lore.title(ChatColor.DARK_GRAY, "???"));
+        // V299: named, with the page each missing skill is on. Players could
+        // not find Convergence: page 3's root was a "???" that needs three
+        // skills from page 2, and nothing said so.
+        meta.setDisplayName(Lore.title(ChatColor.DARK_GRAY, node.getDisplay()));
 
         List<String> lore = new ArrayList<>();
         lore.add(Lore.section(ChatColor.RED, missing.size() > 1 ? "Needs all of" : "Needs"));
         for (SkillNode parent : missing) {
             lore.add(ChatColor.RED + Lore.BULLET + " " + ChatColor.GRAY
-                    + (parent == null ? "an earlier skill" : parent.getDisplay())
+                    + (parent == null ? "an earlier skill" : parent.getDisplay()
+                            + (parent.getPage() != node.getPage()
+                                    ? ChatColor.DARK_GRAY + " (page " + (parent.getPage() + 1) + ")" : ""))
                     + "  " + ChatColor.RED + Lore.CROSS);
         }
         lore.add("");
@@ -340,7 +350,7 @@ public class SkillTreeGui {
         lore.add("");
         lore.add(Lore.section(ChatColor.AQUA, "Your stats"));
         lore.add(Lore.stat(ChatColor.GREEN, "Luck", "+"
-                + String.format("%.2f", plugin.getPrestigeManager().effectiveLuck(data) * 100.0) + "%"));
+                + luckText(plugin.getPrestigeManager().effectiveLuck(data) * 100.0) + "%"));
         lore.add(Lore.stat(ChatColor.YELLOW, "Speed",
                 String.valueOf(Math.round(
                         com.spacerng.solrng.stats.StatSources.speed(plugin, data).total() * 100))));

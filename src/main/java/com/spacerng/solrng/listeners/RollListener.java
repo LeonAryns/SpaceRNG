@@ -386,12 +386,19 @@ public class RollListener implements Listener {
         // is four acts and twenty seconds, and fifteen for somebody with
         // the Epic aura switched off. The ladder therefore has to be built
         // BEFORE the timer, since its length is what the timer runs for.
-        final com.spacerng.solrng.roll.RollStages stages = RollAura.isBigDrop(result.getRarity())
+        // V299 (a player's suggestion Leon took): the reveal is for a drop
+        // that was actually rare for THIS player. With enough Luck an Epic
+        // labelled 1 in 10,000 is close to a sure thing, and it rolls like
+        // any other drop: no cutscene, and Auto Roll does not stop for it.
+        long realOneIn = Math.round(1.0 / Math.max(1e-15, plugin.getRarityManager().actualChance(result, luck)));
+        final boolean bigShow = RollAura.isBigDrop(result.getRarity())
+                && (asked != null || realOneIn >= plugin.getConfig().getLong("roll-item.animate-from-one-in", 1000L));
+        final com.spacerng.solrng.roll.RollStages stages = bigShow
                 ? com.spacerng.solrng.roll.RollStages.of(plugin, data, result.getRarity(), result.getOdds())
                 : null;
         // V298: a rarity this player has rolled ten times or more plays
         // small and fast, so the hundredth Epic is not the first one again.
-        final boolean seenIt = RollAura.isBigDrop(result.getRarity())
+        final boolean seenIt = bigShow
                 && data.getRolled(result.getRarity()) >= plugin.getConfig().getInt("roll-item.veteran.after", 10);
         final long actTicks = seenIt
                 ? Math.max(20L, Math.round(RollAura.actTicks(plugin)
@@ -424,7 +431,7 @@ public class RollListener implements Listener {
         final boolean[] cinematic = {false};
         if (preTicks == 0L) {
             auraStarted[0] = true;
-            aura[0] = RollAura.start(plugin, player, result.getRarity(), result.getOdds(), stages, actTicks, auraSize);
+            aura[0] = bigShow ? RollAura.start(plugin, player, result.getRarity(), result.getOdds(), stages, actTicks, auraSize) : null;
             if (aura[0] != null) {
                 activeAuras.put(player.getUniqueId(), aura[0]);
                 cinematic[0] = aura[0].ownsScreen();
@@ -447,7 +454,7 @@ public class RollListener implements Listener {
 
             if (!auraStarted[0]) {
                 auraStarted[0] = true;
-                aura[0] = RollAura.start(plugin, player, result.getRarity(), result.getOdds(), stages, actTicks, auraSize);
+                aura[0] = bigShow ? RollAura.start(plugin, player, result.getRarity(), result.getOdds(), stages, actTicks, auraSize) : null;
                 if (aura[0] != null) {
                     activeAuras.put(player.getUniqueId(), aura[0]);
                     cinematic[0] = aura[0].ownsScreen();
@@ -481,7 +488,7 @@ public class RollListener implements Listener {
                 }
                 // The chime belongs to the moment the drop lands, not to the
                 // end of the hold after it. A big drop's aura brings its own.
-                if (step >= 19 && !RollAura.isBigDrop(result.getRarity())) {
+                if (step >= 19 && !bigShow) {
                     // Rolling Sound off silences the landing chime too (V256).
                     if (data.isRollSoundEnabled()) {
                         player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.8f, 1.2f);
@@ -714,7 +721,7 @@ public class RollListener implements Listener {
         // The level-up chime would land on the same tick as a big drop's
         // detonation and just clutter it - the aura brings its own. A roll
         // that reached its landing frame already chimed there.
-        if (!RollAura.isBigDrop(result.getRarity()) && !chimedOnLanding.remove(player.getUniqueId())
+        if (!activeAuras.containsKey(player.getUniqueId()) && !chimedOnLanding.remove(player.getUniqueId())
                 && data.isRollSoundEnabled()) {
             player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.8f, 1.2f);
         }
@@ -747,7 +754,7 @@ public class RollListener implements Listener {
         // title waits a moment: dropping it over the detonation on the same
         // tick hides the burst the player just sat through the build-up for.
         if (data.isRollAnimationEnabled()) {
-            long titleDelay = RollAura.titleDelayTicks(result.getRarity());
+            long titleDelay = aura == null ? 0L : RollAura.titleDelayTicks(result.getRarity());
             if (titleDelay <= 0) {
                 showRollTitle(player, result, shiny, 1500L);
             } else {
