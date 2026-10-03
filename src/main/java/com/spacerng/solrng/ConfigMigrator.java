@@ -901,6 +901,25 @@ public final class ConfigMigrator {
             applied.add("link-card-v225");
             changed = true;
         }
+        // V306: the changelog2 card from the jar, brought up to date after
+        // V302 copied an older version of it into the live config.
+        if (!applied.contains("changelog2-v306")) {
+            InputStream stream = plugin.getResource("config.yml");
+            if (stream != null) {
+                try (InputStreamReader reader = new InputStreamReader(stream, StandardCharsets.UTF_8)) {
+                    YamlConfiguration jar = YamlConfiguration.loadConfiguration(reader);
+                    if (jar.isConfigurationSection("discord.cards.changelog2")) {
+                        disk.set("discord.cards.changelog2", null);
+                        disk.set("discord.cards.changelog2", jar.get("discord.cards.changelog2"));
+                        plugin.getLogger().info("Config patch changelog2-v306: discord.cards.changelog2 replaced");
+                    }
+                } catch (IOException ignored) {
+                    // Left as it was.
+                }
+            }
+            applied.add("changelog2-v306");
+            changed = true;
+        }
         // V230: the link card gets its button. Swapped whole, and only while
         // it has no link-button key, which no card before V230 had.
         if (!applied.contains("link-card-v230")) {

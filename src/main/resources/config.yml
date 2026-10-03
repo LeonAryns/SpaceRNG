@@ -3741,6 +3741,8 @@ welcome:
 # jackpot-below: a reward rarer than this share is announced to the whole
 # server and gets the big finish.
 crates:
+  # V306: crates no longer give rolled drops; true puts them back.
+  drop-rewards: false
   # A jackpot told to the whole server (V271: off, Leon's call).
   announce-jackpots: false
   # The reel: how many items pass, how long the QUICKEST step waits and
@@ -5829,7 +5831,8 @@ discord:
   # is text, so the wording, the IPs and the vote links change without a
   # new jar. A field's value can be one line or a list of lines.
   cards:
-    # V302: /rngadmin discord post changelog2 changelog
+    # V302: /rngadmin discord post changelog2 changelog (V306 brought it up
+    # to date with V303 to V306)
     changelog2:
       title: "Changelog, 3 October (part 2)"
       color: "#C77DFF"
@@ -5842,10 +5845,12 @@ discord:
             - "- Drop announcements: the best drop every 2 minutes, plus how many more of that tier were found"
             - "- Luck shows in K and M"
             - "- Shiny Firsts are now a top 10"
+            - "- Rarities are 5x apart from Rare up, so every tier is a real step"
           inline: false
         - name: "Progression"
           value:
             - "- Each prestige needs 1 more level than the last, not 5"
+            - "- Finishing an index tier gives 1.1x Luck for Common up to 2x for Divine, a shiny tier 3x"
             - "- Battle Pass XP lowered for rare drops"
             - "- Respec can spend shinies you have not converted, and Convert all converts shinies too"
             - "- Locked skills show their name and the page of what they need"
@@ -5857,10 +5862,12 @@ discord:
             - "- Your prestige shows after your name in tab, like in chat"
             - "- A bigger announcement when someone gets a rank"
             - "- Rolled drops can no longer be worn"
+            - "- Crates no longer give rolled drops"
           inline: false
         - name: "Fixes"
           value:
             - "- Fixed an item duplication bug in /pv"
+            - "- The level card shows the right number of rolls to go"
           inline: false
       footer: "Feedback? Tell us in Discord."
     # V295: /rngadmin discord post changelog changelog

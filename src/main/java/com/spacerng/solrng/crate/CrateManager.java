@@ -97,6 +97,12 @@ public class CrateManager {
                 line++;
                 try {
                     CrateReward reward = parseReward(raw);
+                    // V306: no rolled drops out of crates, Leon's call. The
+                    // rest of the crate's table shares their weight.
+                    if (reward != null && reward.type() == CrateReward.Type.DROP
+                            && !plugin.getConfig().getBoolean("crates.drop-rewards", false)) {
+                        continue;
+                    }
                     if (reward == null) {
                         plugin.getLogger().warning("Crate '" + id + "' reward " + line
                                 + " has no weight or no reward type, skipped.");

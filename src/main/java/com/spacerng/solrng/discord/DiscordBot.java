@@ -595,9 +595,14 @@ public class DiscordBot extends ListenerAdapter implements BotHooks {
             return;
         }
         // V295: a channel name works too, so "changelog" finds #changelog.
+        // V306: or part of a name, so "changelog" finds #📋┃changelog.
+        String bare = wanted.replaceFirst("^#", "").toLowerCase(java.util.Locale.ROOT);
         TextChannel channel = wanted.chars().allMatch(Character::isDigit)
                 ? guild.getTextChannelById(wanted)
-                : guild.getTextChannelsByName(wanted.replaceFirst("^#", ""), true).stream().findFirst().orElse(null);
+                : guild.getTextChannelsByName(bare, true).stream().findFirst()
+                        .or(() -> guild.getTextChannels().stream()
+                                .filter(c -> c.getName().toLowerCase(java.util.Locale.ROOT).contains(bare)).findFirst())
+                        .orElse(null);
         if (channel == null) {
             say.accept("The bot cannot see a text channel with id " + wanted + ".");
             return;
