@@ -1,7 +1,6 @@
 package com.spacerng.solrng.gui;
 
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.InventoryHolder;
 
 public class OptionsHolder implements MenuHolder {
     private Inventory inventory;
@@ -15,28 +14,16 @@ public class OptionsHolder implements MenuHolder {
         this.inventory = inventory;
     }
 
-    // Row 1: the two rolling toggles. Row 2: one aura toggle per tier.
-    // Row 3: whether other people's drops at that tier are announced to
-    // you at all. Two different questions - a player can want the party
-    // without the chat spam, or the other way round.
-    public static final int SOUND_SLOT = 11;
-    public static final int ANIMATION_SLOT = 15;
-    public static final int WORN_AURA_SLOT = 13;
-    public static final int OWN_AURA_SLOT = 22;
-    public static final int AURA_EPIC_SLOT = 19;
-    public static final int AURA_LEGENDARY_SLOT = 21;
-    public static final int AURA_MYTHICAL_SLOT = 23;
-    public static final int AURA_DIVINE_SLOT = 25;
-    public static final int SHOUT_EPIC_SLOT = 28;
-    public static final int SHOUT_LEGENDARY_SLOT = 30;
-    public static final int SHOUT_MYTHICAL_SLOT = 32;
-    public static final int SHOUT_DIVINE_SLOT = 34;
-    // Row 4: whether YOUR OWN drop at that tier is printed at all.
-    public static final int DROP_COMMON_SLOT = 37;
-    public static final int DROP_UNCOMMON_SLOT = 38;
-    public static final int DROP_RARE_SLOT = 39;
-    public static final int DROP_EPIC_SLOT = 40;
-    public static final int DROP_LEGENDARY_SLOT = 41;
-    public static final int DROP_MYTHICAL_SLOT = 42;
-    public static final int DROP_DIVINE_SLOT = 43;
+    // V310: four of your own settings on the first row, three rarity
+    // ladders on the second. It used to be sixteen separate switches over
+    // three rows, one per rarity per question, which Leon read as clutter
+    // ("dan is het niet zo druk"). Each ladder is a Stepper: the three
+    // groups all answered the same question, from which tier up.
+    public static final int SOUND_SLOT = 10;
+    public static final int ANIMATION_SLOT = 12;
+    public static final int WORN_AURA_SLOT = 14;
+    public static final int OWN_AURA_SLOT = 16;
+    public static final int AURA_STEP_SLOT = 20;
+    public static final int SHOUT_STEP_SLOT = 22;
+    public static final int DROP_STEP_SLOT = 24;
 }

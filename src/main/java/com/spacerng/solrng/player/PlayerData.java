@@ -99,6 +99,8 @@ public class PlayerData {
     // /options toggles.
     private boolean rollSoundEnabled = true;
     private boolean rollAnimationEnabled = true;
+    // V310: the step of the animation ladder, 0 being every roll.
+    private int rollAnimationStep = 0;
     // Farming's own two, toggled from the hoe menu rather than /options -
     // they belong next to the thing that makes the noise.
     private boolean farmSoundEnabled = true;
@@ -1136,6 +1138,40 @@ public class PlayerData {
 
     public void setRollAnimationEnabled(boolean rollAnimationEnabled) {
         this.rollAnimationEnabled = rollAnimationEnabled;
+    }
+
+    // V310: which step of the /options animation ladder this player is on.
+    // 0 is every roll, the last step is off, and between them a tier floor
+    // counted from Epic up. Stored as the index rather than a rarity
+    // because the two ends of the ladder are not rarities, and because an
+    // index survives a new top rarity being added below it in the file.
+    public int getRollAnimationStep() {
+        return rollAnimationStep;
+    }
+
+    public void setRollAnimationStep(int rollAnimationStep) {
+        this.rollAnimationStep = rollAnimationStep;
+        // The old switch is what the roll code already reads in a dozen
+        // places, so the last step keeps writing it rather than every
+        // reader learning about the ladder.
+        this.rollAnimationEnabled = rollAnimationStep
+                < com.spacerng.solrng.gui.Stepper.steps(ANIMATION_FLOOR) - 1;
+    }
+
+    /** The lowest tier the animation ladder can be pinned to. */
+    public static final com.spacerng.solrng.rarity.Rarity ANIMATION_FLOOR =
+            com.spacerng.solrng.rarity.Rarity.EPIC;
+
+    /**
+     * Whether this player wants the full reveal for a drop at that rarity.
+     *
+     * Below their step the drop still lands and is still theirs, it just
+     * rolls at the speed of any other roll, which is what Leon asked for:
+     * "dat het dus ben snel is als elke andere rolls".
+     */
+    public boolean wantsReveal(com.spacerng.solrng.rarity.Rarity rarity) {
+        if (!rollAnimationEnabled) return false;
+        return com.spacerng.solrng.gui.Stepper.covers(ANIMATION_FLOOR, rollAnimationStep, rarity);
     }
 
     // Whether worn auras are drawn for this player: their own and everyone else's.

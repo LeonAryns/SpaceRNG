@@ -162,12 +162,34 @@ final class PlayerMenuClicks {
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         int rawSlot = event.getRawSlot();
 
+        // V310: the three rarity ladders step forward on a left click and
+        // back on a right one. Bedrock cannot send the difference (Geyser
+        // reports every menu click as a left click), so there a click
+        // always steps forward and the ladder's wrap-around is the only
+        // way back. That is why Stepper.next wraps.
+        boolean back = event.isRightClick()
+                && !com.spacerng.solrng.platform.Bedrock.is(player);
+
         if (rawSlot == OptionsHolder.SOUND_SLOT) {
             data.setRollSoundEnabled(!data.isRollSoundEnabled());
             player.openInventory(OptionsGui.build(plugin, player));
         } else if (rawSlot == OptionsHolder.ANIMATION_SLOT) {
-            data.setRollAnimationEnabled(!data.isRollAnimationEnabled());
-            player.openInventory(OptionsGui.build(plugin, player));
+            data.setRollAnimationStep(com.spacerng.solrng.gui.Stepper.next(
+                    data.getRollAnimationStep(),
+                    com.spacerng.solrng.gui.Stepper.steps(PlayerData.ANIMATION_FLOOR), back));
+            stepped(player);
+        } else if (rawSlot == OptionsHolder.AURA_STEP_SLOT) {
+            OptionsGui.setAuraStep(data, com.spacerng.solrng.gui.Stepper.next(
+                    OptionsGui.auraStep(data), OptionsGui.auraSteps(), back));
+            stepped(player);
+        } else if (rawSlot == OptionsHolder.SHOUT_STEP_SLOT) {
+            OptionsGui.setShoutStep(data, com.spacerng.solrng.gui.Stepper.next(
+                    OptionsGui.shoutStep(data), OptionsGui.auraSteps(), back));
+            stepped(player);
+        } else if (rawSlot == OptionsHolder.DROP_STEP_SLOT) {
+            OptionsGui.setDropStep(data, com.spacerng.solrng.gui.Stepper.next(
+                    OptionsGui.dropStep(data), OptionsGui.dropSteps(), back));
+            stepped(player);
         } else if (rawSlot == OptionsHolder.WORN_AURA_SLOT) {
             data.setWornAurasVisible(!data.isWornAurasVisible());
             plugin.getAuraManager().refreshVisibility(player);
@@ -176,34 +198,16 @@ final class PlayerMenuClicks {
             data.cycleOwnAuraView();
             plugin.getAuraManager().refreshVisibility(player);
             player.openInventory(OptionsGui.build(plugin, player));
-        } else if (rawSlot == OptionsHolder.AURA_EPIC_SLOT) {
-            toggleAura(player, data, com.spacerng.solrng.rarity.Rarity.EPIC);
-        } else if (rawSlot == OptionsHolder.AURA_LEGENDARY_SLOT) {
-            toggleAura(player, data, com.spacerng.solrng.rarity.Rarity.LEGENDARY);
-        } else if (rawSlot == OptionsHolder.AURA_MYTHICAL_SLOT) {
-            toggleAura(player, data, com.spacerng.solrng.rarity.Rarity.MYTHICAL);
-        } else if (rawSlot == OptionsHolder.AURA_DIVINE_SLOT) {
-            toggleAura(player, data, com.spacerng.solrng.rarity.Rarity.DIVINE);
-        } else if (rawSlot == OptionsHolder.SHOUT_EPIC_SLOT) {
-            toggleShout(player, data, com.spacerng.solrng.rarity.Rarity.EPIC);
-        } else if (rawSlot == OptionsHolder.SHOUT_LEGENDARY_SLOT) {
-            toggleShout(player, data, com.spacerng.solrng.rarity.Rarity.LEGENDARY);
-        } else if (rawSlot == OptionsHolder.SHOUT_MYTHICAL_SLOT) {
-            toggleShout(player, data, com.spacerng.solrng.rarity.Rarity.MYTHICAL);
-        } else if (rawSlot == OptionsHolder.SHOUT_DIVINE_SLOT) {
-            toggleShout(player, data, com.spacerng.solrng.rarity.Rarity.DIVINE);
-        } else if (rawSlot >= OptionsHolder.DROP_COMMON_SLOT
-                && rawSlot <= OptionsHolder.DROP_DIVINE_SLOT) {
-            var rarity = com.spacerng.solrng.rarity.Rarity.values()
-                    [rawSlot - OptionsHolder.DROP_COMMON_SLOT];
-            data.setDropMessageEnabled(rarity, !data.isDropMessageEnabled(rarity));
-            player.openInventory(OptionsGui.build(plugin, player));
         }
     }
 
-    void toggleShout(Player player, PlayerData data,
-                             com.spacerng.solrng.rarity.Rarity rarity) {
-        data.setBroadcastEnabled(rarity, !data.isBroadcastEnabled(rarity));
+    /**
+     * A step landed: redraw and click once. The pitch does not climb with
+     * the step on purpose, because the ladder wraps and a rising pitch
+     * would lie about where in it you are.
+     */
+    private void stepped(Player player) {
+        player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.4f, 1.6f);
         player.openInventory(OptionsGui.build(plugin, player));
     }
 
@@ -724,11 +728,6 @@ final class PlayerMenuClicks {
         plugin.getScoreboardManager().update(player);
         player.openInventory(com.spacerng.solrng.gui.EnchantBuyGui.build(plugin, player,
                 enchant.id(), holder.getTree(), holder.getPage()));
-    }
-
-    void toggleAura(Player player, PlayerData data, com.spacerng.solrng.rarity.Rarity rarity) {
-        data.setAuraEnabled(rarity, !data.isAuraEnabled(rarity));
-        player.openInventory(OptionsGui.build(plugin, player));
     }
 
     void handleIndexClick(InventoryClickEvent event) {

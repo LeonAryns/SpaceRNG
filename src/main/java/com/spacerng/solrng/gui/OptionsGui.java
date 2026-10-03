@@ -15,20 +15,32 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * /options. Reveal auras get one switch per rarity rather than a single
- * on/off, because the tiers are wildly different events - a Mythical once
- * a month is a spectacle, an Epic several times an hour can be a nuisance,
- * and one toggle can't express that.
+ * /options.
+ *
+ * V310: the three per-rarity groups became three ladders. The screen used
+ * to carry sixteen switches, four reveal auras, four announcements and
+ * seven drop messages, and Leon's note was that it read as clutter. Each
+ * group asked one question with a tier for an answer, so each is one
+ * {@link Stepper} block now: left click raises the floor, right click
+ * lowers it, and the tooltip prints the whole ladder.
+ *
+ * The per-rarity switches in PlayerData are still the storage, so nothing
+ * that reads them changed. The ladder only ever writes a contiguous run.
  */
 public class OptionsGui {
 
+    /** The lowest tier a reveal aura or an announcement can be pinned to. */
+    private static final Rarity SHOW_FLOOR = Rarity.EPIC;
+    /** Your own drop lines go all the way down: Common is the noisy one. */
+    private static final Rarity DROP_FLOOR = Rarity.COMMON;
+
     public static Inventory build(SolRNGPlugin plugin, Player player) {
         OptionsHolder holder = new OptionsHolder();
-        Inventory inv = Bukkit.createInventory(holder, 45, MenuStyle.title("Options", "#80D8FF", "#536DFE"));
+        Inventory inv = Bukkit.createInventory(holder, 36, MenuStyle.title("Options", "#80D8FF", "#536DFE"));
         holder.setInventory(inv);
 
         ItemStack filler = pane();
-        for (int slot = 0; slot < 45; slot++) {
+        for (int slot = 0; slot < 36; slot++) {
             inv.setItem(slot, filler);
         }
 
@@ -37,110 +49,66 @@ public class OptionsGui {
         inv.setItem(OptionsHolder.SOUND_SLOT, toggleItem(Material.NOTE_BLOCK,
                 "Rolling Sound", data.isRollSoundEnabled(),
                 "The click track while a roll counts down."));
-        inv.setItem(OptionsHolder.ANIMATION_SLOT, toggleItem(Material.ITEM_FRAME,
-                "Rolling Animation", data.isRollAnimationEnabled(),
-                "The item names flashing on screen mid-roll."));
+        inv.setItem(OptionsHolder.ANIMATION_SLOT, Stepper.item(plugin, Material.ITEM_FRAME,
+                "Rolling Animation", PlayerData.ANIMATION_FLOOR, data.getRollAnimationStep(),
+                "Every roll",
+                List.of("The names flashing on screen and the",
+                        "reveal that follows. Below your step a",
+                        "drop lands at the speed of any roll.")));
         inv.setItem(OptionsHolder.WORN_AURA_SLOT, toggleItem(Material.AMETHYST_CLUSTER,
                 "Worn Auras", data.isWornAurasVisible(),
                 "The auras players wear with an", "Epic or rarer tag, yours too."));
         inv.setItem(OptionsHolder.OWN_AURA_SLOT, ownAuraItem(data.getOwnAuraView()));
 
-        inv.setItem(OptionsHolder.AURA_EPIC_SLOT, auraToggle(plugin, data, Rarity.EPIC, Material.WITHER_ROSE));
-        inv.setItem(OptionsHolder.AURA_LEGENDARY_SLOT, auraToggle(plugin, data, Rarity.LEGENDARY, Material.BLAZE_POWDER));
-        inv.setItem(OptionsHolder.AURA_MYTHICAL_SLOT, auraToggle(plugin, data, Rarity.MYTHICAL, Material.FIRE_CHARGE));
-        inv.setItem(OptionsHolder.AURA_DIVINE_SLOT, auraToggle(plugin, data, Rarity.DIVINE, Material.CONDUIT));
-
-        inv.setItem(OptionsHolder.SHOUT_EPIC_SLOT, shoutToggle(plugin, data, Rarity.EPIC));
-        inv.setItem(OptionsHolder.SHOUT_LEGENDARY_SLOT, shoutToggle(plugin, data, Rarity.LEGENDARY));
-        inv.setItem(OptionsHolder.SHOUT_MYTHICAL_SLOT, shoutToggle(plugin, data, Rarity.MYTHICAL));
-        inv.setItem(OptionsHolder.SHOUT_DIVINE_SLOT, shoutToggle(plugin, data, Rarity.DIVINE));
-
-        int slot = OptionsHolder.DROP_COMMON_SLOT;
-        for (Rarity rarity : Rarity.values()) {
-            inv.setItem(slot++, dropToggle(plugin, data, rarity));
-        }
+        inv.setItem(OptionsHolder.AURA_STEP_SLOT, Stepper.item(plugin, Material.FIREWORK_ROCKET,
+                "Reveal Auras", SHOW_FLOOR, auraStep(data), "Every tier",
+                List.of("The build-up and burst for a drop,",
+                        "yours and everyone else's.")));
+        inv.setItem(OptionsHolder.SHOUT_STEP_SLOT, Stepper.item(plugin, Material.BELL,
+                "Announcements", SHOW_FLOOR, shoutStep(data), "Every tier",
+                List.of("Other players' drops announced in",
+                        "your chat. Yours are always shown.")));
+        inv.setItem(OptionsHolder.DROP_STEP_SLOT, Stepper.item(plugin, Material.PAPER,
+                "Your Drop Messages", DROP_FLOOR, dropStep(data), "Every tier",
+                List.of("Your own drops printed in chat. The",
+                        "drop is still yours either way.")));
 
         MenuStyle.apply(inv, MenuStyle.Palette.BLUE);
 
         return inv;
     }
 
-    /**
-     * Whether other people's drops at this rarity reach your chat.
-     *
-     * Deliberately a separate switch from the aura: somebody who wants the
-     * fireworks when a Divine lands doesn't necessarily want a line of
-     * chat every time an Epic does, and one toggle can't say both.
-     */
-    /**
-     * Whether your OWN drop at this rarity prints a line.
-     *
-     * Every rarity, not just the loud ones: the tier somebody most wants
-     * silenced is Common, because auto-rolling produces thousands of them
-     * and each one costs a line of chat.
-     */
-    private static ItemStack dropToggle(SolRNGPlugin plugin, PlayerData data, Rarity rarity) {
-        boolean on = data.isDropMessageEnabled(rarity);
-        String name = plugin.getRarityManager().style(rarity, rarity.displayName());
-
-        ItemStack item = new ItemStack(on ? Material.PAPER : Material.GRAY_DYE);
-        ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(name + ChatColor.DARK_GRAY + " - "
-                .replace("\u2014", "-")
-                + (on ? ChatColor.GREEN.toString() + ChatColor.BOLD + "Shown"
-                      : ChatColor.RED.toString() + ChatColor.BOLD + "Hidden"));
-        meta.setLore(java.util.List.of(
-                Lore.line(ChatColor.AQUA, "Your own " + rarity.displayName() + " drops"),
-                Lore.line(ChatColor.AQUA, "printed in chat."),
-                "",
-                Lore.footnote("The drop is still yours either way."),
-                "",
-                ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to toggle"));
-        item.setItemMeta(meta);
-        return item;
+    /** Which step each ladder is sitting on, read back off the switches. */
+    public static int auraStep(PlayerData data) {
+        return Stepper.indexFromFlags(SHOW_FLOOR, data::isAuraEnabled);
     }
 
-    private static ItemStack shoutToggle(SolRNGPlugin plugin, PlayerData data, Rarity rarity) {
-        boolean on = data.isBroadcastEnabled(rarity);
-        String name = plugin.getRarityManager().style(rarity, rarity.displayName());
-
-        ItemStack item = new ItemStack(on ? Material.BELL : Material.BARRIER);
-        ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(name + ChatColor.DARK_GRAY + " - "
-                + (on ? ChatColor.GREEN.toString() + ChatColor.BOLD + "Announced"
-                      : ChatColor.RED.toString() + ChatColor.BOLD + "Muted"));
-        meta.setLore(java.util.List.of(
-                Lore.line(ChatColor.AQUA, "Other players' " + rarity.displayName() + " drops"),
-                Lore.line(ChatColor.AQUA, "announced in chat."),
-                "",
-                ChatColor.DARK_GRAY + Lore.BULLET + " Your own drops are always shown.",
-                "",
-                ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to toggle"));
-        item.setItemMeta(meta);
-        return item;
+    public static int shoutStep(PlayerData data) {
+        return Stepper.indexFromFlags(SHOW_FLOOR, data::isBroadcastEnabled);
     }
 
-    private static ItemStack auraToggle(SolRNGPlugin plugin, PlayerData data, Rarity rarity, Material material) {
-        boolean on = data.isAuraEnabled(rarity);
-        String name = plugin.getRarityManager().style(rarity, rarity.displayName()) + ChatColor.GRAY + " Aura";
+    public static int dropStep(PlayerData data) {
+        return Stepper.indexFromFlags(DROP_FLOOR, data::isDropMessageEnabled);
+    }
 
-        ItemStack item = new ItemStack(material);
-        ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(name + ChatColor.DARK_GRAY + " - "
-                + (on ? ChatColor.GREEN.toString() + ChatColor.BOLD + "On"
-                      : ChatColor.RED.toString() + ChatColor.BOLD + "Off"));
-        meta.setLore(List.of(
-                Lore.section(ChatColor.AQUA, "What it hides"),
-                Lore.line(ChatColor.AQUA, "The build-up and burst for"),
-                Lore.line(ChatColor.AQUA, rarity.displayName() + " drops - yours and"),
-                Lore.line(ChatColor.AQUA, "everyone else's."),
-                "",
-                ChatColor.DARK_GRAY + Lore.BULLET + " Off only affects what you see.",
-                "",
-                ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to toggle"));
-        meta.setEnchantmentGlintOverride(on ? Boolean.TRUE : null);
-        item.setItemMeta(meta);
-        return item;
+    public static void setAuraStep(PlayerData data, int step) {
+        Stepper.applyToFlags(SHOW_FLOOR, step, data::setAuraEnabled);
+    }
+
+    public static void setShoutStep(PlayerData data, int step) {
+        Stepper.applyToFlags(SHOW_FLOOR, step, data::setBroadcastEnabled);
+    }
+
+    public static void setDropStep(PlayerData data, int step) {
+        Stepper.applyToFlags(DROP_FLOOR, step, data::setDropMessageEnabled);
+    }
+
+    public static int auraSteps() {
+        return Stepper.steps(SHOW_FLOOR);
+    }
+
+    public static int dropSteps() {
+        return Stepper.steps(DROP_FLOOR);
     }
 
     /**

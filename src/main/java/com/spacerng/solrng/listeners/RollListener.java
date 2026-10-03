@@ -391,8 +391,14 @@ public class RollListener implements Listener {
         // labelled 1 in 10,000 is close to a sure thing, and it rolls like
         // any other drop: no cutscene, and Auto Roll does not stop for it.
         long realOneIn = Math.round(1.0 / Math.max(1e-15, plugin.getRarityManager().actualChance(result, luck)));
+        // V310: and the player's own floor on top of that. /options carries
+        // a ladder now instead of one switch, so somebody who only wants to
+        // stop for a Mythical gets an Epic at the speed of any other roll.
+        // An /rngadmin showcase (asked != null) ignores the ladder, because
+        // the point of that command is to look at the reveal.
         final boolean bigShow = RollAura.isBigDrop(result.getRarity())
-                && (asked != null || realOneIn >= plugin.getConfig().getLong("roll-item.animate-from-one-in", 1000L));
+                && (asked != null || (data.wantsReveal(result.getRarity())
+                        && realOneIn >= plugin.getConfig().getLong("roll-item.animate-from-one-in", 1000L)));
         final com.spacerng.solrng.roll.RollStages stages = bigShow
                 ? com.spacerng.solrng.roll.RollStages.of(plugin, data, result.getRarity(), result.getOdds())
                 : null;
@@ -448,7 +454,7 @@ public class RollListener implements Listener {
 
             if (elapsed[0] <= preTicks) {
                 remainingTicks.put(player.getUniqueId(), totalTicks - elapsed[0]);
-                preRoll.frame((double) elapsed[0] / preTicks, data.isRollAnimationEnabled());
+                preRoll.frame((double) elapsed[0] / preTicks, data.wantsReveal(result.getRarity()));
                 return;
             }
 
@@ -534,7 +540,7 @@ public class RollListener implements Listener {
                     // the roll has climbed.
                     showcase[0].grow(1f + 0.15f * (aura[0] == null ? 0 : aura[0].currentAct()));
                     showcase[0].show(MysteryHead.item(plugin), false);
-                } else if (data.isRollAnimationEnabled()) {
+                } else if (data.wantsReveal(result.getRarity())) {
                     boolean landed = step >= 19;
                     RollableItem shown = landed ? result : teaser(data, result, step);
                     // A candidate stays up until the next one replaces it, so
@@ -753,7 +759,7 @@ public class RollListener implements Listener {
         // the player is handed, shiny markers included. For a big drop the
         // title waits a moment: dropping it over the detonation on the same
         // tick hides the burst the player just sat through the build-up for.
-        if (data.isRollAnimationEnabled()) {
+        if (data.wantsReveal(result.getRarity())) {
             long titleDelay = aura == null ? 0L : RollAura.titleDelayTicks(result.getRarity());
             if (titleDelay <= 0) {
                 showRollTitle(player, result, shiny, 1500L);

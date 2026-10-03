@@ -223,8 +223,11 @@ final class ShowcaseAdmin extends AdminTools {
         PlayerData data = plugin.getPlayerDataManager().get(target.getUniqueId());
 
         sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "Reveal check for " + target.getName());
-        sender.sendMessage(ChatColor.GRAY + " Rolling Animation: " + yesNo(data.isRollAnimationEnabled())
-                + ChatColor.DARK_GRAY + " (the reel only, not the cutscene)");
+        // V310: a ladder rather than a switch, so the step is what to print.
+        sender.sendMessage(ChatColor.GRAY + " Rolling Animation: " + ChatColor.YELLOW
+                + com.spacerng.solrng.gui.Stepper.stepLabel(plugin, PlayerData.ANIMATION_FLOOR,
+                        data.getRollAnimationStep(), "Every roll")
+                + ChatColor.DARK_GRAY + " (the reel and the cutscene)");
         sender.sendMessage(ChatColor.GRAY + " Rolling Sound: " + yesNo(data.isRollSoundEnabled()));
         sender.sendMessage(ChatColor.GRAY + " Worn Auras: " + yesNo(data.isWornAurasVisible())
                 + ChatColor.GRAY + "   Own aura view: " + ChatColor.YELLOW + data.getOwnAuraView());

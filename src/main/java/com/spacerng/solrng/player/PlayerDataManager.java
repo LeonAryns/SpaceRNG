@@ -135,6 +135,12 @@ public class PlayerDataManager {
         data.setPrestige(yml.getInt("prestige", 0));
         data.setRollSoundEnabled(yml.getBoolean("roll-sound-enabled", true));
         data.setRollAnimationEnabled(yml.getBoolean("roll-animation-enabled", true));
+        // V310: the ladder step. An old save has only the switch, so off
+        // maps to the last step and on to every roll, which is what the
+        // switch meant.
+        data.setRollAnimationStep(yml.getInt("roll-animation-step",
+                data.isRollAnimationEnabled() ? 0
+                        : com.spacerng.solrng.gui.Stepper.steps(PlayerData.ANIMATION_FLOOR) - 1));
         data.setWornAurasVisible(yml.getBoolean("worn-auras-visible", true));
         data.setOwnAuraView(yml.getString("own-aura-view", "ground"));
         data.setFarmSoundEnabled(yml.getBoolean("farm-sound-enabled", true));
@@ -437,6 +443,7 @@ public class PlayerDataManager {
         yml.set("prestige", data.getPrestige());
         yml.set("roll-sound-enabled", data.isRollSoundEnabled());
         yml.set("roll-animation-enabled", data.isRollAnimationEnabled());
+        yml.set("roll-animation-step", data.getRollAnimationStep());
         yml.set("worn-auras-visible", data.isWornAurasVisible());
         yml.set("own-aura-view", data.getOwnAuraView());
         yml.set("farm-sound-enabled", data.isFarmSoundEnabled());
