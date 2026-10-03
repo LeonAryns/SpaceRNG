@@ -1218,6 +1218,98 @@ given to remove TAB so ours draws it.
 When Leon asks what is left, answer from this list and from the open
 questions further down. Keep it current.
 
+### The list Leon gave on 3 October, after V309, with the audit beside it
+
+One message, twelve subjects. He asked explicitly to check first what
+already exists, so each line says what is in the jar today. One jar per
+numbered item, in this order unless he says otherwise.
+
+1. **Roll animation as a stepper, not a switch.** `/options` has
+   `Rolling Animation` as one on/off (`roll-animation-enabled` in
+   PlayerData, V-old) and the global threshold
+   `roll-item.animate-from-one-in` (1,000). What he wants is a per
+   player ladder on one block: click steps the threshold up (off, then
+   Legendary and up, then Mythical and up, ...), right click steps back,
+   and the current step is readable on the item. Everything below the
+   step rolls at full speed like any other roll.
+2. **The same stepper everywhere, because `/options` is too busy.** It
+   now draws 16 per rarity buttons: 4 reveal auras, 4 shouts, 7 own drop
+   messages. Those three groups become three stepper blocks. His words:
+   "dan is het niet zo druk".
+3. **`/index` on the same pattern.** Today: 7 rarity tabs in the top row
+   (`IndexGui.buildTab`, one per rarity), a shiny toggle, progress, page
+   buttons. What he wants: one mode block with three positions, normal,
+   shiny index and secret index, plus one rarity block that cycles and
+   whose label follows the mode (so "Common shinies" in shiny mode).
+   Right click is one back. `/secretindex` already exists as its own
+   menu (`SecretIndexGui`, V229) and gets folded in as the third mode.
+   The Prestige 10 requirement has to be printed on the secret mode.
+4. **Tag Luck moves to the secret index.** Already built, V291, sitting
+   behind `secret-realm.secret-luck: false`. Turning it true is the
+   change: the secret picked in `/secretindex` replaces the equipped
+   drop's Tag Luck. `secret-realm.min-prestige` goes 0 to 10. He keeps
+   the realm itself off for now (`/rngadmin realm off`).
+5. **An announcement when the Secret Realm opens: yes, it exists.**
+   `RealmManager.open` prints a gradient chat banner, a title, a sound
+   and a boss bar countdown, and tells players under the Prestige floor
+   that they cannot enter. Nothing to build.
+6. **Pet eggs.** Three eggs exist (`pets.eggs.tiers`: stardust 100,
+   nebula 1,000, supernova 10,000 Cosmic Dust) with rarity bands and
+   min-prestige 10 / 20 / 20. What changes: egg 1 never gives Divine,
+   egg 2 unlocks at Prestige 10 with a very small Divine chance, egg 3
+   at Prestige 25 with ten times that chance, and the costs reworked so
+   the dearest is clearly the one to save for.
+7. **Eggs hatch on the spot.** He dropped the hatch animation: buying is
+   hatching. `PetHatch` exists and gets skipped or shortened.
+8. **Pet upgrades cost Gems.** Today rarity costs Cosmic Dust
+   (`rarity-base-cost` 8, growth 1.35) and tier costs Farm Dust
+   (`tier-base-cost` 25, growth 1.40). Both become Gems, and the growth
+   stays exponential but gets rescaled for a Gem budget.
+9. **Cosmic Dust as a range, raised by skills.** `DustManager` pays
+   exactly 1 per hit and the only skill is `COSMIC_DUST_CHANCE`. He
+   wants a second effect that raises the AMOUNT, the amount rolled
+   inside a range rather than fixed, and the action bar line to show up
+   during Auto Roll too (`pets.dust.announce` already writes one).
+10. **Permanent Luck down to small numbers.** `luck_250` is a permanent
+    +250% and `luck_50` a +50%, handed out by crates and the Battle
+    Pass. He wants 5% from the cheapest crate, 10% from the middle one
+    and 25% from the best, and the later Battle Pass stages to need a
+    lot of permanent Luck to reach. That means new consumables and a
+    pass of every reward table that names the old two.
+11. **Crates reached only with `/crates`.** Keys are ALREADY digital
+    since V282 (`storedKeys` in PlayerData, `/keys`, auto-store on). What
+    is missing: a `/crates` command that teleports to the crate area,
+    and the hologram over each crate showing how many of that crate's
+    keys you hold.
+12. **Potions digital through `/boosters`.** `/boosters` already holds
+    potions that Potion Finder found (V264, alias `/potions`). What is
+    missing: a potion BOUGHT goes to `/boosters` instead of the
+    inventory, the stack counts rather than filling slots, and the names
+    read `1.2x Luck` instead of `20% Luck`.
+13. **The farm tree has a node hanging off the start.** Confirmed:
+    `enchant_speed` sits at page 1 slot "4,6", the only node on row 6
+    besides the Wheat root at "5,6". Every other branch leaves the spine
+    at row 5. It moves onto a branch.
+14. **More drops at Legendary and up, and a tier above Divine.** Counted
+    in config today: 76 Common, 72 Uncommon, 40 Rare, 15 Epic, 11
+    Legendary, 8 Mythical, **5 Divine**. He wants at least 10 Divine and
+    more at every tier from Legendary. Above Divine comes one new
+    rarity with a space name, and **not** Galaxy, which he is saving for
+    later tiers. A new rarity touches the `Rarity` enum and everything
+    that loops it: odds bands, index, options, auras, Battle Pass XP,
+    armor, index completion, the scoreboard and Discord. Its own jar.
+
+**Decisions still needed from him before the matching jar:**
+
+- Item 6: what is the highest rarity egg 1 may hatch, Legendary or
+  Mythical? And does egg 1 need any Prestige at all (`pets.min-prestige`
+  is 10 today, which would block a Prestige 0 player from every egg)?
+- Item 10: do the old `luck_50` and `luck_250` stay in players' hands,
+  or are they converted down like the V306 armor was?
+- Item 14: the name above Divine. Proposed, in order: **Astral**,
+  **Celestial**, **Quasar**. Astral leaves Galactic and Universal free
+  for the tiers after it.
+
 1. **The Discord bot, testing.** Everything in V225 needs his setup and a
    try in game and in Discord.
 2. **/buy and /store better** (idea, 27 September). Not specified yet.
