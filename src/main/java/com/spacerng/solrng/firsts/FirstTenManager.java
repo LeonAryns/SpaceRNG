@@ -103,7 +103,7 @@ public final class FirstTenManager {
 
     /** How many spots the shiny list has (V279: five, Leon's call). */
     public int shinySlots() {
-        return Math.max(1, plugin.getConfig().getInt("first-ten.shiny-slots", 5));
+        return Math.max(1, plugin.getConfig().getInt("first-ten.shiny-slots", 10));
     }
 
     public boolean shinyTracked() {

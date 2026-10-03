@@ -256,7 +256,10 @@ public class TagManager {
 
         // The drop's name on top, its odds underneath.
         TextDisplay oddsDisplay = spawnLine(player, oddsText, BOTTOM_OFFSET);
-        TextDisplay nameDisplay = spawnLine(player, itemNameColored, TOP_OFFSET);
+        // V300: with no odds line (the Owner title) the name drops into its
+        // place, right over the nameplate, instead of floating a line higher.
+        TextDisplay nameDisplay = spawnLine(player, itemNameColored,
+                oddsText == null || oddsText.isEmpty() ? BOTTOM_OFFSET : TOP_OFFSET);
 
         player.addPassenger(oddsDisplay);
         player.addPassenger(nameDisplay);

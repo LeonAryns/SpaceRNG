@@ -56,6 +56,15 @@ public class FirstsGui {
 
     private static final int SHINY_SLOT = 40;
 
+    private static final java.time.format.DateTimeFormatter DAY =
+            java.time.format.DateTimeFormatter.ofPattern("d MMM yyyy", java.util.Locale.ENGLISH);
+
+    /** "3 Oct 2026", in the server's time zone. */
+    private static String day(long at) {
+        if (at <= 0L) return "";
+        return DAY.format(java.time.Instant.ofEpochMilli(at).atZone(java.time.ZoneId.systemDefault()));
+    }
+
     /** The shiny list (V278), shaped like a rarity's card. */
     private static ItemStack shinyIcon(SolRNGPlugin plugin) {
         FirstTenManager firsts = plugin.getFirstTenManager();
@@ -77,9 +86,10 @@ public class FirstsGui {
         } else {
             for (int i = 0; i < entries.size(); i++) {
                 FirstTenManager.Entry entry = entries.get(i);
+                // V300: the place, the name and the day, not the drop (Leon's call).
                 lore.add(plugin.getRarityManager().styleShiny(Lore.BULLET + " #" + (i + 1)) + " "
                         + ChatColor.WHITE + entry.name()
-                        + ChatColor.DARK_GRAY + "  " + drop(plugin, entry.item()));
+                        + ChatColor.DARK_GRAY + "  " + day(entry.at()));
             }
         }
         lore.add("");

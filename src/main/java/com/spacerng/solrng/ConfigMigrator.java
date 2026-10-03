@@ -181,6 +181,7 @@ public final class ConfigMigrator {
 
     private static final List<Patch> PATCHES = List.of(
             // V298: Owner red only, prestige one level more each time, pass XP nerfed.
+            new Patch("shiny-firsts-ten", "first-ten.shiny-slots", 5, 10),
             new Patch("owner-red-only", "ranks.tiers.owner.colors",
                     List.of("#FF1744", "#FF3D00", "#FFC400"), List.of("#FF1744", "#B71C1C")),
             new Patch("walk-speed-farmtree", "farming.enchants.WALK_SPEED.always-unlocked", true, false),

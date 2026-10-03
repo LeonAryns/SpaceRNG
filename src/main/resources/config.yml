@@ -6367,8 +6367,8 @@ first-ten:
   # V278: a Shiny First 10 as well, the first players to roll a shiny of
   # any rarity, with its own banner and its card in /firsts.
   shiny: true
-  # V279: the shiny list holds five, the rarity lists keep slots below.
-  shiny-slots: 5
+  # V300: the shiny list holds ten, like the rarity lists (V279 had five).
+  shiny-slots: 10
   enabled: true
   # V280: ten, Leon's call.
   slots: 10
