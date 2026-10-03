@@ -905,6 +905,14 @@ final class WorldAdmin extends AdminTools {
                 }
                 realm.open();
             }
+            case "on", "off" -> {
+                boolean on = action.equals("on");
+                realm.setEnabled(on);
+                sender.sendMessage(on
+                        ? ChatColor.GREEN + "The Secret Realm is on. It opens by itself again in "
+                                + Math.max(0L, (realm.nextOpenAt() - System.currentTimeMillis()) / 60_000L) + " minutes."
+                        : ChatColor.RED + "The Secret Realm is off. It stays closed until /rngadmin realm on.");
+            }
             case "close" -> {
                 if (!realm.isOpen()) {
                     sender.sendMessage(ChatColor.GRAY + "It is not open.");

@@ -73,6 +73,9 @@ public class RollListener implements Listener {
         this.rarityKey = SolRNGPlugin.key( "solrng_rarity");
         this.rollNameKey = SolRNGPlugin.key( "solrng_roll_name");
         this.shinyKey = SolRNGPlugin.key( "solrng_shiny");
+        // V293: drop announcements go out as a digest, see flushDigest.
+        long every = Math.max(10L, plugin.getConfig().getLong("broadcast.digest-seconds", 120L)) * 20L;
+        plugin.getServer().getScheduler().runTaskTimer(plugin, this::flushDigest, every, every);
     }
 
     public NamespacedKey getRarityKey() {
@@ -1039,6 +1042,13 @@ public class RollListener implements Listener {
         if (plugin.getFirstTenManager().wouldTake(player, result)) return;
         // Likewise a Shiny First, which brings its own banner (V278).
         if (shiny && plugin.getFirstTenManager().wouldTakeShiny(player)) return;
+        // V293: with the digest on, the drop waits for the next flush and
+        // only the highest tier of those two minutes goes to chat, so the
+        // per-player limit below is not needed.
+        if (plugin.getConfig().getLong("broadcast.digest-seconds", 120L) > 0) {
+            pending.add(new PendingDrop(player.getUniqueId(), player.getName(), result, previewItem, shiny));
+            return;
+        }
         // A player's first few drops of each rarity go to chat, then theirs
         // stop (V271, Leon: after three it is noise), Epic and up alike.
         // Shinies count on their own and stop after three too (V280).
@@ -1058,16 +1068,19 @@ public class RollListener implements Listener {
             roller.setAnnounced(rarity, roller.getAnnounced(rarity) + 1);
         }
         lastAnnouncedAt = now;
+        announce(player.getUniqueId(), player.getName(), result, previewItem, shiny);
+    }
 
+    private void announce(java.util.UUID roller, String name, RollableItem result, ItemStack previewItem, boolean shiny) {
         Component banner = LegacyComponentSerializer.legacySection()
-                .deserialize(RollFormat.broadcastBanner(plugin, player.getName(), result, shiny))
+                .deserialize(RollFormat.broadcastBanner(plugin, name, result, shiny))
                 .hoverEvent(previewItem.asHoverEvent());
 
         // Announced one player at a time rather than server-wide, because
         // muting a rarity is a per-player setting. The person who rolled it
         // always sees their own - the mute is for other people's noise.
         for (Player online : Bukkit.getOnlinePlayers()) {
-            if (!online.equals(player)
+            if (!online.getUniqueId().equals(roller)
                     && !plugin.getPlayerDataManager().get(online.getUniqueId())
                             .isBroadcastEnabled(result.getRarity())) {
                 continue;
@@ -1075,5 +1088,37 @@ public class RollListener implements Listener {
             online.sendMessage(banner);
         }
         Bukkit.getConsoleSender().sendMessage(banner);
+    }
+
+    /** A drop waiting for the next digest (V293). */
+    private record PendingDrop(java.util.UUID roller, String name, RollableItem result,
+                               ItemStack previewItem, boolean shiny) {
+        int tier() {
+            return result.getRarity().ordinal() * 2 + (shiny ? 1 : 0);
+        }
+    }
+
+    private final java.util.List<PendingDrop> pending = new java.util.ArrayList<>();
+
+    /**
+     * Every broadcast.digest-seconds (two minutes): of everything worth
+     * announcing since the last one, only the highest tier goes to chat. A
+     * shiny ranks just above the plain drop of its rarity. When that tier
+     * was hit more than digest-max times, the rest is one count line.
+     */
+    private void flushDigest() {
+        if (pending.isEmpty()) return;
+        int top = pending.stream().mapToInt(PendingDrop::tier).max().orElse(0);
+        java.util.List<PendingDrop> best = pending.stream().filter(d -> d.tier() == top).toList();
+        pending.clear();
+        int max = Math.max(1, plugin.getConfig().getInt("broadcast.digest-max", 3));
+        for (int i = 0; i < Math.min(max, best.size()); i++) {
+            PendingDrop d = best.get(i);
+            announce(d.roller(), d.name(), d.result(), d.previewItem(), d.shiny());
+        }
+        if (best.size() > max) {
+            String more = ChatColor.GRAY + "  and " + (best.size() - max) + " more like it in the last two minutes.";
+            for (Player online : Bukkit.getOnlinePlayers()) online.sendMessage(more);
+        }
     }
 }

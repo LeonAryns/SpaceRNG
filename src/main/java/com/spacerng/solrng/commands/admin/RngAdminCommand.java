@@ -186,7 +186,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         line(sender, "pet", "<give|take|list> <pet|all> [player]", "Hand out a pet, until they can be earned");
         line(sender, "dust", "<cosmic|farm> <amount> [player]", "Hand out pet dust, for testing");
         line(sender, "discord", "<status|restart|setup|cleanup|post <id>|card <id>>", "The bot: status, log in again, roles, cards");
-        line(sender, "realm", "<here|open|close|status>", "Where the Secret Realm is, and open or close it now");
+        line(sender, "realm", "<here|open|close|on|off|status>", "Where the Secret Realm is, open or close it now, or switch it off");
         line(sender, "advancements", "<off|on>", "Hide every vanilla advancement, toasts included");
         line(sender, "protect", "<on|off>", "Players can break farm blocks only");
         line(sender, "cropwatch", "<player|list|off>", "Watch how fast someone breaks crops");
@@ -263,7 +263,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             return args.length == 3 ? null : List.of();
         }
         if (sub.equals("realm")) {
-            return args.length == 2 ? partial(args[1], List.of("here", "open", "close", "status")) : List.of();
+            return args.length == 2 ? partial(args[1], List.of("here", "open", "close", "on", "off", "status")) : List.of();
         }
         if (sub.equals("cropwatch")) {
             if (args.length != 2) return List.of();

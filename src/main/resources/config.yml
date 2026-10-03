@@ -6290,6 +6290,12 @@ broadcast:
   # Past that limit one drop still comes through when nothing has been
   # announced for this many seconds (V286).
   quiet-seconds: 60
+  # V293: drops are told as a digest every this many seconds, and only the
+  # highest tier found in that time (a shiny just above its rarity). At
+  # most digest-max lines, the rest as a count. 0 announces every drop
+  # straight away with the limit above, as before.
+  digest-seconds: 120
+  digest-max: 3
 
 # Server First 10. The first players to roll a tracked rarity each take a
 # numbered spot, and the whole server is told: a banner in chat, a toast,

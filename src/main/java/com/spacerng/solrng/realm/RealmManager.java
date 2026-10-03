@@ -463,6 +463,15 @@ public class RealmManager implements Listener {
 
     public boolean isOpen() { return open; }
     public boolean isEnabled() { return enabled; }
+
+    /** /rngadmin realm on|off (V293): off closes it now and stops the clock. */
+    public void setEnabled(boolean on) {
+        plugin.getConfig().set("secret-realm.enabled", on);
+        plugin.saveConfig();
+        if (!on) close();
+        if (on && !enabled) scheduleNext();
+        enabled = on;
+    }
     public int minPrestige() { return minPrestige; }
     public long nextOpenAt() { return nextOpenAt; }
     public long openUntil() { return openUntil; }
