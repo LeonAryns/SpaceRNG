@@ -5816,6 +5816,40 @@ discord:
   # is text, so the wording, the IPs and the vote links change without a
   # new jar. A field's value can be one line or a list of lines.
   cards:
+    # V302: /rngadmin discord post changelog2 changelog
+    changelog2:
+      title: "Changelog, 3 October (part 2)"
+      color: "#C77DFF"
+      description: "More changes from today."
+      fields:
+        - name: "Rolling"
+          value:
+            - "- The big reveal only plays when a drop was really rare for you (1 in 100 or rarer at your Luck), so Auto Roll keeps going"
+            - "- A rarity you have rolled 10 times plays a smaller, faster reveal"
+            - "- Drop announcements: the best drop every 2 minutes, plus how many more of that tier were found"
+            - "- Luck shows in K and M"
+            - "- Shiny Firsts are now a top 10"
+          inline: false
+        - name: "Progression"
+          value:
+            - "- Each prestige needs 1 more level than the last, not 5"
+            - "- Battle Pass XP lowered for rare drops"
+            - "- Respec can spend shinies you have not converted, and Convert all converts shinies too"
+            - "- Locked skills show their name and the page of what they need"
+            - "- The Speed enchant is the second unlock in /farmtree and the second enchant on the hoe"
+          inline: false
+        - name: "Server"
+          value:
+            - "- 2x Luck for everyone when enough players are online, chat tells you how many more it takes"
+            - "- Your prestige shows after your name in tab, like in chat"
+            - "- A bigger announcement when someone gets a rank"
+            - "- Rolled drops can no longer be worn"
+          inline: false
+        - name: "Fixes"
+          value:
+            - "- Fixed an item duplication bug in /pv"
+          inline: false
+      footer: "Feedback? Tell us in Discord."
     # V295: /rngadmin discord post changelog changelog
     changelog:
       title: "Changelog, 3 October"
