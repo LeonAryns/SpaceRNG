@@ -87,14 +87,19 @@ final class PlayerAdmin extends AdminTools {
         if (args.length < 3 || !args[2].equalsIgnoreCase("confirm")) {
             sender.sendMessage(ChatColor.RED + "This wipes " + target.getName()
                     + "'s levels, prestige, index, skills, armor, drops, Starforge,"
-                    + " Coins, Gems, Credits, Money, playtime, crops farmed"
+                    + " Coins, Gems, Money, playtime, crops farmed"
                     + " and their whole inventory.");
+            // V321: Leon's call. These four are either bought with real
+            // money or earned over a season, so a reset meant to undo
+            // somebody's PROGRESS has no business taking them.
+            sender.sendMessage(ChatColor.GREEN + "It keeps their rank, Credits, "
+                    + "Battle Pass and claimed milestones.");
             sender.sendMessage(ChatColor.RED + "Run " + ChatColor.YELLOW + "/rngadmin reset "
                     + target.getName() + " confirm" + ChatColor.RED + " if you're sure.");
             return true;
         }
 
-        wipe(target, null);
+        wipe(target, null, true);
 
         target.sendMessage(ChatColor.RED + "Your SpaceRNG progress has been reset.");
         sender.sendMessage(ChatColor.GREEN + "Reset " + target.getName() + " to a new account.");
@@ -108,10 +113,49 @@ final class PlayerAdmin extends AdminTools {
      * put back on the fresh account, for the season reset keeping Owner.
      */
     private PlayerData wipe(Player target, String keepRank) {
+        return wipe(target, keepRank, false);
+    }
+
+    /**
+     * @param keepEarned V321: carries the rank, Credits, Battle Pass and
+     *     claimed milestones onto the fresh account, Leon's call for
+     *     /rngadmin reset. The season reset passes false, because a new
+     *     season is exactly when the pass and the milestones SHOULD go;
+     *     it keeps the rank its own way, through keepRank.
+     */
+    private PlayerData wipe(Player target, String keepRank, boolean keepEarned) {
         UUID uuid = target.getUniqueId();
         plugin.getRollListener().cancelRoll(uuid);
+
+        // Read before the reset, because reset() replaces the object.
+        PlayerData before = keepEarned ? plugin.getPlayerDataManager().get(uuid) : null;
+        String rank = before == null ? null : before.getRank();
+        long credits = before == null ? 0L : before.getPoints();
+        int passSeason = before == null ? 1 : before.getPassSeason();
+        long passXp = before == null ? 0L : before.getPassXp();
+        boolean passPremium = before != null && before.isPassPremium();
+        java.util.Set<String> passClaimed = before == null
+                ? java.util.Set.of() : java.util.Set.copyOf(before.getPassClaimed());
+        java.util.Set<String> milestones = before == null
+                ? java.util.Set.of() : java.util.Set.copyOf(before.getClaimedMilestones());
+        java.util.Set<String> announced = before == null
+                ? java.util.Set.of() : java.util.Set.copyOf(before.getAnnouncedMilestones());
+
         PlayerData fresh = plugin.getPlayerDataManager().reset(uuid);
         if (keepRank != null) fresh.setRank(keepRank);
+        if (before != null) {
+            if (rank != null) fresh.setRank(rank);
+            fresh.addPoints(credits);
+            fresh.setPassSeason(passSeason);
+            fresh.setPassXp(passXp);
+            fresh.setPassPremium(passPremium);
+            fresh.getPassClaimed().addAll(passClaimed);
+            // Both sets, not just the claimed one: an already announced
+            // milestone that is forgotten gets announced to the whole
+            // server a second time the moment they pass it again.
+            fresh.getClaimedMilestones().addAll(milestones);
+            fresh.getAnnouncedMilestones().addAll(announced);
+        }
 
         // Coins, Gems and Credits live on PlayerData and go with it. Money
         // does not: it lives in the economy plugin, so a reset that only

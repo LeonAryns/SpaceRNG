@@ -563,6 +563,14 @@ public final class AuraManager {
         double radius = plugin.getConfig().getDouble("auras.heavy.radius", 32.0);
         String fallback = plugin.getConfig().getString("auras.heavy.fallback", "ascend").toLowerCase(Locale.ROOT);
         if (MassiveConcepts.isHeavy(fallback)) fallback = "ascend";
+        // V321: at most this many swaps per pass. A swap despawns and
+        // respawns every piece of a look, up to about ninety display
+        // entities, and this runs for everybody at once every second. Two
+        // or three players crossing the radius together put two or three
+        // full rebuilds on ONE tick, which is a spike rather than load.
+        // One at a time turns the same change into something gradual, and
+        // the next pass is a second away.
+        int swapBudget = Math.max(1, plugin.getConfig().getInt("auras.heavy.swaps-per-check", 1));
 
         record Swap(Player player, Worn aura, boolean heavy) {
         }
@@ -570,7 +578,7 @@ public final class AuraManager {
         List<Swap> swaps = new ArrayList<>();
         for (Map.Entry<UUID, Worn> entry : worn.entrySet()) {
             Worn aura = entry.getValue();
-            if (!MassiveConcepts.isHeavy(aura.wanted) || aura.paused) continue;
+            if (!isHeavy(aura) || aura.paused) continue;
             Player player = Bukkit.getPlayer(entry.getKey());
             if (player == null || player.isDead()) continue;
             Location at = player.getLocation();
@@ -584,10 +592,50 @@ public final class AuraManager {
             if (allowed) running.add(at);
             if (allowed != heavyNow) swaps.add(new Swap(player, aura, allowed));
         }
+        // Losing a heavy look comes first: that is the half that takes
+        // load off, and making somebody wait a second for the cheaper
+        // look is better than letting two heavy ones run side by side.
+        swaps.sort(java.util.Comparator.comparing(Swap::heavy));
+        int done = 0;
         for (Swap swap : swaps) {
+            if (done++ >= swapBudget) break;
             Worn aura = swap.aura();
             wear(swap.player(), swap.heavy() ? aura.wanted : fallback, aura.wanted, aura.rarity, aura.accent, aura.test);
         }
+    }
+
+    /**
+     * Whether this look is one of the expensive ones (V321).
+     *
+     * Measured, not just listed. MassiveConcepts.HEAVY is a hand-kept set
+     * of names, and a hand-kept set is how `zenith` ended up outside it:
+     * six stacked concepts, as many pieces as empyrean, and the balancer
+     * never throttled it because nobody added the name. The piece count
+     * is known the moment a look is worn, since spawn() hands its
+     * displays back, so anything past the threshold counts as heavy
+     * whatever it is called and the next look added cannot be missed.
+     */
+    private boolean isHeavy(Worn aura) {
+        if (MassiveConcepts.isHeavy(aura.wanted)) return true;
+        int threshold = plugin.getConfig().getInt("auras.heavy.piece-threshold", 60);
+        if (threshold <= 0) return false;
+        return PIECE_COUNTS.getOrDefault(aura.wanted, 0) >= threshold;
+    }
+
+    /**
+     * The widest piece count ever seen for each look key.
+     *
+     * Filled in by mount, so a look is only known once somebody has worn
+     * it since the last start. That is the right way round: an unknown
+     * look is treated as light for its first second and then correctly
+     * from the next pass, which is a far smaller mistake than throttling
+     * something cheap on a guess.
+     */
+    private static final Map<String, Integer> PIECE_COUNTS = new java.util.concurrent.ConcurrentHashMap<>();
+
+    /** What a look costs in pieces, for /rngadmin auratest and the console. */
+    public static int piecesOf(String key) {
+        return key == null ? 0 : PIECE_COUNTS.getOrDefault(key, 0);
     }
 
     /** Players close enough to see the accent, who show worn auras and haven't switched this rarity's off. */
@@ -671,6 +719,12 @@ public final class AuraManager {
             player.addPassenger(display);
         }
         aura.displays = displays;
+        // V321: remember what this look costs, under its OWN key rather
+        // than the one being worn. A look already swapped down to the
+        // fallback carries the fallback's small count, so measuring the
+        // spawned list would answer "not heavy" and it could never be
+        // considered for getting the heavy one back.
+        PIECE_COUNTS.merge(aura.key, displays.size(), Math::max);
         for (Player viewer : Bukkit.getOnlinePlayers()) {
             boolean own = viewer.equals(player);
             for (int i = 0; i < displays.size(); i++) {

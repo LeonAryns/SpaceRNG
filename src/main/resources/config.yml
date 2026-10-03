@@ -3559,7 +3559,11 @@ milestones:
         # A day of playtime before anything permanent. Two hours was not
         # a milestone, it was an evening.
         - { at: 24, consumable: luck_5 }
-        - { at: 48, consumable: free_skill, consumable-amount: 2 }
+        # V321: the voucher pair here is gone, Leon capped /milestones at
+        # three vouchers in total. Two Nova Cores take the slot rather than
+        # leaving the tier paying nothing, which keeps it in step with the
+        # Cores at 12 and 96 either side of it.
+        - { at: 48, consumable: nova_core, consumable-amount: 2 }
         - { at: 96, consumable: nova_core, consumable-amount: 3 }
         - { at: 168, consumable: roll_10x, consumable-amount: 5 }
         - { at: 336, consumable: luck_10 }
@@ -3925,7 +3929,6 @@ crates:
         - { weight: 8, consumable: luck_potion }
         - { weight: 8, drop: UNCOMMON, amount: 3 }
         - { weight: 6, consumable: nova_core }
-        - { weight: 2.5, consumable: free_skill }
         - { weight: 2, drop: RARE }
         - { weight: 1.5, consumable: roll_10x }
         - { weight: 0.4, consumable: luck_5 }
@@ -3943,7 +3946,6 @@ crates:
         - { weight: 18, gems: 250 }
         - { weight: 14, money: 500000 }
         - { weight: 12, consumable: nova_core, amount: 2 }
-        - { weight: 8, consumable: free_skill }
         - { weight: 8, consumable: roll_10x, amount: 3 }
         - { weight: 7, drop: RARE, amount: 2 }
         - { weight: 3, drop: EPIC }
@@ -3970,7 +3972,6 @@ crates:
         - { weight: 10, consumable: speed_potion }
         - { weight: 8, drop: RARE }
         - { weight: 6, consumable: nova_core }
-        - { weight: 3, consumable: free_skill }
         - { weight: 2, consumable: roll_10x }
         - { weight: 0.5, consumable: luck_5 }
     # Rank key alls and events:  rngadmin crate keyall nebula 1
@@ -3991,7 +3992,6 @@ crates:
         - { weight: 12, consumable: nova_core }
         - { weight: 8, consumable: roll_10x, amount: 2 }
         - { weight: 8, drop: RARE, amount: 2 }
-        - { weight: 5, consumable: free_skill }
         - { weight: 2, drop: EPIC }
         # V315: the best crate pays a quarter, Leon's ladder, merged
         # from the old 50 and 250 entries.
@@ -5699,6 +5699,8 @@ pass:
       free:
         tokens: 6000
         coins: 600000
+        # V321: one voucher on the free track, Leon's cap for the pass.
+        consumable: free_skill
       premium:
         tokens: 18000
         gems: 24
@@ -5715,6 +5717,9 @@ pass:
         tokens: 18750
         drop-rarity: EPIC
         drops: 10
+        # V321: the paid track gives two vouchers, Leon's cap. This is
+        # the first; the second is at level 38.
+        consumable: free_skill
     # ---- level 26
     - xp: 5000
       free:
@@ -5829,6 +5834,8 @@ pass:
       premium:
         tokens: 28500
         coins: 3800000
+        # V321: the second of the paid track's two vouchers.
+        consumable: free_skill
     # ---- level 39
     - xp: 5000
       free:
@@ -6689,6 +6696,18 @@ auras:
     max-nearby: 1
     radius: 32
     fallback: ascend
+    # V321: anything with this many display entities counts as heavy too,
+    # whatever it is called. The list in the comment above is hand-kept
+    # and zenith was missed by it: six stacked concepts, as many pieces as
+    # empyrean, and the limit above never applied to it. A piece count is
+    # measured when a look is first worn, so the next one cannot be
+    # missed either. 0 switches the measuring off and trusts the list.
+    piece-threshold: 60
+    # V321: how many players may be swapped between the heavy look and
+    # the fallback in one check. A swap despawns and respawns every piece
+    # of a look, so several landing on the same tick is a lag spike
+    # rather than load. The next check is a second away.
+    swaps-per-check: 1
   # The look a player wears is their rank's since V218, and the tag's
   # rarity only colours it: a Supernova wears the Divine look (ascend) at
   # every rarity from Epic up, each in that rarity's colour, and Linked

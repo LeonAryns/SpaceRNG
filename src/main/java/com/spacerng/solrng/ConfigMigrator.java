@@ -81,6 +81,8 @@ public final class ConfigMigrator {
             // farming: block every older config already has, so it never
             // merged and Leon could not tune it on the server.
             "farming.crop-unlock-at",
+            // V321: the two new heavy-aura limits.
+            "auras.heavy.piece-threshold", "auras.heavy.swaps-per-check",
             "rarities.ASTRAL",
             "index.luck-multipliers.ASTRAL",
             "index.completion.by-rarity.ASTRAL",
@@ -975,6 +977,73 @@ public final class ConfigMigrator {
                         + " Legendary and up drops, Astral included");
             }
             applied.add("astral-tier-drops");
+            changed = true;
+        }
+        // V321: the Skilltree Unlock Voucher comes out of every crate,
+        // Leon's call. /milestones keeps three and the Battle Pass gets
+        // one on the free track and two on the paid one, which is a
+        // structural section and three ADDED keys respectively, so only
+        // the crates need doing by hand here.
+        //
+        // Removing an entry rather than swapping one, which none of the
+        // patch kinds can do: the weight it carried goes back to the rest
+        // of the table instead of being handed to something else, because
+        // picking a replacement for Leon is not this patch's job.
+        if (!applied.contains("no-voucher-in-crates")) {
+            boolean hit = false;
+            for (String path : new String[]{"crates.types.farm.rewards",
+                    "crates.types.cosmic.rewards", "crates.types.vote.rewards",
+                    "crates.types.nebula.rewards", "crates.types.boss.rewards"}) {
+                List<?> rewards = disk.getList(path);
+                if (rewards == null) continue;
+                List<Object> kept = new ArrayList<>();
+                for (Object reward : rewards) {
+                    if (reward instanceof java.util.Map<?, ?> map
+                            && "free_skill".equals(String.valueOf(map.get("consumable")))) {
+                        continue;
+                    }
+                    kept.add(reward);
+                }
+                if (kept.size() != rewards.size()) {
+                    disk.set(path, kept);
+                    hit = true;
+                }
+            }
+            if (hit) {
+                plugin.getLogger().info("Config patch no-voucher-in-crates: vouchers removed from the crates");
+            }
+            applied.add("no-voucher-in-crates");
+            changed = true;
+        }
+        // V321: and the three the pass now gives. Added, not mapped, since
+        // the pass never gave one, and only where the slot is still empty
+        // so a hand-tuned pass is left alone. Level 24 free, 25 and 38
+        // premium, which are the levels whose tracks had no consumable.
+        if (!applied.contains("voucher-in-pass")) {
+            List<?> levels = disk.getList("pass.levels");
+            if (levels != null) {
+                List<Object> rewritten = new ArrayList<>(levels);
+                boolean hit = false;
+                for (Object[] spot : new Object[][]{{24, "free"}, {25, "premium"}, {38, "premium"}}) {
+                    int index = (Integer) spot[0] - 1;
+                    String track = (String) spot[1];
+                    if (index < 0 || index >= rewritten.size()) continue;
+                    if (!(rewritten.get(index) instanceof java.util.Map<?, ?> level)) continue;
+                    if (!(level.get(track) instanceof java.util.Map<?, ?> side)) continue;
+                    if (side.get("consumable") != null) continue;
+                    java.util.Map<Object, Object> newSide = new java.util.LinkedHashMap<>(side);
+                    newSide.put("consumable", "free_skill");
+                    java.util.Map<Object, Object> newLevel = new java.util.LinkedHashMap<>(level);
+                    newLevel.put(track, newSide);
+                    rewritten.set(index, newLevel);
+                    hit = true;
+                }
+                if (hit) {
+                    disk.set("pass.levels", rewritten);
+                    plugin.getLogger().info("Config patch voucher-in-pass: vouchers added to the pass");
+                }
+            }
+            applied.add("voucher-in-pass");
             changed = true;
         }
         // V209: renamed drops, only where the old name is still on disk.

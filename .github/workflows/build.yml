@@ -9,6 +9,10 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # The release step writes a tag and an asset, which the default
+    # read-only token cannot do.
+    permissions:
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -29,3 +33,25 @@ jobs:
           name: SpaceRNG
           path: target/SpaceRNG.jar
           if-no-files-found: error
+
+      # A workflow artifact can only be downloaded by somebody logged in
+      # to GitHub, which is why Leon could not get the jar. A release
+      # asset can be downloaded by anyone, from one link that never
+      # changes:
+      #
+      #   https://github.com/LeonAryns/SpaceRNG/releases/latest/download/SpaceRNG.jar
+      #
+      # Tagged with the version out of pom.xml, and the tag is deleted
+      # and remade if it already exists so a rebuilt version replaces its
+      # jar rather than failing the run.
+      - name: Publish the jar as a release
+        if: github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=$(mvn -q -DforceStdout help:evaluate -Dexpression=project.version)
+          TAG="v$VERSION"
+          gh release delete "$TAG" --yes --cleanup-tag || true
+          gh release create "$TAG" target/SpaceRNG.jar \
+            --title "SpaceRNG V$VERSION" \
+            --notes "$(git log -1 --pretty=%B)"
