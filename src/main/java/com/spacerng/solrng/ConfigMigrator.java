@@ -187,6 +187,33 @@ public final class ConfigMigrator {
             // V298: Owner red only, prestige one level more each time, pass XP nerfed.
             // V303: reveals from 1 in 1,000 again, Leon's call.
             // V304: a full shiny tier is 3x.
+            // V308: one rarity per set, from the old prices and from V306's.
+            new Patch("armor-leather-v308a", "armor.tiers.LEATHER.costs",
+                    Map.of("COMMON", 10, "UNCOMMON", 1), Map.of("COMMON", 40)),
+            new Patch("armor-leather-v308b", "armor.tiers.LEATHER.costs",
+                    Map.of("COMMON", 150, "UNCOMMON", 15), Map.of("COMMON", 40)),
+            new Patch("armor-chainmail-v308a", "armor.tiers.CHAINMAIL.costs",
+                    Map.of("COMMON", 25, "UNCOMMON", 5), Map.of("UNCOMMON", 16)),
+            new Patch("armor-chainmail-v308b", "armor.tiers.CHAINMAIL.costs",
+                    Map.of("COMMON", 400, "UNCOMMON", 50), Map.of("UNCOMMON", 16)),
+            new Patch("armor-iron-v308a", "armor.tiers.IRON.costs",
+                    Map.of("UNCOMMON", 25, "RARE", 5), Map.of("RARE", 8)),
+            new Patch("armor-iron-v308b", "armor.tiers.IRON.costs",
+                    Map.of("UNCOMMON", 250, "RARE", 25), Map.of("RARE", 8)),
+            new Patch("armor-gold-v308a", "armor.tiers.GOLD.costs",
+                    Map.of("UNCOMMON", 50, "RARE", 10), Map.of("EPIC", 2)),
+            new Patch("armor-gold-v308b", "armor.tiers.GOLD.costs",
+                    Map.of("UNCOMMON", 600, "RARE", 60), Map.of("EPIC", 2)),
+            new Patch("armor-diamond-v308a", "armor.tiers.DIAMOND.costs",
+                    Map.of("RARE", 25, "EPIC", 5), Map.of("LEGENDARY", 1)),
+            new Patch("armor-diamond-v308b", "armor.tiers.DIAMOND.costs",
+                    Map.of("RARE", 250, "EPIC", 10), Map.of("LEGENDARY", 1)),
+            new Patch("armor-netherite-v308a", "armor.tiers.NETHERITE.costs",
+                    Map.of("RARE", 50, "EPIC", 10), Map.of("MYTHICAL", 1)),
+            new Patch("armor-netherite-v308b", "armor.tiers.NETHERITE.costs",
+                    Map.of("EPIC", 30, "LEGENDARY", 5, "MYTHICAL", 1), Map.of("MYTHICAL", 1)),
+            // V308: a boost's raised bar holds two hours, then back to 20.
+            new Patch("crowd-reset-two-hours", "boost.crowd.reset-hours", 24, 2),
             // V306: armor far dearer, Netherite takes Mythicals, and one wipe.
             new Patch("armor-leather-v306", "armor.tiers.LEATHER.costs",
                     Map.of("COMMON", 10, "UNCOMMON", 1), Map.of("COMMON", 150, "UNCOMMON", 15)),

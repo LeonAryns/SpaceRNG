@@ -1087,47 +1087,41 @@ armor:
   reset-version: 1
   # V306: costs are a CHESTPLATE's. The other pieces take their crafting
   # share of it, rounded up: helmet 5/8, leggings 7/8, boots 4/8.
+  # V308: few drops, one rarity per set, rarer the higher it goes.
   tiers:
     LEATHER:
       display: "Leather"
       costs:
-        COMMON: 150
-        UNCOMMON: 15
+        COMMON: 40
       luck-bonus: 0.05
       speed-bonus: 0.05
     CHAINMAIL:
       display: "Chainmail"
       costs:
-        COMMON: 400
-        UNCOMMON: 50
+        UNCOMMON: 16
       luck-bonus: 0.10
       speed-bonus: 0.08
     IRON:
       display: "Iron"
       costs:
-        UNCOMMON: 250
-        RARE: 25
+        RARE: 8
       luck-bonus: 0.15
       speed-bonus: 0.12
     GOLD:
       display: "Gold"
       costs:
-        UNCOMMON: 600
-        RARE: 60
+        EPIC: 2
       luck-bonus: 0.25
       speed-bonus: 0.16
     DIAMOND:
       display: "Diamond"
       costs:
-        RARE: 250
-        EPIC: 10
+        LEGENDARY: 1
       luck-bonus: 0.40
       speed-bonus: 0.20
     NETHERITE:
       display: "Netherite"
       costs:
-        EPIC: 30
-        LEGENDARY: 5
         MYTHICAL: 1
       luck-bonus: 0.60
       speed-bonus: 0.25
@@ -5230,7 +5224,9 @@ boost:
     cooldown-minutes: 60
     # V307: fifteen minutes, and the banner links to /store to upgrade it.
     duration-minutes: 15
-    reset-hours: 24
+    # V308: the raised bar after a boost holds this long, then back to
+    # start-threshold. 23 on gives 2x, then 30 is the goal for two hours.
+    reset-hours: 2
     # V301: within this many players of the bar, chat says how many more
     # it takes, at most once every call-every-minutes.
     call-within: 5

@@ -232,14 +232,40 @@ public class ArmorManager {
             }
         }
         boolean bought = !data.getPurchasedArmorTiers().isEmpty();
+        // V308: every piece bought is paid back at the price it was bought
+        // for (the flat per-piece prices before V306), into the drop bank.
+        Map<Rarity, Long> refund = new java.util.EnumMap<>(Rarity.class);
+        for (String key : data.getPurchasedArmorTiers()) {
+            String tierId = key.contains(":") ? key.substring(0, key.indexOf(':')) : key;
+            Map<Rarity, Long> paid = OLD_PRICES.get(tierId);
+            if (paid == null) continue;
+            for (Map.Entry<Rarity, Long> cost : paid.entrySet()) refund.merge(cost.getKey(), cost.getValue(), Long::sum);
+        }
+        for (Map.Entry<Rarity, Long> back : refund.entrySet()) data.addBankedDrops(back.getKey(), back.getValue());
         data.getPurchasedArmorTiers().clear();
         data.setArmorVersion(version);
         if (removed > 0 || bought) {
-            player.sendMessage(ChatColor.GOLD + "Armor was reworked: it is built piece by piece now and costs far"
-                    + " more, the top set Mythicals. Your old armor was taken back. See " + ChatColor.YELLOW + "/armor"
-                    + ChatColor.GOLD + ".");
+            StringBuilder back = new StringBuilder();
+            for (Map.Entry<Rarity, Long> entry : refund.entrySet()) {
+                if (back.length() > 0) back.append(ChatColor.GRAY).append(", ");
+                back.append(plugin.getRarityManager().style(entry.getKey(),
+                        entry.getValue() + " " + entry.getKey().displayName()));
+            }
+            player.sendMessage(ChatColor.GOLD + "Armor was reworked: every piece has its own price now and the"
+                    + " higher sets take rarer drops. Your old armor was taken back"
+                    + (back.length() > 0 ? " and refunded: " + back + ChatColor.GOLD + ", in your /convert bank" : "")
+                    + ". See " + ChatColor.YELLOW + "/armor" + ChatColor.GOLD + ".");
         }
     }
+
+    /** What one piece cost before V306, for the refund. */
+    private static final Map<String, Map<Rarity, Long>> OLD_PRICES = Map.of(
+            "LEATHER", Map.of(Rarity.COMMON, 10L, Rarity.UNCOMMON, 1L),
+            "CHAINMAIL", Map.of(Rarity.COMMON, 25L, Rarity.UNCOMMON, 5L),
+            "IRON", Map.of(Rarity.UNCOMMON, 25L, Rarity.RARE, 5L),
+            "GOLD", Map.of(Rarity.UNCOMMON, 50L, Rarity.RARE, 10L),
+            "DIAMOND", Map.of(Rarity.RARE, 25L, Rarity.EPIC, 5L),
+            "NETHERITE", Map.of(Rarity.RARE, 50L, Rarity.EPIC, 10L));
 
     /** Plugin armor, which never takes durability damage (V253). */
     public boolean isPluginArmor(ItemStack piece) {

@@ -56,7 +56,7 @@ public class CrowdBoostManager {
         callWithin = Math.max(0, config.getInt("boost.crowd.call-within", 5));
         callEveryMinutes = Math.max(1, config.getInt("boost.crowd.call-every-minutes", 10));
         durationMinutes = Math.max(1, config.getInt("boost.crowd.duration-minutes", 15));
-        resetHours = Math.max(1, config.getInt("boost.crowd.reset-hours", 24));
+        resetHours = Math.max(1, config.getInt("boost.crowd.reset-hours", 2));
         if (threshold <= 0) threshold = startThreshold;
     }
 
@@ -111,6 +111,12 @@ public class CrowdBoostManager {
         lastTriggerAt = now;
         plugin.getLogger().info("Crowd boost fired at " + online
                 + " players. Next one needs " + threshold + ".");
+        // V308: say the next goal straight away, and how long it holds.
+        String next = org.bukkit.ChatColor.GRAY + "Next free 2x Luck: " + org.bukkit.ChatColor.AQUA
+                + org.bukkit.ChatColor.BOLD + threshold + " players" + org.bukkit.ChatColor.RESET
+                + org.bukkit.ChatColor.GRAY + " within the next " + resetHours
+                + (resetHours == 1 ? " hour." : " hours.");
+        for (org.bukkit.entity.Player p : Bukkit.getOnlinePlayers()) p.sendMessage(next);
     }
 
     /**

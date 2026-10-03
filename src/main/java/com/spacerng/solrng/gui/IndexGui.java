@@ -78,6 +78,33 @@ public class IndexGui {
         return NEXT_SLOT;
     }
 
+    /**
+     * V308: a drop a player holds is in their index, however it reached
+     * them. Players had Divines that never showed here; a roll registers
+     * its find, but a drop handed over another way (an admin give, a lost
+     * save after the roll) did not. Anything rolled in the inventory or
+     * in /pv counts the moment /index opens.
+     */
+    public static void syncHeld(SolRNGPlugin plugin, Player player) {
+        var data = plugin.getPlayerDataManager().get(player.getUniqueId());
+        if (data == null) return;
+        var nameKey = plugin.getRollListener().getRollNameKey();
+        java.util.List<ItemStack> held = new java.util.ArrayList<>(java.util.Arrays.asList(player.getInventory().getContents()));
+        for (List<ItemStack> page : data.getVaults().values()) held.addAll(page);
+        for (ItemStack stack : held) {
+            if (stack == null || stack.getItemMeta() == null) continue;
+            String name = stack.getItemMeta().getPersistentDataContainer().get(nameKey, PersistentDataType.STRING);
+            if (name == null || plugin.getRarityManager().findByDisplayName(name) == null) continue;
+            if (!data.hasDiscovered(name)) {
+                data.markDiscovered(name);
+                plugin.getFoundCounts().record(name);
+            }
+            if (plugin.getRollListener().isShiny(stack) && !data.hasDiscoveredShiny(name)) {
+                data.markShinyDiscovered(name);
+            }
+        }
+    }
+
     public static Inventory build(SolRNGPlugin plugin, Player player, Rarity filter, int page) {
         return build(plugin, player, filter, page, false);
     }
@@ -89,6 +116,7 @@ public class IndexGui {
      */
     public static Inventory build(SolRNGPlugin plugin, Player player, Rarity filter, int page,
                                   boolean shinyView) {
+        syncHeld(plugin, player);
         IndexHolder holder = new IndexHolder();
         holder.setFilter(filter);
 
