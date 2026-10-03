@@ -55,7 +55,7 @@ public class CrowdBoostManager {
         cooldownMinutes = Math.max(1, config.getInt("boost.crowd.cooldown-minutes", 60));
         callWithin = Math.max(0, config.getInt("boost.crowd.call-within", 5));
         callEveryMinutes = Math.max(1, config.getInt("boost.crowd.call-every-minutes", 10));
-        durationMinutes = Math.max(1, config.getInt("boost.crowd.duration-minutes", 30));
+        durationMinutes = Math.max(1, config.getInt("boost.crowd.duration-minutes", 15));
         resetHours = Math.max(1, config.getInt("boost.crowd.reset-hours", 24));
         if (threshold <= 0) threshold = startThreshold;
     }

@@ -164,10 +164,19 @@ public class BoostManager {
                 + " Luck is on the house for " + ChatColor.WHITE + minutes + " minutes"
                 + ChatColor.GRAY + ".";
 
+        // V307: the free boost points at the paid one, so the 15 minutes
+        // can be made bigger and longer from /store.
+        net.kyori.adventure.text.Component upgrade = net.kyori.adventure.text.serializer.legacy
+                .LegacyComponentSerializer.legacySection().deserialize(ChatColor.GRAY + "Want it bigger or longer? "
+                        + ChatColor.YELLOW + ChatColor.BOLD + "[Upgrade it in /store]")
+                .clickEvent(net.kyori.adventure.text.event.ClickEvent.runCommand("/store"))
+                .hoverEvent(net.kyori.adventure.text.event.HoverEvent.showText(
+                        net.kyori.adventure.text.Component.text("Click to open the store")));
         for (Player online2 : Bukkit.getOnlinePlayers()) {
             online2.sendMessage("");
             online2.sendMessage(banner);
             online2.sendMessage(line);
+            online2.sendMessage(upgrade);
             online2.sendMessage("");
             online2.playSound(online2.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0f, 1.4f);
             plugin.getScoreboardManager().update(online2);

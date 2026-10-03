@@ -203,6 +203,7 @@ public final class ConfigMigrator {
             new Patch("armor-reset-1", "armor.reset-version", null, 1),
             new Patch("index-shiny-3x", "index.completion.per-shiny-rarity", 5.0, 3.0),
             new Patch("animate-one-in-thousand", "roll-item.animate-from-one-in", 100, 1000),
+            new Patch("crowd-fifteen-minutes", "boost.crowd.duration-minutes", 30, 15),
             new Patch("crowd-cooldown-hour", "boost.crowd.cooldown-minutes", 150, 60),
             new Patch("shiny-firsts-ten", "first-ten.shiny-slots", 5, 10),
             new Patch("owner-red-only", "ranks.tiers.owner.colors",

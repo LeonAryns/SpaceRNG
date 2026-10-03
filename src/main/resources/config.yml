@@ -5228,7 +5228,8 @@ boost:
     growth: 1.3
     # V301: an hour between free boosts (was 150 minutes).
     cooldown-minutes: 60
-    duration-minutes: 30
+    # V307: fifteen minutes, and the banner links to /store to upgrade it.
+    duration-minutes: 15
     reset-hours: 24
     # V301: within this many players of the bar, chat says how many more
     # it takes, at most once every call-every-minutes.
