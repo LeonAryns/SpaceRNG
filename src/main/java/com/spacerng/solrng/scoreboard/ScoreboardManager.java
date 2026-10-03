@@ -143,6 +143,18 @@ public class ScoreboardManager {
         }
     }
 
+    /**
+     * V308: the sidebar's own lines, for the hover over a name in chat:
+     * the name, the stats and the wallet, without the spacers and the
+     * address at the bottom.
+     */
+    public List<String> hoverLines(Player player) {
+        List<String> lines = new ArrayList<>(buildLines(player));
+        if (lines.size() >= 2) lines.subList(lines.size() - 2, lines.size()).clear();
+        lines.removeIf(String::isEmpty);
+        return lines;
+    }
+
     private List<String> buildLines(Player player) {
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         int discovered = data.getDiscoveredItems().size();

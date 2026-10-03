@@ -100,28 +100,20 @@ public class ChatListener implements Listener {
         return line.toString();
     }
 
-    /** The hover over a name in chat (V294): who they are and their stats. */
+    /**
+     * The hover over a name in chat: since V308 exactly what their sidebar
+     * shows (Leon's call), plus a line saying a click opens /stats.
+     */
     private net.kyori.adventure.text.Component statsCard(Player player) {
-        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         StringBuilder card = new StringBuilder();
-        card.append(plugin.getRankManager().coloredName(player)).append("\n");
-        card.append(ChatColor.DARK_GRAY).append("Level ").append(ChatColor.WHITE).append(data.getLevel());
-        if (data.getPrestige() > 0) {
-            card.append(ChatColor.DARK_GRAY).append("  Prestige ").append(ChatColor.GOLD).append(roman(data.getPrestige()));
-        }
-        card.append("\n").append(ChatColor.DARK_GRAY).append("Rolls ").append(ChatColor.WHITE)
-                .append(String.format("%,d", data.getTotalRolls())).append("\n");
         try {
-            for (com.spacerng.solrng.stats.StatSources.Id id : com.spacerng.solrng.stats.StatSources.Id.values()) {
-                var stat = com.spacerng.solrng.stats.StatSources.of(plugin, data, id);
-                card.append("\n").append(com.spacerng.solrng.gui.StatsGui.accent(id))
-                        .append(com.spacerng.solrng.gui.Lore.BULLET).append(" ").append(ChatColor.GRAY)
-                        .append(stat.name()).append(": ").append(ChatColor.WHITE)
-                        .append(com.spacerng.solrng.gui.StatsGui.shownValue(stat));
+            for (String line : plugin.getScoreboardManager().hoverLines(player)) {
+                if (card.length() > 0) card.append('\n');
+                card.append(line);
             }
         } catch (RuntimeException ignored) {
-            // Read off the main thread; a stat that trips over a change in
-            // flight just leaves the card shorter this once.
+            // Read off the main thread; a line that trips just leaves the
+            // card shorter this once.
         }
         card.append("\n\n").append(ChatColor.YELLOW).append("Click for their /stats");
         return LEGACY.deserialize(card.toString());
