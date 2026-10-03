@@ -136,7 +136,7 @@ public final class AuraConcepts {
         return switch (rarity) {
             // Divine also gets supernova's stars bursting out along the
             // ground, kept a little shorter than supernova's own.
-            case DIVINE -> new Combined(
+            case DIVINE, ASTRAL -> new Combined(
                     new SolidAtom(light, -0.6f, 2.8f, 0.5f, false, 0, 2, 16.0),
                     new SolidAtom(Material.END_ROD, -0.8f, 1.45f, 0.35f, false, 90, 2, 24.0),
                     new MassiveConcepts.WideRipple(color, 28, 3.2f, 20, 3),
@@ -155,7 +155,7 @@ public final class AuraConcepts {
     /** A solid block in the rarity's colour. */
     private static Material block(Rarity rarity) {
         return switch (rarity) {
-            case DIVINE -> Material.QUARTZ_BLOCK;
+            case DIVINE, ASTRAL -> Material.QUARTZ_BLOCK;
             case MYTHICAL -> Material.REDSTONE_BLOCK;
             case LEGENDARY -> Material.GOLD_BLOCK;
             default -> Material.AMETHYST_BLOCK;
@@ -165,7 +165,7 @@ public final class AuraConcepts {
     /** A flat gem or charm in the rarity's colour. */
     static Material gem(Rarity rarity) {
         return switch (rarity) {
-            case DIVINE -> Material.NETHER_STAR;
+            case DIVINE, ASTRAL -> Material.NETHER_STAR;
             case MYTHICAL -> Material.FIRE_CHARGE;
             case LEGENDARY -> Material.GOLD_INGOT;
             default -> Material.AMETHYST_SHARD;
@@ -175,7 +175,7 @@ public final class AuraConcepts {
     /** A block that looks lit from inside, which reads as light even at full brightness. */
     public static Material lantern(Rarity rarity) {
         return switch (rarity) {
-            case DIVINE -> Material.SEA_LANTERN;
+            case DIVINE, ASTRAL -> Material.SEA_LANTERN;
             case MYTHICAL -> Material.SHROOMLIGHT;
             case LEGENDARY -> Material.OCHRE_FROGLIGHT;
             // V193: a pearlescent froglight is pale pink and read as

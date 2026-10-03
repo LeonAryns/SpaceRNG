@@ -86,6 +86,9 @@ public final class RollAura {
     public static long finaleTicks(Rarity rarity) {
         if (!isBigDrop(rarity)) return 0L;
         return switch (rarity) {
+            // V319: Astral is the longest thing in the plugin, which is the
+            // one rule in the aura scale table that never inverts.
+            case ASTRAL -> 75L;    // 3.75s
             case DIVINE -> 60L;    // 3s, the sphere and the pillar both need it
             case MYTHICAL -> 46L;  // 2.3s, enough for the burst to settle
             case LEGENDARY -> 28L; // 1.4s
@@ -100,11 +103,13 @@ public final class RollAura {
      */
     public static long titleDelayTicks(Rarity rarity) {
         if (!isBigDrop(rarity)) return 0L;
-        return rarity == Rarity.MYTHICAL || rarity == Rarity.DIVINE ? 18L : 6L;
+        return rarity == Rarity.MYTHICAL || rarity.ordinal() >= Rarity.DIVINE.ordinal()
+                || rarity == Rarity.ASTRAL ? 18L : 6L;
     }
 
     private static double maxRadiusFor(Rarity rarity) {
         return switch (rarity) {
+            case ASTRAL -> 11.0;
             case DIVINE -> 9.0;
             case MYTHICAL -> 7.0;
             case LEGENDARY -> 4.5;
@@ -114,6 +119,7 @@ public final class RollAura {
 
     private static int strandsFor(Rarity rarity) {
         return switch (rarity) {
+            case ASTRAL -> 11;
             case DIVINE -> 9;
             case MYTHICAL -> 7;
             case LEGENDARY -> 5;
@@ -128,6 +134,10 @@ public final class RollAura {
             // than as light. Mythical takes the red, which is the most
             // aggressive colour in the plugin and belongs to the drop that
             // sounds like something breaking.
+            // V319: Astral goes violet rather than brighter, because Divine
+            // already owns the warm near-white and there is nothing above it
+            // that is not pure white, which reads as a rendering glitch.
+            case ASTRAL -> Color.fromRGB(179, 136, 255);
             case DIVINE -> Color.fromRGB(255, 252, 224);
             case MYTHICAL -> Color.fromRGB(255, 60, 60);
             case LEGENDARY -> Color.fromRGB(255, 170, 0);
@@ -137,6 +147,9 @@ public final class RollAura {
 
     private static Particle accentFor(Rarity rarity) {
         return switch (rarity) {
+            // V319: drifting motes, so Astral does not share Epic and
+            // Divine.s accent. Verified against paper-api 1.21.11.
+            case ASTRAL -> Particle.FIREFLY;
             case DIVINE -> Particle.END_ROD;
             case MYTHICAL -> Particle.DRAGON_BREATH;
             case LEGENDARY -> Particle.FLAME;
@@ -152,7 +165,7 @@ public final class RollAura {
     private static List<Cue> scoreFor(Rarity rarity) {
         List<Cue> cues = new ArrayList<>();
         switch (rarity) {
-            case DIVINE -> {
+            case DIVINE, ASTRAL -> {
                 // The heavy one. Cue positions are fractions of the run,
                 // so the same shape stretched over 15 seconds instead of
                 // 10 lands with more air between the hits, not faster.
@@ -274,7 +287,7 @@ public final class RollAura {
         this.score = scoreFor(rarity);
         // Matches the loudest cue's reach (16 blocks per 1.0 volume), so
         // anyone who can hear it can also see it.
-        this.viewRange = rarity == Rarity.DIVINE ? 72.0
+        this.viewRange = rarity.ordinal() >= Rarity.DIVINE.ordinal() ? 72.0
                 : rarity == Rarity.MYTHICAL ? 64.0
                 : rarity == Rarity.LEGENDARY ? 48.0 : 32.0;
     }
@@ -636,7 +649,7 @@ public final class RollAura {
             drawBuildUp(progress);
             // A rising note ladder under the score, so something is always
             // climbing even between cues.
-            int noteEvery = look == Rarity.DIVINE ? 10 : 6;
+            int noteEvery = look.ordinal() >= Rarity.DIVINE.ordinal() ? 10 : 6;
             if (elapsed % noteEvery == 0) {
                 sound(look == Rarity.EPIC ? Sound.BLOCK_NOTE_BLOCK_PLING : Sound.BLOCK_NOTE_BLOCK_BELL,
                         1.2f, (float) Math.min(2.0, 0.5 + progress * 1.5));
@@ -774,7 +787,7 @@ public final class RollAura {
 
         // Divine adds a shockwave that resets every 40 ticks and a column
         // of light straight up.
-        if (rarity == Rarity.DIVINE) {
+        if (rarity.ordinal() >= Rarity.DIVINE.ordinal()) {
             double wave = (elapsed % 40) / 40.0;
             ring(base, 1.0 + wave * (maxRadius + 2.0), 40, dustBright, 0.02);
 
@@ -808,7 +821,7 @@ public final class RollAura {
 
         // The core tightens and brightens as everything falls into it.
         dustAt(core, 6, 0.12 * (1.0 - p), dustBright);
-        if (rarity == Rarity.DIVINE) {
+        if (rarity.ordinal() >= Rarity.DIVINE.ordinal()) {
             puff(Particle.ELECTRIC_SPARK, core, 4, 0.15, 0.15, 0.15, 0.02);
         }
     }
@@ -882,7 +895,7 @@ public final class RollAura {
             }
             safely("finale frame " + frame[0], () -> {
                 refreshAudience();
-                if (rarity == Rarity.DIVINE) {
+                if (rarity.ordinal() >= Rarity.DIVINE.ordinal()) {
                     beatFinale(frame[0], length);
                 } else {
                     if (frame[0] == 1) detonate();

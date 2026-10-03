@@ -101,6 +101,7 @@ final class RollComet {
      */
     private static double heightFor(Rarity rarity) {
         return switch (rarity) {
+            case ASTRAL -> 44.0;
             case DIVINE -> 36.0;
             case MYTHICAL -> 30.0;
             case LEGENDARY -> 24.0;
@@ -110,6 +111,7 @@ final class RollComet {
 
     private static double reachFor(Rarity rarity) {
         return switch (rarity) {
+            case ASTRAL -> 26.0;
             case DIVINE -> 22.0;
             case MYTHICAL -> 18.0;
             case LEGENDARY -> 14.0;
@@ -120,6 +122,7 @@ final class RollComet {
     /** How big the head is, in blocks. */
     private static float sizeFor(Rarity rarity) {
         return switch (rarity) {
+            case ASTRAL -> 3.0f;
             case DIVINE -> 2.6f;
             case MYTHICAL -> 2.0f;
             case LEGENDARY -> 1.5f;
@@ -130,6 +133,7 @@ final class RollComet {
     /** How many points of trail are laid down per step. */
     private static int trailFor(Rarity rarity) {
         return switch (rarity) {
+            case ASTRAL -> 17;
             case DIVINE -> 14;
             case MYTHICAL -> 12;
             case LEGENDARY -> 10;
@@ -143,6 +147,7 @@ final class RollComet {
      */
     private static float counterScaleFor(Rarity rarity) {
         return switch (rarity) {
+            case ASTRAL -> 1.9f;
             case DIVINE -> 1.7f;
             case MYTHICAL -> 1.45f;
             case LEGENDARY -> 1.2f;

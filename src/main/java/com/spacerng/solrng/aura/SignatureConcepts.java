@@ -118,7 +118,7 @@ final class SignatureConcepts {
     /** The look a rarity wears when nothing else is chosen. */
     static AuraConcept forRarity(Rarity rarity, Color color) {
         return switch (rarity) {
-            case DIVINE -> ascend(color);
+            case DIVINE, ASTRAL -> ascend(color);
             case MYTHICAL -> eclipse(color);
             case LEGENDARY -> ember(color);
             default -> sigil(color);
@@ -128,7 +128,7 @@ final class SignatureConcepts {
     /** The look unlocked by finding a shiny of that rarity. */
     static AuraConcept shinyFor(Rarity rarity, Color color) {
         return switch (rarity) {
-            case DIVINE -> empyrean(color);
+            case DIVINE, ASTRAL -> empyrean(color);
             case MYTHICAL -> rift(color);
             case LEGENDARY -> pyre(color);
             default -> prism(color);

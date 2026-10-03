@@ -418,19 +418,19 @@ public final class FirstTenManager {
             this.rarity = rarity;
             // Scale follows rarity, as everywhere else: Divine is always the biggest.
             this.length = switch (rarity) {
-                case DIVINE -> 140L;
+                case DIVINE, ASTRAL -> 140L;
                 case MYTHICAL -> 100L;
                 default -> 80L;
             };
             this.density = switch (rarity) {
-                case DIVINE -> 12;
+                case DIVINE, ASTRAL -> 12;
                 case MYTHICAL -> 9;
                 default -> 6;
             };
             // Big dust: at 1.4 the far-off specks were too small to read as anything.
             this.dust = new Particle.DustOptions(RollAura.colorFor(rarity), 2.6f);
             this.fall = switch (rarity) {
-                case DIVINE -> Material.QUARTZ_BLOCK.createBlockData();
+                case DIVINE, ASTRAL -> Material.QUARTZ_BLOCK.createBlockData();
                 case MYTHICAL -> Material.REDSTONE_BLOCK.createBlockData();
                 default -> Material.GOLD_BLOCK.createBlockData();
             };

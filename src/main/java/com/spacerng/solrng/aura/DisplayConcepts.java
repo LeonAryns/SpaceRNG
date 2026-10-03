@@ -80,7 +80,7 @@ final class DisplayConcepts {
 
         Blades(Rarity rarity) {
             this.sword = switch (rarity) {
-                case DIVINE -> Material.DIAMOND_SWORD;
+                case DIVINE, ASTRAL -> Material.DIAMOND_SWORD;
                 case MYTHICAL -> Material.NETHERITE_SWORD;
                 case LEGENDARY -> Material.GOLDEN_SWORD;
                 default -> Material.IRON_SWORD;
@@ -202,7 +202,7 @@ final class DisplayConcepts {
 
         Pillars(Rarity rarity) {
             this.glass = switch (rarity) {
-                case DIVINE -> Material.WHITE_STAINED_GLASS;
+                case DIVINE, ASTRAL -> Material.WHITE_STAINED_GLASS;
                 case MYTHICAL -> Material.RED_STAINED_GLASS;
                 case LEGENDARY -> Material.ORANGE_STAINED_GLASS;
                 default -> Material.PURPLE_STAINED_GLASS;
@@ -345,7 +345,7 @@ final class DisplayConcepts {
     /** The rarity's stained glass. */
     private static Material glass(Rarity rarity) {
         return switch (rarity) {
-            case DIVINE -> Material.WHITE_STAINED_GLASS;
+            case DIVINE, ASTRAL -> Material.WHITE_STAINED_GLASS;
             case MYTHICAL -> Material.RED_STAINED_GLASS;
             case LEGENDARY -> Material.ORANGE_STAINED_GLASS;
             default -> Material.PURPLE_STAINED_GLASS;

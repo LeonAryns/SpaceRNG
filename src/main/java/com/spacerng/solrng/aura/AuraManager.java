@@ -52,7 +52,10 @@ public final class AuraManager {
             Rarity.EPIC, new String[]{"sigil", "none"},
             Rarity.LEGENDARY, new String[]{"ember", "embers"},
             Rarity.MYTHICAL, new String[]{"eclipse", "trails"},
-            Rarity.DIVINE, new String[]{"ascend", "all"}));
+            Rarity.DIVINE, new String[]{"ascend", "all"},
+            // V319: zenith, which nothing else wears. Sharing Divine.s look
+            // would have wasted one of the two top tiers.
+            Rarity.ASTRAL, new String[]{"zenith", "all"}));
 
     private static final class Worn {
         final String key;

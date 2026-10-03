@@ -32,7 +32,8 @@ public class AuraGui {
     private static final int[] PLAIN_SLOTS = {19, 21, 23, 25};
     private static final int[] SHINY_SLOTS = {28, 30, 32, 34};
     private static final int FOLLOW_SLOT = 40;
-    private static final Rarity[] SHOWN = {Rarity.EPIC, Rarity.LEGENDARY, Rarity.MYTHICAL, Rarity.DIVINE};
+    private static final Rarity[] SHOWN =
+            {Rarity.EPIC, Rarity.LEGENDARY, Rarity.MYTHICAL, Rarity.DIVINE, Rarity.ASTRAL};
 
     public static NamespacedKey choiceKey() {
         return SolRNGPlugin.key("solrng_aura_choice");

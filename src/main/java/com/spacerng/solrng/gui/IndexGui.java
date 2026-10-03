@@ -353,6 +353,10 @@ public class IndexGui {
             case LEGENDARY -> Material.ORANGE_DYE;
             case MYTHICAL -> Material.RED_DYE;
             case DIVINE -> Material.WHITE_DYE;
+            // V319: a dye like every other tier, because the tiers read as
+            // one family of icons and the top of a ladder is still a rung
+            // of it. Magenta was the one strong colour left unused.
+            case ASTRAL -> Material.MAGENTA_DYE;
         };
     }
 

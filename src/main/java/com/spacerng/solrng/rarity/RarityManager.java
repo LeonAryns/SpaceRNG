@@ -58,7 +58,8 @@ public class RarityManager {
             Rarity.EPIC, 1.0,
             Rarity.LEGENDARY, 1.0,
             Rarity.MYTHICAL, 1.0,
-            Rarity.DIVINE, 1.0));
+            Rarity.DIVINE, 1.0,
+            Rarity.ASTRAL, 1.0));
     // Rarities that roll at exactly their label, and the band shares the
     // rest divide up. See assignRollWeights.
     private final Map<Rarity, Boolean> trueOdds = new EnumMap<>(Rarity.class);

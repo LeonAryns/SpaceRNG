@@ -1206,6 +1206,22 @@ rarities:
     underline: true
     luck-factor: 2.5
     true-odds: true
+  # V319: Astral, the tier above Divine, Leon's pick. Galaxy is
+  # deliberately not used; he is keeping it for the tiers after this one.
+  #
+  # Divine already owns pale, so Astral goes the other way: a saturated
+  # violet running through cyan, which reads as further away rather than
+  # brighter. Still nothing near pure white, because a drop name renders
+  # beside a player name in the tab list.
+  ASTRAL:
+    colors: ["#D0A2FF", "#B388FF", "#80D8FF", "#B388FF", "#D0A2FF"]
+    symbol: true
+    symbol-char: "✵"
+    bold: true
+    italic: true
+    underline: true
+    luck-factor: 3.5
+    true-odds: true
 
 # Every rollable item. "odds" is the label a player sees and what Money
 # pays on. For Epic and up it is also the real 1-in-X chance at 0 Luck;
@@ -1977,11 +1993,119 @@ items:
     name: "The Ender Dragon"
     rarity: MYTHICAL
     odds: 37500000
+  # --- Legendary, V319 ---
+  # Leon asked for more at every tier from Legendary up. The band is
+  # 937,500 to 1,875,000, set by V304's rule that a tier's lowest is five
+  # times the tier below's highest, so these sit inside it rather than
+  # widening it: the band's edges are what the 5x ladder is.
+  - material: WARDEN_SPAWN_EGG
+    name: "Deep Dweller"
+    rarity: LEGENDARY
+    odds: 1010000
+  - material: BREEZE_SPAWN_EGG
+    name: "Howling Breeze"
+    rarity: LEGENDARY
+    odds: 1210000
+  - material: ALLAY_SPAWN_EGG
+    name: "Wandering Allay"
+    rarity: LEGENDARY
+    odds: 1430000
+  - material: TRIDENT
+    name: "Storm Trident"
+    rarity: LEGENDARY
+    odds: 1680000
+  - material: HEART_OF_THE_SEA
+    name: "Tidecaller"
+    rarity: LEGENDARY
+    odds: 1790000
+  - material: TOTEM_OF_UNDYING
+    name: "Undying Totem"
+    rarity: LEGENDARY
+    odds: 1875000
+  # --- Mythical ---
+  # 9,375,000 to 37,500,000.
+  - material: DRAGON_HEAD
+    name: "Dragon Crown"
+    rarity: MYTHICAL
+    odds: 11200000
+  - material: ENCHANTED_GOLDEN_APPLE
+    name: "Godly Apple"
+    rarity: MYTHICAL
+    odds: 14000000
+  - material: BEACON
+    name: "Lighthouse"
+    rarity: MYTHICAL
+    odds: 22500000
+  - material: END_CRYSTAL
+    name: "End Crystal"
+    rarity: MYTHICAL
+    odds: 28000000
+  - material: ECHO_SHARD
+    name: "Echo of the Deep"
+    rarity: MYTHICAL
+    odds: 33000000
   # --- Divine ---
+  # Leon asked for at least ten. There was ONE, which is why a Divine was
+  # a single named drop rather than a tier. The band runs from 187,500,000
+  # to 750,000,000, and the tier above starts at five times that top.
   - material: CONDUIT
     name: "First Star"
     rarity: DIVINE
     odds: 187500000
+  - material: NETHER_STAR
+    name: "Dying Light"
+    rarity: DIVINE
+    odds: 225000000
+  - material: SCULK_CATALYST
+    name: "The Silence"
+    rarity: DIVINE
+    odds: 270000000
+  - material: AMETHYST_CLUSTER
+    name: "Starfall Bloom"
+    rarity: DIVINE
+    odds: 320000000
+  - material: CRYING_OBSIDIAN
+    name: "The Long Night"
+    rarity: DIVINE
+    odds: 380000000
+  - material: SHULKER_SHELL
+    name: "Hollow Shell"
+    rarity: DIVINE
+    odds: 450000000
+  - material: END_PORTAL_FRAME
+    name: "Threshold"
+    rarity: DIVINE
+    odds: 520000000
+  - material: DRAGON_BREATH
+    name: "Last Breath"
+    rarity: DIVINE
+    odds: 600000000
+  - material: BUDDING_AMETHYST
+    name: "Seed of Light"
+    rarity: DIVINE
+    odds: 680000000
+  - material: BEDROCK
+    name: "The Floor of Everything"
+    rarity: DIVINE
+    odds: 750000000
+  # --- Astral, V319 ---
+  # The tier above Divine. Its floor is five times Divine's ceiling, the
+  # same rule every band above Rare follows, which puts a first Astral at
+  # 1 in 3.75 billion at no Luck. That is deliberate: this is the thing
+  # the whole Luck ladder exists to make reachable, and Leon has Galaxy
+  # and whatever comes after it still free above this.
+  - material: ELYTRA
+    name: "Voidwing"
+    rarity: ASTRAL
+    odds: 3750000000
+  - material: COMMAND_BLOCK
+    name: "The First Word"
+    rarity: ASTRAL
+    odds: 7500000000
+  - material: LIGHT
+    name: "Everlight"
+    rarity: ASTRAL
+    odds: 15000000000
 index:
   # Luck for every entry discovered, before any skill. Collecting is
   # supposed to BE progression, not just a prerequisite for a skill that
@@ -1995,6 +2119,7 @@ index:
     LEGENDARY: [2.0, 3.0]
     MYTHICAL: [3.0, 5.0]
     DIVINE: [8.0, 8.0]
+    ASTRAL: [12.0, 12.0]
 
   # Finishing a whole rarity is worth a Luck multiplier on its own, and
   # they MULTIPLY with each other - completing every tier is the end of
@@ -2017,6 +2142,9 @@ index:
       LEGENDARY: 1.75
       MYTHICAL: 1.9
       DIVINE: 2.0
+      # V319: a guess, like the middle three. Leon gave Common,
+      # Uncommon, Rare and Divine only.
+      ASTRAL: 2.25
     per-shiny-rarity: 3.0
 
 # How many points ("Credits") a single item of each rarity is worth
@@ -2037,6 +2165,7 @@ conversion:
     LEGENDARY: 1000
     MYTHICAL: 10000
     DIVINE: 250000
+    ASTRAL: 5000000
 
 # Every roll also pays out real Money (the Vault economy), on top of the
 # item itself - money = odds x this multiplier, so a 1-in-30 item pays 300
@@ -5357,6 +5486,7 @@ pass:
       LEGENDARY: 1000
       MYTHICAL: 2500
       DIVINE: 5000
+      ASTRAL: 10000
     per-harvest: 1
   # One entry per level, in order. `xp` is what THAT level costs, not a
   # running total. Both tracks are optional per level.
@@ -5875,7 +6005,7 @@ discord:
   announce:
     # Drops of these rarities are posted. Shinies are posted at any rarity
     # while shiny is true.
-    drop-rarities: [MYTHICAL, DIVINE]
+    drop-rarities: [MYTHICAL, DIVINE, ASTRAL]
     shiny: true
     first-ten: true
     farming-payout: true
@@ -6485,7 +6615,7 @@ first-ten:
   enabled: true
   # V280: ten, Leon's call.
   slots: 10
-  rarities: [LEGENDARY, MYTHICAL, DIVINE]
+  rarities: [LEGENDARY, MYTHICAL, DIVINE, ASTRAL]
 
 # /buy and /store. store-url is the web store where Credits are bought;
 # set it and the store menu shows a button that sends the link in chat.
@@ -6529,6 +6659,12 @@ auras:
       accent: enchant
     DIVINE:
       concept: empyrean
+      accent: all
+    # V319: armillary and zenith below, both unused until now. Sharing
+    # Divine.s look would have wasted one of the two tiers: the aura skill
+    # is blunt about one identity per rarity.
+    ASTRAL:
+      concept: armillary
       accent: all
   # How far a rank grows the aura it wears. This is the one thing a rank
   # changes about it: same look, same piece count, same cost, drawn bigger.
@@ -6590,6 +6726,9 @@ auras:
     DIVINE:
       concept: ascend
       accent: all
+    ASTRAL:
+      concept: zenith
+      accent: all
 
 # =====================================================================
 # Bosses
@@ -6648,6 +6787,7 @@ boss:
     LEGENDARY: 400
     MYTHICAL: 1000
     DIVINE: 2500
+    ASTRAL: 6000
   types:
     comet_hound:
       display: "Comet Hound"

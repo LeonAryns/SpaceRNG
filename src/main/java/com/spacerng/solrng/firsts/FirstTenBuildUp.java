@@ -119,7 +119,7 @@ final class FirstTenBuildUp {
             // from further away than a Legendary without either of them
             // having to be louder.
             double radius = switch (rarity) {
-                case DIVINE -> 20.0;
+                case DIVINE, ASTRAL -> 20.0;
                 case MYTHICAL -> 17.0;
                 default -> 14.0;
             };

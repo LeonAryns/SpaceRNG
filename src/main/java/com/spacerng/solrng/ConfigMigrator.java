@@ -72,6 +72,19 @@ public final class ConfigMigrator {
             // the definitions have to arrive first or those rewards point
             // at a consumable the server has never heard of.
             "consumables.luck_5", "consumables.luck_10", "consumables.luck_25",
+            // V319: Astral. The rarity definition first, then every ladder
+            // that is keyed by rarity name. Each of these is a new key, so
+            // a Patch has nothing to match on, and a missing one does not
+            // error - it silently falls back to a code default, which for
+            // a top rarity means it would quietly rank below Divine.
+            "rarities.ASTRAL",
+            "index.luck-multipliers.ASTRAL",
+            "index.completion.by-rarity.ASTRAL",
+            "index.points-per-rarity.ASTRAL",
+            "pass.xp.per-roll.ASTRAL",
+            "boss.roll-damage.ASTRAL",
+            "auras.shiny.ASTRAL",
+            "auras.tag.ASTRAL",
             "pets.eggs.tiers.stardust.divine-chance",
             "pets.eggs.tiers.nebula.divine-chance",
             "pets.eggs.tiers.supernova.divine-chance",
@@ -584,7 +597,14 @@ public final class ConfigMigrator {
             new Patch("pet-rarity-growth", "pets.upgrades.rarity-cost-growth", 1.35, 2.0),
             new Patch("pet-tier-gems", "pets.upgrades.tier-base-cost", 25, 1500),
             new Patch("pet-tier-growth", "pets.upgrades.tier-cost-growth", 1.40, 2.0),
-            new Patch("pet-shiny-gems", "pets.upgrades.shiny-cost", 50, 100000));
+            new Patch("pet-shiny-gems", "pets.upgrades.shiny-cost", 50, 100000),
+            // V319: Astral joins the two lists that name the top tiers.
+            // Both are lists of strings, so the whole list is the value.
+            new Patch("astral-discord", "discord.announce.drop-rarities",
+                    List.of("MYTHICAL", "DIVINE"), List.of("MYTHICAL", "DIVINE", "ASTRAL")),
+            new Patch("astral-firsts", "first-ten.rarities",
+                    List.of("LEGENDARY", "MYTHICAL", "DIVINE"),
+                    List.of("LEGENDARY", "MYTHICAL", "DIVINE", "ASTRAL")));
 
     // V159: every hoe enchant runs to level 10,000, except Credit Finder,
     // which stays at 1,000 because it pays Credits.
@@ -899,6 +919,58 @@ public final class ConfigMigrator {
                 plugin.getLogger().info("Config patch rarity-gaps-5x: Epic and up respaced");
             }
             applied.add("rarity-gaps-5x");
+            changed = true;
+        }
+        // V319: the new top-tier drops. Leon asked for at least ten Divine
+        // and more at every tier from Legendary; there was ONE Divine, so a
+        // Divine was a single named drop rather than a tier.
+        //
+        // items is not structural and never can be - it is 190 drops and
+        // the whole table is Leon's - so a new drop has to be appended to
+        // whatever is on disk. Matched by NAME: a name already there is
+        // skipped, so this is safe to run against a config somebody has
+        // edited, and it never touches an existing entry's odds.
+        //
+        // Read out of the jar's own config rather than retyped here. A
+        // second copy of twenty-four drops in Java is a second copy that
+        // can disagree with the first.
+        if (!applied.contains("astral-tier-drops")) {
+            // The jar's own config, read again here: applyPatches only has
+            // the file on disk, and plugin.getConfig()'s defaults cannot be
+            // used because getMapList would hand back the MERGED list.
+            List<Map<?, ?>> jarItems = List.of();
+            InputStream jarStream = plugin.getResource("config.yml");
+            if (jarStream != null) {
+                try (InputStreamReader reader = new InputStreamReader(jarStream, StandardCharsets.UTF_8)) {
+                    jarItems = YamlConfiguration.loadConfiguration(reader).getMapList("items");
+                } catch (IOException ex) {
+                    plugin.getLogger().log(Level.WARNING,
+                            "Couldn't read the packaged config.yml for the Astral drops: " + ex.getMessage());
+                }
+            }
+            List<Map<?, ?>> diskItems = disk.getMapList("items");
+            java.util.Set<String> have = new java.util.HashSet<>();
+            for (Map<?, ?> entry : diskItems) have.add(String.valueOf(entry.get("name")));
+
+            List<Object> merged = new ArrayList<>(diskItems);
+            int added = 0;
+            for (Map<?, ?> entry : jarItems) {
+                String rarity = String.valueOf(entry.get("rarity"));
+                if (!"LEGENDARY".equals(rarity) && !"MYTHICAL".equals(rarity)
+                        && !"DIVINE".equals(rarity) && !"ASTRAL".equals(rarity)) {
+                    continue;
+                }
+                if (have.add(String.valueOf(entry.get("name")))) {
+                    merged.add(entry);
+                    added++;
+                }
+            }
+            if (added > 0) {
+                disk.set("items", merged);
+                plugin.getLogger().info("Config patch astral-tier-drops: added " + added
+                        + " Legendary and up drops, Astral included");
+            }
+            applied.add("astral-tier-drops");
             changed = true;
         }
         // V209: renamed drops, only where the old name is still on disk.

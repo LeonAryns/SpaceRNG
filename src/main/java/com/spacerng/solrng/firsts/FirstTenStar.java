@@ -320,7 +320,7 @@ final class FirstTenStar {
      */
     private Material glass() {
         return switch (rarity) {
-            case DIVINE -> Material.WHITE_STAINED_GLASS;
+            case DIVINE, ASTRAL -> Material.WHITE_STAINED_GLASS;
             case MYTHICAL -> Material.RED_STAINED_GLASS;
             case LEGENDARY -> Material.ORANGE_STAINED_GLASS;
             default -> Material.PURPLE_STAINED_GLASS;

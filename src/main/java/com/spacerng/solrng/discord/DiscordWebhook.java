@@ -67,6 +67,7 @@ public final class DiscordWebhook {
         } else {
             dropRarities.add(Rarity.MYTHICAL);
             dropRarities.add(Rarity.DIVINE);
+            dropRarities.add(Rarity.ASTRAL);
         }
         shiny = config.getBoolean("discord.announce.shiny", true);
         firstTen = config.getBoolean("discord.announce.first-ten", true);
