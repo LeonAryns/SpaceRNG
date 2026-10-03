@@ -113,6 +113,9 @@ commands:
     description: See your Discord link status and its bonuses
     usage: /linked
     aliases: [link, discordlink]
+  crates:
+    description: Go to the crates, with your keys over each one
+    usage: /crates
   keys:
     description: Your crate keys, kept out of the inventory
     usage: /keys

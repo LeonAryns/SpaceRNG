@@ -108,6 +108,11 @@ public final class HoloManager {
     // A podium's three heads, name tags and whose heads they show, indexed by rank (#1, #2, #3).
     private static final double PODIUM_YOU_Y = 0.1;
     private static final double PODIUM_READ_RANGE = 48.0;
+    // V316: your own key count over a crate. Read while standing at the
+    // crate, not from across the spawn, so the range is short and the
+    // number of per-player displays stays bounded.
+    private static final double CRATE_KEYS_Y = 0.2;
+    private static final double CRATE_READ_RANGE = 12.0;
     // How much bigger than panel text the podium's pieces are, and how far #1 stands above #2 and #3.
     private static final double PODIUM_TAG = 1.15;
     // #1's head is this much bigger than #2 and #3.
@@ -126,6 +131,8 @@ public final class HoloManager {
     private final Map<String, TextDisplay> podiumTimers = new HashMap<>();
     // Each reader's own "YOU" line under a podium, shown to that reader only.
     private final Map<String, Map<java.util.UUID, TextDisplay>> podiumYou = new HashMap<>();
+    // V316: one key-count line per crate per reader.
+    private final Map<String, Map<java.util.UUID, TextDisplay>> crateKeyLines = new HashMap<>();
     private long boardRefreshTicks = 1200L;
 
     private BukkitTask task;
@@ -385,7 +392,65 @@ public final class HoloManager {
         } else if (spot.kind() == Kind.LEADER) {
             tickPodium(spot, refresh || ticks % 100 == 0);
         }
-        if (spot.kind() == Kind.CRATE) spinCrate(spot.id());
+        if (spot.kind() == Kind.CRATE) {
+            spinCrate(spot.id());
+            tickCrateKeys(spot);
+        }
+    }
+
+    /**
+     * Your own key count over a crate (V316).
+     *
+     * Leon asked to see how many keys you hold above each crate. A
+     * TextDisplay is one entity every viewer sees the same, so a shared
+     * line cannot say "yours" - it needs one display per reader, which is
+     * the same trick the podium's YOU line has used since V157:
+     * visibleByDefault false, shown to one player, text rewritten in
+     * place rather than respawned, and taken down when they walk off.
+     *
+     * Range is deliberately short. The podium is read from across the
+     * spawn, but a key count is read while standing at the crate, and one
+     * display per crate per player in sight is a cost worth bounding.
+     */
+    private void tickCrateKeys(Spot spot) {
+        World world = spot.at().getWorld();
+        if (world == null) return;
+        Crate crate = plugin.getCrateManager().get(spot.key());
+        if (crate == null) return;
+
+        Map<java.util.UUID, TextDisplay> lines = crateKeyLines.computeIfAbsent(spot.id(), id -> new HashMap<>());
+        java.util.Set<java.util.UUID> near = new java.util.HashSet<>();
+        for (org.bukkit.entity.Player reader : world.getPlayers()) {
+            if (reader.getLocation().distanceSquared(spot.at()) > CRATE_READ_RANGE * CRATE_READ_RANGE) continue;
+            near.add(reader.getUniqueId());
+            Component content = crateKeyLine(crate, reader);
+            TextDisplay line = lines.get(reader.getUniqueId());
+            if (line == null || !line.isValid()) {
+                line = privateText(spot, spot.at().clone().add(0, CRATE_KEYS_Y, 0), content, textScale);
+                reader.showEntity(plugin, line);
+                lines.put(reader.getUniqueId(), line);
+            } else {
+                line.text(content);
+            }
+        }
+        lines.entrySet().removeIf(entry -> {
+            if (near.contains(entry.getKey()) && entry.getValue().isValid()) return false;
+            if (entry.getValue().isValid()) entry.getValue().remove();
+            return true;
+        });
+    }
+
+    /** "You hold 4 Farm Keys", or how to get one when you hold none. */
+    private Component crateKeyLine(Crate crate, org.bukkit.entity.Player reader) {
+        var data = plugin.getPlayerDataManager().get(reader.getUniqueId());
+        long keys = data == null ? 0L : data.storedKeys(crate.keyId());
+        if (keys <= 0L) {
+            return parse("<dark_gray>You have no keys for this crate");
+        }
+        String name = crate.display();
+        return parse("<#FFD54F><b>" + keys + "</b> <gray>"
+                + (keys == 1 ? "key" : "keys") + " for <reset>" + name
+                + " <dark_gray>(/keys)");
     }
 
     /**
@@ -411,6 +476,12 @@ public final class HoloManager {
         podiumTags.remove(id);
         podiumShown.remove(id);
         podiumTimers.remove(id);
+        Map<java.util.UUID, TextDisplay> keyLines = crateKeyLines.remove(id);
+        if (keyLines != null) {
+            for (TextDisplay line : keyLines.values()) {
+                if (line.isValid()) line.remove();
+            }
+        }
         Map<java.util.UUID, TextDisplay> readers = podiumYou.remove(id);
         if (readers != null) {
             for (TextDisplay line : readers.values()) {

@@ -261,6 +261,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         getCommand("trash").setExecutor(new com.spacerng.solrng.commands.TrashCommand());
         getCommand("cropwatch").setExecutor(new com.spacerng.solrng.commands.CropWatchCommand());
         getCommand("boosters").setExecutor(new com.spacerng.solrng.commands.BoostersCommand(this));
+        getCommand("crates").setExecutor(new com.spacerng.solrng.commands.CratesCommand(this));
         getCommand("keys").setExecutor((sender, command, label, args) -> {
             if (sender instanceof Player p) p.openInventory(com.spacerng.solrng.gui.KeysGui.build(this, p));
             else sender.sendMessage("Only players have keys.");
