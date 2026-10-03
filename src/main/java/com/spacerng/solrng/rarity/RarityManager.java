@@ -283,7 +283,13 @@ public class RarityManager {
     public double completionMultiplierFor(com.spacerng.solrng.player.PlayerData data, Rarity rarity,
                                           double perRarity, double perShiny) {
         if (!isComplete(data, rarity, false)) return 1.0;
-        return isComplete(data, rarity, true) ? perShiny : perRarity;
+        return isComplete(data, rarity, true) ? perShiny : completionFor(rarity, perRarity);
+    }
+
+    /** V304: what finishing this tier is worth, index.completion.by-rarity. */
+    public double completionFor(Rarity rarity, double fallback) {
+        var plugin = org.bukkit.plugin.java.JavaPlugin.getPlugin(com.spacerng.solrng.SolRNGPlugin.class);
+        return plugin.getConfig().getDouble("index.completion.by-rarity." + rarity.name(), fallback);
     }
 
     /**

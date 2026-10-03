@@ -131,7 +131,8 @@ public class IndexGui {
         for (RollableItem item : shown.subList(from, to)) {
             inv.setItem(slot, buildEntry(plugin, data, item, shinyView));
             slot++;
-        }
+        }
+
 
         MenuStyle.apply(inv, MenuStyle.Palette.CYAN);
 
@@ -164,7 +165,7 @@ public class IndexGui {
         boolean done = total > 0 && found >= total;
         boolean shinyDone = total > 0 && shiny >= total;
 
-        double perRarity = prestige.getIndexCompletionPerRarity();
+        double perRarity = rarities.completionFor(rarity, prestige.getIndexCompletionPerRarity());
         double perShiny = prestige.getIndexCompletionPerShiny();
 
         ItemStack tab = new ItemStack(material);

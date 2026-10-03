@@ -163,6 +163,8 @@ public final class ConfigMigrator {
             "discord.cards.changelog",
             // V302: the second changelog card.
             "discord.cards.changelog2",
+            // V304: index completion by rarity.
+            "index.completion.by-rarity",
             // V148: the podium's own text size.
             "holograms.podium-text-scale",
             // V144: the Boss Box and the item that opens it.
@@ -184,6 +186,8 @@ public final class ConfigMigrator {
     private static final List<Patch> PATCHES = List.of(
             // V298: Owner red only, prestige one level more each time, pass XP nerfed.
             // V303: reveals from 1 in 1,000 again, Leon's call.
+            // V304: a full shiny tier is 3x.
+            new Patch("index-shiny-3x", "index.completion.per-shiny-rarity", 5.0, 3.0),
             new Patch("animate-one-in-thousand", "roll-item.animate-from-one-in", 100, 1000),
             new Patch("crowd-cooldown-hour", "boost.crowd.cooldown-minutes", 150, 60),
             new Patch("shiny-firsts-ten", "first-ten.shiny-slots", 5, 10),
@@ -779,6 +783,39 @@ public final class ConfigMigrator {
                 plugin.getLogger().info("Config patch band-odds-no-overlap: Common, Uncommon and Rare odds respaced");
             }
             applied.add("band-odds-no-overlap");
+            changed = true;
+        }
+        // V304: Epic and up spaced 5x apart. Matched on rarity and the old
+        // odds, so a drop whose odds were tuned by hand keeps them.
+        if (!applied.contains("rarity-gaps-5x")) {
+            java.util.Map<String, Long> spaced = new java.util.HashMap<>();
+            long[][] table = {
+                    {33000, 75000}, {36600, 83200}, {40600, 92300}, {44900, 102000}, {49500, 112500},
+                    {54800, 125000}, {60700, 138000}, {67300, 153000}, {74600, 170000}, {82500, 187500}};
+            for (long[] row : table) spaced.put("EPIC:" + row[0], row[1]);
+            long[][] legendary = {{100000, 937500}, {119000, 1120000}, {141000, 1320000},
+                    {168000, 1575000}, {200000, 1875000}};
+            for (long[] row : legendary) spaced.put("LEGENDARY:" + row[0], row[1]);
+            long[][] mythical = {{250000, 9375000}, {500000, 18750000}, {1000000, 37500000}};
+            for (long[] row : mythical) spaced.put("MYTHICAL:" + row[0], row[1]);
+            spaced.put("DIVINE:10000000", 187500000L);
+            List<Map<?, ?>> items = disk.getMapList("items");
+            boolean moved = false;
+            for (Map<?, ?> entry : items) {
+                Object odds = entry.get("odds");
+                if (!(odds instanceof Number number)) continue;
+                Long now = spaced.get(entry.get("rarity") + ":" + number.longValue());
+                if (now == null) continue;
+                @SuppressWarnings("unchecked")
+                Map<Object, Object> editable = (Map<Object, Object>) entry;
+                editable.put("odds", now);
+                moved = true;
+            }
+            if (moved) {
+                disk.set("items", items);
+                plugin.getLogger().info("Config patch rarity-gaps-5x: Epic and up respaced");
+            }
+            applied.add("rarity-gaps-5x");
             changed = true;
         }
         // V209: renamed drops, only where the old name is still on disk.

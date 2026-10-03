@@ -1900,85 +1900,88 @@ items:
     rarity: RARE
     odds: 15000
   # --- Epic ---
+  # V304: from Rare up, each tier's lowest odds are 5x the tier below's
+  # highest (Rare tops at 1 in 15,000, so Epic opens at 1 in 75,000),
+  # and the spread inside a tier is kept. Leon's call.
   - material: ZOMBIE_SPAWN_EGG
     name: "Rotten Zombie"
     rarity: EPIC
-    odds: 33000
+    odds: 75000
   - material: SKELETON_SPAWN_EGG
     name: "Bone Marksman"
     rarity: EPIC
-    odds: 36600
+    odds: 83200
   - material: CREEPER_SPAWN_EGG
     name: "Creeper Menace"
     rarity: EPIC
-    odds: 40600
+    odds: 92300
   - material: SPIDER_SPAWN_EGG
     name: "Cave Crawler"
     rarity: EPIC
-    odds: 44900
+    odds: 102000
   - material: ENDERMAN_SPAWN_EGG
     name: "Void Wanderer"
     rarity: EPIC
-    odds: 49500
+    odds: 112500
   - material: WITCH_SPAWN_EGG
     name: "Vile Witch"
     rarity: EPIC
-    odds: 54800
+    odds: 125000
   - material: BLAZE_SPAWN_EGG
     name: "Blazing Fiend"
     rarity: EPIC
-    odds: 60700
+    odds: 138000
   - material: PIGLIN_SPAWN_EGG
     name: "Piglin Raider"
     rarity: EPIC
-    odds: 67300
+    odds: 153000
   - material: GUARDIAN_SPAWN_EGG
     name: "Abyssal Guardian"
     rarity: EPIC
-    odds: 74600
+    odds: 170000
   - material: SLIME_SPAWN_EGG
     name: "Gelatinous Slime"
     rarity: EPIC
-    odds: 82500
+    odds: 187500
   # --- Legendary ---
   - material: DRAGON_EGG
     name: "Dragon Egg"
     rarity: LEGENDARY
-    odds: 100000
+    odds: 937500
   - material: WITHER_SKELETON_SPAWN_EGG
     name: "Cursed Skeleton"
     rarity: LEGENDARY
-    odds: 119000
+    odds: 1120000
   - material: RAVAGER_SPAWN_EGG
     name: "Rampaging Ravager"
     rarity: LEGENDARY
-    odds: 141000
+    odds: 1320000
   - material: ELDER_GUARDIAN_SPAWN_EGG
     name: "Ancient Guardian"
     rarity: LEGENDARY
-    odds: 168000
+    odds: 1575000
   - material: EVOKER_SPAWN_EGG
     name: "Evoker's Wrath"
     rarity: LEGENDARY
-    odds: 200000
+    odds: 1875000
   # --- Mythical ---
   - material: NETHER_STAR
     name: "The Wither"
     rarity: MYTHICAL
-    odds: 250000
+    odds: 9375000
   - material: SCULK_SHRIEKER
     name: "The Warden"
     rarity: MYTHICAL
-    odds: 500000
+    odds: 18750000
   - material: ELYTRA
     name: "The Ender Dragon"
     rarity: MYTHICAL
-    odds: 1000000
+    odds: 37500000
   # --- Divine ---
   - material: CONDUIT
     name: "First Star"
     rarity: DIVINE
-    odds: 10000000
+    odds: 187500000
 index:
   # Luck for every entry discovered, before any skill. Collecting is
   # supposed to BE progression, not just a prerequisite for a skill that
@@ -2004,7 +2007,17 @@ index:
   # that's bought, the index is a collection log and nothing more.
   completion:
     per-rarity: 2.0
-    per-shiny-rarity: 5.0
+    # V304: what finishing each tier is worth, rising to 2x for Divine;
+    # a tier finished in shiny gives per-shiny-rarity instead.
+    by-rarity:
+      COMMON: 1.1
+      UNCOMMON: 1.25
+      RARE: 1.5
+      EPIC: 1.6
+      LEGENDARY: 1.75
+      MYTHICAL: 1.9
+      DIVINE: 2.0
+    per-shiny-rarity: 3.0
 
 # How many points ("Credits") a single item of each rarity is worth
 # when converted via /convert.
