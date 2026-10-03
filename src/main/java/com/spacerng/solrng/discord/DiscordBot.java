@@ -255,7 +255,8 @@ public class DiscordBot extends ListenerAdapter implements BotHooks {
                         .addOption(OptionType.STRING, "player", "Whose stats, defaults to your own", false),
                 Commands.slash("top", "A SpaceRNG leaderboard")
                         .addOption(OptionType.STRING, "board", "Which board, defaults to farming", false),
-                Commands.slash("online", "Who is playing right now"),
+                Commands.slash("online", "Who is playing right now, or whether one player is")
+                        .addOption(OptionType.STRING, "player", "A player to look for", false),
                 Commands.slash("boss", "The boss event, and when the next one is"),
                 Commands.slash("link", "Link your Minecraft account")
                         .addOption(OptionType.STRING, "code", "The code /link gave you in game", false));
@@ -438,7 +439,7 @@ public class DiscordBot extends ListenerAdapter implements BotHooks {
                 embed = switch (name) {
                     case "stats" -> statsEmbed(userId, argument);
                     case "top" -> topEmbed(board);
-                    case "online" -> onlineEmbed();
+                    case "online" -> argument == null ? onlineEmbed() : onlineEmbed(argument);
                     case "boss" -> bossEmbed();
                     default -> simple("Unknown command", "That command is not one of mine.");
                 };
@@ -512,6 +513,36 @@ public class DiscordBot extends ListenerAdapter implements BotHooks {
                 .setTitle(online.size() + (online.size() == 1 ? " player online" : " players online"))
                 .setDescription(String.join(", ", names))
                 .setColor(0x43A047)
+                .build();
+    }
+
+    /**
+     * /online <player> (V306): is that one player on, and if not, when
+     * they were last seen. Vanished staff read as offline.
+     */
+    private MessageEmbed onlineEmbed(String wanted) {
+        Player player = Bukkit.getPlayerExact(wanted.trim());
+        boolean vanished = player != null && player.getMetadata("vanished").stream()
+                .anyMatch(org.bukkit.metadata.MetadataValue::asBoolean);
+        if (player != null && !vanished) {
+            return new EmbedBuilder()
+                    .setTitle(safe(player.getName()) + " is online")
+                    .setDescription("Playing right now, with " + (Bukkit.getOnlinePlayers().size() - 1)
+                            + " others.")
+                    .setColor(0x43A047)
+                    .build();
+        }
+        @SuppressWarnings("deprecation")
+        org.bukkit.OfflinePlayer offline = Bukkit.getOfflinePlayer(wanted.trim());
+        if (!offline.hasPlayedBefore() && player == null) {
+            return simple("Never seen", safe(wanted) + " has never played on SpaceRNG.");
+        }
+        long seen = offline.getLastSeen();
+        String when = seen <= 0L ? "a while ago" : "<t:" + (seen / 1000L) + ":R>";
+        return new EmbedBuilder()
+                .setTitle(safe(offline.getName() == null ? wanted : offline.getName()) + " is offline")
+                .setDescription("Last seen " + when + ".")
+                .setColor(0x9E9E9E)
                 .build();
     }
 

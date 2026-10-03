@@ -80,9 +80,9 @@ public class ArmorManager {
     }
 
     /** The cost shown/charged is per piece, not per set. */
-    public boolean canAfford(Player player, ArmorTier tier, NamespacedKey rarityKey) {
+    public boolean canAfford(Player player, ArmorTier tier, ArmorPiece piece) {
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
-        for (Map.Entry<Rarity, Long> cost : tier.getCosts().entrySet()) {
+        for (Map.Entry<Rarity, Long> cost : tier.costsFor(piece).entrySet()) {
             if (DropWallet.total(plugin, player, data, cost.getKey()) < cost.getValue()) return false;
         }
         return true;
@@ -96,9 +96,9 @@ public class ArmorManager {
         ArmorTier tier = tiers.get(tierId);
         if (tier == null) return false;
         if (data.hasPurchasedArmor(tierId, piece)) return false;
-        if (!canAfford(player, tier, rarityKey)) return false;
+        if (!canAfford(player, tier, piece)) return false;
 
-        for (Map.Entry<Rarity, Long> cost : tier.getCosts().entrySet()) {
+        for (Map.Entry<Rarity, Long> cost : tier.costsFor(piece).entrySet()) {
             DropWallet.spend(plugin, player, data, cost.getKey(), cost.getValue());
         }
 
@@ -189,6 +189,55 @@ public class ArmorManager {
             }
             data.setArmorLuckBonus(luck);
             data.setArmorSpeedBonus(speed);
+        }
+    }
+
+    /**
+     * V306: armor got far dearer, so what was bought at the old prices is
+     * taken back once per player: worn, in the inventory and in /pv, and
+     * the record of what they bought. armor.reset-version says which
+     * round this is; a player whose save is behind it is wiped on join.
+     */
+    public void wipeIfOld(Player player, PlayerData data) {
+        int version = plugin.getConfig().getInt("armor.reset-version", 0);
+        if (data.getArmorVersion() >= version) return;
+        int removed = 0;
+        PlayerInventory inv = player.getInventory();
+        ItemStack[] armor = inv.getArmorContents();
+        for (int i = 0; i < armor.length; i++) {
+            if (tierOf(armor[i]) != null) {
+                armor[i] = null;
+                removed++;
+            }
+        }
+        inv.setArmorContents(armor);
+        ItemStack[] contents = inv.getStorageContents();
+        for (int i = 0; i < contents.length; i++) {
+            if (tierOf(contents[i]) != null) {
+                removed += contents[i].getAmount();
+                contents[i] = null;
+            }
+        }
+        inv.setStorageContents(contents);
+        if (tierOf(inv.getItemInOffHand()) != null) {
+            inv.setItemInOffHand(null);
+            removed++;
+        }
+        for (List<ItemStack> page : data.getVaults().values()) {
+            for (int i = 0; i < page.size(); i++) {
+                if (tierOf(page.get(i)) != null) {
+                    page.set(i, null);
+                    removed++;
+                }
+            }
+        }
+        boolean bought = !data.getPurchasedArmorTiers().isEmpty();
+        data.getPurchasedArmorTiers().clear();
+        data.setArmorVersion(version);
+        if (removed > 0 || bought) {
+            player.sendMessage(ChatColor.GOLD + "Armor was reworked: it is built piece by piece now and costs far"
+                    + " more, the top set Mythicals. Your old armor was taken back. See " + ChatColor.YELLOW + "/armor"
+                    + ChatColor.GOLD + ".");
         }
     }
 

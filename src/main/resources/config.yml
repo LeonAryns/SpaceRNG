@@ -1082,47 +1082,53 @@ prestige:
 #
 # speed-bonus 0.05 = +5 Speed, where 100 Speed is the baseline roll speed.
 armor:
+  # V306: armor bought before this round is taken back once per player on
+  # join. Raise it to wipe again after another rework.
+  reset-version: 1
+  # V306: costs are a CHESTPLATE's. The other pieces take their crafting
+  # share of it, rounded up: helmet 5/8, leggings 7/8, boots 4/8.
   tiers:
     LEATHER:
       display: "Leather"
       costs:
-        COMMON: 10
-        UNCOMMON: 1
+        COMMON: 150
+        UNCOMMON: 15
       luck-bonus: 0.05
       speed-bonus: 0.05
     CHAINMAIL:
       display: "Chainmail"
       costs:
-        COMMON: 25
-        UNCOMMON: 5
+        COMMON: 400
+        UNCOMMON: 50
       luck-bonus: 0.10
       speed-bonus: 0.08
     IRON:
       display: "Iron"
       costs:
-        UNCOMMON: 25
-        RARE: 5
+        UNCOMMON: 250
+        RARE: 25
       luck-bonus: 0.15
       speed-bonus: 0.12
     GOLD:
       display: "Gold"
       costs:
-        UNCOMMON: 50
-        RARE: 10
+        UNCOMMON: 600
+        RARE: 60
       luck-bonus: 0.25
       speed-bonus: 0.16
     DIAMOND:
       display: "Diamond"
       costs:
-        RARE: 25
-        EPIC: 5
+        RARE: 250
+        EPIC: 10
       luck-bonus: 0.40
       speed-bonus: 0.20
     NETHERITE:
       display: "Netherite"
       costs:
-        RARE: 50
-        EPIC: 10
+        EPIC: 30
+        LEGENDARY: 5
+        MYTHICAL: 1
       luck-bonus: 0.60
       speed-bonus: 0.25
 
@@ -5863,6 +5869,8 @@ discord:
             - "- A bigger announcement when someone gets a rank"
             - "- Rolled drops can no longer be worn"
             - "- Crates no longer give rolled drops"
+            - "- Armor is built piece by piece and costs much more, Netherite needs Mythicals. Old armor was taken back"
+            - "- /online <player> here in Discord shows if someone is playing"
           inline: false
         - name: "Fixes"
           value:

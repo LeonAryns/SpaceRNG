@@ -187,6 +187,20 @@ public final class ConfigMigrator {
             // V298: Owner red only, prestige one level more each time, pass XP nerfed.
             // V303: reveals from 1 in 1,000 again, Leon's call.
             // V304: a full shiny tier is 3x.
+            // V306: armor far dearer, Netherite takes Mythicals, and one wipe.
+            new Patch("armor-leather-v306", "armor.tiers.LEATHER.costs",
+                    Map.of("COMMON", 10, "UNCOMMON", 1), Map.of("COMMON", 150, "UNCOMMON", 15)),
+            new Patch("armor-chainmail-v306", "armor.tiers.CHAINMAIL.costs",
+                    Map.of("COMMON", 25, "UNCOMMON", 5), Map.of("COMMON", 400, "UNCOMMON", 50)),
+            new Patch("armor-iron-v306", "armor.tiers.IRON.costs",
+                    Map.of("UNCOMMON", 25, "RARE", 5), Map.of("UNCOMMON", 250, "RARE", 25)),
+            new Patch("armor-gold-v306", "armor.tiers.GOLD.costs",
+                    Map.of("UNCOMMON", 50, "RARE", 10), Map.of("UNCOMMON", 600, "RARE", 60)),
+            new Patch("armor-diamond-v306", "armor.tiers.DIAMOND.costs",
+                    Map.of("RARE", 25, "EPIC", 5), Map.of("RARE", 250, "EPIC", 10)),
+            new Patch("armor-netherite-v306", "armor.tiers.NETHERITE.costs",
+                    Map.of("RARE", 50, "EPIC", 10), Map.of("EPIC", 30, "LEGENDARY", 5, "MYTHICAL", 1)),
+            new Patch("armor-reset-1", "armor.reset-version", null, 1),
             new Patch("index-shiny-3x", "index.completion.per-shiny-rarity", 5.0, 3.0),
             new Patch("animate-one-in-thousand", "roll-item.animate-from-one-in", 100, 1000),
             new Patch("crowd-cooldown-hour", "boost.crowd.cooldown-minutes", 150, 60),

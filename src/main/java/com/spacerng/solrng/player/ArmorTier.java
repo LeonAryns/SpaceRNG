@@ -38,6 +38,26 @@ public class ArmorTier {
         return costs;
     }
 
+    /**
+     * V306: the costs in config are a chestplate's, and each piece takes
+     * its share the way crafting does: 5 for a helmet, 8 for a
+     * chestplate, 7 for leggings and 4 for boots, out of 8. Rounded up,
+     * so a Netherite helmet still costs a whole Mythical.
+     */
+    public Map<Rarity, Long> costsFor(ArmorPiece piece) {
+        int units = switch (piece) {
+            case HELMET -> 5;
+            case CHESTPLATE -> 8;
+            case LEGGINGS -> 7;
+            case BOOTS -> 4;
+        };
+        Map<Rarity, Long> out = new java.util.EnumMap<>(Rarity.class);
+        for (Map.Entry<Rarity, Long> cost : costs.entrySet()) {
+            out.put(cost.getKey(), Math.max(1L, (cost.getValue() * units + 7L) / 8L));
+        }
+        return out;
+    }
+
     public double getLuckBonus() {
         return luckBonus;
     }

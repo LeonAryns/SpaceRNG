@@ -539,6 +539,17 @@ public class PlayerData {
         this.luckLimitPercent = Math.max(0, Math.min(100, percent));
     }
 
+    // Which armor reset this save has been through (V306).
+    private int armorVersion;
+
+    public int getArmorVersion() {
+        return armorVersion;
+    }
+
+    public void setArmorVersion(int armorVersion) {
+        this.armorVersion = armorVersion;
+    }
+
     public Set<String> getPurchasedArmorTiers() {
         return purchasedArmorTiers;
     }

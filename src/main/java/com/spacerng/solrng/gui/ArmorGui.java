@@ -110,7 +110,7 @@ public class ArmorGui {
         } else {
             boolean affordable = true;
             lore.add(Lore.section(ChatColor.YELLOW, "Price"));
-            for (Map.Entry<Rarity, Long> cost : tier.getCosts().entrySet()) {
+            for (Map.Entry<Rarity, Long> cost : tier.costsFor(piece).entrySet()) {
                 long held = DropWallet.total(plugin, player, data, cost.getKey());
                 boolean enough = held >= cost.getValue();
                 affordable &= enough;
