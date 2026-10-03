@@ -47,9 +47,6 @@ public class ScoreboardManager {
     // around 13) so leftover entries from a longer previous frame - e.g.
     // the "Rolling... Ns" lines once a roll finishes - always get cleared.
     private static final int MAX_LINES = 20;
-    private static final String[] ROMAN_NUMERALS = {
-            "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"
-    };
 
     private final SolRNGPlugin plugin;
     private Economy economy;
@@ -108,7 +105,7 @@ public class ScoreboardManager {
         Objective objective = board.getObjective(OBJECTIVE_ID);
         if (objective == null) return; // player's on a different scoreboard right now
 
-        List<String> lines = buildLines(player);
+        List<String> lines = buildLines(player, true);
         int total = lines.size();
         for (int i = 0; i < total; i++) {
             setLine(player, objective, i, total - i, lines.get(i));
@@ -149,13 +146,13 @@ public class ScoreboardManager {
      * address at the bottom.
      */
     public List<String> hoverLines(Player player) {
-        List<String> lines = new ArrayList<>(buildLines(player));
+        List<String> lines = new ArrayList<>(buildLines(player, false));
         if (lines.size() >= 2) lines.subList(lines.size() - 2, lines.size()).clear();
         lines.removeIf(String::isEmpty);
         return lines;
     }
 
-    private List<String> buildLines(Player player) {
+    private List<String> buildLines(Player player, boolean own) {
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         int discovered = data.getDiscoveredItems().size();
         int totalItems = plugin.getRarityManager().getItems().size();
@@ -176,7 +173,11 @@ public class ScoreboardManager {
                 + Math.round(com.spacerng.solrng.stats.StatSources.speed(plugin, data).total() * 100));
         lines.add(ChatColor.YELLOW + "| " + icon("prestige") + prestigeLine(data));
         lines.add(""); // blank spacer
-        lines.add(Lore.header("Your Wallet"));
+        // V320: "Your Wallet" only when it IS yours. The same lines are the
+        // hover over somebody else's name in chat since V308, where a
+        // header reading "Your Wallet" over another player's balances is
+        // simply wrong about whose they are.
+        lines.add(Lore.header(own ? "Your Wallet" : "Wallet"));
         lines.add(balanceLine(player));
         lines.add(walletLine(Currency.COINS, data.getTokens(), "coins"));
         lines.add(walletLine(Currency.GEMS, data.getShards(), "gems"));
@@ -193,13 +194,15 @@ public class ScoreboardManager {
 
     /** Just Prestige with a star icon - Level is no longer shown on the sidebar. */
     private String prestigeLine(PlayerData data) {
-        String numeral = data.getPrestige() <= 0 ? "0"
-                : data.getPrestige() <= ROMAN_NUMERALS.length
-                        ? ROMAN_NUMERALS[data.getPrestige() - 1]
-                        : String.valueOf(data.getPrestige());
         // No star after the label since V170: the nether star icon in front
         // of the line already says prestige.
-        return ChatColor.WHITE + "Prestige: " + ChatColor.AQUA + numeral;
+        //
+        // V320: the plain number, not a numeral, Leon's call. The sidebar
+        // said "VIII" while the chat badge said "[VIII]" and the tab token
+        // said "8", and past ten all three fell back to digits anyway. The
+        // badge in chat wears the P; here the label already says Prestige,
+        // so a second P would just be noise.
+        return ChatColor.WHITE + "Prestige: " + ChatColor.AQUA + data.getPrestige();
     }
 
     /**

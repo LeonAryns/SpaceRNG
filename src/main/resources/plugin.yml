@@ -113,6 +113,9 @@ commands:
     description: See your Discord link status and its bonuses
     usage: /linked
     aliases: [link, discordlink]
+  fixhoe:
+    description: Get your Farmer's Hoe back if you lost it
+    usage: /fixhoe [player|all]
   crates:
     description: Go to the crates, with your keys over each one
     usage: /crates

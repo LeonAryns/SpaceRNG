@@ -77,6 +77,10 @@ public final class ConfigMigrator {
             // a Patch has nothing to match on, and a missing one does not
             // error - it silently falls back to a code default, which for
             // a top rarity means it would quietly rank below Divine.
+            // V320: the crops farmed ladder. It is a sub-section added to a
+            // farming: block every older config already has, so it never
+            // merged and Leon could not tune it on the server.
+            "farming.crop-unlock-at",
             "rarities.ASTRAL",
             "index.luck-multipliers.ASTRAL",
             "index.completion.by-rarity.ASTRAL",

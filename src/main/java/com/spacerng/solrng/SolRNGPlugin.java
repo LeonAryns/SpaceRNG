@@ -262,6 +262,9 @@ public final class SolRNGPlugin extends JavaPlugin {
         getCommand("cropwatch").setExecutor(new com.spacerng.solrng.commands.CropWatchCommand());
         getCommand("boosters").setExecutor(new com.spacerng.solrng.commands.BoostersCommand(this));
         getCommand("crates").setExecutor(new com.spacerng.solrng.commands.CratesCommand(this));
+        com.spacerng.solrng.commands.FixHoeCommand fixHoe = new com.spacerng.solrng.commands.FixHoeCommand(this);
+        getCommand("fixhoe").setExecutor(fixHoe);
+        getCommand("fixhoe").setTabCompleter(fixHoe);
         getCommand("keys").setExecutor((sender, command, label, args) -> {
             if (sender instanceof Player p) p.openInventory(com.spacerng.solrng.gui.KeysGui.build(this, p));
             else sender.sendMessage("Only players have keys.");

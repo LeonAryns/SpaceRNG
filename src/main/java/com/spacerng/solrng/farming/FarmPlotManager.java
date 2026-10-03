@@ -313,11 +313,30 @@ public class FarmPlotManager {
      * (V279, Leon: no cost, it comes with farming). farming.crop-unlock-at.
      */
     public long unlockAt(CropType crop) {
-        String path = "farming.crop-unlock-at." + crop.getId();
-        if (plugin.getConfig().contains("farming.crop-unlock-at")) {
-            return Math.max(0L, plugin.getConfig().getLong(path, 0L));
-        }
-        return switch (crop.getId()) {
+        // V320: the ladder is the fallback for the lookup, not a branch
+        // that is reached when the section is missing. This is why Leon
+        // kept seeing crops open without the crops farmed behind them,
+        // and both halves of it had to be wrong at once for it to happen.
+        //
+        // crop-unlock-at is a sub-section added to a farming: block that
+        // every older config already had, and a new sub-section does not
+        // merge into an existing file, so it is simply absent on the live
+        // server. Then:
+        //
+        //   contains("farming.crop-unlock-at") answers TRUE anyway,
+        //   because plain contains() consults the jar's config as
+        //   defaults, so the branch below was never reached, and
+        //
+        //   getLong(path, 0L) answered 0, because an EXPLICIT default
+        //   wins over the configured ones: MemorySection.get(path, def)
+        //   returns def without ever looking at the defaults, unlike
+        //   get(path), which does.
+        //
+        // So every crop came back as "no crops needed", isUnlocked fell
+        // through to the old skill node, and a node bought before V279
+        // opened the crop. Reading the ladder AS the default is one line
+        // and cannot come apart the same way.
+        long ladder = switch (crop.getId()) {
             case "CARROTS" -> 10_000L;
             case "POTATOES" -> 25_000L;
             case "BEETROOTS" -> 50_000L;
@@ -325,6 +344,8 @@ public class FarmPlotManager {
             case "SWEET_BERRIES" -> 250_000L;
             default -> 0L;
         };
+        return Math.max(0L, plugin.getConfig()
+                .getLong("farming.crop-unlock-at." + crop.getId(), ladder));
     }
 
     /**

@@ -163,8 +163,13 @@ public class SolRNGExpansion extends PlaceholderExpansion {
             case "prestige_badge":
                 // Blank at prestige 0 so a TAB format doesn't show an
                 // empty bracket for every new player.
+                //
+                // V320: P and the number, not a numeral, matching the badge
+                // in chat and tab. prestige_roman above still returns
+                // numerals, because a placeholder named roman promising
+                // something else would be the worse surprise.
                 return data.getPrestige() <= 0 ? ""
-                        : ChatColor.GOLD + "\u2605 " + ChatColor.AQUA + roman(data.getPrestige());
+                        : ChatColor.GOLD + "\u2605 " + ChatColor.AQUA + "P" + data.getPrestige();
 
             // --- level ---
             case "level":

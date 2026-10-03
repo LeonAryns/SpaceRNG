@@ -434,13 +434,20 @@ public class RankManager {
                 + (prestige.isEmpty() ? "" : " " + prestige.trim());
     }
 
-    private static final String[] ROMAN = {"I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"};
-
-    /** "[IV] " in grey brackets and gold numerals, or empty: chat and tab alike. */
+    /**
+     * "[P4] " in grey brackets and gold, or empty: chat and tab alike.
+     *
+     * V320: P and the number, Leon's call. It was Roman numerals up to X
+     * and then the plain number, which meant prestige 10 read "X" and
+     * prestige 11 read "11" - two different alphabets in the same badge,
+     * and the one place a player most wants to compare. Roman also stops
+     * being readable at a glance well before it stops being valid: nobody
+     * reads VIII faster than 8. The colour is unchanged.
+     */
     public static String prestigePrefix(int prestige) {
         if (prestige <= 0) return "";
-        String n = prestige <= ROMAN.length ? ROMAN[prestige - 1] : String.valueOf(prestige);
-        return ChatColor.DARK_GRAY + "[" + ChatColor.GOLD + n + ChatColor.DARK_GRAY + "] ";
+        return ChatColor.DARK_GRAY + "[" + ChatColor.GOLD + "P" + prestige
+                + ChatColor.DARK_GRAY + "] ";
     }
 
     /** The badge, the name in the rank's colours and the cosmetic title, for chat and join lines. */
