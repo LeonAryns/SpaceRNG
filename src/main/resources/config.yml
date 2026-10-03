@@ -3390,7 +3390,7 @@ milestones:
         - { at: 80, consumable: roll_10x, consumable-amount: 2 }
         - { at: 100, consumable: free_skill }
         - { at: 120, consumable: roll_10x, consumable-amount: 5 }
-        - { at: 130, consumable: luck_250 }
+        - { at: 130, consumable: luck_25 }
         - { at: 140, consumable: roll_10x, consumable-amount: 10 }
         - { at: 144, consumable: luck_potion, consumable-amount: 10 }
     farming:
@@ -3415,7 +3415,7 @@ milestones:
         - { at: 1000000, consumable: roll_100x, consumable-amount: 2 }
         - { at: 2500000, consumable: nova_core, consumable-amount: 2 }
         - { at: 5000000, tickets: 3 }
-        - { at: 10000000, consumable: luck_250 }
+        - { at: 10000000, consumable: luck_25 }
     playtime:
       verb: "Play"
       display: "Playtime"
@@ -3429,11 +3429,11 @@ milestones:
         - { at: 12, consumable: nova_core }
         # A day of playtime before anything permanent. Two hours was not
         # a milestone, it was an evening.
-        - { at: 24, consumable: luck_50 }
+        - { at: 24, consumable: luck_5 }
         - { at: 48, consumable: free_skill, consumable-amount: 2 }
         - { at: 96, consumable: nova_core, consumable-amount: 3 }
         - { at: 168, consumable: roll_10x, consumable-amount: 5 }
-        - { at: 336, consumable: luck_250 }
+        - { at: 336, consumable: luck_10 }
         - { at: 720, consumable: roll_10x, consumable-amount: 10 }
 
 # Leaderboards and the daily farming payout.
@@ -3799,7 +3799,7 @@ crates:
         - { weight: 2.5, consumable: free_skill }
         - { weight: 2, drop: RARE }
         - { weight: 1.5, consumable: roll_10x }
-        - { weight: 0.4, consumable: luck_50 }
+        - { weight: 0.4, consumable: luck_5 }
     cosmic:
       display: "Cosmic Crate"
       colors: ["#E1BEE7", "#7C4DFF", "#40C4FF"]
@@ -3818,8 +3818,10 @@ crates:
         - { weight: 8, consumable: roll_10x, amount: 3 }
         - { weight: 7, drop: RARE, amount: 2 }
         - { weight: 3, drop: EPIC }
-        - { weight: 2.5, consumable: luck_50 }
-        - { weight: 0.5, consumable: luck_250 }
+        # V315: the middle crate pays 10 percent, Leon's ladder. It was
+        # two entries, a 50 and a 250, and merging them keeps one line
+        # per thing a crate can give.
+        - { weight: 3, consumable: luck_10 }
     # Hand these out from a voting plugin with
     #   rngadmin crate key vote 1 %player%
     vote:
@@ -3841,7 +3843,7 @@ crates:
         - { weight: 6, consumable: nova_core }
         - { weight: 3, consumable: free_skill }
         - { weight: 2, consumable: roll_10x }
-        - { weight: 0.5, consumable: luck_50 }
+        - { weight: 0.5, consumable: luck_5 }
     # Rank key alls and events:  rngadmin crate keyall nebula 1
     # Key Finder turns one up now and then as well.
     nebula:
@@ -3862,8 +3864,9 @@ crates:
         - { weight: 8, drop: RARE, amount: 2 }
         - { weight: 5, consumable: free_skill }
         - { weight: 2, drop: EPIC }
-        - { weight: 1.5, consumable: luck_50 }
-        - { weight: 0.2, consumable: luck_250 }
+        # V315: the best crate pays a quarter, Leon's ladder, merged
+        # from the old 50 and 250 entries.
+        - { weight: 1.7, consumable: luck_25 }
 
 # Floating text drawn by the plugin: panels over NPCs, live leaderboards
 # with player heads, and the text over crates placed with
@@ -4234,6 +4237,30 @@ consumables:
     colors: ["#E1BEE7", "#8E24AA"]
     free-skills: 1
     description: "Unlocks one skill in /skilltree for free, whatever it costs."
+  # V315: permanent Luck in small pieces, Leon's call. The point is that
+  # a stage worth reaching takes a pile of these rather than one lucky
+  # crate, so nothing hands out more than a quarter at a time.
+  luck_5:
+    display: "Permanent Luck +5%"
+    material: RABBIT_FOOT
+    colors: ["#C8E6C9", "#66BB6A"]
+    permanent-luck: 0.05
+    description: "A permanent 5% Luck. It never runs out."
+  luck_10:
+    display: "Permanent Luck +10%"
+    material: RABBIT_FOOT
+    colors: ["#B9F6CA", "#00C853"]
+    permanent-luck: 0.1
+    description: "A permanent 10% Luck. It never runs out."
+  luck_25:
+    display: "Permanent Luck +25%"
+    material: RABBIT_FOOT
+    colors: ["#FFF59D", "#00E676", "#00B0FF"]
+    permanent-luck: 0.25
+    description: "A permanent 25% Luck. It never runs out."
+  # The two old ones stay defined on purpose. Nothing hands them out any
+  # more (V315), but players are holding them and an undefined consumable
+  # in an inventory is an item that stops working.
   luck_50:
     display: "Permanent Luck +50%"
     material: RABBIT_FOOT
@@ -5510,6 +5537,11 @@ pass:
         credits: 150
         drop-rarity: EPIC
         drops: 12
+        # V315: the pass carries permanent Luck too, Leon asked for it
+        # alongside the crates. Small and laddered: 5 percent here, 10 at
+        # level 35 and 25 at level 40, so a season is worth a pile of
+        # permanent Luck rather than one lump.
+        consumable: luck_5
     # ---- level 21
     - xp: 5000
       free:
@@ -5642,6 +5674,7 @@ pass:
         tokens: 26250
         drop-rarity: LEGENDARY
         drops: 6
+        consumable: luck_10
     # ---- level 36
     - xp: 5000
       free:
@@ -5691,6 +5724,7 @@ pass:
         credits: 250
         drop-rarity: MYTHICAL
         drops: 4
+        consumable: luck_25
     # ---- level 41
     - xp: 5000
       free:

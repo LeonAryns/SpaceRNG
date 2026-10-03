@@ -67,6 +67,11 @@ public final class ConfigMigrator {
             // V314: the Cosmic Dust range. New keys, so ADDED_SECTIONS
             // rather than a patch.
             "pets.dust.cosmic-min", "pets.dust.cosmic-max",
+            // V315: the three small permanent Luck grants. The crates and
+            // the pass are rewritten to hand these out further down, so
+            // the definitions have to arrive first or those rewards point
+            // at a consumable the server has never heard of.
+            "consumables.luck_5", "consumables.luck_10", "consumables.luck_25",
             "pets.eggs.tiers.stardust.divine-chance",
             "pets.eggs.tiers.nebula.divine-chance",
             "pets.eggs.tiers.supernova.divine-chance",
@@ -926,6 +931,90 @@ public final class ConfigMigrator {
                 }
             }
             applied.add(patch.id());
+            changed = true;
+        }
+        // V315: permanent Luck in small pieces, Leon's ladder: the
+        // cheapest crate pays 5 percent, the middle one 10 and the best
+        // 25, and nothing hands out the old +50 or +250 any more.
+        //
+        // A crate's rewards are a list of maps with no id, so neither
+        // Patch (a fixed path), EntryPatch (a field of an entry by id)
+        // nor TextPatch (a list of strings) can reach them. And neither
+        // crates nor pass may join STRUCTURAL: Leon tunes the crate
+        // weights and the Boss Box by hand, and a structural rewrite
+        // takes his numbers with it.
+        //
+        // The old entries are mapped rather than merged. A crate that
+        // had both a 50 and a 250 keeps two entries now pointing at the
+        // same consumable, where the jar has one with their weights
+        // added; the odds come out the same and nothing is lost.
+        if (!applied.contains("luck-small-crates")) {
+            boolean hit = false;
+            for (String[] swap : new String[][]{
+                    {"crates.types.farm.rewards", "luck_50", "luck_5"},
+                    {"crates.types.farm.rewards", "luck_250", "luck_5"},
+                    {"crates.types.vote.rewards", "luck_50", "luck_5"},
+                    {"crates.types.vote.rewards", "luck_250", "luck_5"},
+                    {"crates.types.cosmic.rewards", "luck_50", "luck_10"},
+                    {"crates.types.cosmic.rewards", "luck_250", "luck_10"},
+                    {"crates.types.nebula.rewards", "luck_50", "luck_25"},
+                    {"crates.types.nebula.rewards", "luck_250", "luck_25"}}) {
+                List<?> rewards = disk.getList(swap[0]);
+                if (rewards == null) continue;
+                List<Object> rewritten = new ArrayList<>();
+                boolean changedHere = false;
+                for (Object reward : rewards) {
+                    if (reward instanceof java.util.Map<?, ?> map
+                            && swap[1].equals(String.valueOf(map.get("consumable")))) {
+                        java.util.Map<Object, Object> copy = new java.util.LinkedHashMap<>(map);
+                        copy.put("consumable", swap[2]);
+                        rewritten.add(copy);
+                        changedHere = true;
+                    } else {
+                        rewritten.add(reward);
+                    }
+                }
+                if (changedHere) {
+                    disk.set(swap[0], rewritten);
+                    hit = true;
+                }
+            }
+            if (hit) {
+                plugin.getLogger().info("Config patch luck-small-crates: crate permanent Luck rewritten");
+            }
+            applied.add("luck-small-crates");
+            changed = true;
+        }
+        // V315: the Battle Pass carries permanent Luck too, which it never
+        // did before, so there is nothing to map - it has to be ADDED. The
+        // premium track at levels 20, 35 and 40 had no consumable of its
+        // own, which is why those three and not the ones a player would
+        // notice losing. Only ever filled when the slot is still empty, so
+        // a hand-tuned pass is left alone.
+        if (!applied.contains("luck-small-pass")) {
+            List<?> levels = disk.getList("pass.levels");
+            if (levels != null) {
+                List<Object> rewritten = new ArrayList<>(levels);
+                boolean hit = false;
+                for (int[] spot : new int[][]{{20, 5}, {35, 10}, {40, 25}}) {
+                    int index = spot[0] - 1;
+                    if (index < 0 || index >= rewritten.size()) continue;
+                    if (!(rewritten.get(index) instanceof java.util.Map<?, ?> level)) continue;
+                    if (!(level.get("premium") instanceof java.util.Map<?, ?> premium)) continue;
+                    if (premium.get("consumable") != null) continue;
+                    java.util.Map<Object, Object> newPremium = new java.util.LinkedHashMap<>(premium);
+                    newPremium.put("consumable", "luck_" + spot[1]);
+                    java.util.Map<Object, Object> newLevel = new java.util.LinkedHashMap<>(level);
+                    newLevel.put("premium", newPremium);
+                    rewritten.set(index, newLevel);
+                    hit = true;
+                }
+                if (hit) {
+                    disk.set("pass.levels", rewritten);
+                    plugin.getLogger().info("Config patch luck-small-pass: permanent Luck added to the pass");
+                }
+            }
+            applied.add("luck-small-pass");
             changed = true;
         }
         // V223: Bedrock joins through its own address, with .bedrock before
