@@ -28,6 +28,17 @@ thing works in game.
   upload on Minehut replaces the old file.
 - Explain why a bug happened, briefly and technically.
 - When he asks for commands, give commands. Do not overbuild.
+- Report short and concrete: lead with the result and what it means for
+  him, name files and numbers, cut background and surveys ("teveel
+  nutteloze informatie", 18 September).
+- When he asks what is left, answer from "Leon's idea list" in
+  `STATUS.md` plus its open questions, and park every idea he gives
+  ("onthoud als idee") in that list in the same session.
+- When he says to look for a skill or technique, search other people's
+  published work on GitHub, read the real source, cross check against a
+  second project, then write what was learned into the matching skill.
+- He often runs an older jar than he thinks. Before treating a report
+  as a new bug, compare `/version SpaceRNG` with `pom.xml`.
 
 ## Hard rules
 

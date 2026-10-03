@@ -5,7 +5,127 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V241**, 1 October 2026.
+Last updated at **V309**, 3 October 2026. The newest section is the
+first one below; older sections further down are history.
+
+## Start here: V242 to V309, 2 and 3 October 2026 (the beta launch)
+
+The beta opened on 2 October. Leon tested live with players and sent a
+stream of requests; almost every one became its own jar. Everything
+below is pushed and built green. **Very little of it has been confirmed
+in game**, see the last list in this section.
+
+**Read this first: the server was running an old jar.** On 3 October
+Leon's /crops still showed the label "Per harvest", text that has not
+existed since V287. So whatever was on Minehut then was older than V287,
+and he kept reporting things as unfixed that were fixed. Before treating
+any report as a new bug, ask him for `/version SpaceRNG` and compare it
+with `pom.xml`. Upload: delete the old jar in `plugins`, upload the new
+one into `plugins` (not the root), real stop and start.
+
+### What changed, by subject
+
+**Rolling and drops**
+- Odds (V304): from Rare up each tier's lowest is 5x the tier below's
+  highest. Epic 75,000 to 187,500, Legendary 937,500 to 1,875,000,
+  Mythical 9,375,000 to 37,500,000, Divine 187,500,000. Patched by
+  rarity and old odds (`rarity-gaps-5x`). Money pays on odds, so these
+  pay that much more; Leon was told, did not ask to compensate.
+- Reveals by real chance (V299, V303): the cutscene, aura and Auto Roll
+  stop only happen when the real chance at the player's Luck was 1 in
+  `roll-item.animate-from-one-in` (1,000) or rarer.
+  `RarityManager.actualChance`. A player's suggestion; the "multi roll
+  animation" half of it is not built.
+- A rarity rolled 10 times plays its reveal at half size and half length
+  (V298, `roll-item.veteran.*`, counted per rarity in `rolled-by-rarity`
+  from V298 on).
+- Announcements (V293, V298): a digest every `broadcast.digest-seconds`
+  (120). Only the highest tier of that window (a shiny just above its
+  rarity), ONE drop, plus a count line of the rest. Firsts keep their own
+  banner, Discord still gets every drop.
+- Index completion (V304): by tier, `index.completion.by-rarity`
+  Common 1.1, Uncommon 1.25, Rare 1.5, Epic 1.6, Legendary 1.75,
+  Mythical 1.9, Divine 2.0; a shiny tier 3x. Leon gave only Common,
+  Uncommon, Rare and Divine; the middle three are a guess.
+- Tag Luck stays as it was (V292). The V291 "secret is your index Luck"
+  system is in the jar behind `secret-realm.secret-luck: false`.
+- /index counts every rolled drop the player holds, inventory and /pv,
+  each time it opens (V308). Players had Divines missing from the index;
+  the root cause was not found. Ask who and how if it comes back.
+- Crates give no rolled drops (V306, `crates.drop-rewards`).
+- Shiny Firsts top 10, the /firsts card shows place, name and date (V300).
+
+**Progression**
+- Prestige: each one needs 1 level more than the last, not 5 (V298).
+  Levels after a prestige count only rolls since it (V290); the "more to
+  go" line was fixed to match in V305.
+- Battle Pass XP per roll (V298): 10 / 20 / 50 / 250 / 1,000 / 2,500 /
+  5,000, Common to Divine. A Mythical used to be 100,000 of the pass's
+  250,000.
+- Respec spends unconverted shinies too, Convert all banks shinies (V298).
+- Locked skill tree nodes show their name and the page of each missing
+  requirement (V299; players could not find Convergence on page 3).
+- Speed enchant (WALK_SPEED) is unlocked by `enchant_speed`, a farmtree
+  node next to the Wheat root, and is the second enchant on the hoe
+  (V298, V300). config-version went to 28 for it.
+- Armor (V306, V308): one rarity per set, costs are a chestplate's and
+  the pieces take their crafting share (5/8/7/4 of 8, rounded up):
+  Leather 40 Common, Chainmail 16 Uncommon, Iron 8 Rare, Gold 2 Epic,
+  Diamond 1 Legendary, Netherite 1 Mythical. Old armor is taken back
+  once per player on join (`armor.reset-version`, `armor-version` in the
+  save) and refunded at the pre-V306 prices into the drop bank. Players
+  wiped by V306 before V308 got no refund.
+- Rolled drops can not be worn (V298, `DropEquipListener`).
+
+**Social, tab and chat**
+- Chat hover over a name shows that player's sidebar lines and "Click
+  for their /stats" (V294, V309).
+- Tab: prestige after the name in the chat format, `[IV]` (V300).
+- Owner: red only, "Owner" floats just above the nameplate (V298, V300).
+- Rank bought: big chat banner, title for the buyer (V298).
+- Luck reads in K and M everywhere (V299).
+
+**Server and staff**
+- Crowd boost (V301, V307, V308): 2x Luck for 15 minutes at 20 online;
+  within 5 of the goal chat says how many more; the banner links to
+  /store; after a boost the next goal (rounded to 5) is announced and
+  holds `reset-hours` (2), then back to 20. Cooldown 60 minutes. Leon
+  wrote "dont make it 20 players online"; read as "only shorten it", so
+  20 stayed. Confirm with him.
+- `/cropwatch <player|list|off>` (V298, staff): rate per second, alerts
+  at 30/s, and the watched player's breaks are drawn for the watcher
+  (V297).
+- `/rngadmin farmboard remove|add|list <player>` keeps someone off the
+  farming boards and the daily payout (V298).
+- `/rngadmin realm on|off` (V293).
+- `/pv` dupe fixed (V298): reopening a page while one was still open
+  server side (UI Utils mod) built the new page before the old one was
+  saved. `Menus.open` now closes an open vault page first.
+- Discord: `/online [player]` (V306). Cards post with
+  `/rngadmin discord post <card> <channel id or part of its name>`
+  (V295, V306). Cards: `changelog` (posted), `changelog2` (V296 to V308,
+  maybe not posted yet).
+
+### Open for Leon
+
+- **AxVaults instead of /pv?** He asked. Advice given: only if the dupe
+  still works on V298+. Switching needs a config switch to free /pv,
+  /pv contents moved to /stash once, and LuckPerms vault counts per rank.
+- **Essentials second welcome:** in `plugins/Essentials/config.yml` set
+  `newbies: announce-format: ''` (and `kit: ''` for the starter kit),
+  then `/essentials reload`. Not ours to fix.
+- The middle index completion values, the armor prices and the crowd
+  threshold are guesses awaiting his word.
+- Lag: told to use `/spark profiler start`, then `stop`, and send the
+  link.
+
+### Never confirmed in game
+
+Nearly everything from V242 on. The ones most worth a check: the /pv dupe
+with UI Utils, the armor wipe and refund on join, the reveal threshold
+and Auto Roll not stopping, the digest announcements, the crowd boost
+messages, crop watch drawing breaks, the farmtree Speed node, and the
+Divine index sync.
 
 ## The agreed way of working
 
