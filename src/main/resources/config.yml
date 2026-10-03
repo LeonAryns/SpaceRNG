@@ -58,9 +58,9 @@ scoreboard:
   footer: "SPACERNG.MINEHUT.GG"
 
 roll-item:
-  # V299/V300: an Epic or rarer only gets its reveal (and stops Auto Roll)
+  # V299/V303: an Epic or rarer only gets its reveal (and stops Auto Roll)
   # when the real chance at the player's Luck was 1 in this many or rarer.
-  animate-from-one-in: 100
+  animate-from-one-in: 1000
   material: NETHER_STAR
   # No cooldown anymore - every roll takes this many seconds to resolve,
   # with an animation/progress bar while it's rolling. The Speed skill
@@ -5824,7 +5824,7 @@ discord:
       fields:
         - name: "Rolling"
           value:
-            - "- The big reveal only plays when a drop was really rare for you (1 in 100 or rarer at your Luck), so Auto Roll keeps going"
+            - "- The big reveal only plays when a drop was really rare for you (1 in 1,000 or rarer at your Luck), so Auto Roll keeps going"
             - "- A rarity you have rolled 10 times plays a smaller, faster reveal"
             - "- Drop announcements: the best drop every 2 minutes, plus how many more of that tier were found"
             - "- Luck shows in K and M"

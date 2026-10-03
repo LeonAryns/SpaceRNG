@@ -183,6 +183,8 @@ public final class ConfigMigrator {
 
     private static final List<Patch> PATCHES = List.of(
             // V298: Owner red only, prestige one level more each time, pass XP nerfed.
+            // V303: reveals from 1 in 1,000 again, Leon's call.
+            new Patch("animate-one-in-thousand", "roll-item.animate-from-one-in", 100, 1000),
             new Patch("crowd-cooldown-hour", "boost.crowd.cooldown-minutes", 150, 60),
             new Patch("shiny-firsts-ten", "first-ten.shiny-slots", 5, 10),
             new Patch("owner-red-only", "ranks.tiers.owner.colors",
