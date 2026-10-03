@@ -529,7 +529,15 @@ public class SkillTreeGui {
             case UNLOCK_ARMOR -> gate("Unlocks the /armor shop");
             case UNLOCK_POTION -> gate("Unlocks the Brewing Shelf - /potion");
             case UNLOCK_SHINY -> gate("Unlocks Shiny drops - 1 in 100 rolls");
-            case UNLOCK_INDEX_LUCK -> gate("Lets you equip a tag and use its Tag Luck");
+            // V312: once secret-realm.secret-luck is on, the Luck is the
+            // secret's and the equipped drop is cosmetic, so the old line
+            // would be promising something the node no longer does. What
+            // the node should do instead is Leon's call, see STATUS.md.
+            case UNLOCK_INDEX_LUCK -> gate(
+                    org.bukkit.plugin.java.JavaPlugin.getPlugin(com.spacerng.solrng.SolRNGPlugin.class)
+                            .getConfig().getBoolean("secret-realm.secret-luck", false)
+                    ? "Lets you equip a tag. Luck comes from /secretindex"
+                    : "Lets you equip a tag and use its Tag Luck");
             case UNLOCK_ARTIFACT -> gate("Unlocks the Artifact shop (coming soon)");
             case UNLOCK_PRIVATE_VAULT -> gate("Unlocks your Private Vault - /pv");
             case UNLOCK_PASS -> gate("Unlocks the Battle Pass - /pass");

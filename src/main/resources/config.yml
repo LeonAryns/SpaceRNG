@@ -6844,11 +6844,19 @@ secret-realm:
   enabled: true
   # V291: secrets as the index Luck. On, the secret picked in /secretindex
   # replaces the equipped drop's Tag Luck and gives its multiplier below;
-  # off (V292, until Leon decides), Tag Luck works as before and each
-  # secret found adds luck-per-secret.
-  secret-luck: false
-  # V291: no prestige needed, fifteen minutes open, two hours apart at least.
-  min-prestige: 0
+  # off, Tag Luck works as before and each secret found adds
+  # luck-per-secret.
+  #
+  # V312: on, Leon's call. The equipped drop is cosmetic from here and the
+  # Luck lives in /secretindex. Worth knowing: while the realm itself is
+  # closed nobody can find a secret, so Tag Luck is simply gone until it
+  # opens. Leon asked for the change and said he keeps the realm off for
+  # now, so that is deliberate rather than a bug.
+  secret-luck: true
+  # V291: fifteen minutes open, two hours apart at least.
+  # V312: Prestige 10 to enter, Leon's call. It is printed on the Index
+  # Mode block in /index as well as in the message when it opens.
+  min-prestige: 10
   open-seconds: 900
   min-gap-minutes: 120
   max-gap-minutes: 240

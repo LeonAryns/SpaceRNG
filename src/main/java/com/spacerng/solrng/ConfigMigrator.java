@@ -543,7 +543,13 @@ public final class ConfigMigrator {
             // V212: centred sat behind the crosshair, so a little above it.
             new Patch("counter-above-crosshair", "roll-item.comet.screen.counter-up", 0.0, 0.28),
             // V215: a pet costs a hundred Cosmic Dust, Leon's call.
-            new Patch("pet-make-cost-100", "pets.upgrades.make-cost", 10, 100));
+            new Patch("pet-make-cost-100", "pets.upgrades.make-cost", 10, 100),
+            // V312: Tag Luck moves off the equipped drop and into
+            // /secretindex, and the realm asks for Prestige 10. Both sit
+            // outside a structural section, so the live config keeps the
+            // old value unless it is patched across one path at a time.
+            new Patch("secret-luck-on", "secret-realm.secret-luck", false, true),
+            new Patch("secret-realm-p10", "secret-realm.min-prestige", 0, 10));
 
     // V159: every hoe enchant runs to level 10,000, except Credit Finder,
     // which stays at 1,000 because it pays Credits.
