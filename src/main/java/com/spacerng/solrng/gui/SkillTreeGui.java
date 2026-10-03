@@ -20,12 +20,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-// The exact frame Leon spec'd, applied to every page of the skill tree.
+// The frame Leon spec'd, applied to every page of the skill tree.
 // Three vertical spines (Speed at col 2, Luck at col 5, Money at col 8)
-// converge on row 5, then a single root sits at (5,6). Two extras at row
-// 3 (one per side spine) and two extras at row 2 (both feeding the Luck
-// spine) round out the 24-slot shape. Any slot not in this set that is
-// also not one of the four reserved buttons renders as the dark border.
+// converge on row 5, then the root sits at (5,6) with a flank either
+// side. Extras at row 3 (one per side spine), row 2 (both feeding the
+// Luck spine), row 4 and row 1 round out a 30-slot shape. Any slot not
+// in this set that is also not one of the four reserved buttons renders
+// as the dark border - which is why a node placed outside the set looks
+// like it is floating, see the V318 note on LAYOUT_SLOTS.
 
 /**
  * A 6x9 skill tree, drawn entirely from config. Every node declares its
@@ -46,6 +48,21 @@ public class SkillTreeGui {
     private static final int RESPEC_SLOT = 45;
 
     // 0-indexed inventory slots. Layout is identical on every page.
+    //
+    // V318: three nodes sat outside this set and so drew on the dark
+    // border with no frame around them, which is what Leon read as random
+    // skills floating next to the start. They were not misplaced: each is
+    // a deliberate one-step stub off a frame slot - the farm tree's Speed
+    // enchant beside the Wheat root at (4,6), Auto Convert above Convert
+    // at (3,4), and the Cosmic Dust root above Shiny Unlocked at (6,1).
+    // The frame simply never grew to include them.
+    //
+    // So the frame grew instead of the nodes moving, which keeps every
+    // placement Leon asked for. Each one comes with its mirror, because
+    // the shape is symmetric about the Luck spine and a lone bump reads
+    // as a mistake even when the node on it is deliberate. The mirrors
+    // draw as "???", which is the same promise the rest of the empty
+    // frame makes: there is room here and something is coming.
     private static final Set<Integer> LAYOUT_SLOTS = Set.of(
             // Speed spine: (2,1)->(2,5), then right to (3,5) and (4,5)
             1, 10, 19, 28, 37, 38, 39,
@@ -54,7 +71,13 @@ public class SkillTreeGui {
             // Money spine: (8,1)->(8,5), then left to (7,5) and (6,5)
             7, 16, 25, 34, 43, 42, 41,
             // Extras: (3,3) speed, (7,3) money, (4,2) and (6,2) luck
-            20, 24, 12, 14
+            20, 24, 12, 14,
+            // V318: the root's two flanks (4,6) and (6,6)
+            48, 50,
+            // V318: the row 4 stubs (3,4) and (7,4)
+            29, 33,
+            // V318: the row 1 stubs (4,1) and (6,1)
+            3, 5
     );
 
     /**
@@ -115,7 +138,7 @@ public class SkillTreeGui {
 
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
 
-        // The frame: BLACK glass on every slot that isn't one of the 24
+        // The frame: BLACK glass on every slot that isn't one of the
         // node positions or one of the four reserved buttons. Every node
         // position starts as a "???" stone button, so the tree's shape is
         // visible from the very first open even when nothing is unlocked.
