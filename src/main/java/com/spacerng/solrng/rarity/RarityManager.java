@@ -229,25 +229,18 @@ public class RarityManager {
      * you a rarer drop to equip, and equipping it is what cashes it in.
      */
     /**
-     * The index tag's Luck multiplier. Since V291 it is the secret picked in
-     * /secretindex, not the equipped drop: a tag is cosmetic now, and only
-     * secrets from the Secret Realm multiply Luck. Not gated on any skill.
+     * The Luck multiplier your index pays: your best secret from
+     * /secretindex, and nothing else (V337).
+     *
+     * The equipped drop used to pay it, behind the Tag Luck skill. Leon's
+     * call: the normal index tag is cosmetic, the multiplier is the best
+     * secret found in the Secret Realm, and it applies on its own with
+     * nothing to equip or pick. Every menu, the sidebar and /stats read
+     * this one method, so there is one number.
      */
     public double tagMultiplierFor(com.spacerng.solrng.player.PlayerData data) {
-        // V292: the secret multiplier waits behind secret-realm.secret-luck;
-        // until Leon switches it on the equipped drop gives Tag Luck as before.
         var plugin = org.bukkit.plugin.java.JavaPlugin.getPlugin(com.spacerng.solrng.SolRNGPlugin.class);
-        if (plugin.getRealmManager() != null && plugin.getRealmManager().secretLuck()) {
-            return plugin.getRealmManager().multiplierFor(data);
-        }
-        // Gated behind the Tag Luck skill - until that's bought the
-        // equipped tag is cosmetic and the multiplier reads a flat 1.00x.
-        if (!data.hasUnlocked("index_luck")) return 1.0;
-
-        String equipped = data.getEquippedTagItemKey();
-        if (equipped == null) return 1.0;
-        RollableItem item = byName.get(equipped);
-        return item == null ? 1.0 : item.getLuckMultiplier();
+        return plugin.getRealmManager() == null ? 1.0 : plugin.getRealmManager().multiplierFor(data);
     }
 
     /** How many rollable items a rarity has, for completion counting. */

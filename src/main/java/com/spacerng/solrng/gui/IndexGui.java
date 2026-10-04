@@ -434,7 +434,10 @@ public class IndexGui {
         lore.add(Lore.bar(total <= 0 ? 0.0 : (double) discovered / total));
         lore.add(ChatColor.AQUA + "▎ " + ChatColor.GRAY + "Shinies: " + ChatColor.AQUA
                 + data.getDiscoveredShiny().size() + ChatColor.DARK_GRAY + "/" + ChatColor.AQUA + total);
-        lore.add(ChatColor.GREEN + "▎ " + ChatColor.GRAY + "Tag Luck: " + ChatColor.GREEN
+        // V337: the multiplier is the best secret from /secretindex, not
+        // the tag, so calling it Tag Luck here is what had Leon asking why
+        // his index Luck still applied.
+        lore.add(ChatColor.GREEN + "▎ " + ChatColor.GRAY + "Secret Luck: " + ChatColor.GREEN
                 + String.format("%.2f", plugin.getRarityManager().tagMultiplierFor(data)) + "x");
         double completion = plugin.getPrestigeManager().indexCompletion(data);
         lore.add((completion > 1.0 ? ChatColor.GREEN : ChatColor.DARK_GRAY) + "▎ "

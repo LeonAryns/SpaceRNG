@@ -336,13 +336,16 @@ public class RealmManager implements Listener {
      */
     public void wearSecret(Player player, PlayerData data) {
         plugin.getAuraManager().hide(player.getUniqueId());
-        Secret worn = secrets.get(data.getSelectedSecret());
-        String top = worn == null
-                ? ChatColor.DARK_GRAY + "No secret yet"
-                : Lore.gradient(worn.display(), true, worn.stops());
-        String bottom = ChatColor.GRAY + "Index Luck " + ChatColor.WHITE
-                + trim(multiplierFor(data)) + "x";
-        plugin.getTagManager().showRealmTag(player, top, bottom);
+        Secret worn = wornSecret(data);
+        if (worn == null) {
+            // V337, Leon's call: nothing over somebody who has not found a
+            // secret yet. "No secret yet" was a label where the point of
+            // the realm is that there is nothing to show off.
+            plugin.getTagManager().hideHologram(player);
+            return;
+        }
+        plugin.getTagManager().showRealmTag(player, Lore.gradient(worn.display(), true, worn.stops()),
+                ChatColor.GRAY + "Secret Luck " + ChatColor.WHITE + trim(multiplierFor(data)) + "x");
     }
 
     /** Their own tag and aura back, on the way out. */
@@ -454,14 +457,24 @@ public class RealmManager implements Listener {
     }
 
     /**
-     * Whether secrets are the index Luck (V291), or each found secret adds a
-     * flat bit of Luck as before (V292: off until Leon switches it on).
+     * Secrets ARE the index Luck, always (V337).
+     *
+     * V292 put this behind secret-realm.secret-luck so the equipped drop
+     * could keep paying Tag Luck until Leon was ready. He is: "i want the
+     * multi to be your best from secret index not normal index". One
+     * truth is better than a switch nobody will ever turn back, so the
+     * method stays for the labels that read it and always answers true.
      */
     public boolean secretLuck() {
-        return plugin.getConfig().getBoolean("secret-realm.secret-luck", false);
+        return true;
     }
 
-    /** Flat Luck from secrets, while the multiplier system is off. */
+    /**
+     * Dead since V337: the flat pile paid only while the multiplier system
+     * was off, and it never is. Kept because secret-realm.luck-per-secret
+     * is still in config and somebody reading it should find the one place
+     * that used to spend it.
+     */
     public double luckFor(PlayerData data) {
         if (secretLuck()) return 0.0;
         int count = 0;
@@ -469,12 +482,41 @@ public class RealmManager implements Listener {
         return count * luckPerSecret;
     }
 
-    /** The Luck multiplier of the secret picked in /secretindex, 1 when none (V291). */
+    /**
+     * The Luck multiplier of the BEST secret found, 1 with none (V337).
+     *
+     * It used to be the one picked in /secretindex, so a player who found
+     * something rare and never opened the menu was paid nothing for it.
+     * Leon's call: it applies on its own. Picking one only decides which
+     * secret you wear over your head inside the realm.
+     */
     public double multiplierFor(PlayerData data) {
+        Secret best = bestSecret(data);
+        return best == null ? 1.0 : best.multiplier();
+    }
+
+    /** The found secret paying the most Luck, or null with none found. */
+    public Secret bestSecret(PlayerData data) {
+        Secret best = null;
+        for (String id : data.getSecretsFound()) {
+            Secret secret = secrets.get(id);
+            if (secret == null) continue;
+            if (best == null || secret.multiplier() > best.multiplier()) best = secret;
+        }
+        return best;
+    }
+
+    /**
+     * The secret worn over the head in the realm: the one picked, or the
+     * best found while nothing is picked, or null with none found.
+     */
+    public Secret wornSecret(PlayerData data) {
         String id = data.getSelectedSecret();
-        if (id == null || !data.getSecretsFound().contains(id)) return 1.0;
-        Secret secret = secrets.get(id);
-        return secret == null ? 1.0 : secret.multiplier();
+        if (id != null && data.getSecretsFound().contains(id)) {
+            Secret picked = secrets.get(id);
+            if (picked != null) return picked;
+        }
+        return bestSecret(data);
     }
 
     /** The chance per roll inside of this secret for this player, with Secret Seeker. */

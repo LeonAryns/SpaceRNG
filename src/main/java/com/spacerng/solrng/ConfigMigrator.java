@@ -790,6 +790,55 @@ public final class ConfigMigrator {
     }
 
     private static final List<ListPatch> LIST_PATCHES = List.of(
+            // V337: Leon on the holograms, "dont make the lines so long".
+            // Every one of these is a line floating in the world, read at
+            // a glance while walking past, so they are cut to about the
+            // length of the other panels.
+            new ListPatch("realm-panel-v337", "holograms.panels.realm.lines",
+                    List.of("<white>Roll in here for a chance at a <#B0BEC5>Secret</#B0BEC5>",
+                            "<white>Every secret found multiplies your <#80DEEA>index Luck</#80DEEA>",
+                            "<gray>Luck and Speed do nothing in here, the odds are flat",
+                            "<white>Opens on its own, /secretrealm takes you in"),
+                    List.of("<white>Roll here for a <#B0BEC5>Secret</#B0BEC5>",
+                            "<white>Secrets multiply your Luck",
+                            "<gray>Luck and Speed do nothing here",
+                            "<white>/secretrealm takes you in")),
+            // And the Nova panel, which also promised better odds per
+            // forge. Every forge has been a flat 50/50 since V322.
+            new ListPatch("nova-panel-v337", "holograms.panels.novacore.lines",
+                    List.of("<white>Forge <#F48FB1>Nova Cores</#F48FB1> to climb 20 tiers",
+                            "<white>Every tier multiplies <#81C784>Luck</#81C784>, <#81C784>Money</#81C784> and <#FFD54F>Coins</#FFD54F>",
+                            "<white>More Luck means better odds per forge"),
+                    List.of("<white>Forge <#F48FB1>Cores</#F48FB1> for 20 tiers",
+                            "<white>Every tier multiplies your stats",
+                            "<white>Every forge is a 50/50")),
+            // One button per line over a crate, instead of two buttons on
+            // one long line. These run after the TextPatches above, so a
+            // server taking V336 and V337 in one go lands on the three.
+            new ListPatch("crate-desc-farm-v337", "crates.types.farm.description",
+                    List.of("<white>Right click opens one <dark_gray>|<white> Shift right click opens all",
+                            "<gray>Left click shows every reward and its chance"),
+                    List.of("<white>Right click opens one",
+                            "<white>Shift right click opens all",
+                            "<gray>Left click shows the rewards")),
+            new ListPatch("crate-desc-cosmic-v337", "crates.types.cosmic.description",
+                    List.of("<white>Right click opens one <dark_gray>|<white> Shift right click opens all",
+                            "<gray>Left click shows every reward and its chance"),
+                    List.of("<white>Right click opens one",
+                            "<white>Shift right click opens all",
+                            "<gray>Left click shows the rewards")),
+            new ListPatch("crate-desc-vote-v337", "crates.types.vote.description",
+                    List.of("<white>Right click opens one <dark_gray>|<white> Shift right click opens all",
+                            "<gray>Left click shows every reward and its chance"),
+                    List.of("<white>Right click opens one",
+                            "<white>Shift right click opens all",
+                            "<gray>Left click shows the rewards")),
+            new ListPatch("crate-desc-nebula-v337", "crates.types.nebula.description",
+                    List.of("<white>Right click opens one <dark_gray>|<white> Shift right click opens all",
+                            "<gray>Left click shows every reward and its chance"),
+                    List.of("<white>Right click opens one",
+                            "<white>Shift right click opens all",
+                            "<gray>Left click shows the rewards")),
             // V336: the Secret Realm panel says what the realm is for.
             // Leon's call: no "Click Here" on something entered with a
             // command, and say that the odds inside are flat.
@@ -806,6 +855,11 @@ public final class ConfigMigrator {
     private static final String DASH = String.valueOf((char) 0x2014);
 
     private static final List<TextPatch> TEXT_PATCHES = List.of(
+            // V337: the index tag pays no Luck any more, the best secret
+            // does, so the panel over the index NPC stopped being true.
+            new TextPatch("index-panel-tag-luck-v337", "holograms.panels.index.lines",
+                    "<white>Equip a tag for <#80DEEA>Tag Luck</#80DEEA>",
+                    "<white>Equip a tag to show it off"),
             // V336: keys stopped being items in V332, and the buttons are
             // split per job now: right click opens one, shift right click
             // opens all, left click shows the rewards. These lines float
@@ -1204,18 +1258,6 @@ public final class ConfigMigrator {
             applied.add("renamed-drops");
             changed = true;
         }
-        for (ListPatch patch : LIST_PATCHES) {
-            if (applied.contains(patch.id())) continue;
-            // Only while it still reads like the old default, the same
-            // promise every other patch makes: a panel Leon has reworded
-            // by hand keeps his words.
-            if (disk.getStringList(patch.path()).equals(patch.oldLines())) {
-                disk.set(patch.path(), patch.newLines());
-                plugin.getLogger().info("Config patch " + patch.id() + ": " + patch.path() + " rewritten");
-            }
-            applied.add(patch.id());
-            changed = true;
-        }
         for (TextPatch patch : TEXT_PATCHES) {
             if (applied.contains(patch.id())) continue;
             List<?> list = disk.getList(patch.path());
@@ -1225,6 +1267,18 @@ public final class ConfigMigrator {
                     disk.set(patch.path(), rewritten);
                     plugin.getLogger().info("Config patch " + patch.id() + ": " + patch.path() + " updated");
                 }
+            }
+            applied.add(patch.id());
+            changed = true;
+        }
+        for (ListPatch patch : LIST_PATCHES) {
+            if (applied.contains(patch.id())) continue;
+            // Only while it still reads like the old default, the same
+            // promise every other patch makes: a panel Leon has reworded
+            // by hand keeps his words.
+            if (disk.getStringList(patch.path()).equals(patch.oldLines())) {
+                disk.set(patch.path(), patch.newLines());
+                plugin.getLogger().info("Config patch " + patch.id() + ": " + patch.path() + " rewritten");
             }
             applied.add(patch.id());
             changed = true;

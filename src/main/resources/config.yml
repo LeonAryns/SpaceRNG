@@ -3923,8 +3923,9 @@ crates:
       key-source: "Farm Keys are dug up by the Key Finder enchant on your hoe."
       # The text over this crate when it's placed with /rngadmin crate place.
       description:
-        - "<white>Right click opens one <dark_gray>|<white> Shift right click opens all"
-        - "<gray>Left click shows every reward and its chance"
+        - "<white>Right click opens one"
+        - "<white>Shift right click opens all"
+        - "<gray>Left click shows the rewards"
       jackpot-below: 0.03
       rewards:
         - { weight: 30, coins: 25000 }
@@ -3945,8 +3946,9 @@ crates:
       key: cosmic_key
       key-source: "Cosmic Keys come from the store."
       description:
-        - "<white>Right click opens one <dark_gray>|<white> Shift right click opens all"
-        - "<gray>Left click shows every reward and its chance"
+        - "<white>Right click opens one"
+        - "<white>Shift right click opens all"
+        - "<gray>Left click shows the rewards"
       jackpot-below: 0.04
       rewards:
         - { weight: 25, coins: 250000 }
@@ -3968,8 +3970,9 @@ crates:
       key: vote_key
       key-source: "Vote Keys come from voting for the server."
       description:
-        - "<white>Right click opens one <dark_gray>|<white> Shift right click opens all"
-        - "<gray>Left click shows every reward and its chance"
+        - "<white>Right click opens one"
+        - "<white>Shift right click opens all"
+        - "<gray>Left click shows the rewards"
       jackpot-below: 0.03
       rewards:
         - { weight: 30, coins: 50000 }
@@ -3989,8 +3992,9 @@ crates:
       key: nebula_key
       key-source: "Nebula Keys come from key alls, events and the rare Key Finder find."
       description:
-        - "<white>Right click opens one <dark_gray>|<white> Shift right click opens all"
-        - "<gray>Left click shows every reward and its chance"
+        - "<white>Right click opens one"
+        - "<white>Shift right click opens all"
+        - "<gray>Left click shows the rewards"
       jackpot-below: 0.035
       rewards:
         - { weight: 25, coins: 150000 }
@@ -4065,10 +4069,10 @@ holograms:
     realm:
       title: "<gradient:#CFD8DC:#78909C><b>SECRET REALM</b></gradient>"
       lines:
-        - "<white>Roll in here for a chance at a <#B0BEC5>Secret</#B0BEC5>"
-        - "<white>Every secret found multiplies your <#80DEEA>index Luck</#80DEEA>"
-        - "<gray>Luck and Speed do nothing in here, the odds are flat"
-        - "<white>Opens on its own, /secretrealm takes you in"
+        - "<white>Roll here for a <#B0BEC5>Secret</#B0BEC5>"
+        - "<white>Secrets multiply your Luck"
+        - "<gray>Luck and Speed do nothing here"
+        - "<white>/secretrealm takes you in"
       # Nothing to click: the realm is entered with a command, so the
       # shared "Click Here" line would be a lie (V336).
       click: ""
@@ -4134,9 +4138,9 @@ holograms:
     novacore:
       title: "<gradient:#FCE4EC:#F06292:#BA68C8><b>NOVA CORE</b></gradient>"
       lines:
-        - "<white>Forge <#F48FB1>Nova Cores</#F48FB1> to climb 20 tiers"
-        - "<white>Every tier multiplies <#81C784>Luck</#81C784>, <#81C784>Money</#81C784> and <#FFD54F>Coins</#FFD54F>"
-        - "<white>More Luck means better odds per forge"
+        - "<white>Forge <#F48FB1>Cores</#F48FB1> for 20 tiers"
+        - "<white>Every tier multiplies your stats"
+        - "<white>Every forge is a 50/50"
     perks:
       title: "<gradient:#D1C4E9:#7E57C2><b>PERKS</b></gradient>"
       lines:
@@ -4146,7 +4150,7 @@ holograms:
       title: "<gradient:#B2EBF2:#26C6DA><b>INDEX</b></gradient>"
       lines:
         - "<white>Every drop you've found"
-        - "<white>Equip a tag for <#80DEEA>Tag Luck</#80DEEA>"
+        - "<white>Equip a tag to show it off"
     farmtree:
       title: "<gradient:#DCEDC8:#7CB342><b>FARM TREE</b></gradient>"
       lines:

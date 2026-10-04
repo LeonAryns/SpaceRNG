@@ -136,12 +136,11 @@ public final class StatSources {
                 plugin.getLinkedAccountManager().bonusFor(data.getUuid(), PerkStat.LUCK_PERCENT),
                 Op.ADD));
 
-        // Tag Mastery scales how far the tag's multiplier sits above 1.
-        boolean secretLuck = plugin.getRealmManager() != null && plugin.getRealmManager().secretLuck();
-        parts.add(new Part("Secret Index", "Secrets from the Secret Realm, /realm",
-                plugin.getRealmManager() == null ? 0.0 : plugin.getRealmManager().luckFor(data), Op.ADD));
-        parts.add(new Part(secretLuck ? "Secret" : "Equipped tag",
-                secretLuck ? "Pick a found secret in /secretindex" : "Equip a rarer drop in /index",
+        // V337: one line for secrets, not two. The flat "Secret Index"
+        // pile was the old system and has paid 0 since the multiplier took
+        // over, and the multiplier is the best secret found rather than
+        // one picked by hand. Tag Mastery scales how far it sits above 1.
+        parts.add(new Part("Secret", "Your best secret, found in /realm",
                 1.0 + (plugin.getRarityManager().tagMultiplierFor(data) - 1.0)
                         * skills.multiplierOf(data, SkillNode.Effect.TAG_MASTERY), Op.MULTIPLY));
         parts.add(new Part("Index completion", "Finish whole rarities in /index",

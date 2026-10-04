@@ -102,23 +102,18 @@ public class SecretIndexGui {
         meta.setDisplayName(Lore.title(ChatColor.LIGHT_PURPLE, "Your secrets"));
         int found = 0;
         for (String id : data.getSecretsFound()) if (realm.secrets().containsKey(id)) found++;
-        if (!realm.secretLuck()) {
-            meta.setLore(List.of(
-                    Lore.stat(ChatColor.AQUA, "Found", found + " / " + realm.secrets().size()),
-                    Lore.stat(ChatColor.GREEN, "Luck from them", "+" + trim(realm.luckFor(data) * 100.0) + "%"),
-                    "",
-                    Lore.footnote("It is in /stats with your other Luck.")));
-            item.setItemMeta(meta);
-            return item;
-        }
-        var picked = data.getSelectedSecret() == null ? null : realm.secrets().get(data.getSelectedSecret());
+        // V337: the best secret pays, on its own. Picking one only decides
+        // which secret you wear in the realm.
+        var best = realm.bestSecret(data);
+        var worn = realm.wornSecret(data);
         meta.setLore(List.of(
                 Lore.stat(ChatColor.AQUA, "Found", found + " / " + realm.secrets().size()),
-                Lore.stat(ChatColor.GREEN, "Picked", picked == null || !data.getSecretsFound().contains(picked.id())
-                        ? "none" : ChatColor.stripColor(picked.display())),
+                Lore.stat(ChatColor.GREEN, "Best", best == null ? "none" : ChatColor.stripColor(best.display())),
                 Lore.stat(ChatColor.GREEN, "Luck", trim(realm.multiplierFor(data)) + "x"),
+                Lore.stat(ChatColor.AQUA, "Worn", worn == null ? "none" : ChatColor.stripColor(worn.display())),
                 "",
-                Lore.footnote("Click a found secret to pick it.")));
+                Lore.footnote("Your best secret pays on its own."),
+                Lore.footnote("Click one to wear it in the realm.")));
         item.setItemMeta(meta);
         return item;
     }

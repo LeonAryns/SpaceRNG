@@ -169,9 +169,16 @@ public class ScoreboardManager {
         // one purple gradient so they read as the same voice, and neither
         // can be confused with a currency line underneath it.
         lines.add(Lore.header(player.getName()));
-        lines.add(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Index: " + ChatColor.AQUA + discovered + ChatColor.GRAY + "/" + ChatColor.AQUA + totalItems
-                + ChatColor.WHITE + " ("
-                + String.format("%.2f", plugin.getRarityManager().tagMultiplierFor(data)) + "x)");
+        lines.add(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Index: " + ChatColor.AQUA + discovered
+                + ChatColor.GRAY + "/" + ChatColor.AQUA + totalItems);
+        // V337: the multiplier used to ride the index count, which read as
+        // if the index itself paid it. It is the best secret, so it only
+        // shows once there is one and it says what it is.
+        double secretLuck = plugin.getRarityManager().tagMultiplierFor(data);
+        if (secretLuck > 1.0) {
+            lines.add(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Secret: " + ChatColor.GREEN
+                    + String.format("%.2f", secretLuck) + "x");
+        }
         lines.add(ChatColor.YELLOW + "| " + icon("luck", icons) + ChatColor.WHITE + "Luck: " + ChatColor.GREEN + "+" + com.spacerng.solrng.gui.Lore.shorten(Math.round(luckPercent)) + "%");
         lines.add(ChatColor.YELLOW + "| " + icon("speed", icons) + ChatColor.WHITE + "Speed: " + ChatColor.YELLOW
                 + Math.round(com.spacerng.solrng.stats.StatSources.speed(plugin, data).total() * 100));

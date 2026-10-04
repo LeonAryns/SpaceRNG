@@ -80,9 +80,12 @@ final class PlayerMenuClicks {
         }
         data.setSelectedSecret(id);
         var secret = plugin.getRealmManager().secrets().get(id);
-        player.sendMessage(ChatColor.LIGHT_PURPLE + "Picked " + ChatColor.RESET
+        // V337: the Luck is the best secret found and applies on its own,
+        // so this only says what is worn in the realm.
+        player.sendMessage(ChatColor.LIGHT_PURPLE + "Wearing " + ChatColor.RESET
                 + (secret == null ? id : com.spacerng.solrng.gui.Lore.gradient(secret.display(), true, secret.stops()))
-                + ChatColor.GRAY + ", " + ChatColor.GREEN + plugin.getRealmManager().multiplierFor(data) + "x Luck"
+                + ChatColor.GRAY + " in the realm. Your Luck is your best secret, "
+                + ChatColor.GREEN + String.format("%.2f", plugin.getRealmManager().multiplierFor(data)) + "x"
                 + ChatColor.GRAY + ".");
         player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_AMETHYST_BLOCK_CHIME, 0.8f, 1.4f);
         plugin.getScoreboardManager().update(player);
