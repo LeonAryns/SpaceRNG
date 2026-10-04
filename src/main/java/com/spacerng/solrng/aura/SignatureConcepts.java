@@ -1147,12 +1147,14 @@ final class SignatureConcepts {
         }
 
         /**
-         * Plate wings fill the space behind the wearer, so the pets come
-         * round to the front of them (V333).
+         * Wings fill the space behind the wearer, which is where the pets
+         * stand since V336. They stand further out and a little higher
+         * instead, past the tips of the feathers, rather than coming
+         * round to the front of them as they did in V333.
          */
         @Override
         public PetStand petStand() {
-            return new PetStand(1.15f, 1.25f, 0.0);
+            return new PetStand(1.9f, 1.2f, PetStand.BEHIND);
         }
 
         @Override

@@ -234,6 +234,8 @@ public final class ConfigMigrator {
             "index.completion.by-rarity",
             // V148: the podium's own text size.
             "holograms.podium-text-scale",
+            // V336: the realm panel hides the shared "Click Here" line.
+            "holograms.panels.realm.click",
             // V144: the Boss Box and the item that opens it.
             "crates.types.boss", "consumables.boss_box",
             // V152: pets grow with dust. Dotted paths, because every server
@@ -778,10 +780,61 @@ public final class ConfigMigrator {
     private record TextPatch(String id, String path, String oldText, String newText) {
     }
 
+    /**
+     * Replaces a whole list of lines at once, while it still reads exactly
+     * like the old default (V336). TextPatch swaps one line for one line
+     * and cannot add or drop one, which is what a rewritten hologram
+     * panel needs.
+     */
+    private record ListPatch(String id, String path, List<String> oldLines, List<String> newLines) {
+    }
+
+    private static final List<ListPatch> LIST_PATCHES = List.of(
+            // V336: the Secret Realm panel says what the realm is for.
+            // Leon's call: no "Click Here" on something entered with a
+            // command, and say that the odds inside are flat.
+            new ListPatch("realm-panel-v336", "holograms.panels.realm.lines",
+                    List.of("<white>Opens on its own, for a few minutes",
+                            "<white>Roll inside for a <#B0BEC5>secret</#B0BEC5>",
+                            "<white>/secretrealm takes you in while it is open"),
+                    List.of("<white>Roll in here for a chance at a <#B0BEC5>Secret</#B0BEC5>",
+                            "<white>Every secret found multiplies your <#80DEEA>index Luck</#80DEEA>",
+                            "<gray>Luck and Speed do nothing in here, the odds are flat",
+                            "<white>Opens on its own, /secretrealm takes you in")));
+
     // Built from its code point so no dash character sits in this file.
     private static final String DASH = String.valueOf((char) 0x2014);
 
     private static final List<TextPatch> TEXT_PATCHES = List.of(
+            // V336: keys stopped being items in V332, and the buttons are
+            // split per job now: right click opens one, shift right click
+            // opens all, left click shows the rewards. These lines float
+            // over every crate, so they were telling players to do
+            // something that no longer exists.
+            new TextPatch("crate-click-farm-v336", "crates.types.farm.description",
+                    "<white>Right-click with a <#FFD54F>Farm Key</#FFD54F> to open",
+                    "<white>Right click opens one <dark_gray>|<white> Shift right click opens all"),
+            new TextPatch("crate-click-cosmic-v336", "crates.types.cosmic.description",
+                    "<white>Right-click with a <#B388FF>Cosmic Key</#B388FF> to open",
+                    "<white>Right click opens one <dark_gray>|<white> Shift right click opens all"),
+            new TextPatch("crate-click-vote-v336", "crates.types.vote.description",
+                    "<white>Right-click with a <#69F0AE>Vote Key</#69F0AE> to open",
+                    "<white>Right click opens one <dark_gray>|<white> Shift right click opens all"),
+            new TextPatch("crate-click-nebula-v336", "crates.types.nebula.description",
+                    "<white>Right-click with a <#82B1FF>Nebula Key</#82B1FF> to open",
+                    "<white>Right click opens one <dark_gray>|<white> Shift right click opens all"),
+            new TextPatch("crate-look-farm-v336", "crates.types.farm.description",
+                    "<gray>Left-click to see what's inside",
+                    "<gray>Left click shows every reward and its chance"),
+            new TextPatch("crate-look-cosmic-v336", "crates.types.cosmic.description",
+                    "<gray>Left-click to see what's inside",
+                    "<gray>Left click shows every reward and its chance"),
+            new TextPatch("crate-look-vote-v336", "crates.types.vote.description",
+                    "<gray>Left-click to see what's inside",
+                    "<gray>Left click shows every reward and its chance"),
+            new TextPatch("crate-look-nebula-v336", "crates.types.nebula.description",
+                    "<gray>Left-click to see what's inside",
+                    "<gray>Left click shows every reward and its chance"),
             // V228: Perk Tickets left the store.
             new TextPatch("store-panel-no-tickets", "holograms.panels.store.lines",
                     "<white>Luck boost, the pass and perk tickets", "<white>Luck boost and the Battle Pass"),
@@ -1149,6 +1202,18 @@ public final class ConfigMigrator {
                 plugin.getLogger().info("Config patch renamed-drops: items renamed");
             }
             applied.add("renamed-drops");
+            changed = true;
+        }
+        for (ListPatch patch : LIST_PATCHES) {
+            if (applied.contains(patch.id())) continue;
+            // Only while it still reads like the old default, the same
+            // promise every other patch makes: a panel Leon has reworded
+            // by hand keeps his words.
+            if (disk.getStringList(patch.path()).equals(patch.oldLines())) {
+                disk.set(patch.path(), patch.newLines());
+                plugin.getLogger().info("Config patch " + patch.id() + ": " + patch.path() + " rewritten");
+            }
+            applied.add(patch.id());
             changed = true;
         }
         for (TextPatch patch : TEXT_PATCHES) {

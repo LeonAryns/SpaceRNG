@@ -41,6 +41,9 @@ public final class PetOrbit implements AuraConcept {
 
     private static final float SCALE = 0.36f;
 
+    /** Degrees between two pets inside the fan behind the wearer (V336). */
+    private static final double SPREAD = 46.0;
+
     /** One worn pet: what it looks like, what colour it is and whether it is shiny. */
     public record Worn(Material icon, Color colour, boolean shiny) {
     }
@@ -60,6 +63,17 @@ public final class PetOrbit implements AuraConcept {
     /** The same pets, standing where this look says there is room. */
     public PetOrbit placedBy(AuraConcept look) {
         return look == null ? this : new PetOrbit(pets, look.petStand());
+    }
+
+    /**
+     * The pets turn with the body (V336), which is the only way "behind
+     * the wearer" can stay true: a mounted display keeps the yaw it was
+     * spawned with, so without this they slide round to the front the
+     * moment somebody turns around.
+     */
+    @Override
+    public boolean followsBody() {
+        return true;
     }
 
     @Override
@@ -97,10 +111,17 @@ public final class PetOrbit implements AuraConcept {
         }
     }
 
-    /** Where slot i stands, spread evenly whatever is worn. */
+    /**
+     * Where slot i stands: a fan centred on the stand's angle, not a ring
+     * around the wearer.
+     *
+     * V336, Leon's call. Three pets spread over a full circle put one of
+     * them in front of him whatever the first angle was, so the spots sit
+     * either side of straight behind instead.
+     */
     private double angle(int slot) {
         int slots = Math.max(1, pets.size());
-        return Math.toRadians(stand.firstAngle() + 360.0 / slots * slot);
+        return Math.toRadians(stand.firstAngle() + SPREAD * (slot - (slots - 1) / 2.0));
     }
 
     private float height() {

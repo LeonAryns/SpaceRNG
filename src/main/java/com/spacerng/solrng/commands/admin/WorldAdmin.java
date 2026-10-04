@@ -365,7 +365,7 @@ final class WorldAdmin extends AdminTools {
                 head.setAmount(1);
                 plugin.getHoloManager().placeCrate(crate.id(), block, player.getLocation().getYaw() + 180f, head);
                 sender.sendMessage(ChatColor.GREEN + "Placed the " + crates.styledName(crate) + ChatColor.GREEN
-                        + ". Right-click opens it, left-click shows the rewards.");
+                        + ". Right click opens one, shift right click opens every key held.");
             }
             case "list" -> {
                 if (crates.placements().isEmpty()) {
@@ -380,15 +380,21 @@ final class WorldAdmin extends AdminTools {
                 sender.sendMessage(ChatColor.DARK_GRAY + "Types: " + String.join(", ", crates.getAll().keySet()));
             }
             case "key" -> {
-                var crate = args.length >= 3 ? crates.get(args[2]) : null;
-                if (crate == null) {
-                    sender.sendMessage(ChatColor.RED + "Usage: /rngadmin crate key <crate> [amount] [player]");
+                // V336: "all" hands over one amount of every crate's key,
+                // which is what a refund is, and the amount is no longer
+                // capped at a stack because keys are a count, not an item.
+                String which = args.length >= 3 ? args[2].toLowerCase(Locale.ROOT) : "";
+                boolean everyType = which.equals("all");
+                var crate = everyType ? null : (args.length >= 3 ? crates.get(args[2]) : null);
+                if (crate == null && !everyType) {
+                    sender.sendMessage(ChatColor.RED + "Usage: /rngadmin crate key <crate|all> [amount] [player]");
+                    sender.sendMessage(ChatColor.DARK_GRAY + "Crates: " + String.join(", ", crates.getAll().keySet()));
                     return true;
                 }
                 int amount = 1;
                 if (args.length >= 4) {
                     try {
-                        amount = Math.max(1, Math.min(64, Integer.parseInt(args[3])));
+                        amount = Math.max(1, Math.min(100_000, Integer.parseInt(args[3])));
                     } catch (NumberFormatException ex) {
                         sender.sendMessage(ChatColor.RED + "Amount must be a number.");
                         return true;
@@ -396,18 +402,24 @@ final class WorldAdmin extends AdminTools {
                 }
                 Player target = resolve(sender, args.length >= 5 ? args[4] : null);
                 if (target == null) return true;
-                var key = plugin.getConsumableManager().get(crate.keyId());
-                if (key == null) {
-                    sender.sendMessage(ChatColor.RED + "The key '" + crate.keyId()
-                            + "' is not a consumable in config.yml.");
-                    return true;
+                var types = everyType ? new java.util.ArrayList<>(crates.getAll().values())
+                        : java.util.List.of(crate);
+                int given = 0;
+                for (var type : types) {
+                    var key = plugin.getConsumableManager().get(type.keyId());
+                    if (key == null) {
+                        sender.sendMessage(ChatColor.RED + "The key '" + type.keyId()
+                                + "' is not a consumable in config.yml.");
+                        continue;
+                    }
+                    plugin.getConsumableManager().give(target, key, amount);
+                    target.sendMessage(ChatColor.GREEN + "You received " + ChatColor.WHITE + amount + "x "
+                            + crates.keyName(type) + ChatColor.GREEN + ".");
+                    given++;
                 }
-                plugin.getConsumableManager().give(target, key, amount);
-                target.sendMessage(ChatColor.GREEN + "You received " + ChatColor.WHITE + amount + "x "
-                        + crates.keyName(crate) + ChatColor.GREEN + ".");
                 if (!target.equals(sender)) {
                     sender.sendMessage(ChatColor.GREEN + "Gave " + target.getName() + " " + amount + "x "
-                            + crates.keyName(crate) + ChatColor.GREEN + ".");
+                            + given + " key type" + (given == 1 ? "" : "s") + ".");
                 }
             }
             case "keyall" -> {
@@ -420,7 +432,7 @@ final class WorldAdmin extends AdminTools {
                 int amount = 1;
                 if (args.length >= 4) {
                     try {
-                        amount = Math.max(1, Math.min(64, Integer.parseInt(args[3])));
+                        amount = Math.max(1, Math.min(100_000, Integer.parseInt(args[3])));
                     } catch (NumberFormatException ex) {
                         sender.sendMessage(ChatColor.RED + "Amount must be a number.");
                         return true;
@@ -461,7 +473,9 @@ final class WorldAdmin extends AdminTools {
                 line(sender, "crate set", "<crate>", "Turn the block you are looking at into a crate");
                 line(sender, "crate remove", "", "Stop the block you are looking at being a crate");
                 line(sender, "crate list", "", "Every placed crate");
-                line(sender, "crate key", "<crate> [amount] [player]", "Hand out keys");
+                line(sender, "crate key", "<crate|all> [amount] [player]",
+                        "Hand out keys, all for one of every type");
+                line(sender, "crate keyall", "<crate> [amount]", "Give every player online keys");
                 line(sender, "crate preview", "<crate>", "Open a crate's reward list");
             }
         }

@@ -3923,8 +3923,8 @@ crates:
       key-source: "Farm Keys are dug up by the Key Finder enchant on your hoe."
       # The text over this crate when it's placed with /rngadmin crate place.
       description:
-        - "<white>Right-click with a <#FFD54F>Farm Key</#FFD54F> to open"
-        - "<gray>Left-click to see what's inside"
+        - "<white>Right click opens one <dark_gray>|<white> Shift right click opens all"
+        - "<gray>Left click shows every reward and its chance"
       jackpot-below: 0.03
       rewards:
         - { weight: 30, coins: 25000 }
@@ -3945,8 +3945,8 @@ crates:
       key: cosmic_key
       key-source: "Cosmic Keys come from the store."
       description:
-        - "<white>Right-click with a <#B388FF>Cosmic Key</#B388FF> to open"
-        - "<gray>Left-click to see what's inside"
+        - "<white>Right click opens one <dark_gray>|<white> Shift right click opens all"
+        - "<gray>Left click shows every reward and its chance"
       jackpot-below: 0.04
       rewards:
         - { weight: 25, coins: 250000 }
@@ -3968,8 +3968,8 @@ crates:
       key: vote_key
       key-source: "Vote Keys come from voting for the server."
       description:
-        - "<white>Right-click with a <#69F0AE>Vote Key</#69F0AE> to open"
-        - "<gray>Left-click to see what's inside"
+        - "<white>Right click opens one <dark_gray>|<white> Shift right click opens all"
+        - "<gray>Left click shows every reward and its chance"
       jackpot-below: 0.03
       rewards:
         - { weight: 30, coins: 50000 }
@@ -3989,8 +3989,8 @@ crates:
       key: nebula_key
       key-source: "Nebula Keys come from key alls, events and the rare Key Finder find."
       description:
-        - "<white>Right-click with a <#82B1FF>Nebula Key</#82B1FF> to open"
-        - "<gray>Left-click to see what's inside"
+        - "<white>Right click opens one <dark_gray>|<white> Shift right click opens all"
+        - "<gray>Left click shows every reward and its chance"
       jackpot-below: 0.035
       rewards:
         - { weight: 25, coins: 150000 }
@@ -4065,9 +4065,13 @@ holograms:
     realm:
       title: "<gradient:#CFD8DC:#78909C><b>SECRET REALM</b></gradient>"
       lines:
-        - "<white>Opens on its own, for a few minutes"
-        - "<white>Roll inside for a <#B0BEC5>secret</#B0BEC5>"
-        - "<white>/secretrealm takes you in while it is open"
+        - "<white>Roll in here for a chance at a <#B0BEC5>Secret</#B0BEC5>"
+        - "<white>Every secret found multiplies your <#80DEEA>index Luck</#80DEEA>"
+        - "<gray>Luck and Speed do nothing in here, the odds are flat"
+        - "<white>Opens on its own, /secretrealm takes you in"
+      # Nothing to click: the realm is entered with a command, so the
+      # shared "Click Here" line would be a lie (V336).
+      click: ""
     prestige:
       title: "<gradient:#FFE082:#FFB300><b>PRESTIGE</b></gradient>"
       lines:

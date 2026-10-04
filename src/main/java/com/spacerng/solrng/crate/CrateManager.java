@@ -454,18 +454,39 @@ public class CrateManager {
 
         Map<CrateReward, Integer> won = new LinkedHashMap<>();
         boolean jackpot = false;
+        int failed = 0;
         for (int i = 0; i < amount; i++) {
             CrateReward reward = crate.pick();
-            grant(player, crate, reward, false);
+            try {
+                grant(player, crate, reward, false);
+            } catch (Throwable error) {
+                // V336: one reward that threw used to end the whole batch.
+                // A player who opened everything they had walked away with
+                // the rewards up to that point and no keys, which is the
+                // "opened all, got one reward" Leon was told about. A
+                // failed one is logged, skipped, and its key handed back.
+                failed++;
+                plugin.getLogger().warning("Crate '" + crate.id() + "' could not pay "
+                        + reward.type() + " '" + reward.target() + "': " + error);
+                continue;
+            }
             won.merge(reward, 1, Integer::sum);
             jackpot |= crate.isJackpot(reward);
         }
+        if (failed > 0) {
+            plugin.getPlayerDataManager().get(player.getUniqueId()).addStoredKeys(crate.keyId(), failed);
+            player.sendMessage(ChatColor.RED + String.valueOf(failed) + " reward"
+                    + (failed == 1 ? "" : "s") + " could not be paid out. The key"
+                    + (failed == 1 ? "" : "s") + " went back to your count.");
+        }
+        int opened = amount - failed;
+        if (opened <= 0) return;
 
         List<Map.Entry<CrateReward, Integer>> rows = new ArrayList<>(won.entrySet());
         rows.sort(Comparator.comparingDouble((Map.Entry<CrateReward, Integer> e) -> crate.chanceOf(e.getKey())));
 
         player.sendMessage("");
-        player.sendMessage(styledName(crate) + ChatColor.GRAY + "  opened " + ChatColor.WHITE + amount + "x");
+        player.sendMessage(styledName(crate) + ChatColor.GRAY + "  opened " + ChatColor.WHITE + opened + "x");
         for (Map.Entry<CrateReward, Integer> row : rows) {
             boolean rare = crate.isJackpot(row.getKey());
             player.sendMessage((rare ? ChatColor.GOLD : ChatColor.YELLOW) + Lore.BULLET + " "

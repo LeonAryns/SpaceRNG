@@ -19,12 +19,13 @@ import org.bukkit.inventory.EquipmentSlot;
 /**
  * Crates in the world and in menus.
  *
- * V332, Leon's rules: a click opens one, a sneak click opens every key
- * you hold, and a click with no keys shows what is inside instead. Left
- * and right are the same thing on purpose, because the floating text over
- * the crate says "click to open" and a player should not have to find out
- * which button that meant. The interaction is always cancelled on a crate
- * block, so an ender chest used as a crate never opens its own inventory.
+ * V336, Leon's rules, now split by button: a right click opens one, a
+ * shift right click opens every key held, and a left click shows the
+ * reward list whether or not you hold a key. V332 had left and right
+ * doing the same thing, which left no button for the reward list once a
+ * player owned a key. The interaction is always cancelled on a crate
+ * block, so an ender chest used as a crate never opens its own
+ * inventory.
  */
 public class CrateListener implements Listener {
 
@@ -47,7 +48,12 @@ public class CrateListener implements Listener {
         Player player = event.getPlayer();
         Action action = event.getAction();
 
-        if (action != Action.LEFT_CLICK_BLOCK && action != Action.RIGHT_CLICK_BLOCK) return;
+        if (action == Action.LEFT_CLICK_BLOCK) {
+            // The reward list, always, keys or no keys.
+            player.openInventory(CratePreviewGui.build(plugin, player, crate));
+            return;
+        }
+        if (action != Action.RIGHT_CLICK_BLOCK) return;
 
         // Any key item still in the inventory becomes a count first, so a
         // player holding an old key is never told they have none.

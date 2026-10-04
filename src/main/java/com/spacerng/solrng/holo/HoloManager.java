@@ -112,6 +112,11 @@ public final class HoloManager {
     // crate, not from across the spawn, so the range is short and the
     // number of per-player displays stays bounded.
     private static final double CRATE_KEYS_Y = 0.2;
+    // V336: the top of each crate's text stack, so the key count stands
+    // above the lot. CRATE_KEYS_Y put it at the foot of the block, which
+    // is the middle of the floating head, and Leon read it through the
+    // crate model.
+    private final Map<String, Double> crateTextTop = new HashMap<>();
     private static final double CRATE_READ_RANGE = 12.0;
     // How much bigger than panel text the podium's pieces are, and how far #1 stands above #2 and #3.
     private static final double PODIUM_TAG = 1.15;
@@ -426,7 +431,9 @@ public final class HoloManager {
             Component content = crateKeyLine(crate, reader);
             TextDisplay line = lines.get(reader.getUniqueId());
             if (line == null || !line.isValid()) {
-                line = privateText(spot, spot.at().clone().add(0, CRATE_KEYS_Y, 0), content, textScale);
+                Location where = spot.at().clone();
+                where.setY(crateTextTop.getOrDefault(spot.id(), spot.at().getY() + CRATE_KEYS_Y));
+                line = privateText(spot, where, content, textScale);
                 reader.showEntity(plugin, line);
                 lines.put(reader.getUniqueId(), line);
             } else {
@@ -443,17 +450,20 @@ public final class HoloManager {
     /** "You hold 4 Farm Keys", or how to get one when you hold none. */
     private Component crateKeyLine(Crate crate, org.bukkit.entity.Player reader) {
         var data = plugin.getPlayerDataManager().get(reader.getUniqueId());
-        long keys = data == null ? 0L : data.storedKeys(crate.keyId());
+        // V336: items left over from before V332 count too, so a player
+        // holding an old key is never told they hold none.
+        long keys = data == null ? 0L : plugin.getCrateManager().keysHeld(reader, crate);
         if (keys <= 0L) {
             return parse("<dark_gray>You have no keys for this crate"
-                    + "\n<dark_gray>Click to see what is inside");
+                    + "\n<dark_gray>Left click shows the rewards");
         }
         String name = crate.display();
         // V332: the count AND what a click does. The crate is the only
         // place keys exist now, so it is the only place that can say it.
         return parse("<#FFD54F><b>" + keys + "</b> <gray>"
                 + (keys == 1 ? "key" : "keys") + " for <reset>" + name
-                + "\n<white>Click to open" + (keys > 1 ? " <dark_gray>|<white> Shift click opens all" : ""));
+                + "\n<white>Right click opens one"
+                + (keys > 1 ? " <dark_gray>|<white> Shift right click opens all" : ""));
     }
 
     /**
@@ -475,6 +485,7 @@ public final class HoloManager {
 
     private void despawn(String id) {
         crateHeads.remove(id);
+        crateTextTop.remove(id);
         podiumHeads.remove(id);
         podiumTags.remove(id);
         podiumShown.remove(id);
@@ -567,8 +578,9 @@ public final class HoloManager {
         }
         for (String line : raw) lines.add(parse(line));
         String click = plugin.getConfig().getString("holograms.click", "");
-        stack(spot, spot.at().clone().add(0, headY + crateBob + 0.3, 0), parse(title), lines,
-                click == null || click.isBlank() ? null : parse(click), pieces);
+        crateTextTop.put(spot.id(),
+                stack(spot, spot.at().clone().add(0, headY + crateBob + 0.3, 0), parse(title), lines,
+                        click == null || click.isBlank() ? null : parse(click), pieces));
     }
 
     private void drawBoard(Spot spot, List<Display> pieces) {
@@ -943,9 +955,9 @@ public final class HoloManager {
      * base: a text display grows up from where it stands, so the bottom
      * piece goes down first.
      */
-    private void stack(Spot spot, Location base, Component title, List<Component> lines, Component click,
-                       List<Display> pieces) {
-        stack(spot, base, title, lines, click, pieces, 1.0f);
+    private double stack(Spot spot, Location base, Component title, List<Component> lines, Component click,
+                         List<Display> pieces) {
+        return stack(spot, base, title, lines, click, pieces, 1.0f);
     }
 
     /**
@@ -953,8 +965,8 @@ public final class HoloManager {
      * text and the title, so one panel (the farm's, V169) can be read from
      * further away without making every panel bigger.
      */
-    private void stack(Spot spot, Location base, Component title, List<Component> lines, Component click,
-                       List<Display> pieces, float size) {
+    private double stack(Spot spot, Location base, Component title, List<Component> lines, Component click,
+                         List<Display> pieces, float size) {
         float textScale = this.textScale * size;
         float titleScale = this.titleScale * size;
         Location y = base.clone();
@@ -977,6 +989,9 @@ public final class HoloManager {
             y.add(0, LINE * textScale * 0.5 + GAP, 0);
         }
         pieces.add(text(spot, y, title, titleScale));
+        // Where the next line up would stand, for anything that has to sit
+        // on top of a finished stack (V336: the crate's key count).
+        return y.getY() + LINE * titleScale + GAP * 2;
     }
 
     private TextDisplay text(Spot spot, Location at, Component content, float scale) {

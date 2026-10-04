@@ -74,9 +74,9 @@ public final class CratePreviewGui {
         }
         lore.add("");
         if (keys > 0) {
-            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click the crate to open one");
+            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Right click the crate to open one");
             if (keys > 1) {
-                lore.add(ChatColor.YELLOW + Lore.BULLET + " " + ChatColor.GRAY + "Shift click opens all "
+                lore.add(ChatColor.YELLOW + Lore.BULLET + " " + ChatColor.GRAY + "Shift right click opens all "
                         + Math.min(keys, manager.quickOpenMax()) + " of them");
             }
         } else {
