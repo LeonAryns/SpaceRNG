@@ -5996,6 +5996,13 @@ shiny:
 # the Luck bonus as a percentage.
 linked-account:
   enabled: true
+  # When an unlinked player is told about /link, in seconds after joining.
+  # The -new list is for somebody's very first join: V339, Leon's call, a
+  # new player hears it three times inside their first three minutes,
+  # because +100% Luck for free is the biggest step they can take. Either
+  # list stops as soon as they link.
+  remind-seconds: [30, 240]
+  remind-seconds-new: [20, 100, 170]
   bonus:
     money-percent: 0.0
     coins-percent: 0.0

@@ -13,6 +13,8 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 
+import java.util.List;
+
 public class JoinQuitListener implements Listener {
 
     private final SolRNGPlugin plugin;
@@ -35,8 +37,22 @@ public class JoinQuitListener implements Listener {
         PlayerData data = plugin.getPlayerDataManager().get(event.getPlayer().getUniqueId());
         // V287: an unlinked player is told twice in their first five
         // minutes on, where linking is worth the most to a starter.
-        remindLink(event.getPlayer(), 30L * 20L);
-        remindLink(event.getPlayer(), 240L * 20L);
+        //
+        // V339, Leon's call: somebody on their very first join hears it
+        // three times inside their first three minutes instead. +100% Luck
+        // is the biggest single step a new player can take and it costs
+        // them nothing, so it should land before they have decided what
+        // they think of the server. Both schedules stop the moment they
+        // link, and neither says anything to a player who already has.
+        List<Integer> when = plugin.getConfig().getIntegerList(
+                event.getPlayer().hasPlayedBefore()
+                        ? "linked-account.remind-seconds" : "linked-account.remind-seconds-new");
+        if (when.isEmpty()) {
+            when = event.getPlayer().hasPlayedBefore() ? List.of(30, 240) : List.of(20, 100, 170);
+        }
+        for (int seconds : when) {
+            remindLink(event.getPlayer(), Math.max(1, seconds) * 20L);
+        }
         // Offline at the season reset: their inventory goes now.
         com.spacerng.solrng.player.SeasonWipe.onJoin(plugin, event.getPlayer());
 
