@@ -336,12 +336,14 @@ public class FarmPlotManager {
         // through to the old skill node, and a node bought before V279
         // opened the crop. Reading the ladder AS the default is one line
         // and cannot come apart the same way.
+        // V322: Leon's ladder, ten times the old one. He named a sixth
+        // step, 2,500,000, which has no crop to open yet.
         long ladder = switch (crop.getId()) {
-            case "CARROTS" -> 10_000L;
-            case "POTATOES" -> 25_000L;
-            case "BEETROOTS" -> 50_000L;
-            case "NETHER_WART" -> 100_000L;
-            case "SWEET_BERRIES" -> 250_000L;
+            case "CARROTS" -> 50_000L;
+            case "POTATOES" -> 100_000L;
+            case "BEETROOTS" -> 250_000L;
+            case "NETHER_WART" -> 500_000L;
+            case "SWEET_BERRIES" -> 1_000_000L;
             default -> 0L;
         };
         return Math.max(0L, plugin.getConfig()

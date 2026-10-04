@@ -223,6 +223,15 @@ public final class ConfigMigrator {
     }
 
     private static final List<Patch> PATCHES = List.of(
+            // V322: the crops farmed ladder, ten times what it was, Leon's
+            // numbers. V320 put crop-unlock-at into ADDED_SECTIONS, so the
+            // live config holds the old defaults and only a patch moves
+            // them; each one is skipped if he has tuned that crop himself.
+            new Patch("crop-unlock-carrots-v322", "farming.crop-unlock-at.CARROTS", 10000, 50000),
+            new Patch("crop-unlock-potatoes-v322", "farming.crop-unlock-at.POTATOES", 25000, 100000),
+            new Patch("crop-unlock-beetroots-v322", "farming.crop-unlock-at.BEETROOTS", 50000, 250000),
+            new Patch("crop-unlock-netherwart-v322", "farming.crop-unlock-at.NETHER_WART", 100000, 500000),
+            new Patch("crop-unlock-berries-v322", "farming.crop-unlock-at.SWEET_BERRIES", 250000, 1000000),
             // V322: a shift click opens every key, so the old ceiling of 25
             // would have quietly capped it on the live server.
             new Patch("crate-quick-open-all-v322", "crates.quick-open-max", 25, 500),
