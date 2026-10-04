@@ -346,22 +346,26 @@ final class PlayerMenuClicks {
             player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.4f, 1.2f);
             return;
         }
-        // V324: the index switches autotrash per pet. A pet marked here is
-        // thrown away as it hatches, which is the price of duplicates
-        // being handed out at all.
+        // V327: the index is one card per rarity, and the click switches
+        // autotrash for every pet in it. With six pets to a rarity, "I
+        // never want Commons" is what anybody actually means.
         if (view == com.spacerng.solrng.gui.PetsHolder.View.INDEX) {
-            String indexed = com.spacerng.solrng.gui.PetsGui.clickedPet(event.getCurrentItem());
-            if (indexed == null) return;
-            var indexedType = pets.get(indexed);
-            if (indexedType == null) return;
-            boolean on = data.togglePetAutoTrash(indexed);
-            String shownIndexed = com.spacerng.solrng.gui.Lore.gradient(
-                    indexedType.display(), true, indexedType.stops());
+            String rarityName = com.spacerng.solrng.gui.PetsGui.clickedRarity(event.getCurrentItem());
+            if (rarityName == null) return;
+            com.spacerng.solrng.rarity.Rarity rarity;
+            try {
+                rarity = com.spacerng.solrng.rarity.Rarity.valueOf(rarityName);
+            } catch (IllegalArgumentException ex) {
+                return;
+            }
+            boolean on = pets.toggleAutoTrash(data, rarity);
             player.sendMessage(on
-                    ? ChatColor.RED + "Autotrash on for " + ChatColor.RESET + shownIndexed
-                            + ChatColor.GRAY + ". Copies are thrown away as they hatch."
-                    : ChatColor.GREEN + "Autotrash off for " + ChatColor.RESET + shownIndexed
-                            + ChatColor.GRAY + ".");
+                    ? ChatColor.RED + "Autotrash on for every "
+                            + plugin.getRarityManager().style(rarity, rarity.displayName())
+                            + ChatColor.GRAY + " pet. They are thrown away as they hatch."
+                    : ChatColor.GREEN + "Autotrash off for "
+                            + plugin.getRarityManager().style(rarity, rarity.displayName())
+                            + ChatColor.GRAY + " pets.");
             player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.5f,
                     on ? 0.8f : 1.5f);
             player.openInventory(com.spacerng.solrng.gui.PetsGui.index(plugin, player));

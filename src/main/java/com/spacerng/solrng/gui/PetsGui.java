@@ -141,7 +141,18 @@ public class PetsGui {
         return inv;
     }
 
-    /** Every pet there is and what it gives, found or not. */
+    /** Where the seven rarity cards sit, one row, centred. */
+    private static final int[] RARITY_SLOTS = {19, 20, 21, 22, 23, 24, 25};
+
+    /**
+     * The index, by rarity (V327).
+     *
+     * Leon asked for the rarities and nothing else: one card per rarity
+     * saying what a pet of that rarity multiplies by, rather than
+     * forty-two cards split by which stat they happen to boost. The six
+     * pets inside a rarity are listed on the card, so the collection is
+     * still readable, but the number a player came for is the rarity's.
+     */
     public static Inventory index(SolRNGPlugin plugin, Player player) {
         PetsHolder holder = new PetsHolder(PetsHolder.View.INDEX);
         Inventory inv = Bukkit.createInventory(holder, SIZE,
@@ -150,13 +161,86 @@ public class PetsGui {
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         fillSubScreen(inv);
 
-        int slot = FIRST_PET;
-        for (PetType pet : plugin.getPetManager().getTypes().values()) {
-            if (slot >= SIZE) break;
-            inv.setItem(slot++, indexIcon(plugin, data, pet));
+        int index = 0;
+        for (com.spacerng.solrng.rarity.Rarity rarity : com.spacerng.solrng.rarity.Rarity.values()) {
+            if (!plugin.getPetManager().hasRarity(rarity)) continue;
+            if (index >= RARITY_SLOTS.length) break;
+            inv.setItem(RARITY_SLOTS[index++], rarityIcon(plugin, data, rarity));
         }
         MenuStyle.apply(inv, MenuStyle.Palette.CYAN);
         return inv;
+    }
+
+    /** The rarity a clicked index card carries, or null. */
+    public static String clickedRarity(ItemStack item) {
+        if (item == null || item.getItemMeta() == null) return null;
+        return item.getItemMeta().getPersistentDataContainer().get(rarityKey(), PersistentDataType.STRING);
+    }
+
+    public static NamespacedKey rarityKey() {
+        return SolRNGPlugin.key("solrng_pet_rarity");
+    }
+
+    /**
+     * One rarity: what it is worth, which pets carry it, and whether its
+     * copies are being thrown away as they hatch.
+     *
+     * Autotrash is per rarity here rather than per pet, because with six
+     * pets in every rarity "I never want Commons" is the thing anybody
+     * actually means. It still writes the same per pet set underneath, so
+     * a pet switched on its own stays switched.
+     */
+    private static ItemStack rarityIcon(SolRNGPlugin plugin, PlayerData data,
+                                        com.spacerng.solrng.rarity.Rarity rarity) {
+        PetManager pets = plugin.getPetManager();
+        double bonus = pets.upgrades().bonusFor(rarity);
+        double top = pets.upgrades().topMultiplier();
+
+        List<PetType> inRarity = new ArrayList<>();
+        for (PetType pet : pets.getTypes().values()) {
+            if (pet.rarity() == rarity) inRarity.add(pet);
+        }
+        int found = 0;
+        int trashed = 0;
+        for (PetType pet : inRarity) {
+            if (data.getPet(pet.id()) != null) found++;
+            if (data.isPetAutoTrash(pet.id())) trashed++;
+        }
+        boolean allTrashed = !inRarity.isEmpty() && trashed == inRarity.size();
+
+        ItemStack item = new ItemStack(inRarity.isEmpty() ? Material.STONE_BUTTON : inRarity.get(0).icon());
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(plugin.getRarityManager().styleBold(rarity, rarity.displayName() + " pets"));
+
+        List<String> lore = new ArrayList<>();
+        lore.add(ChatColor.GRAY + "Every " + rarity.displayName() + " pet multiplies");
+        lore.add(ChatColor.GRAY + "one stat by " + ChatColor.WHITE
+                + String.format("%.2f", 1.0 + bonus) + "x" + ChatColor.GRAY + " fresh,");
+        lore.add(ChatColor.GRAY + "up to " + ChatColor.WHITE
+                + String.format("%.2f", 1.0 + bonus * top) + "x" + ChatColor.GRAY + " fully grown.");
+        lore.add("");
+        for (PetType pet : inRarity) {
+            PetInstance owned = data.getPet(pet.id());
+            lore.add(Lore.stat(owned != null ? ChatColor.GREEN : ChatColor.DARK_GRAY,
+                    pet.statName(), ChatColor.stripColor(pet.display())
+                            + (owned != null ? "  " + ChatColor.GREEN + Lore.TICK : "")));
+        }
+        lore.add("");
+        lore.add(Lore.stat(ChatColor.AQUA, "Found", found + " / " + inRarity.size()));
+        lore.add("");
+        lore.add(allTrashed
+                ? ChatColor.RED + "" + ChatColor.BOLD + "Autotrash on"
+                : trashed > 0
+                        ? ChatColor.RED + "" + ChatColor.BOLD + "Autotrash on for " + trashed
+                        : ChatColor.DARK_GRAY + "" + ChatColor.BOLD + "Autotrash off");
+        lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD
+                + (allTrashed ? "Click to keep them again" : "Click to throw these away"));
+
+        meta.setLore(lore);
+        if (found >= inRarity.size() && !inRarity.isEmpty()) meta.setEnchantmentGlintOverride(Boolean.TRUE);
+        meta.getPersistentDataContainer().set(rarityKey(), PersistentDataType.STRING, rarity.name());
+        item.setItemMeta(meta);
+        return item;
     }
 
     private static void fillSubScreen(Inventory inv) {
@@ -222,64 +306,6 @@ public class PetsGui {
                 Lore.stat(filled ? ChatColor.GREEN : ChatColor.RED, "Needs",
                         Currency.COSMIC_DUST.amount(needed)),
                 Lore.stat(ChatColor.AQUA, "You hold", Currency.COSMIC_DUST.amount(Math.min(dust, cost)))));
-        item.setItemMeta(meta);
-        return item;
-    }
-
-    /**
-     * A pet as the index shows it, on the shape the perk index uses: what
-     * it boosts in one sentence, then the whole rarity ladder with this
-     * pet's own rung marked, then what yours is worth.
-     *
-     * The ladder is the point of the screen since V324. Every stat exists
-     * at every rarity and each rarity is worth double the one under it,
-     * so a player reading one pet can see exactly what a better one of
-     * the same stat would be worth.
-     */
-    private static ItemStack indexIcon(SolRNGPlugin plugin, PlayerData data, PetType pet) {
-        PetManager pets = plugin.getPetManager();
-        PetInstance owned = data.getPet(pet.id());
-        boolean trash = data.isPetAutoTrash(pet.id());
-
-        ItemStack item = new ItemStack(pet.icon());
-        ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(name(pet, owned));
-
-        List<String> lore = new ArrayList<>();
-        lore.add(ChatColor.DARK_GRAY + pet.rarity().displayName() + " pet");
-        lore.add("");
-        if (!pet.blurb().isBlank()) lore.add(Lore.line(ChatColor.GRAY, pet.blurb()));
-        lore.add(ChatColor.GRAY + "It multiplies your " + ChatColor.WHITE + pet.statName()
-                + ChatColor.GRAY + ".");
-        lore.add("");
-        for (com.spacerng.solrng.rarity.Rarity rarity : com.spacerng.solrng.rarity.Rarity.values()) {
-            double bonus = pets.upgrades().bonusFor(rarity);
-            // Astral has no pets, so it has no rung on this ladder; the
-            // multiplier ladder answers for every rarity whether one
-            // exists or not.
-            if (bonus <= 0.0 || !pets.hasRarity(rarity)) continue;
-            boolean mine = rarity == pet.rarity();
-            lore.add(Lore.stat(mine ? ChatColor.GREEN : ChatColor.DARK_GRAY, rarity.displayName(),
-                    String.format("%.2f", 1.0 + bonus) + "x" + (mine ? "  " + Lore.TICK : "")));
-        }
-        lore.add("");
-        if (owned != null) {
-            lore.add(Lore.stat(ChatColor.AQUA, "Yours",
-                    pet.multiText(pets.upgrades().multiplier(owned))
-                            + (owned.copies() > 1 ? ChatColor.DARK_GRAY + "  x" + owned.copies() : "")));
-        } else {
-            lore.add(Lore.stat(ChatColor.DARK_GRAY, "Yours", "not found yet"));
-        }
-        lore.add("");
-        lore.add(trash
-                ? ChatColor.RED + "" + ChatColor.BOLD + "Autotrash on"
-                : ChatColor.DARK_GRAY + "" + ChatColor.BOLD + "Autotrash off");
-        lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD
-                + (trash ? "Click to keep it again" : "Click to throw copies away"));
-
-        meta.setLore(lore);
-        if (owned != null) meta.setEnchantmentGlintOverride(Boolean.TRUE);
-        meta.getPersistentDataContainer().set(petKey(), PersistentDataType.STRING, pet.id());
         item.setItemMeta(meta);
         return item;
     }

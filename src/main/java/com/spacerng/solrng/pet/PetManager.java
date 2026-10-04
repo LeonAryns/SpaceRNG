@@ -112,6 +112,23 @@ public class PetManager {
         return types;
     }
 
+    /**
+     * Switches autotrash for a whole rarity (V327) and says what it is
+     * now: on unless every pet in it is already marked, in which case the
+     * click takes them all off again.
+     */
+    public boolean toggleAutoTrash(PlayerData data, Rarity rarity) {
+        java.util.List<String> ids = new ArrayList<>();
+        for (PetType type : types.values()) if (type.rarity() == rarity) ids.add(type.id());
+        boolean allOn = !ids.isEmpty();
+        for (String id : ids) if (!data.isPetAutoTrash(id)) allOn = false;
+        for (String id : ids) {
+            if (allOn) data.getPetAutoTrash().remove(id);
+            else data.getPetAutoTrash().add(id);
+        }
+        return !allOn;
+    }
+
     /** Whether any pet is defined at this rarity, for the index ladder. */
     public boolean hasRarity(Rarity rarity) {
         for (PetType type : types.values()) if (type.rarity() == rarity) return true;
