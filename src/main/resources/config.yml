@@ -8,7 +8,7 @@
 # their fresh defaults in on top of whatever is on disk, so a server
 # owner never has to delete the whole file to pick up a structural
 # change. Item table, prices and cosmetic tweaks are untouched.
-config-version: 31
+config-version: 32
 
 # One-off value changes the plugin has already made to this file, so none
 # is ever made twice. Managed by the plugin; leave it alone.
@@ -664,22 +664,6 @@ farming:
       # 0.5% of crops at the ceiling. Level 1 costs 6,048, level 1,000 costs 3,285,244,
       # 1,241,928,465 Coins for all of it.
 
-    ALCHEMY:
-      display: "Alchemy"
-      icon: BREWING_STAND
-      base-cost: 7639
-      cost-linear: 1284.64073460320947
-      cost-step: 3.55748084687816
-      cost-power: 2.0
-      description: "A chance to melt Coins down into Gems."
-      color: "&d"
-      max-level: 10000
-      base-cap: 10000
-      # V274: 0.1% of crops at the ceiling after proc-scale, Leon's call.
-      per-level: 0.0000005
-      # 0.4% of crops at the ceiling. Level 1 costs 8,927, level 1,000 costs 4,849,761,
-      # 1,833,365,848 Coins for all of it.
-
     GEM_CASCADE:
       display: "Gem Cascade"
       coming-soon: true
@@ -805,8 +789,6 @@ farming:
     gem-rush-multiplier: 3.0
     gem-rush-seconds: 15
     echo-repeats: 8
-    alchemy-share: 0.15
-    alchemy-rate: 0.001
     cascade-radius: 4
     cascade-gems: 2
     storm-payout: 25
@@ -4933,18 +4915,6 @@ farmtree:
       effect: "UNLOCK_ENCHANT"
       value: 0
       target: "GEM_RUSH"
-
-    enchant_alchemy:
-      display: "Alchemy"
-      page: 2
-      slot: "3,3"
-      icon: "BREWING_STAND"
-      cost-money: 45542400
-      requires: "hoe_tier_2"
-      requires-all: ["crop_beetroot"]
-      effect: "UNLOCK_ENCHANT"
-      value: 0
-      target: "ALCHEMY"
 
     # -- Right line: the harvest --
     tokens_4:

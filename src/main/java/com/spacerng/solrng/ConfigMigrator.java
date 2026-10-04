@@ -351,7 +351,6 @@ public final class ConfigMigrator {
             new Patch("proc-v274-gamba", "farming.enchants.GAMBA.per-level", 0.000008, 0.0000005),
             new Patch("proc-v274-prospector", "farming.enchants.PROSPECTOR.per-level", 0.00003, 0.0000005),
             new Patch("proc-v274-gem_rush", "farming.enchants.GEM_RUSH.per-level", 0.000005, 0.0000005),
-            new Patch("proc-v274-alchemy", "farming.enchants.ALCHEMY.per-level", 0.000004, 0.0000005),
             new Patch("proc-v274-gem_cascade", "farming.enchants.GEM_CASCADE.per-level", 0.000008, 0.0000005),
             new Patch("proc-v274-coin_storm", "farming.enchants.COIN_STORM.per-level", 0.000003, 0.0000005),
             new Patch("proc-v274-meteor", "farming.enchants.METEOR.per-level", 0.000004, 0.0000005),
@@ -649,7 +648,7 @@ public final class ConfigMigrator {
     private static final List<Patch> ENCHANT_PATCHES = java.util.stream.Stream.of(
                     "TOKEN_GREED", "MOMENTUM", "SHARD_GREED", "KEY_FINDER", "BLAST_HARVEST",
                     "POTION_FINDER", "LIGHTNING", "NOVA_FINDER", "NUKE", "COIN_FACTORY", "GAMBA",
-                    "PROSPECTOR", "GEM_RUSH", "ALCHEMY",
+                    "PROSPECTOR", "GEM_RUSH",
                     "GEM_CASCADE", "COIN_STORM", "METEOR", "BLACK_HOLE", "SUPERNOVA")
             .map(id -> new Patch("enchant-10k-" + id, "farming.enchants." + id + ".max-level", 1000, 10000))
             .toList();
@@ -668,7 +667,7 @@ public final class ConfigMigrator {
     private static final List<Patch> ENCHANT_CAP_PATCHES = java.util.stream.Stream.of(
                     "TOKEN_GREED", "MOMENTUM", "SHARD_GREED", "KEY_FINDER", "BLAST_HARVEST",
                     "POTION_FINDER", "LIGHTNING", "NOVA_FINDER", "NUKE", "COIN_FACTORY", "GAMBA",
-                    "PROSPECTOR", "GEM_RUSH", "ALCHEMY", "GEM_CASCADE", "COIN_STORM", "METEOR",
+                    "PROSPECTOR", "GEM_RUSH", "GEM_CASCADE", "COIN_STORM", "METEOR",
                     "BLACK_HOLE", "SUPERNOVA")
             .map(id -> new Patch("enchant-cap-10k-" + id, "farming.enchants." + id + ".base-cap", 100, 10000))
             .toList();
@@ -686,7 +685,13 @@ public final class ConfigMigrator {
             // default, which is where it is set.
             // V190: Leon took Golden Touch and Harvest Echo out.
             new String[]{"enchant-gone-golden-touch", "farming.enchants.GOLDEN_TOUCH"},
-            new String[]{"enchant-gone-harvest-echo", "farming.enchants.HARVEST_ECHO"});
+            new String[]{"enchant-gone-harvest-echo", "farming.enchants.HARVEST_ECHO"},
+            // V326: Leon took Alchemy out. The farmtree node goes with the
+            // structural rewrite; the enchant itself has to be deleted
+            // here or it stays in the live config and keeps loading.
+            new String[]{"enchant-gone-alchemy", "farming.enchants.ALCHEMY"},
+            new String[]{"enchant-gone-alchemy-share", "farming.procs.alchemy-share"},
+            new String[]{"enchant-gone-alchemy-rate", "farming.procs.alchemy-rate"});
 
     /** Like a Patch, for one field of the entry with a given id inside a list of maps. */
     private record EntryPatch(String id, String list, String entryId, String field, Object oldDefault,

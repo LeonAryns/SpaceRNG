@@ -109,8 +109,6 @@ public class FarmPlotManager {
     private double gemRushMultiplier = 3.0;
     private long gemRushSeconds = 15L;
     private long echoRepeats = 8L;
-    private double alchemyShare = 0.15;
-    private double alchemyRate = 0.001;
     private int cascadeRadius = 4;
     private long cascadeGems = 2L;
     private long stormPayout = 25L;
@@ -179,8 +177,6 @@ public class FarmPlotManager {
         gemRushMultiplier = config.getDouble("farming.procs.gem-rush-multiplier", 3.0);
         gemRushSeconds = config.getLong("farming.procs.gem-rush-seconds", 15L);
         echoRepeats = config.getLong("farming.procs.echo-repeats", 8L);
-        alchemyShare = config.getDouble("farming.procs.alchemy-share", 0.15);
-        alchemyRate = config.getDouble("farming.procs.alchemy-rate", 0.001);
         cascadeRadius = config.getInt("farming.procs.cascade-radius", 4);
         cascadeGems = config.getLong("farming.procs.cascade-gems", 2L);
         stormPayout = config.getLong("farming.procs.storm-payout", 25L);
@@ -1179,20 +1175,6 @@ public class FarmPlotManager {
             EnchantFx.pulse(plugin, player, plot, false);
             procBar(player, data, "HARVEST_ECHO", ChatColor.GOLD + "" + ChatColor.BOLD + "Echo x" + echoRepeats
                     + "  " + ChatColor.RESET + ChatColor.GRAY + Currency.COINS.amount(paid));
-        }
-
-        double alchemy = hoe.powerOf(data, "ALCHEMY");
-        if (alchemy > 0 && ThreadLocalRandom.current().nextDouble() < alchemy) {
-            long spent = Math.round(data.getTokens() * alchemyShare);
-            long gems = Math.round(spent * alchemyRate);
-            if (gems > 0 && data.spendTokens(spent)) {
-                data.addShards(gems);
-                EnchantFx.transmute(plugin, player, plot);
-                procChat(player, data, "ALCHEMY", ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "Alchemy  "
-                        + ChatColor.RESET + ChatColor.GRAY + Currency.COINS.amount(spent)
-                        + ChatColor.GRAY + " into " + ChatColor.AQUA + gems + " Gems"
-                        + ChatColor.GRAY + ".");
-            }
         }
 
         double cascade = hoe.powerOf(data, "GEM_CASCADE");
