@@ -6615,6 +6615,20 @@ first-ten:
 # Left empty the button is not there.
 buy:
   store-url: "https://spacerng.tebex.store/"
+  # V330: a line in chat when somebody buys. Nothing announced a purchase
+  # before this, because the store calls /rngadmin give credits and
+  # /rngadmin rank set, which are plain admin commands and say nothing to
+  # anybody but the sender.
+  #
+  # Only a purchase announces: a give from a player in game (an op typing
+  # it) is silent unless console-only is false, so testing with it does
+  # not spam the server. {player} is the buyer, {what} is what they
+  # bought.
+  announce: true
+  console-only: true
+  announce-credits: "<gradient:#FFD54F:#FF8F00><b>STORE</b></gradient> <white>{player}</white> <gray>bought</gray> <#FFD54F>{what}</#FFD54F>"
+  announce-rank: "<gradient:#FFD54F:#FF8F00><b>STORE</b></gradient> <white>{player}</white> <gray>is now</gray> {what}"
+  thanks: "<gray>Thank you for supporting the server.</gray>"
 
 # Worn auras. A player wearing a /tag of Epic or rarer wears the aura set
 # here for that rarity: a concept, and an optional particle accent drawn

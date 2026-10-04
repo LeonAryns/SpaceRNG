@@ -46,8 +46,14 @@ public class IndexGui {
     // V311: the top row was seven rarity tabs plus a shiny switch, eight
     // buttons for two questions. It is two blocks now, which is the same
     // pattern /options got in V310, and it leaves the row readable.
+    // V330: the three collections are three buttons, not one block that
+    // has to be stepped through, Leon's call. Normal, Shiny and Secret sit
+    // next to each other and say which one you are looking at; the tier
+    // ladder keeps stepping, because seven rarities will not fit as
+    // buttons and it is a sort, not a collection.
+    private static final int[] MODE_SLOTS = {0, 1, 2};
     private static final int MODE_SLOT = 0;
-    private static final int RARITY_SLOT = 2;
+    private static final int RARITY_SLOT = 4;
     private static final int PROGRESS_SLOT = 8;
 
     /** Which collection the grid is scoring (V311). */
@@ -90,55 +96,71 @@ public class IndexGui {
         return MODE_SLOT;
     }
 
+    /** The collection a top row button stands for, or null. */
+    public static Mode modeAt(int slot) {
+        for (int i = 0; i < MODE_SLOTS.length; i++) {
+            if (MODE_SLOTS[i] == slot) return Mode.values()[i];
+        }
+        return null;
+    }
+
     public static int raritySlot() {
         return RARITY_SLOT;
     }
 
     /**
-     * The mode ladder. Secret carries its Prestige floor, because Leon
-     * asked for the requirement to be readable from here rather than only
-     * from the message you get when you are turned away.
+     * One collection, one button (V330).
+     *
+     * The button for the collection you are in is glinted and says so;
+     * the other two say what they hold and that a click opens them.
+     * Secret carries its Prestige floor, because the requirement should
+     * be readable here rather than only in the message that turns you
+     * away.
      */
     static ItemStack modeBlock(SolRNGPlugin plugin, Player player, PlayerData data, Mode mode) {
-        int found = mode == Mode.SHINY ? data.getDiscoveredShiny().size() : data.getDiscoveredItems().size();
+        return modeButton(plugin, data, mode, mode);
+    }
+
+    static ItemStack modeButton(SolRNGPlugin plugin, PlayerData data, Mode button, Mode showing) {
         int total = plugin.getRarityManager().getItems().size();
+        int found = switch (button) {
+            case SHINY -> data.getDiscoveredShiny().size();
+            case SECRET -> data.getSecretsFound().size();
+            case NORMAL -> data.getDiscoveredItems().size();
+        };
+        int secretTotal = plugin.getRealmManager().secrets().size();
         int minPrestige = plugin.getConfig().getInt("secret-realm.min-prestige", 0);
         boolean allowed = data.getPrestige() >= minPrestige;
+        boolean here = button == showing;
 
-        ItemStack item = new ItemStack(mode.icon());
+        ItemStack item = new ItemStack(button.icon());
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(Lore.title(ChatColor.AQUA, "Index Mode") + ChatColor.DARK_GRAY + " - "
-                + ChatColor.YELLOW + ChatColor.BOLD + mode.label());
+        meta.setDisplayName(Lore.title(here ? ChatColor.GREEN : ChatColor.AQUA, button.label()));
 
         List<String> lore = new ArrayList<>();
-        lore.add(Lore.section(ChatColor.AQUA, "What it scores"));
-        switch (mode) {
-            case NORMAL -> lore.add(Lore.line(ChatColor.AQUA, "Ordinary finds."));
-            case SHINY -> lore.add(Lore.line(ChatColor.AQUA, "Shiny finds of the same drops."));
-            case SECRET -> lore.add(Lore.line(ChatColor.AQUA, "Secrets from the Secret Realm."));
+        switch (button) {
+            case NORMAL -> lore.add(Lore.line(ChatColor.GRAY, "Every drop you have rolled."));
+            case SHINY -> lore.add(Lore.line(ChatColor.GRAY, "The shiny copy of the same drops."));
+            case SECRET -> lore.add(Lore.line(ChatColor.GRAY, "Secrets out of the Secret Realm."));
         }
         lore.add("");
-        if (mode == Mode.SECRET) {
+        if (button == Mode.SECRET) {
+            lore.add(Lore.stat(ChatColor.AQUA, "Found", found + " / " + Math.max(found, secretTotal)));
             lore.add(allowed
-                    ? Lore.stat(ChatColor.GREEN, "Prestige", data.getPrestige() + " of " + minPrestige + " needed")
+                    ? Lore.stat(ChatColor.GREEN, "Prestige", data.getPrestige() + " of " + minPrestige)
                     : Lore.requirement("Prestige", String.valueOf(data.getPrestige()),
                             String.valueOf(minPrestige), false));
         } else {
-            lore.add(Lore.statArrow(ChatColor.AQUA, mode == Mode.SHINY ? "Shinies" : "Found",
+            lore.add(Lore.stat(ChatColor.AQUA, button == Mode.SHINY ? "Shinies" : "Found",
                     found + " / " + total));
             lore.add(Lore.bar(total <= 0 ? 0.0 : (double) found / total));
         }
         lore.add("");
-        lore.add(Lore.section(ChatColor.YELLOW, "Modes"));
-        List<String> names = new ArrayList<>();
-        for (Mode option : Mode.values()) names.add(option.shortLabel());
-        lore.addAll(Stepper.breadcrumb(names, mode.ordinal(), names.size()));
-        lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " Secret needs Prestige " + minPrestige + ".");
-        lore.add("");
-        lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to step up");
-        lore.add(Lore.footnote("Right-click steps back."));
+        lore.add(here
+                ? ChatColor.GREEN + "" + ChatColor.BOLD + "You are here"
+                : ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to open");
         meta.setLore(lore);
-        meta.setEnchantmentGlintOverride(mode == Mode.NORMAL ? null : Boolean.TRUE);
+        meta.setEnchantmentGlintOverride(here ? Boolean.TRUE : null);
         item.setItemMeta(meta);
         return item;
     }
@@ -284,8 +306,14 @@ public class IndexGui {
         holder.setFilter(filter);
 
         List<RollableItem> allItems = plugin.getRarityManager().getItems();
-        List<RollableItem> shown = filter == null ? allItems
-                : allItems.stream().filter(i -> i.getRarity() == filter).toList();
+        // V330: sorted by rarity, Common first, Leon's call. The table's
+        // own order is the order items were written into config, which
+        // reads as no order at all once there are two hundred of them.
+        List<RollableItem> shown = new ArrayList<>(filter == null ? allItems
+                : allItems.stream().filter(i -> i.getRarity() == filter).toList());
+        shown.sort(java.util.Comparator
+                .comparingInt((RollableItem i) -> i.getRarity().ordinal())
+                .thenComparing(RollableItem::getDisplayName));
 
         int totalPages = Math.max(1, (int) Math.ceil(shown.size() / (double) PAGE_SIZE));
         page = Math.max(0, Math.min(page, totalPages - 1));
@@ -308,7 +336,9 @@ public class IndexGui {
         for (int slot = 0; slot < 9; slot++) {
             inv.setItem(slot, divider());
         }
-        inv.setItem(MODE_SLOT, modeBlock(plugin, player, data, mode));
+        for (int i = 0; i < MODE_SLOTS.length; i++) {
+            inv.setItem(MODE_SLOTS[i], modeButton(plugin, data, Mode.values()[i], mode));
+        }
         inv.setItem(RARITY_SLOT, buildRarityBlock(plugin, data, filter));
         inv.setItem(PROGRESS_SLOT, buildProfile(plugin, player, data, filter, shown.size()));
         if (page > 0) {
@@ -328,6 +358,14 @@ public class IndexGui {
 
 
         MenuStyle.apply(inv, MenuStyle.Palette.CYAN);
+        // V330: and the divider row goes back to black afterwards. The
+        // palette paints every blank pane on the border ring, and the two
+        // ends of this row are on it, which is the blue glass Leon means.
+        for (int rail = DIVIDER_ROW_START; rail < DIVIDER_ROW_START + 9; rail++) {
+            if (rail == PREV_SLOT && page > 0) continue;
+            if (rail == NEXT_SLOT && page < totalPages - 1) continue;
+            inv.setItem(rail, divider());
+        }
 
         return inv;
     }

@@ -99,6 +99,10 @@ public final class ConfigMigrator {
             "pets.eggs.tiers.supernova.chances",
             // V329: the Secret Realm panel, for /rngadmin holo panel realm.
             "holograms.panels.realm",
+            // V330: the store lines. New keys inside a buy: section every
+            // server already has, so each one comes across on its own.
+            "buy.announce", "buy.console-only", "buy.announce-credits",
+            "buy.announce-rank", "buy.thanks",
             // V322: every forge is one flat chance. A new key, so a Patch
             // has nothing to match; without this the server runs on the
             // code default and Leon cannot tune it by hand.

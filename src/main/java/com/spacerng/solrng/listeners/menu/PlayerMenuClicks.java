@@ -843,9 +843,12 @@ final class PlayerMenuClicks {
 
         // Page buttons first: they sit on the divider row, clear of the
         // top row, and they have to win regardless of what else is there.
-        if (rawSlot == IndexGui.modeSlot()) {
-            player.openInventory(IndexGui.build(plugin, player, holder.getFilter(), 0,
-                    holder.getMode().step(back)));
+        // V330: one button per collection. A click opens that one; the
+        // one you are in does nothing.
+        IndexGui.Mode wanted = IndexGui.modeAt(rawSlot);
+        if (wanted != null) {
+            if (wanted == holder.getMode()) return;
+            player.openInventory(IndexGui.build(plugin, player, holder.getFilter(), 0, wanted));
             return;
         }
         if (rawSlot == IndexGui.raritySlot()) {

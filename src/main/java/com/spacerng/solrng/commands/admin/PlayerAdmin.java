@@ -303,6 +303,13 @@ final class PlayerAdmin extends AdminTools {
 
         plugin.getScoreboardManager().update(target);
         plugin.getLuckBarManager().update(target);
+        // V330: a Credits give IS a store purchase. The web store calls
+        // this command and nothing said so to anybody, so a rank showed up
+        // in chat and Credits arrived in silence.
+        if (currency.equals("credits") && amount > 0) {
+            announceStore(sender, target, "buy.announce-credits",
+                    String.format("%,d", amount) + " Credits");
+        }
         boolean stat = currency.equals("luck") || currency.equals("speed");
         sender.sendMessage(ChatColor.GREEN + "Gave " + target.getName() + " "
                 + (stat ? "+" + String.format("%,d", amount) + "% " + currency + ", permanently"
@@ -452,6 +459,7 @@ final class PlayerAdmin extends AdminTools {
         plugin.getScoreboardManager().update(target);
         plugin.getLuckBarManager().update(target);
         target.sendMessage(ChatColor.GREEN + "You are now " + ranks.styled(tier) + ChatColor.GREEN + ".");
+        announceStore(sender, target, "buy.announce-rank", ranks.styled(tier));
         sender.sendMessage(ChatColor.GREEN + "Set " + target.getName() + " to " + tier.display() + ".");
         return true;
     }
@@ -883,5 +891,43 @@ final class PlayerAdmin extends AdminTools {
             target.sendMessage(ChatColor.GREEN + "A pet was added to your collection. " + ChatColor.YELLOW + "/pets");
         }
         return true;
+    }
+
+    /**
+     * The store line (V330).
+     *
+     * console-only is on by default, so only the store's own calls, which
+     * come from the console, are announced. An op typing the command to
+     * test something stays silent, which is the difference between a
+     * feature and a way to spam the server.
+     */
+    private void announceStore(CommandSender sender, Player target, String path, String what) {
+        var config = plugin.getConfig();
+        if (!config.getBoolean("buy.announce", true)) return;
+        if (config.getBoolean("buy.console-only", true)
+                && sender instanceof org.bukkit.entity.Player) {
+            return;
+        }
+        String raw = config.getString(path, "");
+        if (raw == null || raw.isBlank()) return;
+        // {what} can carry legacy colour codes of its own, because a rank's
+        // name is styled before it gets here, and MiniMessage would print
+        // those codes rather than read them. The template is parsed around
+        // it and the styled text is appended as it stands.
+        var mini = net.kyori.adventure.text.minimessage.MiniMessage.miniMessage();
+        var legacy = net.kyori.adventure.text.serializer.legacy
+                .LegacyComponentSerializer.legacySection();
+        String[] halves = raw.replace("{player}", target.getName()).split(java.util.regex.Pattern.quote("{what}"), -1);
+        net.kyori.adventure.text.Component parsed = mini.deserialize(halves[0]);
+        if (halves.length > 1) {
+            parsed = parsed.append(legacy.deserialize(what));
+            for (int i = 1; i < halves.length; i++) parsed = parsed.append(mini.deserialize(halves[i]));
+        }
+        for (Player online : Bukkit.getOnlinePlayers()) online.sendMessage(parsed);
+        String thanks = config.getString("buy.thanks", "");
+        if (thanks != null && !thanks.isBlank()) {
+            target.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage()
+                    .deserialize(thanks));
+        }
     }
 }
