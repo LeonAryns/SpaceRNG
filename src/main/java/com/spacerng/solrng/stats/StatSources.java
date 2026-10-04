@@ -103,6 +103,18 @@ public final class StatSources {
      */
     public static Stat luck(SolRNGPlugin plugin, PlayerData data, boolean includeNova) {
         SkillTreeManager skills = plugin.getSkillTreeManager();
+        // V341, Leon's call: inside the Secret Realm everybody rolls at a
+        // flat 100% Luck. The realm already gave Luck no say in finding a
+        // secret, and this takes it out of the rolls themselves too, so a
+        // maxed account and a fresh one roll the same table in there. One
+        // part, so /stats says why rather than showing a stack of
+        // multipliers that are not being applied.
+        if (inRealm(plugin, data)) {
+            return new Stat(Id.LUCK, "Luck", "Flat for everybody inside the Secret Realm.",
+                    Format.PERCENT, List.of(new Part("Secret Realm",
+                            "Everybody rolls the same table in here", 1.0, Op.ADD, false)),
+                    1.0, "Your own Luck comes back when the realm closes.");
+        }
         List<Part> parts = new ArrayList<>();
 
         parts.add(new Part("Starforge", "Buy a better one in /starforge",
@@ -206,6 +218,13 @@ public final class StatSources {
      * has to stay worth firing on a maxed player.
      */
     public static Stat speed(SolRNGPlugin plugin, PlayerData data) {
+        // V341: and the same for Speed, so nobody can out-roll the room.
+        if (inRealm(plugin, data)) {
+            return new Stat(Id.SPEED, "Speed", "Flat for everybody inside the Secret Realm.",
+                    Format.MULTIPLIER, List.of(new Part("Secret Realm",
+                            "Everybody rolls at the same pace in here", 1.0, Op.ADD, false)),
+                    1.0, "Your own Speed comes back when the realm closes.");
+        }
         List<Part> parts = new ArrayList<>();
         parts.add(new Part("Base", "Everybody starts here",
                 data.getRollSpeedMultiplier(), Op.ADD, false));
@@ -392,6 +411,18 @@ public final class StatSources {
     }
 
     /** Walks the parts in order. The order IS the formula. */
+    /** Whether this player is standing in the Secret Realm right now (V341). */
+    private static boolean inRealm(SolRNGPlugin plugin, PlayerData data) {
+        if (plugin.getRealmManager() == null || data.getUuid() == null) return false;
+        // The strict check when they are online, which also wants them
+        // standing inside the realm's radius: somebody who walked out of
+        // it cannot find a secret either, so their own Luck is theirs again.
+        org.bukkit.entity.Player player = org.bukkit.Bukkit.getPlayer(data.getUuid());
+        return player == null
+                ? plugin.getRealmManager().inside(data.getUuid())
+                : plugin.getRealmManager().inside(player);
+    }
+
     private static double fold(List<Part> parts) {
         double total = 0.0;
         for (Part part : parts) {

@@ -236,6 +236,14 @@ public final class ConfigMigrator {
             "holograms.podium-text-scale",
             // V336: the realm panel hides the shared "Click Here" line.
             "holograms.panels.realm.click",
+            // V341: five more secrets, Leon's call ("also add more"). One
+            // dotted path each, because every server already has a
+            // secret-realm.secrets section and a whole-section copy would
+            // never fire. A server that has retuned one of the eight it
+            // already had keeps it.
+            "secret-realm.secrets.tidelocked_twin", "secret-realm.secrets.ashen_orbit",
+            "secret-realm.secrets.glass_horizon", "secret-realm.secrets.last_light",
+            "secret-realm.secrets.unnamed_sky",
             // V144: the Boss Box and the item that opens it.
             "crates.types.boss", "consumables.boss_box",
             // V152: pets grow with dust. Dotted paths, because every server

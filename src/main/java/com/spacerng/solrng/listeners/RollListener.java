@@ -1045,12 +1045,15 @@ public class RollListener implements Listener {
         if (newShiny) data.markShinyDiscovered(result.getDisplayName());
         if (silent) return;
 
+        // V341: no Tag Luck on the end of it. A drop's tag multiplier has
+        // paid nothing since V337, when the index multiplier became your
+        // best secret, so the line was quoting a number that does not
+        // exist any more.
         String notice = (newShiny
                 ? ChatColor.AQUA + "" + ChatColor.BOLD + "New shiny  "
                 : ChatColor.GREEN + "" + ChatColor.BOLD + "New  ")
                 + ChatColor.RESET + RollFormat.displayName(plugin, result, shiny)
-                + ChatColor.GRAY + " added to your index "
-                + ChatColor.DARK_AQUA + "(" + String.format("%.2f", result.getLuckMultiplier()) + "x Luck)";
+                + ChatColor.GRAY + " added to your index";
         player.sendMessage(notice);
         if (!auto) sendActionBar(player, notice);
         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.8f, newShiny ? 1.8f : 1.3f);

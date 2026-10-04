@@ -7509,6 +7509,46 @@ secret-realm:
       hint: "It says your name, but not out loud."
       one-in: 100000
       multiplier: 7.0
+    tidelocked_twin:
+      display: "Tidelocked Twin"
+      colors: ["#E0F7FA", "#26C6DA"]
+      icon: HEART_OF_THE_SEA
+      weight: 27
+      hint: "Two worlds, one face each, never turning."
+      one-in: 1500
+      multiplier: 1.75
+    ashen_orbit:
+      display: "Ashen Orbit"
+      colors: ["#EFEBE9", "#8D6E63"]
+      icon: GLOW_INK_SAC
+      weight: 21
+      hint: "The ring left where a world used to go round."
+      one-in: 3500
+      multiplier: 2.25
+    glass_horizon:
+      display: "Glass Horizon"
+      colors: ["#E0F2F1", "#4DB6AC"]
+      icon: AMETHYST_SHARD
+      weight: 10
+      hint: "The edge you can see through but not past."
+      one-in: 15000
+      multiplier: 3.5
+    last_light:
+      display: "Last Light"
+      colors: ["#FFF3E0", "#FB8C00"]
+      icon: FIREWORK_STAR
+      weight: 3.5
+      hint: "What a dead star is still sending."
+      one-in: 75000
+      multiplier: 6.0
+    unnamed_sky:
+      display: "The Unnamed Sky"
+      colors: ["#E8EAF6", "#7986CB", "#1A237E"]
+      icon: END_CRYSTAL
+      weight: 0.2
+      hint: "Nobody has looked at it long enough to name it."
+      one-in: 500000
+      multiplier: 15.0
     origin_spark:
       display: "Origin Spark"
       colors: ["#FFFDE7", "#FFD54F", "#FF6F00"]

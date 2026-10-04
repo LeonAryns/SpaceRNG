@@ -382,6 +382,11 @@ public class RealmManager implements Listener {
     }
 
     /** Inside means sent there by /realm, still in its world, and near the spot. */
+    /** The same, by id, for callers with no Player in hand (V341). */
+    public boolean inside(UUID uuid) {
+        return uuid != null && returns.containsKey(uuid);
+    }
+
     public boolean inside(Player player) {
         if (!open || !returns.containsKey(player.getUniqueId())) return false;
         Location spot = spot();
