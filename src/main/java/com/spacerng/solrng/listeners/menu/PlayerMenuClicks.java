@@ -346,8 +346,27 @@ final class PlayerMenuClicks {
             player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.4f, 1.2f);
             return;
         }
-        // The index is for reading.
-        if (view == com.spacerng.solrng.gui.PetsHolder.View.INDEX) return;
+        // V324: the index switches autotrash per pet. A pet marked here is
+        // thrown away as it hatches, which is the price of duplicates
+        // being handed out at all.
+        if (view == com.spacerng.solrng.gui.PetsHolder.View.INDEX) {
+            String indexed = com.spacerng.solrng.gui.PetsGui.clickedPet(event.getCurrentItem());
+            if (indexed == null) return;
+            var indexedType = pets.get(indexed);
+            if (indexedType == null) return;
+            boolean on = data.togglePetAutoTrash(indexed);
+            String shownIndexed = com.spacerng.solrng.gui.Lore.gradient(
+                    indexedType.display(), true, indexedType.stops());
+            player.sendMessage(on
+                    ? ChatColor.RED + "Autotrash on for " + ChatColor.RESET + shownIndexed
+                            + ChatColor.GRAY + ". Copies are thrown away as they hatch."
+                    : ChatColor.GREEN + "Autotrash off for " + ChatColor.RESET + shownIndexed
+                            + ChatColor.GRAY + ".");
+            player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.5f,
+                    on ? 0.8f : 1.5f);
+            player.openInventory(com.spacerng.solrng.gui.PetsGui.index(plugin, player));
+            return;
+        }
 
         // The forge star: ten Cosmic Dust becomes a pet, or a rarity on one
         // you already have.
@@ -376,12 +395,16 @@ final class PlayerMenuClicks {
             // sees it, and the chat line and the worn pets wait for it.
             int tier = pets.upgrades().eggs().indexOf(egg) + 1;
             Runnable landed = () -> {
-                if (made.isNew()) {
+                if (made.trashed()) {
+                    player.sendMessage(ChatColor.GRAY + "Hatched " + ChatColor.RESET + shown
+                            + ChatColor.GRAY + " and threw it away. Autotrash is on for it in the index.");
+                } else if (made.isNew()) {
                     player.sendMessage(ChatColor.LIGHT_PURPLE + "A new pet hatched: " + ChatColor.RESET
-                            + shown + ChatColor.GRAY + ".");
+                            + shown + ChatColor.GRAY + ". " + made.type().boostText() + ".");
                 } else {
-                    player.sendMessage(ChatColor.LIGHT_PURPLE + "It was " + ChatColor.RESET + shown
-                            + ChatColor.GRAY + " again, now rarity " + made.pet().rarity() + ".");
+                    player.sendMessage(ChatColor.LIGHT_PURPLE + "Another " + ChatColor.RESET + shown
+                            + ChatColor.GRAY + ". You hold " + ChatColor.WHITE + made.pet().copies()
+                            + ChatColor.GRAY + " of them.");
                 }
                 plugin.getPetManager().refresh(player);
                 plugin.getScoreboardManager().update(player);
@@ -406,6 +429,22 @@ final class PlayerMenuClicks {
 
         var pet = pets.get(id);
         if (pet == null) return;
+
+        // V324: a shift click in storage throws one spare copy away. The
+        // copy that IS the pet never goes, so this cannot lose a pet.
+        if (event.isShiftClick() && view == com.spacerng.solrng.gui.PetsHolder.View.STORAGE) {
+            if (pets.trashCopy(data, pet.id())) {
+                player.sendMessage(ChatColor.GRAY + "Threw away one spare "
+                        + com.spacerng.solrng.gui.Lore.gradient(pet.display(), true, pet.stops())
+                        + ChatColor.GRAY + ".");
+                player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_ITEM_BREAK, 0.6f, 1.2f);
+            } else {
+                player.sendMessage(ChatColor.GRAY + "You have no spare copy of that pet.");
+                player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.6f, 1.0f);
+            }
+            player.openInventory(com.spacerng.solrng.gui.PetsGui.storage(plugin, player));
+            return;
+        }
 
         // A right click opens the pet for upgrading instead of wearing it.
         // Bedrock cannot right click in a menu (V223), so any click in

@@ -344,6 +344,7 @@ public class PlayerDataManager {
             if (pet != null) data.putPet(pet);
         }
         data.getEquippedPets().addAll(yml.getStringList("pets-equipped"));
+        data.getPetAutoTrash().addAll(yml.getStringList("pets-autotrash"));
         data.setCosmicDust(yml.getLong("cosmic-dust", 0L));
         data.setFarmDust(yml.getLong("farm-dust", 0L));
         data.setKeyallAt(yml.getLong("keyall-at", 0L));
@@ -559,6 +560,7 @@ public class PlayerDataManager {
         }
         yml.set("pets-owned", ownedPets);
         yml.set("pets-equipped", new java.util.ArrayList<>(data.getEquippedPets()));
+        yml.set("pets-autotrash", new java.util.ArrayList<>(data.getPetAutoTrash()));
         yml.set("cosmic-dust", data.getCosmicDust());
         yml.set("farm-dust", data.getFarmDust());
         yml.set("keyall-at", data.getKeyallAt());

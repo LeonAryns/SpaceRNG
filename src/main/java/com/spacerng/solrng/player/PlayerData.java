@@ -1406,13 +1406,35 @@ public class PlayerData {
         return auraChoice;
     }
 
-    // Pets. Owned is keyed by type because a player holds at most one of
-    // each: making one you already have raises its rarity instead of
-    // handing over a second copy nothing in the menu could tell apart.
-    // Equipped is a list of type ids because the slot order is what the
-    // orbit draws.
+    // Pets. Owned is keyed by type, and the instance counts its own
+    // duplicates (V324): hatching one you already have hands over another
+    // copy rather than a silent free rarity level, and everything the pet
+    // is worth still comes off the single instance. Equipped is a list of
+    // type ids because the slot order is what the orbit draws, and
+    // autotrash is the set of pets whose copies are thrown away as they
+    // land, switched per pet in the pet index.
     private final Map<String, com.spacerng.solrng.pet.PetInstance> ownedPets = new LinkedHashMap<>();
     private final List<String> equippedPets = new ArrayList<>();
+    private final java.util.Set<String> petAutoTrash = new java.util.LinkedHashSet<>();
+
+    public java.util.Set<String> getPetAutoTrash() {
+        return petAutoTrash;
+    }
+
+    public boolean isPetAutoTrash(String id) {
+        return id != null && petAutoTrash.contains(id.toLowerCase(java.util.Locale.ROOT));
+    }
+
+    /** Switches autotrash for one pet and says what it is now. */
+    public boolean togglePetAutoTrash(String id) {
+        if (id == null) return false;
+        String key = id.toLowerCase(java.util.Locale.ROOT);
+        if (!petAutoTrash.remove(key)) {
+            petAutoTrash.add(key);
+            return true;
+        }
+        return false;
+    }
 
     public Map<String, com.spacerng.solrng.pet.PetInstance> getOwnedPets() {
         return ownedPets;

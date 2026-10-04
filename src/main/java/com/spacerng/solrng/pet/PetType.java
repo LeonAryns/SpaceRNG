@@ -9,13 +9,19 @@ import java.util.List;
 /**
  * One pet, straight from config.
  *
- * A pet is a relic that rides in one of the three aura slots and pays a
- * percentage on a single stat. One stat each, on purpose: a pet that
- * gives a bit of everything is impossible to compare against the next
- * one, and a player picking three of them should be making a choice.
+ * A pet is a relic that rides in one of the three aura slots and
+ * MULTIPLIES a single stat. One stat each, on purpose, and since V324
+ * every stat exists at every rarity: which rarity you hatch and which
+ * stat it turns out to boost are two separate rolls, so the best pet in
+ * the game can still land on a stat you did not want.
+ *
+ * {@code bonus} is the fraction above 1 that a fresh copy is worth, and
+ * it comes from pets.multipliers by rarity rather than from the pet's
+ * own entry, so the whole ladder is retuned in one block. 0.64 reads as
+ * 1.64x.
  */
 public record PetType(String id, String display, List<String> colors, Material icon,
-                      Rarity rarity, StatSources.Id stat, double percent, double weight, String blurb) {
+                      Rarity rarity, StatSources.Id stat, double bonus, double weight, String blurb) {
 
     /** The gradient stops in the shape Lore wants them. */
     public String[] stops() {
@@ -29,10 +35,16 @@ public record PetType(String id, String display, List<String> colors, Material i
 
     /**
      * The same line for an owned copy, with its rarity and tier already
-     * folded in by {@link PetUpgrades}.
+     * folded in by {@link PetUpgrades}. V324: a multiplier, not a
+     * percentage, Leon's call.
      */
     public String boostText(double multiplier) {
-        return "+" + trim(percent * multiplier * 100.0) + "% " + statName();
+        return multiText(multiplier) + " " + statName();
+    }
+
+    /** Just the number: "1.64x". Always two decimals, so a column lines up. */
+    public String multiText(double multiplier) {
+        return String.format("%.2f", 1.0 + bonus * multiplier) + "x";
     }
 
     public String statName() {
@@ -46,10 +58,4 @@ public record PetType(String id, String display, List<String> colors, Material i
         };
     }
 
-    private static String trim(double value) {
-        String text = String.format("%.2f", value);
-        while (text.endsWith("0")) text = text.substring(0, text.length() - 1);
-        if (text.endsWith(".")) text = text.substring(0, text.length() - 1);
-        return text;
-    }
 }

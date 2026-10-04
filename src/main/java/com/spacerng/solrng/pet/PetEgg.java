@@ -1,69 +1,58 @@
 package com.spacerng.solrng.pet;
 
+import com.spacerng.solrng.rarity.Rarity;
 import org.bukkit.Material;
 
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * One tier of egg on the pets screen.
  *
- * Every egg draws from the same pets. What a dearer egg buys is odds: the
- * weight of every pet at or above {@code pets.eggs.boosted-from} is
- * multiplied by the egg's boost, so a boost of 20 makes those pets twenty
- * times as heavy against the rest. The chances printed on the egg are
- * worked out from the same weights, never written down twice.
+ * Every egg draws from the same forty-two pets. What a dearer egg buys
+ * is the chance of each RARITY, written down one line each in config
+ * (V324). Whatever is left over after those chances is the egg's floor
+ * rarity, so the numbers always add up to one egg.
+ *
+ * Until V324 an egg carried a single {@code boost} that multiplied the
+ * weight of every pet from Epic up. That could not move Epic, Legendary
+ * and Mythical against each other, only all three against Common and
+ * Uncommon together, so the Nebula and the Supernova both landed about a
+ * quarter of their hatches on a Mythical however the boosts were tuned,
+ * and the two eggs felt the same. Leon reported exactly that. A chance
+ * per rarity cannot come apart that way, and the tooltip prints the
+ * config numbers rather than a calculation of them.
  */
 public record PetEgg(String id, String display, List<String> colors, Material icon,
-                     long cost, double boost, int minPrestige,
-                     com.spacerng.solrng.rarity.Rarity minRarity, com.spacerng.solrng.rarity.Rarity maxRarity,
-                     double divineChance) {
+                     long cost, int minPrestige, Rarity floor, Map<Rarity, Double> chances) {
 
-    /**
-     * V313: Divine is a flat chance per egg, not a weight in the pool.
-     *
-     * Leon asked for the first egg to hatch anything but a Divine, the
-     * second to carry a very small Divine chance and the third ten times
-     * that. Expressed as weights that is not reachable: the egg's boost
-     * multiplies every tier from boosted-from up, Divine included, so
-     * raising the boost to make Epics likelier drags the Divine chance
-     * along and "ten times" stops being ten times. A chance of its own
-     * is read before the pool, so the number in config IS the number,
-     * and the third egg is exactly ten times the second whatever else
-     * is tuned.
-     *
-     * The ordinary band stops at Mythical on every egg for the same
-     * reason: one route to a Divine, not two that have to agree.
-     */
-    public boolean hatchesDivine() {
-        return divineChance > 0.0;
+    /** The chance this egg hatches a given rarity, floor included. */
+    public double chanceOf(Rarity rarity) {
+        if (rarity == floor) return leftover();
+        Double value = chances.get(rarity);
+        return value == null ? 0.0 : Math.max(0.0, value);
     }
 
-    /**
-     * V284: each egg hatches its own band of pets, Leon's call: the first
-     * egg nothing above Rare, the dearer ones nothing below their floor.
-     * The default band by egg id, for a live config without the keys.
-     */
-    static com.spacerng.solrng.rarity.Rarity[] defaultBand(String id) {
-        // V313: the ceilings are Mythical on every egg, because Divine is
-        // its own chance now (see divineChance above) and two routes to
-        // the same pet would have to agree about the odds. The floors are
-        // V284's and stay his: a dearer egg does not hand out Commons.
-        // Egg one opened up to the whole band below Divine, Leon's call:
-        // "egg 1 alles maar geen divine".
-        return switch (id) {
-            case "nebula" -> new com.spacerng.solrng.rarity.Rarity[]{
-                    com.spacerng.solrng.rarity.Rarity.UNCOMMON, com.spacerng.solrng.rarity.Rarity.MYTHICAL};
-            case "supernova" -> new com.spacerng.solrng.rarity.Rarity[]{
-                    com.spacerng.solrng.rarity.Rarity.RARE, com.spacerng.solrng.rarity.Rarity.MYTHICAL};
-            default -> new com.spacerng.solrng.rarity.Rarity[]{
-                    com.spacerng.solrng.rarity.Rarity.COMMON, com.spacerng.solrng.rarity.Rarity.MYTHICAL};
-        };
+    /** What is left for the floor rarity once every written chance is taken. */
+    public double leftover() {
+        double used = 0.0;
+        for (Map.Entry<Rarity, Double> entry : chances.entrySet()) {
+            if (entry.getKey() == floor) continue;
+            used += Math.max(0.0, entry.getValue());
+        }
+        return Math.max(0.0, 1.0 - used);
     }
 
-    public boolean hatches(com.spacerng.solrng.rarity.Rarity rarity) {
-        return rarity.ordinal() >= minRarity.ordinal() && rarity.ordinal() <= maxRarity.ordinal();
+    /** Every rarity this egg can hatch, rarest first, with its chance. */
+    public Map<Rarity, Double> ladder() {
+        Map<Rarity, Double> out = new EnumMap<>(Rarity.class);
+        for (Rarity rarity : Rarity.values()) {
+            double chance = chanceOf(rarity);
+            if (chance > 0.0) out.put(rarity, chance);
+        }
+        return out;
     }
-
 
     public String[] stops() {
         return colors.toArray(new String[0]);

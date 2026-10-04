@@ -126,9 +126,12 @@ public class PetUpgradeGui {
         lore.add(Lore.stat(ChatColor.AQUA, "Rarity", owned.rarity() + " / " + upgrades.maxRarity()));
         lore.add(Lore.stat(ChatColor.AQUA, "Tier", owned.tier() + " / " + upgrades.maxTier()));
         lore.add(Lore.stat(ChatColor.AQUA, "Shiny", owned.shiny() ? Lore.TICK : Lore.CROSS));
+        if (owned.copies() > 1) {
+            lore.add(Lore.stat(ChatColor.AQUA, "Copies", String.valueOf(owned.copies())));
+        }
         lore.add("");
-        lore.add(Lore.stat(ChatColor.AQUA, "Base", type.boostText()));
-        lore.add(Lore.stat(ChatColor.AQUA, "Multiplier", trim(multiplier) + "x"));
+        lore.add(Lore.stat(ChatColor.AQUA, "Fresh", type.boostText()));
+        lore.add(Lore.stat(ChatColor.AQUA, "Grown by", trim(multiplier) + "x"));
         if (upgrades.capped(owned)) {
             lore.add("");
             lore.add(Lore.line(ChatColor.GRAY, "This pet is against the ceiling."));
@@ -165,7 +168,7 @@ public class PetUpgradeGui {
             lore.add("");
             lore.add(canPay
                     ? ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to upgrade"
-                    : ChatColor.RED + "" + ChatColor.BOLD + "Not enough Cosmic Dust");
+                    : ChatColor.RED + "" + ChatColor.BOLD + "Not enough Gems");
             if (!canPay) lore.add(Lore.line(ChatColor.GRAY, "Gems come off the farm and from crates"));
         }
         meta.setLore(lore);
@@ -205,7 +208,7 @@ public class PetUpgradeGui {
             lore.add("");
             lore.add(canPay
                     ? ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to try"
-                    : ChatColor.RED + "" + ChatColor.BOLD + "Not enough Farm Dust");
+                    : ChatColor.RED + "" + ChatColor.BOLD + "Not enough Gems");
             if (!canPay) lore.add(Lore.line(ChatColor.GRAY, "Gems come off the farm and from crates"));
         }
         meta.setLore(lore);
@@ -231,13 +234,13 @@ public class PetUpgradeGui {
         lore.add(Lore.line(ChatColor.GRAY, "everything else."));
         lore.add("");
         if (owned.shiny()) {
-            lore.add(Lore.stat(ChatColor.LIGHT_PURPLE, "Bonus",
-                    "+" + Math.round(upgrades.shinyBonus() * 100.0) + "%"));
+            lore.add(Lore.stat(ChatColor.LIGHT_PURPLE, "Worth",
+                    trim(1.0 + upgrades.shinyBonus()) + "x what it was"));
             lore.add("");
             lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "Already shiny");
         } else {
-            lore.add(Lore.stat(ChatColor.LIGHT_PURPLE, "Adds",
-                    "+" + Math.round(upgrades.shinyBonus() * 100.0) + "%"));
+            lore.add(Lore.stat(ChatColor.LIGHT_PURPLE, "Worth",
+                    trim(1.0 + upgrades.shinyBonus()) + "x what it is now"));
             lore.add(Lore.stat(ChatColor.AQUA, "Cost", Currency.GEMS.price(cost, canPay)));
             lore.add(Lore.requirement("Shiny " + type.rarity().displayName() + " found",
                     hasShiny ? "1" : "0", "1", hasShiny));
@@ -249,7 +252,7 @@ public class PetUpgradeGui {
             } else if (canPay) {
                 lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to upgrade");
             } else {
-                lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Not enough Cosmic Dust");
+                lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Not enough Gems");
             }
         }
         meta.setLore(lore);

@@ -29,7 +29,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * the other, so a pet is the one thing on the server that asks you to do
  * both.
  *
- * What a pet pays stays a percentage of a single stat, and
+ * What a pet pays is a MULTIPLIER on a single stat (V324), and
  * {@link PetUpgrades} is the only place that says what rarity and tier do
  * to it. Three pets are still a choice between three numbers a player can
  * compare at a glance.
@@ -88,8 +88,16 @@ public class PetManager {
                 stat = StatSources.Id.LUCK;
             }
 
+            // V324: what a pet is worth is its RARITY, from
+            // pets.multipliers, not a number on its own entry. An old
+            // config that still carries percent is honoured, so a server
+            // that has not taken the new table yet keeps its nine pets
+            // working exactly as they did.
+            double bonus = p.contains("percent")
+                    ? Math.max(0.0, p.getDouble("percent", 0.0))
+                    : upgrades.bonusFor(rarity);
             types.put(id, new PetType(id, p.getString("display", rawId), colors, icon, rarity, stat,
-                    Math.max(0.0, p.getDouble("percent", 0.0)),
+                    bonus,
                     Math.max(0.0, p.getDouble("weight", 1.0)),
                     p.getString("blurb", "")));
         }
@@ -102,6 +110,12 @@ public class PetManager {
 
     public Map<String, PetType> getTypes() {
         return types;
+    }
+
+    /** Whether any pet is defined at this rarity, for the index ladder. */
+    public boolean hasRarity(Rarity rarity) {
+        for (PetType type : types.values()) if (type.rarity() == rarity) return true;
+        return false;
     }
 
     public PetType get(String id) {
@@ -132,11 +146,13 @@ public class PetManager {
     /**
      * Spends Cosmic Dust on a new pet.
      *
-     * A type you do not own yet comes home as a fresh Rarity 1 copy. A
-     * type you already own becomes a rarity level on the copy you have,
-     * so the dust is never wasted and the menu never fills with
-     * duplicates. When every pet is already at max rarity there is
-     * nothing to buy and the dust stays where it is.
+     * V324: a type you already own comes back as a DUPLICATE rather than
+     * a free rarity level. A hatch you already had used to turn into a
+     * number going up somewhere you were not looking, which is why it
+     * never felt like a result. A pet marked for autotrash in the pet
+     * index is thrown away the moment it hatches, so the one cost of
+     * duplicates, a collection filling with things you do not want, is
+     * yours to switch off per pet.
      */
     public Made make(PlayerData data) {
         return upgrades.eggs().isEmpty() ? Made.none() : make(data, upgrades.eggs().get(0));
@@ -154,6 +170,16 @@ public class PetManager {
         if (!data.spendCosmicDust(cost)) return Made.none();
 
         PetInstance had = data.getPet(picked.id());
+        if (data.isPetAutoTrash(picked.id())) {
+            // Thrown away on landing. The dust is spent either way: a free
+            // reroll on everything you did not want would make autotrash
+            // the best way to hatch rather than a tidying tool.
+            // The instance here is only what the hatch animation and the
+            // chat line read; nothing is stored, because the copy was
+            // thrown away. It is never null, or the hatch would take the
+            // server down on the first autotrashed pet nobody owns.
+            return new Made(picked, had == null ? PetInstance.fresh(picked.id()) : had, false, true);
+        }
         if (had == null) {
             PetInstance made = PetInstance.fresh(picked.id());
             data.putPet(made);
@@ -161,17 +187,17 @@ public class PetManager {
             // has just paid for their first one should not have to find the
             // menu before it does anything.
             if (data.getEquippedPets().size() < slots(data)) data.getEquippedPets().add(picked.id());
-            return new Made(picked, made, true);
+            return new Made(picked, made, true, false);
         }
-        PetInstance grown = had.withRarity(had.rarity() + 1);
+        PetInstance grown = had.plusCopy();
         data.putPet(grown);
-        return new Made(picked, grown, false);
+        return new Made(picked, grown, false, false);
     }
 
     /** What {@link #make} did, so the menu and the chat line can say it. */
-    public record Made(PetType type, PetInstance pet, boolean isNew) {
+    public record Made(PetType type, PetInstance pet, boolean isNew, boolean trashed) {
         public static Made none() {
-            return new Made(null, null, false);
+            return new Made(null, null, false, false);
         }
 
         public boolean happened() {
@@ -180,57 +206,60 @@ public class PetManager {
     }
 
     /**
-     * Picks which pet the dust becomes, weighted by the weight in config.
-     * Types already sitting at max rarity are left out, because paying for
-     * one would do nothing.
+     * Picks which pet an egg becomes, in two steps.
+     *
+     * First the rarity, from the egg's own written chances: one draw
+     * walked from the rarest down, and anything left over is the egg's
+     * floor. Then which pet inside that rarity, by weight. The two steps
+     * are the whole design Leon asked for, because every stat exists at
+     * every rarity: the rarity you hatch and the stat you wanted are
+     * separate rolls, so a Divine can still be a stat you do not care
+     * about.
+     *
+     * Nothing is excluded for being maxed any more. A pet you already own
+     * comes back as a duplicate, so there is always something to hatch.
      */
     private PetType roll(PlayerData data, PetEgg egg) {
-        // V313: Divine is read first, as a flat chance per egg. See the
-        // note on PetEgg.hatchesDivine for why it is not a weight: the
-        // boost would drag it along and "ten times the chance" would stop
-        // being ten times the moment the boost was retuned.
-        if (egg.hatchesDivine() && ThreadLocalRandom.current().nextDouble() < egg.divineChance()) {
-            PetType divine = pickDivine(data);
-            // Nobody left to hatch there (every Divine pet already maxed),
-            // so the roll falls through to the ordinary pool rather than
-            // eating the dust for nothing.
-            if (divine != null) return divine;
+        Rarity rarity = rollRarity(egg);
+        PetType picked = pickIn(rarity);
+        if (picked != null) return picked;
+        // No pet defined at that rarity: walk down rather than eat the
+        // dust for nothing.
+        for (int ordinal = rarity.ordinal() - 1; ordinal >= 0; ordinal--) {
+            PetType lower = pickIn(Rarity.values()[ordinal]);
+            if (lower != null) return lower;
         }
-        Map<PetType, Double> pool = pool(data, egg);
-        double total = 0.0;
-        for (double weight : pool.values()) total += weight;
-        if (pool.isEmpty() || total <= 0.0) return null;
-
-        double pick = ThreadLocalRandom.current().nextDouble() * total;
-        PetType last = null;
-        for (Map.Entry<PetType, Double> entry : pool.entrySet()) {
-            last = entry.getKey();
-            pick -= entry.getValue();
-            if (pick <= 0.0) return last;
+        for (int ordinal = rarity.ordinal() + 1; ordinal < Rarity.values().length; ordinal++) {
+            PetType higher = pickIn(Rarity.values()[ordinal]);
+            if (higher != null) return higher;
         }
-        return last;
+        return null;
     }
 
-    /**
-     * One Divine pet, weighted among themselves (V313).
-     *
-     * Weighted rather than picked flat, because there is one Divine pet
-     * today and there will be more, and a flat pick would silently make
-     * each new one as likely as the Starheart.
-     */
-    private PetType pickDivine(PlayerData data) {
+    /** One draw against the egg's ladder, rarest first. */
+    private Rarity rollRarity(PetEgg egg) {
+        double pick = ThreadLocalRandom.current().nextDouble();
+        double acc = 0.0;
+        Rarity[] all = Rarity.values();
+        for (int ordinal = all.length - 1; ordinal >= 0; ordinal--) {
+            Rarity rarity = all[ordinal];
+            if (rarity == egg.floor()) continue;
+            acc += Math.max(0.0, egg.chances().getOrDefault(rarity, 0.0));
+            if (pick < acc) return rarity;
+        }
+        return egg.floor();
+    }
+
+    /** One pet of this rarity, weighted among themselves, or null if none exist. */
+    private PetType pickIn(Rarity rarity) {
         Map<PetType, Double> pool = new java.util.LinkedHashMap<>();
         double total = 0.0;
         for (PetType type : types.values()) {
-            if (type.rarity() != com.spacerng.solrng.rarity.Rarity.DIVINE) continue;
-            if (type.weight() <= 0.0) continue;
-            PetInstance had = data.getPet(type.id());
-            if (had != null && had.rarity() >= upgrades.maxRarity()) continue;
+            if (type.rarity() != rarity || type.weight() <= 0.0) continue;
             pool.put(type, type.weight());
             total += type.weight();
         }
         if (pool.isEmpty() || total <= 0.0) return null;
-
         double pick = ThreadLocalRandom.current().nextDouble() * total;
         PetType last = null;
         for (Map.Entry<PetType, Double> entry : pool.entrySet()) {
@@ -242,47 +271,29 @@ public class PetManager {
     }
 
     /**
-     * What an egg can hatch for this player and how heavy each pet is.
-     * Pets already at max rarity are left out, because paying for one
-     * would do nothing.
+     * The chance of each pet rarity out of this egg, for the tooltip.
+     * These ARE the config numbers now, not a calculation of them, so
+     * what the egg says and what the egg does cannot drift apart.
      */
-    private Map<PetType, Double> pool(PlayerData data, PetEgg egg) {
-        Map<PetType, Double> pool = new java.util.LinkedHashMap<>();
-        for (PetType type : types.values()) {
-            PetInstance had = data.getPet(type.id());
-            if (had != null && had.rarity() >= upgrades.maxRarity()) continue;
-            if (type.weight() <= 0.0) continue;
-            if (!egg.hatches(type.rarity())) continue;
-            double weight = type.weight();
-            if (type.rarity().ordinal() >= upgrades.boostedFrom().ordinal()) weight *= egg.boost();
-            pool.put(type, weight);
-        }
-        return pool;
-    }
-
-    /** The chance of each pet rarity out of this egg, for the tooltip. */
-    public Map<com.spacerng.solrng.rarity.Rarity, Double> odds(PlayerData data, PetEgg egg) {
-        Map<PetType, Double> pool = pool(data, egg);
-        double total = 0.0;
-        for (double weight : pool.values()) total += weight;
-        Map<com.spacerng.solrng.rarity.Rarity, Double> odds =
-                new java.util.EnumMap<>(com.spacerng.solrng.rarity.Rarity.class);
-        // V313: the Divine chance is read before the pool, so the pool's
-        // own odds are what is left after it. Printing the raw pool here
-        // would have the tooltip claim more than the egg gives, and the
-        // whole point of working the tooltip out from the real numbers is
-        // that it cannot drift from them.
-        double divine = egg.hatchesDivine() && pickDivine(data) != null
-                ? Math.min(1.0, egg.divineChance())
-                : 0.0;
-        if (divine > 0.0) {
-            odds.merge(com.spacerng.solrng.rarity.Rarity.DIVINE, divine, Double::sum);
-        }
-        if (total <= 0.0) return odds;
-        for (Map.Entry<PetType, Double> entry : pool.entrySet()) {
-            odds.merge(entry.getKey().rarity(), (1.0 - divine) * entry.getValue() / total, Double::sum);
+    public Map<Rarity, Double> odds(PlayerData data, PetEgg egg) {
+        Map<Rarity, Double> odds = new java.util.EnumMap<>(Rarity.class);
+        for (Map.Entry<Rarity, Double> entry : egg.ladder().entrySet()) {
+            if (pickIn(entry.getKey()) == null) continue;
+            odds.put(entry.getKey(), entry.getValue());
         }
         return odds;
+    }
+
+    /**
+     * Throws one spare copy away. The copy that IS the pet never goes, so
+     * a pet is never lost to a misclick; /pets has no delete and this is
+     * not one.
+     */
+    public boolean trashCopy(PlayerData data, String typeId) {
+        PetInstance pet = data.getPet(typeId);
+        if (pet == null || pet.spare() <= 0) return false;
+        data.putPet(pet.minusCopy());
+        return true;
     }
 
     /** Buys one rarity level with Gems (V313). Always takes. */
@@ -421,7 +432,7 @@ public class PetManager {
             PetType type = types.get(id);
             if (type == null || type.stat() != stat) continue;
             PetInstance pet = data.getPet(id);
-            total += type.percent() * upgrades.multiplier(pet);
+            total += type.bonus() * upgrades.multiplier(pet);
         }
         return total;
     }

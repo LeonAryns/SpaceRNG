@@ -8,7 +8,7 @@
 # their fresh defaults in on top of whatever is on disk, so a server
 # owner never has to delete the whole file to pick up a structural
 # change. Item table, prices and cosmetic tweaks are untouched.
-config-version: 30
+config-version: 31
 
 # One-off value changes the plugin has already made to this file, so none
 # is ever made twice. Managed by the plugin; leave it alone.
@@ -6883,55 +6883,95 @@ pets:
   min-prestige: 0
 
   # The eggs on the pets screen, cheapest first. Every egg draws from the
-  # same pets; boost multiplies the weight of every pet at boosted-from
-  # or rarer, so a dearer egg makes the rare pets likelier. The odds on
-  # each egg's tooltip are worked out from these same numbers.
+  # same forty-two pets. V324: what an egg buys is written out as the
+  # chance of each rarity, one line each, and whatever is left over is
+  # the egg's floor rarity. The old boost multiplied every rarity from
+  # Epic up by the same number, which could not move Epic, Legendary and
+  # Mythical against EACH OTHER however it was tuned, and that is why the
+  # second and third eggs felt identical.
+  #
+  # The chances on the tooltip are these numbers, not a calculation of
+  # them, so what the egg says is what the egg does.
   eggs:
-    boosted-from: EPIC
     # V313: an egg hatches the moment it is bought, Leon's call. Set this
     # false to bring the V238 build-up, shake and crack back.
     instant: true
-    # V313: Divine is a flat chance per egg rather than a weight in the
-    # pool, so "ten times the chance" stays exactly ten times however the
-    # boosts are retuned. The ordinary band therefore stops at Mythical
-    # on every egg: one route to a Divine, not two that have to agree.
+    # Divine is one of the chances below like any other rarity.
     tiers:
       stardust:
         display: "Stardust Egg"
         colors: ["#C9D6FF", "#7FDBFF"]
         icon: TURTLE_EGG
         cost: 100
-        boost: 1
         # V313: from the start, and never a Divine.
         min-prestige: 0
         min-rarity: COMMON
         max-rarity: MYTHICAL
         divine-chance: 0.0
+        # V324: the chance of each rarity, written down rather than worked
+        # out from a boost. Anything left over is the egg's floor rarity,
+        # here Common at about 68.9%.
+        chances:
+          UNCOMMON: 0.25
+          RARE: 0.06
+          EPIC: 0.01
+          LEGENDARY: 0.001
+          MYTHICAL: 0.0001
       nebula:
         display: "Nebula Egg"
         colors: ["#C77DFF", "#FF7AD9"]
         icon: SNIFFER_EGG
         cost: 1500
-        boost: 25
         # V313: Prestige 10, and a very small Divine chance: 1 in 1,000.
         min-prestige: 10
         min-rarity: UNCOMMON
         max-rarity: MYTHICAL
         divine-chance: 0.001
+        # V324: Mythical was running at about 1 in 4 out of this egg and
+        # 1 in 3.7 out of the Supernova, which is why the two eggs felt
+        # the same. A boost multiplied every rarity from Epic up by the
+        # same number, so their shares against each other never moved
+        # however it was tuned. These are the real chances; the rest,
+        # about 66.2%, is Uncommon.
+        chances:
+          RARE: 0.25
+          EPIC: 0.07
+          LEGENDARY: 0.015
+          MYTHICAL: 0.002
       supernova:
         display: "Supernova Egg"
         colors: ["#FFD54F", "#FF6F3C"]
         icon: DRAGON_EGG
         cost: 12000
-        boost: 400
         # V313: Prestige 25, and ten times the Nebula's Divine chance,
-        # 1 in 100. Eight times the price for ten times the Divine odds
-        # and sixteen times the push on Epic and up, so the dearest egg
-        # is clearly the one to save for.
+        # 1 in 100.
         min-prestige: 25
         min-rarity: RARE
         max-rarity: MYTHICAL
         divine-chance: 0.01
+        # V324: ten times the Nebula on Mythical and three and a half
+        # times on Epic, so the dearest egg is clearly the one to save
+        # for. The rest, about 64%, is Rare.
+        chances:
+          EPIC: 0.25
+          LEGENDARY: 0.08
+          MYTHICAL: 0.02
+
+  # V324: what a FRESH pet of each rarity multiplies its one stat by.
+  # Leon asked for multipliers rather than percentages and for every
+  # rarity to be exponentially better than the one under it, so the bonus
+  # doubles every step: 1%, 2%, 4%, 8%, 16%, 32%, 64%. Rarity, tier and
+  # shiny in pets.upgrades below multiply that bonus on top, under
+  # max-multiplier, so a fully grown Divine pet is the only thing on the
+  # server worth 4.84x a stat and a Common one never passes 1.06x.
+  multipliers:
+    COMMON: 1.01
+    UNCOMMON: 1.02
+    RARE: 1.04
+    EPIC: 1.08
+    LEGENDARY: 1.16
+    MYTHICAL: 1.32
+    DIVINE: 1.64
 
   dust:
     # The action bar line when a dust falls. Rolling is fast and dust is
@@ -6988,91 +7028,360 @@ pets:
     tier-chance-falloff: 0.06
     tier-min-chance: 0.15
 
-  # Which pet the forge makes. Weight is relative, so a weight of 8
-  # against a weight of 1 turns up eight times as often. Pets already at
-  # max rarity drop out of the draw.
+  # V324: every stat at every rarity, Leon's call. Six stats times seven
+  # rarities is forty-two pets, each one multiplying ONE stat, so the
+  # rarity you hatch and the stat you wanted are two separate rolls: the
+  # best pet in the game can still land on a stat you do not care about.
+  #
+  # An entry carries no number of its own any more. What a pet is worth
+  # is pets.multipliers above, by rarity, so retuning the ladder is one
+  # block rather than forty-two lines, and weight only decides which pet
+  # inside a rarity you get. Equal weights means an even draw between
+  # the six stats.
   types:
-    dust_mote:
-      display: "Dust Mote"
-      colors: ["#B0BEC5", "#78909C"]
-      icon: PRISMARINE_CRYSTALS
+    # ---- Common ----
+    pocket_comet:
+      display: "Pocket Comet"
+      colors: ["#E0F7FA", "#B2EBF2"]
+      icon: SNOWBALL
       rarity: COMMON
-      stat: COINS
-      percent: 0.02
-      weight: 10.0
-      blurb: "A speck of the old nebula."
+      stat: LUCK
+      weight: 1.0
+      blurb: "Small, cold, and oddly lucky."
+    draft_feather:
+      display: "Draft Feather"
+      colors: ["#E1F5FE", "#81D4FA"]
+      icon: FEATHER
+      rarity: COMMON
+      stat: SPEED
+      weight: 1.0
+      blurb: "It falls upward in a draught."
     cinder_spark:
       display: "Cinder Spark"
       colors: ["#FFAB91", "#FF7043"]
       icon: FIRE_CHARGE
       rarity: COMMON
       stat: MONEY
-      percent: 0.02
-      weight: 10.0
+      weight: 1.0
       blurb: "Still warm from something that burned out."
+    dust_mote:
+      display: "Dust Mote"
+      colors: ["#B0BEC5", "#78909C"]
+      icon: PRISMARINE_CRYSTALS
+      rarity: COMMON
+      stat: COINS
+      weight: 1.0
+      blurb: "A speck of the old nebula."
+    frayed_rune:
+      display: "Frayed Rune"
+      colors: ["#E1BEE7", "#BA68C8"]
+      icon: PAPER
+      rarity: COMMON
+      stat: ENCHANT
+      weight: 1.0
+      blurb: "Half a word, still trying."
+    glow_speck:
+      display: "Glow Speck"
+      colors: ["#FFF9C4", "#FFEE58"]
+      icon: GLOWSTONE_DUST
+      rarity: COMMON
+      stat: SHINY
+      weight: 1.0
+      blurb: "Too small to light anything."
+    # ---- Uncommon ----
     glass_shard:
       display: "Glass Shard"
       colors: ["#CE93D8", "#AB47BC"]
       icon: AMETHYST_SHARD
       rarity: UNCOMMON
       stat: LUCK
-      percent: 0.03
-      weight: 7.0
+      weight: 1.0
       blurb: "Cut from a sky that cracked."
+    slipstream_vial:
+      display: "Slipstream Vial"
+      colors: ["#B3E5FC", "#4FC3F7"]
+      icon: GLASS_BOTTLE
+      rarity: UNCOMMON
+      stat: SPEED
+      weight: 1.0
+      blurb: "Empty, and still moving."
+    copper_bead:
+      display: "Copper Bead"
+      colors: ["#FFCCBC", "#FF8A65"]
+      icon: COPPER_INGOT
+      rarity: UNCOMMON
+      stat: MONEY
+      weight: 1.0
+      blurb: "Somebody's first payment."
+    tally_stone:
+      display: "Tally Stone"
+      colors: ["#ECEFF1", "#B0BEC5"]
+      icon: CALCITE
+      rarity: UNCOMMON
+      stat: COINS
+      weight: 1.0
+      blurb: "Every harvest you ever made, scratched in."
+    ink_whisper:
+      display: "Ink Whisper"
+      colors: ["#D1C4E9", "#7E57C2"]
+      icon: INK_SAC
+      rarity: UNCOMMON
+      stat: ENCHANT
+      weight: 1.0
+      blurb: "It writes on its own in the dark."
+    mirror_flake:
+      display: "Mirror Flake"
+      colors: ["#E0F7FA", "#B2EBF2"]
+      icon: GLASS
+      rarity: UNCOMMON
+      stat: SHINY
+      weight: 1.0
+      blurb: "It shows a slightly better you."
+    # ---- Rare ----
+    lodestar_chip:
+      display: "Lodestar Chip"
+      colors: ["#A5D6A7", "#66BB6A"]
+      icon: PRISMARINE_SHARD
+      rarity: RARE
+      stat: LUCK
+      weight: 1.0
+      blurb: "It always knows which way is up."
+    tailwind_sail:
+      display: "Tailwind Sail"
+      colors: ["#B2EBF2", "#4DD0E1"]
+      icon: PHANTOM_MEMBRANE
+      rarity: RARE
+      stat: SPEED
+      weight: 1.0
+      blurb: "The wind is always behind it."
+    gilded_slag:
+      display: "Gilded Slag"
+      colors: ["#FFE082", "#FFB300"]
+      icon: RAW_GOLD
+      rarity: RARE
+      stat: MONEY
+      weight: 1.0
+      blurb: "What the furnace did not want."
     tide_pearl:
       display: "Tide Pearl"
       colors: ["#80DEEA", "#00ACC1"]
       icon: HEART_OF_THE_SEA
       rarity: RARE
       stat: COINS
-      percent: 0.05
-      weight: 4.0
+      weight: 1.0
       blurb: "It pulls at whatever it is near."
+    lapis_sigil:
+      display: "Lapis Sigil"
+      colors: ["#9FA8DA", "#3949AB"]
+      icon: LAPIS_LAZULI
+      rarity: RARE
+      stat: ENCHANT
+      weight: 1.0
+      blurb: "Cheap magic, honestly made."
+    opal_tear:
+      display: "Opal Tear"
+      colors: ["#F8BBD0", "#F06292"]
+      icon: GHAST_TEAR
+      rarity: RARE
+      stat: SHINY
+      weight: 1.0
+      blurb: "It cried colours."
+    # ---- Epic ----
     watcher_eye:
       display: "Watcher Eye"
       colors: ["#A5D6A7", "#43A047"]
       icon: ENDER_EYE
       rarity: EPIC
       stat: LUCK
-      percent: 0.05
-      weight: 2.0
+      weight: 1.0
       blurb: "It looks where you are about to."
+    quick_quartz:
+      display: "Quick Quartz"
+      colors: ["#E0F7FA", "#80DEEA"]
+      icon: QUARTZ
+      rarity: EPIC
+      stat: SPEED
+      weight: 1.0
+      blurb: "It hums a little ahead of time."
+    sunken_ingot:
+      display: "Sunken Ingot"
+      colors: ["#FFF59D", "#FBC02D"]
+      icon: GOLD_INGOT
+      rarity: EPIC
+      stat: MONEY
+      weight: 1.0
+      blurb: "Dredged up from a dead orbit."
+    emerald_seed:
+      display: "Emerald Seed"
+      colors: ["#A5D6A7", "#2E7D32"]
+      icon: EMERALD
+      rarity: EPIC
+      stat: COINS
+      weight: 1.0
+      blurb: "Plant it and it pays rent."
+    glyph_plate:
+      display: "Glyph Plate"
+      colors: ["#CE93D8", "#8E24AA"]
+      icon: BOOK
+      rarity: EPIC
+      stat: ENCHANT
+      weight: 1.0
+      blurb: "One line of something older."
+    aurora_wisp:
+      display: "Aurora Wisp"
+      colors: ["#B2EBF2", "#4DD0E1"]
+      icon: FIREWORK_STAR
+      rarity: EPIC
+      stat: SHINY
+      weight: 1.0
+      blurb: "A ribbon of sky that got loose."
+    # ---- Legendary ----
+    fate_thread:
+      display: "Fate Thread"
+      colors: ["#C5E1A5", "#7CB342"]
+      icon: STRING
+      rarity: LEGENDARY
+      stat: LUCK
+      weight: 1.0
+      blurb: "One end of it is already tied."
+    warp_coil:
+      display: "Warp Coil"
+      colors: ["#80D8FF", "#00B0FF"]
+      icon: LIGHTNING_ROD
+      rarity: LEGENDARY
+      stat: SPEED
+      weight: 1.0
+      blurb: "Distance is a suggestion."
+    vault_sigil:
+      display: "Vault Sigil"
+      colors: ["#FFE57F", "#FFA000"]
+      icon: GOLD_BLOCK
+      rarity: LEGENDARY
+      stat: MONEY
+      weight: 1.0
+      blurb: "It opens doors that charge rent."
+    harvest_crown:
+      display: "Harvest Crown"
+      colors: ["#FFF59D", "#F9A825"]
+      icon: HAY_BLOCK
+      rarity: LEGENDARY
+      stat: COINS
+      weight: 1.0
+      blurb: "Worn by whoever cut the most."
     echo_fragment:
       display: "Echo Fragment"
       colors: ["#90A4AE", "#546E7A"]
       icon: ECHO_SHARD
       rarity: LEGENDARY
       stat: ENCHANT
-      percent: 0.08
-      weight: 1.2
+      weight: 1.0
       blurb: "It repeats what your hoe does."
+    spectrum_lens:
+      display: "Spectrum Lens"
+      colors: ["#F48FB1", "#CE93D8"]
+      icon: SPYGLASS
+      rarity: LEGENDARY
+      stat: SHINY
+      weight: 1.0
+      blurb: "Look through it and nothing is plain."
+    # ---- Mythical ----
+    oracle_sphere:
+      display: "Oracle Sphere"
+      colors: ["#80CBC4", "#26A69A"]
+      icon: ENDER_PEARL
+      rarity: MYTHICAL
+      stat: LUCK
+      weight: 1.0
+      blurb: "It answers before you ask."
     void_shell:
       display: "Void Shell"
       colors: ["#B39DDB", "#673AB7"]
       icon: SHULKER_SHELL
       rarity: MYTHICAL
       stat: SPEED
-      percent: 0.10
-      weight: 0.6
+      weight: 1.0
       blurb: "Empty, and lighter than it should be."
+    midas_ember:
+      display: "Midas Ember"
+      colors: ["#FFECB3", "#FF8F00"]
+      icon: GOLDEN_CARROT
+      rarity: MYTHICAL
+      stat: MONEY
+      weight: 1.0
+      blurb: "Everything it touches is for sale."
+    coin_nebula:
+      display: "Coin Nebula"
+      colors: ["#A5D6A7", "#00897B"]
+      icon: EMERALD_BLOCK
+      rarity: MYTHICAL
+      stat: COINS
+      weight: 1.0
+      blurb: "A whole sky of small change."
+    spellbound_quill:
+      display: "Spellbound Quill"
+      colors: ["#E1BEE7", "#AB47BC"]
+      icon: ENCHANTED_BOOK
+      rarity: MYTHICAL
+      stat: ENCHANT
+      weight: 1.0
+      blurb: "It finishes your enchant for you."
     prism_core:
       display: "Prism Core"
       colors: ["#F48FB1", "#EC407A"]
       icon: END_CRYSTAL
       rarity: MYTHICAL
       stat: SHINY
-      percent: 0.10
-      weight: 0.6
+      weight: 1.0
       blurb: "It splits an ordinary drop into colours."
+    # ---- Divine ----
     starheart:
       display: "Starheart"
       colors: ["#FFF8E1", "#FFD54F"]
       icon: NETHER_STAR
       rarity: DIVINE
       stat: LUCK
-      percent: 0.15
-      weight: 0.2
+      weight: 1.0
       blurb: "The last thing a star leaves behind."
+    hourglass_nova:
+      display: "Hourglass Nova"
+      colors: ["#E1F5FE", "#00E5FF"]
+      icon: CLOCK
+      rarity: DIVINE
+      stat: SPEED
+      weight: 1.0
+      blurb: "The sand runs the other way."
+    treasury_core:
+      display: "Treasury Core"
+      colors: ["#FFF8E1", "#FFC107"]
+      icon: ENCHANTED_GOLDEN_APPLE
+      rarity: DIVINE
+      stat: MONEY
+      weight: 1.0
+      blurb: "A bank with a heartbeat."
+    vaultheart:
+      display: "Vaultheart"
+      colors: ["#FFF9C4", "#FDD835"]
+      icon: ENDER_CHEST
+      rarity: DIVINE
+      stat: COINS
+      weight: 1.0
+      blurb: "It beats once per payday."
+    rune_singularity:
+      display: "Rune Singularity"
+      colors: ["#F3E5F5", "#9C27B0"]
+      icon: ENCHANTING_TABLE
+      rarity: DIVINE
+      stat: ENCHANT
+      weight: 1.0
+      blurb: "Every word at once, in one point."
+    kaleidostar:
+      display: "Kaleidostar"
+      colors: ["#FCE4EC", "#FF80AB"]
+      icon: DRAGON_BREATH
+      rarity: DIVINE
+      stat: SHINY
+      weight: 1.0
+      blurb: "Shine, forever folding in on itself."
 
 # ---------------------------------------------------------------------
 # The Secret Realm (V229)

@@ -51,7 +51,15 @@ public final class ConfigMigrator {
             // changed rather than editing them on the server, and a whole
             // rewritten tier list cannot be delivered one Patch at a time.
             // If he ever does tune them by hand, take this back out.
-            "milestones");
+            "milestones",
+            // V324: the pet table. It is a catalogue now, not a set of
+            // numbers: forty-two entries carrying a name, an icon, a
+            // rarity and a stat, with what a pet is WORTH living in
+            // pets.multipliers and what it costs in pets.upgrades, both
+            // outside this list. So nothing Leon tunes by hand is inside
+            // it, and a table that grew from nine to forty-two cannot
+            // reach the server any other way.
+            "pets.types");
 
     /**
      * Sections copied from the jar whenever the server's config has none
@@ -81,6 +89,14 @@ public final class ConfigMigrator {
             // farming: block every older config already has, so it never
             // merged and Leon could not tune it on the server.
             "farming.crop-unlock-at",
+            // V324: the pet multiplier ladder, and the per-rarity chances
+            // on each egg. All new keys, so a Patch has nothing to match
+            // on; without them the live server runs the code defaults and
+            // Leon cannot tune either by hand.
+            "pets.multipliers",
+            "pets.eggs.tiers.stardust.chances",
+            "pets.eggs.tiers.nebula.chances",
+            "pets.eggs.tiers.supernova.chances",
             // V322: every forge is one flat chance. A new key, so a Patch
             // has nothing to match; without this the server runs on the
             // code default and Leon cannot tune it by hand.

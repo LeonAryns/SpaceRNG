@@ -29,12 +29,12 @@ import java.util.List;
  *            next pet comes in, a fifth of the price each
  *   storage  the pets you own: left click wears one, right click opens it
  *            for upgrading
- *   index    every pet there is and what it gives, fresh and at its best,
- *            like the Perk Index
+ *   index    every pet there is, the whole rarity ladder for the stat it
+ *            boosts, and the autotrash switch, on the Perk Index's shape
  *
- * A pet rides in one of the aura's slots and pays a percentage on one
- * stat, so the menu answers two questions at this level: what is in my
- * slots, and what would this one give me instead. Everything about
+ * A pet rides in one of the aura's slots and multiplies one stat, so the
+ * menu answers two questions at this level: what is in my slots, and what
+ * would this one give me instead. Everything about
  * growing a pet lives one click deeper in {@link PetUpgradeGui}, because
  * wearing and upgrading are different jobs and a tooltip that tries to
  * do both stops being readable.
@@ -195,8 +195,8 @@ public class PetsGui {
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(Lore.title(ChatColor.AQUA, "Pet Index"));
         meta.setLore(List.of(
-                Lore.line(ChatColor.GRAY, "Every pet there is and the"),
-                Lore.line(ChatColor.GRAY, "boost each one gives."),
+                Lore.line(ChatColor.GRAY, "Every pet there is, what each"),
+                Lore.line(ChatColor.GRAY, "one gives, and autotrash."),
                 "",
                 Lore.stat(ChatColor.AQUA, "Found",
                         data.getOwnedPets().size() + " / " + plugin.getPetManager().getTypes().size()),
@@ -226,35 +226,60 @@ public class PetsGui {
         return item;
     }
 
-    /** A pet as the index shows it: what it gives new, and at its very best. */
+    /**
+     * A pet as the index shows it, on the shape the perk index uses: what
+     * it boosts in one sentence, then the whole rarity ladder with this
+     * pet's own rung marked, then what yours is worth.
+     *
+     * The ladder is the point of the screen since V324. Every stat exists
+     * at every rarity and each rarity is worth double the one under it,
+     * so a player reading one pet can see exactly what a better one of
+     * the same stat would be worth.
+     */
     private static ItemStack indexIcon(SolRNGPlugin plugin, PlayerData data, PetType pet) {
         PetManager pets = plugin.getPetManager();
         PetInstance owned = data.getPet(pet.id());
+        boolean trash = data.isPetAutoTrash(pet.id());
+
         ItemStack item = new ItemStack(pet.icon());
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(name(pet, owned));
+
         List<String> lore = new ArrayList<>();
-        if (!pet.blurb().isBlank()) {
-            lore.add(Lore.line(ChatColor.GRAY, pet.blurb()));
-            lore.add("");
-        }
-        lore.add(Lore.section(ChatColor.YELLOW, "Boost"));
-        lore.add(Lore.stat(ChatColor.AQUA, "New", pet.boostText()));
-        lore.add(Lore.stat(ChatColor.AQUA, "At its best", pet.boostText(pets.upgrades().topMultiplier())));
-        if (owned != null) {
-            lore.add(Lore.stat(ChatColor.GREEN, "Yours", pet.boostText(pets.upgrades().multiplier(owned))));
+        lore.add(ChatColor.DARK_GRAY + pet.rarity().displayName() + " pet");
+        lore.add("");
+        if (!pet.blurb().isBlank()) lore.add(Lore.line(ChatColor.GRAY, pet.blurb()));
+        lore.add(ChatColor.GRAY + "It multiplies your " + ChatColor.WHITE + pet.statName()
+                + ChatColor.GRAY + ".");
+        lore.add("");
+        for (com.spacerng.solrng.rarity.Rarity rarity : com.spacerng.solrng.rarity.Rarity.values()) {
+            double bonus = pets.upgrades().bonusFor(rarity);
+            // Astral has no pets, so it has no rung on this ladder; the
+            // multiplier ladder answers for every rarity whether one
+            // exists or not.
+            if (bonus <= 0.0 || !pets.hasRarity(rarity)) continue;
+            boolean mine = rarity == pet.rarity();
+            lore.add(Lore.stat(mine ? ChatColor.GREEN : ChatColor.DARK_GRAY, rarity.displayName(),
+                    String.format("%.2f", 1.0 + bonus) + "x" + (mine ? "  " + Lore.TICK : "")));
         }
         lore.add("");
-        lore.add(Lore.stat(ChatColor.AQUA, "Rarity", pet.rarity().displayName()));
-        lore.add("");
         if (owned != null) {
-            lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "Found");
+            lore.add(Lore.stat(ChatColor.AQUA, "Yours",
+                    pet.multiText(pets.upgrades().multiplier(owned))
+                            + (owned.copies() > 1 ? ChatColor.DARK_GRAY + "  x" + owned.copies() : "")));
         } else {
-            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Not found yet");
-            lore.add(Lore.line(ChatColor.GRAY, "Make pets from Cosmic Dust"));
+            lore.add(Lore.stat(ChatColor.DARK_GRAY, "Yours", "not found yet"));
         }
+        lore.add("");
+        lore.add(trash
+                ? ChatColor.RED + "" + ChatColor.BOLD + "Autotrash on"
+                : ChatColor.DARK_GRAY + "" + ChatColor.BOLD + "Autotrash off");
+        lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD
+                + (trash ? "Click to keep it again" : "Click to throw copies away"));
+
         meta.setLore(lore);
         if (owned != null) meta.setEnchantmentGlintOverride(Boolean.TRUE);
+        meta.getPersistentDataContainer().set(petKey(), PersistentDataType.STRING, pet.id());
         item.setItemMeta(meta);
         return item;
     }
@@ -268,8 +293,8 @@ public class PetsGui {
         PetManager pets = plugin.getPetManager();
         List<String> lore = new ArrayList<>();
         lore.add(Lore.line(ChatColor.GRAY, "Pets circle you in your aura's"));
-        lore.add(Lore.line(ChatColor.GRAY, "slots and each one pays a"));
-        lore.add(Lore.line(ChatColor.GRAY, "percentage on a single stat."));
+        lore.add(Lore.line(ChatColor.GRAY, "slots and each one multiplies"));
+        lore.add(Lore.line(ChatColor.GRAY, "a single stat."));
         lore.add("");
         lore.add(Lore.stat(ChatColor.AQUA, "Owned",
                 data.getOwnedPets().size() + " / " + pets.getTypes().size()));
@@ -319,13 +344,8 @@ public class PetsGui {
         List<String> lore = new ArrayList<>();
         lore.add(ChatColor.DARK_GRAY + "Tier " + tier + " egg");
         lore.add("");
-        if (egg.boost() > 1.0) {
-            lore.add(Lore.line(ChatColor.GRAY, trim(egg.boost()) + "x the weight on every"));
-            lore.add(Lore.line(ChatColor.GRAY, pets.upgrades().boostedFrom().displayName() + " or rarer pet."));
-        } else {
-            lore.add(Lore.line(ChatColor.GRAY, "Hatches a pet you do not have,"));
-            lore.add(Lore.line(ChatColor.GRAY, "or a rarity on one you do."));
-        }
+        lore.add(Lore.line(ChatColor.GRAY, "One pet, rolled for its rarity"));
+        lore.add(Lore.line(ChatColor.GRAY, "first and its stat after."));
         lore.add("");
         lore.add(Lore.section(ChatColor.YELLOW, "Odds"));
         for (var entry : pets.odds(data, egg).entrySet()) {
@@ -423,6 +443,11 @@ public class PetsGui {
             lore.add(Lore.stat(ChatColor.AQUA, "Tier",
                     owned.tier() + " / " + pets.upgrades().maxTier()));
             if (owned.shiny()) lore.add(Lore.stat(ChatColor.LIGHT_PURPLE, "Shiny", Lore.SPARK));
+            // V324: duplicates. The spare copies are the ones a shift
+            // click throws away; the copy you wear is never one of them.
+            if (owned.copies() > 1) {
+                lore.add(Lore.stat(ChatColor.AQUA, "Copies", String.valueOf(owned.copies())));
+            }
             lore.add("");
             if (bedrock) {
                 // One click opens the pet on Bedrock, where wearing it is a
@@ -440,6 +465,9 @@ public class PetsGui {
                 lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Left click to wear");
             }
             if (!bedrock) lore.add(Lore.footnote("Right click to upgrade it."));
+            if (!bedrock && owned.spare() > 0) {
+                lore.add(Lore.footnote("Shift click throws one copy away."));
+            }
         } else {
             lore.add(Lore.stat(ChatColor.AQUA, "Rarity", pet.rarity().displayName()));
             lore.add(Lore.stat(ChatColor.AQUA, "Gives", pet.boostText()));
