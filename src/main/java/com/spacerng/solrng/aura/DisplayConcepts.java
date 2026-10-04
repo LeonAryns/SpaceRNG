@@ -379,6 +379,17 @@ final class DisplayConcepts {
             this.glass = glass(rarity);
         }
 
+        /**
+         * Wings fill everything behind the wearer, so a pet standing in
+         * the default spot behind the left shoulder would be drawn
+         * straight through a feather. They stand forward and a little
+         * higher instead (V333).
+         */
+        @Override
+        public PetStand petStand() {
+            return new PetStand(1.15f, 1.25f, 0.0);
+        }
+
         @Override
         public boolean followsBody() {
             return true;
@@ -470,6 +481,16 @@ final class DisplayConcepts {
 
         Barrier(Rarity rarity) {
             this.glass = glass(rarity);
+        }
+
+        /**
+         * The wall stands at 1.15 and reaches 0.8 off the ground, which
+         * is exactly where a pet would otherwise be drawn into it. They
+         * ride above it (V333).
+         */
+        @Override
+        public PetStand petStand() {
+            return PetStand.HIGH;
         }
 
         @Override

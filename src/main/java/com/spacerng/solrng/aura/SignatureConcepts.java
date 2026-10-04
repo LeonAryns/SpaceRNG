@@ -1146,6 +1146,15 @@ final class SignatureConcepts {
             this.head = fine;
         }
 
+        /**
+         * Plate wings fill the space behind the wearer, so the pets come
+         * round to the front of them (V333).
+         */
+        @Override
+        public PetStand petStand() {
+            return new PetStand(1.15f, 1.25f, 0.0);
+        }
+
         @Override
         public boolean followsHead() {
             return head;

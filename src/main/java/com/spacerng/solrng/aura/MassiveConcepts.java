@@ -157,6 +157,15 @@ final class MassiveConcepts {
             this.count = count;
         }
 
+        /**
+         * The rings sweep out past anything else in the plugin, so the
+         * pets stand well clear and let them pass (V333).
+         */
+        @Override
+        public PetStand petStand() {
+            return PetStand.WIDE;
+        }
+
         @Override
         public boolean clearOfView() {
             return true;

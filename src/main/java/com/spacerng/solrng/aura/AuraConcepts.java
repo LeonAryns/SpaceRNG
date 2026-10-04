@@ -966,6 +966,20 @@ public final class AuraConcepts {
             return true;
         }
 
+        /**
+         * The first look that asks for something other than the default
+         * wins. A combination is one aura look plus the pets, so there is
+         * only ever one look with an opinion.
+         */
+        @Override
+        public PetStand petStand() {
+            for (AuraConcept look : looks) {
+                PetStand stand = look.petStand();
+                if (!PetStand.DEFAULT.equals(stand)) return stand;
+            }
+            return PetStand.DEFAULT;
+        }
+
         @Override
         public int audienceAt(int index) {
             for (int i = 0; i < looks.length; i++) {

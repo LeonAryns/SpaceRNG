@@ -62,6 +62,19 @@ public interface AuraConcept {
         return false;
     }
 
+    /**
+     * Where worn pets stand while this look is on (V333).
+     *
+     * Pets stand still in a spot rather than orbiting, so the spot has to
+     * be clear of whatever the look itself fills. The default is hip
+     * height an arm's length out, which is outside every hip ring in the
+     * plugin; a look that reaches further, lies on the ground or stands
+     * as a wall says so by overriding this.
+     */
+    default PetStand petStand() {
+        return PetStand.DEFAULT;
+    }
+
     /** A piece everybody sees under the usual rules. */
     int EVERYONE = 0;
     /** A piece everybody sees except its wearer in the middle setting. */
