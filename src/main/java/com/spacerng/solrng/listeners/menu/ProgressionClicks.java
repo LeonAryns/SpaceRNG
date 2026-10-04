@@ -80,6 +80,18 @@ final class ProgressionClicks {
         Player player = (Player) event.getWhoClicked();
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
 
+        // V325: an owned tier hands over another item rather than failing
+        // with "you can't forge that yet", which is how somebody gets the
+        // tiers they forged before anybody was allowed to keep them.
+        var clickedTier = plugin.getStarforgeManager().get(tierId);
+        if (clickedTier != null && plugin.getStarforgeManager().owns(data, clickedTier)) {
+            plugin.getStarforgeManager().takeOut(player, data, clickedTier);
+            player.sendMessage(ChatColor.GREEN + "Took out " + clickedTier.styledDisplay()
+                    + ChatColor.GRAY + ". The one in your hand is the one that counts.");
+            player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_ITEM_PICKUP, 0.6f, 1.2f);
+            return;
+        }
+
         if (plugin.getStarforgeManager().purchase(player, data, tierId)) {
             var tier = plugin.getStarforgeManager().get(tierId);
             player.sendMessage(ChatColor.GREEN + "Forged: " + tier.styledDisplay()

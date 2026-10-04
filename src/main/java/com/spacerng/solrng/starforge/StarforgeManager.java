@@ -26,10 +26,18 @@ import java.util.Map;
  * a player's BASE Luck; the skill tree and armor add on top, and the
  * index multiplier scales the whole thing.
  *
- * The tier is stored on PlayerData rather than read off the held item, so
- * losing or stashing the physical item never costs a player the Luck they
- * paid for. The item itself is just the interaction handle, tagged with a
- * PersistentDataContainer key so any tier's item is recognised.
+ * The tier a player has FORGED is stored on PlayerData, so losing or
+ * stashing the physical item never costs them the ladder they paid for.
+ * The item itself is tagged with a PersistentDataContainer key carrying
+ * its own tier id, so any tier's item is recognised.
+ *
+ * V325: a player keeps every Starforge they have forged, Leon's call.
+ * Buying a tier hands over a new item and leaves the old ones alone, and
+ * the tier that actually pays is the one IN YOUR HAND. That is what makes
+ * owning several worth anything: the ladder forks into Luck tiers and
+ * Speed tiers, and carrying both means picking one per job rather than
+ * per account. An owned tier whose item got lost is taken back out of the
+ * /starforge menu with a click.
  */
 public class StarforgeManager {
 
@@ -141,6 +149,47 @@ public class StarforgeManager {
                 || isStarforge(player.getInventory().getItemInOffHand());
     }
 
+    /** The tier id written on a Starforge item, or null when it is not one. */
+    public String tierIdOf(ItemStack item) {
+        if (!isStarforge(item)) return null;
+        return item.getItemMeta().getPersistentDataContainer().get(itemKey, PersistentDataType.STRING);
+    }
+
+    /**
+     * The tier of the Starforge actually in a player's hand (V325), main
+     * hand first. Null when they are holding none, which is also when a
+     * Starforge pays nothing at all.
+     *
+     * An item carrying a tier id that no longer exists in config falls
+     * back to what they have forged, so a renamed tier never silently
+     * takes somebody's Luck away.
+     */
+    public StarforgeTier heldTier(Player player, PlayerData data) {
+        ItemStack main = player.getInventory().getItemInMainHand();
+        ItemStack off = player.getInventory().getItemInOffHand();
+        String id = isStarforge(main) ? tierIdOf(main) : isStarforge(off) ? tierIdOf(off) : null;
+        if (id == null) return null;
+        StarforgeTier tier = tiers.get(id);
+        return tier != null ? tier : tierOf(data);
+    }
+
+    /** Whether this tier is one the player has forged. */
+    public boolean owns(PlayerData data, StarforgeTier tier) {
+        StarforgeTier current = tierOf(data);
+        return current != null && tier.getOrder() <= current.getOrder();
+    }
+
+    /**
+     * Hands over one item of a tier the player already owns, for when the
+     * item itself was lost or a tier was forged before V325 let anybody
+     * keep the one below it.
+     */
+    public boolean takeOut(Player player, PlayerData data, StarforgeTier tier) {
+        if (!owns(data, tier)) return false;
+        com.spacerng.solrng.player.Stash.give(plugin, player, create(tier));
+        return true;
+    }
+
     /**
      * Recomputes every online player's Starforge Luck from whether they're
      * actually holding it, and switches Auto Roll off for anyone who's put
@@ -149,10 +198,13 @@ public class StarforgeManager {
     public void refreshHeldBonuses() {
         for (Player player : org.bukkit.Bukkit.getOnlinePlayers()) {
             PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
-            boolean holding = isHolding(player);
-            data.setStarforgeLuckBonus(holding ? luckBonusOf(data) : 0.0);
-            StarforgeTier held = tierOf(data);
-            data.setStarforgeSpeedBonus(holding && held != null ? held.getSpeedBonus() : 0.0);
+            // V325: the tier in hand, not the best one forged. Somebody
+            // carrying a Speed fork and a Luck fork gets whichever one
+            // they are actually holding.
+            StarforgeTier held = heldTier(player, data);
+            data.setStarforgeLuckBonus(held != null ? held.getLuckBonus() : 0.0);
+            data.setStarforgeSpeedBonus(held != null ? held.getSpeedBonus() : 0.0);
+            boolean holding = held != null;
 
             // Moving the Starforge to the off hand through the inventory
             // carries it on the cursor for a moment, in neither hand, and
@@ -210,7 +262,10 @@ public class StarforgeManager {
         }
 
         data.setStarforgeTier(target.getId());
-        replaceHeldStarforge(player, target);
+        // V325: the old ones stay. Until now every Starforge in the
+        // inventory was swapped for the new tier, so a ladder that forks
+        // into Luck and Speed could only ever be walked one way.
+        com.spacerng.solrng.player.Stash.give(plugin, player, create(target));
         return true;
     }
 
@@ -241,7 +296,9 @@ public class StarforgeManager {
      * caller can say something useful for each case.
      */
     public long activateAbility(Player player, PlayerData data) {
-        StarforgeTier tier = tierOf(data);
+        // V325: the ability belongs to the Starforge in your hand.
+        StarforgeTier tier = heldTier(player, data);
+        if (tier == null) tier = tierOf(data);
         if (tier == null || tier.getAbility() == null) return -1L;
 
         StarforgeTier.Ability ability = tier.getAbility();
