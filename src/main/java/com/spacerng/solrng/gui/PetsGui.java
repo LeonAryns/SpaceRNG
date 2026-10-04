@@ -132,8 +132,11 @@ public class PetsGui {
             ItemMeta meta = none.getItemMeta();
             meta.setDisplayName(Lore.title(ChatColor.DARK_GRAY, "No pets yet"));
             meta.setLore(List.of(
-                    Lore.line(ChatColor.GRAY, "Make your first one from"),
-                    Lore.line(ChatColor.GRAY, "Cosmic Dust on the pets screen.")));
+                    ChatColor.DARK_GRAY + "Nothing hatched",
+                    "",
+                    Lore.line(ChatColor.GRAY, "Cosmic Dust drops while you roll."),
+                    Lore.line(ChatColor.GRAY, "Spend it on an egg on the pets"),
+                    Lore.line(ChatColor.GRAY, "screen for your first pet.")));
             none.setItemMeta(meta);
             inv.setItem(31, none);
         }
@@ -181,66 +184,10 @@ public class PetsGui {
         return SolRNGPlugin.key("solrng_pet_rarity");
     }
 
-    /**
-     * One rarity: what it is worth, which pets carry it, and whether its
-     * copies are being thrown away as they hatch.
-     *
-     * Autotrash is per rarity here rather than per pet, because with six
-     * pets in every rarity "I never want Commons" is the thing anybody
-     * actually means. It still writes the same per pet set underneath, so
-     * a pet switched on its own stays switched.
-     */
+    /** One rarity card, written in {@link PetLore}'s shape (V340). */
     private static ItemStack rarityIcon(SolRNGPlugin plugin, PlayerData data,
                                         com.spacerng.solrng.rarity.Rarity rarity) {
-        PetManager pets = plugin.getPetManager();
-        double bonus = pets.upgrades().bonusFor(rarity);
-        double top = pets.upgrades().topMultiplier();
-
-        List<PetType> inRarity = new ArrayList<>();
-        for (PetType pet : pets.getTypes().values()) {
-            if (pet.rarity() == rarity) inRarity.add(pet);
-        }
-        int found = 0;
-        int trashed = 0;
-        for (PetType pet : inRarity) {
-            if (data.getPet(pet.id()) != null) found++;
-            if (data.isPetAutoTrash(pet.id())) trashed++;
-        }
-        boolean allTrashed = !inRarity.isEmpty() && trashed == inRarity.size();
-
-        ItemStack item = new ItemStack(inRarity.isEmpty() ? Material.STONE_BUTTON : inRarity.get(0).icon());
-        ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(plugin.getRarityManager().styleBold(rarity, rarity.displayName() + " pets"));
-
-        List<String> lore = new ArrayList<>();
-        lore.add(ChatColor.GRAY + "Every " + rarity.displayName() + " pet multiplies");
-        lore.add(ChatColor.GRAY + "one stat by " + ChatColor.WHITE
-                + String.format("%.2f", 1.0 + bonus) + "x" + ChatColor.GRAY + " fresh,");
-        lore.add(ChatColor.GRAY + "up to " + ChatColor.WHITE
-                + String.format("%.2f", 1.0 + bonus * top) + "x" + ChatColor.GRAY + " fully grown.");
-        lore.add("");
-        for (PetType pet : inRarity) {
-            PetInstance owned = data.getPet(pet.id());
-            lore.add(Lore.stat(owned != null ? ChatColor.GREEN : ChatColor.DARK_GRAY,
-                    pet.statName(), ChatColor.stripColor(pet.display())
-                            + (owned != null ? "  " + ChatColor.GREEN + Lore.TICK : "")));
-        }
-        lore.add("");
-        lore.add(Lore.stat(ChatColor.AQUA, "Found", found + " / " + inRarity.size()));
-        lore.add("");
-        lore.add(allTrashed
-                ? ChatColor.RED + "" + ChatColor.BOLD + "Autotrash on"
-                : trashed > 0
-                        ? ChatColor.RED + "" + ChatColor.BOLD + "Autotrash on for " + trashed
-                        : ChatColor.DARK_GRAY + "" + ChatColor.BOLD + "Autotrash off");
-        lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD
-                + (allTrashed ? "Click to keep them again" : "Click to throw these away"));
-
-        meta.setLore(lore);
-        if (found >= inRarity.size() && !inRarity.isEmpty()) meta.setEnchantmentGlintOverride(Boolean.TRUE);
-        meta.getPersistentDataContainer().set(rarityKey(), PersistentDataType.STRING, rarity.name());
-        item.setItemMeta(meta);
-        return item;
+        return PetLore.rarityCard(plugin, data, rarity);
     }
 
     private static void fillSubScreen(Inventory inv) {
@@ -251,7 +198,7 @@ public class PetsGui {
         ItemMeta meta = back.getItemMeta();
         meta.setDisplayName(Lore.title(ChatColor.AQUA, "Pets"));
         meta.setLore(List.of(
-                Lore.line(ChatColor.GRAY, "Your slots and the forge."),
+                Lore.line(ChatColor.GRAY, "Your slots and the eggs."),
                 "",
                 ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to go back"));
         back.setItemMeta(meta);
@@ -264,10 +211,14 @@ public class PetsGui {
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(Lore.title(ChatColor.AQUA, "Pet Storage"));
         meta.setLore(List.of(
-                Lore.line(ChatColor.GRAY, "Every pet you own. Wear one or"),
-                Lore.line(ChatColor.GRAY, "open it to upgrade."),
+                ChatColor.DARK_GRAY + "The pets you have hatched",
+                "",
+                Lore.line(ChatColor.GRAY, "Left click one to wear it,"),
+                Lore.line(ChatColor.GRAY, "right click it to grow it."),
                 "",
                 Lore.stat(ChatColor.AQUA, "Owned", data.getOwnedPets().size() + " / " + pets.getTypes().size()),
+                Lore.stat(ChatColor.AQUA, "Worn",
+                        Math.min(data.getEquippedPets().size(), pets.slots(data)) + " / " + pets.slots(data)),
                 "",
                 ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to open"));
         item.setItemMeta(meta);
@@ -279,8 +230,11 @@ public class PetsGui {
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(Lore.title(ChatColor.AQUA, "Pet Index"));
         meta.setLore(List.of(
-                Lore.line(ChatColor.GRAY, "Every pet there is, what each"),
-                Lore.line(ChatColor.GRAY, "one gives, and autotrash."),
+                ChatColor.DARK_GRAY + "Every pet there is",
+                "",
+                Lore.line(ChatColor.GRAY, "One card per rarity: what a pet"),
+                Lore.line(ChatColor.GRAY, "of it multiplies by, which pets"),
+                Lore.line(ChatColor.GRAY, "carry it, and autotrash."),
                 "",
                 Lore.stat(ChatColor.AQUA, "Found",
                         data.getOwnedPets().size() + " / " + plugin.getPetManager().getTypes().size()),
@@ -318,9 +272,13 @@ public class PetsGui {
 
         PetManager pets = plugin.getPetManager();
         List<String> lore = new ArrayList<>();
-        lore.add(Lore.line(ChatColor.GRAY, "Pets circle you in your aura's"));
-        lore.add(Lore.line(ChatColor.GRAY, "slots and each one multiplies"));
-        lore.add(Lore.line(ChatColor.GRAY, "a single stat."));
+        lore.add(ChatColor.DARK_GRAY + "How pets work");
+        lore.add("");
+        lore.add(Lore.line(ChatColor.GRAY, "A worn pet stands behind you and"));
+        lore.add(Lore.line(ChatColor.GRAY, "multiplies one stat. Its rarity"));
+        lore.add(Lore.line(ChatColor.GRAY, "sets how big that starts, and"));
+        lore.add(Lore.line(ChatColor.GRAY, "every rarity and tier step above"));
+        lore.add(Lore.line(ChatColor.GRAY, "multiplies it again."));
         lore.add("");
         lore.add(Lore.stat(ChatColor.AQUA, "Owned",
                 data.getOwnedPets().size() + " / " + pets.getTypes().size()));
@@ -370,10 +328,13 @@ public class PetsGui {
         List<String> lore = new ArrayList<>();
         lore.add(ChatColor.DARK_GRAY + "Tier " + tier + " egg");
         lore.add("");
-        lore.add(Lore.line(ChatColor.GRAY, "One pet, rolled for its rarity"));
-        lore.add(Lore.line(ChatColor.GRAY, "first and its stat after."));
+        lore.add(Lore.line(ChatColor.GRAY, "Hatches one pet. Its rarity is"));
+        lore.add(Lore.line(ChatColor.GRAY, "rolled first and decides the"));
+        lore.add(Lore.line(ChatColor.GRAY, "multiplier, its stat after."));
+        lore.add(Lore.line(ChatColor.GRAY, "A dearer egg is the same pets at"));
+        lore.add(Lore.line(ChatColor.GRAY, "better odds, never other pets."));
         lore.add("");
-        lore.add(Lore.section(ChatColor.YELLOW, "Odds"));
+        lore.add(Lore.section(ChatColor.YELLOW, "Chance per hatch"));
         for (var entry : pets.odds(data, egg).entrySet()) {
             lore.add(Lore.stat(ChatColor.AQUA, entry.getKey().displayName(), percent(entry.getValue())));
         }
@@ -415,7 +376,10 @@ public class PetsGui {
             ItemMeta meta = item.getItemMeta();
             meta.setDisplayName(Lore.title(ChatColor.DARK_GRAY, "Slot " + (slot + 1)));
             meta.setLore(List.of(
-                    Lore.line(ChatColor.GRAY, "Not open yet."),
+                    ChatColor.DARK_GRAY + "A pet you wear",
+                    "",
+                    Lore.line(ChatColor.GRAY, "Every open slot is one more pet"),
+                    Lore.line(ChatColor.GRAY, "multiplying a stat at once."),
                     "",
                     ChatColor.RED + "" + ChatColor.BOLD + "Locked",
                     Lore.line(ChatColor.GRAY, "Buy Pet Slots in /skilltree")));
@@ -427,7 +391,11 @@ public class PetsGui {
             ItemMeta meta = item.getItemMeta();
             meta.setDisplayName(Lore.title(ChatColor.DARK_GRAY, "Slot " + (slot + 1)));
             meta.setLore(List.of(
-                    Lore.line(ChatColor.GRAY, "Empty."),
+                    ChatColor.DARK_GRAY + "Open, and empty",
+                    "",
+                    Lore.line(ChatColor.GRAY, "A pet in here multiplies one of"),
+                    Lore.line(ChatColor.GRAY, "your stats for as long as it"),
+                    Lore.line(ChatColor.GRAY, "stays worn."),
                     "",
                     Lore.footnote("Wear one from Pet Storage.")));
             item.setItemMeta(meta);
@@ -439,9 +407,18 @@ public class PetsGui {
         ItemStack item = new ItemStack(pet.icon());
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(name(pet, owned));
+        PetInstance instance = data.getPet(pet.id());
         meta.setLore(List.of(
-                Lore.stat(ChatColor.AQUA, "Slot", String.valueOf(slot + 1)),
-                Lore.stat(ChatColor.GREEN, "Giving", pet.boostText(multiplier)),
+                ChatColor.DARK_GRAY + pet.rarity().displayName() + " pet, slot " + (slot + 1),
+                "",
+                Lore.line(ChatColor.GRAY, "Worn, so it is multiplying your"),
+                Lore.line(ChatColor.GRAY, pet.statName() + " right now."),
+                "",
+                Lore.stat(ChatColor.GREEN, pet.statName(), pet.multiText(multiplier)),
+                Lore.stat(ChatColor.AQUA, "Rarity",
+                        instance.rarity() + " / " + plugin.getPetManager().upgrades().maxRarity()),
+                Lore.stat(ChatColor.AQUA, "Tier",
+                        instance.tier() + " / " + plugin.getPetManager().upgrades().maxTier()),
                 "",
                 ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to take it off"));
         meta.setEnchantmentGlintOverride(Boolean.TRUE);
@@ -450,63 +427,9 @@ public class PetsGui {
         return item;
     }
 
+    /** One pet card, written in {@link PetLore}'s shape (V340). */
     private static ItemStack petIcon(SolRNGPlugin plugin, PlayerData data, PetType pet, boolean bedrock) {
-        PetManager pets = plugin.getPetManager();
-        PetInstance owned = data.getPet(pet.id());
-        boolean worn = data.getEquippedPets().contains(pet.id());
-
-        ItemStack item = new ItemStack(owned != null ? pet.icon() : Material.STONE_BUTTON);
-        ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(owned != null ? name(pet, owned) : ChatColor.DARK_GRAY + "???");
-
-        List<String> lore = new ArrayList<>();
-        if (owned != null) {
-            double multiplier = pets.upgrades().multiplier(owned);
-            if (!pet.blurb().isBlank()) lore.add(Lore.line(ChatColor.GRAY, pet.blurb()));
-            lore.add(Lore.stat(ChatColor.GREEN, "Gives", pet.boostText(multiplier)));
-            lore.add(Lore.stat(ChatColor.AQUA, "Rarity",
-                    owned.rarity() + " / " + pets.upgrades().maxRarity()));
-            lore.add(Lore.stat(ChatColor.AQUA, "Tier",
-                    owned.tier() + " / " + pets.upgrades().maxTier()));
-            if (owned.shiny()) lore.add(Lore.stat(ChatColor.LIGHT_PURPLE, "Shiny", Lore.SPARK));
-            // V324: duplicates. The spare copies are the ones a shift
-            // click throws away; the copy you wear is never one of them.
-            if (owned.copies() > 1) {
-                lore.add(Lore.stat(ChatColor.AQUA, "Copies", String.valueOf(owned.copies())));
-            }
-            lore.add("");
-            if (bedrock) {
-                // One click opens the pet on Bedrock, where wearing it is a
-                // button of its own (V223).
-                if (worn) lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "Worn");
-                lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to open");
-                lore.add(Lore.footnote("Wear it and upgrade it in there."));
-            } else if (worn) {
-                lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "Worn");
-                lore.add(Lore.line(ChatColor.GRAY, "Left click to take it off"));
-            } else if (data.getEquippedPets().size() >= pets.slots(data)) {
-                lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Slots full");
-                lore.add(Lore.line(ChatColor.GRAY, "Take one off on the pets screen"));
-            } else {
-                lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Left click to wear");
-            }
-            if (!bedrock) lore.add(Lore.footnote("Right click to upgrade it."));
-            if (!bedrock && owned.spare() > 0) {
-                lore.add(Lore.footnote("Shift click throws one copy away."));
-            }
-        } else {
-            lore.add(Lore.stat(ChatColor.AQUA, "Rarity", pet.rarity().displayName()));
-            lore.add(Lore.stat(ChatColor.AQUA, "Gives", pet.boostText()));
-            lore.add("");
-            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Locked");
-            lore.add(Lore.line(ChatColor.GRAY, "Make pets from Cosmic Dust"));
-            lore.add(Lore.line(ChatColor.GRAY, "on the pets screen"));
-        }
-        meta.setLore(lore);
-        if (worn) meta.setEnchantmentGlintOverride(Boolean.TRUE);
-        if (owned != null) meta.getPersistentDataContainer().set(petKey(), PersistentDataType.STRING, pet.id());
-        item.setItemMeta(meta);
-        return item;
+        return PetLore.card(plugin, data, pet, bedrock);
     }
 
     /**

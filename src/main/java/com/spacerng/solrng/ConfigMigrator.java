@@ -1127,6 +1127,52 @@ public final class ConfigMigrator {
             applied.add("rarity-gaps-5x");
             changed = true;
         }
+
+        // V340: Epic and up are a lot less rare, Leon's call ("lower the
+        // odds of the rest by 5-10x"). Epic, Legendary and Mythical are
+        // five times easier, Divine seven and a half, Astral ten, and the
+        // spread inside every tier is kept.
+        //
+        // Every old value is named rather than divided on sight, for two
+        // reasons: a server that installed V340 fresh must not have its
+        // already-lowered odds halved again, and an item Leon has retuned
+        // by hand keeps his number.
+        //
+        // Money pays on an item's odds, so an Epic drop is worth a fifth
+        // of what it was. That follows from the odds and is the point:
+        // they come five times as often.
+        if (!applied.contains("drops-easier-v340")) {
+            java.util.Map<String, Long> easier = new java.util.HashMap<>();
+            long[][] epic = {{75000, 15000}, {83200, 16600}, {92300, 18500}, {102000, 20400}, {112500, 22500}, {125000, 25000}, {138000, 27600}, {153000, 30600}, {170000, 34000}, {187500, 37500}};
+            for (long[] row : epic) easier.put("EPIC:" + row[0], row[1]);
+            long[][] legendary = {{937500, 188000}, {1010000, 202000}, {1120000, 224000}, {1210000, 242000}, {1320000, 264000}, {1430000, 286000}, {1575000, 315000}, {1680000, 336000}, {1790000, 358000}, {1875000, 375000}};
+            for (long[] row : legendary) easier.put("LEGENDARY:" + row[0], row[1]);
+            long[][] mythical = {{9375000, 1880000}, {11200000, 2240000}, {14000000, 2800000}, {18750000, 3750000}, {22500000, 4500000}, {28000000, 5600000}, {33000000, 6600000}, {37500000, 7500000}};
+            for (long[] row : mythical) easier.put("MYTHICAL:" + row[0], row[1]);
+            long[][] divine = {{187500000, 25000000}, {225000000, 30000000}, {270000000, 36000000}, {320000000, 42700000}, {380000000, 50700000}, {450000000, 60000000}, {520000000, 69300000}, {600000000, 80000000}, {680000000, 90700000}, {750000000, 100000000}};
+            for (long[] row : divine) easier.put("DIVINE:" + row[0], row[1]);
+            long[][] astral = {{3750000000L, 375000000L}, {7500000000L, 750000000L},
+                    {15000000000L, 1500000000L}};
+            for (long[] row : astral) easier.put("ASTRAL:" + row[0], row[1]);
+            List<Map<?, ?>> items = disk.getMapList("items");
+            boolean moved = false;
+            for (Map<?, ?> entry : items) {
+                Object odds = entry.get("odds");
+                if (!(odds instanceof Number number)) continue;
+                Long now = easier.get(entry.get("rarity") + ":" + number.longValue());
+                if (now == null) continue;
+                @SuppressWarnings("unchecked")
+                Map<Object, Object> editable = (Map<Object, Object>) entry;
+                editable.put("odds", now);
+                moved = true;
+            }
+            if (moved) {
+                disk.set("items", items);
+                plugin.getLogger().info("Config patch drops-easier-v340: Epic and up made less rare");
+            }
+            applied.add("drops-easier-v340");
+            changed = true;
+        }
         // V319: the new top-tier drops. Leon asked for at least ten Divine
         // and more at every tier from Legendary; there was ONE Divine, so a
         // Divine was a single named drop rather than a tier.

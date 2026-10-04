@@ -55,6 +55,55 @@ nothing to say; never reorder them.
 The blank lines are load-bearing. A tooltip with no breathing room reads
 as a wall and people stop reading it.
 
+### The collectable card, for anything a player collects
+
+Perks, drops in the index and pets are the same kind of thing: one of a
+set, with a rarity, that does something to a number. Leon has twice
+called the perk and index cards the best tooltips in the plugin, so
+anything new that belongs to a set is written in their shape rather than
+in a shape of its own:
+
+```
+1   NAME           the gradient or rarity-styled name, bold, alone
+2   SUBTITLE       DARK_GRAY, what this thing IS: "Mythical perk",
+                   "Legendary pet", "Divine drop". Never a number.
+3   (blank)
+4   PITCH          one or two grey lines, present tense, saying what it
+5                  does to you, with the STAT in white
+6   (blank)
+7   SECTION        "Your boost", or the ladder of levels
+8   ▎ one stat line per number, value on the right
+...
+12  (blank)
+13  ACTION FOOTER  plus footnotes for the other buttons
+```
+
+Rules that came out of the three of them:
+
+- **The subtitle is what it is, not how good it is.** "Mythical perk"
+  tells a reader where it sits in a set they already understand. A
+  subtitle repeating the rarity colour, or carrying a level number that
+  is in the stat lines below, is a wasted row.
+- **Say the rule once, in the same words, on every card of the set.** All
+  forty-two pets multiply one stat, and every pet card says exactly that
+  in exactly those words. A player learns the rule from the first card
+  they read and then only reads the numbers on the rest.
+- **The stat the thing touches goes in white inside the pitch**, and
+  again as a `Lore.stat` label underneath. The sentence is what makes it
+  make sense; the stat line is what they come back for.
+- **A card for something not owned yet is not a blank.** It says what it
+  would be worth, because that is the only reason to look at it, then
+  `Locked` or `Not found yet` and the one way in.
+- **Flavour text (a pet's blurb, a drop's line) is one grey line at the
+  top of the pitch, never more.** It is seasoning. If it pushes the
+  numbers past about 16 lines it goes.
+- **Collection counts belong on the card the set lives on**, not on every
+  member: "Found 3 / 6" on the rarity card, not on each pet.
+
+`gui/PerkLore.java` and `gui/PetLore.java` are the two reference
+implementations, and both are shared between the menu and the index for
+exactly one reason: the same thing described twice drifts.
+
 ### The description block, for anything somebody buys
 
 A price tag is not a description. Anything a player spends Credits,
