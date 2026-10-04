@@ -3906,8 +3906,10 @@ crates:
   spin-steps: 24
   fastest-gap-ticks: 3
   slowest-gap-ticks: 12
-  # The most keys one sneak click opens.
-  quick-open-max: 25
+  # The most keys one sneak click opens. V322: 500, Leon's call that a
+  # shift click opens all of them. It is a safety ceiling on one tick of
+  # work, not a feature; raise it if anybody ever sits on more.
+  quick-open-max: 500
   types:
     farm:
       display: "Farm Crate"
@@ -5416,6 +5418,12 @@ boost:
 # reaching checkpoint 1 is roughly a 62% run; by tier 20 the same player
 # is at ~6% a step, which keeps the top of the ladder a real grind.
 novacore:
+  # V322: every forge is the same coin flip, Leon's call ("make every
+  # novacore 50/50"). While this is above 0 it IS the chance, and
+  # base-chance, decay, luck-weight, min/max-chance, the Nova Touch
+  # prestige upgrade and first-forge-guaranteed below are all skipped.
+  # Set it to 0 to bring the old tier curve back.
+  flat-chance: 0.5
   max-tier: 20
   # First checkpoint tier; each gap after it is one longer, so the
   # defaults give 5, 11, 18 across a 20-tier ladder.

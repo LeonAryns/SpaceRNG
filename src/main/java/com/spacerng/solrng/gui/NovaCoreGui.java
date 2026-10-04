@@ -184,17 +184,26 @@ public class NovaCoreGui {
                     + "1 Nova Core" + ChatColor.DARK_GRAY + "  (you have " + held + ")");
             lore.add(Lore.stat(ChatColor.RED, "On fail", "back to tier " + nova.checkpointBelow(tier)));
             lore.add("");
-            // Luck multiplies the tier's base chance: no Luck is the base,
-            // +100% Luck doubles it, +200% triples it (V158).
-            lore.add(Lore.stat(ChatColor.AQUA, "Base chance",
-                    String.format("%.1f%%", nova.chanceAt(tier, 0.0) * 100.0)));
-            // V285: said "Your Luck x16" next to a +2155% Luck elsewhere, which
-            // read as a bug. It is the boost Luck gives the forge, and the
-            // Luck behind it leaves out the Nova Core's own multiplier.
-            lore.add(Lore.stat(ChatColor.GREEN, "Luck boost",
-                    String.format("x%.2f", 1.0 + Math.max(0.0, luck) * nova.getLuckWeight())));
-            lore.add(ChatColor.DARK_GRAY + "From +" + Math.round(Math.max(0.0, luck) * 100.0)
-                    + "% Luck, without the Nova Core itself.");
+            // V322: a flat chance is the same for everybody, so the two
+            // lines that explained how Luck moved it would be telling a
+            // story the forge no longer follows.
+            if (nova.getFlatChance() > 0.0) {
+                lore.add(Lore.stat(ChatColor.AQUA, "Every tier",
+                        String.format("%.0f%%", nova.getFlatChance() * 100.0)));
+                lore.add(ChatColor.DARK_GRAY + "The same coin flip at every tier.");
+            } else {
+                // Luck multiplies the tier's base chance: no Luck is the base,
+                // +100% Luck doubles it, +200% triples it (V158).
+                lore.add(Lore.stat(ChatColor.AQUA, "Base chance",
+                        String.format("%.1f%%", nova.chanceAt(tier, 0.0) * 100.0)));
+                // V285: said "Your Luck x16" next to a +2155% Luck elsewhere, which
+                // read as a bug. It is the boost Luck gives the forge, and the
+                // Luck behind it leaves out the Nova Core's own multiplier.
+                lore.add(Lore.stat(ChatColor.GREEN, "Luck boost",
+                        String.format("x%.2f", 1.0 + Math.max(0.0, luck) * nova.getLuckWeight())));
+                lore.add(ChatColor.DARK_GRAY + "From +" + Math.round(Math.max(0.0, luck) * 100.0)
+                        + "% Luck, without the Nova Core itself.");
+            }
             lore.add("");
             if (affordable) {
                 lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to forge");

@@ -64,7 +64,7 @@ public class CrateManager {
     // V202, which put seventeen items past the eye in the first second.
     private int fastestGap = 3;
     private int slowestGap = 12;
-    private int quickOpenMax = 25;
+    private int quickOpenMax = 500;
 
     public CrateManager(SolRNGPlugin plugin) {
         this.plugin = plugin;
@@ -406,7 +406,11 @@ public class CrateManager {
      * be a jackpot is still announced one by one.
      */
     public void quickOpen(Player player, Block block, Crate crate) {
-        quickOpen(player, block.getLocation().add(0.5, 1.0, 0.5), crate, quickOpenMax);
+        // V322: every key, not the first 25, Leon's call ("make keys shift
+        // click and you open them all"). crates.quick-open-max is only the
+        // safety ceiling on one click now, so nobody asks the server for
+        // ten thousand rewards inside a single tick.
+        quickOpen(player, block.getLocation().add(0.5, 1.0, 0.5), crate, Integer.MAX_VALUE);
     }
 
     /**
@@ -419,7 +423,7 @@ public class CrateManager {
             player.sendMessage(ChatColor.RED + "Finish the crate you are already opening first.");
             return;
         }
-        int amount = Math.min(Math.max(1, most), keysHeld(player, crate));
+        int amount = Math.min(Math.min(Math.max(1, most), quickOpenMax), keysHeld(player, crate));
         if (amount <= 0 || !takeKeys(player, crate, amount)) {
             noKey(player, crate);
             return;

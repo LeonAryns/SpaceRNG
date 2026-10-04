@@ -43,6 +43,13 @@ public class NovaCoreManager {
     private double luckWeight = 1.0;
     private double minChance = 0.02;
     private double maxChance = 0.95;
+    // V322: one flat chance for every forge, Leon's call ("make every
+    // novacore 50/50"). While this is above 0 it IS the chance: the
+    // decay curve, Luck, the Nova Touch upgrade and the guaranteed first
+    // forge are all skipped, because any of them would make a forge
+    // something other than the 50/50 it says it is. Set it to 0 to bring
+    // the old curve back.
+    private double flatChance = 0.5;
     // One multiplier per tier, read straight from config. A formula gave a
     // straight line that was far too steep at the top; a hand-written curve
     // lets the early tiers be a gentle nudge and the last few be a real
@@ -66,6 +73,7 @@ public class NovaCoreManager {
         luckWeight = config.getDouble("novacore.luck-weight", 1.0);
         minChance = config.getDouble("novacore.min-chance", 0.02);
         maxChance = config.getDouble("novacore.max-chance", 0.95);
+        flatChance = Math.max(0.0, Math.min(1.0, config.getDouble("novacore.flat-chance", 0.5)));
         multipliers = config.getDoubleList("novacore.multipliers");
         baseCost = config.getLong("novacore.base-cost-tokens", 500L);
         costGrowth = config.getDouble("novacore.cost-growth", 1.18);
@@ -214,14 +222,21 @@ public class NovaCoreManager {
         return luckWeight;
     }
 
+    /** The flat chance every forge uses, or 0 when the old curve is back on. */
+    public double getFlatChance() {
+        return flatChance;
+    }
+
     /**
      * Odds of clearing the step from {@code tier} to {@code tier + 1}.
      *
-     * Tier 0 to 1 is a certainty while novacore.first-tier-guaranteed is
-     * on, and the menu says so rather than quoting a number the forge
-     * will not use.
+     * Since V322 novacore.flat-chance answers this on its own: every
+     * forge is the same coin flip, whatever the tier and whatever the
+     * Luck. With it at 0 the old curve below answers instead, and tier 0
+     * to 1 is a certainty while novacore.first-tier-guaranteed is on.
      */
     public double chanceAt(int tier, double luck) {
+        if (flatChance > 0.0) return flatChance;
         if (tier <= 0 && firstForgeFree) return 1.0;
         double raw = baseChance * Math.pow(decay, tier) * (1.0 + luck * luckWeight);
         return Math.max(minChance, Math.min(maxChance, raw));
@@ -253,16 +268,20 @@ public class NovaCoreManager {
         }
 
         double luck = plugin.getPrestigeManager().baseLuck(data);
-        // Nova Touch nudges the roll itself rather than the Luck feeding it,
-        // so it stays useful at high Luck where the odds already clamp.
-        double chance = Math.min(maxChance, chanceAt(tier, luck)
-                + plugin.getPrestigeManager().upgradeTotal(data,
-                        com.spacerng.solrng.player.PrestigeUpgrade.Effect.NOVA_ODDS));
+        // V322: a flat chance is flat. Nova Touch and the guaranteed first
+        // forge are both skipped while it is on, because 50/50 that is
+        // really 54/46 on the first climb is not what was asked for.
+        double chance = flatChance > 0.0 ? flatChance
+                // Nova Touch nudges the roll itself rather than the Luck feeding
+                // it, so it stays useful at high Luck where the odds already clamp.
+                : Math.min(maxChance, chanceAt(tier, luck)
+                        + plugin.getPrestigeManager().upgradeTotal(data,
+                                com.spacerng.solrng.player.PrestigeUpgrade.Effect.NOVA_ODDS));
         // Tier 1 cannot fail, ever, not only the first time (V186). A
         // shattered Core drops somebody to 0, and making them gamble a
         // second Core to get back to a tier worth almost nothing is the
         // point where people stop forging altogether.
-        boolean guaranteed = firstForgeFree && tier == 0;
+        boolean guaranteed = flatChance <= 0.0 && firstForgeFree && tier == 0;
         boolean success = guaranteed || ThreadLocalRandom.current().nextDouble() < chance;
 
         if (success) {

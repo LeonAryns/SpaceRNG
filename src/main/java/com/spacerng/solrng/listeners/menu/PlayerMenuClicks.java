@@ -130,8 +130,10 @@ final class PlayerMenuClicks {
                 var crate = plugin.getCrateManager().crateForKey(id);
                 if (crate == null || data.storedKeys(id) <= 0) return;
                 player.closeInventory();
+                // V322: all of them. The only ceiling left is
+                // crates.quick-open-max, inside quickOpen itself.
                 plugin.getCrateManager().quickOpen(player, player.getLocation().add(0, 1.0, 0), crate,
-                        (int) Math.min(500L, data.storedKeys(id)));
+                        Integer.MAX_VALUE);
                 return;
             }
             long took = data.takeStoredKeys(id, 1);

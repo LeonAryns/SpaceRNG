@@ -29,8 +29,11 @@ public class AuraGui {
 
     private static final int SIZE = 45;
     private static final int INFO_SLOT = 4;
-    private static final int[] PLAIN_SLOTS = {19, 21, 23, 25};
-    private static final int[] SHINY_SLOTS = {28, 30, 32, 34};
+    // V322: five looks per row, not four. V319 added Astral to SHOWN and
+    // left these at four, so build() walked off the end of the array and
+    // /aura threw on every open.
+    private static final int[] PLAIN_SLOTS = {20, 21, 22, 23, 24};
+    private static final int[] SHINY_SLOTS = {29, 30, 31, 32, 33};
     private static final int FOLLOW_SLOT = 40;
     private static final Rarity[] SHOWN =
             {Rarity.EPIC, Rarity.LEGENDARY, Rarity.MYTHICAL, Rarity.DIVINE, Rarity.ASTRAL};
@@ -174,6 +177,7 @@ public class AuraGui {
 
     private static Material material(Rarity rarity) {
         return switch (rarity) {
+            case ASTRAL -> Material.END_CRYSTAL;
             case DIVINE -> Material.NETHER_STAR;
             case MYTHICAL -> Material.NETHERITE_INGOT;
             case LEGENDARY -> Material.GLOWSTONE;

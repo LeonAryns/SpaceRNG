@@ -81,6 +81,10 @@ public final class ConfigMigrator {
             // farming: block every older config already has, so it never
             // merged and Leon could not tune it on the server.
             "farming.crop-unlock-at",
+            // V322: every forge is one flat chance. A new key, so a Patch
+            // has nothing to match; without this the server runs on the
+            // code default and Leon cannot tune it by hand.
+            "novacore.flat-chance",
             // V321: the two new heavy-aura limits.
             "auras.heavy.piece-threshold", "auras.heavy.swaps-per-check",
             "rarities.ASTRAL",
@@ -219,6 +223,9 @@ public final class ConfigMigrator {
     }
 
     private static final List<Patch> PATCHES = List.of(
+            // V322: a shift click opens every key, so the old ceiling of 25
+            // would have quietly capped it on the live server.
+            new Patch("crate-quick-open-all-v322", "crates.quick-open-max", 25, 500),
             // V298: Owner red only, prestige one level more each time, pass XP nerfed.
             // V303: reveals from 1 in 1,000 again, Leon's call.
             // V304: a full shiny tier is 3x.

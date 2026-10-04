@@ -362,9 +362,15 @@ public class RollListener implements Listener {
                 : plugin.getRarityManager().roll(luck));
         if (floor > 0) {
             Rarity least = Rarity.values()[floor];
-            player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "✦ LUCKY STREAK ✦" + ChatColor.RESET
-                    + ChatColor.GRAY + "  this roll is at least "
-                    + plugin.getRarityManager().style(least, least.displayName()) + ChatColor.GRAY + ".");
+            // V322: above the hotbar rather than in chat, Leon's call. The
+            // line belongs to the roll it is about and is stale by the next
+            // one, so it was pushing the drop lines he keeps out of view.
+            com.spacerng.solrng.gui.ActionBar.send(player,
+                    LegacyComponentSerializer.legacySection().deserialize(
+                            ChatColor.GREEN + "" + ChatColor.BOLD + "✦ LUCKY STREAK ✦" + ChatColor.RESET
+                                    + ChatColor.GRAY + "  at least "
+                                    + plugin.getRarityManager().style(least, least.displayName())),
+                    3000L);
         }
         boolean shiny = forcedShiny.remove(player.getUniqueId()) || rollShiny(data);
 
@@ -670,9 +676,14 @@ public class RollListener implements Listener {
      */
     private void announceSupercharge(Player player, double multiplier) {
         String label = ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "\u26a1 SUPERCHARGED ROLL \u26a1";
-        player.sendMessage(label + ChatColor.RESET + ChatColor.GRAY + "  this one rolls at "
-                + ChatColor.LIGHT_PURPLE + String.format("%,.0f", multiplier) + "x"
-                + ChatColor.GRAY + " Luck.");
+        // V322: above the hotbar too. It is still announced before the
+        // roll, which is the whole point of announcing it at all.
+        com.spacerng.solrng.gui.ActionBar.send(player,
+                LegacyComponentSerializer.legacySection().deserialize(
+                        label + ChatColor.RESET + ChatColor.GRAY + "  rolling at "
+                                + ChatColor.LIGHT_PURPLE + String.format("%,.0f", multiplier) + "x"
+                                + ChatColor.GRAY + " Luck"),
+                3000L);
         player.playSound(player.getLocation(), Sound.BLOCK_BEACON_POWER_SELECT, 1.0f, 1.4f);
     }
 
