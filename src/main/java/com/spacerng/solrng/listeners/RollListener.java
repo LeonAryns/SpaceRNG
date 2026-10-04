@@ -815,8 +815,12 @@ public class RollListener implements Listener {
                 + plugin.getPerkManager().totalOf(data, com.spacerng.solrng.perk.PerkStat.BONUS_ROLL_PERCENT);
         if (bonusChance > 0.0 && random.nextDouble() < bonusChance) {
             if (!auto) {
-                player.sendMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "Bonus Roll! " + ChatColor.RESET
-                        + ChatColor.GRAY + "Rolling again...");
+                // V334: above the hotbar. A bonus roll can chain several
+                // times in a row, and in chat that is four lines saying
+                // the same thing about rolls the player is watching
+                // happen anyway.
+                sendActionBar(player, ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "Bonus Roll! "
+                        + ChatColor.RESET + ChatColor.GRAY + "rolling again");
             }
             // Waits out the finale rather than being swallowed by the lock.
             plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
@@ -888,6 +892,7 @@ public class RollListener implements Listener {
         // letting one of those swallow a 1-in-100 find would be the single
         // most annoying thing the plugin could do.
         boolean converting = shiny ? data.isAutoConvertShiny() : data.isAutoConverting(rarity);
+        boolean converted = false;
 
         if (converting) {
             if (shiny) {
@@ -897,13 +902,11 @@ public class RollListener implements Listener {
                 // A full vault says nothing (V257, Leon scrapped the message).
                 if (banked > 0) data.addConverted(rarity, banked);
             }
-            if (!silent && !auto) {
-                // Auto-convert is a bulk mode: the full name and the odds
-                // on every single roll is noise you asked for none of.
-                player.sendMessage(ChatColor.AQUA + "\u26a1 " + ChatColor.GRAY + "You rolled "
-                        + plugin.getRarityManager().style(rarity, rarity.displayName())
-                        + ChatColor.DARK_GRAY + " (auto converted)");
-            }
+            // V334: no chat line at all. Auto-convert is a bulk mode and a
+            // line per roll is the noise Leon screenshotted; the action bar
+            // below carries the drop anyway, so the tag goes on the end of
+            // that and chat stays for things worth keeping.
+            converted = true;
         } else {
             Map<Integer, ItemStack> overflow = player.getInventory().addItem(previewItem.clone());
             if (!overflow.isEmpty()) {
@@ -918,8 +921,10 @@ public class RollListener implements Listener {
             }
         }
 
+        String convertedTag = converted ? ChatColor.DARK_GRAY + "  (auto converted)" : "";
         if (!silent && auto) {
-            sendActionBar(player, RollFormat.autoRollLine(plugin, result, shiny) + moneyLine(moneyEarned));
+            sendActionBar(player, RollFormat.autoRollLine(plugin, result, shiny)
+                    + moneyLine(moneyEarned) + convertedTag);
         } else if (!silent) {
             // Money green, like it is everywhere else. Gold here made the
             // one currency with its own colour the only one not using it.
@@ -929,7 +934,8 @@ public class RollListener implements Listener {
                             + com.spacerng.solrng.gui.Currency.MONEY.colour() + " Money"
                     : "";
             sendActionBar(player, RollFormat.displayName(plugin, result, shiny)
-                    + ChatColor.GRAY + "  " + RollFormat.compactOdds(result.getOdds()) + moneyText);
+                    + ChatColor.GRAY + "  " + RollFormat.compactOdds(result.getOdds())
+                    + moneyText + convertedTag);
         }
 
         plugin.getPassManager().awardRoll(player, data, rarity);

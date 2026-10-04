@@ -901,6 +901,32 @@ final class PlayerAdmin extends AdminTools {
      * test something stays silent, which is the difference between a
      * feature and a way to spam the server.
      */
+    /**
+     * /rngadmin store <player> <what they bought>
+     *
+     * The line for a package that is not Credits and not a rank: a tag, a
+     * crate key, anything a Tebex package hands over with its own
+     * commands. Put this next to those commands in the package and the
+     * purchase announces itself like the other two do.
+     */
+    boolean doStore(CommandSender sender, String[] args) {
+        if (args.length < 3) {
+            sender.sendMessage(ChatColor.YELLOW + "/rngadmin store <player> <what they bought>");
+            sender.sendMessage(ChatColor.DARK_GRAY + "Say it in the Tebex package next to the commands"
+                    + " that hand the package over.");
+            return true;
+        }
+        Player target = plugin.getServer().getPlayer(args[1]);
+        if (target == null) {
+            sender.sendMessage(ChatColor.RED + "Player not found or offline.");
+            return true;
+        }
+        String what = String.join(" ", java.util.Arrays.copyOfRange(args, 2, args.length));
+        announceStore(sender, target, "buy.announce-credits", what);
+        sender.sendMessage(ChatColor.GREEN + "Announced " + target.getName() + "'s purchase: " + what);
+        return true;
+    }
+
     private void announceStore(CommandSender sender, Player target, String path, String what) {
         var config = plugin.getConfig();
         if (!config.getBoolean("buy.announce", true)) return;

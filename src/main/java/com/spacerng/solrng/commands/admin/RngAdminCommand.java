@@ -37,7 +37,7 @@ import java.util.UUID;
 public class RngAdminCommand implements CommandExecutor, TabCompleter {
 
     private static final List<String> SUBCOMMANDS = List.of(
-            "reload", "setspawn", "starforge", "reset", "season", "give", "drops",
+            "reload", "setspawn", "starforge", "reset", "season", "give", "store", "drops",
             "bank", "rank", "cosmetic", "bedrock", "aura", "auras", "head", "reveal", "nextroll", "roll", "unlock", "unlockall", "lockall", "odds", "farmblock", "farmscan", "farmwheat", "farmland",
             "hoe", "consumable", "gradient", "welcome", "crops", "farmclear",
             "milestones", "farmfill", "boost", "crowd", "nova", "placeholders", "payout", "crate", "tophead", "floatingitem", "boss", "pet", "dust", "discord", "realm", "advancements", "protect", "cropwatch", "farmboard", "icon", "shiny", "firsts", "lorestyles", "tagstyles", "menustyles", "hoestyles", "standingstyles", "enchantstyles", "novastyles", "auratest", "holo", "help");
@@ -73,6 +73,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             case "reset" -> players.doReset(sender, args);
             case "season" -> players.doSeason(sender, args);
             case "give" -> players.doGive(sender, args);
+            case "store" -> players.doStore(sender, args);
             case "rank" -> players.doRank(sender, args);
             case "cosmetic" -> players.doCosmetic(sender, args);
             case "bedrock" -> players.doBedrock(sender, args);
@@ -148,6 +149,8 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         line(sender, "give", "<money|coins|gems|credits|luck|speed> <amount> [player]",
                 "Top up a currency, or add permanent Luck or Speed in percent");
         line(sender, "rank", "<set|clear> [rank] [player]", "Grant or clear a rank, for store purchases");
+        line(sender, "store", "<player> <what they bought>",
+                "Announce a store purchase in chat, for a Tebex package");
         line(sender, "cosmetic", "<give|take|list> <title> [player]", "Hand out a /cosmetics title");
         line(sender, "bedrock", "[on|off] [player]", "Who is on Bedrock, or test Bedrock mode on a Java account");
         line(sender, "drops", "<rarity|all> <amount> [player]", "Physical rolled drops in the inventory");
