@@ -5,10 +5,56 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V326**, 4 October 2026. The newest section is the
+Last updated at **V330**, 4 October 2026. The newest section is the
 first one below; older sections further down are history.
 
-## Start here: V322 to V326, 4 October 2026
+## Start here: V327 to V330, 4 October 2026
+
+The same session as V322 to V326, second half. Four more jars, all green,
+**none tested in game**. Config is at version 33.
+
+### What shipped
+
+- **V327, the pet index by rarity.** Leon: "just have the rarities, dont
+  divide them with the boost they give." Seven cards, one per rarity,
+  each with its fresh and fully grown multiplier and the six pets inside
+  it. Autotrash moved with it and is per rarity now; it still writes the
+  same per pet set underneath.
+- **V328, four things.** Enchant Mastery has bought nothing since V190:
+  maxLevelFor is min(max-level, base-cap + mastery), V190 raised base-cap
+  to 10,000 and max-level already was 10,000, so the sum clamped straight
+  back. max-level is 20,000 now and base-cap stays, so nothing anybody
+  holds moves. Speed from /skilltree halved, 8.85 to 4.40 at full. The
+  chat hover no longer draws the sidebar's resource pack glyphs, which
+  render there as yellow boxes. A shift click in /boosters drinks the
+  whole stack of a draught.
+- **V329, the Secret Realm.** /rngadmin realm here plus /rngadmin realm
+  radius <blocks> IS the area: a point and a distance, both in realm.yml.
+  /secretrealm is an alias of /realm. A holograms.panels.realm panel.
+  A grey reveal, `realm/SecretFx`, when a secret is found: ash, stone and
+  bone, no rarity's colours. Inside the realm nobody wears an aura or a
+  drop tag; what floats over a player is their secret and the Index Luck
+  it pays, and it goes back on the way out.
+- **V330, /index and the store.** Three buttons, Normal, Shiny and
+  Secret, in place of the stepping block, entries sorted by rarity, and
+  the second row stays black instead of picking up the palette's blue on
+  its two ends. A store purchase announces itself: the web store calls
+  /rngadmin give credits and /rngadmin rank set, which said nothing to
+  anybody, so both now post a line, behind buy.announce and
+  buy.console-only (on, so an op testing it stays silent).
+
+### Open, waiting on Leon
+
+- **Everything from the V322 to V326 list below is still open**, plus:
+- **max-level 20,000 doubles every enchant's ceiling value**, reachable
+  only with both mastery nodes. If that is too much, drop per-level
+  instead of max-level, but that one DOES take power off people.
+- **The store lines are a guess at what he wants said.** Both messages
+  are MiniMessage in config.
+- **Duplicate pets still have no use** beyond stacking and being thrown
+  away.
+
+## V322 to V326, 4 October 2026
 
 Leon gave a running list over one session and asked for all of it. Five
 jars, every one pushed and built green. **None of it has been tested in
