@@ -254,13 +254,21 @@ public class RealmManager implements Listener {
             if (allowed) {
                 player.sendMessage(ChatColor.GRAY + "For " + minutes + " minutes. Type "
                         + ChatColor.LIGHT_PURPLE + "/realm" + ChatColor.GRAY + " to go through.");
-                player.sendTitle(Lore.gradient("Secret Realm", true, "#B388FF", "#40C4FF"),
-                        ChatColor.GRAY + "/realm for " + minutes + " minutes", 10, 60, 20);
-                player.playSound(player.getLocation(), Sound.BLOCK_END_PORTAL_SPAWN, 0.5f, 1.4f);
             } else {
                 player.sendMessage(ChatColor.GRAY + "Only players at Prestige " + minPrestige
                         + " and up can enter.");
             }
+            // V343: the title and the sound go to everybody, not only to
+            // the players who can walk in. An opening is the one event in
+            // the plugin nobody should be able to miss, and somebody who
+            // cannot enter yet is exactly who should hear it is happening.
+            player.sendTitle(Lore.gradient("Secret Realm", true, "#B388FF", "#40C4FF"),
+                    allowed ? ChatColor.GRAY + "/realm for " + minutes + " minutes"
+                            : ChatColor.DARK_GRAY + "Prestige " + minPrestige + " and up",
+                    10, 70, 20);
+            player.playSound(player.getLocation(), Sound.BLOCK_END_PORTAL_SPAWN, 0.7f, 1.4f);
+            player.playSound(player.getLocation(), Sound.BLOCK_BEACON_ACTIVATE, 0.6f, 0.7f);
+            player.playSound(player.getLocation(), Sound.BLOCK_SCULK_CATALYST_BLOOM, 0.8f, 0.9f);
             player.sendMessage("");
         }
         updateBar(System.currentTimeMillis());

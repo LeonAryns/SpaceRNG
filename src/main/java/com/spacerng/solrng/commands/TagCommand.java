@@ -17,7 +17,6 @@ import org.bukkit.persistence.PersistentDataType;
 
 public class TagCommand implements CommandExecutor {
 
-    private static final String INDEX_LUCK_NODE = "index_luck";
 
     private final SolRNGPlugin plugin;
 
@@ -85,7 +84,8 @@ public class TagCommand implements CommandExecutor {
      */
     public static void autoEquipBest(SolRNGPlugin plugin, Player player, PlayerData data) {
         if (player == null || !plugin.getRankManager().has(data, "auto-tag")) return;
-        if (!data.hasUnlocked(INDEX_LUCK_NODE)) return;
+        // V343: no gate. The Tag Luck node is gone, a tag is cosmetic and
+        // the Luck multiplier is your best secret, so anybody can wear one.
         RollableItem best = null;
         for (String name : data.getDiscoveredItems()) {
             RollableItem item = plugin.getRarityManager().findByDisplayName(name);
@@ -105,17 +105,10 @@ public class TagCommand implements CommandExecutor {
      * held item) and the /index GUI (reads a clicked collection-log entry).
      */
     public static void equip(SolRNGPlugin plugin, Player player, PlayerData data, String rollName, String rarityName) {
-        // The tag IS the index multiplier, so equipping one is gated on the
-        // skill that turns that multiplier on. Letting people equip first
-        // and quietly get 1.00x reads as a bug rather than a lock.
-        if (!data.hasUnlocked(INDEX_LUCK_NODE)) {
-            player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "LOCKED "
-                    + ChatColor.RESET + ChatColor.GRAY + "Unlock " + ChatColor.YELLOW + "Tag Luck"
-                    + ChatColor.GRAY + " in " + ChatColor.YELLOW + "/skilltree" + ChatColor.GRAY
-                    + " to equip a tag.");
-            player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.9f, 1.0f);
-            return;
-        }
+        // V343: no lock. A tag was gated on the Tag Luck skill while the
+        // tag WAS the index multiplier; the multiplier is your best secret
+        // now and that skill is gone, so a tag is a cosmetic anybody who
+        // has found the drop can wear.
 
         data.setEquippedTag(rollName, rarityName);
         plugin.getTagManager().refreshPrefix(player, data);

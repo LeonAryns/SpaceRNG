@@ -764,8 +764,17 @@ public class FarmPlotManager {
             lastCropTokens = tokens;
         }
         if (shards > 0) data.addShards(shards);
-        data.addCropsHarvested(1L);
-        checkCropUnlocks(player, data);
+        // V343, Leon's question: a plot swept up by Blast Harvest,
+        // Lightning or a Nuke used to count toward crops farmed like a
+        // plot you clicked, so one click could be a hundred crops on the
+        // counter the crop unlocks are measured in. Only the click counts
+        // now. The Coins, Gems, boss progress, Battle Pass XP and Farm
+        // Dust below still move with every swept plot, which is what the
+        // enchants are bought for.
+        if (chain) {
+            data.addCropsHarvested(1L);
+            checkCropUnlocks(player, data);
+        }
         // A boss is measured in crops, so it moves with the same counter
         // rather than with the Coins the crop happened to pay.
         plugin.getBossManager().onHarvest(player, 1L);

@@ -97,8 +97,9 @@ final class SkillTreeClicks {
             player.sendMessage(ChatColor.RED + "Nothing to respec.");
             return;
         }
-        // V298: shinies still in the inventory count too.
-        if (!com.spacerng.solrng.player.DropWallet.spendShinies(plugin, player, data, cost)) {
+        // V343: free. The cost is 0 and this only still runs so a config
+        // or a later change that puts a price back keeps working.
+        if (cost > 0 && !com.spacerng.solrng.player.DropWallet.spendShinies(plugin, player, data, cost)) {
             player.sendMessage(ChatColor.RED + "You need " + cost + " shinies for that.");
             player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
             return;
@@ -108,8 +109,8 @@ final class SkillTreeClicks {
         player.sendMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "Respec complete. "
                 + ChatColor.RESET + ChatColor.WHITE + "Refunded "
                 + Currency.MONEY.amount(money) + ChatColor.WHITE + " and "
-                + Currency.COINS.amount(coins) + ChatColor.WHITE + ". The next one costs "
-                + ChatColor.LIGHT_PURPLE + data.nextRespecCost() + ChatColor.WHITE + " shinies.");
+                + Currency.COINS.amount(coins) + ChatColor.WHITE + ". Respeccing is free, "
+                + "as often as you like.");
         player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_BEACON_POWER_SELECT, 1.0f, 1.4f);
         plugin.getScoreboardManager().update(player);
         plugin.getLuckBarManager().update(player);

@@ -292,12 +292,11 @@ public class RarityManager {
      * tiers multiply rather than add - and completing all of them in shiny
      * is meant to be the largest number in the plugin.
      *
-     * Gated behind the same Tag Luck skill the equipped tag is: until
-     * that's bought, the index is a collection log and nothing more.
+     * V343: no longer gated. It sat behind the Tag Luck skill, and that
+     * node is gone, so finishing a rarity pays the moment it is finished.
      */
     public double completionMultiplier(com.spacerng.solrng.player.PlayerData data,
                                        double perRarity, double perShiny) {
-        if (!data.hasUnlocked("index_luck")) return 1.0;
         double total = 1.0;
         for (Rarity rarity : Rarity.values()) {
             total *= completionMultiplierFor(data, rarity, perRarity, perShiny);

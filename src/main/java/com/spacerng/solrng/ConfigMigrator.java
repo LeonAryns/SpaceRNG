@@ -236,6 +236,10 @@ public final class ConfigMigrator {
             "holograms.podium-text-scale",
             // V336: the realm panel hides the shared "Click Here" line.
             "holograms.panels.realm.click",
+            // V343: the second rarity every armour tier now asks for.
+            "armor.tiers.LEATHER.costs.UNCOMMON", "armor.tiers.CHAINMAIL.costs.RARE",
+            "armor.tiers.IRON.costs.EPIC", "armor.tiers.GOLD.costs.LEGENDARY",
+            "armor.tiers.DIAMOND.costs.MYTHICAL", "armor.tiers.NETHERITE.costs.DIVINE",
             // V341: five more secrets, Leon's call ("also add more"). One
             // dotted path each, because every server already has a
             // secret-realm.secrets section and a whole-section copy would
@@ -266,6 +270,18 @@ public final class ConfigMigrator {
     }
 
     private static final List<Patch> PATCHES = List.of(
+            // V343: the Secret Realm has no prestige wall, Leon's call.
+            new Patch("realm-no-prestige-v343", "secret-realm.min-prestige", 10, 0),
+            // V343: every armour tier asks for two rarities and every piece
+            // of a tier costs the same, Leon's call. These are the amounts
+            // that moved; the rarity each tier gained is a new path, so it
+            // is in ADDED_SECTIONS below.
+            new Patch("armor-leather-v343", "armor.tiers.LEATHER.costs.COMMON", 40, 20),
+            new Patch("armor-chain-v343", "armor.tiers.CHAINMAIL.costs.UNCOMMON", 16, 20),
+            new Patch("armor-iron-v343", "armor.tiers.IRON.costs.RARE", 8, 10),
+            new Patch("armor-gold-v343", "armor.tiers.GOLD.costs.EPIC", 2, 4),
+            new Patch("armor-diamond-v343", "armor.tiers.DIAMOND.costs.LEGENDARY", 1, 3),
+            new Patch("armor-netherite-v343", "armor.tiers.NETHERITE.costs.MYTHICAL", 1, 3),
             // V338, Leon's numbers for the realm: 20 minutes open, around
             // every three hours, and the drop digest every five minutes
             // rather than every two.
@@ -804,6 +820,20 @@ public final class ConfigMigrator {
     private record ListPatch(String id, String path, List<String> oldLines, List<String> newLines) {
     }
 
+    /**
+     * Drops one entry out of a list of maps by its id (V343), which is how
+     * a guide step for something that no longer exists is taken off a live
+     * config. REMOVALS deletes a path and a list entry has none.
+     */
+    private record EntryRemoval(String id, String list, String entryId) {
+    }
+
+    private static final List<EntryRemoval> ENTRY_REMOVALS = List.of(
+            // V343: the Tag Luck node is gone from the tree, so the guide
+            // step asking for it could never be finished, and an unfinished
+            // step holds up every step behind it.
+            new EntryRemoval("guide-drop-index-luck-v343", "guide.quests", "index_luck"));
+
     private static final List<ListPatch> LIST_PATCHES = List.of(
             // V337: Leon on the holograms, "dont make the lines so long".
             // Every one of these is a line floating in the world, read at
@@ -870,6 +900,19 @@ public final class ConfigMigrator {
     private static final String DASH = String.valueOf((char) 0x2014);
 
     private static final List<TextPatch> TEXT_PATCHES = List.of(
+            // V343: the respec is free, so the tip selling it for shinies
+            // was asking for something nobody has to pay.
+            new TextPatch("respec-free-tip-v343", "announcements.messages",
+                    "&3\u258e &e\u25b8 &7Respec any time for a few &fshinies&7 - the price climbs one per respec.",
+                    "&3\u258e &e\u25b8 &7Respec any time in /skilltree, &ffree&7 - spend your Money somewhere else."),
+            // And the two tips still selling Tag Luck, which pays nothing
+            // since V337 and has no skill behind it since V343.
+            new TextPatch("tip-tag-cosmetic-v343", "announcements.messages",
+                    "&3\u258e &e\u25b8 &7Every drop has its own &bTag Luck&7, equip the best in &e/index&7.",
+                    "&3\u258e &e\u25b8 &7Wear any drop you have found as a &btag&7 from &e/index&7."),
+            new TextPatch("tip-secret-luck-v343", "announcements.messages",
+                    "&3\u258e &e\u25b8 &7Unlock &fTag Luck&7 in &e/skilltree&7 before you can wear one.",
+                    "&3\u258e &e\u25b8 &7The Luck multiplier is your best &dsecret&7 - see &d/secretindex&7."),
             // V337: the index tag pays no Luck any more, the best secret
             // does, so the panel over the index NPC stopped being true.
             new TextPatch("index-panel-tag-luck-v337", "holograms.panels.index.lines",
@@ -1330,6 +1373,18 @@ public final class ConfigMigrator {
                 }
             }
             applied.add(patch.id());
+            changed = true;
+        }
+        for (EntryRemoval removal : ENTRY_REMOVALS) {
+            if (applied.contains(removal.id())) continue;
+            List<Map<?, ?>> entries = disk.getMapList(removal.list());
+            boolean dropped = entries.removeIf(entry -> removal.entryId().equals(entry.get("id")));
+            if (dropped) {
+                disk.set(removal.list(), entries);
+                plugin.getLogger().info("Config patch " + removal.id() + ": " + removal.entryId()
+                        + " removed from " + removal.list());
+            }
+            applied.add(removal.id());
             changed = true;
         }
         for (ListPatch patch : LIST_PATCHES) {

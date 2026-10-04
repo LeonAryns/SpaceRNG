@@ -8,7 +8,7 @@
 # their fresh defaults in on top of whatever is on disk, so a server
 # owner never has to delete the whole file to pick up a structural
 # change. Item table, prices and cosmetic tweaks are untouched.
-config-version: 34
+config-version: 35
 
 # One-off value changes the plugin has already made to this file, so none
 # is ever made twice. Managed by the plugin; leave it alone.
@@ -1096,38 +1096,47 @@ armor:
   tiers:
     LEATHER:
       display: "Leather"
+      # V343, Leon's call: every tier asks for two rarities, and every piece
+      # of a tier costs the same. The second rarity is the one the next tier
+      # runs on, so buying a set teaches you what you will need next.
       costs:
-        COMMON: 40
+        COMMON: 20
+        UNCOMMON: 1
       luck-bonus: 0.05
       speed-bonus: 0.05
     CHAINMAIL:
       display: "Chainmail"
       costs:
-        UNCOMMON: 16
+        UNCOMMON: 20
+        RARE: 1
       luck-bonus: 0.10
       speed-bonus: 0.08
     IRON:
       display: "Iron"
       costs:
-        RARE: 8
+        RARE: 10
+        EPIC: 1
       luck-bonus: 0.15
       speed-bonus: 0.12
     GOLD:
       display: "Gold"
       costs:
-        EPIC: 2
+        EPIC: 4
+        LEGENDARY: 1
       luck-bonus: 0.25
       speed-bonus: 0.16
     DIAMOND:
       display: "Diamond"
       costs:
-        LEGENDARY: 1
+        LEGENDARY: 3
+        MYTHICAL: 1
       luck-bonus: 0.40
       speed-bonus: 0.20
     NETHERITE:
       display: "Netherite"
       costs:
-        MYTHICAL: 1
+        MYTHICAL: 3
+        DIVINE: 1
       luck-bonus: 0.60
       speed-bonus: 0.25
 
@@ -2276,7 +2285,7 @@ skilltree:
       icon: RABBIT_FOOT
       cost-money: 28700
       cost-growth: 1.24
-      requires: "index_luck"
+      requires: "curator_1"
       effect: LUCK
       value: 0.08
       max-level: 10
@@ -2502,16 +2511,6 @@ skilltree:
       effect: UNLOCK_AUTO_CONVERT
       value: 0
 
-    index_luck:
-      display: "Tag Luck"
-      page: 1
-      slot: "5,3"
-      icon: KNOWLEDGE_BOOK
-      cost-money: 28700
-      requires: "curator_1"
-      effect: UNLOCK_INDEX_LUCK
-      value: 0
-
     shiny_unlock:
       display: "Shiny Unlocked"
       page: 1
@@ -2569,7 +2568,7 @@ skilltree:
       icon: RABBIT_FOOT
       cost-money: 26900000
       cost-growth: 1.3
-      requires: "tag_mastery_1"
+      requires: "luck_4"
       effect: LUCK
       value: 0.25
       max-level: 10
@@ -2581,7 +2580,7 @@ skilltree:
       icon: TOTEM_OF_UNDYING
       cost-money: 5030000
       cost-growth: 1.32
-      requires: "tag_mastery_1"
+      requires: "luck_4"
       effect: LUCK_PER_PRESTIGE
       value: 0.02
       max-level: 10
@@ -2593,7 +2592,7 @@ skilltree:
       icon: BOOKSHELF
       cost-money: 938000
       cost-growth: 1.3
-      requires: "tag_mastery_1"
+      requires: "luck_4"
       effect: LUCK_PER_DISCOVERY
       value: 0.0015
       max-level: 10
@@ -2822,18 +2821,6 @@ skilltree:
       # A Rarity ordinal: 2 is Rare, 3 is Epic.
       value: 2
       interval: 50
-
-    tag_mastery_1:
-      display: "Tag Mastery I"
-      page: 2
-      slot: "5,2"
-      icon: NAME_TAG
-      cost-money: 5000000
-      cost-growth: 1.3
-      requires: "luck_4"
-      effect: TAG_MASTERY
-      value: 0.05
-      max-level: 10
 
     explorer_1:
       display: "Explorer I"
@@ -3201,18 +3188,6 @@ skilltree:
       value: 1.0
       max-level: 10
 
-    tag_mastery_2:
-      display: "Tag Mastery II"
-      page: 4
-      slot: "5,3"
-      icon: NAME_TAG
-      cost-money: 5360000000
-      cost-growth: 1.38
-      requires: "luck_9"
-      effect: TAG_MASTERY
-      value: 0.1
-      max-level: 10
-
     curator_3:
       display: "Index Luck III"
       page: 4
@@ -3220,7 +3195,7 @@ skilltree:
       icon: BOOKSHELF
       cost-money: 9380000000
       cost-growth: 1.38
-      requires: "tag_mastery_2"
+      requires: "luck_9"
       effect: LUCK_PER_DISCOVERY
       value: 0.0025
       max-level: 10
@@ -3633,8 +3608,8 @@ announcements:
   messages:
     - - "&3\u258e &e\u25b8 &fLeft-click&7 your Starforge to toggle &bAuto Roll&7."
       - "&3\u258e &e\u25b8 &7Put spare drops in &e/convert&7 to buy armor and Starforges."
-    - - "&3\u258e &e\u25b8 &7Every drop has its own &bTag Luck&7, equip the best in &e/index&7."
-      - "&3\u258e &e\u25b8 &7Unlock &fTag Luck&7 in &e/skilltree&7 before you can wear one."
+    - - "&3\u258e &e\u25b8 &7Wear any drop you have found as a &btag&7 from &e/index&7."
+      - "&3\u258e &e\u25b8 &7The Luck multiplier is your best &dsecret&7 - see &d/secretindex&7."
     - - "&3\u258e &e\u25b8 &d/novacore&7 is the fourth way to raise your Luck, after skills, armor and prestige."
       - "&3\u258e &e\u25b8 &7Forge it a tier at a time with &6Coins&7. Every tier you hold is a permanent multiplier on &fLuck&7, &aMoney&7 and &6Coins&7 alike."
     - - "&3\u258e &e\u25b8 &a/farmtree&7 has crops, hoe enchants and Coin multipliers."
@@ -3646,7 +3621,7 @@ announcements:
     - - "&3\u258e &e\u25b8 &6/pass&7 pays out for every roll and every harvest. Rarer rolls are worth more XP."
       - "&3\u258e &e\u25b8 &7The &5premium track&7 back-pays every level you already cleared."
     - - "&3\u258e &e\u25b8 &d/skilltree&7 is three paths deep. &aMoney&7, &eSpeed&7 and &aLuck&7 each carry their own capstone."
-      - "&3\u258e &e\u25b8 &7Respec any time for a few &fshinies&7 - the price climbs one per respec."
+      - "&3\u258e &e\u25b8 &7Respec any time in /skilltree, &ffree&7 - spend your Money somewhere else."
     - - "&3▎ &e▸ &7Join our &9&lDiscord&7 for giveaways, news and updates."
       - "&3▎ &e▸ &7Click to join: &b&ndiscord.gg/spacerng"
     - - "&3▎ &e▸ &7Roll a perk in &d/perks&7 with Perk Tickets. Every 100 rolls promise a Mythical."
@@ -3754,12 +3729,6 @@ guide:
       display: "Upgrade your Starforge"
       hint: "Spend stored drops in /starforge to raise your base Luck."
       goal: STARFORGE_TIER
-      amount: 1
-    - id: index_luck
-      display: "Unlock Tag Luck"
-      hint: "In /skilltree, right after Index Luck I. It's what lets you equip a tag."
-      goal: HAS_NODE
-      target: index_luck
       amount: 1
     - id: equip_tag
       display: "Equip a tag"
@@ -7439,9 +7408,12 @@ secret-realm:
   # now, so that is deliberate rather than a bug.
   secret-luck: true
   # V291: fifteen minutes open, two hours apart at least.
-  # V312: Prestige 10 to enter, Leon's call. It is printed on the Index
-  # Mode block in /index as well as in the message when it opens.
-  min-prestige: 10
+  # V343: no prestige wall, Leon's call ("make secret realm not behind
+  # prestige wall"). Everybody can walk in, which is also why Luck and
+  # Speed are flat in there since V341: a fresh account and a maxed one
+  # have the same shot at a secret. Raise this to gate it again; it is
+  # printed on the Index Mode block in /index and in the opening message.
+  min-prestige: 0
   # V338, Leon's numbers: open for 20 minutes, around every 3 hours. The
   # gap is still random inside the two, so nobody can set an alarm for it.
   open-seconds: 1200

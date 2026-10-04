@@ -45,17 +45,11 @@ public class ArmorTier {
      * so a Netherite helmet still costs a whole Mythical.
      */
     public Map<Rarity, Long> costsFor(ArmorPiece piece) {
-        int units = switch (piece) {
-            case HELMET -> 5;
-            case CHESTPLATE -> 8;
-            case LEGGINGS -> 7;
-            case BOOTS -> 4;
-        };
-        Map<Rarity, Long> out = new java.util.EnumMap<>(Rarity.class);
-        for (Map.Entry<Rarity, Long> cost : costs.entrySet()) {
-            out.put(cost.getKey(), Math.max(1L, (cost.getValue() * units + 7L) / 8L));
-        }
-        return out;
+        // V343, Leon's call: every piece of a tier costs the same. The
+        // weights (a chestplate at 8/8, boots at 4/8) meant four prices
+        // per tier and a menu where the same tier read four ways, and
+        // armour is bought as a set anyway.
+        return new java.util.EnumMap<>(costs);
     }
 
     public double getLuckBonus() {

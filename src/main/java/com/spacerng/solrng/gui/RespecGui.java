@@ -66,10 +66,13 @@ public class RespecGui {
         lore.add(Lore.line(ChatColor.RED, "and /farmtree."));
         lore.add("");
         lore.add(Lore.section(ChatColor.AQUA, "Cost"));
-        lore.add(Lore.stat(have >= cost ? ChatColor.GREEN : ChatColor.RED, "Shinies", cost + " of any rarity"));
-        lore.add(Lore.stat(ChatColor.AQUA, "You have", String.valueOf(have)));
+        // V343: free, Leon's call. It used to be one shiny more each time.
+        lore.add(cost <= 0
+                ? Lore.stat(ChatColor.GREEN, "Price", "Free")
+                : Lore.stat(have >= cost ? ChatColor.GREEN : ChatColor.RED, "Shinies",
+                        cost + " of any rarity"));
         lore.add(Lore.stat(ChatColor.AQUA, "Respecs so far", String.valueOf(times)));
-        lore.add(Lore.line(ChatColor.AQUA, "Each one costs a shiny more."));
+        lore.add(Lore.line(ChatColor.AQUA, "Rebuild as often as you like."));
         meta.setLore(lore);
         item.setItemMeta(meta);
         return item;
@@ -81,8 +84,10 @@ public class RespecGui {
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(Lore.title(ready ? ChatColor.GREEN : ChatColor.RED, "Confirm respec"));
         List<String> lore = new ArrayList<>();
-        lore.add(Lore.line(ChatColor.GREEN, "Spends " + cost + " shin" + (cost == 1 ? "y" : "ies")
-                + " and refunds everything."));
+        lore.add(cost <= 0
+                ? Lore.line(ChatColor.GREEN, "Refunds everything you spent.")
+                : Lore.line(ChatColor.GREEN, "Spends " + cost + " shin" + (cost == 1 ? "y" : "ies")
+                        + " and refunds everything."));
         lore.add("");
         if (owned == 0) {
             lore.add(ChatColor.DARK_GRAY + "" + ChatColor.BOLD + "Nothing to refund");

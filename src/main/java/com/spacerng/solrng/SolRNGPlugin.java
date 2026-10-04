@@ -277,6 +277,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         getCommand("pv").setTabCompleter(vaultCommand);
         getCommand("keyall").setExecutor(new com.spacerng.solrng.commands.KeyAllCommand(this));
         getCommand("fly").setExecutor(new com.spacerng.solrng.commands.FlyCommand(this));
+        getCommand("spawn").setExecutor(new com.spacerng.solrng.commands.SpawnCommand(this));
         getCommand("nick").setExecutor(new com.spacerng.solrng.commands.NickCommand(this));
         getCommand("size").setExecutor(new com.spacerng.solrng.commands.SizeCommand(this));
         getCommand("boss").setExecutor(new com.spacerng.solrng.commands.BossCommand(this));

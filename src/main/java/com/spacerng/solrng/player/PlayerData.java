@@ -1398,8 +1398,16 @@ public class PlayerData {
     }
 
     /** Shinies the NEXT respec would cost - one more than the last, of any rarity. */
+    /**
+     * Free since V343, Leon's call.
+     *
+     * It used to be one shiny more every time, which made trying a
+     * different build something you paid for in the one currency people
+     * hoard. The count is still kept and still shown, because how many
+     * times somebody has rebuilt is worth knowing.
+     */
     public int nextRespecCost() {
-        return respecCount + 1;
+        return 0;
     }
 
     // -------------------------------------------------------------- perks

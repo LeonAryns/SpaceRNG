@@ -168,6 +168,9 @@ commands:
   pets:
     description: Your pet slots and every pet
     usage: /pets
+  spawn:
+    description: Go back to spawn
+    usage: /spawn
   realm:
     description: Go through to the Secret Realm while it is open
     usage: /realm [leave]
