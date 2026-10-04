@@ -97,6 +97,8 @@ public final class ConfigMigrator {
             "pets.eggs.tiers.stardust.chances",
             "pets.eggs.tiers.nebula.chances",
             "pets.eggs.tiers.supernova.chances",
+            // V329: the Secret Realm panel, for /rngadmin holo panel realm.
+            "holograms.panels.realm",
             // V322: every forge is one flat chance. A new key, so a Patch
             // has nothing to match; without this the server runs on the
             // code default and Leon cannot tune it by hand.

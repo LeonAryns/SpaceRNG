@@ -190,6 +190,14 @@ public final class AuraManager {
         Worn current = worn.get(player.getUniqueId());
         if (current != null && current.test) return;
 
+        // V329: nothing is worn inside the Secret Realm, Leon's call. No
+        // aura and no tag, so the only thing over anybody's head in there
+        // is the secret they are carrying.
+        if (plugin.getRealmManager() != null && plugin.getRealmManager().inside(player)) {
+            hide(player.getUniqueId());
+            return;
+        }
+
         com.spacerng.solrng.player.PlayerData data =
                 plugin.getPlayerDataManager().get(player.getUniqueId());
 

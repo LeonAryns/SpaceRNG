@@ -4041,6 +4041,12 @@ holograms:
   podium-spacing: 6.5
   click: "<#FFD54F>→→→</#FFD54F> <white>Click Here</white> <#FFD54F>←←←</#FFD54F>"
   panels:
+    realm:
+      title: "<gradient:#CFD8DC:#78909C><b>SECRET REALM</b></gradient>"
+      lines:
+        - "<white>Opens on its own, for a few minutes"
+        - "<white>Roll inside for a <#B0BEC5>secret</#B0BEC5>"
+        - "<white>/secretrealm takes you in while it is open"
     prestige:
       title: "<gradient:#FFE082:#FFB300><b>PRESTIGE</b></gradient>"
       lines:

@@ -145,6 +145,9 @@ public class RealmManager implements Listener {
         yaw = (float) yml.getDouble("spot.yaw");
         pitch = (float) yml.getDouble("spot.pitch");
         nextOpenAt = yml.getLong("next-open-at", 0L);
+        // V329: a radius marked out in game beats the config default, so
+        // the area Leon walked is kept across a reload.
+        if (yml.contains("radius")) radius = Math.max(4.0, Math.min(512.0, yml.getDouble("radius")));
         if (nextOpenAt <= 0L) scheduleNext();
     }
 
@@ -159,6 +162,7 @@ public class RealmManager implements Listener {
             yml.set("spot.pitch", (double) pitch);
         }
         yml.set("next-open-at", nextOpenAt);
+        yml.set("radius", radius);
         try {
             yml.save(file);
         } catch (IOException ex) {
@@ -308,6 +312,7 @@ public class RealmManager implements Listener {
                 + "Roll here for a chance at a secret. " + ChatColor.LIGHT_PURPLE + "/secretindex"
                 + ChatColor.GRAY + " shows what you have found.");
         player.playSound(spot, Sound.BLOCK_PORTAL_TRAVEL, 0.25f, 1.6f);
+        wearSecret(player, data);
     }
 
     /** /realm leave, closing, quitting: back where they came from. */
@@ -318,12 +323,51 @@ public class RealmManager implements Listener {
             return;
         }
         player.teleport(back);
+        wearNormal(player);
+    }
+
+    /**
+     * What a player wears inside (V329): their secret over their head and
+     * the Luck it is paying, with no aura and no drop tag.
+     *
+     * The realm is the one place where the thing everybody is chasing is
+     * the same thing, so it is the one place where the tag says what you
+     * have found in HERE rather than what you rolled outside.
+     */
+    public void wearSecret(Player player, PlayerData data) {
+        plugin.getAuraManager().hide(player.getUniqueId());
+        Secret worn = secrets.get(data.getSelectedSecret());
+        String top = worn == null
+                ? ChatColor.DARK_GRAY + "No secret yet"
+                : Lore.gradient(worn.display(), true, worn.stops());
+        String bottom = ChatColor.GRAY + "Index Luck " + ChatColor.WHITE
+                + trim(multiplierFor(data)) + "x";
+        plugin.getTagManager().showRealmTag(player, top, bottom);
+    }
+
+    /** Their own tag and aura back, on the way out. */
+    public void wearNormal(Player player) {
+        plugin.getTagManager().refreshEquippedTag(player,
+                plugin.getPlayerDataManager().get(player.getUniqueId()));
+    }
+
+    /** Everybody inside, redrawn: a new secret changes what they wear. */
+    public void refreshWorn() {
+        for (UUID id : new ArrayList<>(returns.keySet())) {
+            Player player = Bukkit.getPlayer(id);
+            if (player != null) wearSecret(player, plugin.getPlayerDataManager().get(id));
+        }
     }
 
     private void sendEverybodyBack() {
         for (Map.Entry<UUID, Location> entry : new ArrayList<>(returns.entrySet())) {
             Player player = Bukkit.getPlayer(entry.getKey());
-            if (player != null) player.teleport(entry.getValue());
+            if (player == null) continue;
+            player.teleport(entry.getValue());
+            returns.remove(entry.getKey());
+            // After the teleport AND after the map entry is gone, or
+            // inside() still answers true and the aura stays hidden.
+            wearNormal(player);
         }
         returns.clear();
     }
@@ -378,6 +422,10 @@ public class RealmManager implements Listener {
             // The first one found is picked straight away.
             if (data.getSelectedSecret() == null) data.setSelectedSecret(found.id());
             player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.8f, 1.2f);
+            // V329: the grey reveal, and the tag over their head catches
+            // up with the secret they are now carrying.
+            SecretFx.reveal(plugin, player);
+            wearSecret(player, data);
         } else {
             player.sendMessage(ChatColor.DARK_GRAY + "You found " + ChatColor.RESET + name
                     + ChatColor.DARK_GRAY + " again. It is already in your Secret Index.");
@@ -439,6 +487,21 @@ public class RealmManager implements Listener {
     // ---------------------------------------------------------------
     // Admin and reading
     // ---------------------------------------------------------------
+
+    /** How far the realm reaches from its spot, in blocks. */
+    public double radius() {
+        return radius;
+    }
+
+    /**
+     * Sets how big the realm is and saves it (V329). It lives in
+     * realm.yml next to the spot rather than only in config, so Leon can
+     * mark out the area in game and a reload keeps it.
+     */
+    public void setRadius(double blocks) {
+        radius = Math.max(4.0, Math.min(512.0, blocks));
+        save();
+    }
 
     public void setSpot(Location location) {
         worldName = location.getWorld().getName();

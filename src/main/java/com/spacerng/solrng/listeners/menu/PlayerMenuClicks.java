@@ -86,6 +86,11 @@ final class PlayerMenuClicks {
                 + ChatColor.GRAY + ".");
         player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_AMETHYST_BLOCK_CHIME, 0.8f, 1.4f);
         plugin.getScoreboardManager().update(player);
+        // V329: inside the realm the secret IS what you wear, so picking
+        // another one has to redraw the tag over your head.
+        if (plugin.getRealmManager().inside(player)) {
+            plugin.getRealmManager().wearSecret(player, data);
+        }
         player.openInventory(com.spacerng.solrng.gui.SecretIndexGui.build(plugin, player));
     }
 

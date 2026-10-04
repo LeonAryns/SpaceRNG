@@ -894,6 +894,26 @@ final class WorldAdmin extends AdminTools {
                 realm.setSpot(player.getLocation());
                 sender.sendMessage(ChatColor.GREEN + "The Secret Realm is here now: " + realm.spotText());
             }
+            case "radius" -> {
+                // V329: how far the realm reaches from its spot. Together
+                // with "here" this is the whole answer to "which blocks
+                // are the Secret Realm": a point and a distance, saved in
+                // realm.yml, and a roll only counts inside it.
+                if (args.length < 3) {
+                    sender.sendMessage(ChatColor.YELLOW + "/rngadmin realm radius <blocks>"
+                            + ChatColor.GRAY + "  now " + ChatColor.WHITE + (int) realm.radius());
+                    return true;
+                }
+                try {
+                    realm.setRadius(Double.parseDouble(args[2]));
+                } catch (NumberFormatException ex) {
+                    sender.sendMessage(ChatColor.RED + "That is not a number.");
+                    return true;
+                }
+                sender.sendMessage(ChatColor.GREEN + "The Secret Realm reaches "
+                        + ChatColor.WHITE + (int) realm.radius() + ChatColor.GREEN
+                        + " blocks from " + ChatColor.WHITE + realm.spotText());
+            }
             case "open" -> {
                 if (realm.spot() == null) {
                     sender.sendMessage(ChatColor.RED + "Set the spot first with /rngadmin realm here.");
@@ -924,6 +944,8 @@ final class WorldAdmin extends AdminTools {
                 sender.sendMessage(ChatColor.LIGHT_PURPLE + "Secret Realm" + ChatColor.GRAY
                         + (realm.isEnabled() ? "" : ChatColor.RED + " (switched off)"));
                 sender.sendMessage(ChatColor.GRAY + "  Spot: " + ChatColor.WHITE + realm.spotText());
+                sender.sendMessage(ChatColor.GRAY + "  Reaches: " + ChatColor.WHITE
+                        + (int) realm.radius() + " blocks");
                 long now = System.currentTimeMillis();
                 if (realm.isOpen()) {
                     sender.sendMessage(ChatColor.GRAY + "  Open, closes in "

@@ -251,6 +251,39 @@ public class TagManager {
         }
     }
 
+    /**
+     * The two lines the Secret Realm puts over a player (V329): their
+     * secret and the Luck it is paying, and no aura with it.
+     *
+     * It goes through the same mount as the ordinary tag, so it rides the
+     * player with no lag and keepMounted puts it back after a teleport,
+     * but it deliberately does NOT call applyTag: inside the realm
+     * everybody wears their secret and nothing else.
+     */
+    public void showRealmTag(Player player, String topLine, String bottomLine) {
+        spawnHologram(player, topLine, bottomLine);
+    }
+
+    /**
+     * Back to whatever the player's equipped tag is, or nothing. The
+     * realm calls this on the way out; the join path has its own copy
+     * because it also has to deal with a tag whose drop no longer exists.
+     */
+    public void refreshEquippedTag(Player player, PlayerData data) {
+        hideHologram(player);
+        if (data.getEquippedTagItemKey() == null || data.getEquippedTagRarity() == null) {
+            if (plugin.getAuraManager() != null) plugin.getAuraManager().applyTag(player);
+            return;
+        }
+        RollableItem rollable = plugin.getRarityManager().findByDisplayName(data.getEquippedTagItemKey());
+        if (rollable == null) {
+            refreshOwnerTag(player);
+            return;
+        }
+        showHologram(player, plugin.getRarityManager().styleTagName(rollable),
+                RollFormat.tagOdds(plugin, rollable));
+    }
+
     private void spawnHologram(Player player, String itemNameColored, String oddsText) {
         removeDisplays(player.getUniqueId());
 
