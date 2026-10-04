@@ -78,6 +78,9 @@ public class RealmManager implements Listener {
     private final Map<UUID, Location> returns = new HashMap<>();
     private KeyedBossBar bar;
     private BukkitTask task;
+    // V342: the grey weather inside, on its own timer and its own counter.
+    private BukkitTask fxTask;
+    private long fxFrame;
 
     /**
      * V291: a secret has its own odds, 1 in oneIn per roll inside, which
@@ -173,10 +176,37 @@ public class RealmManager implements Listener {
     public void start() {
         if (task != null) return;
         task = plugin.getServer().getScheduler().runTaskTimer(plugin, this::tick, 40L, 20L);
+        // V342: the realm looks like something while you are in it. Its
+        // own timer, because the clock above runs once a second and grey
+        // weather a second apart reads as a stutter.
+        fxTask = plugin.getServer().getScheduler().runTaskTimer(plugin, this::drawAmbience, 40L, 5L);
+    }
+
+    private void drawAmbience() {
+        if (!open || returns.isEmpty()) return;
+        fxFrame++;
+        for (UUID uuid : new ArrayList<>(returns.keySet())) {
+            Player player = Bukkit.getPlayer(uuid);
+            if (player == null || !inside(player)) continue;
+            try {
+                SecretFx.ambience(player, fxFrame);
+            } catch (RuntimeException ex) {
+                plugin.getLogger().warning("The realm ambience failed and was switched off: " + ex);
+                if (fxTask != null) {
+                    fxTask.cancel();
+                    fxTask = null;
+                }
+                return;
+            }
+        }
     }
 
     /** On the way down: everybody back where they came from, nothing announced. */
     public void stop() {
+        if (fxTask != null) {
+            fxTask.cancel();
+            fxTask = null;
+        }
         if (task != null) {
             task.cancel();
             task = null;
@@ -312,6 +342,11 @@ public class RealmManager implements Listener {
                 + "Roll here for a chance at a secret. " + ChatColor.LIGHT_PURPLE + "/secretindex"
                 + ChatColor.GRAY + " shows what you have found.");
         player.playSound(spot, Sound.BLOCK_PORTAL_TRAVEL, 0.25f, 1.6f);
+        // V342: grey on the way in, and SecretFx.ambience keeps it going
+        // while they stand in there. Until now the only thing drawn in the
+        // realm was the reveal on a new secret, which most visits never
+        // see, so the realm looked like nowhere.
+        SecretFx.arrive(plugin, player);
         wearSecret(player, data);
     }
 
@@ -419,14 +454,19 @@ public class RealmManager implements Listener {
         if (found == null) return;
         String name = Lore.gradient(found.display(), true, found.stops());
         if (data.getSecretsFound().add(found.id())) {
+            // V342, Leon's call: the odds and the Luck go in the line
+            // everybody sees. A secret's name says nothing about how rare
+            // it was or what it is worth, and those are the two things
+            // anybody reading the announcement wants to know.
+            String odds = ChatColor.DARK_GRAY + "1 in " + String.format("%,d", found.oneIn());
+            String luck = ChatColor.GREEN + String.format("%.2f", found.multiplier()) + "x Luck";
             for (Player online : Bukkit.getOnlinePlayers()) {
                 online.sendMessage(Lore.gradient("SECRET", true, "#B388FF", "#40C4FF") + ChatColor.GRAY + " "
                         + player.getName() + " found " + ChatColor.RESET + name
-                        + ChatColor.GRAY + " in the Secret Realm.");
+                        + ChatColor.GRAY + " in the Secret Realm  " + odds + ChatColor.DARK_GRAY + "  "
+                        + luck);
             }
-            player.sendTitle(name, ChatColor.GRAY + "a new secret, " + ChatColor.GREEN
-                    + (secretLuck() ? trim(found.multiplier()) + "x Luck" + ChatColor.GRAY + " in /secretindex"
-                            : "+" + trim(luckPerSecret * 100.0) + "% Luck"), 5, 50, 15);
+            player.sendTitle(name, odds + ChatColor.DARK_GRAY + "  |  " + luck, 5, 50, 15);
             // The first one found is picked straight away.
             if (data.getSelectedSecret() == null) data.setSelectedSecret(found.id());
             player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.8f, 1.2f);

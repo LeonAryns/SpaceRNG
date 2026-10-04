@@ -57,6 +57,78 @@ public final class SecretFx {
         new SecretFx(plugin, player).start();
     }
 
+    /**
+     * Walking in (V342): the same grey, pulled in around the feet.
+     *
+     * The reveal only ever played on a new secret, which is rare by
+     * design, so the realm itself had nothing to look at. This is the
+     * arrival, and {@link #ambience} keeps it going while they are in
+     * there.
+     */
+    public static void arrive(SolRNGPlugin plugin, Player player) {
+        Location at = player.getLocation().clone().add(0, 0.1, 0);
+        List<Player> audience = nearby(at);
+        for (int ring = 0; ring < 3; ring++) {
+            double radius = 2.4 - ring * 0.7;
+            for (int i = 0; i < 14; i++) {
+                double angle = (Math.PI * 2 / 14) * i + ring * 0.4;
+                Location point = at.clone().add(Math.cos(angle) * radius, ring * 0.35, Math.sin(angle) * radius);
+                for (Player viewer : audience) {
+                    viewer.spawnParticle(Particle.DUST_COLOR_TRANSITION, point, 1, 0.02, 0.02, 0.02, 0.0,
+                            new Particle.DustTransition(STONE, ASH, 1.2f));
+                }
+            }
+        }
+        for (Player viewer : audience) {
+            viewer.spawnParticle(Particle.WHITE_ASH, at.clone().add(0, 1.8, 0), 30, 1.0, 0.8, 1.0, 0.01);
+            viewer.playSound(at, Sound.BLOCK_SCULK_CATALYST_BLOOM, 0.6f, 0.8f);
+            viewer.playSound(at, Sound.AMBIENT_SOUL_SAND_VALLEY_MOOD, 0.5f, 1.2f);
+        }
+    }
+
+    /**
+     * What the realm looks like while you stand in it (V342).
+     *
+     * Two pieces per frame and nothing else: ash drifting down through
+     * the player, and one slow grey ring turning around their feet. It
+     * has to read as weather rather than as an ability, so it is thin on
+     * purpose, and at a frame every five ticks it costs about twenty
+     * particles a second per person in there.
+     *
+     * @param frame a counter that goes up once per call
+     */
+    public static void ambience(Player player, long frame) {
+        Location at = player.getLocation();
+        List<Player> audience = nearby(at);
+        if (audience.isEmpty()) return;
+        double turn = frame * 0.22;
+        for (int i = 0; i < 4; i++) {
+            double angle = turn + (Math.PI * 2 / 4) * i;
+            Location point = at.clone().add(Math.cos(angle) * 0.9, 0.1, Math.sin(angle) * 0.9);
+            for (Player viewer : audience) {
+                viewer.spawnParticle(Particle.DUST, point, 1, 0.0, 0.0, 0.0, 0.0,
+                        new Particle.DustOptions(STONE, 0.9f));
+            }
+        }
+        for (Player viewer : audience) {
+            viewer.spawnParticle(Particle.ASH, at.clone().add(0, 2.4, 0), 3, 1.1, 0.5, 1.1, 0.0);
+        }
+        // A heartbeat under it, far apart, so the silence stays the point.
+        if (frame % 48 == 0) {
+            player.playSound(at, Sound.BLOCK_SCULK_SHRIEKER_FALL, 0.35f, 0.7f);
+        }
+    }
+
+    /** Everybody who can see something drawn at this point. */
+    private static List<Player> nearby(Location at) {
+        List<Player> out = new ArrayList<>();
+        if (at.getWorld() == null) return out;
+        for (Player player : at.getWorld().getPlayers()) {
+            if (player.getLocation().distanceSquared(at) <= RANGE * RANGE) out.add(player);
+        }
+        return out;
+    }
+
     private void start() {
         task = plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
             if (!owner.isOnline()) {
@@ -74,7 +146,10 @@ public final class SecretFx {
                 }
             } catch (RuntimeException ex) {
                 // One bad frame cancels the effect rather than throwing
-                // sixty times a second forever.
+                // sixty times a second forever. V342: and it says so once.
+                // A silent catch is how an effect can be "not working" with
+                // nothing anywhere to say why.
+                plugin.getLogger().warning("The secret reveal failed and was cancelled: " + ex);
                 stop();
                 return;
             }
