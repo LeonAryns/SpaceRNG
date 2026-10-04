@@ -445,12 +445,15 @@ public final class HoloManager {
         var data = plugin.getPlayerDataManager().get(reader.getUniqueId());
         long keys = data == null ? 0L : data.storedKeys(crate.keyId());
         if (keys <= 0L) {
-            return parse("<dark_gray>You have no keys for this crate");
+            return parse("<dark_gray>You have no keys for this crate"
+                    + "\n<dark_gray>Click to see what is inside");
         }
         String name = crate.display();
+        // V332: the count AND what a click does. The crate is the only
+        // place keys exist now, so it is the only place that can say it.
         return parse("<#FFD54F><b>" + keys + "</b> <gray>"
                 + (keys == 1 ? "key" : "keys") + " for <reset>" + name
-                + " <dark_gray>(/keys)");
+                + "\n<white>Click to open" + (keys > 1 ? " <dark_gray>|<white> Shift click opens all" : ""));
     }
 
     /**

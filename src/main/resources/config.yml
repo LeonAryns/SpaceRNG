@@ -6078,7 +6078,7 @@ discord:
           inline: false
         - name: "Quality of life"
           value:
-            - "- Crate keys go to /keys by themselves, shift-click opens them all"
+            - "- Crate keys are a count over each crate, no longer an item"
             - "- New: /trash, /discord, /boosters"
             - "- Tab in two columns, sorted by index tag and rank, with your prestige"
             - "- Crate openings are private, level ups show on the boss bar"

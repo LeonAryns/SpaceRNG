@@ -130,8 +130,10 @@ public class JoinQuitListener implements Listener {
             reattachHologram(player, data);
         }
         // V331: any Nova Core item from before they went virtual becomes
-        // balance, once, without anybody having to do anything.
+        // balance, once, without anybody having to do anything. V332 does
+        // the same for crate keys.
         plugin.getNovaCoreManager().absorb(player);
+        plugin.getCrateManager().absorbKeys(player);
         plugin.getScoreboardManager().setup(player);
         plugin.getLuckBarManager().show(player);
         // Somebody joining mid-event gets their own copy of the boss and

@@ -1066,8 +1066,11 @@ public class FarmPlotManager {
             var found = plugin.getConsumableManager().get(rare ? keyFinderRareReward : keyFinderReward);
             if (found != null) {
                 plugin.getConsumableManager().give(player, found, 1);
+                // V332: keys are a count over the crate they open, so the
+                // line names the key rather than being coy about it.
                 procChat(player, data, "KEY_FINDER", ChatColor.GOLD + "" + ChatColor.BOLD + "Key found  "
-                        + ChatColor.RESET + ChatColor.GRAY + "something was buried under that one.");
+                        + ChatColor.RESET + plugin.getConsumableManager().styledName(found)
+                        + ChatColor.GRAY + ", waiting over its crate.");
                 playProc(player, data, 1.7f);
             }
         }

@@ -297,7 +297,7 @@ public class CrateManager {
     // --------------------------------------------------------------- keys
 
     /**
-     * Whether this consumable is a key /keys keeps (V282): it opens a crate
+     * Whether this consumable is a key a crate takes (V282): it opens a crate
      * that stands somewhere. A Boss Box opens from the item itself, so it
      * stays an item.
      */
@@ -322,7 +322,8 @@ public class CrateManager {
 
     public int keysHeld(Player player, Crate crate) {
         PlayerInventory inventory = player.getInventory();
-        // Keys kept in /keys count too (V282), and are spent first.
+        // The count on PlayerData is where keys live since V332, and is
+        // spent before any item left over from before that.
         long stored = plugin.getPlayerDataManager().get(player.getUniqueId()).storedKeys(crate.keyId());
         int count = (int) Math.min(Integer.MAX_VALUE / 2, stored);
         for (int slot = 0; slot < INVENTORY_STORAGE; slot++) {
@@ -330,6 +331,28 @@ public class CrateManager {
             if (isKeyFor(stack, crate)) count += stack.getAmount();
         }
         return count;
+    }
+
+    /**
+     * Turns every key item a player is carrying into a count (V332).
+     *
+     * Keys stopped being items, so anything left in an inventory from
+     * before is taken in rather than stranded. Run on join and on every
+     * crate click, which is everywhere a key could matter.
+     */
+    public int absorbKeys(Player player) {
+        PlayerInventory inventory = player.getInventory();
+        var data = plugin.getPlayerDataManager().get(player.getUniqueId());
+        int found = 0;
+        for (int slot = 0; slot < INVENTORY_STORAGE; slot++) {
+            ItemStack stack = inventory.getItem(slot);
+            var consumable = plugin.getConsumableManager().from(stack);
+            if (consumable == null || !isStorableKey(consumable.id())) continue;
+            data.addStoredKeys(consumable.id(), stack.getAmount());
+            found += stack.getAmount();
+            inventory.setItem(slot, null);
+        }
+        return found;
     }
 
     /** All or nothing: a partial take never happens. */
@@ -414,7 +437,7 @@ public class CrateManager {
     }
 
     /**
-     * The same, at a point and for up to {@code most} keys: /keys opens its
+     * The same, at a point and for up to {@code most} keys: a sneak click
      * stored keys where the player stands (V286). Items that do not fit go
      * to /stash, as every crate reward already does.
      */

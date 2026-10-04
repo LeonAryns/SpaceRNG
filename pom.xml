@@ -6,7 +6,7 @@
 
     <groupId>com.spacerng</groupId>
     <artifactId>sol-rng</artifactId>
-    <version>331</version>
+    <version>332</version>
     <packaging>jar</packaging>
 
     <properties>

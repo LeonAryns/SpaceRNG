@@ -401,17 +401,20 @@ public class ConsumableManager {
                             + ChatColor.WHITE + String.format("%,d", data.getNovaCores())));
             return;
         }
-        // A crate key goes to /keys on its own while that is switched on
-        // (V282), the way drops auto convert.
+        // V332: a crate key is a count, never an item. V282 made that
+        // optional behind an auto store switch and V332 made it the only
+        // behaviour, so Key Finder, crates, votes and /rngadmin crate key
+        // all add to the same number, and the number floats over the
+        // crate it opens.
         if (plugin.getCrateManager() != null && plugin.getCrateManager().isStorableKey(consumable.id())) {
             var data = plugin.getPlayerDataManager().get(player.getUniqueId());
-            if (data.isAutoStoreKeys()) {
-                data.addStoredKeys(consumable.id(), amount);
-                player.sendActionBar(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
-                        .legacySection().deserialize(ChatColor.GOLD + "+" + amount + " " + ChatColor.stripColor(consumable.display())
-                                + ChatColor.GRAY + "  stored in " + ChatColor.YELLOW + "/keys"));
-                return;
-            }
+            data.addStoredKeys(consumable.id(), amount);
+            player.sendActionBar(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
+                    .legacySection().deserialize(ChatColor.GOLD + "+" + amount + " "
+                            + ChatColor.stripColor(consumable.display())
+                            + ChatColor.GRAY + "  you hold " + ChatColor.WHITE
+                            + String.format("%,d", data.storedKeys(consumable.id()))));
+            return;
         }
         // V317: a potion goes to /boosters the same way, Leon's call
         // ("potions puur digitaal via /boosters, ook als je ze inkoopt").

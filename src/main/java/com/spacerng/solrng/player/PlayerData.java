@@ -964,7 +964,8 @@ public class PlayerData {
         this.selectedSecret = selectedSecret;
     }
 
-    // Crate keys kept in /keys instead of the inventory (V282), by key id,
+    // Crate keys as a count rather than an item (V282, and the only way
+    // since V332), by key id,
     // and whether new keys go there on their own.
     private final Map<String, Long> storedKeys = new LinkedHashMap<>();
     private boolean autoStoreKeys = true;
@@ -991,6 +992,11 @@ public class PlayerData {
         return take;
     }
 
+    /**
+     * Dead since V332: every key is a count, with no switch to turn that
+     * off. The field and its save line stay so an older save file loads
+     * without a warning, and nothing reads it any more.
+     */
     public boolean isAutoStoreKeys() {
         return autoStoreKeys;
     }

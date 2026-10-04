@@ -91,7 +91,8 @@ public class CratesCommand implements CommandExecutor {
         player.sendMessage("");
         player.sendMessage(Lore.header("THE CRATES"));
         player.sendMessage(ChatColor.GRAY + "Your keys float over each crate. "
-                + ChatColor.YELLOW + "/keys" + ChatColor.GRAY + " lists them all.");
+                + ChatColor.WHITE + "Click" + ChatColor.GRAY + " a crate to open one, "
+                + ChatColor.WHITE + "shift click" + ChatColor.GRAY + " to open them all.");
         player.sendMessage("");
         player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_ENDERMAN_TELEPORT, 0.6f, 1.4f);
         return true;

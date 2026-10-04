@@ -19,9 +19,12 @@ import org.bukkit.inventory.EquipmentSlot;
 /**
  * Crates in the world and in menus.
  *
- * Left click previews, right click with a key opens, sneak and right click
- * opens a stack. The interaction is always cancelled on a crate block, so
- * an ender chest used as a crate never opens its own inventory.
+ * V332, Leon's rules: a click opens one, a sneak click opens every key
+ * you hold, and a click with no keys shows what is inside instead. Left
+ * and right are the same thing on purpose, because the floating text over
+ * the crate says "click to open" and a player should not have to find out
+ * which button that meant. The interaction is always cancelled on a crate
+ * block, so an ender chest used as a crate never opens its own inventory.
  */
 public class CrateListener implements Listener {
 
@@ -44,19 +47,18 @@ public class CrateListener implements Listener {
         Player player = event.getPlayer();
         Action action = event.getAction();
 
-        if (action == Action.LEFT_CLICK_BLOCK) {
-            player.openInventory(CratePreviewGui.build(plugin, player, crate));
-            return;
-        }
-        if (action != Action.RIGHT_CLICK_BLOCK) return;
+        if (action != Action.LEFT_CLICK_BLOCK && action != Action.RIGHT_CLICK_BLOCK) return;
 
+        // Any key item still in the inventory becomes a count first, so a
+        // player holding an old key is never told they have none.
+        crates.absorbKeys(player);
         int keys = crates.keysHeld(player, crate);
         if (keys <= 0) {
             crates.noKey(player, crate);
             player.openInventory(CratePreviewGui.build(plugin, player, crate));
             return;
         }
-        if (player.isSneaking() && keys > 1) {
+        if (player.isSneaking()) {
             crates.quickOpen(player, block, crate);
         } else {
             crates.open(player, block, crate);

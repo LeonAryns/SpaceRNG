@@ -119,9 +119,6 @@ commands:
   crates:
     description: Go to the crates, with your keys over each one
     usage: /crates
-  keys:
-    description: Your crate keys, kept out of the inventory
-    usage: /keys
   boosters:
     description: Use the potions Potion Finder found
     usage: /boosters
