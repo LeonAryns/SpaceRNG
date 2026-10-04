@@ -99,6 +99,10 @@ public final class ConfigMigrator {
             "pets.eggs.tiers.supernova.chances",
             // V329: the Secret Realm panel, for /rngadmin holo panel realm.
             "holograms.panels.realm",
+            // V335: the two stops on the Bonus Roll chain. New keys, so a
+            // Patch has nothing to match on, and without them the live
+            // server runs the code defaults.
+            "roll-item.bonus-roll.max-chance", "roll-item.bonus-roll.max-chain",
             // V331: what one Nova Finder proc pays.
             "farming.procs.nova-finder-amount",
             // V330: the store lines. New keys inside a buy: section every
@@ -252,6 +256,8 @@ public final class ConfigMigrator {
     }
 
     private static final List<Patch> PATCHES = List.of(
+            // V335: the shortest drop tooltip, Leon's call.
+            new Patch("lore-style-stats-v335", "roll-item.lore-style", "card", "stats"),
             // V331: ten times the Nova Finder rate, Leon's call, and it
             // pays a Core rather than forcing a free forge.
             new Patch("nova-finder-v331", "farming.enchants.NOVA_FINDER.per-level", 0.0000005, 0.000005),

@@ -810,10 +810,25 @@ public class RollListener implements Listener {
 
         // Double Roll skill tree branch: a chance to immediately chain into
         // another free roll, no click required.
-        double bonusChance = data.getBonusRollChance()
-                + plugin.getSkillTreeManager().totalOf(data, SkillNode.Effect.BONUS_ROLL_CHANCE)
-                + plugin.getPerkManager().totalOf(data, com.spacerng.solrng.perk.PerkStat.BONUS_ROLL_PERCENT);
-        if (bonusChance > 0.0 && random.nextDouble() < bonusChance) {
+        // V335: the five Bonus Roll nodes added up to exactly 1.00 at full,
+        // so a maxed player rolled for ever: every roll chained another,
+        // which is what Leon saw filling his chat. The nodes are half what
+        // they were and this is the hard ceiling on top of them, because a
+        // perk or a future node must never be able to reach 1.00 again.
+        double bonusChance = Math.min(
+                plugin.getConfig().getDouble("roll-item.bonus-roll.max-chance", 0.75),
+                data.getBonusRollChance()
+                        + plugin.getSkillTreeManager().totalOf(data, SkillNode.Effect.BONUS_ROLL_CHANCE)
+                        + plugin.getPerkManager().totalOf(data,
+                                com.spacerng.solrng.perk.PerkStat.BONUS_ROLL_PERCENT));
+        int chain = bonusChains.getOrDefault(player.getUniqueId(), 0);
+        int maxChain = Math.max(1, plugin.getConfig().getInt("roll-item.bonus-roll.max-chain", 5));
+        if (chain >= maxChain) {
+            // The chain has to end somewhere that is not luck. Without
+            // this a long tail of good luck is still an endless roll.
+            bonusChains.remove(player.getUniqueId());
+        } else if (bonusChance > 0.0 && random.nextDouble() < bonusChance) {
+            bonusChains.put(player.getUniqueId(), chain + 1);
             if (!auto) {
                 // V334: above the hotbar. A bonus roll can chain several
                 // times in a row, and in chat that is four lines saying
@@ -828,6 +843,8 @@ public class RollListener implements Listener {
                     startRoll(player);
                 }
             }, finaleTicks + 1L);
+        } else {
+            bonusChains.remove(player.getUniqueId());
         }
     }
 
@@ -839,6 +856,12 @@ public class RollListener implements Listener {
                         + com.spacerng.solrng.gui.Currency.MONEY.colour() + " Money"
                 : "";
     }
+
+    /**
+     * How many bonus rolls each player has chained in a row (V335). Reset
+     * the moment a roll does not chain, so it only ever bounds a run.
+     */
+    private final java.util.Map<java.util.UUID, Integer> bonusChains = new java.util.HashMap<>();
 
     private void sendActionBar(Player player, String text) {
         // Sent as a real component rather than as legacy text.

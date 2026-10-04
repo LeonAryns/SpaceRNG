@@ -202,6 +202,18 @@ public class PlayerDataManager {
             } catch (IllegalArgumentException ignored) {
             }
         }
+        // V335: a manual roll is as quiet as an Auto Roll one, Leon's
+        // call. The drop line in chat was on for every tier, so a player
+        // chaining bonus rolls filled their own chat with rolls they were
+        // watching happen. Anything below Epic is muted for a save that
+        // has never touched the ladder; a player who HAS set it keeps
+        // exactly what they set, and the ladder in /options still goes
+        // all the way down to Common for anybody who wants it back.
+        if (!yml.contains("muted-drops")) {
+            data.setDropMessageEnabled(Rarity.COMMON, false);
+            data.setDropMessageEnabled(Rarity.UNCOMMON, false);
+            data.setDropMessageEnabled(Rarity.RARE, false);
+        }
         for (String rarityName : yml.getStringList("muted-drops")) {
             try {
                 data.setDropMessageEnabled(Rarity.valueOf(rarityName), false);

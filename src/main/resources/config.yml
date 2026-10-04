@@ -8,7 +8,7 @@
 # their fresh defaults in on top of whatever is on disk, so a server
 # owner never has to delete the whole file to pick up a structural
 # change. Item table, prices and cosmetic tweaks are untouched.
-config-version: 33
+config-version: 34
 
 # One-off value changes the plugin has already made to this file, so none
 # is ever made twice. Managed by the plugin; leave it alone.
@@ -72,7 +72,22 @@ roll-item:
   # The tooltip layout on new drops: classic, pipe, compact, stats, card,
   # ladder or story. /rngadmin lorestyles [rarity] [shiny] gives one sample
   # of each to compare. Items already rolled keep the lore they came with.
-  lore-style: card
+  # V335: the shortest of the seven, Leon's call ("less lines in the
+  # description of the drops"). /rngadmin lorestyles [rarity] [shiny]
+  # gives one sample of each to compare. Items already rolled keep the
+  # lore they came with.
+  lore-style: stats
+  # The Bonus Roll branch in /skilltree: a roll that chains into another
+  # one for free.
+  #
+  # V335: the five nodes used to add up to exactly 1.00 at full, so a
+  # maxed player never stopped rolling. They are half that now, and these
+  # two are the hard stops: nothing can push the chance past max-chance,
+  # and a run of bonus rolls ends after max-chain of them however lucky
+  # it is.
+  bonus-roll:
+    max-chance: 0.75
+    max-chain: 5
   # Once in a while a roll comes out one tier rarer than it landed. It is
   # deliberately NOT affected by Luck: this is the moment a brand new
   # player gets something they had no business getting. Capped below the
@@ -2338,7 +2353,7 @@ skilltree:
       cost-growth: 1.3
       requires: "pass_unlock"
       effect: BONUS_ROLL_CHANCE
-      value: 0.01
+      value: 0.005
       max-level: 10
 
     instant_roll_1:
@@ -2617,7 +2632,7 @@ skilltree:
       cost-growth: 1.32
       requires: "speed_4"
       effect: BONUS_ROLL_CHANCE
-      value: 0.015
+      value: 0.0075
       max-level: 10
 
     instant_roll_2:
@@ -2976,7 +2991,7 @@ skilltree:
       cost-growth: 1.34
       requires: "speed_5"
       effect: BONUS_ROLL_CHANCE
-      value: 0.02
+      value: 0.01
       max-level: 10
 
     bonus_roll_4:
@@ -2988,7 +3003,7 @@ skilltree:
       cost-growth: 1.36
       requires: "speed_7"
       effect: BONUS_ROLL_CHANCE
-      value: 0.025
+      value: 0.0125
       max-level: 10
 
     instant_roll_3:
@@ -3266,7 +3281,7 @@ skilltree:
       cost-growth: 1.38
       requires: "autopilot_2"
       effect: BONUS_ROLL_CHANCE
-      value: 0.03
+      value: 0.015
       max-level: 10
 
     explorer_2:
