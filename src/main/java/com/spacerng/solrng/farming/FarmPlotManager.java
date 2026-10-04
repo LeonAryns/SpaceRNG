@@ -1119,10 +1119,17 @@ public class FarmPlotManager {
 
         double nova = hoe.powerOf(data, "NOVA_FINDER");
         if (nova > 0 && ThreadLocalRandom.current().nextDouble() < nova) {
+            // V331: it finds a Nova CORE now, rather than forcing a free
+            // forge on the spot. A forced attempt could shatter a climb
+            // the player was not ready to risk, and with cores virtual
+            // the find is simply yours to spend when you choose.
+            long found = Math.max(1L, plugin.getConfig().getLong("farming.procs.nova-finder-amount", 1L));
+            data.addNovaCores(found);
             procChat(player, data, "NOVA_FINDER", ChatColor.AQUA + "" + ChatColor.BOLD + "Nova spark  "
-                    + ChatColor.RESET + ChatColor.GRAY + "A free Nova Core forge attempt.");
+                    + ChatColor.RESET + ChatColor.GRAY + "+" + found + " Nova Core"
+                    + (found == 1 ? "" : "s") + ChatColor.GRAY + ", spend them in "
+                    + ChatColor.YELLOW + "/novacore" + ChatColor.GRAY + ".");
             playProc(player, data, 0.9f);
-            plugin.getNovaCoreManager().attempt(player, data, false);
         }
     }
 

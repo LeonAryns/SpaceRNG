@@ -129,6 +129,9 @@ public class JoinQuitListener implements Listener {
         if (data.getEquippedTagItemKey() != null && data.getEquippedTagRarity() != null) {
             reattachHologram(player, data);
         }
+        // V331: any Nova Core item from before they went virtual becomes
+        // balance, once, without anybody having to do anything.
+        plugin.getNovaCoreManager().absorb(player);
         plugin.getScoreboardManager().setup(player);
         plugin.getLuckBarManager().show(player);
         // Somebody joining mid-event gets their own copy of the boss and

@@ -99,6 +99,8 @@ public final class ConfigMigrator {
             "pets.eggs.tiers.supernova.chances",
             // V329: the Secret Realm panel, for /rngadmin holo panel realm.
             "holograms.panels.realm",
+            // V331: what one Nova Finder proc pays.
+            "farming.procs.nova-finder-amount",
             // V330: the store lines. New keys inside a buy: section every
             // server already has, so each one comes across on its own.
             "buy.announce", "buy.console-only", "buy.announce-credits",
@@ -244,7 +246,21 @@ public final class ConfigMigrator {
     private record Patch(String id, String path, Object oldDefault, Object newDefault) {
     }
 
+    /** An amount out of a reward map, whatever number type YAML gave it. */
+    private static int toInt(Object value, int fallback) {
+        return value instanceof Number number ? number.intValue() : fallback;
+    }
+
     private static final List<Patch> PATCHES = List.of(
+            // V331: ten times the Nova Finder rate, Leon's call, and it
+            // pays a Core rather than forcing a free forge.
+            new Patch("nova-finder-v331", "farming.enchants.NOVA_FINDER.per-level", 0.0000005, 0.000005),
+            new Patch("nova-finder-text-v331", "farming.enchants.NOVA_FINDER.description",
+                    "A chance at a free Nova Core forge.",
+                    "A chance to find a Nova Core while farming."),
+            new Patch("nova-how-to-get-v331", "novacore.how-to-get",
+                    "crates, /milestones (Playtime) and the /guide",
+                    "crates, the Nova Finder enchant, /milestones and the /guide"),
             // V322: the crops farmed ladder, ten times what it was, Leon's
             // numbers. V320 put crop-unlock-at into ADDED_SECTIONS, so the
             // live config holds the old defaults and only a patch moves
@@ -1192,6 +1208,50 @@ public final class ConfigMigrator {
                 plugin.getLogger().info("Config patch luck-small-crates: crate permanent Luck rewritten");
             }
             applied.add("luck-small-crates");
+            changed = true;
+        }
+        // V331: more Nova Cores out of every crate, Leon's call ("increase
+        // the amount of novacores you can get from crates and the enchant
+        // by quite a bit"). A crate's rewards are a list of maps with no
+        // id, so this is the same hand-rolled walk the V315 Luck swap
+        // needed, and for the same reason: crates may not join STRUCTURAL
+        // because Leon tunes the weights by hand.
+        //
+        // Only an entry that still holds the OLD amount is rewritten, so a
+        // crate he has already retuned is left exactly as it is.
+        if (!applied.contains("nova-cores-crates-v331")) {
+            boolean hit = false;
+            for (Object[] bump : new Object[][]{
+                    {"crates.types.farm.rewards", 1, 3, 10},
+                    {"crates.types.vote.rewards", 1, 3, 10},
+                    {"crates.types.nebula.rewards", 1, 5, 16},
+                    {"crates.types.cosmic.rewards", 2, 10, 16}}) {
+                List<?> rewards = disk.getList((String) bump[0]);
+                if (rewards == null) continue;
+                List<Object> rewritten = new ArrayList<>();
+                boolean changedHere = false;
+                for (Object reward : rewards) {
+                    if (reward instanceof java.util.Map<?, ?> map
+                            && "nova_core".equals(String.valueOf(map.get("consumable")))
+                            && toInt(map.get("amount"), 1) == (Integer) bump[1]) {
+                        java.util.Map<Object, Object> copy = new java.util.LinkedHashMap<>(map);
+                        copy.put("amount", bump[2]);
+                        copy.put("weight", bump[3]);
+                        rewritten.add(copy);
+                        changedHere = true;
+                    } else {
+                        rewritten.add(reward);
+                    }
+                }
+                if (changedHere) {
+                    disk.set((String) bump[0], rewritten);
+                    hit = true;
+                }
+            }
+            if (hit) {
+                plugin.getLogger().info("Config patch nova-cores-crates-v331: crates pay more Nova Cores");
+            }
+            applied.add("nova-cores-crates-v331");
             changed = true;
         }
         // V315: the Battle Pass carries permanent Luck too, which it never

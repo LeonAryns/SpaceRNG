@@ -178,8 +178,21 @@ public class NovaCoreManager {
         return chance > 0 && ThreadLocalRandom.current().nextDouble() < chance;
     }
 
-    /** Nova Cores in a player's inventory, the only thing a forge costs. */
+    /**
+     * Nova Cores a player can forge with, the only thing a forge costs.
+     *
+     * V331: the balance on PlayerData, plus anything still sitting in the
+     * inventory from before cores went virtual. Both count, so nobody
+     * loses a Core they were carrying when the jar changed.
+     */
     public int coresHeld(Player player) {
+        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+        long count = data.getNovaCores() + itemsHeld(player);
+        return (int) Math.min(Integer.MAX_VALUE, count);
+    }
+
+    /** Only the old physical ones. */
+    private int itemsHeld(Player player) {
         int count = 0;
         for (org.bukkit.inventory.ItemStack stack : player.getInventory().getStorageContents()) {
             var consumable = plugin.getConsumableManager().from(stack);
@@ -188,7 +201,29 @@ public class NovaCoreManager {
         return count;
     }
 
+    /**
+     * Turns every Nova Core item a player is carrying into balance
+     * (V331). Run on join and whenever the menu opens, so the old items
+     * disappear on their own rather than needing a command.
+     */
+    public int absorb(Player player) {
+        int found = 0;
+        for (org.bukkit.inventory.ItemStack stack : player.getInventory().getStorageContents()) {
+            var consumable = plugin.getConsumableManager().from(stack);
+            if (consumable == null || !"nova_core".equals(consumable.id())) continue;
+            found += stack.getAmount();
+            stack.setAmount(0);
+        }
+        if (found > 0) {
+            plugin.getPlayerDataManager().get(player.getUniqueId()).addNovaCores(found);
+        }
+        return found;
+    }
+
     private boolean takeCore(Player player) {
+        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+        if (data.takeNovaCores(1L) > 0) return true;
+        // Nothing in the balance: an old item still counts.
         for (org.bukkit.inventory.ItemStack stack : player.getInventory().getStorageContents()) {
             var consumable = plugin.getConsumableManager().from(stack);
             if (consumable != null && "nova_core".equals(consumable.id())) {
@@ -209,6 +244,9 @@ public class NovaCoreManager {
         player.sendMessage(ChatColor.AQUA + com.spacerng.solrng.gui.Lore.BULLET + " " + ChatColor.GRAY
                 + "Every forge uses up " + ChatColor.WHITE + "1 Nova Core" + ChatColor.GRAY
                 + " for a shot at the next tier.");
+        player.sendMessage(ChatColor.AQUA + com.spacerng.solrng.gui.Lore.BULLET + " " + ChatColor.GRAY
+                + "They are not an item: " + ChatColor.YELLOW + "/novacore" + ChatColor.GRAY
+                + " holds them for you.");
         if (!howToGet.isEmpty()) {
             player.sendMessage(ChatColor.AQUA + com.spacerng.solrng.gui.Lore.BULLET + " " + ChatColor.GRAY
                     + "Get them from " + ChatColor.WHITE + howToGet);

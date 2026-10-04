@@ -1458,6 +1458,35 @@ public class PlayerData {
         if (pet != null) ownedPets.put(pet.typeId(), pet);
     }
 
+    // ------------------------------------------------------- nova cores
+    //
+    // V331: a balance rather than an item, Leon's call. A Nova Core was
+    // only ever a right click that opened /novacore, so carrying it
+    // around bought nothing and losing it to a full inventory cost a
+    // forge. Cores found while farming and won out of crates land here;
+    // the forge spends from here first and falls back to any item a
+    // player still has from before.
+    private long novaCores = 0L;
+
+    public long getNovaCores() {
+        return novaCores;
+    }
+
+    public void setNovaCores(long novaCores) {
+        this.novaCores = Math.max(0L, novaCores);
+    }
+
+    public void addNovaCores(long amount) {
+        if (amount > 0) novaCores += amount;
+    }
+
+    /** Takes what it can, and says how many it actually took. */
+    public long takeNovaCores(long amount) {
+        long taken = Math.min(Math.max(0L, amount), novaCores);
+        novaCores -= taken;
+        return taken;
+    }
+
     // ------------------------------------------------------------- dust
     //
     // Two dusts, two sources, two trees. Cosmic Dust falls while rolling

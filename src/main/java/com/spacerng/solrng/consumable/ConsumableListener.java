@@ -71,6 +71,9 @@ public class ConsumableListener implements Listener {
         // A Nova Core is spent in the forge, not on the spot. Using one
         // means opening the menu that spends it.
         if ("nova_core".equals(consumable.id())) {
+            // V331: cores are a balance now, so an old item in the hand is
+            // taken in on the way to the menu rather than left lying there.
+            plugin.getNovaCoreManager().absorb(event.getPlayer());
             event.getPlayer().openInventory(
                     com.spacerng.solrng.gui.NovaCoreGui.build(plugin, event.getPlayer()));
             return;

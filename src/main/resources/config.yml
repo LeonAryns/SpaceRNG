@@ -553,12 +553,16 @@ farming:
       cost-linear: 399.3227205959015
       cost-step: 1.10581978513473
       cost-power: 2.0
-      description: "A chance at a free Nova Core forge."
+      description: "A chance to find a Nova Core while farming."
       color: "&b"
       max-level: 20000
       base-cap: 10000
-      # V270: 0.1% of crops at the ceiling after proc-scale (x0.2), Leon's call.
-      per-level: 0.0000005
+      # V331: ten times what it was, Leon's call ("increase the amount of
+      # novacores you can get from crates and the enchant by quite a
+      # bit"). 5% of crops at base-cap before proc-scale, about 1% after,
+      # so a fully bought hoe finds roughly one Core per hundred crops.
+      # It also pays a CORE now instead of forcing a free forge.
+      per-level: 0.000005
 
     # ---- The late ones ----
       # 0.5% before proc-scale, 0.1% after. Level 1 costs 2,775, level 1,000 costs 1,507,518,
@@ -807,6 +811,8 @@ farming:
     gamba-seconds: 60
     # What one Credit Finder proc pays.
     credit-finder-amount: 1
+    # V331: what one Nova Finder proc pays, in Nova Cores.
+    nova-finder-amount: 1
     key-finder-reward: crate_key
     # Now and then the key Key Finder turns up is the rare one instead.
     # Cosmic Keys are store only, so the rare find is a Nebula Key.
@@ -3914,7 +3920,7 @@ crates:
         - { weight: 8, consumable: enchant_potion }
         - { weight: 8, consumable: luck_potion }
         - { weight: 8, drop: UNCOMMON, amount: 3 }
-        - { weight: 6, consumable: nova_core }
+        - { weight: 10, consumable: nova_core, amount: 3 }
         - { weight: 2, drop: RARE }
         - { weight: 1.5, consumable: roll_10x }
         - { weight: 0.4, consumable: luck_5 }
@@ -3931,7 +3937,7 @@ crates:
         - { weight: 25, coins: 250000 }
         - { weight: 18, gems: 250 }
         - { weight: 14, money: 500000 }
-        - { weight: 12, consumable: nova_core, amount: 2 }
+        - { weight: 16, consumable: nova_core, amount: 10 }
         - { weight: 8, consumable: roll_10x, amount: 3 }
         - { weight: 7, drop: RARE, amount: 2 }
         - { weight: 3, drop: EPIC }
@@ -3957,7 +3963,7 @@ crates:
         - { weight: 10, consumable: luck_potion }
         - { weight: 10, consumable: speed_potion }
         - { weight: 8, drop: RARE }
-        - { weight: 6, consumable: nova_core }
+        - { weight: 10, consumable: nova_core, amount: 3 }
         - { weight: 2, consumable: roll_10x }
         - { weight: 0.5, consumable: luck_5 }
     # Rank key alls and events:  rngadmin crate keyall nebula 1
@@ -3975,7 +3981,7 @@ crates:
         - { weight: 25, coins: 150000 }
         - { weight: 18, money: 250000 }
         - { weight: 14, gems: 150 }
-        - { weight: 12, consumable: nova_core }
+        - { weight: 16, consumable: nova_core, amount: 5 }
         - { weight: 8, consumable: roll_10x, amount: 2 }
         - { weight: 8, drop: RARE, amount: 2 }
         - { weight: 2, drop: EPIC }
@@ -4351,7 +4357,7 @@ consumables:
     # V284: a Heart of the Sea again, Leon's call (V190 made it a pearl).
     material: HEART_OF_THE_SEA
     colors: ["#7FE7FF", "#00B0FF"]
-    description: "Forge it in /novacore for a shot at the next tier.\nEvery tier multiplies your Luck, Money and Coins.\nMiss and you fall back to your last checkpoint.\nThe more Luck you have, the better your odds."
+    description: "Kept for you in /novacore, not in your inventory.\nSpend one there for a shot at the next tier.\nEvery tier multiplies your Luck, Money and Coins.\nMiss and you fall back to your last checkpoint."
   free_skill:
     display: "Skilltree Unlock Voucher"
     material: KNOWLEDGE_BOOK
@@ -5417,7 +5423,7 @@ novacore:
   # pinned every tier at max-chance.
   luck-weight: 0.1
   # Shown in chat whenever somebody needs to know where Nova Cores come from.
-  how-to-get: "crates, /milestones (Playtime) and the /guide"
+  how-to-get: "crates, the Nova Finder enchant, /milestones and the /guide"
   min-chance: 0.02
   max-chance: 0.95
   # One entry per tier. This is a UNIVERSAL multiplier: it scales Luck,

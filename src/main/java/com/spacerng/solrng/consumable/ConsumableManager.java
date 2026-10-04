@@ -389,6 +389,18 @@ public class ConsumableManager {
     /** Hands one over, dropping the overflow rather than eating it. */
     public void give(Player player, Consumable consumable, int amount) {
         if (consumable == null || amount <= 0) return;
+        // V331: a Nova Core is a balance, not an item. It never did
+        // anything in the hand except open /novacore, and an inventory
+        // with no room quietly cost a forge.
+        if ("nova_core".equals(consumable.id())) {
+            var data = plugin.getPlayerDataManager().get(player.getUniqueId());
+            data.addNovaCores(amount);
+            player.sendActionBar(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
+                    .legacySection().deserialize(ChatColor.AQUA + "+" + amount + " Nova Core"
+                            + (amount == 1 ? "" : "s") + ChatColor.GRAY + "  you hold "
+                            + ChatColor.WHITE + String.format("%,d", data.getNovaCores())));
+            return;
+        }
         // A crate key goes to /keys on its own while that is switched on
         // (V282), the way drops auto convert.
         if (plugin.getCrateManager() != null && plugin.getCrateManager().isStorableKey(consumable.id())) {

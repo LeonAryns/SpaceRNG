@@ -41,6 +41,12 @@ public class NovaCoreGui {
 
     public static final int FORGE_SLOT = 49;
     private static final int INFO_SLOT = 45;
+    // V331: cores are a balance now, so the menu has to say how many you
+    // have, where they come from and what one is worth. Those are three
+    // different questions and they get three blocks: the purse, the
+    // ladder you are on, and the forge itself.
+    private static final int PURSE_SLOT = 46;
+    private static final int PROGRESS_SLOT = 53;
 
     public static Inventory build(SolRNGPlugin plugin, Player player) {
         NovaCoreHolder holder = new NovaCoreHolder();
@@ -54,6 +60,9 @@ public class NovaCoreGui {
 
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         NovaCoreManager nova = plugin.getNovaCoreManager();
+        // V331: an old Nova Core item becomes balance the moment the
+        // screen that spends it is opened.
+        nova.absorb(player);
         int tier = data.getNovaTier();
 
         int rungs = Math.min(nova.getMaxTier(), PATH_SLOTS.length);
@@ -62,6 +71,8 @@ public class NovaCoreGui {
         }
 
         inv.setItem(INFO_SLOT, buildInfo(plugin, data, nova, tier));
+        inv.setItem(PURSE_SLOT, buildPurse(plugin, player, data, nova));
+        inv.setItem(PROGRESS_SLOT, buildProgress(plugin, data, nova, tier));
         inv.setItem(FORGE_SLOT, buildForge(plugin, player, data, nova, tier));
         MenuStyle.apply(inv, MenuStyle.Palette.PURPLE);
         return inv;
@@ -117,26 +128,34 @@ public class NovaCoreGui {
         return item;
     }
 
+    /**
+     * What the Nova Core IS, in the order somebody new reads it: what it
+     * does for them, what a forge costs, what it risks, and where the
+     * checkpoints sit. The numbers for their own climb are on the "Your
+     * climb" block; this one is the rules.
+     */
     private static ItemStack buildInfo(SolRNGPlugin plugin, PlayerData data, NovaCoreManager nova, int tier) {
-        ItemStack item = new ItemStack(Material.HEART_OF_THE_SEA);
+        ItemStack item = new ItemStack(Material.NETHER_STAR);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(nova.styledName());
 
         List<String> lore = new ArrayList<>();
-        lore.add(Lore.section(ChatColor.LIGHT_PURPLE, "How it works"));
-        lore.add(Lore.line(ChatColor.LIGHT_PURPLE, "Each forge uses up one Nova Core."));
-        lore.add(Lore.line(ChatColor.LIGHT_PURPLE, "Every forge climbs a tier, or"));
-        lore.add(Lore.line(ChatColor.LIGHT_PURPLE, "drops you to the last checkpoint."));
-        lore.add(Lore.line(ChatColor.LIGHT_PURPLE, "Every tier held multiplies Luck,"));
-        lore.add(Lore.line(ChatColor.LIGHT_PURPLE, "Money and Coins at once."));
+        lore.add(ChatColor.GRAY + "A ladder you push your luck up.");
         lore.add("");
-        lore.add(Lore.section(ChatColor.AQUA, "Information"));
-        lore.add(Lore.stat(ChatColor.AQUA, "Tier", tier + " / " + nova.getMaxTier()));
-        lore.add(Lore.stat(ChatColor.LIGHT_PURPLE, "Multiplier",
-                String.format("%.2f", nova.multiplierAt(tier)) + "x"));
-        lore.add(Lore.stat(ChatColor.YELLOW, "Best ever", String.valueOf(data.getNovaBestTier())));
-        lore.add(Lore.stat(ChatColor.GREEN, "Safety net", "tier " + nova.checkpointBelow(tier)));
-        lore.add(Lore.stat(ChatColor.DARK_AQUA, "Checkpoints", nova.checkpointList()));
+        lore.add(Lore.section(ChatColor.LIGHT_PURPLE, "How it works"));
+        lore.add(Lore.pipe(ChatColor.LIGHT_PURPLE, ChatColor.GRAY + "One Nova Core per forge"));
+        lore.add(Lore.pipe(ChatColor.LIGHT_PURPLE, ChatColor.GRAY + (nova.getFlatChance() > 0.0
+                ? String.format("%.0f%%", nova.getFlatChance() * 100.0) + " to climb a tier, at every tier"
+                : "Climb a tier, or fall back")));
+        lore.add(Lore.pipe(ChatColor.LIGHT_PURPLE, ChatColor.GRAY + "A miss drops you to your checkpoint"));
+        lore.add(Lore.pipe(ChatColor.LIGHT_PURPLE, ChatColor.GRAY + "Every tier held multiplies Luck,"));
+        lore.add(Lore.pipe(ChatColor.LIGHT_PURPLE, ChatColor.GRAY + "Money and Coins at once"));
+        lore.add("");
+        lore.add(Lore.section(ChatColor.AQUA, "Checkpoints"));
+        lore.add(Lore.pipe(ChatColor.AQUA, ChatColor.GRAY + "Tiers " + ChatColor.WHITE + nova.checkpointList()));
+        lore.add(Lore.pipe(ChatColor.AQUA, ChatColor.GRAY + "A shatter never drops you below one"));
+        lore.add("");
+        lore.add(Lore.footnote("The Core Anchor skill can hold a miss."));
         meta.setLore(lore);
         meta.setEnchantmentGlintOverride(Boolean.TRUE);
         item.setItemMeta(meta);
@@ -216,6 +235,83 @@ public class NovaCoreGui {
         }
         meta.setLore(lore);
         meta.setEnchantmentGlintOverride(maxed ? Boolean.TRUE : null);
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    /**
+     * The purse: how many Cores you hold, what one buys, and where the
+     * next ones come from. A balance nobody can see is a balance nobody
+     * spends, so this block exists the moment Cores stopped being an item
+     * you could count in your hand.
+     */
+    private static ItemStack buildPurse(SolRNGPlugin plugin, Player player, PlayerData data,
+                                        NovaCoreManager nova) {
+        long held = data.getNovaCores();
+        ItemStack item = new ItemStack(held > 0 ? Material.HEART_OF_THE_SEA : Material.STONE_BUTTON);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(Lore.title(held > 0 ? ChatColor.AQUA : ChatColor.DARK_GRAY, "Your Nova Cores"));
+
+        List<String> lore = new ArrayList<>();
+        lore.add(Lore.line(ChatColor.GRAY, "Kept here for you, not in your"));
+        lore.add(Lore.line(ChatColor.GRAY, "inventory. One is spent per forge."));
+        lore.add("");
+        lore.add(Lore.stat(held > 0 ? ChatColor.AQUA : ChatColor.RED, "You hold",
+                String.format("%,d", held)));
+        lore.add(Lore.stat(ChatColor.AQUA, "Forges left", String.format("%,d", held)));
+        lore.add("");
+        lore.add(Lore.section(ChatColor.YELLOW, "Where they come from"));
+        lore.add(Lore.pipe(ChatColor.AQUA, ChatColor.GRAY + "Crates, every one of them"));
+        lore.add(Lore.pipe(ChatColor.AQUA, ChatColor.GRAY + "The Nova Finder hoe enchant"));
+        lore.add(Lore.pipe(ChatColor.AQUA, ChatColor.GRAY + "/milestones and the /guide"));
+        lore.add("");
+        lore.add(Lore.footnote("Nothing else spends them."));
+        meta.setLore(lore);
+        if (held > 0) meta.setEnchantmentGlintOverride(Boolean.TRUE);
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    /**
+     * Where the climb stands: the tier, what it is paying, the checkpoint
+     * under you and the one above, and the best you have ever reached.
+     *
+     * The ladder on the left of the screen says what each rung is worth.
+     * This says what YOURS is worth, which is the question somebody opens
+     * the menu with.
+     */
+    private static ItemStack buildProgress(SolRNGPlugin plugin, PlayerData data,
+                                           NovaCoreManager nova, int tier) {
+        ItemStack item = new ItemStack(Material.ENDER_EYE);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(Lore.title(ChatColor.LIGHT_PURPLE, "Your climb"));
+
+        String times = String.format("%.2f", nova.multiplierAt(tier)) + "x";
+        int below = nova.checkpointBelow(tier);
+        int next = 0;
+        for (int above = tier + 1; above <= nova.getMaxTier(); above++) {
+            if (nova.isCheckpoint(above)) {
+                next = above;
+                break;
+            }
+        }
+
+        List<String> lore = new ArrayList<>();
+        lore.add(Lore.stat(ChatColor.LIGHT_PURPLE, "Tier", tier + " / " + nova.getMaxTier()));
+        lore.add(Lore.bar(nova.getMaxTier() <= 0 ? 0.0 : (double) tier / nova.getMaxTier()));
+        lore.add("");
+        lore.add(Lore.section(ChatColor.AQUA, "What it pays you"));
+        lore.add(Lore.stat(ChatColor.GREEN, "Luck", times));
+        lore.add(Lore.stat(Currency.MONEY.colour(), "Money", times));
+        lore.add(Lore.stat(Currency.COINS.colour(), "Coins", times));
+        lore.add("");
+        lore.add(Lore.stat(ChatColor.GREEN, "Safety net",
+                below <= 0 ? "none yet, a miss drops you to 0" : "tier " + below));
+        lore.add(Lore.stat(ChatColor.AQUA, "Next checkpoint",
+                next <= 0 ? "none left" : "tier " + next));
+        lore.add(Lore.stat(ChatColor.YELLOW, "Best ever", String.valueOf(data.getNovaBestTier())));
+        meta.setLore(lore);
+        meta.setEnchantmentGlintOverride(Boolean.TRUE);
         item.setItemMeta(meta);
         return item;
     }
