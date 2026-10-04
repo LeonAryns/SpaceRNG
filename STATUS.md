@@ -5,10 +5,96 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V320**, 3 October 2026. The newest section is the
+Last updated at **V326**, 4 October 2026. The newest section is the
 first one below; older sections further down are history.
 
-## Start here: V310 to V320, 3 October 2026
+## Start here: V322 to V326, 4 October 2026
+
+Leon gave a running list over one session and asked for all of it. Five
+jars, every one pushed and built green. **None of it has been tested in
+game**, on top of V310 to V326 before it, which has not been tested
+either. Config went from version 29 to 32, so the next upload rewrites
+every structural section, the farm tree and the pet table included.
+
+One decision he made, when asked: "multiple Starforges" means owning
+every tier you forge, not several copies of one.
+
+### What shipped
+
+- **V322, three fixes.** `/aura` has thrown on every open since V319:
+  Astral joined `SHOWN` and the two slot arrays stayed four wide, so
+  `build()` ran off the end of the array. Both rows are five wide now.
+  Nova Core got `novacore.flat-chance`, 0.5: while it is above 0 it IS
+  the chance at every tier, and the decay curve, Luck, the Nova Touch
+  upgrade and the guaranteed first forge are all skipped, so **Luck and
+  Nova Touch now buy nothing on the ladder**. A sneak click on a crate
+  and a shift click in `/keys` open every key held, with
+  `crates.quick-open-max` raised 25 to 500 as the one tick safety
+  ceiling. Supercharged Roll and Lucky Streak moved from chat to the
+  action bar.
+- **V323, the crops ladder.** 50k, 100k, 250k, 500k, 1m, his numbers.
+  The sixth step he named, 2.5m, has no crop to open: **it is waiting
+  for a sixth crop he has not asked for yet.** Both halves updated, the
+  config section and the hardcoded fallback in `unlockAt`, which IS the
+  lookup's default since V320, plus five Patches for the live config.
+  Crop Yield per level was inverted, 0.10 wheat down to 0.05 fern,
+  because a better crop used to climb the crop count faster as well as
+  paying more.
+- **V324, pets rebuilt.** Forty-two pets, six stats at seven rarities,
+  each multiplying one stat. What a pet is worth comes off
+  `pets.multipliers` by rarity and doubles every step (1.01x to 1.64x
+  fresh, 4.84x fully grown at Divine). Duplicates instead of a silent
+  free rarity level, a copy count in the save file's fifth field, a
+  shift click in storage to throw one spare away, and autotrash per pet
+  in the index. Eggs carry the chance of each rarity written out:
+  Mythical was 1 in 4 on the Nebula and 1 in 3.7 on the Supernova, which
+  is exactly his "egg 2 is almost the same as egg 3", because the old
+  boost multiplied every rarity from Epic up by the same number and
+  could never move them against each other. Now 0.2% and 2%. His Divine
+  chances are untouched. `pets.types` joined STRUCTURAL, which is only
+  safe because no number he tunes lives inside it any more.
+- **V325, multiple Starforges.** Forging a tier hands over the new item
+  and leaves the old ones alone, and the Starforge IN YOUR HAND is the
+  Luck, Speed and ability you get. An owned tier in `/starforge` says
+  "Click to take one out", which is how anybody who climbed before this
+  jar gets the lower tiers back.
+- **V326, Alchemy removed.** The enchant, its two knobs and its harvest
+  proc, with three REMOVALS entries, because farming is not structural
+  and an enchant taken out of the jar otherwise keeps loading from the
+  live config. The farm tree node goes with the structural rewrite and
+  leaves a blank slot at page 2, 3-3. Levels anybody bought in it are
+  not refunded.
+
+### Open, waiting on Leon
+
+- **The sixth crop.** He named a 2.5m step with no crop to put on it.
+- **Nova Core at a flat 50/50** leaves `luck-weight`, `decay`,
+  `base-chance`, min and max chance and the Nova Touch prestige upgrade
+  doing nothing. Nova Touch in particular is a prestige upgrade players
+  may have paid for.
+- **Duplicate pets have no use yet.** They stack and can be thrown away;
+  they do not feed rarity or refund dust. Say the word if they should.
+- **Astral has no pets.** The index ladder skips it on purpose.
+- **"Allow myself to give me cosmic dust" already exists**:
+  `/rngadmin dust cosmic <amount> [player]`, and `farm` for the other.
+
+### Test first, in this order
+
+1. Upload V326, check `/version SpaceRNG` says 326, and check the
+   console for the config migration lines (version 32, the structural
+   rewrites, the Alchemy removals).
+2. `/aura`. It should open at all, with five looks per row.
+3. `/novacore`: the forge button should read 50% at every tier.
+4. `/keys` shift click, and sneak right click on a crate.
+5. `/pets`: hatch Stardust eggs with `/rngadmin dust cosmic 100000`,
+   check duplicates land, switch autotrash on a pet in the index and
+   hatch it again, read one index tooltip top to bottom.
+6. `/starforge`: take out a lower tier and check the sidebar Luck
+   changes with which one is in your hand.
+7. `/crops`: Carrots should want 50,000.
+8. The hoe: no Alchemy in the rack, nothing broken around it.
+
+## V310 to V320, 3 October 2026
 
 Leon gave a fourteen item list and then said "bouw alles neem je tijd
 deel het wel op in taken maar ik wil dat alles wordt gemaakt", so the
