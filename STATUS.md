@@ -5,10 +5,40 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V330**, 4 October 2026. The newest section is the
+Last updated at **V332**, 4 October 2026. The newest section is the
 first one below; older sections further down are history.
 
-## Start here: V327 to V330, 4 October 2026
+## Start here: V331 and V332, 4 October 2026
+
+Two jars, both green, **neither tested**. No config-version bump: both
+reach the live server through Patches, ADDED_SECTIONS and one
+hand-rolled crate walk.
+
+- **V331, Nova Cores are virtual.** A balance on PlayerData
+  (`nova-cores`), routed through `ConsumableManager.give`, so crates,
+  milestones, the pass, the guide gift and /rngadmin consumable all work
+  unchanged. Old items still count and are absorbed on join, on a right
+  click and whenever /novacore opens. A lot more of them: Farm and Vote
+  crates 3, Nebula 5, Cosmic 10, each with a heavier weight, and Nova
+  Finder is ten times the rate AND pays a Core instead of forcing a free
+  forge. /novacore gained a purse block and a "Your climb" block.
+- **V332, keys are a count over the crate.** Every key goes to the
+  stored count with no switch; /keys, its menu, its holder and its click
+  handler are deleted. A click on a crate opens one, a sneak click opens
+  all, a click with no keys shows the table. The floating text over a
+  crate says the count and what a click does. `isAutoStoreKeys` stays on
+  PlayerData, read by nothing.
+
+### Worth knowing
+
+- **Nova Finder at a fully bought hoe is about 1 in 100 crops.** If that
+  is too many Cores, `farming.enchants.NOVA_FINDER.per-level` is the one
+  number to move.
+- **There is no way left to hold a key or a Core as an item.** Anything
+  that hands one over adds to the count, which is what makes the crate
+  and /novacore the only places they live.
+
+## V327 to V330, 4 October 2026
 
 The same session as V322 to V326, second half. Four more jars, all green,
 **none tested in game**. Config is at version 33.
