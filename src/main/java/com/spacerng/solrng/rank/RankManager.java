@@ -430,8 +430,13 @@ public class RankManager {
         // V300: the prestige after the name, in the chat format ([IV] in
         // gold), Leon's call. V296 had it in front.
         String prestige = prestigePrefix(data.getPrestige());
+        // V344: afk on the end of the row, where somebody scanning the
+        // player list for who is actually around will see it.
+        String away = plugin.getTabListManager() != null
+                && plugin.getTabListManager().isAfk(player.getUniqueId())
+                ? ChatColor.DARK_GRAY + " afk" : "";
         return tag + badgeOf(shownRankOf(data), stops) + coloredName(player)
-                + (prestige.isEmpty() ? "" : " " + prestige.trim());
+                + (prestige.isEmpty() ? "" : " " + prestige.trim()) + away;
     }
 
     /**

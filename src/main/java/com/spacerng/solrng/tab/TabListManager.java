@@ -39,6 +39,44 @@ public final class TabListManager {
         this.plugin = plugin;
     }
 
+    /**
+     * Who is afk (V344). Never saved: being away does not survive a
+     * reconnect, and a marker left on somebody who logged off and came
+     * back would be a lie tab keeps telling.
+     */
+    private final java.util.Set<java.util.UUID> afk = new java.util.HashSet<>();
+
+    /** Switches the marker and redraws their row. Returns the new state. */
+    public boolean toggleAfk(org.bukkit.entity.Player player) {
+        boolean now = !afk.contains(player.getUniqueId());
+        if (now) {
+            afk.add(player.getUniqueId());
+        } else {
+            afk.remove(player.getUniqueId());
+        }
+        plugin.getRankManager().refreshName(player);
+        return now;
+    }
+
+    public boolean isAfk(java.util.UUID uuid) {
+        return afk.contains(uuid);
+    }
+
+    /** Cheap enough to ask on every move: usually an empty set. */
+    public boolean anyAfk() {
+        return !afk.isEmpty();
+    }
+
+    /** Takes the marker off, and says so once when it was on. */
+    public void clearAfk(org.bukkit.entity.Player player, boolean announce) {
+        if (!afk.remove(player.getUniqueId())) return;
+        plugin.getRankManager().refreshName(player);
+        if (announce) {
+            plugin.getServer().broadcastMessage(org.bukkit.ChatColor.DARK_GRAY + "* "
+                    + org.bukkit.ChatColor.GRAY + player.getName() + " is back.");
+        }
+    }
+
     public void start() {
         stop();
         if (!plugin.getConfig().getBoolean("tab.enabled", true)) return;

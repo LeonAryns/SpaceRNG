@@ -8,7 +8,7 @@
 # their fresh defaults in on top of whatever is on disk, so a server
 # owner never has to delete the whole file to pick up a structural
 # change. Item table, prices and cosmetic tweaks are untouched.
-config-version: 35
+config-version: 36
 
 # One-off value changes the plugin has already made to this file, so none
 # is ever made twice. Managed by the plugin; leave it alone.
@@ -3761,7 +3761,7 @@ guide:
       display: "Buy your first farming skill"
       hint: "/farmtree is a whole second tree - crops, hoe enchants and Token multipliers."
       goal: HAS_NODE
-      target: crop_wheat
+      target: yield_wheat
       amount: 1
     - id: nova_core
       display: "Forge a Nova Core tier"
@@ -4453,24 +4453,13 @@ farmtree:
     # ====================================================================
 
     # -- Middle line --
-    crop_wheat:
-      display: "Wheat Field"
-      page: 1
-      slot: "5,6"
-      icon: "WHEAT"
-      cost-money: 4000
-      requires: ""
-      effect: "UNLOCK_CROP"
-      value: 0
-      target: "WHEAT"
-
     enchant_speed:
       display: "Speed Enchant"
       page: 1
       slot: "4,6"
       icon: "SUGAR"
       cost-money: 6500
-      requires: "crop_wheat"
+      requires: ""
       effect: "UNLOCK_ENCHANT"
       value: 0
       target: "WALK_SPEED"
@@ -4482,7 +4471,7 @@ farmtree:
       icon: "COMPOSTER"
       cost-money: 6500
       cost-growth: 1.25
-      requires: "crop_wheat"
+      requires: ""
       effect: "CROP_YIELD"
       value: 0.1
       max-level: 10
@@ -4512,18 +4501,6 @@ farmtree:
       value: 0.02
       max-level: 10
 
-    crop_carrots:
-      display: "Carrots"
-      page: 1
-      slot: "5,2"
-      icon: "CARROT"
-      cost-money: 82700
-      requires: "growth_1"
-      requires-all: ["enchant_momentum", "gems_1"]
-      effect: "UNLOCK_CROP"
-      value: 0
-      target: "CARROTS"
-
     yield_carrots:
       display: "Carrot Yield"
       page: 1
@@ -4531,7 +4508,7 @@ farmtree:
       icon: "COMPOSTER"
       cost-money: 44600
       cost-growth: 1.25
-      requires: "crop_carrots"
+      requires: "growth_1"
       effect: "CROP_YIELD"
       value: 0.09
       max-level: 10
@@ -4544,7 +4521,7 @@ farmtree:
       icon: "COMPOSTER"
       cost-money: 44600
       cost-growth: 1.25
-      requires: "crop_carrots"
+      requires: "growth_1"
       effect: "CROP_YIELD"
       value: 0.1
       max-level: 10
@@ -4557,7 +4534,7 @@ farmtree:
       icon: "COMPOSTER"
       cost-money: 44600
       cost-growth: 1.25
-      requires: "crop_carrots"
+      requires: "growth_1"
       effect: "CROP_YIELD"
       value: 0.09
       max-level: 10
@@ -4570,7 +4547,7 @@ farmtree:
       slot: "4,5"
       icon: "GOLD_NUGGET"
       cost-money: 51800
-      requires: "crop_wheat"
+      requires: ""
       effect: "UNLOCK_ENCHANT"
       value: 0
       target: "TOKEN_GREED"
@@ -4665,7 +4642,7 @@ farmtree:
       icon: "HAY_BLOCK"
       cost-money: 6500
       cost-growth: 1.25
-      requires: "crop_wheat"
+      requires: ""
       effect: "TOKEN_GAIN"
       # V281: a tenth, the Coins nodes together x10 instead of x92.
       value: 0.01
@@ -4758,18 +4735,6 @@ farmtree:
     # ====================================================================
 
     # -- Middle line --
-    crop_potatoes:
-      display: "Potatoes"
-      page: 2
-      slot: "5,6"
-      icon: "POTATO"
-      cost-money: 120000
-      requires: "yield_carrots"
-      requires-all: ["enchant_potion_finder", "tokens_3"]
-      effect: "UNLOCK_CROP"
-      value: 0
-      target: "POTATOES"
-
     yield_potatoes:
       display: "Potato Yield"
       page: 2
@@ -4777,7 +4742,7 @@ farmtree:
       icon: "COMPOSTER"
       cost-money: 194400
       cost-growth: 1.3
-      requires: "crop_potatoes"
+      requires: "yield_carrots"
       effect: "CROP_YIELD"
       value: 0.08
       max-level: 10
@@ -4807,18 +4772,6 @@ farmtree:
       value: 0.04
       max-level: 10
 
-    crop_beetroot:
-      display: "Beetroot"
-      page: 2
-      slot: "5,2"
-      icon: "BEETROOT"
-      cost-money: 2479500
-      requires: "growth_3"
-      requires-all: ["enchant_prospector", "gems_3"]
-      effect: "UNLOCK_CROP"
-      value: 0
-      target: "BEETROOTS"
-
     yield_beetroot:
       display: "Beetroot Yield"
       page: 2
@@ -4826,7 +4779,7 @@ farmtree:
       icon: "COMPOSTER"
       cost-money: 1338900
       cost-growth: 1.3
-      requires: "crop_beetroot"
+      requires: "growth_3"
       effect: "CROP_YIELD"
       value: 0.07
       max-level: 10
@@ -4839,7 +4792,7 @@ farmtree:
       icon: "COMPOSTER"
       cost-money: 1338900
       cost-growth: 1.3
-      requires: "crop_beetroot"
+      requires: "growth_3"
       effect: "CROP_YIELD"
       value: 0.08
       max-level: 10
@@ -4852,7 +4805,7 @@ farmtree:
       icon: "COMPOSTER"
       cost-money: 1338900
       cost-growth: 1.3
-      requires: "crop_beetroot"
+      requires: "growth_3"
       effect: "CROP_YIELD"
       value: 0.07
       max-level: 10
@@ -4865,7 +4818,7 @@ farmtree:
       slot: "4,5"
       icon: "HEART_OF_THE_SEA"
       cost-money: 1555200
-      requires: "crop_potatoes"
+      requires: "yield_carrots"
       effect: "UNLOCK_ENCHANT"
       value: 0
       target: "NOVA_FINDER"
@@ -4928,7 +4881,7 @@ farmtree:
       icon: "HAY_BLOCK"
       cost-money: 194400
       cost-growth: 1.3
-      requires: "crop_potatoes"
+      requires: "yield_carrots"
       effect: "TOKEN_GAIN"
       # V281: a tenth, the Coins nodes together x10 instead of x92.
       value: 0.05
@@ -5023,18 +4976,6 @@ farmtree:
     # ====================================================================
 
     # -- Middle line --
-    crop_netherwart:
-      display: "Nether Wart"
-      page: 3
-      slot: "5,6"
-      icon: "NETHER_WART"
-      cost-money: 3600000
-      requires: "yield_beetroot"
-      requires-all: ["tokens_6"]
-      effect: "UNLOCK_CROP"
-      value: 0
-      target: "NETHER_WART"
-
     yield_netherwart:
       display: "Nether Wart Yield"
       page: 3
@@ -5042,7 +4983,7 @@ farmtree:
       icon: "COMPOSTER"
       cost-money: 5832000
       cost-growth: 1.35
-      requires: "crop_netherwart"
+      requires: "yield_beetroot"
       effect: "CROP_YIELD"
       value: 0.06
       max-level: 10
@@ -5072,25 +5013,13 @@ farmtree:
       value: 0.06
       max-level: 10
 
-    crop_berries:
-      display: "Fern"
-      page: 3
-      slot: "5,2"
-      icon: "FERN"
-      cost-money: 74385000
-      requires: "growth_5"
-      requires-all: ["enchant_meteor", "gems_6"]
-      effect: "UNLOCK_CROP"
-      value: 0
-      target: "SWEET_BERRIES"
-
     enchant_supernova:
       display: "Supernova"
       page: 3
       slot: "5,1"
       icon: "NETHER_STAR"
       cost-money: 2213000000
-      requires: "crop_berries"
+      requires: "growth_5"
       requires-all: ["enchant_nuke"]
       effect: "UNLOCK_ENCHANT"
       value: 0
@@ -5103,7 +5032,7 @@ farmtree:
       icon: "COMPOSTER"
       cost-money: 40167700
       cost-growth: 1.35
-      requires: "crop_berries"
+      requires: "growth_5"
       effect: "CROP_YIELD"
       value: 0.05
       max-level: 10
@@ -5116,7 +5045,7 @@ farmtree:
       icon: "ENCHANTED_BOOK"
       cost-money: 4764259500
       cost-growth: 1.55
-      requires: "crop_berries"
+      requires: "growth_5"
       effect: "ENCHANT_CAP"
       value: 990.0
       max-level: 5
@@ -5128,7 +5057,7 @@ farmtree:
       slot: "4,5"
       icon: "PRISMARINE_SHARD"
       cost-money: 46656000
-      requires: "crop_netherwart"
+      requires: "yield_beetroot"
       effect: "UNLOCK_ENCHANT"
       value: 0
       target: "GEM_CASCADE"
@@ -5139,7 +5068,7 @@ farmtree:
       slot: "3,5"
       icon: "GOLD_BLOCK"
       cost-money: 75582700
-      requires: "crop_netherwart"
+      requires: "yield_beetroot"
       effect: "UNLOCK_ENCHANT"
       value: 0
       target: "COIN_STORM"
@@ -5221,7 +5150,7 @@ farmtree:
       icon: "HAY_BLOCK"
       cost-money: 5832000
       cost-growth: 1.35
-      requires: "crop_netherwart"
+      requires: "yield_beetroot"
       effect: "TOKEN_GAIN"
       # V281: a tenth, the Coins nodes together x10 instead of x92.
       value: 0.14

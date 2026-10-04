@@ -214,6 +214,9 @@ public final class SolRNGPlugin extends JavaPlugin {
         this.joinQuitListener = new JoinQuitListener(this);
         getServer().getPluginManager().registerEvents(joinQuitListener, this);
         getServer().getPluginManager().registerEvents(bedrockSupport, this);
+        // V344: takes the afk marker back off when somebody moves or talks.
+        getServer().getPluginManager().registerEvents(
+                new com.spacerng.solrng.listeners.AfkListener(this), this);
         getServer().getPluginManager().registerEvents(new com.spacerng.solrng.firsts.FirstTenFireworks(), this);
         getServer().getPluginManager().registerEvents(new ChatListener(this), this);
         getServer().getPluginManager().registerEvents(new GuiListener(this), this);
@@ -278,6 +281,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         getCommand("keyall").setExecutor(new com.spacerng.solrng.commands.KeyAllCommand(this));
         getCommand("fly").setExecutor(new com.spacerng.solrng.commands.FlyCommand(this));
         getCommand("spawn").setExecutor(new com.spacerng.solrng.commands.SpawnCommand(this));
+        getCommand("afk").setExecutor(new com.spacerng.solrng.commands.AfkCommand(this));
         getCommand("nick").setExecutor(new com.spacerng.solrng.commands.NickCommand(this));
         getCommand("size").setExecutor(new com.spacerng.solrng.commands.SizeCommand(this));
         getCommand("boss").setExecutor(new com.spacerng.solrng.commands.BossCommand(this));
@@ -576,6 +580,10 @@ public final class SolRNGPlugin extends JavaPlugin {
 
     public SpawnManager getSpawnManager() {
         return spawnManager;
+    }
+
+    public com.spacerng.solrng.tab.TabListManager getTabListManager() {
+        return tabListManager;
     }
 
     private com.spacerng.solrng.farming.CropWatch cropWatch;

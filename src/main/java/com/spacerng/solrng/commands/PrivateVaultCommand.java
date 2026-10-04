@@ -25,6 +25,20 @@ public class PrivateVaultCommand implements CommandExecutor, TabCompleter {
         this.plugin = plugin;
     }
 
+    /**
+     * True when the vault is open to them. Admins pass, so the menu can
+     * still be looked at without buying the node first.
+     */
+    private boolean locked(Player player) {
+        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+        if (data.hasUnlocked("vault_unlock") || player.hasPermission("solrng.admin")) return true;
+        player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Locked "
+                + ChatColor.RESET + ChatColor.GRAY + "Buy " + ChatColor.YELLOW + "Private Vault"
+                + ChatColor.GRAY + " in " + ChatColor.YELLOW + "/skilltree" + ChatColor.GRAY + " first.");
+        player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.7f, 1.0f);
+        return false;
+    }
+
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command,
                              @NotNull String label, @NotNull String[] args) {
@@ -32,6 +46,10 @@ public class PrivateVaultCommand implements CommandExecutor, TabCompleter {
             sender.sendMessage(ChatColor.RED + "Only players have vaults.");
             return true;
         }
+        // V344: the Private Vault skill actually gates the command now.
+        // /pv only ever checked how many pages a rank opens, so a player
+        // who had never bought the node could still use their Member page.
+        if (!locked(player)) return true;
         if (args.length == 0) {
             Menus.open(plugin, player, () -> PrivateVaultGui.buildSelector(plugin, player));
             return true;

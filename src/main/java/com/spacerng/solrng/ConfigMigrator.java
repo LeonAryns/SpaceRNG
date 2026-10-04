@@ -780,6 +780,11 @@ public final class ConfigMigrator {
     }
 
     private static final List<EntryPatch> ENTRY_PATCHES = List.of(
+            // V344: the six crop unlock nodes left the farm tree, crops
+            // have opened on crops farmed since V323, so the guide step
+            // that asked for crop_wheat has to ask for a node that exists.
+            new EntryPatch("guide-farm-skills-v344", "guide.quests", "farm_skills", "target",
+                    "crop_wheat", "yield_wheat"),
             // V114 moved Index Luck, Armor and Farming earlier in the skill tree.
             // V257: say where levelling up happens.
             new EntryPatch("guide-level-display-prestige", "guide.quests", "reach_level", "display",

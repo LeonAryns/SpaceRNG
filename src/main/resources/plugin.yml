@@ -171,6 +171,10 @@ commands:
   spawn:
     description: Go back to spawn
     usage: /spawn
+  afk:
+    description: Mark yourself away, and show it in the tab list
+    usage: /afk
+    aliases: [away]
   realm:
     description: Go through to the Secret Realm while it is open
     usage: /realm [leave]
