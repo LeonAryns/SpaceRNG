@@ -673,6 +673,26 @@ public final class ConfigMigrator {
             .toList();
 
     /**
+     * V328: and the ceiling mastery climbs TO.
+     *
+     * V190 raised base-cap to 10,000 to make the levels reachable, and
+     * max-level was already 10,000, so maxLevelFor came back as
+     * min(10000, 10000 + mastery) and the two Enchant Mastery nodes have
+     * bought nothing at all since. Leon reported exactly that. max-level
+     * is 20,000 now: base-cap is still where an enchant starts, and the
+     * 9,900 levels the two mastery nodes give are the distance between
+     * them. Nothing anybody has is touched, because base-cap did not
+     * move.
+     */
+    private static final List<Patch> ENCHANT_MAX_PATCHES = java.util.stream.Stream.of(
+                    "TOKEN_GREED", "MOMENTUM", "SHARD_GREED", "KEY_FINDER", "BLAST_HARVEST",
+                    "POTION_FINDER", "LIGHTNING", "NOVA_FINDER", "NUKE", "COIN_FACTORY", "GAMBA",
+                    "PROSPECTOR", "GEM_RUSH", "GEM_CASCADE", "COIN_STORM", "METEOR",
+                    "BLACK_HOLE", "SUPERNOVA", "WALK_SPEED")
+            .map(id -> new Patch("enchant-max-20k-" + id, "farming.enchants." + id + ".max-level", 10000, 20000))
+            .toList();
+
+    /**
      * Paths deleted outright, once, and remembered like a patch.
      *
      * farming is not a structural section, so an enchant taken out of the
@@ -878,6 +898,7 @@ public final class ConfigMigrator {
         List<Patch> allPatches = new ArrayList<>(PATCHES);
         allPatches.addAll(ENCHANT_PATCHES);
         allPatches.addAll(ENCHANT_CAP_PATCHES);
+        allPatches.addAll(ENCHANT_MAX_PATCHES);
 
         for (String[] removal : REMOVALS) {
             if (applied.contains(removal[0]) || !disk.contains(removal[1], true)) continue;

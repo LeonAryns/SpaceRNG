@@ -8,7 +8,7 @@
 # their fresh defaults in on top of whatever is on disk, so a server
 # owner never has to delete the whole file to pick up a structural
 # change. Item table, prices and cosmetic tweaks are untouched.
-config-version: 32
+config-version: 33
 
 # One-off value changes the plugin has already made to this file, so none
 # is ever made twice. Managed by the plugin; leave it alone.
@@ -439,7 +439,7 @@ farming:
       cost-power: 2.0
       description: "More Coins from every crop."
       color: "&e"
-      max-level: 10000
+      max-level: 20000
       base-cap: 10000
       # V281: a tenth, Leon's call; it was +10,000% at level 10,000.
       per-level: 0.001
@@ -455,7 +455,7 @@ farming:
       cost-power: 2.0
       description: "An unbroken run of harvests builds a multiplier."
       color: "&2"
-      max-level: 10000
+      max-level: 20000
       base-cap: 10000
       # V267: up to 5x at the ceiling, matching momentum.per-level-cap.
       per-level: 0.0004
@@ -474,7 +474,7 @@ farming:
       cost-power: 2.0
       description: "A chance at a bonus Gem."
       color: "&b"
-      max-level: 10000
+      max-level: 20000
       base-cap: 10000
       # V274: 1% of crops at the ceiling after proc-scale, Leon's call.
       per-level: 0.000005
@@ -490,7 +490,7 @@ farming:
       cost-power: 2.0
       description: "A chance to turn up a crate key."
       color: "&6"
-      max-level: 10000
+      max-level: 20000
       base-cap: 10000
       # V272: 0.5% at the ceiling after proc-scale (x0.2), Leon's call.
       per-level: 0.0000025
@@ -506,7 +506,7 @@ farming:
       cost-power: 2.0
       description: "A chance to blow the neighbouring crops out too."
       color: "&c"
-      max-level: 10000
+      max-level: 20000
       base-cap: 10000
       # V265: 50x lower, Leon's call; it was 0.0002 (20% at the ceiling).
       # V267: three times lower again.
@@ -523,7 +523,7 @@ farming:
       cost-power: 2.0
       description: "A chance to dig up a potion."
       color: "&d"
-      max-level: 10000
+      max-level: 20000
       base-cap: 10000
       # V277: 0.1% at the ceiling after proc-scale (x0.2), Leon's call (was 1%).
       per-level: 0.0000005
@@ -539,7 +539,7 @@ farming:
       cost-power: 2.0
       description: "A chance to call bolts down on nearby crops."
       color: "&e"
-      max-level: 10000
+      max-level: 20000
       base-cap: 10000
       # V274: 1% of crops at the ceiling after proc-scale, Leon's call.
       per-level: 0.000005
@@ -555,7 +555,7 @@ farming:
       cost-power: 2.0
       description: "A chance at a free Nova Core forge."
       color: "&b"
-      max-level: 10000
+      max-level: 20000
       base-cap: 10000
       # V270: 0.1% of crops at the ceiling after proc-scale (x0.2), Leon's call.
       per-level: 0.0000005
@@ -573,7 +573,7 @@ farming:
       cost-power: 2.0
       description: "A rare chance to level the whole field at once."
       color: "&4"
-      max-level: 10000
+      max-level: 20000
       base-cap: 10000
       # V274: 0.1% of crops at the ceiling after proc-scale, Leon's call.
       per-level: 0.0000005
@@ -589,7 +589,7 @@ farming:
       cost-power: 2.0
       description: "A chance to be paid your last minute of Coins again."
       color: "&6"
-      max-level: 10000
+      max-level: 20000
       base-cap: 10000
       # V274: 0.1% of crops at the ceiling after proc-scale, Leon's call.
       per-level: 0.0000005
@@ -620,7 +620,7 @@ farming:
       cost-power: 2.0
       description: "A chance at 3x Coins, Gems or procs. You do not pick."
       color: "&6"
-      max-level: 10000
+      max-level: 20000
       base-cap: 10000
       # V274: 0.1% of crops at the ceiling after proc-scale, Leon's call.
       per-level: 0.0000005
@@ -640,7 +640,7 @@ farming:
       cost-power: 2.0
       description: "A chance at Gems worth a slice of the crop."
       color: "&b"
-      max-level: 10000
+      max-level: 20000
       base-cap: 10000
       # V274: 0.1% of crops at the ceiling after proc-scale, Leon's call.
       per-level: 0.0000005
@@ -657,7 +657,7 @@ farming:
       cost-power: 2.0
       description: "A chance to triple every Gem for a while."
       color: "&b"
-      max-level: 10000
+      max-level: 20000
       base-cap: 10000
       # V274: 0.1% of crops at the ceiling after proc-scale, Leon's call.
       per-level: 0.0000005
@@ -674,7 +674,7 @@ farming:
       cost-power: 2.0
       description: "A chance to chain Gems from crop to crop."
       color: "&b"
-      max-level: 10000
+      max-level: 20000
       base-cap: 10000
       # V274: 0.1% of crops at the ceiling after proc-scale, Leon's call.
       per-level: 0.0000005
@@ -690,7 +690,7 @@ farming:
       cost-power: 2.0
       description: "A chance at a downpour of Coins."
       color: "&6"
-      max-level: 10000
+      max-level: 20000
       base-cap: 10000
       # V274: 0.1% of crops at the ceiling after proc-scale, Leon's call.
       per-level: 0.0000005
@@ -706,7 +706,7 @@ farming:
       cost-power: 2.0
       description: "A chance to call a meteor down on the field."
       color: "&c"
-      max-level: 10000
+      max-level: 20000
       base-cap: 10000
       # V274: 0.1% of crops at the ceiling after proc-scale, Leon's call.
       per-level: 0.0000005
@@ -722,7 +722,7 @@ farming:
       cost-power: 2.0
       description: "A chance to swallow the field whole."
       color: "&5"
-      max-level: 10000
+      max-level: 20000
       base-cap: 10000
       # V274: 0.1% of crops at the ceiling after proc-scale, Leon's call.
       per-level: 0.0000005
@@ -738,7 +738,7 @@ farming:
       cost-power: 2.0
       description: "Nova Finder, several times over, and a fortune with it."
       color: "&6"
-      max-level: 10000
+      max-level: 20000
       base-cap: 10000
       # V274: 0.1% of crops at the ceiling after proc-scale, Leon's call.
       per-level: 0.0000005
@@ -757,7 +757,7 @@ farming:
       cost-power: 2.0
       description: "Walk faster while you hold the hoe."
       color: "&b"
-      max-level: 10000
+      max-level: 20000
       base-cap: 10000
       per-level: 0.00025
       # +250% walking speed at the ceiling (V270). Level 1 costs 580, level 1,000 costs 280,500,
@@ -2308,7 +2308,7 @@ skilltree:
       cost-growth: 1.22
       requires: "auto_roll_root"
       effect: ROLL_SPEED
-      value: 0.02
+      value: 0.01
       max-level: 10
 
     speed_2:
@@ -2320,7 +2320,7 @@ skilltree:
       cost-growth: 1.24
       requires: "convert_unlock"
       effect: ROLL_SPEED
-      value: 0.03
+      value: 0.015
       max-level: 10
 
     bonus_roll_1:
@@ -2587,7 +2587,7 @@ skilltree:
       cost-growth: 1.26
       requires: "ascension"
       effect: ROLL_SPEED
-      value: 0.04
+      value: 0.02
       max-level: 10
 
     speed_4:
@@ -2599,7 +2599,7 @@ skilltree:
       cost-growth: 1.28
       requires: "explorer_1"
       effect: ROLL_SPEED
-      value: 0.05
+      value: 0.025
       max-level: 10
 
     bonus_roll_2:
@@ -2934,7 +2934,7 @@ skilltree:
       cost-growth: 1.3
       requires: "convergence"
       effect: ROLL_SPEED
-      value: 0.07
+      value: 0.035
       max-level: 10
 
     speed_6:
@@ -2946,7 +2946,7 @@ skilltree:
       cost-growth: 1.32
       requires: "bonus_roll_3"
       effect: ROLL_SPEED
-      value: 0.1
+      value: 0.05
       max-level: 10
 
     speed_7:
@@ -2958,7 +2958,7 @@ skilltree:
       cost-growth: 1.34
       requires: "instant_roll_3"
       effect: ROLL_SPEED
-      value: 0.15
+      value: 0.07
       max-level: 10
 
     bonus_roll_3:
@@ -3005,7 +3005,7 @@ skilltree:
       cost-money: 10000000000
       requires: "bonus_roll_4"
       effect: ROLL_SPEED
-      value: 0.75
+      value: 0.35
 
     # -- Money spine --
     coins_5:
@@ -3236,7 +3236,7 @@ skilltree:
       cost-growth: 1.38
       requires: "mastery"
       effect: ROLL_SPEED
-      value: 0.2
+      value: 0.1
       max-level: 10
 
     autopilot_2:
@@ -3294,7 +3294,7 @@ skilltree:
       cost-money: 1000000000000
       requires: "supercharge_4"
       effect: ROLL_SPEED
-      value: 1.5
+      value: 0.75
 
     # -- Money spine --
     coins_7:

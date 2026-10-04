@@ -158,6 +158,33 @@ final class PlayerMenuClicks {
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         var consumable = plugin.getConsumableManager().get(id);
         if (consumable == null || !data.getStoredBoosters().containsKey(id)) return;
+        // V328: a shift click drinks the whole stack. Draughts stack their
+        // rolls since V277, so twelve of them is one draught with twelve
+        // times the rolls; drinking them one at a time was twelve clicks
+        // and twelve chat lines. The first one goes through redeem so the
+        // rules and the line are its own, and the rest are added quietly
+        // and counted into one summary.
+        if (event.isShiftClick() && consumable.isDraught()) {
+            long stored = data.getStoredBoosters().getOrDefault(id, 0L);
+            if (stored <= 0) return;
+            if (!plugin.getConsumableManager().redeem(player, data, consumable)) return;
+            data.takeStoredBooster(id);
+            long more = 0;
+            while (data.getStoredBoosters().getOrDefault(id, 0L) > 0) {
+                data.addPotion(consumable.luck(), consumable.speed(), consumable.rolls());
+                data.takeStoredBooster(id);
+                more++;
+            }
+            if (more > 0) {
+                player.sendMessage(ChatColor.AQUA + "Drank " + ChatColor.WHITE + (more + 1)
+                        + ChatColor.AQUA + " of them" + ChatColor.GRAY + ", "
+                        + ChatColor.WHITE + String.format("%,d",
+                                data.getDraughtRolls(consumable.luck(), consumable.speed()))
+                        + ChatColor.GRAY + " rolls left.");
+            }
+            player.openInventory(com.spacerng.solrng.gui.BoostersGui.build(plugin, player));
+            return;
+        }
         // Redeem first: a draught refused because another is running
         // stays stored.
         if (plugin.getConsumableManager().redeem(player, data, consumable)) {

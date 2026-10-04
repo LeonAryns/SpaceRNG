@@ -105,7 +105,7 @@ public class ScoreboardManager {
         Objective objective = board.getObjective(OBJECTIVE_ID);
         if (objective == null) return; // player's on a different scoreboard right now
 
-        List<String> lines = buildLines(player, true);
+        List<String> lines = buildLines(player, true, true);
         int total = lines.size();
         for (int i = 0; i < total; i++) {
             setLine(player, objective, i, total - i, lines.get(i));
@@ -146,13 +146,17 @@ public class ScoreboardManager {
      * address at the bottom.
      */
     public List<String> hoverLines(Player player) {
-        List<String> lines = new ArrayList<>(buildLines(player, false));
+        // V328: no texture icons in the hover. They are resource pack
+        // glyphs, and a hover over a name in chat draws them as yellow
+        // "missing character" boxes in front of every line, which is the
+        // first thing Leon reads there.
+        List<String> lines = new ArrayList<>(buildLines(player, false, false));
         if (lines.size() >= 2) lines.subList(lines.size() - 2, lines.size()).clear();
         lines.removeIf(String::isEmpty);
         return lines;
     }
 
-    private List<String> buildLines(Player player, boolean own) {
+    private List<String> buildLines(Player player, boolean own, boolean icons) {
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         int discovered = data.getDiscoveredItems().size();
         int totalItems = plugin.getRarityManager().getItems().size();
@@ -168,20 +172,20 @@ public class ScoreboardManager {
         lines.add(ChatColor.YELLOW + "| " + ChatColor.WHITE + "Index: " + ChatColor.AQUA + discovered + ChatColor.GRAY + "/" + ChatColor.AQUA + totalItems
                 + ChatColor.WHITE + " ("
                 + String.format("%.2f", plugin.getRarityManager().tagMultiplierFor(data)) + "x)");
-        lines.add(ChatColor.YELLOW + "| " + icon("luck") + ChatColor.WHITE + "Luck: " + ChatColor.GREEN + "+" + com.spacerng.solrng.gui.Lore.shorten(Math.round(luckPercent)) + "%");
-        lines.add(ChatColor.YELLOW + "| " + icon("speed") + ChatColor.WHITE + "Speed: " + ChatColor.YELLOW
+        lines.add(ChatColor.YELLOW + "| " + icon("luck", icons) + ChatColor.WHITE + "Luck: " + ChatColor.GREEN + "+" + com.spacerng.solrng.gui.Lore.shorten(Math.round(luckPercent)) + "%");
+        lines.add(ChatColor.YELLOW + "| " + icon("speed", icons) + ChatColor.WHITE + "Speed: " + ChatColor.YELLOW
                 + Math.round(com.spacerng.solrng.stats.StatSources.speed(plugin, data).total() * 100));
-        lines.add(ChatColor.YELLOW + "| " + icon("prestige") + prestigeLine(data));
+        lines.add(ChatColor.YELLOW + "| " + icon("prestige", icons) + prestigeLine(data));
         lines.add(""); // blank spacer
         // V320: "Your Wallet" only when it IS yours. The same lines are the
         // hover over somebody else's name in chat since V308, where a
         // header reading "Your Wallet" over another player's balances is
         // simply wrong about whose they are.
         lines.add(Lore.header(own ? "Your Wallet" : "Wallet"));
-        lines.add(balanceLine(player));
-        lines.add(walletLine(Currency.COINS, data.getTokens(), "coins"));
-        lines.add(walletLine(Currency.GEMS, data.getShards(), "gems"));
-        lines.add(walletLine(Currency.CREDITS, data.getPoints(), "credits"));
+        lines.add(balanceLine(player, icons));
+        lines.add(walletLine(Currency.COINS, data.getTokens(), "coins", icons));
+        lines.add(walletLine(Currency.GEMS, data.getShards(), "gems", icons));
+        lines.add(walletLine(Currency.CREDITS, data.getPoints(), "credits", icons));
 
         // The draught is shown in the tab list through %solrng_draught%,
         // not here (V158): Leon wants the sidebar to stay the same shape.
@@ -218,24 +222,24 @@ public class ScoreboardManager {
         return ChatColor.YELLOW + "| " + currency.amount(amount);
     }
 
-    private String walletLine(Currency currency, long amount, String icon) {
-        return ChatColor.YELLOW + "| " + icon(icon) + currency.amount(amount);
+    private String walletLine(Currency currency, long amount, String icon, boolean icons) {
+        return ChatColor.YELLOW + "| " + icon(icon, icons) + currency.amount(amount);
     }
 
     /**
      * A game texture in front of a line (V163), with a space after it, or
      * nothing when the icon is switched off. See gui/Icons.
      */
-    private static String icon(String name) {
-        return com.spacerng.solrng.gui.Icons.of(name) + " ";
+    private static String icon(String name, boolean icons) {
+        return icons ? com.spacerng.solrng.gui.Icons.of(name) + " " : "";
     }
 
-    private String balanceLine(Player player) {
+    private String balanceLine(Player player, boolean icons) {
         if (economy == null) {
             return ChatColor.YELLOW + "| " + ChatColor.GRAY + "N/A "
                     + Currency.MONEY.colour() + Currency.MONEY.label();
         }
-        return walletLine(Currency.MONEY, Math.round(economy.getBalance(player)), "money");
+        return walletLine(Currency.MONEY, Math.round(economy.getBalance(player)), "money", icons);
     }
 
     /**
