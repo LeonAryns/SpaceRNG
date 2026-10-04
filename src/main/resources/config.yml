@@ -6618,7 +6618,7 @@ broadcast:
   # highest tier found in that time (a shiny just above its rarity): one
   # drop, and a count of the others of that tier (V298). 0 announces every
   # drop straight away with the limit above, as before.
-  digest-seconds: 120
+  digest-seconds: 300
 
 # Server First 10. The first players to roll a tracked rarity each take a
 # numbered spot, and the whole server is told: a banner in chat, a toast,
@@ -7435,9 +7435,11 @@ secret-realm:
   # V312: Prestige 10 to enter, Leon's call. It is printed on the Index
   # Mode block in /index as well as in the message when it opens.
   min-prestige: 10
-  open-seconds: 900
-  min-gap-minutes: 120
-  max-gap-minutes: 240
+  # V338, Leon's numbers: open for 20 minutes, around every 3 hours. The
+  # gap is still random inside the two, so nobody can set an alarm for it.
+  open-seconds: 1200
+  min-gap-minutes: 165
+  max-gap-minutes: 195
   find-one-in: 40
   luck-per-secret: 0.02
   # How far from the spot still counts as inside.

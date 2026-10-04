@@ -1105,7 +1105,7 @@ public class RollListener implements Listener {
         // Likewise a Shiny First, which brings its own banner (V278).
         if (shiny && plugin.getFirstTenManager().wouldTakeShiny(player)) return;
         // V293: with the digest on, the drop waits for the next flush and
-        // only the highest tier of those two minutes goes to chat, so the
+        // only the highest tier of that window goes to chat, so the
         // per-player limit below is not needed.
         if (plugin.getConfig().getLong("broadcast.digest-seconds", 120L) > 0) {
             pending.add(new PendingDrop(player.getUniqueId(), player.getName(), result, previewItem, shiny));

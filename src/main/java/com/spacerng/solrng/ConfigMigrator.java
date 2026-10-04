@@ -258,6 +258,13 @@ public final class ConfigMigrator {
     }
 
     private static final List<Patch> PATCHES = List.of(
+            // V338, Leon's numbers for the realm: 20 minutes open, around
+            // every three hours, and the drop digest every five minutes
+            // rather than every two.
+            new Patch("realm-open-20m-v338", "secret-realm.open-seconds", 900, 1200),
+            new Patch("realm-gap-min-v338", "secret-realm.min-gap-minutes", 120, 165),
+            new Patch("realm-gap-max-v338", "secret-realm.max-gap-minutes", 240, 195),
+            new Patch("digest-5m-v338", "broadcast.digest-seconds", 120, 300),
             // V335: the shortest drop tooltip, Leon's call.
             new Patch("lore-style-stats-v335", "roll-item.lore-style", "card", "stats"),
             // V331: ten times the Nova Finder rate, Leon's call, and it

@@ -456,6 +456,11 @@ public class RealmManager implements Listener {
         return total <= 0.0 ? 0.0 : secret.weight() / total;
     }
 
+    /** How long one opening lasts, in whole minutes (V338). */
+    public long openMinutes() {
+        return Math.max(1L, Math.round(openMillis / 60_000.0));
+    }
+
     /**
      * Secrets ARE the index Luck, always (V337).
      *

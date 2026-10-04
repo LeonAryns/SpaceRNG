@@ -74,8 +74,10 @@ public class SecretIndexGui {
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(Lore.gradient("Secret Realm", true, "#B388FF", "#40C4FF"));
         List<String> lore = new ArrayList<>();
+        // V338: read from config, so Leon changing how long it stays open
+        // cannot leave a card promising the old number.
         lore.add(Lore.line(ChatColor.GRAY, "Opens on its own at random times"));
-        lore.add(Lore.line(ChatColor.GRAY, "for fifteen minutes. Roll inside it"));
+        lore.add(Lore.line(ChatColor.GRAY, "for " + realm.openMinutes() + " minutes. Roll inside it"));
         lore.add(Lore.line(ChatColor.GRAY, "for a chance at a secret."));
         lore.add("");
         lore.add(Lore.line(ChatColor.GRAY, "Luck does not change the odds."));
