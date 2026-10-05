@@ -8,7 +8,7 @@
 # their fresh defaults in on top of whatever is on disk, so a server
 # owner never has to delete the whole file to pick up a structural
 # change. Item table, prices and cosmetic tweaks are untouched.
-config-version: 36
+config-version: 37
 
 # One-off value changes the plugin has already made to this file, so none
 # is ever made twice. Managed by the plugin; leave it alone.
@@ -76,7 +76,7 @@ roll-item:
   # description of the drops"). /rngadmin lorestyles [rarity] [shiny]
   # gives one sample of each to compare. Items already rolled keep the
   # lore they came with.
-  lore-style: stats
+  lore-style: compact
   # The Bonus Roll branch in /skilltree: a roll that chains into another
   # one for free.
   #
@@ -4595,7 +4595,6 @@ farmtree:
       icon: "EMERALD"
       cost-money: 357000
       requires: "hoe_tier_1"
-      requires-all: ["crop_carrots"]
       effect: "UNLOCK_ENCHANT"
       value: 0
       target: "KEY_FINDER"
@@ -4868,7 +4867,6 @@ farmtree:
       icon: "AMETHYST_CLUSTER"
       cost-money: 17352600
       requires: "hoe_tier_2"
-      requires-all: ["crop_beetroot"]
       effect: "UNLOCK_ENCHANT"
       value: 0
       target: "GEM_RUSH"
@@ -5103,7 +5101,6 @@ farmtree:
       icon: "AMETHYST_SHARD"
       cost-money: 321341400
       requires: "hoe_tier_3"
-      requires-all: ["crop_berries"]
       effect: "UNLOCK_ENCHANT"
       value: 0
       target: "CREDIT_FINDER"
@@ -7358,103 +7355,239 @@ secret-realm:
       display: "The Quiet Comet"
       colors: ["#E1F5FE", "#4FC3F7"]
       icon: PRISMARINE_CRYSTALS
-      weight: 30
+      weight: 1000.0
       hint: "It passed over once and nobody heard it."
       one-in: 1000
-      multiplier: 1.5
-    veiled_nebula:
-      display: "Veiled Nebula"
-      colors: ["#F3E5F5", "#BA68C8"]
-      icon: AMETHYST_CLUSTER
-      weight: 24
-      hint: "A cloud that hides what it is making."
-      one-in: 2500
-      multiplier: 2.0
-    hollow_moon:
-      display: "Hollow Moon"
-      colors: ["#ECEFF1", "#90A4AE"]
-      icon: SNOWBALL
-      weight: 18
-      hint: "Knock on it and something knocks back."
-      one-in: 5000
-      multiplier: 2.5
-    starless_key:
-      display: "Starless Key"
-      colors: ["#FFF8E1", "#FFB300"]
-      icon: TRIAL_KEY
-      weight: 12
-      hint: "It opens a sky with nothing in it."
-      one-in: 10000
-      multiplier: 3.0
-    eclipse_shard:
-      display: "Eclipse Shard"
-      colors: ["#FFCCBC", "#BF360C"]
+      multiplier: 1.25
+    drifting_ember:
+      display: "Drifting Ember"
+      colors: ["#FFF3E0", "#FFB74D"]
       icon: BLAZE_POWDER
-      weight: 8
-      hint: "A piece of the moment the light went out."
-      one-in: 25000
-      multiplier: 4.0
-    lost_constellation:
-      display: "Lost Constellation"
-      colors: ["#E8EAF6", "#5C6BC0"]
-      icon: ECHO_SHARD
-      weight: 5
-      hint: "Seven stars nobody has drawn a line through."
-      one-in: 50000
-      multiplier: 5.0
-    whisper_of_the_void:
-      display: "Whisper of the Void"
-      colors: ["#D1C4E9", "#311B92"]
-      icon: ENDER_EYE
-      weight: 2.5
-      hint: "It says your name, but not out loud."
-      one-in: 100000
-      multiplier: 7.0
+      weight: 769.23
+      hint: "Still warm, a long way from any fire."
+      one-in: 1300
+      multiplier: 1.36
     tidelocked_twin:
       display: "Tidelocked Twin"
       colors: ["#E0F7FA", "#26C6DA"]
       icon: HEART_OF_THE_SEA
-      weight: 27
+      weight: 625.0
       hint: "Two worlds, one face each, never turning."
-      one-in: 1500
-      multiplier: 1.75
+      one-in: 1600
+      multiplier: 1.48
+    pale_aurora:
+      display: "Pale Aurora"
+      colors: ["#F1F8E9", "#AED581"]
+      icon: GLOWSTONE_DUST
+      weight: 500.0
+      hint: "Light with no warmth in it at all."
+      one-in: 2000
+      multiplier: 1.62
+    veiled_nebula:
+      display: "Veiled Nebula"
+      colors: ["#F3E5F5", "#BA68C8"]
+      icon: AMETHYST_CLUSTER
+      weight: 384.62
+      hint: "A cloud that hides what it is making."
+      one-in: 2600
+      multiplier: 1.76
+    salt_star:
+      display: "Salt Star"
+      colors: ["#FAFAFA", "#BDBDBD"]
+      icon: QUARTZ
+      weight: 303.03
+      hint: "White, dry and older than the sea."
+      one-in: 3300
+      multiplier: 1.92
     ashen_orbit:
       display: "Ashen Orbit"
       colors: ["#EFEBE9", "#8D6E63"]
       icon: GLOW_INK_SAC
-      weight: 21
+      weight: 238.1
       hint: "The ring left where a world used to go round."
-      one-in: 3500
-      multiplier: 2.25
+      one-in: 4200
+      multiplier: 2.09
+    quiet_tide:
+      display: "The Quiet Tide"
+      colors: ["#E0F2F1", "#4DB6AC"]
+      icon: NAUTILUS_SHELL
+      weight: 188.68
+      hint: "It comes in without a sound and takes something."
+      one-in: 5300
+      multiplier: 2.28
+    hollow_moon:
+      display: "Hollow Moon"
+      colors: ["#ECEFF1", "#90A4AE"]
+      icon: SNOWBALL
+      weight: 149.25
+      hint: "Knock on it and something knocks back."
+      one-in: 6700
+      multiplier: 2.48
+    frozen_signal:
+      display: "Frozen Signal"
+      colors: ["#E3F2FD", "#64B5F6"]
+      icon: BLUE_ICE
+      weight: 117.65
+      hint: "A message still arriving, a century late."
+      one-in: 8500
+      multiplier: 2.7
+    starless_key:
+      display: "Starless Key"
+      colors: ["#FFF8E1", "#FFB300"]
+      icon: TRIAL_KEY
+      weight: 90.91
+      hint: "It opens a sky with nothing in it."
+      one-in: 11000
+      multiplier: 2.94
+    long_shadow:
+      display: "The Long Shadow"
+      colors: ["#ECEFF1", "#607D8B"]
+      icon: PHANTOM_MEMBRANE
+      weight: 71.43
+      hint: "Cast by something nobody has found yet."
+      one-in: 14000
+      multiplier: 3.21
     glass_horizon:
       display: "Glass Horizon"
       colors: ["#E0F2F1", "#4DB6AC"]
       icon: AMETHYST_SHARD
-      weight: 10
+      weight: 58.82
       hint: "The edge you can see through but not past."
-      one-in: 15000
+      one-in: 17000
       multiplier: 3.5
+    silent_bell:
+      display: "Silent Bell"
+      colors: ["#FFFDE7", "#FDD835"]
+      icon: BELL
+      weight: 45.45
+      hint: "It rings. You are simply not what hears it."
+      one-in: 22000
+      multiplier: 3.81
+    eclipse_shard:
+      display: "Eclipse Shard"
+      colors: ["#FFCCBC", "#BF360C"]
+      icon: BLAZE_POWDER
+      weight: 35.71
+      hint: "A piece of the moment the light went out."
+      one-in: 28000
+      multiplier: 4.15
+    inverted_dawn:
+      display: "Inverted Dawn"
+      colors: ["#FFF3E0", "#EF6C00"]
+      icon: GHAST_TEAR
+      weight: 27.78
+      hint: "The sun came up in the wrong place."
+      one-in: 36000
+      multiplier: 4.52
+    hollow_chorus:
+      display: "Hollow Chorus"
+      colors: ["#F3E5F5", "#8E24AA"]
+      icon: POPPED_CHORUS_FRUIT
+      weight: 22.22
+      hint: "Many voices, none of them breathing."
+      one-in: 45000
+      multiplier: 4.92
+    lost_constellation:
+      display: "Lost Constellation"
+      colors: ["#E8EAF6", "#5C6BC0"]
+      icon: ECHO_SHARD
+      weight: 17.54
+      hint: "Seven stars nobody has drawn a line through."
+      one-in: 57000
+      multiplier: 5.36
+    forgotten_map:
+      display: "Forgotten Map"
+      colors: ["#EFEBE9", "#A1887F"]
+      icon: FILLED_MAP
+      weight: 13.7
+      hint: "Every mark on it is somewhere that is gone."
+      one-in: 73000
+      multiplier: 5.84
+    second_moon:
+      display: "The Second Moon"
+      colors: ["#EDE7F6", "#9575CD"]
+      icon: SHULKER_SHELL
+      weight: 10.87
+      hint: "It is only there when you are not looking."
+      one-in: 92000
+      multiplier: 6.37
     last_light:
       display: "Last Light"
       colors: ["#FFF3E0", "#FB8C00"]
       icon: FIREWORK_STAR
-      weight: 3.5
+      weight: 8.33
       hint: "What a dead star is still sending."
-      one-in: 75000
-      multiplier: 6.0
-    unnamed_sky:
-      display: "The Unnamed Sky"
-      colors: ["#E8EAF6", "#7986CB", "#1A237E"]
-      icon: END_CRYSTAL
-      weight: 0.2
-      hint: "Nobody has looked at it long enough to name it."
-      one-in: 500000
-      multiplier: 15.0
+      one-in: 120000
+      multiplier: 6.94
+    dim_lantern:
+      display: "Dim Lantern"
+      colors: ["#E0F7FA", "#4DD0E1"]
+      icon: SOUL_LANTERN
+      weight: 6.67
+      hint: "Carried by whoever went in before you."
+      one-in: 150000
+      multiplier: 7.56
+    still_water:
+      display: "Still Water"
+      colors: ["#E0F7FA", "#00838F"]
+      icon: PRISMARINE_SHARD
+      weight: 5.26
+      hint: "Nothing has moved it since the first night."
+      one-in: 190000
+      multiplier: 8.23
+    whisper_of_the_void:
+      display: "Whisper of the Void"
+      colors: ["#D1C4E9", "#311B92"]
+      icon: ENDER_EYE
+      weight: 4.17
+      hint: "It says your name, but not out loud."
+      one-in: 240000
+      multiplier: 8.97
+    unlit_path:
+      display: "Unlit Path"
+      colors: ["#E8EAF6", "#283593"]
+      icon: SCULK_SENSOR
+      weight: 3.33
+      hint: "It knows you are on it."
+      one-in: 300000
+      multiplier: 9.77
+    patient_void:
+      display: "The Patient Void"
+      colors: ["#ECEFF1", "#37474F"]
+      icon: RECOVERY_COMPASS
+      weight: 2.56
+      hint: "It has waited longer than everything else here."
+      one-in: 390000
+      multiplier: 10.65
     origin_spark:
       display: "Origin Spark"
       colors: ["#FFFDE7", "#FFD54F", "#FF6F00"]
       icon: NETHER_STAR
-      weight: 0.5
+      weight: 2.04
       hint: "What was there before the first star."
-      one-in: 250000
-      multiplier: 10.0
+      one-in: 490000
+      multiplier: 11.6
+    final_hour:
+      display: "The Final Hour"
+      colors: ["#FFEBEE", "#C62828"]
+      icon: CLOCK
+      weight: 1.61
+      hint: "The one nobody is awake for."
+      one-in: 620000
+      multiplier: 12.64
+    nameless_star:
+      display: "Nameless Star"
+      colors: ["#FAFAFA", "#9E9E9E", "#424242"]
+      icon: HEAVY_CORE
+      weight: 1.27
+      hint: "Catalogued once, by somebody who never came back."
+      one-in: 790000
+      multiplier: 13.77
+    unnamed_sky:
+      display: "The Unnamed Sky"
+      colors: ["#E8EAF6", "#7986CB", "#1A237E"]
+      icon: END_CRYSTAL
+      weight: 1.0
+      hint: "Nobody has looked at it long enough to name it."
+      one-in: 1000000
+      multiplier: 15.0

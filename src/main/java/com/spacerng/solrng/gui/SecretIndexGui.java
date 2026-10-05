@@ -32,7 +32,12 @@ public class SecretIndexGui {
     private static final int SIZE = 54;
     private static final int REALM_SLOT = 4;
     private static final int HEAD_SLOT = 8;
-    private static final int FIRST = 19;
+    // V345: thirty secrets. The grid runs the four middle rows edge to
+    // edge (36 slots) instead of a seven wide block with rails, because
+    // seven wide ran out at twenty eight and the bottom row belongs to
+    // the frame and its Close button.
+    private static final int FIRST = 9;
+    private static final int LAST = 44;
     // V311: the same Index Mode block /index carries, so the three
     // collections step through one another rather than being three
     // commands a player has to know about.
@@ -60,8 +65,7 @@ public class SecretIndexGui {
 
         int slot = FIRST;
         for (RealmManager.Secret secret : realm.secrets().values()) {
-            if (slot % 9 == 8) slot += 2;
-            if (slot >= SIZE) break;
+            if (slot > LAST) break;
             holder.slots().put(slot, secret.id());
             inv.setItem(slot++, secretIcon(realm, data, secret, data.getSecretsFound().contains(secret.id())));
         }

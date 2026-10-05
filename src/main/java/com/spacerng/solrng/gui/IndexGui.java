@@ -563,8 +563,6 @@ public class IndexGui {
             // The odds show even before it's found - that's the hook that
             // makes an undiscovered slot worth chasing.
             lore.add(Lore.statArrow(ChatColor.AQUA, "Chance", RollFormat.chance(item.getOdds())));
-            lore.add(Lore.statArrow(ChatColor.AQUA, "Tag Luck",
-                    String.format("%.2f", item.getLuckMultiplier()) + "x"));
             lore.add(foundBy(plugin, item));
             lore.add("");
             lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Not yet discovered");

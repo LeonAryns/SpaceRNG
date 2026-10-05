@@ -110,10 +110,22 @@ public final class StatSources {
         // part, so /stats says why rather than showing a stack of
         // multipliers that are not being applied.
         if (inRealm(plugin, data)) {
+            // V345, Leon's call: the server wide boost is the one thing
+            // that still counts in there. An event doubling everybody's
+            // Luck should double it inside the realm too, because it is
+            // the same event for everybody and that is the whole rule the
+            // realm runs on. Nothing personal joins it: no skills, no
+            // armour, no pets, no perks, no ranks, no /buy boost.
+            double event = plugin.getBoostManager().multiplier();
+            List<Part> parts = new ArrayList<>();
+            parts.add(new Part("Secret Realm", "Everybody rolls the same table in here",
+                    1.0, Op.ADD, false));
+            if (event > 1.0) {
+                parts.add(new Part("Server boost", "Active for everyone, from /boosts", event, Op.MULTIPLY));
+            }
             return new Stat(Id.LUCK, "Luck", "Flat for everybody inside the Secret Realm.",
-                    Format.PERCENT, List.of(new Part("Secret Realm",
-                            "Everybody rolls the same table in here", 1.0, Op.ADD, false)),
-                    1.0, "Your own Luck comes back when the realm closes.");
+                    Format.PERCENT, parts, fold(parts),
+                    "Only the server boost counts in here. Your own Luck comes back outside.");
         }
         List<Part> parts = new ArrayList<>();
 

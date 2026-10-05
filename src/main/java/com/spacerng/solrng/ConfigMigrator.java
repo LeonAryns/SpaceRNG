@@ -59,7 +59,12 @@ public final class ConfigMigrator {
             // outside this list. So nothing Leon tunes by hand is inside
             // it, and a table that grew from nine to forty-two cannot
             // reach the server any other way.
-            "pets.types");
+            "pets.types",
+            // V345: the secret ladder. Thirty entries with their odds and
+            // multipliers spread evenly from 1 in 1,000 to 1 in 1,000,000,
+            // which cannot be delivered one Patch at a time, and nothing
+            // in it is tuned by hand.
+            "secret-realm.secrets");
 
     /**
      * Sections copied from the jar whenever the server's config has none
@@ -270,6 +275,11 @@ public final class ConfigMigrator {
     }
 
     private static final List<Patch> PATCHES = List.of(
+            // V345: the shortest drop tooltip there is, Leon's call on the
+            // Astral screenshot. Tag Luck is off every style as well, so
+            // compact is now one line: rarity, odds and the shiny mark.
+            new Patch("lore-style-compact-v345", "roll-item.lore-style", "stats", "compact"),
+            new Patch("lore-style-compact-card-v345", "roll-item.lore-style", "card", "compact"),
             // V343: the Secret Realm has no prestige wall, Leon's call.
             new Patch("realm-no-prestige-v343", "secret-realm.min-prestige", 10, 0),
             // V343: every armour tier asks for two rarities and every piece

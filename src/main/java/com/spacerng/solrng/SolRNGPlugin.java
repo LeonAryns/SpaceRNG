@@ -214,6 +214,9 @@ public final class SolRNGPlugin extends JavaPlugin {
         this.joinQuitListener = new JoinQuitListener(this);
         getServer().getPluginManager().registerEvents(joinQuitListener, this);
         getServer().getPluginManager().registerEvents(bedrockSupport, this);
+        // V345: a drop is a trophy, so nothing it is made of can be used.
+        getServer().getPluginManager().registerEvents(
+                new com.spacerng.solrng.listeners.DropUseListener(this), this);
         // V344: takes the afk marker back off when somebody moves or talks.
         getServer().getPluginManager().registerEvents(
                 new com.spacerng.solrng.listeners.AfkListener(this), this);
