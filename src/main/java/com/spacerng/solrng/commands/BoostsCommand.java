@@ -40,6 +40,10 @@ public class BoostsCommand implements CommandExecutor {
 
         if (data.getPotionRolls() > 0) {
             any = true;
+            if (data.getPotionSpeedMultiplier() > 1.0) {
+                player.sendMessage(Lore.stat(ChatColor.YELLOW, "Draught Speed",
+                        String.format("%.2f", data.getPotionSpeedMultiplier()) + "x"));
+            }
             if (data.getPotionLuckMultiplier() > 1.0) {
                 player.sendMessage(Lore.stat(ChatColor.GREEN, "Draught multiplier",
                         String.format("%.2f", data.getPotionLuckMultiplier()) + "x"));

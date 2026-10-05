@@ -287,6 +287,15 @@ public final class ConfigMigrator {
     }
 
     private static final List<Patch> PATCHES = List.of(
+            // V352: Luck has to keep mattering. Epic, Legendary and
+            // Mythical climb hard with it now; Divine and Astral stay
+            // pinned to 1 in 1,000 and 1 in 20,000 at three billion
+            // percent, which is why Divine's exponent sits below
+            // Mythical's.
+            new Patch("luck-exp-legendary-v352", "rarities.LEGENDARY.luck-exponent", 1.04, 1.15),
+            new Patch("luck-exp-mythical-v352", "rarities.MYTHICAL.luck-exponent", 1.08, 1.3),
+            new Patch("luck-exp-divine-v352", "rarities.DIVINE.luck-exponent", 1.12, 1.16),
+            new Patch("luck-exp-astral-v352", "rarities.ASTRAL.luck-exponent", 1.19, 1.24),
             // V351, from the end game feedback: Cosmic Dust at a rate that
             // reaches a pet (eight hours of rolling bought a thirtieth of
             // one Divine), ten more Nova Core tiers for the people sitting
@@ -1583,6 +1592,28 @@ public final class ConfigMigrator {
                 plugin.getLogger().info("Config patch nova-ladder-v351: ten more Nova Core tiers");
             }
             applied.add("nova-ladder-v351");
+            changed = true;
+        }
+        // V352: the six that multiply, three Luck and three Speed, priced
+        // one Mythical, one Divine, one Astral. This replaces the pair
+        // V351 shipped, so the V351 patch below only ever fires on a
+        // config that took it before this jar existed.
+        if (!applied.contains("draughts-shelf-v352")) {
+            InputStream jarStream = plugin.getResource("config.yml");
+            if (jarStream != null) {
+                try (InputStreamReader reader = new InputStreamReader(jarStream, StandardCharsets.UTF_8)) {
+                    YamlConfiguration jar = YamlConfiguration.loadConfiguration(reader);
+                    for (String id : List.of("draught_prism", "draught_quasar", "draught_singularity",
+                            "draught_flux", "draught_warp", "draught_lightspeed")) {
+                        disk.set("consumables." + id, jar.get("consumables." + id));
+                    }
+                    plugin.getLogger().info("Config patch draughts-shelf-v352: six multiplying draughts");
+                } catch (IOException ex) {
+                    plugin.getLogger().warning("Could not write the V352 draughts: " + ex.getMessage());
+                }
+            }
+            applied.add("draughts-shelf-v352");
+            applied.add("draughts-multi-v351");
             changed = true;
         }
         if (!applied.contains("draughts-multi-v351")) {

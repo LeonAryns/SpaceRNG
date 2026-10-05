@@ -270,6 +270,9 @@ public final class StatSources {
                 data.isAutoRollEnabled()
                         ? plugin.getSkillTreeManager().totalOf(data, SkillNode.Effect.AUTOPILOT) : 0.0,
                 Op.ADD));
+        // V352: the last three Speed draughts multiply rather than add.
+        parts.add(new Part("Draught multiplier", "Flux, Warp and Lightspeed, from /potion",
+                data.getPotionSpeedMultiplier(), Op.MULTIPLY));
         parts.add(new Part("Perks", "Equip perks in /perks",
                 1.0 + plugin.getPerkManager().totalOf(data, PerkStat.ROLL_SPEED_FLAT), Op.MULTIPLY));
         parts.add(new Part("Pets", "Wear pets in /pets",

@@ -67,6 +67,18 @@ public class RarityManager {
      * gap between two tiers keeps widening while Luck climbs: the floor
      * rises on its own and the top stays the top.
      *
+     * V352: they are not one ladder any more, and that is on purpose.
+     * Leon's complaint was that Luck stops being worth having at the top,
+     * which was true: with a step of 0.04 everywhere, three thousand
+     * times more Luck moved Mythical from 1 in 290 to 1 in 145. Epic,
+     * Legendary and Mythical now take big steps (1.0, 1.15, 1.3), so
+     * every extra zero on the Luck number is visible in the table, while
+     * Divine and Astral sit at 1.16 and 1.24, which is what his two
+     * numbers solve to: 1 in 1,000 and 1 in 20,000 at three billion
+     * percent. Divine below Mythical reads odd and is the whole trick:
+     * Luck keeps pouring into the tiers you roll all day and leaves the
+     * two trophies where they are.
+     *
      * V350: the step is 0.04 and Astral sits above the ladder at 1.19,
      * which is Leon's two numbers solved for: at three billion percent
      * Luck a Divine is one roll in a thousand and an Astral one in twenty
@@ -87,10 +99,10 @@ public class RarityManager {
             Rarity.UNCOMMON, 0.15,
             Rarity.RARE, 0.5,
             Rarity.EPIC, 1.0,
-            Rarity.LEGENDARY, 1.04,
-            Rarity.MYTHICAL, 1.08,
-            Rarity.DIVINE, 1.12,
-            Rarity.ASTRAL, 1.19));
+            Rarity.LEGENDARY, 1.15,
+            Rarity.MYTHICAL, 1.3,
+            Rarity.DIVINE, 1.16,
+            Rarity.ASTRAL, 1.24));
     // Rarities that roll at exactly their label, and the band shares the
     // rest divide up. See assignRollWeights.
     private final Map<Rarity, Boolean> trueOdds = new EnumMap<>(Rarity.class);

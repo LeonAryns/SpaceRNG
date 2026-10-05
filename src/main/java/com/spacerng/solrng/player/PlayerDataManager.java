@@ -157,7 +157,8 @@ public class PlayerDataManager {
                 try {
                     data.addPotion(Double.parseDouble(part[0]), Double.parseDouble(part[1]),
                             Long.parseLong(part[2]),
-                            part.length > 3 ? Double.parseDouble(part[3]) : 0.0);
+                            part.length > 3 ? Double.parseDouble(part[3]) : 0.0,
+                            part.length > 4 ? Double.parseDouble(part[4]) : 0.0);
                 } catch (NumberFormatException ignored) {
                     // A broken line loses one draught, not the save.
                 }
@@ -473,7 +474,8 @@ public class PlayerDataManager {
         for (double[] d : data.getDraughts()) {
             draughtLines.add(java.math.BigDecimal.valueOf(d[0]).toPlainString() + ";"
                     + java.math.BigDecimal.valueOf(d[1]).toPlainString() + ";" + (long) d[2]
-                    + ";" + java.math.BigDecimal.valueOf(d.length > 3 ? d[3] : 0.0).toPlainString());
+                    + ";" + java.math.BigDecimal.valueOf(d.length > 3 ? d[3] : 0.0).toPlainString()
+                    + ";" + java.math.BigDecimal.valueOf(d.length > 4 ? d[4] : 0.0).toPlainString());
         }
         yml.set("draughts", draughtLines);
         yml.set("potion-luck", null);

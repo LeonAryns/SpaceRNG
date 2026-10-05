@@ -8,7 +8,7 @@
 # their fresh defaults in on top of whatever is on disk, so a server
 # owner never has to delete the whole file to pick up a structural
 # change. Item table, prices and cosmetic tweaks are untouched.
-config-version: 43
+config-version: 44
 
 # One-off value changes the plugin has already made to this file, so none
 # is ever made twice. Managed by the plugin; leave it alone.
@@ -1175,13 +1175,20 @@ rarities:
   # is why a deep account still rolled Epic as its base drop. With the
   # step below, more Luck keeps pushing weight up the ladder:
   #
-  #   Luck        Epic    Legend  Myth        Divine        Astral
-  #   +10,000%    4.4%    0.5%    1 in 7,500  1 in 82,000   1 in 4,400,000
-  #   +100,000%   44%     5.3%    1 in 630    1 in 6,300    1 in 288,000
-  #   +1,000,000% 80%     11%     1 in 290    1 in 2,600    1 in 102,000
-  #   +10m%       85%     12%     1 in 230    1 in 1,900    1 in 62,000
-  #   +100m%      85%     14%     1 in 185    1 in 1,400    1 in 40,000
-  #   +3b%        84%     15%     1 in 145    1 in 1,000    1 in 21,000
+  #   Luck        Epic   Legend  Myth    Divine        Astral
+  #   +100,000%   44%    11%     0.7%    1 in 4,700    1 in 206,000
+  #   +1,000,000% 66%    24%     2.2%    1 in 2,100    1 in 79,000
+  #   +10m%       62%    32%     4.1%    1 in 1,600    1 in 49,000
+  #   +100m%      53%    39%     7.0%    1 in 1,260    1 in 33,000
+  #   +3b%        39%    47%     14%     1 in 1,000    1 in 20,000
+  #
+  # V352: Divine's exponent is BELOW Mythical's and that is deliberate.
+  # Luck has to keep being worth having, so Epic, Legendary and Mythical
+  # climb hard with it: Mythical goes from 1 in 140 at +100,000% to one
+  # roll in seven at three billion percent, and Legendary overtakes Epic
+  # as the thing you see most. Divine and Astral are pinned to the two
+  # numbers asked for instead, so the trophies do not come along for the
+  # ride. Raise their exponents toward Mythical's to let them.
   #
   # V350, Leon's numbers: at three billion percent Luck, which is what the
   # deepest accounts hold, a Divine is one roll in a thousand and an
@@ -1239,7 +1246,7 @@ rarities:
     bold: true
     italic: true
     luck-factor: 1.0
-    luck-exponent: 1.04
+    luck-exponent: 1.15
     true-odds: true
   MYTHICAL:
     colors: ["&c"]
@@ -1248,7 +1255,7 @@ rarities:
     bold: true
     italic: true
     luck-factor: 1.6
-    luck-exponent: 1.08
+    luck-exponent: 1.3
     true-odds: true
   # Divine sits above everything. Its label is the palest thing in the
   # plugin without ever being pure #FFFFFF - a drop name renders beside a
@@ -1261,7 +1268,7 @@ rarities:
     italic: true
     underline: true
     luck-factor: 2.5
-    luck-exponent: 1.12
+    luck-exponent: 1.16
     true-odds: true
   # V319: Astral, the tier above Divine, Leon's pick. Galaxy is
   # deliberately not used; he is keeping it for the tiers after this one.
@@ -1278,7 +1285,7 @@ rarities:
     italic: true
     underline: true
     luck-factor: 3.5
-    luck-exponent: 1.19
+    luck-exponent: 1.24
     true-odds: true
 
 # Every rollable item. "odds" is the label a player sees and what Money
@@ -4251,10 +4258,11 @@ consumables:
   # armor feed; `speed: 10` is +10 on the 100 scale. Both can go negative,
   # and the ones that do are the interesting ones: the trade IS the item.
   #
-  # V351: `luck-multi: 0.25` is +25% of everything you already have, which
-  # is the only shape that still means something at a million percent.
-  # The flat ones are the early game; the two at the bottom of this block
-  # are the late one.
+  # V351: `luck-multi: 0.25` is +25% of everything you already have, and
+  # V352 `speed-multi: 0.25` the same for Speed. That is the only shape
+  # that still means anything at a million percent Luck, so the six at
+  # the end of this block carry it and every other draught stays a flat
+  # number. They cost Mythical, Divine and Astral drops, one each.
   #
   # Only one draught runs at a time. A second replaces the first, so a
   # minus column can't be dodged by drinking something else on top of it.
@@ -4302,32 +4310,64 @@ consumables:
     costs:
       RARE: 20
       EPIC: 5
-  # V351: the two that multiply. At late-game Luck a flat +250% is a
-  # rounding error, so these take a percentage of the whole pile instead.
+  # V352, Leon's ladder: the last three Luck draughts and the last three
+  # Speed draughts multiply what you already have, and nothing else does.
+  # 1.2x costs Mythical, 1.5x costs Divine, 2x costs Astral, so the shelf
+  # ends where the drop table does.
   draught_prism:
     display: "Prism Draught"
     material: POTION
-    colors: ["#B388FF", "#7C4DFF"]
-    luck: 0.0
-    luck-multi: 0.25
-    speed: 0
-    rolls: 100
-    description: "A quarter more Luck than you already have, for a hundred rolls."
+    colors: ["#CE93D8", "#8E24AA"]
+    luck-multi: 0.2
+    rolls: 150
+    description: "A fifth more Luck than you already have, whatever that is."
     costs:
-      EPIC: 40
-      LEGENDARY: 4
+      MYTHICAL: 1
+  draught_quasar:
+    display: "Quasar Draught"
+    material: POTION
+    colors: ["#B388FF", "#651FFF"]
+    luck-multi: 0.5
+    rolls: 100
+    description: "Half your Luck again, for a hundred rolls."
+    costs:
+      DIVINE: 1
   draught_singularity:
     display: "Singularity Draught"
     material: POTION
     colors: ["#FF80AB", "#C51162", "#6A1B9A"]
-    luck: 0.0
     luck-multi: 1.0
-    speed: -20
-    rolls: 25
-    description: "Twice your Luck, twenty five rolls, and you will feel the pace."
+    rolls: 50
+    description: "Twice your Luck. Fifty rolls to spend it on."
     costs:
-      LEGENDARY: 25
-      MYTHICAL: 2
+      ASTRAL: 1
+  draught_flux:
+    display: "Flux Draught"
+    material: POTION
+    colors: ["#FFF59D", "#FBC02D"]
+    speed-multi: 0.2
+    rolls: 150
+    description: "A fifth more Speed than you already roll at."
+    costs:
+      MYTHICAL: 1
+  draught_warp:
+    display: "Warp Draught"
+    material: POTION
+    colors: ["#FFE082", "#FF8F00"]
+    speed-multi: 0.5
+    rolls: 100
+    description: "Half your Speed again, for a hundred rolls."
+    costs:
+      DIVINE: 1
+  draught_lightspeed:
+    display: "Lightspeed Draught"
+    material: POTION
+    colors: ["#E1F5FE", "#29B6F6", "#FFFFFF"]
+    speed-multi: 1.0
+    rolls: 50
+    description: "Twice your Speed. Hold on to something."
+    costs:
+      ASTRAL: 1
   draught_greater:
     display: "Greater Draught"
     material: POTION

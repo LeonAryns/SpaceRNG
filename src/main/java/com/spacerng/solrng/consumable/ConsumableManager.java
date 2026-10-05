@@ -67,6 +67,8 @@ public class ConsumableManager {
                         // V351: a share of the Luck you already have.
                         c.getDouble("luck-multi", 0.0),
                         c.getDouble("speed", 0.0) / 100.0,
+                        // V352: and a share of the Speed you already have.
+                        c.getDouble("speed-multi", 0.0),
                         c.getLong("rolls", 0L),
                         c.getDouble("coin-multiplier", 1.0),
                         c.getDouble("enchant-multiplier", 1.0),
@@ -358,7 +360,7 @@ public class ConsumableManager {
             // V277: draughts run side by side; this replaced the one at a
             // time rule from V158 at Leon's request.
             data.addPotion(consumable.luck(), consumable.speed(), consumable.rolls(),
-                    consumable.luckMulti());
+                    consumable.luckMulti(), consumable.speedMulti());
             player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + consumable.display()
                     + ChatColor.RESET + ChatColor.GRAY + "  "
                     + (consumable.luck() != 0
@@ -369,13 +371,17 @@ public class ConsumableManager {
                             ? ChatColor.GREEN + trim(1.0 + consumable.luckMulti()) + "x Luck"
                                     + ChatColor.GRAY + "  "
                             : "")
+                    + (consumable.speedMulti() != 0
+                            ? ChatColor.YELLOW + trim(1.0 + consumable.speedMulti()) + "x Speed"
+                                    + ChatColor.GRAY + "  "
+                            : "")
                     + (consumable.speed() != 0
                             ? (consumable.speed() > 0 ? ChatColor.YELLOW : ChatColor.RED)
                                     + signed(consumable.speed() * 100) + " Speed" + ChatColor.GRAY + "  "
                             : "")
                     + ChatColor.AQUA + String.format("%,d",
                             data.getDraughtRolls(consumable.luck(), consumable.speed(),
-                                    consumable.luckMulti())) + " rolls left");
+                                    consumable.luckMulti(), consumable.speedMulti())) + " rolls left");
         }
         if (consumable.isTimed()) {
             if (consumable.coinMultiplier() > 1.0) {

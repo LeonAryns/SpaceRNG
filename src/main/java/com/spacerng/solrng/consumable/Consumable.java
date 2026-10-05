@@ -23,7 +23,7 @@ import java.util.Map;
  * in rolls.
  */
 public record Consumable(String id, String display, Material material, List<String> colors,
-                         double luck, double luckMulti, double speed, long rolls,
+                         double luck, double luckMulti, double speed, double speedMulti, long rolls,
                          double coinMultiplier, double enchantMultiplier, long durationSeconds,
                          double rollLuckMultiplier, long charges,
                          double permanentLuck, long freeSkills, long novaTiers, long bossSummons,
@@ -32,7 +32,7 @@ public record Consumable(String id, String display, Material material, List<Stri
 
     /** A draught: additive Luck and/or Speed, counted down in rolls. */
     public boolean isDraught() {
-        return rolls > 0 && (luck != 0.0 || speed != 0.0 || luckMulti != 0.0);
+        return rolls > 0 && (luck != 0.0 || speed != 0.0 || luckMulti != 0.0 || speedMulti != 0.0);
     }
 
     /** A farm boost: a multiplier on a clock. */

@@ -938,6 +938,13 @@ public class PlayerData {
         return 1.0 + total;
     }
 
+    /** The same for Speed (V352): the last three Speed draughts multiply. */
+    public double getPotionSpeedMultiplier() {
+        double total = 0.0;
+        for (double[] d : draughts) if (d[2] > 0 && d.length > 4) total += d[4];
+        return 1.0 + total;
+    }
+
     /** The Speed of every running draught, added up. */
     public double getPotionSpeed() {
         double total = 0.0;
@@ -1099,20 +1106,25 @@ public class PlayerData {
     }
 
     public long getDraughtRolls(double luck, double speed, double multi) {
-        double[] d = draughtOf(luck, speed, multi);
+        return getDraughtRolls(luck, speed, multi, 0.0);
+    }
+
+    public long getDraughtRolls(double luck, double speed, double multi, double speedMulti) {
+        double[] d = draughtOf(luck, speed, multi, speedMulti);
         return d == null ? 0L : (long) d[2];
     }
 
     /** The pre-V277 single draught, read from an old save. */
     public void setPotion(double luck, double speed, long rolls) {
         draughts.clear();
-        if (rolls > 0) draughts.add(new double[]{luck, speed, rolls, 0.0});
+        if (rolls > 0) draughts.add(new double[]{luck, speed, rolls, 0.0, 0.0});
     }
 
-    private double[] draughtOf(double luck, double speed, double multi) {
+    private double[] draughtOf(double luck, double speed, double multi, double speedMulti) {
         for (double[] d : draughts) {
             if (Math.abs(d[0] - luck) < 1e-9 && Math.abs(d[1] - speed) < 1e-9
-                    && Math.abs((d.length > 3 ? d[3] : 0.0) - multi) < 1e-9) {
+                    && Math.abs((d.length > 3 ? d[3] : 0.0) - multi) < 1e-9
+                    && Math.abs((d.length > 4 ? d[4] : 0.0) - speedMulti) < 1e-9) {
                 return d;
             }
         }
@@ -1126,10 +1138,15 @@ public class PlayerData {
 
     /** The same, for a draught that multiplies Luck as well (V351). */
     public void addPotion(double luck, double speed, long rolls, double multi) {
+        addPotion(luck, speed, rolls, multi, 0.0);
+    }
+
+    /** And one that multiplies Speed too (V352). */
+    public void addPotion(double luck, double speed, long rolls, double multi, double speedMulti) {
         if (rolls <= 0) return;
-        double[] d = draughtOf(luck, speed, multi);
+        double[] d = draughtOf(luck, speed, multi, speedMulti);
         if (d != null) d[2] += rolls;
-        else draughts.add(new double[]{luck, speed, rolls, multi});
+        else draughts.add(new double[]{luck, speed, rolls, multi, speedMulti});
     }
 
     /** Spends one roll of every running draught; true if one ran out. */
