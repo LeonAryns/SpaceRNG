@@ -67,6 +67,13 @@ public class RarityManager {
      * gap between two tiers keeps widening while Luck climbs: the floor
      * rises on its own and the top stays the top.
      *
+     * V350: the step is 0.04 and Astral sits above the ladder at 1.19,
+     * which is Leon's two numbers solved for: at three billion percent
+     * Luck a Divine is one roll in a thousand and an Astral one in twenty
+     * thousand. Mythical and Divine are two and a half and three times
+     * rarer at the table on top of that. V349's 0.08 left an Astral every
+     * 2,800 rolls, which at 800 Speed is a few minutes.
+     *
      * V349: the step is 0.08, not the 0.15 V348 shipped. The two ends of
      * this are one dial. A bigger step raises the floor faster and brings
      * Astral in with it; at 0.15 a player holding three billion percent
@@ -80,10 +87,10 @@ public class RarityManager {
             Rarity.UNCOMMON, 0.15,
             Rarity.RARE, 0.5,
             Rarity.EPIC, 1.0,
-            Rarity.LEGENDARY, 1.08,
-            Rarity.MYTHICAL, 1.16,
-            Rarity.DIVINE, 1.24,
-            Rarity.ASTRAL, 1.32));
+            Rarity.LEGENDARY, 1.04,
+            Rarity.MYTHICAL, 1.08,
+            Rarity.DIVINE, 1.12,
+            Rarity.ASTRAL, 1.19));
     // Rarities that roll at exactly their label, and the band shares the
     // rest divide up. See assignRollWeights.
     private final Map<Rarity, Boolean> trueOdds = new EnumMap<>(Rarity.class);

@@ -285,6 +285,14 @@ public final class ConfigMigrator {
     }
 
     private static final List<Patch> PATCHES = List.of(
+            // V350, Leon's numbers at the top: at three billion percent
+            // Luck a Divine is one roll in a thousand and an Astral one in
+            // twenty thousand. V349 left an Astral every 2,800 rolls,
+            // which at 800 Speed is a few minutes of rolling.
+            new Patch("luck-exp-legendary-v350", "rarities.LEGENDARY.luck-exponent", 1.08, 1.04),
+            new Patch("luck-exp-mythical-v350", "rarities.MYTHICAL.luck-exponent", 1.16, 1.08),
+            new Patch("luck-exp-divine-v350", "rarities.DIVINE.luck-exponent", 1.24, 1.12),
+            new Patch("luck-exp-astral-v350", "rarities.ASTRAL.luck-exponent", 1.32, 1.19),
             // V349: the luck exponents, one step smaller. V348 shipped a
             // step of 0.15, which raised the floor nicely and brought
             // Astral in with it: a player on three billion percent Luck
@@ -1500,6 +1508,55 @@ public final class ConfigMigrator {
                 plugin.getLogger().info("Config patch astral-rarer-v349: Astral odds back up");
             }
             applied.add("astral-rarer-v349");
+            changed = true;
+        }
+        // V350: Mythical two and a half times rarer at the table and
+        // Divine three times, which is the half of the dial that does not
+        // touch the tiers under them. Money pays on an item's odds, so a
+        // Divine is worth three times what it was and comes a third as
+        // often: the same Money per roll, a rarer trophy.
+        if (!applied.contains("top-odds-v350")) {
+            long[][] table = {
+                    {25000000, 75000000},
+                    {30000000, 90000000},
+                    {36000000, 108000000},
+                    {42700000, 128000000},
+                    {50700000, 152000000},
+                    {60000000, 180000000},
+                    {69300000, 208000000},
+                    {80000000, 240000000},
+                    {90700000, 272000000},
+                    {100000000, 300000000},
+                    {1880000, 4700000},
+                    {2240000, 5600000},
+                    {2800000, 7000000},
+                    {3750000, 9380000},
+                    {4500000, 11200000},
+                    {5600000, 14000000},
+                    {6600000, 16500000},
+                    {7500000, 18800000}
+            };
+            java.util.Map<Long, Long> rarer = new java.util.HashMap<>();
+            for (long[] row : table) rarer.put(row[0], row[1]);
+            List<Map<?, ?>> items = disk.getMapList("items");
+            boolean moved = false;
+            for (Map<?, ?> entry : items) {
+                Object rarity = entry.get("rarity");
+                if (!"MYTHICAL".equals(rarity) && !"DIVINE".equals(rarity)) continue;
+                Object odds = entry.get("odds");
+                if (!(odds instanceof Number number)) continue;
+                Long now = rarer.get(number.longValue());
+                if (now == null) continue;
+                @SuppressWarnings("unchecked")
+                Map<Object, Object> editable = (Map<Object, Object>) entry;
+                editable.put("odds", now);
+                moved = true;
+            }
+            if (moved) {
+                disk.set("items", items);
+                plugin.getLogger().info("Config patch top-odds-v350: Mythical and Divine made rarer");
+            }
+            applied.add("top-odds-v350");
             changed = true;
         }
         // V315: permanent Luck in small pieces, Leon's ladder: the

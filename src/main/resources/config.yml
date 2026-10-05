@@ -8,7 +8,7 @@
 # their fresh defaults in on top of whatever is on disk, so a server
 # owner never has to delete the whole file to pick up a structural
 # change. Item table, prices and cosmetic tweaks are untouched.
-config-version: 41
+config-version: 42
 
 # One-off value changes the plugin has already made to this file, so none
 # is ever made twice. Managed by the plugin; leave it alone.
@@ -1167,18 +1167,23 @@ rarities:
   # is why a deep account still rolled Epic as its base drop. With the
   # step below, more Luck keeps pushing weight up the ladder:
   #
-  #   Luck        Epic    Legend  Myth    Divine  Astral
-  #   +10,000%    4.4%    0.6%    0.05%   0.006%  1 in 2,400,000
-  #   +100,000%   44%     7.0%    0.7%    0.1%    1 in 117,000
-  #   +1,000,000% 75%     14%     1.7%    0.3%    1 in 33,000
-  #   +10m%       77%     18%     2.5%    0.6%    1 in 15,000
-  #   +100m%      74%     21%     3.5%    1.0%    1 in 7,600
-  #   +3b%        68%     25%     5.5%    2.0%    1 in 2,800
+  #   Luck        Epic    Legend  Myth        Divine        Astral
+  #   +10,000%    4.4%    0.5%    1 in 7,500  1 in 82,000   1 in 4,400,000
+  #   +100,000%   44%     5.3%    1 in 630    1 in 6,300    1 in 288,000
+  #   +1,000,000% 80%     11%     1 in 290    1 in 2,600    1 in 102,000
+  #   +10m%       85%     12%     1 in 230    1 in 1,900    1 in 62,000
+  #   +100m%      85%     14%     1 in 185    1 in 1,400    1 in 40,000
+  #   +3b%        84%     15%     1 in 145    1 in 1,000    1 in 21,000
   #
-  # V349: the step is 0.08 rather than 0.15. The floor still rises, an
-  # Astral still does not come: at three billion percent Luck, which is
-  # what the deepest accounts hold, it is one roll in 2,800. Raise the
-  # step to bring the top tiers in faster, lower it to push them out.
+  # V350, Leon's numbers: at three billion percent Luck, which is what the
+  # deepest accounts hold, a Divine is one roll in a thousand and an
+  # Astral one in twenty thousand. At 800 Speed, about 1.6 rolls a second,
+  # that is ten minutes for a Divine and three and a half hours for an
+  # Astral. The floor still rises on its own: Common is gone by about
+  # +300,000% and Epic carries the table from there.
+  #
+  # The step between the exponents is what decides how fast the top tiers
+  # come in; the odds on the items are the other half of the same dial.
   #
   # luck-factor: the old linear curve, only read when luck-curve is set to
   # "linear". Positive grows a weight (1 + Luck x factor), negative
@@ -1226,7 +1231,7 @@ rarities:
     bold: true
     italic: true
     luck-factor: 1.0
-    luck-exponent: 1.08
+    luck-exponent: 1.04
     true-odds: true
   MYTHICAL:
     colors: ["&c"]
@@ -1235,7 +1240,7 @@ rarities:
     bold: true
     italic: true
     luck-factor: 1.6
-    luck-exponent: 1.16
+    luck-exponent: 1.08
     true-odds: true
   # Divine sits above everything. Its label is the palest thing in the
   # plugin without ever being pure #FFFFFF - a drop name renders beside a
@@ -1248,7 +1253,7 @@ rarities:
     italic: true
     underline: true
     luck-factor: 2.5
-    luck-exponent: 1.24
+    luck-exponent: 1.12
     true-odds: true
   # V319: Astral, the tier above Divine, Leon's pick. Galaxy is
   # deliberately not used; he is keeping it for the tiers after this one.
@@ -1265,7 +1270,7 @@ rarities:
     italic: true
     underline: true
     luck-factor: 3.5
-    luck-exponent: 1.32
+    luck-exponent: 1.19
     true-odds: true
 
 # Every rollable item. "odds" is the label a player sees and what Money
@@ -2029,15 +2034,15 @@ items:
   - material: NETHER_STAR
     name: "The Wither"
     rarity: MYTHICAL
-    odds: 1880000
+    odds: 4700000
   - material: SCULK_SHRIEKER
     name: "The Warden"
     rarity: MYTHICAL
-    odds: 3750000
+    odds: 9380000
   - material: ELYTRA
     name: "The Ender Dragon"
     rarity: MYTHICAL
-    odds: 7500000
+    odds: 18800000
   # --- Legendary, V319 ---
   # Leon asked for more at every tier from Legendary up. The band is
   # 937,500 to 1,875,000, set by V304's rule that a tier's lowest is five
@@ -2072,15 +2077,15 @@ items:
   - material: DRAGON_HEAD
     name: "Dragon Crown"
     rarity: MYTHICAL
-    odds: 2240000
+    odds: 14000000
   - material: ENCHANTED_GOLDEN_APPLE
     name: "Godly Apple"
     rarity: MYTHICAL
-    odds: 2800000
+    odds: 7000000
   - material: BEACON
     name: "Lighthouse"
     rarity: MYTHICAL
-    odds: 4500000
+    odds: 11200000
   - material: END_CRYSTAL
     name: "End Crystal"
     rarity: MYTHICAL
@@ -2088,7 +2093,7 @@ items:
   - material: ECHO_SHARD
     name: "Echo of the Deep"
     rarity: MYTHICAL
-    odds: 6600000
+    odds: 16500000
   # --- Divine ---
   # Leon asked for at least ten. There was ONE, which is why a Divine was
   # a single named drop rather than a tier. The band runs from 187,500,000
@@ -2096,43 +2101,43 @@ items:
   - material: CONDUIT
     name: "First Star"
     rarity: DIVINE
-    odds: 25000000
+    odds: 75000000
   - material: NETHER_STAR
     name: "Dying Light"
     rarity: DIVINE
-    odds: 30000000
+    odds: 90000000
   - material: SCULK_CATALYST
     name: "The Silence"
     rarity: DIVINE
-    odds: 36000000
+    odds: 108000000
   - material: AMETHYST_CLUSTER
     name: "Starfall Bloom"
     rarity: DIVINE
-    odds: 42700000
+    odds: 128000000
   - material: CRYING_OBSIDIAN
     name: "The Long Night"
     rarity: DIVINE
-    odds: 50700000
+    odds: 152000000
   - material: SHULKER_SHELL
     name: "Hollow Shell"
     rarity: DIVINE
-    odds: 60000000
+    odds: 180000000
   - material: END_PORTAL_FRAME
     name: "Threshold"
     rarity: DIVINE
-    odds: 69300000
+    odds: 208000000
   - material: DRAGON_BREATH
     name: "Last Breath"
     rarity: DIVINE
-    odds: 80000000
+    odds: 240000000
   - material: BUDDING_AMETHYST
     name: "Seed of Light"
     rarity: DIVINE
-    odds: 90700000
+    odds: 272000000
   - material: BEDROCK
     name: "The Floor of Everything"
     rarity: DIVINE
-    odds: 100000000
+    odds: 300000000
   # --- Astral, V319 ---
   # The tier above Divine. Its floor is five times Divine's ceiling, the
   # same rule every band above Rare follows, which puts a first Astral at
