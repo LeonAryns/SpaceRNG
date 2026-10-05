@@ -923,6 +923,21 @@ public class PlayerData {
         return total;
     }
 
+    /**
+     * What every running draught multiplies Luck by (V351).
+     *
+     * A flat +250% was the whole draught shelf, and at a million percent
+     * Luck that is a rounding error, which is exactly what the late game
+     * said about the Brewer. A draught can carry a share of everything
+     * you already have instead, and those shares add before they
+     * multiply, the same way perks do.
+     */
+    public double getPotionLuckMultiplier() {
+        double total = 0.0;
+        for (double[] d : draughts) if (d[2] > 0 && d.length > 3) total += d[3];
+        return 1.0 + total;
+    }
+
     /** The Speed of every running draught, added up. */
     public double getPotionSpeed() {
         double total = 0.0;
@@ -1080,29 +1095,41 @@ public class PlayerData {
 
     /** Rolls left on the draught of this kind, 0 if it is not running. */
     public long getDraughtRolls(double luck, double speed) {
-        double[] d = draughtOf(luck, speed);
+        return getDraughtRolls(luck, speed, 0.0);
+    }
+
+    public long getDraughtRolls(double luck, double speed, double multi) {
+        double[] d = draughtOf(luck, speed, multi);
         return d == null ? 0L : (long) d[2];
     }
 
     /** The pre-V277 single draught, read from an old save. */
     public void setPotion(double luck, double speed, long rolls) {
         draughts.clear();
-        if (rolls > 0) draughts.add(new double[]{luck, speed, rolls});
+        if (rolls > 0) draughts.add(new double[]{luck, speed, rolls, 0.0});
     }
 
-    private double[] draughtOf(double luck, double speed) {
+    private double[] draughtOf(double luck, double speed, double multi) {
         for (double[] d : draughts) {
-            if (Math.abs(d[0] - luck) < 1e-9 && Math.abs(d[1] - speed) < 1e-9) return d;
+            if (Math.abs(d[0] - luck) < 1e-9 && Math.abs(d[1] - speed) < 1e-9
+                    && Math.abs((d.length > 3 ? d[3] : 0.0) - multi) < 1e-9) {
+                return d;
+            }
         }
         return null;
     }
 
     /** Starts a draught, or adds its rolls to the same kind already running. */
     public void addPotion(double luck, double speed, long rolls) {
+        addPotion(luck, speed, rolls, 0.0);
+    }
+
+    /** The same, for a draught that multiplies Luck as well (V351). */
+    public void addPotion(double luck, double speed, long rolls, double multi) {
         if (rolls <= 0) return;
-        double[] d = draughtOf(luck, speed);
+        double[] d = draughtOf(luck, speed, multi);
         if (d != null) d[2] += rolls;
-        else draughts.add(new double[]{luck, speed, rolls});
+        else draughts.add(new double[]{luck, speed, rolls, multi});
     }
 
     /** Spends one roll of every running draught; true if one ran out. */

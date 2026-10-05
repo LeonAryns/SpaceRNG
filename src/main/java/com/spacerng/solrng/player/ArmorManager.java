@@ -173,19 +173,40 @@ public class ArmorManager {
      * tier's Luck bonus independently (no need to match a full set, and
      * mixing tiers across slots is fine).
      */
+    /** What a full matching set adds on top, from armor.set-bonus (V351). */
+    private double setBonus() {
+        return Math.max(0.0, plugin.getConfig().getDouble("armor.set-bonus", 0.5));
+    }
+
     public void refreshWornBonuses() {
+        double setBonus = setBonus();
         for (Player player : Bukkit.getOnlinePlayers()) {
             PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
             PlayerInventory inv = player.getInventory();
 
             double luck = 0.0;
             double speed = 0.0;
+            int worn = 0;
+            String setId = null;
+            boolean matched = true;
             for (ItemStack piece : new ItemStack[]{inv.getHelmet(), inv.getChestplate(), inv.getLeggings(), inv.getBoots()}) {
-                ArmorTier tier = tiers.get(tierOf(piece));
+                String id = tierOf(piece);
+                ArmorTier tier = tiers.get(id);
                 if (tier != null) {
                     luck += tier.getLuckBonus();
                     speed += tier.getSpeedBonus();
+                    worn++;
+                    if (setId == null) setId = id;
+                    else if (!setId.equals(id)) matched = false;
                 }
+            }
+            // V351: a full set of one tier is worth half again as much.
+            // Mixing tiers still works and still pays for every piece, so
+            // nothing is taken away; the set is the thing to aim at, which
+            // is what the late game said armour was missing.
+            if (worn == 4 && matched) {
+                luck *= 1.0 + setBonus;
+                speed *= 1.0 + setBonus;
             }
             data.setArmorLuckBonus(luck);
             data.setArmorSpeedBonus(speed);

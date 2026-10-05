@@ -161,6 +161,11 @@ public final class StatSources {
                 data.getFlatLuck(), Op.ADD));
         parts.add(new Part("Potions", "Draughts from /potion",
                 data.getPotionLuck(), Op.ADD));
+        // V351: a draught can take a share of the whole pile instead of
+        // adding a flat number to it, which is the only shape that still
+        // means anything once the pile is in the millions of percent.
+        parts.add(new Part("Draught multiplier", "Prism and Singularity, from /potion",
+                data.getPotionLuckMultiplier(), Op.MULTIPLY));
         parts.add(new Part("Linked account", "Link with /link",
                 plugin.getLinkedAccountManager().bonusFor(data.getUuid(), PerkStat.LUCK_PERCENT),
                 Op.ADD));

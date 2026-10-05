@@ -8,7 +8,7 @@
 # their fresh defaults in on top of whatever is on disk, so a server
 # owner never has to delete the whole file to pick up a structural
 # change. Item table, prices and cosmetic tweaks are untouched.
-config-version: 42
+config-version: 43
 
 # One-off value changes the plugin has already made to this file, so none
 # is ever made twice. Managed by the plugin; leave it alone.
@@ -1069,7 +1069,11 @@ prestige:
   # Each level costs this much more than the one before it. At 1.0 the
   # ladder is flat and level 50 costs what level 2 did, which turns
   # levelling into a formality rather than a climb.
-  level-cost-growth: 1.17
+  # V351: 1.13, not 1.17. Each level costing 17% more than the last is
+  # fine to level 20 and a wall at 40: level 43 wanted 118,000 rolls.
+  # Prestiging is still slower than it was before V347 (70 rolls a level
+  # rather than 50), it just stops doubling every four levels.
+  level-cost-growth: 1.13
   first-prestige-levels: 10
   # V298: each prestige asks one level more than the last, not five.
   levels-increment-per-prestige: 1
@@ -1092,6 +1096,10 @@ armor:
   # V306: costs are a CHESTPLATE's. The other pieces take their crafting
   # share of it, rounded up: helmet 5/8, leggings 7/8, boots 4/8.
   # V308: few drops, one rarity per set, rarer the higher it goes.
+  # V351: four pieces of the same tier are worth half again as much, Luck
+  # and Speed alike. Mixing tiers still pays for every piece; this is just
+  # what a matching set is for.
+  set-bonus: 0.5
   tiers:
     LEATHER:
       display: "Leather"
@@ -3441,7 +3449,7 @@ skilltree:
       cost-money: 100000
       requires: "shiny_unlock"
       effect: COSMIC_DUST_CHANCE
-      value: 0.01
+      value: 0.05
 
     # -- The dust spine, up the middle --
     cosmic_dust_2:
@@ -3453,7 +3461,7 @@ skilltree:
       cost-growth: 1.30
       requires: "cosmic_root"
       effect: COSMIC_DUST_CHANCE
-      value: 0.005
+      value: 0.01
       max-level: 5
 
     pet_slot_2:
@@ -3488,7 +3496,7 @@ skilltree:
       cost-growth: 1.35
       requires: "cosmic_root"
       effect: COSMIC_DUST_AMOUNT
-      value: 1
+      value: 3
       max-level: 10
 
     # -- Tier branch. Tiers are bought with Gems, this makes them stick. --
@@ -4243,6 +4251,11 @@ consumables:
   # armor feed; `speed: 10` is +10 on the 100 scale. Both can go negative,
   # and the ones that do are the interesting ones: the trade IS the item.
   #
+  # V351: `luck-multi: 0.25` is +25% of everything you already have, which
+  # is the only shape that still means something at a million percent.
+  # The flat ones are the early game; the two at the bottom of this block
+  # are the late one.
+  #
   # Only one draught runs at a time. A second replaces the first, so a
   # minus column can't be dodged by drinking something else on top of it.
   draught_steady:
@@ -4289,6 +4302,32 @@ consumables:
     costs:
       RARE: 20
       EPIC: 5
+  # V351: the two that multiply. At late-game Luck a flat +250% is a
+  # rounding error, so these take a percentage of the whole pile instead.
+  draught_prism:
+    display: "Prism Draught"
+    material: POTION
+    colors: ["#B388FF", "#7C4DFF"]
+    luck: 0.0
+    luck-multi: 0.25
+    speed: 0
+    rolls: 100
+    description: "A quarter more Luck than you already have, for a hundred rolls."
+    costs:
+      EPIC: 40
+      LEGENDARY: 4
+  draught_singularity:
+    display: "Singularity Draught"
+    material: POTION
+    colors: ["#FF80AB", "#C51162", "#6A1B9A"]
+    luck: 0.0
+    luck-multi: 1.0
+    speed: -20
+    rolls: 25
+    description: "Twice your Luck, twenty five rolls, and you will feel the pace."
+    costs:
+      LEGENDARY: 25
+      MYTHICAL: 2
   draught_greater:
     display: "Greater Draught"
     material: POTION
@@ -5372,7 +5411,7 @@ novacore:
   # prestige upgrade and first-forge-guaranteed below are all skipped.
   # Set it to 0 to bring the old tier curve back.
   flat-chance: 0.5
-  max-tier: 20
+  max-tier: 30
   # First checkpoint tier; each gap after it is one longer, so the
   # defaults give 5, 11, 18 across a 20-tier ladder.
   first-checkpoint: 5
@@ -5394,8 +5433,13 @@ novacore:
   # the Money a roll pays and farm Coins together, so the ladder is worth
   # climbing whatever you're grinding. Gentle at the bottom, steep at the
   # very top.
+  # V351: thirty tiers, not twenty. Somebody sitting on 5,700 Nova Cores
+  # with nothing left to spend them on is a ladder that ended, and the
+  # whole point of a Core is that there is always one more rung.
   multipliers: [1.02, 1.05, 1.10, 1.15, 1.25, 1.40, 1.55, 1.75, 2.00, 2.25,
-                2.50, 2.85, 3.25, 3.75, 4.25, 5.00, 6.00, 7.50, 9.00, 12.00]
+                2.50, 2.85, 3.25, 3.75, 4.25, 5.00, 6.00, 7.50, 9.00, 12.00,
+                15.00, 19.00, 24.00, 30.00, 38.00, 48.00, 60.00, 75.00,
+                95.00, 120.00]
 
 # Shiny drops. A shiny is the same drop with a marker, an enchant glint
 # and its own entry in /index - 1 in 100 rolls by default, so roughly one
@@ -6909,13 +6953,15 @@ pets:
         display: "Supernova Egg"
         colors: ["#FFD54F", "#FF6F3C"]
         icon: DRAGON_EGG
-        cost: 12000
-        # V313: Prestige 25, and ten times the Nebula's Divine chance,
-        # 1 in 100.
+        # V351: half the price and three times the Divine chance. At the
+        # old numbers one Divine pet averaged 1.2 million Cosmic Dust,
+        # which was 228 hours of rolling.
+        cost: 6000
+        # V313: Prestige 25, and ten times the Nebula's Divine chance.
         min-prestige: 25
         min-rarity: RARE
         max-rarity: MYTHICAL
-        divine-chance: 0.01
+        divine-chance: 0.03
         # V324: ten times the Nebula on Mythical and three and a half
         # times on Epic, so the dearest egg is clearly the one to save
         # for. The rest, about 64%, is Rare.
@@ -6950,8 +6996,11 @@ pets:
     # the two every time, and the Cosmic Yield skill in /skilltree adds to
     # the top, so levels buy the size of a find as well as how often one
     # lands. Leon asked for a range rather than a flat one.
+    # V351: a find is 1 to 10 rather than 1 to 2. Eight hours of rolling
+    # bought about a thirtieth of one Divine pet, which is not a grind,
+    # it is a wall.
     cosmic-min: 1
-    cosmic-max: 2
+    cosmic-max: 10
 
   # What rarity and tier do to a pet, what they cost, and how likely a
   # tier is to take. A fresh pet is rarity 1 tier 1 and gives exactly the

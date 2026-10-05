@@ -151,10 +151,13 @@ public class PlayerDataManager {
         if (yml.contains("draughts")) {
             for (String raw : yml.getStringList("draughts")) {
                 String[] part = raw.split(";");
-                if (part.length != 3) continue;
+                // V351: a fourth number, the Luck multiplier. A save
+                // written before it has three and reads back as 0.
+                if (part.length < 3) continue;
                 try {
                     data.addPotion(Double.parseDouble(part[0]), Double.parseDouble(part[1]),
-                            Long.parseLong(part[2]));
+                            Long.parseLong(part[2]),
+                            part.length > 3 ? Double.parseDouble(part[3]) : 0.0);
                 } catch (NumberFormatException ignored) {
                     // A broken line loses one draught, not the save.
                 }
@@ -469,7 +472,8 @@ public class PlayerDataManager {
         List<String> draughtLines = new ArrayList<>();
         for (double[] d : data.getDraughts()) {
             draughtLines.add(java.math.BigDecimal.valueOf(d[0]).toPlainString() + ";"
-                    + java.math.BigDecimal.valueOf(d[1]).toPlainString() + ";" + (long) d[2]);
+                    + java.math.BigDecimal.valueOf(d[1]).toPlainString() + ";" + (long) d[2]
+                    + ";" + java.math.BigDecimal.valueOf(d.length > 3 ? d[3] : 0.0).toPlainString());
         }
         yml.set("draughts", draughtLines);
         yml.set("potion-luck", null);

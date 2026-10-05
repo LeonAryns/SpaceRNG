@@ -243,6 +243,8 @@ public final class ConfigMigrator {
             "index.completion.by-rarity",
             // V148: the podium's own text size.
             "holograms.podium-text-scale",
+            // V351: a full set of one armour tier is worth half again.
+            "armor.set-bonus",
             // V336: the realm panel hides the shared "Click Here" line.
             "holograms.panels.realm.click",
             // V348: the per rarity luck exponents. New keys, so a Patch has
@@ -285,6 +287,16 @@ public final class ConfigMigrator {
     }
 
     private static final List<Patch> PATCHES = List.of(
+            // V351, from the end game feedback: Cosmic Dust at a rate that
+            // reaches a pet (eight hours of rolling bought a thirtieth of
+            // one Divine), ten more Nova Core tiers for the people sitting
+            // on thousands of Cores, and a prestige ladder that stops
+            // doubling every four levels (level 43 wanted 118,000 rolls).
+            new Patch("dust-find-v351", "pets.dust.cosmic-max", 2, 10),
+            new Patch("egg-cost-v351", "pets.eggs.tiers.supernova.cost", 12000, 6000),
+            new Patch("egg-divine-v351", "pets.eggs.tiers.supernova.divine-chance", 0.01, 0.03),
+            new Patch("nova-tiers-v351", "novacore.max-tier", 20, 30),
+            new Patch("prestige-growth-v351", "prestige.level-cost-growth", 1.17, 1.13),
             // V350, Leon's numbers at the top: at three billion percent
             // Luck a Divine is one roll in a thousand and an Astral one in
             // twenty thousand. V349 left an Astral every 2,800 rolls,
@@ -1557,6 +1569,38 @@ public final class ConfigMigrator {
                 plugin.getLogger().info("Config patch top-odds-v350: Mythical and Divine made rarer");
             }
             applied.add("top-odds-v350");
+            changed = true;
+        }
+        // V351: the ten Nova Core multipliers above tier 20, and the two
+        // draughts that multiply Luck. A list and two consumables, neither
+        // of which a Patch can reach, and both only touched when the live
+        // config still holds exactly what came before them.
+        if (!applied.contains("nova-ladder-v351")) {
+            List<Double> ladder = disk.getDoubleList("novacore.multipliers");
+            if (ladder.size() == 20) {
+                ladder.addAll(List.of(15.0, 19.0, 24.0, 30.0, 38.0, 48.0, 60.0, 75.0, 95.0, 120.0));
+                disk.set("novacore.multipliers", ladder);
+                plugin.getLogger().info("Config patch nova-ladder-v351: ten more Nova Core tiers");
+            }
+            applied.add("nova-ladder-v351");
+            changed = true;
+        }
+        if (!applied.contains("draughts-multi-v351")) {
+            if (!disk.contains("consumables.draught_prism", true)) {
+                InputStream jarStream = plugin.getResource("config.yml");
+                if (jarStream != null) {
+                    try (InputStreamReader reader = new InputStreamReader(jarStream, StandardCharsets.UTF_8)) {
+                        YamlConfiguration jar = YamlConfiguration.loadConfiguration(reader);
+                        for (String id : List.of("draught_prism", "draught_singularity")) {
+                            disk.set("consumables." + id, jar.get("consumables." + id));
+                        }
+                        plugin.getLogger().info("Config patch draughts-multi-v351: two draughts added");
+                    } catch (IOException ex) {
+                        plugin.getLogger().warning("Could not add the V351 draughts: " + ex.getMessage());
+                    }
+                }
+            }
+            applied.add("draughts-multi-v351");
             changed = true;
         }
         // V315: permanent Luck in small pieces, Leon's ladder: the

@@ -64,6 +64,8 @@ public class ConsumableManager {
                         material,
                         c.getStringList("colors"),
                         c.getDouble("luck", 0.0),
+                        // V351: a share of the Luck you already have.
+                        c.getDouble("luck-multi", 0.0),
                         c.getDouble("speed", 0.0) / 100.0,
                         c.getLong("rolls", 0L),
                         c.getDouble("coin-multiplier", 1.0),
@@ -355,19 +357,25 @@ public class ConsumableManager {
             // where it used to replace the running one without a word.
             // V277: draughts run side by side; this replaced the one at a
             // time rule from V158 at Leon's request.
-            data.addPotion(consumable.luck(), consumable.speed(), consumable.rolls());
+            data.addPotion(consumable.luck(), consumable.speed(), consumable.rolls(),
+                    consumable.luckMulti());
             player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + consumable.display()
                     + ChatColor.RESET + ChatColor.GRAY + "  "
                     + (consumable.luck() != 0
                             ? (consumable.luck() > 0 ? ChatColor.GREEN : ChatColor.RED)
                                     + luckTimes(consumable.luck()) + " Luck" + ChatColor.GRAY + "  "
                             : "")
+                    + (consumable.luckMulti() != 0
+                            ? ChatColor.GREEN + trim(1.0 + consumable.luckMulti()) + "x Luck"
+                                    + ChatColor.GRAY + "  "
+                            : "")
                     + (consumable.speed() != 0
                             ? (consumable.speed() > 0 ? ChatColor.YELLOW : ChatColor.RED)
                                     + signed(consumable.speed() * 100) + " Speed" + ChatColor.GRAY + "  "
                             : "")
                     + ChatColor.AQUA + String.format("%,d",
-                            data.getDraughtRolls(consumable.luck(), consumable.speed())) + " rolls left");
+                            data.getDraughtRolls(consumable.luck(), consumable.speed(),
+                                    consumable.luckMulti())) + " rolls left");
         }
         if (consumable.isTimed()) {
             if (consumable.coinMultiplier() > 1.0) {
