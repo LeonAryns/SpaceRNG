@@ -285,6 +285,14 @@ public final class ConfigMigrator {
     }
 
     private static final List<Patch> PATCHES = List.of(
+            // V349: the luck exponents, one step smaller. V348 shipped a
+            // step of 0.15, which raised the floor nicely and brought
+            // Astral in with it: a player on three billion percent Luck
+            // saw one every fourteenth roll. At 0.08 that is one in 2,800.
+            new Patch("luck-exp-legendary-v349", "rarities.LEGENDARY.luck-exponent", 1.15, 1.08),
+            new Patch("luck-exp-mythical-v349", "rarities.MYTHICAL.luck-exponent", 1.3, 1.16),
+            new Patch("luck-exp-divine-v349", "rarities.DIVINE.luck-exponent", 1.45, 1.24),
+            new Patch("luck-exp-astral-v349", "rarities.ASTRAL.luck-exponent", 1.6, 1.32),
             // V347: the progression pass. A player went from nothing to a
             // maxed index in a day, and the feedback Leon brought named
             // why: Money buys the whole skill tree, the Money ladder was a
@@ -1464,6 +1472,34 @@ public final class ConfigMigrator {
                 plugin.getLogger().info("Config patch " + patch.id() + ": " + patch.path() + " rewritten");
             }
             applied.add(patch.id());
+            changed = true;
+        }
+        // V349: Astral is five times rarer again. V340 made it ten times
+        // easier while the table was frozen and an Astral was unreachable
+        // at any Luck at all; now that Luck climbs the ladder properly it
+        // does not need that help, and the rarest thing in the game should
+        // stay the rarest thing in the game.
+        if (!applied.contains("astral-rarer-v349")) {
+            java.util.Map<Long, Long> rarer = java.util.Map.of(
+                    375000000L, 1875000000L, 750000000L, 3750000000L, 1500000000L, 7500000000L);
+            List<Map<?, ?>> items = disk.getMapList("items");
+            boolean moved = false;
+            for (Map<?, ?> entry : items) {
+                if (!"ASTRAL".equals(entry.get("rarity"))) continue;
+                Object odds = entry.get("odds");
+                if (!(odds instanceof Number number)) continue;
+                Long now = rarer.get(number.longValue());
+                if (now == null) continue;
+                @SuppressWarnings("unchecked")
+                Map<Object, Object> editable = (Map<Object, Object>) entry;
+                editable.put("odds", now);
+                moved = true;
+            }
+            if (moved) {
+                disk.set("items", items);
+                plugin.getLogger().info("Config patch astral-rarer-v349: Astral odds back up");
+            }
+            applied.add("astral-rarer-v349");
             changed = true;
         }
         // V315: permanent Luck in small pieces, Leon's ladder: the

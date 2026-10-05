@@ -8,7 +8,7 @@
 # their fresh defaults in on top of whatever is on disk, so a server
 # owner never has to delete the whole file to pick up a structural
 # change. Item table, prices and cosmetic tweaks are untouched.
-config-version: 40
+config-version: 41
 
 # One-off value changes the plugin has already made to this file, so none
 # is ever made twice. Managed by the plugin; leave it alone.
@@ -1168,14 +1168,17 @@ rarities:
   # step below, more Luck keeps pushing weight up the ladder:
   #
   #   Luck        Epic    Legend  Myth    Divine  Astral
-  #   +10,000%    4.4%    0.8%    0.09%   0.02%   1 in 125,000
-  #   +100,000%   44%     11%     1.8%    0.5%    1 in 3,300
-  #   +1,000,000% 63%     23%     5.2%    1.9%    1 in 500
-  #   +100m%      43%     31%     14%     10%     1.8%
-  #   +1b%        28%     29%     19%     19%     4.8%
+  #   +10,000%    4.4%    0.6%    0.05%   0.006%  1 in 2,400,000
+  #   +100,000%   44%     7.0%    0.7%    0.1%    1 in 117,000
+  #   +1,000,000% 75%     14%     1.7%    0.3%    1 in 33,000
+  #   +10m%       77%     18%     2.5%    0.6%    1 in 15,000
+  #   +100m%      74%     21%     3.5%    1.0%    1 in 7,600
+  #   +3b%        68%     25%     5.5%    2.0%    1 in 2,800
   #
-  # Nothing is ever guaranteed, which is the point: even at a billion
-  # percent an Astral is one roll in twenty.
+  # V349: the step is 0.08 rather than 0.15. The floor still rises, an
+  # Astral still does not come: at three billion percent Luck, which is
+  # what the deepest accounts hold, it is one roll in 2,800. Raise the
+  # step to bring the top tiers in faster, lower it to push them out.
   #
   # luck-factor: the old linear curve, only read when luck-curve is set to
   # "linear". Positive grows a weight (1 + Luck x factor), negative
@@ -1223,7 +1226,7 @@ rarities:
     bold: true
     italic: true
     luck-factor: 1.0
-    luck-exponent: 1.15
+    luck-exponent: 1.08
     true-odds: true
   MYTHICAL:
     colors: ["&c"]
@@ -1232,7 +1235,7 @@ rarities:
     bold: true
     italic: true
     luck-factor: 1.6
-    luck-exponent: 1.3
+    luck-exponent: 1.16
     true-odds: true
   # Divine sits above everything. Its label is the palest thing in the
   # plugin without ever being pure #FFFFFF - a drop name renders beside a
@@ -1245,7 +1248,7 @@ rarities:
     italic: true
     underline: true
     luck-factor: 2.5
-    luck-exponent: 1.45
+    luck-exponent: 1.24
     true-odds: true
   # V319: Astral, the tier above Divine, Leon's pick. Galaxy is
   # deliberately not used; he is keeping it for the tiers after this one.
@@ -1262,7 +1265,7 @@ rarities:
     italic: true
     underline: true
     luck-factor: 3.5
-    luck-exponent: 1.6
+    luck-exponent: 1.32
     true-odds: true
 
 # Every rollable item. "odds" is the label a player sees and what Money
@@ -2139,15 +2142,15 @@ items:
   - material: ELYTRA
     name: "Voidwing"
     rarity: ASTRAL
-    odds: 375000000
+    odds: 1875000000
   - material: COMMAND_BLOCK
     name: "The First Word"
     rarity: ASTRAL
-    odds: 750000000
+    odds: 3750000000
   - material: LIGHT
     name: "Everlight"
     rarity: ASTRAL
-    odds: 1500000000
+    odds: 7500000000
 index:
   # Luck for every entry discovered, before any skill. Collecting is
   # supposed to BE progression, not just a prerequisite for a skill that
@@ -2284,8 +2287,8 @@ skilltree:
   # every player needs, page 2 opens the mid-game power spikes, page 3
   # is the endgame with the three path capstones.
   reserved: []
-  pages: 5
-  page-names: ["Foundations", "Ascension", "Convergence", "Mastery", "Cosmic"]
+  pages: 6
+  page-names: ["Foundations", "Ascension", "Convergence", "Mastery", "Cosmic", "Infinity"]
   nodes:
 
     # ====================================================================
@@ -2296,7 +2299,7 @@ skilltree:
     auto_roll_root:
       display: "Auto Roll"
       page: 1
-      slot: "5,6"
+      slot: "2,6"
       icon: CLOCK
       cost-money: 400
       requires: ""
@@ -2307,7 +2310,7 @@ skilltree:
     luck_skill:
       display: "Luck I"
       page: 1
-      slot: "5,5"
+      slot: "5,6"
       icon: RABBIT_FOOT
       cost-money: 700
       cost-growth: 1.22
@@ -2319,7 +2322,7 @@ skilltree:
     luck_2:
       display: "Luck II"
       page: 1
-      slot: "5,2"
+      slot: "5,4"
       icon: RABBIT_FOOT
       cost-money: 28700
       cost-growth: 1.24
@@ -2333,7 +2336,7 @@ skilltree:
     curator_1:
       display: "Index Luck I"
       page: 1
-      slot: "5,4"
+      slot: "5,5"
       icon: BOOKSHELF
       cost-money: 10000
       cost-growth: 1.3
@@ -2345,7 +2348,7 @@ skilltree:
     shiny_chance_1:
       display: "Shiny Boost I"
       page: 1
-      slot: "4,2"
+      slot: "5,3"
       icon: PRISMARINE_CRYSTALS
       cost-money: 50300
       cost-growth: 1.3
@@ -2356,8 +2359,8 @@ skilltree:
 
     forge_power_1:
       display: "Forge Attunement I"
-      page: 1
-      slot: "5,1"
+      page: 2
+      slot: "8,1"
       icon: SMITHING_TABLE
       cost-money: 70000
       cost-growth: 1.3
@@ -2370,7 +2373,7 @@ skilltree:
     speed_skill:
       display: "Speed I"
       page: 1
-      slot: "4,5"
+      slot: "2,5"
       icon: SUGAR
       cost-money: 1220
       cost-growth: 1.22
@@ -2382,7 +2385,7 @@ skilltree:
     speed_2:
       display: "Speed II"
       page: 1
-      slot: "2,5"
+      slot: "2,4"
       icon: SUGAR
       cost-money: 25000
       cost-growth: 1.24
@@ -2394,7 +2397,7 @@ skilltree:
     bonus_roll_1:
       display: "Double Roll I"
       page: 1
-      slot: "3,3"
+      slot: "2,2"
       icon: ECHO_SHARD
       cost-money: 20000
       cost-growth: 1.3
@@ -2406,7 +2409,7 @@ skilltree:
     instant_roll_1:
       display: "Instant Roll I"
       page: 1
-      slot: "2,4"
+      slot: "2,3"
       icon: FIREWORK_ROCKET
       cost-money: 35000
       cost-growth: 1.35
@@ -2417,8 +2420,8 @@ skilltree:
 
     pass_unlock:
       display: "Battle Pass"
-      page: 1
-      slot: "2,3"
+      page: 2
+      slot: "8,6"
       icon: WRITABLE_BOOK
       cost-money: 50000
       requires: "instant_roll_1"
@@ -2427,8 +2430,8 @@ skilltree:
 
     refine_1:
       display: "Refinery I"
-      page: 1
-      slot: "2,2"
+      page: 2
+      slot: "8,4"
       icon: BLAST_FURNACE
       cost-money: 60000
       cost-growth: 1.3
@@ -2439,8 +2442,8 @@ skilltree:
 
     dupe_1:
       display: "Duplicate Value"
-      page: 1
-      slot: "2,1"
+      page: 2
+      slot: "8,2"
       icon: GOLD_NUGGET
       cost-money: 50300
       cost-growth: 1.25
@@ -2453,7 +2456,7 @@ skilltree:
     coins_1:
       display: "Money I"
       page: 1
-      slot: "6,5"
+      slot: "8,5"
       icon: GOLD_INGOT
       cost-money: 1220
       cost-growth: 1.25
@@ -2464,8 +2467,8 @@ skilltree:
 
     coins_2:
       display: "Money II"
-      page: 1
-      slot: "8,3"
+      page: 2
+      slot: "8,5"
       icon: GOLD_INGOT
       cost-money: 70000
       cost-growth: 1.28
@@ -2477,7 +2480,7 @@ skilltree:
     armor_unlock:
       display: "Armor"
       page: 1
-      slot: "7,5"
+      slot: "8,4"
       icon: IRON_CHESTPLATE
       cost-money: 2140
       requires: "coins_1"
@@ -2486,8 +2489,8 @@ skilltree:
 
     armor_power_1:
       display: "Quartermaster I"
-      page: 1
-      slot: "8,1"
+      page: 3
+      slot: "8,6"
       icon: IRON_INGOT
       cost-money: 90000
       cost-growth: 1.3
@@ -2499,7 +2502,7 @@ skilltree:
     vault_space:
       display: "Vault Space"
       page: 1
-      slot: "8,4"
+      slot: "8,1"
       icon: ENDER_CHEST
       cost-money: 12000
       cost-growth: 1.45
@@ -2510,8 +2513,8 @@ skilltree:
 
     vault_unlock:
       display: "Private Vault"
-      page: 1
-      slot: "8,2"
+      page: 2
+      slot: "8,3"
       icon: ENDER_CHEST
       cost-money: 2140
       requires: "coins_2"
@@ -2521,7 +2524,7 @@ skilltree:
     farming_unlock:
       display: "Farming"
       page: 1
-      slot: "8,5"
+      slot: "8,3"
       icon: WHEAT
       cost-money: 3750
       requires: "armor_unlock"
@@ -2532,7 +2535,7 @@ skilltree:
     convert_unlock:
       display: "Convert"
       page: 1
-      slot: "3,5"
+      slot: "8,6"
       icon: CHEST
       cost-money: 1220
       requires: "speed_skill"
@@ -2542,7 +2545,7 @@ skilltree:
     auto_convert:
       display: "Auto Convert"
       page: 1
-      slot: "3,4"
+      slot: "8,2"
       icon: HOPPER
       cost-money: 2140
       requires: "convert_unlock"
@@ -2552,7 +2555,7 @@ skilltree:
     shiny_unlock:
       display: "Shiny Unlocked"
       page: 1
-      slot: "6,2"
+      slot: "5,2"
       icon: AMETHYST_SHARD
       cost-money: 6560
       requires: "luck_2"
@@ -2578,7 +2581,7 @@ skilltree:
     luck_3:
       display: "Luck III"
       page: 2
-      slot: "5,5"
+      slot: "5,4"
       icon: RABBIT_FOOT
       cost-money: 175000
       cost-growth: 1.26
@@ -2590,7 +2593,7 @@ skilltree:
     luck_4:
       display: "Luck IV"
       page: 2
-      slot: "5,3"
+      slot: "5,2"
       icon: RABBIT_FOOT
       cost-money: 1640000
       cost-growth: 1.28
@@ -2601,8 +2604,8 @@ skilltree:
 
     luck_5:
       display: "Luck V"
-      page: 2
-      slot: "5,1"
+      page: 3
+      slot: "5,4"
       icon: RABBIT_FOOT
       cost-money: 26900000
       cost-growth: 1.3
@@ -2613,8 +2616,8 @@ skilltree:
 
     prestige_luck_1:
       display: "Prestige Affinity I"
-      page: 2
-      slot: "4,2"
+      page: 3
+      slot: "5,6"
       icon: TOTEM_OF_UNDYING
       cost-money: 5030000
       cost-growth: 1.32
@@ -2625,8 +2628,8 @@ skilltree:
 
     curator_2:
       display: "Index Luck II"
-      page: 2
-      slot: "6,2"
+      page: 3
+      slot: "5,5"
       icon: BOOKSHELF
       cost-money: 938000
       cost-growth: 1.3
@@ -2638,8 +2641,8 @@ skilltree:
     # -- Speed spine --
     speed_3:
       display: "Speed III"
-      page: 2
-      slot: "4,5"
+      page: 1
+      slot: "2,1"
       icon: SUGAR
       cost-money: 306000
       cost-growth: 1.26
@@ -2651,7 +2654,7 @@ skilltree:
     speed_4:
       display: "Speed IV"
       page: 2
-      slot: "2,5"
+      slot: "2,6"
       icon: SUGAR
       cost-money: 3000000
       cost-growth: 1.28
@@ -2675,7 +2678,7 @@ skilltree:
     instant_roll_2:
       display: "Instant Roll II"
       page: 4
-      slot: "3,5"
+      slot: "2,1"
       icon: FIREWORK_ROCKET
       cost-money: 3060000000
       cost-growth: 1.36
@@ -2686,8 +2689,8 @@ skilltree:
 
     pass_xp_1:
       display: "Pass Momentum I"
-      page: 4
-      slot: "3,3"
+      page: 5
+      slot: "8,3"
       icon: EXPERIENCE_BOTTLE
       cost-money: 28700000000
       cost-growth: 1.28
@@ -2698,8 +2701,8 @@ skilltree:
 
     pass_xp_2:
       display: "Pass Momentum II"
-      page: 4
-      slot: "8,3"
+      page: 5
+      slot: "8,2"
       icon: EXPERIENCE_BOTTLE
       cost-money: 16400000000
       cost-growth: 1.3
@@ -2722,8 +2725,8 @@ skilltree:
     # -- Money spine --
     coins_3:
       display: "Money III"
-      page: 2
-      slot: "6,5"
+      page: 3
+      slot: "8,5"
       icon: GOLD_INGOT
       cost-money: 306000
       cost-growth: 1.28
@@ -2734,8 +2737,8 @@ skilltree:
 
     coins_4:
       display: "Money IV"
-      page: 2
-      slot: "8,5"
+      page: 3
+      slot: "8,4"
       icon: GOLD_INGOT
       cost-money: 15400000
       cost-growth: 1.3
@@ -2746,8 +2749,8 @@ skilltree:
 
     refine_2:
       display: "Refinery II"
-      page: 2
-      slot: "8,4"
+      page: 3
+      slot: "8,3"
       icon: BLAST_FURNACE
       cost-money: 8800000
       cost-growth: 1.32
@@ -2758,8 +2761,8 @@ skilltree:
 
     coins_per_level:
       display: "Money Per Level"
-      page: 4
-      slot: "7,5"
+      page: 5
+      slot: "8,5"
       icon: GOLDEN_APPLE
       cost-money: 3060000000
       requires: "coins_7"
@@ -2768,8 +2771,8 @@ skilltree:
 
     armor_power_2:
       display: "Quartermaster II"
-      page: 2
-      slot: "8,3"
+      page: 3
+      slot: "8,1"
       icon: IRON_INGOT
       cost-money: 2870000
       cost-growth: 1.32
@@ -2780,8 +2783,8 @@ skilltree:
 
     forge_power_2:
       display: "Forge Attunement II"
-      page: 2
-      slot: "8,2"
+      page: 4
+      slot: "8,6"
       icon: SMITHING_TABLE
       cost-money: 2870000
       cost-growth: 1.32
@@ -2792,8 +2795,8 @@ skilltree:
 
     nova_safe_1:
       display: "Core Anchor I"
-      page: 2
-      slot: "8,1"
+      page: 3
+      slot: "5,3"
       icon: ANVIL
       cost-money: 1640000
       cost-growth: 1.32
@@ -2806,7 +2809,7 @@ skilltree:
     shiny_chance_2:
       display: "Shiny Boost II"
       page: 2
-      slot: "3,3"
+      slot: "5,3"
       icon: PRISMARINE_CRYSTALS
       cost-money: 536000
       cost-growth: 1.3
@@ -2818,7 +2821,7 @@ skilltree:
     shiny_chance_3:
       display: "Shiny Boost III"
       page: 2
-      slot: "7,3"
+      slot: "5,1"
       icon: PRISMARINE_CRYSTALS
       cost-money: 15400000
       cost-growth: 1.32
@@ -2829,8 +2832,8 @@ skilltree:
 
     potion_unlock:
       display: "Potions"
-      page: 2
-      slot: "2,3"
+      page: 3
+      slot: "8,2"
       icon: BREWING_STAND
       cost-money: 306000
       requires: "bonus_roll_2"
@@ -2839,8 +2842,8 @@ skilltree:
 
     artifact_unlock:
       display: "Artifacts"
-      page: 4
-      slot: "6,2"
+      page: 5
+      slot: "8,1"
       icon: HEART_OF_THE_SEA
       cost-money: 16400000000
       requires: "curator_3"
@@ -2851,7 +2854,7 @@ skilltree:
     lucky_streak_1:
       display: "Lucky Streak I"
       page: 2
-      slot: "5,4"
+      slot: "2,3"
       icon: GOLDEN_CARROT
       cost-money: 900000
       requires: "luck_3"
@@ -2863,7 +2866,7 @@ skilltree:
     explorer_1:
       display: "Explorer I"
       page: 2
-      slot: "3,5"
+      slot: "5,5"
       icon: COMPASS
       cost-money: 1500000
       cost-growth: 1.3
@@ -2887,7 +2890,7 @@ skilltree:
     key_roll_1:
       display: "Key Roll I"
       page: 2
-      slot: "7,5"
+      slot: "2,5"
       icon: TRIPWIRE_HOOK
       cost-money: 2000000
       cost-growth: 1.3
@@ -2903,7 +2906,7 @@ skilltree:
     convergence:
       display: "Convergence"
       page: 3
-      slot: "5,6"
+      slot: "5,2"
       icon: END_CRYSTAL
       cost-money: 10000000
       requires: "luck_5"
@@ -2915,7 +2918,7 @@ skilltree:
     luck_6:
       display: "Luck VI"
       page: 3
-      slot: "5,5"
+      slot: "5,1"
       icon: RABBIT_FOOT
       cost-money: 17500000
       cost-growth: 1.32
@@ -2926,8 +2929,8 @@ skilltree:
 
     luck_7:
       display: "Luck VII"
-      page: 3
-      slot: "5,3"
+      page: 4
+      slot: "5,4"
       icon: RABBIT_FOOT
       cost-money: 287000000
       cost-growth: 1.34
@@ -2938,8 +2941,8 @@ skilltree:
 
     luck_8:
       display: "Luck VIII"
-      page: 3
-      slot: "4,2"
+      page: 4
+      slot: "5,2"
       icon: RABBIT_FOOT
       cost-money: 2690000000
       cost-growth: 1.36
@@ -2950,8 +2953,8 @@ skilltree:
 
     prestige_luck_2:
       display: "Prestige Affinity II"
-      page: 3
-      slot: "5,4"
+      page: 4
+      slot: "5,6"
       icon: TOTEM_OF_UNDYING
       cost-money: 93800000
       cost-growth: 1.34
@@ -2962,8 +2965,8 @@ skilltree:
 
     luck_capstone:
       display: "Fortune's Favor"
-      page: 3
-      slot: "5,1"
+      page: 5
+      slot: "5,6"
       icon: NETHER_STAR
       cost-money: 10000000000
       requires: "luck_8"
@@ -2974,7 +2977,7 @@ skilltree:
     speed_5:
       display: "Speed V"
       page: 3
-      slot: "4,5"
+      slot: "2,6"
       icon: SUGAR
       cost-money: 30600000
       cost-growth: 1.3
@@ -2986,7 +2989,7 @@ skilltree:
     speed_6:
       display: "Speed VI"
       page: 3
-      slot: "2,5"
+      slot: "2,4"
       icon: SUGAR
       cost-money: 287000000
       cost-growth: 1.32
@@ -2998,7 +3001,7 @@ skilltree:
     speed_7:
       display: "Speed VII"
       page: 3
-      slot: "2,3"
+      slot: "2,2"
       icon: SUGAR
       cost-money: 2690000000
       cost-growth: 1.34
@@ -3010,7 +3013,7 @@ skilltree:
     bonus_roll_3:
       display: "Double Roll III"
       page: 3
-      slot: "3,5"
+      slot: "2,5"
       icon: ECHO_SHARD
       cost-money: 30600000
       cost-growth: 1.34
@@ -3021,8 +3024,8 @@ skilltree:
 
     bonus_roll_4:
       display: "Double Roll IV"
-      page: 3
-      slot: "2,2"
+      page: 4
+      slot: "2,6"
       icon: ECHO_SHARD
       cost-money: 503000000
       cost-growth: 1.36
@@ -3034,7 +3037,7 @@ skilltree:
     instant_roll_3:
       display: "Instant Roll III"
       page: 3
-      slot: "2,4"
+      slot: "2,3"
       icon: FIREWORK_ROCKET
       cost-money: 53600000
       cost-growth: 1.38
@@ -3045,8 +3048,8 @@ skilltree:
 
     speed_capstone:
       display: "Speed Demon"
-      page: 3
-      slot: "2,1"
+      page: 4
+      slot: "2,3"
       icon: FIREWORK_ROCKET
       cost-money: 10000000000
       requires: "bonus_roll_4"
@@ -3056,8 +3059,8 @@ skilltree:
     # -- Money spine --
     coins_5:
       display: "Money V"
-      page: 3
-      slot: "6,5"
+      page: 4
+      slot: "8,5"
       icon: GOLD_INGOT
       cost-money: 30600000
       cost-growth: 1.32
@@ -3068,8 +3071,8 @@ skilltree:
 
     coins_6:
       display: "Money VI"
-      page: 3
-      slot: "8,5"
+      page: 4
+      slot: "8,3"
       icon: GOLD_INGOT
       cost-money: 503000000
       cost-growth: 1.34
@@ -3080,8 +3083,8 @@ skilltree:
 
     refine_3:
       display: "Refinery III"
-      page: 3
-      slot: "7,5"
+      page: 4
+      slot: "8,4"
       icon: BLAST_FURNACE
       cost-money: 164000000
       cost-growth: 1.34
@@ -3092,8 +3095,8 @@ skilltree:
 
     pass_xp_3:
       display: "Pass Momentum III"
-      page: 3
-      slot: "8,4"
+      page: 4
+      slot: "8,2"
       icon: EXPERIENCE_BOTTLE
       cost-money: 164000000
       cost-growth: 1.32
@@ -3105,7 +3108,7 @@ skilltree:
     instant_roll_4:
       display: "Instant Roll IV"
       page: 3
-      slot: "8,3"
+      slot: "2,1"
       icon: FIREWORK_ROCKET
       cost-money: 880000000
       cost-growth: 1.4
@@ -3116,8 +3119,8 @@ skilltree:
 
     prestige_luck_3:
       display: "Prestige Affinity III"
-      page: 3
-      slot: "8,2"
+      page: 4
+      slot: "5,1"
       icon: TOTEM_OF_UNDYING
       cost-money: 880000000
       cost-growth: 1.36
@@ -3128,7 +3131,7 @@ skilltree:
 
     money_capstone:
       display: "Money Baron"
-      page: 3
+      page: 4
       slot: "8,1"
       icon: RAW_GOLD_BLOCK
       cost-money: 10000000000
@@ -3139,8 +3142,8 @@ skilltree:
     # -- Extras --
     shiny_chance_4:
       display: "Shiny Boost IV"
-      page: 3
-      slot: "3,3"
+      page: 4
+      slot: "5,5"
       icon: PRISMARINE_CRYSTALS
       cost-money: 53600000
       cost-growth: 1.34
@@ -3151,8 +3154,8 @@ skilltree:
 
     shiny_chance_5:
       display: "Shiny Boost V"
-      page: 3
-      slot: "7,3"
+      page: 4
+      slot: "5,3"
       icon: PRISMARINE_CRYSTALS
       cost-money: 1540000000
       cost-growth: 1.36
@@ -3163,8 +3166,8 @@ skilltree:
 
     supercharge_2:
       display: "Supercharge II"
-      page: 3
-      slot: "5,2"
+      page: 4
+      slot: "2,5"
       icon: NETHER_STAR
       cost-money: 188400000
       requires: "luck_7"
@@ -3174,8 +3177,8 @@ skilltree:
 
     supercharge_3:
       display: "Supercharge III"
-      page: 3
-      slot: "6,2"
+      page: 4
+      slot: "2,4"
       icon: NETHER_STAR
       cost-money: 18840000000
       requires: "supercharge_2"
@@ -3193,8 +3196,8 @@ skilltree:
 
     mastery:
       display: "Mastery"
-      page: 4
-      slot: "5,6"
+      page: 5
+      slot: "5,5"
       icon: BEACON
       cost-money: 1000000000
       requires: "luck_capstone"
@@ -3205,8 +3208,8 @@ skilltree:
     # -- Luck spine --
     lucky_streak_2:
       display: "Lucky Streak II"
-      page: 4
-      slot: "5,5"
+      page: 5
+      slot: "2,5"
       icon: GOLDEN_CARROT
       cost-money: 1750000000
       requires: "mastery"
@@ -3216,7 +3219,7 @@ skilltree:
 
     luck_9:
       display: "Luck IX"
-      page: 4
+      page: 5
       slot: "5,4"
       icon: RABBIT_FOOT
       cost-money: 3060000000
@@ -3228,8 +3231,8 @@ skilltree:
 
     curator_3:
       display: "Index Luck III"
-      page: 4
-      slot: "5,2"
+      page: 5
+      slot: "5,1"
       icon: BOOKSHELF
       cost-money: 9380000000
       cost-growth: 1.38
@@ -3240,8 +3243,8 @@ skilltree:
 
     luck_capstone_2:
       display: "Fortune's Crown"
-      page: 4
-      slot: "5,1"
+      page: 6
+      slot: "5,4"
       icon: TOTEM_OF_UNDYING
       cost-money: 1000000000000
       requires: "curator_3"
@@ -3250,8 +3253,8 @@ skilltree:
 
     prestige_luck_4:
       display: "Prestige Affinity IV"
-      page: 4
-      slot: "4,2"
+      page: 6
+      slot: "5,6"
       icon: EXPERIENCE_BOTTLE
       cost-money: 16400000000
       cost-growth: 1.38
@@ -3264,7 +3267,7 @@ skilltree:
     speed_8:
       display: "Speed VIII"
       page: 4
-      slot: "4,5"
+      slot: "2,2"
       icon: SUGAR
       cost-money: 1750000000
       cost-growth: 1.38
@@ -3275,8 +3278,8 @@ skilltree:
 
     autopilot_2:
       display: "Autopilot II"
-      page: 4
-      slot: "2,5"
+      page: 5
+      slot: "2,6"
       icon: REPEATER
       cost-money: 5360000000
       cost-growth: 1.38
@@ -3287,8 +3290,8 @@ skilltree:
 
     bonus_roll_5:
       display: "Double Roll V"
-      page: 4
-      slot: "2,4"
+      page: 5
+      slot: "2,3"
       icon: ECHO_SHARD
       cost-money: 9380000000
       cost-growth: 1.38
@@ -3299,8 +3302,8 @@ skilltree:
 
     explorer_2:
       display: "Explorer II"
-      page: 4
-      slot: "2,3"
+      page: 5
+      slot: "5,3"
       icon: COMPASS
       cost-money: 16400000000
       cost-growth: 1.38
@@ -3311,7 +3314,7 @@ skilltree:
 
     supercharge_4:
       display: "Supercharge IV"
-      page: 4
+      page: 5
       slot: "2,2"
       icon: NETHER_STAR
       cost-money: 114800000000
@@ -3322,7 +3325,7 @@ skilltree:
 
     speed_capstone_2:
       display: "Hyperdrive"
-      page: 4
+      page: 5
       slot: "2,1"
       icon: FIREWORK_ROCKET
       cost-money: 1000000000000
@@ -3333,8 +3336,8 @@ skilltree:
     # -- Money spine --
     coins_7:
       display: "Money VII"
-      page: 4
-      slot: "6,5"
+      page: 5
+      slot: "8,6"
       icon: GOLD_INGOT
       cost-money: 1750000000
       cost-growth: 1.38
@@ -3345,8 +3348,8 @@ skilltree:
 
     key_roll_2:
       display: "Key Roll II"
-      page: 4
-      slot: "8,5"
+      page: 5
+      slot: "2,4"
       icon: TRIPWIRE_HOOK
       cost-money: 5360000000
       cost-growth: 1.38
@@ -3357,7 +3360,7 @@ skilltree:
 
     refine_4:
       display: "Refinery IV"
-      page: 4
+      page: 5
       slot: "8,4"
       icon: BLAST_FURNACE
       cost-money: 9380000000
@@ -3369,8 +3372,8 @@ skilltree:
 
     shiny_chance_6:
       display: "Shiny Boost VI"
-      page: 4
-      slot: "8,2"
+      page: 6
+      slot: "5,5"
       icon: PRISMARINE_CRYSTALS
       cost-money: 28700000000
       cost-growth: 1.38
@@ -3381,8 +3384,8 @@ skilltree:
 
     money_capstone_2:
       display: "Money Mogul"
-      page: 4
-      slot: "8,1"
+      page: 6
+      slot: "8,6"
       icon: GOLD_BLOCK
       cost-money: 1000000000000
       requires: "shiny_chance_6"
@@ -3391,8 +3394,8 @@ skilltree:
 
     nova_safe_2:
       display: "Core Anchor II"
-      page: 4
-      slot: "7,3"
+      page: 5
+      slot: "5,2"
       icon: HEART_OF_THE_SEA
       cost-money: 16400000000
       cost-growth: 1.38
@@ -4494,7 +4497,7 @@ farmtree:
     enchant_speed:
       display: "Speed Enchant"
       page: 1
-      slot: "4,6"
+      slot: "2,6"
       icon: "SUGAR"
       cost-money: 6500
       requires: ""
@@ -4505,7 +4508,7 @@ farmtree:
     yield_wheat:
       display: "Wheat Yield"
       page: 1
-      slot: "5,5"
+      slot: "5,6"
       icon: "COMPOSTER"
       cost-money: 6500
       cost-growth: 1.25
@@ -4518,7 +4521,7 @@ farmtree:
     golden_crop:
       display: "Golden Harvest I"
       page: 1
-      slot: "5,4"
+      slot: "5,5"
       icon: "GOLD_NUGGET"
       cost-money: 10500
       cost-growth: 1.55
@@ -4541,8 +4544,8 @@ farmtree:
 
     yield_carrots:
       display: "Carrot Yield"
-      page: 1
-      slot: "5,1"
+      page: 2
+      slot: "5,6"
       icon: "COMPOSTER"
       cost-money: 44600
       cost-growth: 1.25
@@ -4555,7 +4558,7 @@ farmtree:
     yield_wheat_2:
       display: "Wheat Yield II"
       page: 1
-      slot: "4,2"
+      slot: "5,2"
       icon: "COMPOSTER"
       cost-money: 44600
       cost-growth: 1.25
@@ -4568,7 +4571,7 @@ farmtree:
     yield_carrots_2:
       display: "Carrot Yield II"
       page: 1
-      slot: "6,2"
+      slot: "5,1"
       icon: "COMPOSTER"
       cost-money: 44600
       cost-growth: 1.25
@@ -4582,7 +4585,7 @@ farmtree:
     enchant_token_greed:
       display: "Coin Greed"
       page: 1
-      slot: "4,5"
+      slot: "2,5"
       icon: "GOLD_NUGGET"
       cost-money: 51800
       requires: ""
@@ -4593,7 +4596,7 @@ farmtree:
     enchant_shard_greed:
       display: "Gem Greed"
       page: 1
-      slot: "3,5"
+      slot: "2,3"
       icon: "PRISMARINE_CRYSTALS"
       cost-money: 84000
       requires: "enchant_token_greed"
@@ -4604,7 +4607,7 @@ farmtree:
     enchant_momentum:
       display: "Momentum"
       page: 1
-      slot: "2,5"
+      slot: "2,4"
       icon: "FEATHER"
       cost-money: 136000
       # V190: Gem Greed is coming soon and cannot be bought, so nothing
@@ -4617,7 +4620,7 @@ farmtree:
     hoe_tier_1:
       display: "Tool Upgrade"
       page: 1
-      slot: "2,4"
+      slot: "2,2"
       icon: "SMITHING_TABLE"
       cost-money: 27600
       cost-growth: 2.2
@@ -4629,7 +4632,7 @@ farmtree:
     enchant_fortune:
       display: "Key Finder"
       page: 1
-      slot: "2,3"
+      slot: "2,1"
       icon: "EMERALD"
       cost-money: 357000
       requires: "hoe_tier_1"
@@ -4639,8 +4642,8 @@ farmtree:
 
     enchant_blast:
       display: "Blast Harvest"
-      page: 1
-      slot: "2,2"
+      page: 2
+      slot: "2,6"
       icon: "TNT"
       cost-money: 578400
       requires: "enchant_fortune"
@@ -4650,8 +4653,8 @@ farmtree:
 
     enchant_potion_finder:
       display: "Potion Finder"
-      page: 1
-      slot: "2,1"
+      page: 2
+      slot: "2,5"
       icon: "BREWING_STAND"
       cost-money: 937000
       requires: "enchant_blast"
@@ -4661,8 +4664,8 @@ farmtree:
 
     enchant_lightning:
       display: "Lightning"
-      page: 1
-      slot: "3,3"
+      page: 2
+      slot: "2,4"
       icon: "LIGHTNING_ROD"
       cost-money: 1518000
       requires: "enchant_fortune"
@@ -4675,7 +4678,7 @@ farmtree:
     tokens_1:
       display: "Coins I"
       page: 1
-      slot: "6,5"
+      slot: "8,6"
       icon: "HAY_BLOCK"
       cost-money: 6500
       cost-growth: 1.25
@@ -4688,7 +4691,7 @@ farmtree:
     farming_shards:
       display: "Gem Harvest"
       page: 1
-      slot: "7,5"
+      slot: "8,5"
       icon: "AMETHYST_CLUSTER"
       cost-money: 10500
       requires: "tokens_1"
@@ -4698,7 +4701,7 @@ farmtree:
     gems_1:
       display: "Gems I"
       page: 1
-      slot: "8,5"
+      slot: "8,4"
       icon: "DIAMOND"
       cost-money: 17000
       cost-growth: 1.25
@@ -4710,7 +4713,7 @@ farmtree:
     growth_2:
       display: "Growth II"
       page: 1
-      slot: "8,4"
+      slot: "5,4"
       icon: "BONE_MEAL"
       cost-money: 27600
       cost-growth: 1.25
@@ -4735,7 +4738,7 @@ farmtree:
     gems_2:
       display: "Gems II"
       page: 1
-      slot: "8,2"
+      slot: "8,1"
       icon: "DIAMOND"
       cost-money: 72300
       cost-growth: 1.25
@@ -4746,8 +4749,8 @@ farmtree:
 
     tokens_3:
       display: "Coins III"
-      page: 1
-      slot: "8,1"
+      page: 2
+      slot: "8,6"
       icon: "HAY_BLOCK"
       cost-money: 117100
       cost-growth: 1.25
@@ -4760,7 +4763,7 @@ farmtree:
     proc_1:
       display: "Proc Chance I"
       page: 1
-      slot: "7,3"
+      slot: "8,2"
       icon: "FIREWORK_STAR"
       cost-money: 72300
       requires: "tokens_2"
@@ -4800,7 +4803,7 @@ farmtree:
     growth_3:
       display: "Growth III"
       page: 2
-      slot: "5,3"
+      slot: "5,2"
       icon: "BONE_MEAL"
       cost-money: 510200
       cost-growth: 1.3
@@ -4811,8 +4814,8 @@ farmtree:
 
     yield_beetroot:
       display: "Beetroot Yield"
-      page: 2
-      slot: "5,1"
+      page: 3
+      slot: "5,5"
       icon: "COMPOSTER"
       cost-money: 1338900
       cost-growth: 1.3
@@ -4825,7 +4828,7 @@ farmtree:
     yield_potatoes_2:
       display: "Potato Yield II"
       page: 2
-      slot: "4,2"
+      slot: "5,1"
       icon: "COMPOSTER"
       cost-money: 1338900
       cost-growth: 1.3
@@ -4837,8 +4840,8 @@ farmtree:
 
     yield_beetroot_2:
       display: "Beetroot Yield II"
-      page: 2
-      slot: "6,2"
+      page: 3
+      slot: "5,6"
       icon: "COMPOSTER"
       cost-money: 1338900
       cost-growth: 1.3
@@ -4852,7 +4855,7 @@ farmtree:
     nova_finder:
       display: "Nova Finder"
       page: 2
-      slot: "4,5"
+      slot: "2,3"
       icon: "HEART_OF_THE_SEA"
       cost-money: 1555200
       requires: "yield_carrots"
@@ -4863,7 +4866,7 @@ farmtree:
     enchant_coin_factory:
       display: "Coin Factory"
       page: 2
-      slot: "3,5"
+      slot: "2,2"
       icon: "HOPPER"
       cost-money: 2519500
       requires: "nova_finder"
@@ -4874,7 +4877,7 @@ farmtree:
     enchant_prospector:
       display: "Prospector"
       page: 2
-      slot: "2,5"
+      slot: "2,1"
       icon: "RAW_GOLD"
       cost-money: 4081500
       requires: "enchant_coin_factory"
@@ -4884,8 +4887,8 @@ farmtree:
 
     hoe_tier_2:
       display: "Tool Mastery"
-      page: 2
-      slot: "2,4"
+      page: 3
+      slot: "2,6"
       icon: "SMITHING_TABLE"
       cost-money: 826500
       cost-growth: 2.5
@@ -4900,8 +4903,8 @@ farmtree:
     # behind an enchant nobody can buy.
     enchant_gem_rush:
       display: "Gem Rush"
-      page: 2
-      slot: "2,3"
+      page: 3
+      slot: "2,5"
       icon: "AMETHYST_CLUSTER"
       cost-money: 17352600
       requires: "hoe_tier_2"
@@ -4913,7 +4916,7 @@ farmtree:
     tokens_4:
       display: "Coins IV"
       page: 2
-      slot: "6,5"
+      slot: "8,5"
       icon: "HAY_BLOCK"
       cost-money: 194400
       cost-growth: 1.3
@@ -4926,7 +4929,7 @@ farmtree:
     proc_2:
       display: "Proc Chance II"
       page: 2
-      slot: "7,5"
+      slot: "8,4"
       icon: "FIREWORK_STAR"
       cost-money: 314900
       requires: "tokens_4"
@@ -4936,7 +4939,7 @@ farmtree:
     gems_3:
       display: "Gems III"
       page: 2
-      slot: "8,5"
+      slot: "8,3"
       icon: "DIAMOND"
       cost-money: 510200
       cost-growth: 1.3
@@ -4948,7 +4951,7 @@ farmtree:
     growth_4:
       display: "Growth IV"
       page: 2
-      slot: "8,4"
+      slot: "5,3"
       icon: "BONE_MEAL"
       cost-money: 826500
       cost-growth: 1.3
@@ -4960,7 +4963,7 @@ farmtree:
     tokens_5:
       display: "Coins V"
       page: 2
-      slot: "8,3"
+      slot: "8,2"
       icon: "HAY_BLOCK"
       cost-money: 1338900
       cost-growth: 1.3
@@ -4972,8 +4975,8 @@ farmtree:
 
     gems_4:
       display: "Gems IV"
-      page: 2
-      slot: "8,2"
+      page: 3
+      slot: "8,6"
       icon: "DIAMOND"
       cost-money: 2169100
       cost-growth: 1.3
@@ -4984,8 +4987,8 @@ farmtree:
 
     tokens_6:
       display: "Coins VI"
-      page: 2
-      slot: "8,1"
+      page: 3
+      slot: "8,5"
       icon: "HAY_BLOCK"
       cost-money: 3513900
       cost-growth: 1.3
@@ -4998,7 +5001,7 @@ farmtree:
     gems_5:
       display: "Gems V"
       page: 2
-      slot: "7,3"
+      slot: "8,1"
       icon: "DIAMOND"
       cost-money: 2169100
       cost-growth: 1.3
@@ -5015,7 +5018,7 @@ farmtree:
     yield_netherwart:
       display: "Nether Wart Yield"
       page: 3
-      slot: "5,5"
+      slot: "5,4"
       icon: "COMPOSTER"
       cost-money: 5832000
       cost-growth: 1.35
@@ -5028,7 +5031,7 @@ farmtree:
     golden_crop_3:
       display: "Golden Harvest III"
       page: 3
-      slot: "5,4"
+      slot: "5,3"
       icon: "GOLD_NUGGET"
       cost-money: 9447800
       cost-growth: 1.55
@@ -5040,7 +5043,7 @@ farmtree:
     growth_5:
       display: "Growth V"
       page: 3
-      slot: "5,3"
+      slot: "5,1"
       icon: "BONE_MEAL"
       cost-money: 15305400
       cost-growth: 1.35
@@ -5051,8 +5054,8 @@ farmtree:
 
     enchant_supernova:
       display: "Supernova"
-      page: 3
-      slot: "5,1"
+      page: 4
+      slot: "2,2"
       icon: "NETHER_STAR"
       cost-money: 2213000000
       requires: "growth_5"
@@ -5063,8 +5066,8 @@ farmtree:
 
     yield_berries:
       display: "Fern Yield"
-      page: 3
-      slot: "4,2"
+      page: 4
+      slot: "5,6"
       icon: "COMPOSTER"
       cost-money: 40167700
       cost-growth: 1.35
@@ -5076,8 +5079,8 @@ farmtree:
 
     mastery_1:
       display: "Enchant Mastery I"
-      page: 3
-      slot: "6,2"
+      page: 4
+      slot: "8,6"
       icon: "ENCHANTED_BOOK"
       cost-money: 4764259500
       cost-growth: 1.55
@@ -5090,7 +5093,7 @@ farmtree:
     enchant_gem_cascade:
       display: "Gem Cascade"
       page: 3
-      slot: "4,5"
+      slot: "2,2"
       icon: "PRISMARINE_SHARD"
       cost-money: 46656000
       requires: "yield_beetroot"
@@ -5101,7 +5104,7 @@ farmtree:
     enchant_coin_storm:
       display: "Coin Storm"
       page: 3
-      slot: "3,5"
+      slot: "2,4"
       icon: "GOLD_BLOCK"
       cost-money: 75582700
       requires: "yield_beetroot"
@@ -5112,7 +5115,7 @@ farmtree:
     enchant_meteor:
       display: "Meteor"
       page: 3
-      slot: "2,5"
+      slot: "2,3"
       icon: "MAGMA_CREAM"
       cost-money: 122443400
       requires: "enchant_coin_storm"
@@ -5123,7 +5126,7 @@ farmtree:
     hoe_tier_3:
       display: "Tool Perfection"
       page: 3
-      slot: "2,4"
+      slot: "2,1"
       icon: "SMITHING_TABLE"
       cost-money: 24795000
       cost-growth: 2.8
@@ -5134,8 +5137,8 @@ farmtree:
 
     enchant_credit_finder:
       display: "Credit Finder"
-      page: 3
-      slot: "2,3"
+      page: 4
+      slot: "2,6"
       icon: "AMETHYST_SHARD"
       cost-money: 321341400
       requires: "hoe_tier_3"
@@ -5145,8 +5148,8 @@ farmtree:
 
     enchant_gamba:
       display: "Gamba"
-      page: 3
-      slot: "2,2"
+      page: 4
+      slot: "2,5"
       icon: "SUNFLOWER"
       cost-money: 520574400
       requires: "enchant_credit_finder"
@@ -5156,8 +5159,8 @@ farmtree:
 
     enchant_black_hole:
       display: "Black Hole"
-      page: 3
-      slot: "2,1"
+      page: 4
+      slot: "2,4"
       icon: "ENDER_EYE"
       cost-money: 843330400
       requires: "enchant_gamba"
@@ -5167,8 +5170,8 @@ farmtree:
 
     enchant_nuke:
       display: "Nuke"
-      page: 3
-      slot: "3,3"
+      page: 4
+      slot: "2,3"
       icon: "FIRE_CHARGE"
       cost-money: 1366272000
       requires: "enchant_credit_finder"
@@ -5181,7 +5184,7 @@ farmtree:
     tokens_7:
       display: "Coins VII"
       page: 3
-      slot: "6,5"
+      slot: "8,4"
       icon: "HAY_BLOCK"
       cost-money: 5832000
       cost-growth: 1.35
@@ -5194,7 +5197,7 @@ farmtree:
     proc_3:
       display: "Proc Chance III"
       page: 3
-      slot: "7,5"
+      slot: "8,3"
       icon: "FIREWORK_STAR"
       cost-money: 9447800
       requires: "tokens_7"
@@ -5204,7 +5207,7 @@ farmtree:
     gems_6:
       display: "Gems VI"
       page: 3
-      slot: "8,5"
+      slot: "8,2"
       icon: "DIAMOND"
       cost-money: 15305400
       cost-growth: 1.35
@@ -5216,7 +5219,7 @@ farmtree:
     growth_6:
       display: "Growth VI"
       page: 3
-      slot: "8,4"
+      slot: "5,2"
       icon: "BONE_MEAL"
       cost-money: 24795000
       cost-growth: 1.35
@@ -5228,7 +5231,7 @@ farmtree:
     tokens_8:
       display: "Coins VIII"
       page: 3
-      slot: "8,3"
+      slot: "8,1"
       icon: "HAY_BLOCK"
       cost-money: 40167700
       cost-growth: 1.35
@@ -5240,8 +5243,8 @@ farmtree:
 
     gems_7:
       display: "Gems VII"
-      page: 3
-      slot: "8,2"
+      page: 4
+      slot: "8,4"
       icon: "DIAMOND"
       cost-money: 65071800
       cost-growth: 1.35
@@ -5252,8 +5255,8 @@ farmtree:
 
     tokens_9:
       display: "Coins IX"
-      page: 3
-      slot: "8,1"
+      page: 4
+      slot: "8,3"
       icon: "HAY_BLOCK"
       cost-money: 105416300
       cost-growth: 1.35
@@ -5265,8 +5268,8 @@ farmtree:
 
     mastery_2:
       display: "Enchant Mastery II"
-      page: 3
-      slot: "7,3"
+      page: 4
+      slot: "8,5"
       icon: "ENCHANTED_BOOK"
       cost-money: 7718100500
       cost-growth: 1.6
@@ -5294,7 +5297,7 @@ farmtree:
     farm_dust_root:
       display: "Cosmic Soil"
       page: 4
-      slot: "5,6"
+      slot: "5,5"
       icon: "AMETHYST_SHARD"
       cost-money: 20000000000
       requires: "mastery_2"
@@ -5305,7 +5308,7 @@ farmtree:
     farm_dust_2:
       display: "Cosmic Soil II"
       page: 4
-      slot: "5,5"
+      slot: "5,4"
       icon: "AMETHYST_SHARD"
       cost-money: 40000000000
       cost-growth: 1.30

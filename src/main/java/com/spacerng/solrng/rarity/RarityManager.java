@@ -65,21 +65,25 @@ public class RarityManager {
      *
      * Each tier takes a bigger exponent than the one below it now, so the
      * gap between two tiers keeps widening while Luck climbs: the floor
-     * rises on its own and the top gets reachable. It is deliberately a
-     * small step (0.15), so Astral stays rare at any Luck a player will
-     * realistically hold: around 1 in 3,300 rolls at +100,000% Luck, 1 in
-     * 500 at +1,000,000%, and still only 5% of rolls at a billion percent.
-     * Nothing ever becomes guaranteed.
+     * rises on its own and the top stays the top.
+     *
+     * V349: the step is 0.08, not the 0.15 V348 shipped. The two ends of
+     * this are one dial. A bigger step raises the floor faster and brings
+     * Astral in with it; at 0.15 a player holding three billion percent
+     * Luck saw an Astral every fourteenth roll, which is not what the
+     * rarest thing in the game should be. At 0.08 that same player rolls
+     * Epic 68% of the time, Legendary 25%, Mythical 5.5%, Divine 2%, and
+     * an Astral about once in 2,800 rolls.
      */
     private static final Map<Rarity, Double> DEFAULT_EXPONENTS = new EnumMap<>(Map.of(
             Rarity.COMMON, 0.0,
             Rarity.UNCOMMON, 0.15,
             Rarity.RARE, 0.5,
             Rarity.EPIC, 1.0,
-            Rarity.LEGENDARY, 1.15,
-            Rarity.MYTHICAL, 1.3,
-            Rarity.DIVINE, 1.45,
-            Rarity.ASTRAL, 1.6));
+            Rarity.LEGENDARY, 1.08,
+            Rarity.MYTHICAL, 1.16,
+            Rarity.DIVINE, 1.24,
+            Rarity.ASTRAL, 1.32));
     // Rarities that roll at exactly their label, and the band shares the
     // rest divide up. See assignRollWeights.
     private final Map<Rarity, Boolean> trueOdds = new EnumMap<>(Rarity.class);

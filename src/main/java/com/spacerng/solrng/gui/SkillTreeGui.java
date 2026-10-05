@@ -64,20 +64,18 @@ public class SkillTreeGui {
     // draw as "???", which is the same promise the rest of the empty
     // frame makes: there is room here and something is coming.
     private static final Set<Integer> LAYOUT_SLOTS = Set.of(
-            // Speed spine: (2,1)->(2,5), then right to (3,5) and (4,5)
-            1, 10, 19, 28, 37, 38, 39,
-            // Luck spine: (5,1)->(5,6). (5,6) is the root at the very bottom.
+            // V349, Leon's call: three straight lines and nothing else.
+            // The frame used to carry stubs and mirrors that no node ever
+            // sat on, and after the crop nodes left in V344 there were
+            // holes in the middle of it as well, so the shape read as
+            // broken rather than as "something is coming". Every node in
+            // both trees now stands on one of these, six to a column.
+            // Column 2, how fast you roll.
+            1, 10, 19, 28, 37, 46,
+            // Column 5, how good a roll is.
             4, 13, 22, 31, 40, 49,
-            // Money spine: (8,1)->(8,5), then left to (7,5) and (6,5)
-            7, 16, 25, 34, 43, 42, 41,
-            // Extras: (3,3) speed, (7,3) money, (4,2) and (6,2) luck
-            20, 24, 12, 14,
-            // V318: the root's two flanks (4,6) and (6,6)
-            48, 50,
-            // V318: the row 4 stubs (3,4) and (7,4)
-            29, 33,
-            // V318: the row 1 stubs (4,1) and (6,1)
-            3, 5
+            // Column 8, what a roll is worth and what it opens.
+            7, 16, 25, 34, 43, 52
     );
 
     /**

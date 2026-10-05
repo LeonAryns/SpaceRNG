@@ -290,7 +290,7 @@ public class PassManager {
         player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "CLAIMED " + ChatColor.RESET
                 + ChatColor.GRAY + "level " + ChatColor.YELLOW + level + ChatColor.GRAY + " "
                 + (PREMIUM.equals(track) ? ChatColor.LIGHT_PURPLE + "premium" : ChatColor.GREEN + "free")
-                + ChatColor.GRAY + ": " + describe(reward));
+                + ChatColor.GRAY + ": " + describe(reward) + boosterHint(reward));
         player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.7f, 1.4f);
         return true;
     }
@@ -351,6 +351,21 @@ public class PassManager {
             }
         }
         return String.join(ChatColor.GRAY + ", ", parts);
+    }
+
+    /**
+     * "in /boosters" on the end of a line that handed over a potion
+     * (V349, Leon's call).
+     *
+     * A potion never lands in the inventory, it goes straight to
+     * /boosters, and a reward line that does not say so leaves a player
+     * looking for an item that is not there.
+     */
+    private String boosterHint(Reward reward) {
+        if (reward.consumable().isEmpty()) return "";
+        var consumable = plugin.getConsumableManager().get(reward.consumable());
+        if (consumable == null || !plugin.getConsumableManager().isStorableBooster(consumable)) return "";
+        return ChatColor.DARK_GRAY + "  in /boosters";
     }
 
     /** The same payout as one line per item, for a lore block. */
