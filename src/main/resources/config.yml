@@ -8,7 +8,7 @@
 # their fresh defaults in on top of whatever is on disk, so a server
 # owner never has to delete the whole file to pick up a structural
 # change. Item table, prices and cosmetic tweaks are untouched.
-config-version: 38
+config-version: 39
 
 # One-off value changes the plugin has already made to this file, so none
 # is ever made twice. Managed by the plugin; leave it alone.
@@ -1065,11 +1065,11 @@ prestige:
       max-level: 20
       cost-points: 2
       requires: realm_access
-  rolls-per-level: 50
+  rolls-per-level: 70
   # Each level costs this much more than the one before it. At 1.0 the
   # ladder is flat and level 50 costs what level 2 did, which turns
   # levelling into a formality rather than a climb.
-  level-cost-growth: 1.15
+  level-cost-growth: 1.17
   first-prestige-levels: 10
   # V298: each prestige asks one level more than the last, not five.
   levels-increment-per-prestige: 1
@@ -1101,43 +1101,43 @@ armor:
       costs:
         COMMON: 20
         UNCOMMON: 1
-      luck-bonus: 0.05
-      speed-bonus: 0.05
+      luck-bonus: 0.15
+      speed-bonus: 0.08
     CHAINMAIL:
       display: "Chainmail"
       costs:
         UNCOMMON: 20
         RARE: 1
-      luck-bonus: 0.10
-      speed-bonus: 0.08
+      luck-bonus: 0.35
+      speed-bonus: 0.12
     IRON:
       display: "Iron"
       costs:
         RARE: 10
         EPIC: 1
-      luck-bonus: 0.15
-      speed-bonus: 0.12
+      luck-bonus: 0.7
+      speed-bonus: 0.18
     GOLD:
       display: "Gold"
       costs:
         EPIC: 4
         LEGENDARY: 1
-      luck-bonus: 0.25
-      speed-bonus: 0.16
+      luck-bonus: 1.2
+      speed-bonus: 0.25
     DIAMOND:
       display: "Diamond"
       costs:
         LEGENDARY: 3
         MYTHICAL: 1
-      luck-bonus: 0.40
-      speed-bonus: 0.20
+      luck-bonus: 2.0
+      speed-bonus: 0.35
     NETHERITE:
       display: "Netherite"
       costs:
         MYTHICAL: 3
         DIVINE: 1
-      luck-bonus: 0.60
-      speed-bonus: 0.25
+      luck-bonus: 3.0
+      speed-bonus: 0.5
 
 # Rarity tiers, in ascending order. "luck-factor" controls how strongly
 # the Luck stat biases rolls toward this tier. 0 = luck has no effect.
@@ -2181,10 +2181,13 @@ conversion:
     ASTRAL: 5000000
 
 # Every roll also pays out real Money (the Vault economy), on top of the
-# item itself - money = odds x this multiplier, so a 1-in-30 item pays 300
-# at the default 10x. Requires Vault + an economy plugin to be installed.
+# item itself - money = odds x this multiplier, so a 1-in-30 item pays 150
+# at 5x. Requires Vault + an economy plugin to be installed.
+# V347: 10 to 5. Money is the engine the whole skill tree runs on, and
+# between this and the Money ladder being cut from a 52x stack to 30x,
+# income is about 29% of what it was.
 economy:
-  money-per-odds-multiplier: 10.0
+  money-per-odds-multiplier: 5.0
   # Central price knobs for the skill trees, applied on top of every node's
   # own cost-money and cost-growth. The defaults change nothing. Per tree:
   #   multiplier    every price times this; 2.0 doubles the whole tree
@@ -2198,16 +2201,23 @@ economy:
   # A respec refunds at the prices these give right now, so settle them
   # before players start buying. /rngadmin reload applies a change.
   skill-prices:
+    # V347: the progression pass. Both trees cost more and climb harder,
+    # with the first three levels of every node left cheap so the first
+    # hour still moves. The skill tree is 2x its old price with levels
+    # 1.35 times as steep; the farm tree, which was the cheapest power in
+    # the game by a distance, is 4x with levels 1.6 times as steep. Farm
+    # tree nodes are still worth more than hoe enchant levels, they just
+    # cost what that is worth.
     skilltree:
-      multiplier: 1.0
-      early-levels: 0
-      early-growth: 1.15
-      growth-scale: 1.0
+      multiplier: 2.5
+      early-levels: 3
+      early-growth: 1.1
+      growth-scale: 1.35
     farmtree:
-      multiplier: 1.0
-      early-levels: 0
-      early-growth: 1.15
-      growth-scale: 1.0
+      multiplier: 4.0
+      early-levels: 3
+      early-growth: 1.1
+      growth-scale: 1.6
 
 # The general skill tree. Three pages, all the same shape: a root at the
 # bottom of the middle column, a spine across row 5, three lines climbing
@@ -2420,7 +2430,7 @@ skilltree:
       cost-growth: 1.25
       requires: "auto_roll_root"
       effect: MONEY_MULTIPLIER
-      value: 0.1
+      value: 0.06
       max-level: 10
 
     coins_2:
@@ -2432,7 +2442,7 @@ skilltree:
       cost-growth: 1.28
       requires: "vault_space"
       effect: MONEY_MULTIPLIER
-      value: 0.2
+      value: 0.1
       max-level: 10
 
     armor_unlock:
@@ -2674,7 +2684,7 @@ skilltree:
       page: 2
       slot: "2,1"
       icon: NETHER_STAR
-      cost-money: 471000
+      cost-money: 1884000
       requires: "autopilot_1"
       effect: SUPERCHARGE
       value: 10.0
@@ -2690,7 +2700,7 @@ skilltree:
       cost-growth: 1.28
       requires: "ascension"
       effect: MONEY_MULTIPLIER
-      value: 0.35
+      value: 0.2
       max-level: 10
 
     coins_4:
@@ -2702,7 +2712,7 @@ skilltree:
       cost-growth: 1.3
       requires: "key_roll_1"
       effect: MONEY_MULTIPLIER
-      value: 0.5
+      value: 0.3
       max-level: 10
 
     refine_2:
@@ -2725,7 +2735,7 @@ skilltree:
       cost-money: 3060000000
       requires: "coins_7"
       effect: MONEY_PER_LEVEL
-      value: 0.05
+      value: 0.02
 
     armor_power_2:
       display: "Quartermaster II"
@@ -3024,7 +3034,7 @@ skilltree:
       cost-growth: 1.32
       requires: "convergence"
       effect: MONEY_MULTIPLIER
-      value: 0.75
+      value: 0.4
       max-level: 10
 
     coins_6:
@@ -3036,7 +3046,7 @@ skilltree:
       cost-growth: 1.34
       requires: "refine_3"
       effect: MONEY_MULTIPLIER
-      value: 1.0
+      value: 0.55
       max-level: 10
 
     refine_3:
@@ -3095,7 +3105,7 @@ skilltree:
       cost-money: 10000000000
       requires: "prestige_luck_3"
       effect: MONEY_MULTIPLIER
-      value: 2.5
+      value: 1.5
 
     # -- Extras --
     shiny_chance_4:
@@ -3127,7 +3137,7 @@ skilltree:
       page: 3
       slot: "5,2"
       icon: NETHER_STAR
-      cost-money: 47100000
+      cost-money: 188400000
       requires: "luck_7"
       effect: SUPERCHARGE
       value: 100.0
@@ -3138,7 +3148,7 @@ skilltree:
       page: 3
       slot: "6,2"
       icon: NETHER_STAR
-      cost-money: 4710000000
+      cost-money: 18840000000
       requires: "supercharge_2"
       effect: SUPERCHARGE
       value: 1000.0
@@ -3275,7 +3285,7 @@ skilltree:
       page: 4
       slot: "2,2"
       icon: NETHER_STAR
-      cost-money: 28700000000
+      cost-money: 114800000000
       requires: "explorer_2"
       effect: SUPERCHARGE
       value: 10000.0
@@ -3301,7 +3311,7 @@ skilltree:
       cost-growth: 1.38
       requires: "mastery"
       effect: MONEY_MULTIPLIER
-      value: 1.5
+      value: 0.8
       max-level: 10
 
     key_roll_2:
@@ -3348,7 +3358,7 @@ skilltree:
       cost-money: 1000000000000
       requires: "shiny_chance_6"
       effect: MONEY_MULTIPLIER
-      value: 5.0
+      value: 3.0
 
     nova_safe_2:
       display: "Core Anchor II"

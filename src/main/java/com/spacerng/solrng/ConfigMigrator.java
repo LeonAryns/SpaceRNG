@@ -279,6 +279,48 @@ public final class ConfigMigrator {
     }
 
     private static final List<Patch> PATCHES = List.of(
+            // V347: the progression pass. A player went from nothing to a
+            // maxed index in a day, and the feedback Leon brought named
+            // why: Money buys the whole skill tree, the Money ladder was a
+            // 52x stack on top of a 10x base rate, and the farm tree was
+            // the cheapest power in the game.
+            //
+            // Money income drops to about 29% of what it was (this, plus
+            // the Money ladder cut to a 30x stack, which rides the
+            // structural skilltree section). The price knobs raise the
+            // skill tree to 2.5x with its levels 1.35 times as steep and
+            // the farm tree to 4x with levels 1.6 times as steep, both
+            // with the first three levels of every node left cheap so the
+            // first hour still moves. Together that is roughly seven to
+            // eight times longer to the same place.
+            new Patch("money-rate-v347", "economy.money-per-odds-multiplier", 10.0, 5.0),
+            new Patch("skill-price-mult-v347", "economy.skill-prices.skilltree.multiplier", 1.0, 2.5),
+            new Patch("skill-price-early-v347", "economy.skill-prices.skilltree.early-levels", 0, 3),
+            new Patch("skill-price-eg-v347", "economy.skill-prices.skilltree.early-growth", 1.15, 1.1),
+            new Patch("skill-price-scale-v347", "economy.skill-prices.skilltree.growth-scale", 1.0, 1.35),
+            new Patch("farm-price-mult-v347", "economy.skill-prices.farmtree.multiplier", 1.0, 4.0),
+            new Patch("farm-price-early-v347", "economy.skill-prices.farmtree.early-levels", 0, 3),
+            new Patch("farm-price-eg-v347", "economy.skill-prices.farmtree.early-growth", 1.15, 1.1),
+            new Patch("farm-price-scale-v347", "economy.skill-prices.farmtree.growth-scale", 1.0, 1.6),
+            // Prestige, only a little, which is what Leon asked for.
+            new Patch("prestige-rolls-v347", "prestige.rolls-per-level", 50, 70),
+            new Patch("prestige-growth-v347", "prestige.level-cost-growth", 1.15, 1.17),
+            // Armour was "just a filler" in that feedback, and it was: a
+            // full Netherite set was +240% Luck against a tree handing out
+            // thousands. A set is a branch of the tree now, and V343 made
+            // it cost the rarest drops in the game.
+            new Patch("armor-leather-luck-v347", "armor.tiers.LEATHER.luck-bonus", 0.05, 0.15),
+            new Patch("armor-leather-speed-v347", "armor.tiers.LEATHER.speed-bonus", 0.05, 0.08),
+            new Patch("armor-chain-luck-v347", "armor.tiers.CHAINMAIL.luck-bonus", 0.1, 0.35),
+            new Patch("armor-chain-speed-v347", "armor.tiers.CHAINMAIL.speed-bonus", 0.08, 0.12),
+            new Patch("armor-iron-luck-v347", "armor.tiers.IRON.luck-bonus", 0.15, 0.7),
+            new Patch("armor-iron-speed-v347", "armor.tiers.IRON.speed-bonus", 0.12, 0.18),
+            new Patch("armor-gold-luck-v347", "armor.tiers.GOLD.luck-bonus", 0.25, 1.2),
+            new Patch("armor-gold-speed-v347", "armor.tiers.GOLD.speed-bonus", 0.16, 0.25),
+            new Patch("armor-diamond-luck-v347", "armor.tiers.DIAMOND.luck-bonus", 0.4, 2.0),
+            new Patch("armor-diamond-speed-v347", "armor.tiers.DIAMOND.speed-bonus", 0.2, 0.35),
+            new Patch("armor-neth-luck-v347", "armor.tiers.NETHERITE.luck-bonus", 0.6, 3.0),
+            new Patch("armor-neth-speed-v347", "armor.tiers.NETHERITE.speed-bonus", 0.25, 0.5),
             // V345: the shortest drop tooltip there is, Leon's call on the
             // Astral screenshot. Tag Luck is off every style as well, so
             // compact is now one line: rarity, odds and the shiny mark.
