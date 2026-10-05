@@ -8,7 +8,7 @@
 # their fresh defaults in on top of whatever is on disk, so a server
 # owner never has to delete the whole file to pick up a structural
 # change. Item table, prices and cosmetic tweaks are untouched.
-config-version: 37
+config-version: 38
 
 # One-off value changes the plugin has already made to this file, so none
 # is ever made twice. Managed by the plugin; leave it alone.
@@ -1009,63 +1009,62 @@ prestige:
   # prestiging a decision rather than a button.
   points-per-prestige: 1
   # Slot is "column,row", 1-indexed, in a 6x9 menu.
+  # V346, Leon's call: prestige buys the Secret Realm and nothing else.
+  # The realm itself is the first purchase at 5 points, and everything
+  # under it is locked until that is bought. Lucky Star, Coin Master,
+  # Gold Rush, Gem Seeker and Nova Touch are gone, and the points spent
+  # on them are handed back the first time a save is seen.
   upgrades:
-    lucky_star:
-      display: "Lucky Star"
-      icon: NETHER_STAR
-      slot: "3,2"
-      effect: LUCK_BONUS
-      per-level: 0.03
-      unit: "x"
-      max-level: 50
-      cost-points: 1
-    token_master:
-      display: "Coin Master"
-      icon: RAW_GOLD
+    realm_access:
+      display: "The Secret Realm"
+      icon: END_PORTAL_FRAME
       slot: "5,2"
-      effect: TOKEN_BONUS
-      per-level: 0.02
+      effect: REALM_ACCESS
+      per-level: 1
+      unit: ""
+      max-level: 1
+      cost-points: 5
+    realm_luck:
+      display: "Realm Luck"
+      icon: RABBIT_FOOT
+      slot: "3,4"
+      effect: REALM_LUCK
+      per-level: 0.25
       unit: "x"
-      max-level: 60
-      cost-points: 1
-    gold_rush:
-      display: "Gold Rush"
-      icon: GOLD_INGOT
-      slot: "7,2"
-      effect: MONEY_BONUS
-      per-level: 0.025
-      unit: "x"
-      max-level: 50
-      cost-points: 1
-    shard_seeker:
-      display: "Gem Seeker"
-      icon: PRISMARINE_CRYSTALS
-      slot: "4,4"
-      effect: SHARD_BONUS
-      per-level: 0.008
-      unit: "%"
-      max-level: 40
+      max-level: 20
       cost-points: 2
-    # V291: every secret's chance in the Secret Realm, 1.1x per level,
-    # compounding (6.7x at 20). Luck does not touch secrets; this does.
+      requires: realm_access
+    realm_speed:
+      display: "Realm Speed"
+      icon: SUGAR
+      slot: "4,4"
+      effect: REALM_SPEED
+      per-level: 0.1
+      unit: "x"
+      max-level: 20
+      cost-points: 2
+      requires: realm_access
+    realm_time:
+      display: "Realm Time"
+      icon: CLOCK
+      slot: "6,4"
+      effect: REALM_TIME
+      # Seconds you may stay after it closes for everybody else.
+      per-level: 60
+      unit: ""
+      max-level: 10
+      cost-points: 3
+      requires: realm_access
     secret_seeker:
       display: "Secret Seeker"
       icon: ENDER_EYE
-      slot: "5,4"
+      slot: "7,4"
       effect: SECRET_CHANCE
       per-level: 0.1
       unit: "x"
       max-level: 20
       cost-points: 2
-    nova_touch:
-      display: "Nova Touch"
-      icon: HEART_OF_THE_SEA
-      slot: "6,4"
-      effect: NOVA_ODDS
-      per-level: 0.008
-      unit: "%"
-      max-level: 25
-      cost-points: 3
+      requires: realm_access
   rolls-per-level: 50
   # Each level costs this much more than the one before it. At 1.0 the
   # ladder is flat and level 50 costs what level 2 did, which turns

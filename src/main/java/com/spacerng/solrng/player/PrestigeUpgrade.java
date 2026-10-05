@@ -9,13 +9,25 @@ package com.spacerng.solrng.player;
  */
 public class PrestigeUpgrade {
 
+    /**
+     * V346: prestige buys the Secret Realm and nothing else, Leon's call.
+     *
+     * The five effects above the line are not on the board any more. The
+     * enum keeps them because the code that reads them is still there and
+     * answers 1.0 or 0.0 with nothing bought, and because a save that
+     * still carries one is refunded rather than broken.
+     */
     public enum Effect {
-        LUCK_BONUS,     // x(1+value) Luck per level, compounding
-        TOKEN_BONUS,    // x(1+value) farm Coins per level, compounding
-        MONEY_BONUS,    // x(1+value) roll Money per level, compounding
-        SHARD_BONUS,    // +value chance of a bonus Shard per farm harvest
-        NOVA_ODDS,      // +value to the Nova Core success roll per level
-        SECRET_CHANCE   // x(1+value) every secret's chance in the Secret Realm per level (V291)
+        LUCK_BONUS,     // retired V346
+        TOKEN_BONUS,    // retired V346
+        MONEY_BONUS,    // retired V346
+        SHARD_BONUS,    // retired V346
+        NOVA_ODDS,      // retired V346
+        SECRET_CHANCE,  // x(1+value) every secret's chance in the Secret Realm per level (V291)
+        REALM_ACCESS,   // the Secret Realm itself: one level, and /realm opens
+        REALM_LUCK,     // x(1+value) Luck INSIDE the realm per level, on top of the flat 100%
+        REALM_SPEED,    // +value roll Speed inside the realm per level
+        REALM_TIME      // +value seconds you may stay after the realm closes, per level
     }
 
     private final String id;
@@ -27,9 +39,18 @@ public class PrestigeUpgrade {
     private final int maxLevel;
     private final int costPoints;
     private final String unit; // how perLevel reads, e.g. "%" or "x"
+    /** An upgrade id that has to be bought first, or empty (V346). */
+    private final String requires;
 
     public PrestigeUpgrade(String id, String display, String icon, int slot, Effect effect,
                            double perLevel, int maxLevel, int costPoints, String unit) {
+        this(id, display, icon, slot, effect, perLevel, maxLevel, costPoints, unit, "");
+    }
+
+    public PrestigeUpgrade(String id, String display, String icon, int slot, Effect effect,
+                           double perLevel, int maxLevel, int costPoints, String unit,
+                           String requires) {
+        this.requires = requires == null ? "" : requires;
         this.id = id;
         this.display = display;
         this.icon = icon;
@@ -39,6 +60,10 @@ public class PrestigeUpgrade {
         this.maxLevel = Math.max(1, maxLevel);
         this.costPoints = Math.max(1, costPoints);
         this.unit = unit == null ? "" : unit;
+    }
+
+    public String getRequires() {
+        return requires;
     }
 
     public String getId() {

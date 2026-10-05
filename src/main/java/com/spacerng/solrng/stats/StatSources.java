@@ -120,6 +120,11 @@ public final class StatSources {
             List<Part> parts = new ArrayList<>();
             parts.add(new Part("Secret Realm", "Everybody rolls the same table in here",
                     1.0, Op.ADD, false));
+            // V346: Realm Luck in /prestige is the one personal thing that
+            // works in here, because it can only ever be bought FOR here.
+            parts.add(new Part("Realm Luck", "Buy it in /prestige",
+                    plugin.getPrestigeManager().upgradeMultiplier(data,
+                            PrestigeUpgrade.Effect.REALM_LUCK), Op.MULTIPLY));
             if (event > 1.0) {
                 parts.add(new Part("Server boost", "Active for everyone, from /boosts", event, Op.MULTIPLY));
             }
@@ -232,10 +237,16 @@ public final class StatSources {
     public static Stat speed(SolRNGPlugin plugin, PlayerData data) {
         // V341: and the same for Speed, so nobody can out-roll the room.
         if (inRealm(plugin, data)) {
+            List<Part> inside = new ArrayList<>();
+            inside.add(new Part("Secret Realm", "Everybody rolls at the same pace in here",
+                    1.0, Op.ADD, false));
+            // V346: and Realm Speed, bought in /prestige for in here.
+            inside.add(new Part("Realm Speed", "Buy it in /prestige",
+                    plugin.getPrestigeManager().upgradeTotal(data,
+                            PrestigeUpgrade.Effect.REALM_SPEED), Op.ADD));
             return new Stat(Id.SPEED, "Speed", "Flat for everybody inside the Secret Realm.",
-                    Format.MULTIPLIER, List.of(new Part("Secret Realm",
-                            "Everybody rolls at the same pace in here", 1.0, Op.ADD, false)),
-                    1.0, "Your own Speed comes back when the realm closes.");
+                    Format.MULTIPLIER, inside, fold(inside),
+                    "Only Realm Speed from /prestige counts in here.");
         }
         List<Part> parts = new ArrayList<>();
         parts.add(new Part("Base", "Everybody starts here",

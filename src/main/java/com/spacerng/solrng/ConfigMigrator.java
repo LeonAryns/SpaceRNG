@@ -64,7 +64,11 @@ public final class ConfigMigrator {
             // multipliers spread evenly from 1 in 1,000 to 1 in 1,000,000,
             // which cannot be delivered one Patch at a time, and nothing
             // in it is tuned by hand.
-            "secret-realm.secrets");
+            "secret-realm.secrets",
+            // V346: the prestige board is the Secret Realm now. Five
+            // upgrades replacing six, with a requires chain, which no
+            // Patch can deliver, and nothing in it is tuned by hand.
+            "prestige.upgrades");
 
     /**
      * Sections copied from the jar whenever the server's config has none

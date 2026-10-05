@@ -78,6 +78,8 @@ public class RealmManager implements Listener {
     private final Map<UUID, Location> returns = new HashMap<>();
     private KeyedBossBar bar;
     private BukkitTask task;
+    // V346: who is still inside on time bought in /prestige, and until when.
+    private final Map<UUID, Long> extended = new java.util.HashMap<>();
     // V342: the grey weather inside, on its own timer and its own counter.
     private BukkitTask fxTask;
     private long fxFrame;
@@ -226,6 +228,17 @@ public class RealmManager implements Listener {
     private void tick() {
         if (!enabled) return;
         long now = System.currentTimeMillis();
+        // V346: anybody on bought time, until it runs out.
+        for (UUID uuid : new ArrayList<>(extended.keySet())) {
+            if (now < extended.get(uuid)) continue;
+            extended.remove(uuid);
+            Player player = Bukkit.getPlayer(uuid);
+            if (player != null) {
+                player.sendMessage(ChatColor.LIGHT_PURPLE + "Your extra time in the realm is up.");
+                player.playSound(player.getLocation(), Sound.BLOCK_BEACON_DEACTIVATE, 0.6f, 1.2f);
+            }
+            leaveQuietly(uuid);
+        }
         if (!open && now >= nextOpenAt && spot() != null) {
             open();
         } else if (open && now >= openUntil) {
@@ -248,15 +261,20 @@ public class RealmManager implements Listener {
         long minutes = Math.max(1L, openMillis / 60_000L);
         for (Player player : Bukkit.getOnlinePlayers()) {
             PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
-            boolean allowed = data.getPrestige() >= minPrestige;
+            // V346: the gate is the prestige upgrade, not a prestige count.
+            boolean allowed = data.getPrestige() >= minPrestige && canEnter(data);
             player.sendMessage("");
             player.sendMessage(Lore.gradient("THE SECRET REALM HAS OPENED", true, "#B388FF", "#40C4FF"));
             if (allowed) {
                 player.sendMessage(ChatColor.GRAY + "For " + minutes + " minutes. Type "
                         + ChatColor.LIGHT_PURPLE + "/realm" + ChatColor.GRAY + " to go through.");
-            } else {
+            } else if (data.getPrestige() < minPrestige) {
                 player.sendMessage(ChatColor.GRAY + "Only players at Prestige " + minPrestige
                         + " and up can enter.");
+            } else {
+                player.sendMessage(ChatColor.GRAY + "Buy " + ChatColor.LIGHT_PURPLE + "The Secret Realm"
+                        + ChatColor.GRAY + " in " + ChatColor.LIGHT_PURPLE + "/prestige"
+                        + ChatColor.GRAY + " for 5 Prestige Points to get in.");
             }
             // V343: the title and the sound go to everybody, not only to
             // the players who can walk in. An opening is the one event in
@@ -264,7 +282,7 @@ public class RealmManager implements Listener {
             // cannot enter yet is exactly who should hear it is happening.
             player.sendTitle(Lore.gradient("Secret Realm", true, "#B388FF", "#40C4FF"),
                     allowed ? ChatColor.GRAY + "/realm for " + minutes + " minutes"
-                            : ChatColor.DARK_GRAY + "Prestige " + minPrestige + " and up",
+                            : ChatColor.DARK_GRAY + "Unlock it in /prestige",
                     10, 70, 20);
             player.playSound(player.getLocation(), Sound.BLOCK_END_PORTAL_SPAWN, 0.7f, 1.4f);
             player.playSound(player.getLocation(), Sound.BLOCK_BEACON_ACTIVATE, 0.6f, 0.7f);
@@ -279,10 +297,18 @@ public class RealmManager implements Listener {
         open = false;
         for (UUID uuid : new ArrayList<>(returns.keySet())) {
             Player player = Bukkit.getPlayer(uuid);
-            if (player != null) {
-                player.sendMessage(ChatColor.LIGHT_PURPLE + "The Secret Realm closes behind you.");
-                player.playSound(player.getLocation(), Sound.BLOCK_BEACON_DEACTIVATE, 0.6f, 1.2f);
+            if (player == null) continue;
+            // V346: Realm Time in /prestige buys minutes past the bell.
+            long extra = extraSeconds(plugin.getPlayerDataManager().get(uuid));
+            if (extra > 0) {
+                extended.put(uuid, System.currentTimeMillis() + extra * 1000L);
+                player.sendMessage(ChatColor.LIGHT_PURPLE + "The realm closes, but you may stay "
+                        + ChatColor.WHITE + extra + ChatColor.LIGHT_PURPLE + " more seconds.");
+                player.playSound(player.getLocation(), Sound.BLOCK_BEACON_POWER_SELECT, 0.6f, 0.8f);
+                continue;
             }
+            player.sendMessage(ChatColor.LIGHT_PURPLE + "The Secret Realm closes behind you.");
+            player.playSound(player.getLocation(), Sound.BLOCK_BEACON_DEACTIVATE, 0.6f, 1.2f);
         }
         sendEverybodyBack();
         removeBar();
@@ -327,6 +353,17 @@ public class RealmManager implements Listener {
         }
         if (data.getPrestige() < minPrestige) {
             player.sendMessage(ChatColor.RED + "The Secret Realm opens to you at Prestige " + minPrestige + ".");
+            return;
+        }
+        // V346, Leon's call: the realm is a prestige purchase. Five points
+        // in /prestige buys the way in, and the rest of that board (Luck,
+        // Speed and time in here) unlocks with it.
+        if (!canEnter(data)) {
+            player.sendMessage(ChatColor.RED + "The Secret Realm is locked.");
+            player.sendMessage(ChatColor.GRAY + "Buy " + ChatColor.LIGHT_PURPLE + "The Secret Realm"
+                    + ChatColor.GRAY + " in " + ChatColor.LIGHT_PURPLE + "/prestige"
+                    + ChatColor.GRAY + " for 5 Prestige Points.");
+            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.7f, 1.0f);
             return;
         }
         if (!open) {
@@ -407,6 +444,8 @@ public class RealmManager implements Listener {
 
     private void sendEverybodyBack() {
         for (Map.Entry<UUID, Location> entry : new ArrayList<>(returns.entrySet())) {
+            // V346: still inside on bought time.
+            if (extended.containsKey(entry.getKey())) continue;
             Player player = Bukkit.getPlayer(entry.getKey());
             if (player == null) continue;
             player.teleport(entry.getValue());
@@ -415,7 +454,7 @@ public class RealmManager implements Listener {
             // inside() still answers true and the aura stays hidden.
             wearNormal(player);
         }
-        returns.clear();
+        returns.keySet().removeIf(id -> !extended.containsKey(id));
     }
 
     @EventHandler
@@ -425,13 +464,39 @@ public class RealmManager implements Listener {
     }
 
     /** Inside means sent there by /realm, still in its world, and near the spot. */
+    /**
+     * Sends one player back without a message, for the bought-time
+     * extension running out (V346).
+     */
+    private void leaveQuietly(UUID uuid) {
+        Location back = returns.remove(uuid);
+        Player player = Bukkit.getPlayer(uuid);
+        if (player == null) return;
+        if (back != null) player.teleport(back);
+        wearNormal(player);
+    }
+
+    /** Whether this player has bought the way in (V346). */
+    public boolean canEnter(PlayerData data) {
+        return plugin.getPrestigeManager().hasUpgrade(data,
+                com.spacerng.solrng.player.PrestigeUpgrade.Effect.REALM_ACCESS);
+    }
+
+    /** Seconds somebody may stay after the realm closes, from /prestige (V346). */
+    public long extraSeconds(PlayerData data) {
+        return Math.round(plugin.getPrestigeManager().upgradeTotal(data,
+                com.spacerng.solrng.player.PrestigeUpgrade.Effect.REALM_TIME));
+    }
+
     /** The same, by id, for callers with no Player in hand (V341). */
     public boolean inside(UUID uuid) {
         return uuid != null && returns.containsKey(uuid);
     }
 
     public boolean inside(Player player) {
-        if (!open || !returns.containsKey(player.getUniqueId())) return false;
+        boolean onBoughtTime = extended.containsKey(player.getUniqueId())
+                && System.currentTimeMillis() < extended.get(player.getUniqueId());
+        if ((!open && !onBoughtTime) || !returns.containsKey(player.getUniqueId())) return false;
         Location spot = spot();
         if (spot == null || !player.getWorld().equals(spot.getWorld())) return false;
         return player.getLocation().distanceSquared(spot) <= radius * radius;

@@ -59,7 +59,8 @@ public class PrestigeManager {
                             u.getDouble("per-level", 0.0),
                             u.getInt("max-level", 10),
                             u.getInt("cost-points", 1),
-                            u.getString("unit", "%")));
+                            u.getString("unit", "%"),
+                            u.getString("requires", "")));
                 } catch (Exception ex) {
                     plugin.getLogger().warning("Skipped malformed prestige upgrade '" + id + "'.");
                 }
@@ -106,6 +107,45 @@ public class PrestigeManager {
         return total;
     }
 
+    /** Whether an upgrade's own requirement is bought (V346). */
+    public boolean requirementMet(PlayerData data, PrestigeUpgrade upgrade) {
+        String needs = upgrade.getRequires();
+        return needs.isEmpty() || data.getUpgradeLevel(needs) > 0;
+    }
+
+    /** Whether any upgrade with this effect is bought at all. */
+    public boolean hasUpgrade(PlayerData data, PrestigeUpgrade.Effect effect) {
+        for (PrestigeUpgrade upgrade : upgrades.values()) {
+            if (upgrade.getEffect() == effect && data.getUpgradeLevel(upgrade.getId()) > 0) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Hands back the points spent on upgrades that no longer exist (V346).
+     *
+     * The board is the Secret Realm now, so Lucky Star, Coin Master, Gold
+     * Rush, Gem Seeker and Nova Touch are gone. Nobody is going to lose
+     * what they paid for them, so the first time a save is seen after the
+     * change its levels are cleared and the points come back at the price
+     * those upgrades charged.
+     */
+    public int refundRetired(PlayerData data) {
+        java.util.Map<String, Integer> oldCost = java.util.Map.of(
+                "lucky_star", 1, "token_master", 1, "gold_rush", 1,
+                "shard_seeker", 2, "nova_touch", 3);
+        int points = 0;
+        for (java.util.Map.Entry<String, Integer> entry : oldCost.entrySet()) {
+            if (upgrades.containsKey(entry.getKey())) continue;
+            int level = data.getUpgradeLevel(entry.getKey());
+            if (level <= 0) continue;
+            points += level * entry.getValue();
+            data.setUpgradeLevel(entry.getKey(), 0);
+        }
+        if (points > 0) data.addPrestigePoints(points);
+        return points;
+    }
+
     /**
      * Buys one level. Returns false when it's maxed or unaffordable - the
      * caller reports which, since the menu already knows both.
@@ -116,6 +156,7 @@ public class PrestigeManager {
 
         int level = data.getUpgradeLevel(id);
         if (level >= upgrade.getMaxLevel()) return false;
+        if (!requirementMet(data, upgrade)) return false;
         if (!data.spendPrestigePoints(upgrade.getCostPoints())) return false;
 
         data.setUpgradeLevel(id, level + 1);

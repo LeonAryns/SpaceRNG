@@ -268,11 +268,15 @@ public class PrestigeGui {
         int level = Math.min(data.getUpgradeLevel(upgrade.getId()), upgrade.getMaxLevel());
         boolean maxed = level >= upgrade.getMaxLevel();
         boolean affordable = data.getPrestigePoints() >= upgrade.getCostPoints();
+        // V346: everything on this board hangs off the realm itself.
+        boolean open = plugin.getPrestigeManager().requirementMet(data, upgrade);
+        PrestigeUpgrade needs = open ? null
+                : plugin.getPrestigeManager().getUpgrade(upgrade.getRequires());
 
         Material material = Material.matchMaterial(upgrade.getIcon());
         if (material == null) material = Material.PAPER;
 
-        ItemStack item = new ItemStack(material);
+        ItemStack item = new ItemStack(open ? material : Material.STONE_BUTTON);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(Lore.title(maxed ? ChatColor.GREEN : ChatColor.GOLD, upgrade.getDisplay())
                 + ChatColor.DARK_GRAY + "  " + level + "/" + upgrade.getMaxLevel());
@@ -290,7 +294,11 @@ public class PrestigeGui {
         lore.add(Lore.stat(ChatColor.AQUA, "Level", level + " / " + upgrade.getMaxLevel()));
         lore.add(Lore.bar((double) level / upgrade.getMaxLevel()));
         lore.add("");
-        if (maxed) {
+        if (!open) {
+            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Locked");
+            lore.add(Lore.line(ChatColor.GRAY, "Buy " + (needs == null ? "the realm" : needs.getDisplay())
+                    + " first."));
+        } else if (maxed) {
             lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "Maxed");
         } else {
             lore.add(Lore.stat(affordable ? ChatColor.YELLOW : ChatColor.RED, "Price",
@@ -322,6 +330,10 @@ public class PrestigeGui {
             case SHARD_BONUS -> "A chance at Gems on every harvest.";
             case NOVA_ODDS -> "Better odds on every Nova Core forge.";
             case SECRET_CHANCE -> "Better odds on every Secret Realm secret.";
+            case REALM_ACCESS -> "Opens the Secret Realm, and the rest of this board.";
+            case REALM_LUCK -> "Your Luck inside the Secret Realm.";
+            case REALM_SPEED -> "Your roll Speed inside the Secret Realm.";
+            case REALM_TIME -> "Stay in the realm after it closes for everyone else.";
         };
     }
 
@@ -334,6 +346,10 @@ public class PrestigeGui {
             case SHARD_BONUS -> "Gem chance";
             case NOVA_ODDS -> "Nova Core odds";
             case SECRET_CHANCE -> "Secret odds";
+            case REALM_ACCESS -> "The realm";
+            case REALM_LUCK -> "Luck in the realm";
+            case REALM_SPEED -> "Speed in the realm";
+            case REALM_TIME -> "Extra time";
         };
     }
 

@@ -53,6 +53,17 @@ public class JoinQuitListener implements Listener {
         for (int seconds : when) {
             remindLink(event.getPlayer(), Math.max(1, seconds) * 20L);
         }
+        // V346: the prestige board is the Secret Realm now, so the points
+        // spent on the five upgrades that are gone come back, once, the
+        // first time the save is seen after the change.
+        int refunded = plugin.getPrestigeManager().refundRetired(data);
+        if (refunded > 0) {
+            event.getPlayer().sendMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD
+                    + "Prestige upgrades changed. " + ChatColor.RESET + ChatColor.GRAY
+                    + "They are the Secret Realm now, and your " + ChatColor.WHITE + refunded
+                    + ChatColor.GRAY + " Prestige Point" + (refunded == 1 ? " is" : "s are")
+                    + " back to spend in " + ChatColor.LIGHT_PURPLE + "/prestige" + ChatColor.GRAY + ".");
+        }
         // Offline at the season reset: their inventory goes now.
         com.spacerng.solrng.player.SeasonWipe.onJoin(plugin, event.getPlayer());
 
