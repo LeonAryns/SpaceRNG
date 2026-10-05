@@ -245,6 +245,12 @@ public final class ConfigMigrator {
             "holograms.podium-text-scale",
             // V336: the realm panel hides the shared "Click Here" line.
             "holograms.panels.realm.click",
+            // V348: the per rarity luck exponents. New keys, so a Patch has
+            // nothing to match on, and without them a live config runs the
+            // code defaults, which are these same numbers.
+            "rarities.EPIC.luck-exponent", "rarities.LEGENDARY.luck-exponent",
+            "rarities.MYTHICAL.luck-exponent", "rarities.DIVINE.luck-exponent",
+            "rarities.ASTRAL.luck-exponent",
             // V343: the second rarity every armour tier now asks for.
             "armor.tiers.LEATHER.costs.UNCOMMON", "armor.tiers.CHAINMAIL.costs.RARE",
             "armor.tiers.IRON.costs.EPIC", "armor.tiers.GOLD.costs.LEGENDARY",

@@ -51,15 +51,35 @@ public class RarityManager {
     // V158: Epic and up take exactly (1 + Luck), so +1,700% Luck makes a
     // 1 in 50,000 drop a 1 in 2,778. Common has no exponent at all: it is
     // whatever the other rarities leave over. See luckWeightFactor.
+    /**
+     * How hard Luck pulls on each rarity: its weight is multiplied by
+     * (1 + Luck) ^ exponent.
+     *
+     * V348: the five top tiers used to share an exponent of 1.0, which
+     * meant Luck multiplied all of them by the same number and the ratios
+     * between them never moved. Past about a million percent the table
+     * froze at Epic 91%, Legendary 8%, Mythical 0.5%, Divine 0.04% and
+     * Astral 1 in 103,000, for ever, however much more Luck was added.
+     * That is why a very deep account still rolled Epic as its base drop
+     * and never saw an Astral.
+     *
+     * Each tier takes a bigger exponent than the one below it now, so the
+     * gap between two tiers keeps widening while Luck climbs: the floor
+     * rises on its own and the top gets reachable. It is deliberately a
+     * small step (0.15), so Astral stays rare at any Luck a player will
+     * realistically hold: around 1 in 3,300 rolls at +100,000% Luck, 1 in
+     * 500 at +1,000,000%, and still only 5% of rolls at a billion percent.
+     * Nothing ever becomes guaranteed.
+     */
     private static final Map<Rarity, Double> DEFAULT_EXPONENTS = new EnumMap<>(Map.of(
             Rarity.COMMON, 0.0,
             Rarity.UNCOMMON, 0.15,
             Rarity.RARE, 0.5,
             Rarity.EPIC, 1.0,
-            Rarity.LEGENDARY, 1.0,
-            Rarity.MYTHICAL, 1.0,
-            Rarity.DIVINE, 1.0,
-            Rarity.ASTRAL, 1.0));
+            Rarity.LEGENDARY, 1.15,
+            Rarity.MYTHICAL, 1.3,
+            Rarity.DIVINE, 1.45,
+            Rarity.ASTRAL, 1.6));
     // Rarities that roll at exactly their label, and the band shares the
     // rest divide up. See assignRollWeights.
     private final Map<Rarity, Boolean> trueOdds = new EnumMap<>(Rarity.class);
