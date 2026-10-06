@@ -803,6 +803,110 @@ final class PlayerAdmin extends AdminTools {
     }
 
     /**
+     * /rngadmin points <fix|give|set> ... - prestige points.
+     *
+     * V354, Leon's ask: the V346 rework deleted five upgrades and handed
+     * back what had been spent on them the first time a save was seen,
+     * and some accounts came out of it short anyway. `fix` is the honest
+     * repair: it recomputes what a player SHOULD hold from what they have
+     * earned and what they still have bought, and pays the difference. It
+     * never takes points away, because an account that is somehow ahead is
+     * not the problem being solved, and running it twice pays nothing the
+     * second time.
+     */
+    boolean doPoints(CommandSender sender, String[] args) {
+        if (args.length < 2) {
+            sender.sendMessage(ChatColor.YELLOW + "/rngadmin points fix [player|all]");
+            sender.sendMessage(ChatColor.YELLOW + "/rngadmin points give <amount> [player]");
+            sender.sendMessage(ChatColor.YELLOW + "/rngadmin points set <amount> [player]");
+            return true;
+        }
+        String mode = args[1].toLowerCase(Locale.ROOT);
+
+        if (mode.equals("fix")) {
+            if (args.length >= 3 && args[2].equalsIgnoreCase("all")) {
+                int paid = 0;
+                int touched = 0;
+                for (Player online : org.bukkit.Bukkit.getOnlinePlayers()) {
+                    int owed = fixPoints(online);
+                    if (owed > 0) {
+                        paid += owed;
+                        touched++;
+                    }
+                }
+                sender.sendMessage(ChatColor.GREEN + "Refunded " + paid + " prestige "
+                        + (paid == 1 ? "point" : "points") + " across " + touched + " of "
+                        + org.bukkit.Bukkit.getOnlinePlayers().size() + " online players.");
+                sender.sendMessage(ChatColor.GRAY + "Only players who are online right now. Run it again later"
+                        + " for the rest, or on one name.");
+                return true;
+            }
+            Player target = resolve(sender, args.length >= 3 ? args[2] : null);
+            if (target == null) return true;
+            int owed = fixPoints(target);
+            PlayerData data = plugin.getPlayerDataManager().get(target.getUniqueId());
+            sender.sendMessage(owed > 0
+                    ? ChatColor.GREEN + "Gave " + target.getName() + " " + owed + " prestige "
+                            + (owed == 1 ? "point" : "points") + " back. They now hold "
+                            + data.getPrestigePoints() + "."
+                    : ChatColor.YELLOW + target.getName() + " is not owed anything. They hold "
+                            + data.getPrestigePoints() + ".");
+            return true;
+        }
+
+        if (!mode.equals("give") && !mode.equals("set")) {
+            sender.sendMessage(ChatColor.RED + "Say fix, give or set.");
+            return true;
+        }
+        if (args.length < 3) {
+            sender.sendMessage(ChatColor.RED + "Usage: /rngadmin points " + mode + " <amount> [player]");
+            return true;
+        }
+        Long amount = parseAmount(sender, args[2]);
+        if (amount == null) return true;
+        Player target = resolve(sender, args.length >= 4 ? args[3] : null);
+        if (target == null) return true;
+
+        PlayerData data = plugin.getPlayerDataManager().get(target.getUniqueId());
+        if (mode.equals("give")) {
+            data.addPrestigePoints(amount.intValue());
+        } else {
+            data.setPrestigePoints(amount.intValue());
+        }
+        sender.sendMessage(ChatColor.GREEN + target.getName() + " now holds "
+                + data.getPrestigePoints() + " prestige points.");
+        target.sendMessage(ChatColor.LIGHT_PURPLE + "You have " + data.getPrestigePoints()
+                + " prestige points. Spend them in " + ChatColor.YELLOW + "/prestige" + ChatColor.LIGHT_PURPLE + ".");
+        return true;
+    }
+
+    /**
+     * What one player is owed, paid. Earned is prestiges x
+     * points-per-prestige; spent is every upgrade level they still hold at
+     * its own price. Anything missing from (earned - spent) is the gap the
+     * rework left and is handed back.
+     */
+    private int fixPoints(Player player) {
+        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+        int perPrestige = Math.max(0, plugin.getConfig().getInt("prestige.points-per-prestige", 1));
+        int earned = data.getPrestige() * perPrestige;
+
+        int spent = 0;
+        for (var upgrade : plugin.getPrestigeManager().getUpgrades().values()) {
+            spent += data.getUpgradeLevel(upgrade.getId()) * upgrade.getCostPoints();
+        }
+
+        int owed = earned - spent - data.getPrestigePoints();
+        if (owed <= 0) return 0;
+        data.addPrestigePoints(owed);
+        player.sendMessage(ChatColor.LIGHT_PURPLE + "You were short " + owed + " prestige "
+                + (owed == 1 ? "point" : "points") + " after the prestige rework. "
+                + (owed == 1 ? "It is" : "They are") + " back, in " + ChatColor.YELLOW + "/prestige"
+                + ChatColor.LIGHT_PURPLE + ".");
+        return owed;
+    }
+
+    /**
      * Pets, until they have a way of being earned.
      *
      * give and take are the whole thing: the menu shows the rest as

@@ -84,6 +84,10 @@ public final class ConfigMigrator {
             // every older config already has, so it never merges on its
             // own and without it the server runs the code defaults.
             "armor.levels",
+            // V354: the two caps that make the late prestiges easier than
+            // the early ones. Brand new keys, so a Patch has nothing to
+            // match on, and a missing one silently runs the code default.
+            "prestige.level-cost-cap-level", "prestige.max-levels-per-prestige",
             // V313: brand new keys, so a Patch cannot carry them - there
             // is no old default to match. Without these the live server
             // falls back to the code default of 0.0 and no egg would ever
@@ -295,6 +299,11 @@ public final class ConfigMigrator {
     }
 
     private static final List<Patch> PATCHES = List.of(
+            // V354: the first prestige asks thirteen levels rather than
+            // ten, which is Leon's "make the first ones a bit harder".
+            // The late ones are made easier by the two caps above, not
+            // here.
+            new Patch("first-prestige-levels-v354", "prestige.first-prestige-levels", 10, 13),
             // V352: Luck has to keep mattering. Epic, Legendary and
             // Mythical climb hard with it now; Divine and Astral stay
             // pinned to 1 in 1,000 and 1 in 20,000 at three billion
@@ -1586,6 +1595,33 @@ public final class ConfigMigrator {
                 plugin.getLogger().info("Config patch top-odds-v350: Mythical and Divine made rarer");
             }
             applied.add("top-odds-v350");
+            changed = true;
+        }
+        // V354, Leon's call: the top tiers came far too fast. Mythical is
+        // four times rarer at the table, Divine ten times and Astral
+        // twenty. A multiply rather than a lookup table, because the odds
+        // are a generated ladder nobody tunes by hand and the patch id
+        // below is what stops it ever running twice.
+        if (!applied.contains("top-odds-v354")) {
+            java.util.Map<String, Long> factor = java.util.Map.of(
+                    "MYTHICAL", 4L, "DIVINE", 10L, "ASTRAL", 20L);
+            List<Map<?, ?>> items = disk.getMapList("items");
+            boolean moved = false;
+            for (Map<?, ?> entry : items) {
+                Long times = factor.get(String.valueOf(entry.get("rarity")));
+                if (times == null) continue;
+                Object odds = entry.get("odds");
+                if (!(odds instanceof Number number)) continue;
+                @SuppressWarnings("unchecked")
+                Map<Object, Object> editable = (Map<Object, Object>) entry;
+                editable.put("odds", number.longValue() * times);
+                moved = true;
+            }
+            if (moved) {
+                disk.set("items", items);
+                plugin.getLogger().info("Config patch top-odds-v354: Mythical, Divine and Astral made rarer");
+            }
+            applied.add("top-odds-v354");
             changed = true;
         }
         // V351: the ten Nova Core multipliers above tier 20, and the two

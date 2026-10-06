@@ -40,7 +40,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             "reload", "setspawn", "starforge", "reset", "season", "give", "store", "drops",
             "bank", "rank", "cosmetic", "bedrock", "aura", "auras", "head", "reveal", "nextroll", "roll", "unlock", "unlockall", "lockall", "odds", "farmblock", "farmscan", "farmwheat", "farmland",
             "hoe", "consumable", "gradient", "welcome", "crops", "farmclear",
-            "milestones", "farmfill", "boost", "crowd", "nova", "placeholders", "payout", "crate", "tophead", "floatingitem", "boss", "pet", "dust", "discord", "realm", "advancements", "protect", "cropwatch", "farmboard", "icon", "shiny", "firsts", "lorestyles", "tagstyles", "menustyles", "hoestyles", "standingstyles", "enchantstyles", "novastyles", "auratest", "holo", "help");
+            "milestones", "farmfill", "boost", "crowd", "nova", "points", "placeholders", "payout", "crate", "tophead", "floatingitem", "boss", "pet", "dust", "discord", "realm", "advancements", "protect", "cropwatch", "farmboard", "icon", "shiny", "firsts", "lorestyles", "tagstyles", "menustyles", "hoestyles", "standingstyles", "enchantstyles", "novastyles", "auratest", "holo", "help");
     private static final List<String> CURRENCIES = List.of("money", "coins", "gems", "credits", "luck", "speed", "tickets");
 
     private final SolRNGPlugin plugin;
@@ -114,6 +114,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             case "boost" -> players.doBoost(sender, args);
             case "crowd" -> players.doCrowd(sender, args);
             case "nova" -> players.doNova(sender, args);
+            case "points" -> players.doPoints(sender, args);
             case "placeholders" -> showcase.doPlaceholders(sender);
             case "payout" -> world.doPayout(sender);
             case "crate" -> world.doCrate(sender, args);
@@ -181,6 +182,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         line(sender, "boost", "<level> [minutes]", "Force the global Luck boost on");
         line(sender, "crowd", "[reset]", "Where the free 2x Luck bar sits");
         line(sender, "nova", "<tier> [player]", "Set a Nova Core tier");
+        line(sender, "points", "<fix|give|set> ...", "Prestige points; fix refunds what the rework lost");
         line(sender, "placeholders", "", "What every %spacerng_% placeholder resolves to right now");
         line(sender, "payout", "", "Run the farming payout now and reset the period");
         line(sender, "crate", "<place|set|remove|list|key|keyall|preview>",
@@ -376,6 +378,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
                 case "farmfill" -> partial(args[1], List.of("2", "5", "10", "20"));
                 case "boost" -> partial(args[1], List.of("1", "2", "3", "4", "5"));
                 case "nova" -> partial(args[1], List.of("0", "5", "10", "25"));
+                case "points" -> partial(args[1], List.of("fix", "give", "set"));
                 default -> List.of();
             };
         }
@@ -384,6 +387,9 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
                 case "reset", "season" -> partial(args[2], List.of("confirm"));
                 case "farmfill" -> partial(args[2], List.of("confirm"));
                 case "nova" -> partial(args[2], playerNames());
+                case "points" -> args[1].equalsIgnoreCase("fix")
+                        ? partial(args[2], withAll(playerNames()))
+                        : List.<String>of();
                 case "give", "drops", "bank" -> partial(args[2], List.of("1", "10", "100", "1000"));
                 case "auratest" -> args[1].equalsIgnoreCase("rank") ? partial(args[2], rankAuraKeys())
                         : partial(args[2], List.of("epic", "legendary", "mythical", "divine"));

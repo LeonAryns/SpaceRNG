@@ -8,7 +8,7 @@
 # their fresh defaults in on top of whatever is on disk, so a server
 # owner never has to delete the whole file to pick up a structural
 # change. Item table, prices and cosmetic tweaks are untouched.
-config-version: 45
+config-version: 46
 
 # One-off value changes the plugin has already made to this file, so none
 # is ever made twice. Managed by the plugin; leave it alone.
@@ -451,7 +451,7 @@ farming:
       base-cost: 608
       cost-linear: 102.16216216216216
       cost-step: 0.28291022388071
-      cost-power: 2.0
+      cost-power: 2.25
       description: "More Coins from every crop."
       color: "&e"
       max-level: 20000
@@ -467,7 +467,7 @@ farming:
       base-cost: 1324
       cost-linear: 222.63589587466222
       cost-step: 0.61653228581778
-      cost-power: 2.0
+      cost-power: 2.25
       description: "An unbroken run of harvests builds a multiplier."
       color: "&2"
       max-level: 20000
@@ -486,7 +486,7 @@ farming:
       base-cost: 738
       cost-linear: 124.12702702702701
       cost-step: 0.34373808525885
-      cost-power: 2.0
+      cost-power: 2.25
       description: "A chance at a bonus Gem."
       color: "&b"
       max-level: 20000
@@ -502,7 +502,7 @@ farming:
       base-cost: 897
       cost-linear: 150.81433783783783
       cost-step: 0.41764078210276
-      cost-power: 2.0
+      cost-power: 2.25
       description: "A chance to turn up a crate key."
       color: "&6"
       max-level: 20000
@@ -518,7 +518,7 @@ farming:
       base-cost: 1090
       cost-linear: 183.23942047297299
       cost-step: 0.5074331146016
-      cost-power: 2.0
+      cost-power: 2.25
       description: "A chance to blow the neighbouring crops out too."
       color: "&c"
       max-level: 20000
@@ -535,7 +535,7 @@ farming:
       base-cost: 1609
       cost-linear: 270.50261348771465
       cost-step: 0.74908570573681
-      cost-power: 2.0
+      cost-power: 2.25
       description: "A chance to dig up a potion."
       color: "&d"
       max-level: 20000
@@ -551,7 +551,7 @@ farming:
       base-cost: 1954
       cost-linear: 328.66067538757324
       cost-step: 0.91014194168264
-      cost-power: 2.0
+      cost-power: 2.25
       description: "A chance to call bolts down on nearby crops."
       color: "&e"
       max-level: 20000
@@ -567,7 +567,7 @@ farming:
       base-cost: 2375
       cost-linear: 399.3227205959015
       cost-step: 1.10581978513473
-      cost-power: 2.0
+      cost-power: 2.25
       description: "A chance to find a Nova Core while farming."
       color: "&b"
       max-level: 20000
@@ -589,7 +589,7 @@ farming:
       base-cost: 29859
       cost-linear: 5021.29381635254958
       cost-step: 13.90517583823455
-      cost-power: 2.0
+      cost-power: 2.25
       description: "A rare chance to level the whole field at once."
       color: "&4"
       max-level: 20000
@@ -605,7 +605,7 @@ farming:
       base-cost: 2885
       cost-linear: 485.17710552402048
       cost-step: 1.34357291675449
-      cost-power: 2.0
+      cost-power: 2.25
       description: "A chance to be paid your last minute of Coins again."
       color: "&6"
       max-level: 20000
@@ -621,7 +621,7 @@ farming:
       base-cost: 16647
       cost-linear: 2799.54079643978321
       cost-step: 7.75260610214234
-      cost-power: 2.0
+      cost-power: 2.25
       description: "A very rare Credit, straight out of the soil."
       color: "&d"
       max-level: 1000
@@ -636,7 +636,7 @@ farming:
       base-cost: 20226
       cost-linear: 3401.44206767433752
       cost-step: 9.41941672957599
-      cost-power: 2.0
+      cost-power: 2.25
       description: "A chance at 3x Coins, Gems or procs. You do not pick."
       color: "&6"
       max-level: 20000
@@ -656,7 +656,7 @@ farming:
       base-cost: 3505
       cost-linear: 589.49018321168489
       cost-step: 1.63244192009564
-      cost-power: 2.0
+      cost-power: 2.25
       description: "A chance at Gems worth a slice of the crop."
       color: "&b"
       max-level: 20000
@@ -673,7 +673,7 @@ farming:
       base-cost: 5175
       cost-linear: 870.2201457116696
       cost-step: 2.40984907562264
-      cost-power: 2.0
+      cost-power: 2.25
       description: "A chance to triple every Gem for a while."
       color: "&b"
       max-level: 20000
@@ -690,7 +690,7 @@ farming:
       base-cost: 9281
       cost-linear: 1560.83849254289976
       cost-step: 4.32234038569148
-      cost-power: 2.0
+      cost-power: 2.25
       description: "A chance to chain Gems from crop to crop."
       color: "&b"
       max-level: 20000
@@ -706,7 +706,7 @@ farming:
       base-cost: 11277
       cost-linear: 1896.41876843962314
       cost-step: 5.25164181097958
-      cost-power: 2.0
+      cost-power: 2.25
       description: "A chance at a downpour of Coins."
       color: "&6"
       max-level: 20000
@@ -722,7 +722,7 @@ farming:
       base-cost: 13701
       cost-linear: 2304.14880365414228
       cost-step: 6.3807464678406
-      cost-power: 2.0
+      cost-power: 2.25
       description: "A chance to call a meteor down on the field."
       color: "&c"
       max-level: 20000
@@ -738,7 +738,7 @@ farming:
       base-cost: 24575
       cost-linear: 4132.75211222431972
       cost-step: 11.44459009458767
-      cost-power: 2.0
+      cost-power: 2.25
       description: "A chance to swallow the field whole."
       color: "&5"
       max-level: 20000
@@ -754,7 +754,7 @@ farming:
       base-cost: 36278
       cost-linear: 6100.87198686834654
       cost-step: 16.89479070154108
-      cost-power: 2.0
+      cost-power: 2.25
       description: "Nova Finder, several times over, and a fortune with it."
       color: "&6"
       max-level: 20000
@@ -773,7 +773,7 @@ farming:
       base-cost: 500
       cost-linear: 80
       cost-step: 0.2
-      cost-power: 2.0
+      cost-power: 2.25
       description: "Walk faster while you hold the hoe."
       color: "&b"
       max-level: 20000
@@ -1071,10 +1071,27 @@ prestige:
   # levelling into a formality rather than a climb.
   # V351: 1.13, not 1.17. Each level costing 17% more than the last is
   # fine to level 20 and a wall at 40: level 43 wanted 118,000 rolls.
-  # Prestiging is still slower than it was before V347 (70 rolls a level
-  # rather than 50), it just stops doubling every four levels.
   level-cost-growth: 1.13
-  first-prestige-levels: 10
+  # V354, Leon's call: the first prestiges harder, the late ones easier.
+  #
+  # It was the other way round, and for two reasons at once. The levels
+  # asked for grew by one every prestige for ever, AND every level cost
+  # 13% more than the one under it, so prestige 30 wanted forty levels
+  # whose last few were thousands of rolls each. Two caps fix it without
+  # flattening the early climb:
+  #
+  #   level-cost-cap-level  past this level a level costs what level 25
+  #                         costs and stops compounding, so the ladder
+  #                         goes from exponential to straight.
+  #   max-levels-per-prestige  the levels asked for stop growing here.
+  #
+  # first-prestige-levels is 13 rather than 10, so the first prestige is
+  # about 2,100 rolls instead of 1,290. Prestige 12 and up all ask the
+  # same 25 levels, about 11,000 rolls, where before prestige 30 wanted
+  # more than 70,000.
+  level-cost-cap-level: 25
+  max-levels-per-prestige: 25
+  first-prestige-levels: 13
   # V298: each prestige asks one level more than the last, not five.
   levels-increment-per-prestige: 1
   luck-multiplier-per-prestige: 0.10
@@ -1196,11 +1213,11 @@ rarities:
   # step below, more Luck keeps pushing weight up the ladder:
   #
   #   Luck        Epic   Legend  Myth    Divine        Astral
-  #   +100,000%   44%    11%     0.7%    1 in 4,700    1 in 206,000
-  #   +1,000,000% 66%    24%     2.2%    1 in 2,100    1 in 79,000
-  #   +10m%       62%    32%     4.1%    1 in 1,600    1 in 49,000
-  #   +100m%      53%    39%     7.0%    1 in 1,260    1 in 33,000
-  #   +3b%        39%    47%     14%     1 in 1,000    1 in 20,000
+  #   +100,000%   44%    11%     0.2%    1 in 47,000   1 in 4,100,000
+  #   +1,000,000% 72%    26%     0.6%    1 in 20,000   1 in 1,400,000
+  #   +10m%       65%    34%     1.1%    1 in 15,000   1 in 912,000
+  #   +100m%      57%    41%     1.9%    1 in 12,000   1 in 603,000
+  #   +3b%        43%    53%     3.9%    1 in 9,300    1 in 349,000
   #
   # V352: Divine's exponent is BELOW Mythical's and that is deliberate.
   # Luck has to keep being worth having, so Epic, Legendary and Mythical
@@ -1210,12 +1227,19 @@ rarities:
   # numbers asked for instead, so the trophies do not come along for the
   # ride. Raise their exponents toward Mythical's to let them.
   #
-  # V350, Leon's numbers: at three billion percent Luck, which is what the
-  # deepest accounts hold, a Divine is one roll in a thousand and an
-  # Astral one in twenty thousand. At 800 Speed, about 1.6 rolls a second,
-  # that is ten minutes for a Divine and three and a half hours for an
-  # Astral. The floor still rises on its own: Common is gone by about
-  # +300,000% and Epic carries the table from there.
+  # V354, Leon's call: the top came far too fast. Mythical is four times
+  # rarer at the table, Divine ten times and Astral twenty, which is the
+  # half of the dial that does not touch the tiers under it. At three
+  # billion percent Luck, which is what the deepest accounts hold, a
+  # Divine is one roll in 9,300 and an Astral one in 349,000. At 800
+  # Speed, about 1.6 rolls a second, that is an hour and a half for a
+  # Divine and about sixty hours of rolling for an Astral. The floor
+  # still rises on its own: Common is gone by about +300,000% and Epic
+  # carries the table from there.
+  #
+  # Money pays on an item's odds, so a Divine is worth ten times what it
+  # was and comes a tenth as often: the same Money per roll, a rarer
+  # trophy.
   #
   # The step between the exponents is what decides how fast the top tiers
   # come in; the odds on the items are the other half of the same dial.
@@ -2069,15 +2093,15 @@ items:
   - material: NETHER_STAR
     name: "The Wither"
     rarity: MYTHICAL
-    odds: 4700000
+    odds: 18800000
   - material: SCULK_SHRIEKER
     name: "The Warden"
     rarity: MYTHICAL
-    odds: 9380000
+    odds: 37520000
   - material: ELYTRA
     name: "The Ender Dragon"
     rarity: MYTHICAL
-    odds: 18800000
+    odds: 75200000
   # --- Legendary, V319 ---
   # Leon asked for more at every tier from Legendary up. The band is
   # 937,500 to 1,875,000, set by V304's rule that a tier's lowest is five
@@ -2112,23 +2136,23 @@ items:
   - material: DRAGON_HEAD
     name: "Dragon Crown"
     rarity: MYTHICAL
-    odds: 14000000
+    odds: 56000000
   - material: ENCHANTED_GOLDEN_APPLE
     name: "Godly Apple"
     rarity: MYTHICAL
-    odds: 7000000
+    odds: 28000000
   - material: BEACON
     name: "Lighthouse"
     rarity: MYTHICAL
-    odds: 11200000
+    odds: 44800000
   - material: END_CRYSTAL
     name: "End Crystal"
     rarity: MYTHICAL
-    odds: 5600000
+    odds: 22400000
   - material: ECHO_SHARD
     name: "Echo of the Deep"
     rarity: MYTHICAL
-    odds: 16500000
+    odds: 66000000
   # --- Divine ---
   # Leon asked for at least ten. There was ONE, which is why a Divine was
   # a single named drop rather than a tier. The band runs from 187,500,000
@@ -2136,43 +2160,43 @@ items:
   - material: CONDUIT
     name: "First Star"
     rarity: DIVINE
-    odds: 75000000
+    odds: 750000000
   - material: NETHER_STAR
     name: "Dying Light"
     rarity: DIVINE
-    odds: 90000000
+    odds: 900000000
   - material: SCULK_CATALYST
     name: "The Silence"
     rarity: DIVINE
-    odds: 108000000
+    odds: 1080000000
   - material: AMETHYST_CLUSTER
     name: "Starfall Bloom"
     rarity: DIVINE
-    odds: 128000000
+    odds: 1280000000
   - material: CRYING_OBSIDIAN
     name: "The Long Night"
     rarity: DIVINE
-    odds: 152000000
+    odds: 1520000000
   - material: SHULKER_SHELL
     name: "Hollow Shell"
     rarity: DIVINE
-    odds: 180000000
+    odds: 1800000000
   - material: END_PORTAL_FRAME
     name: "Threshold"
     rarity: DIVINE
-    odds: 208000000
+    odds: 2080000000
   - material: DRAGON_BREATH
     name: "Last Breath"
     rarity: DIVINE
-    odds: 240000000
+    odds: 2400000000
   - material: BUDDING_AMETHYST
     name: "Seed of Light"
     rarity: DIVINE
-    odds: 272000000
+    odds: 2720000000
   - material: BEDROCK
     name: "The Floor of Everything"
     rarity: DIVINE
-    odds: 300000000
+    odds: 3000000000
   # --- Astral, V319 ---
   # The tier above Divine. Its floor is five times Divine's ceiling, the
   # same rule every band above Rare follows, which puts a first Astral at
@@ -2182,15 +2206,15 @@ items:
   - material: ELYTRA
     name: "Voidwing"
     rarity: ASTRAL
-    odds: 1875000000
+    odds: 37500000000
   - material: COMMAND_BLOCK
     name: "The First Word"
     rarity: ASTRAL
-    odds: 3750000000
+    odds: 75000000000
   - material: LIGHT
     name: "Everlight"
     rarity: ASTRAL
-    odds: 7500000000
+    odds: 150000000000
 index:
   # Luck for every entry discovered, before any skill. Collecting is
   # supposed to BE progression, not just a prerequisite for a skill that
@@ -4888,7 +4912,7 @@ farmtree:
       page: 2
       slot: "5,4"
       icon: "GOLD_NUGGET"
-      cost-money: 314900
+      cost-money: 629800
       cost-growth: 1.55
       requires: "growth_1"
       effect: "GOLDEN_CROP"
@@ -4900,7 +4924,7 @@ farmtree:
       page: 2
       slot: "5,3"
       icon: "BONE_MEAL"
-      cost-money: 510200
+      cost-money: 1020400
       cost-growth: 1.3
       requires: "golden_crop_2"
       effect: "FARM_SPEED"
@@ -4912,7 +4936,7 @@ farmtree:
       page: 2
       slot: "4,5"
       icon: "HEART_OF_THE_SEA"
-      cost-money: 1555200
+      cost-money: 3110400
       requires: "growth_1"
       effect: "UNLOCK_ENCHANT"
       value: 0
@@ -4923,7 +4947,7 @@ farmtree:
       page: 2
       slot: "3,5"
       icon: "HOPPER"
-      cost-money: 2519500
+      cost-money: 5039000
       requires: "nova_finder"
       effect: "UNLOCK_ENCHANT"
       value: 0
@@ -4934,7 +4958,7 @@ farmtree:
       page: 2
       slot: "2,5"
       icon: "RAW_GOLD"
-      cost-money: 4081500
+      cost-money: 8163000
       requires: "enchant_coin_factory"
       effect: "UNLOCK_ENCHANT"
       value: 0
@@ -4945,7 +4969,7 @@ farmtree:
       page: 2
       slot: "2,4"
       icon: "SMITHING_TABLE"
-      cost-money: 826500
+      cost-money: 1653000
       cost-growth: 2.5
       requires: "enchant_prospector"
       effect: "HOE_TIER"
@@ -4961,7 +4985,7 @@ farmtree:
       page: 2
       slot: "2,3"
       icon: "AMETHYST_CLUSTER"
-      cost-money: 17352600
+      cost-money: 34705200
       requires: "hoe_tier_2"
       effect: "UNLOCK_ENCHANT"
       value: 0
@@ -4973,7 +4997,7 @@ farmtree:
       page: 2
       slot: "6,5"
       icon: "HAY_BLOCK"
-      cost-money: 194400
+      cost-money: 388800
       cost-growth: 1.3
       requires: "growth_1"
       effect: "TOKEN_GAIN"
@@ -4986,7 +5010,7 @@ farmtree:
       page: 2
       slot: "7,5"
       icon: "FIREWORK_STAR"
-      cost-money: 314900
+      cost-money: 629800
       requires: "tokens_4"
       effect: "ENCHANT_PROC"
       value: 0.1
@@ -4996,7 +5020,7 @@ farmtree:
       page: 2
       slot: "8,5"
       icon: "DIAMOND"
-      cost-money: 510200
+      cost-money: 1020400
       cost-growth: 1.3
       requires: "proc_2"
       effect: "GEM_MULTIPLIER"
@@ -5008,7 +5032,7 @@ farmtree:
       page: 2
       slot: "8,4"
       icon: "BONE_MEAL"
-      cost-money: 826500
+      cost-money: 1653000
       cost-growth: 1.3
       requires: "gems_3"
       effect: "FARM_SPEED"
@@ -5020,7 +5044,7 @@ farmtree:
       page: 2
       slot: "8,3"
       icon: "HAY_BLOCK"
-      cost-money: 1338900
+      cost-money: 2677800
       cost-growth: 1.3
       requires: "growth_4"
       effect: "TOKEN_GAIN"
@@ -5033,7 +5057,7 @@ farmtree:
       page: 2
       slot: "8,2"
       icon: "DIAMOND"
-      cost-money: 2169100
+      cost-money: 4338200
       cost-growth: 1.3
       requires: "tokens_5"
       effect: "GEM_MULTIPLIER"
@@ -5045,7 +5069,7 @@ farmtree:
       page: 2
       slot: "8,1"
       icon: "HAY_BLOCK"
-      cost-money: 3513900
+      cost-money: 7027800
       cost-growth: 1.3
       requires: "gems_4"
       effect: "TOKEN_GAIN"
@@ -5058,7 +5082,7 @@ farmtree:
       page: 2
       slot: "7,3"
       icon: "DIAMOND"
-      cost-money: 2169100
+      cost-money: 4338200
       cost-growth: 1.3
       requires: "tokens_5"
       effect: "GEM_MULTIPLIER"
@@ -5075,7 +5099,7 @@ farmtree:
       page: 3
       slot: "5,4"
       icon: "GOLD_NUGGET"
-      cost-money: 9447800
+      cost-money: 47239000
       cost-growth: 1.55
       requires: "growth_3"
       effect: "GOLDEN_CROP"
@@ -5087,7 +5111,7 @@ farmtree:
       page: 3
       slot: "5,3"
       icon: "BONE_MEAL"
-      cost-money: 15305400
+      cost-money: 76527000
       cost-growth: 1.35
       requires: "golden_crop_3"
       effect: "FARM_SPEED"
@@ -5099,7 +5123,7 @@ farmtree:
       page: 3
       slot: "5,1"
       icon: "NETHER_STAR"
-      cost-money: 2213000000
+      cost-money: 11065000000
       requires: "growth_5"
       requires-all: ["enchant_nuke"]
       effect: "UNLOCK_ENCHANT"
@@ -5111,7 +5135,7 @@ farmtree:
       page: 3
       slot: "6,2"
       icon: "ENCHANTED_BOOK"
-      cost-money: 4764259500
+      cost-money: 23821297500
       cost-growth: 1.55
       requires: "growth_5"
       effect: "ENCHANT_CAP"
@@ -5124,7 +5148,7 @@ farmtree:
       page: 3
       slot: "4,5"
       icon: "PRISMARINE_SHARD"
-      cost-money: 46656000
+      cost-money: 233280000
       requires: "growth_3"
       effect: "UNLOCK_ENCHANT"
       value: 0
@@ -5135,7 +5159,7 @@ farmtree:
       page: 3
       slot: "3,5"
       icon: "GOLD_BLOCK"
-      cost-money: 75582700
+      cost-money: 377913500
       requires: "growth_3"
       effect: "UNLOCK_ENCHANT"
       value: 0
@@ -5146,7 +5170,7 @@ farmtree:
       page: 3
       slot: "2,5"
       icon: "MAGMA_CREAM"
-      cost-money: 122443400
+      cost-money: 612217000
       requires: "enchant_coin_storm"
       effect: "UNLOCK_ENCHANT"
       value: 0
@@ -5157,7 +5181,7 @@ farmtree:
       page: 3
       slot: "2,4"
       icon: "SMITHING_TABLE"
-      cost-money: 24795000
+      cost-money: 123975000
       cost-growth: 2.8
       requires: "enchant_meteor"
       effect: "HOE_TIER"
@@ -5169,7 +5193,7 @@ farmtree:
       page: 3
       slot: "2,3"
       icon: "AMETHYST_SHARD"
-      cost-money: 321341400
+      cost-money: 1606707000
       requires: "hoe_tier_3"
       effect: "UNLOCK_ENCHANT"
       value: 0
@@ -5180,7 +5204,7 @@ farmtree:
       page: 3
       slot: "2,2"
       icon: "SUNFLOWER"
-      cost-money: 520574400
+      cost-money: 2602872000
       requires: "enchant_credit_finder"
       effect: "UNLOCK_ENCHANT"
       value: 0
@@ -5191,7 +5215,7 @@ farmtree:
       page: 3
       slot: "2,1"
       icon: "ENDER_EYE"
-      cost-money: 843330400
+      cost-money: 4216652000
       requires: "enchant_gamba"
       effect: "UNLOCK_ENCHANT"
       value: 0
@@ -5202,7 +5226,7 @@ farmtree:
       page: 3
       slot: "3,3"
       icon: "FIRE_CHARGE"
-      cost-money: 1366272000
+      cost-money: 6831360000
       requires: "enchant_credit_finder"
       requires-all: ["enchant_black_hole"]
       effect: "UNLOCK_ENCHANT"
@@ -5215,7 +5239,7 @@ farmtree:
       page: 3
       slot: "6,5"
       icon: "HAY_BLOCK"
-      cost-money: 5832000
+      cost-money: 29160000
       cost-growth: 1.35
       requires: "growth_3"
       effect: "TOKEN_GAIN"
@@ -5228,7 +5252,7 @@ farmtree:
       page: 3
       slot: "7,5"
       icon: "FIREWORK_STAR"
-      cost-money: 9447800
+      cost-money: 47239000
       requires: "tokens_7"
       effect: "ENCHANT_PROC"
       value: 0.1
@@ -5238,7 +5262,7 @@ farmtree:
       page: 3
       slot: "8,5"
       icon: "DIAMOND"
-      cost-money: 15305400
+      cost-money: 76527000
       cost-growth: 1.35
       requires: "proc_3"
       effect: "GEM_MULTIPLIER"
@@ -5250,7 +5274,7 @@ farmtree:
       page: 3
       slot: "8,4"
       icon: "BONE_MEAL"
-      cost-money: 24795000
+      cost-money: 123975000
       cost-growth: 1.35
       requires: "gems_6"
       effect: "FARM_SPEED"
@@ -5262,7 +5286,7 @@ farmtree:
       page: 3
       slot: "8,3"
       icon: "HAY_BLOCK"
-      cost-money: 40167700
+      cost-money: 200838500
       cost-growth: 1.35
       requires: "growth_6"
       effect: "TOKEN_GAIN"
@@ -5275,7 +5299,7 @@ farmtree:
       page: 3
       slot: "8,2"
       icon: "DIAMOND"
-      cost-money: 65071800
+      cost-money: 325359000
       cost-growth: 1.35
       requires: "tokens_8"
       effect: "GEM_MULTIPLIER"
@@ -5287,7 +5311,7 @@ farmtree:
       page: 3
       slot: "8,1"
       icon: "HAY_BLOCK"
-      cost-money: 105416300
+      cost-money: 527081500
       cost-growth: 1.35
       requires: "gems_7"
       effect: "TOKEN_GAIN"
@@ -5300,7 +5324,7 @@ farmtree:
       page: 3
       slot: "7,3"
       icon: "ENCHANTED_BOOK"
-      cost-money: 7718100500
+      cost-money: 38590502500
       cost-growth: 1.6
       requires: "tokens_8"
       requires-all: ["mastery_1"]
@@ -5328,7 +5352,7 @@ farmtree:
       page: 4
       slot: "5,6"
       icon: "AMETHYST_SHARD"
-      cost-money: 20000000000
+      cost-money: 200000000000
       requires: "mastery_2"
       requires-all: ["enchant_black_hole", "tokens_9"]
       effect: "FARM_DUST_CHANCE"
@@ -5339,7 +5363,7 @@ farmtree:
       page: 4
       slot: "5,5"
       icon: "AMETHYST_SHARD"
-      cost-money: 40000000000
+      cost-money: 400000000000
       cost-growth: 1.30
       requires: "farm_dust_root"
       effect: "FARM_DUST_CHANCE"

@@ -176,16 +176,47 @@ public class PrestigeManager {
         return rollsNeededForLevel(data.getLevel());
     }
 
-    /** Lifetime rolls needed to leave the given level. */
+    /**
+     * Lifetime rolls needed to leave the given level.
+     *
+     * V354: the compounding STOPS at prestige.level-cost-cap-level. Past
+     * it every level costs what that level cost, so the ladder goes from
+     * exponential to straight. Compounding for ever is what made the late
+     * prestiges harder than the early ones, which is the opposite of what
+     * Leon wants from them: level 43 on the old curve wanted thousands of
+     * rolls on its own.
+     */
     public long rollsNeededForLevel(int level) {
         level = Math.max(1, level);
         if (levelCostGrowth <= 1.0) return (long) level * rollsPerLevel;
-        return Math.round(rollsPerLevel
-                * (Math.pow(levelCostGrowth, level) - 1.0) / (levelCostGrowth - 1.0));
+        int cap = levelCostCap();
+        int compounded = Math.min(level, cap);
+        double total = rollsPerLevel
+                * (Math.pow(levelCostGrowth, compounded) - 1.0) / (levelCostGrowth - 1.0);
+        if (level > cap) {
+            // One flat level, at what the capped level costs.
+            double flat = rollsPerLevel * Math.pow(levelCostGrowth, cap - 1);
+            total += flat * (level - cap);
+        }
+        return Math.round(total);
     }
 
+    /** Where the per-level cost stops compounding. 0 or less means never. */
+    private int levelCostCap() {
+        int cap = plugin.getConfig().getInt("prestige.level-cost-cap-level", 25);
+        return cap <= 0 ? Integer.MAX_VALUE : cap;
+    }
+
+    /**
+     * V354: the levels asked for stop growing at
+     * prestige.max-levels-per-prestige. They used to climb by one every
+     * prestige for ever, so prestige 30 asked forty levels of a ladder
+     * that was also getting steeper - the late game got harder twice over.
+     */
     public int levelsNeededForNextPrestige(PlayerData data) {
-        return firstPrestigeLevels + data.getPrestige() * levelsIncrementPerPrestige;
+        int needed = firstPrestigeLevels + data.getPrestige() * levelsIncrementPerPrestige;
+        int max = plugin.getConfig().getInt("prestige.max-levels-per-prestige", 25);
+        return max > 0 ? Math.min(needed, max) : needed;
     }
 
     /**
