@@ -112,6 +112,8 @@ public class GuiListener implements Listener {
             progression.handleMilestoneClick(event);
         } else if (topInventory.getHolder() instanceof CropsHolder) {
             playerMenus.handleCropsClick(event);
+        } else if (topInventory.getHolder() instanceof com.spacerng.solrng.gui.CropBoostHolder) {
+            playerMenus.handleCropBoostClick(event);
         } else if (topInventory.getHolder() instanceof NovaCoreHolder) {
             progression.handleNovaCoreClick(event);
         } else if (topInventory.getHolder() instanceof com.spacerng.solrng.gui.PassHolder) {

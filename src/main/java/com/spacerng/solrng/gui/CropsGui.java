@@ -102,6 +102,8 @@ public class CropsGui {
         lore.add("");
         if (selected) {
             lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "Growing now");
+            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to boost this crop");
+            lore.add(Lore.footnote("Coin Fortune, Gem Fortune, proc and growth"));
         } else if (unlocked) {
             lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to plant");
         } else {
@@ -151,7 +153,10 @@ public class CropsGui {
                 Lore.section(ChatColor.AQUA, "Information"),
                 Lore.stat(ChatColor.AQUA, "Harvested", String.format("%,d", data.getCropsHarvested())),
                 Lore.stat(ChatColor.AQUA, "Gem payouts",
-                        farm.shardsUnlocked(data) ? "Unlocked" : "Locked")));
+                        farm.shardsUnlocked(data) ? "Unlocked" : "Locked"),
+                "",
+                Lore.line(ChatColor.GRAY, "Click the crop you are growing"),
+                Lore.line(ChatColor.GRAY, "to upgrade it.")));
         item.setItemMeta(meta);
         return item;
     }

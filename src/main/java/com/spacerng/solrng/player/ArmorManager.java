@@ -79,6 +79,106 @@ public class ArmorManager {
         return tiers.get(id);
     }
 
+    // ------------------------------------------------------------ levels
+    //
+    // V353, Leon's call: a tier is not a one-off purchase any more. Buying
+    // a piece puts the tier at level 1, and it climbs to max-level on more
+    // of the SAME drop it was bought with - never a rarer one, which was
+    // the explicit ask. The tier above does not open until this one is at
+    // the ceiling, so the ladder is climbed rather than skipped.
+
+    public int maxArmorLevel() {
+        return Math.max(1, plugin.getConfig().getInt("armor.levels.max-level", 10));
+    }
+
+    /**
+     * Derived, not stored: anybody who already owns a piece of this tier is
+     * at least level 1, whether or not a level was ever written down. That
+     * is what carries every account bought before V353 across without a
+     * migration, and it keeps one definition of what level 1 means.
+     */
+    public int levelOf(PlayerData data, String tierId) {
+        int stored = data.getArmorLevel(tierId);
+        if (stored > 0) return Math.min(stored, maxArmorLevel());
+        for (ArmorPiece piece : ArmorPiece.values()) {
+            if (data.hasPurchasedArmor(tierId, piece)) return 1;
+        }
+        return 0;
+    }
+
+    /**
+     * What a worn piece of this tier is actually worth at `level`. Level 1
+     * is the tier's printed bonus and every level over it adds
+     * armor.levels.bonus-per-level of that same printed bonus, so a tier
+     * at 10 is worth roughly twice what it is at 1 by default.
+     */
+    public double levelScale(int level) {
+        if (level <= 1) return 1.0;
+        double per = plugin.getConfig().getDouble("armor.levels.bonus-per-level", 0.10);
+        return 1.0 + per * (Math.min(level, maxArmorLevel()) - 1);
+    }
+
+    /**
+     * The drop this tier levels on: the first, cheapest rarity in its
+     * costs. Levelling never reaches for the rarer second one - that is
+     * what the NEXT tier is for.
+     */
+    public Rarity levelRarity(ArmorTier tier) {
+        Rarity lowest = null;
+        for (Rarity rarity : tier.getCosts().keySet()) {
+            if (lowest == null || rarity.ordinal() < lowest.ordinal()) lowest = rarity;
+        }
+        return lowest;
+    }
+
+    /** How many of that drop level `level` to `level + 1` costs. */
+    public long levelCost(ArmorTier tier, int level) {
+        Rarity rarity = levelRarity(tier);
+        if (rarity == null) return 0L;
+        long base = tier.getCosts().getOrDefault(rarity, 1L);
+        double first = plugin.getConfig().getDouble("armor.levels.first-step", 0.5);
+        double growth = plugin.getConfig().getDouble("armor.levels.cost-growth", 1.45);
+        return Math.max(1L, Math.round(base * first * Math.pow(growth, Math.max(0, level - 1))));
+    }
+
+    /** The tier before this one in config order, or null for the first. */
+    public ArmorTier previousTier(String tierId) {
+        ArmorTier previous = null;
+        for (Map.Entry<String, ArmorTier> entry : tiers.entrySet()) {
+            if (entry.getKey().equals(tierId)) return previous;
+            previous = entry.getValue();
+        }
+        return null;
+    }
+
+    /**
+     * Whether this tier can be bought at all yet. The first tier always
+     * can; every other one waits for the tier below it to be maxed.
+     */
+    public boolean tierOpen(PlayerData data, String tierId) {
+        ArmorTier previous = previousTier(tierId);
+        return previous == null || levelOf(data, previous.getId()) >= maxArmorLevel();
+    }
+
+    /**
+     * Spends one level's worth of drops. Returns false when the tier is
+     * not owned, is already at the ceiling, or the drops are not there.
+     */
+    public boolean levelUp(Player player, PlayerData data, String tierId) {
+        ArmorTier tier = tiers.get(tierId);
+        if (tier == null) return false;
+        int level = levelOf(data, tierId);
+        if (level < 1 || level >= maxArmorLevel()) return false;
+        Rarity rarity = levelRarity(tier);
+        if (rarity == null) return false;
+        long cost = levelCost(tier, level);
+        if (DropWallet.total(plugin, player, data, rarity) < cost) return false;
+        DropWallet.spend(plugin, player, data, rarity, cost);
+        data.setArmorLevel(tierId, level + 1);
+        refreshWornBonuses();
+        return true;
+    }
+
     /** The cost shown/charged is per piece, not per set. */
     public boolean canAfford(Player player, ArmorTier tier, ArmorPiece piece) {
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
@@ -96,6 +196,8 @@ public class ArmorManager {
         ArmorTier tier = tiers.get(tierId);
         if (tier == null) return false;
         if (data.hasPurchasedArmor(tierId, piece)) return false;
+        // V353: the tier below has to be at its ceiling first.
+        if (!tierOpen(data, tierId)) return false;
         if (!canAfford(player, tier, piece)) return false;
 
         for (Map.Entry<Rarity, Long> cost : tier.costsFor(piece).entrySet()) {
@@ -103,6 +205,9 @@ public class ArmorManager {
         }
 
         data.markArmorPurchased(tierId, piece);
+        // The first piece of a tier puts it at level 1. The other three do
+        // not reset it, so buying the set in any order is safe.
+        if (data.getArmorLevel(tierId) < 1) data.setArmorLevel(tierId, 1);
         givePiece(player, tier, piece);
         return true;
     }
@@ -164,6 +269,7 @@ public class ArmorManager {
                 + "+" + Math.round(tier.getLuckBonus() * 100) + "%");
         lore.add(ChatColor.AQUA + "◆ " + ChatColor.GRAY + "Speed: " + ChatColor.YELLOW
                 + "+" + Math.round(tier.getSpeedBonus() * 100));
+        lore.add(ChatColor.DARK_GRAY + "Scales with this set's level in /armor.");
         return lore;
     }
 
@@ -193,8 +299,12 @@ public class ArmorManager {
                 String id = tierOf(piece);
                 ArmorTier tier = tiers.get(id);
                 if (tier != null) {
-                    luck += tier.getLuckBonus();
-                    speed += tier.getSpeedBonus();
+                    // V353: each piece pays at the level its TIER is on,
+                    // so levelling up is felt without re-handing the item
+                    // over and without touching armour already worn.
+                    double scale = levelScale(levelOf(data, id));
+                    luck += tier.getLuckBonus() * scale;
+                    speed += tier.getSpeedBonus() * scale;
                     worn++;
                     if (setId == null) setId = id;
                     else if (!setId.equals(id)) matched = false;
@@ -264,6 +374,7 @@ public class ArmorManager {
         }
         for (Map.Entry<Rarity, Long> back : refund.entrySet()) data.addBankedDrops(back.getKey(), back.getValue());
         data.getPurchasedArmorTiers().clear();
+        data.getArmorLevels().clear();
         data.setArmorVersion(version);
         if (removed > 0 || bought) {
             StringBuilder back = new StringBuilder();

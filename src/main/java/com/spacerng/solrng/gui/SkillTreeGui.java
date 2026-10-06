@@ -64,18 +64,26 @@ public class SkillTreeGui {
     // draw as "???", which is the same promise the rest of the empty
     // frame makes: there is room here and something is coming.
     private static final Set<Integer> LAYOUT_SLOTS = Set.of(
-            // V349, Leon's call: three straight lines and nothing else.
-            // The frame used to carry stubs and mirrors that no node ever
-            // sat on, and after the crop nodes left in V344 there were
-            // holes in the middle of it as well, so the shape read as
-            // broken rather than as "something is coming". Every node in
-            // both trees now stands on one of these, six to a column.
-            // Column 2, how fast you roll.
-            1, 10, 19, 28, 37, 46,
-            // Column 5, how good a roll is.
+            // V353, Leon's call: the V348 shape is back. V349 flattened
+            // everything onto three straight columns and he read that as
+            // a list, not a tree. This frame starts at one root in the
+            // middle of the bottom row and fans out: the Luck spine runs
+            // straight up the middle, and the Speed and Money spines
+            // branch away along row 5 before climbing their own column.
+            // Speed spine: (2,1)->(2,5), then right to (3,5) and (4,5)
+            1, 10, 19, 28, 37, 38, 39,
+            // Luck spine: (5,1)->(5,6). (5,6) is the root at the very bottom.
             4, 13, 22, 31, 40, 49,
-            // Column 8, what a roll is worth and what it opens.
-            7, 16, 25, 34, 43, 52
+            // Money spine: (8,1)->(8,5), then left to (7,5) and (6,5)
+            7, 16, 25, 34, 43, 42, 41,
+            // Extras: (3,3) speed, (7,3) money, (4,2) and (6,2) luck
+            20, 24, 12, 14,
+            // The root's two flanks (4,6) and (6,6)
+            48, 50,
+            // The row 4 stubs (3,4) and (7,4)
+            29, 33,
+            // The row 1 stubs (4,1) and (6,1)
+            3, 5
     );
 
     /**
@@ -187,6 +195,21 @@ public class SkillTreeGui {
         return item;
     }
 
+    /**
+     * Whether a node is finished in the sense the glint promises. A leveled
+     * node is finished at its max level and a plain unlock the moment it is
+     * bought, but an UNLOCK_ENCHANT node only counts once the enchant it
+     * opened is itself at the ceiling the player can currently reach.
+     */
+    private static boolean fullyMaxed(SolRNGPlugin plugin, PlayerData data, SkillNode node, boolean complete) {
+        if (!complete) return false;
+        if (node.getEffect() != SkillNode.Effect.UNLOCK_ENCHANT || node.getTarget() == null) return true;
+        var enchant = plugin.getHoeEnchantManager().get(node.getTarget());
+        if (enchant == null || enchant.comingSoon()) return false;
+        int cap = plugin.getHoeEnchantManager().maxLevelFor(data, enchant);
+        return cap > 0 && plugin.getHoeEnchantManager().levelOf(data, node.getTarget()) >= cap;
+    }
+
     private static ItemStack buildNodeIcon(SolRNGPlugin plugin, Player player, PlayerData data, SkillNode node) {
         boolean leveled = node.isLeveled();
         int level = leveled ? data.getNodeLevel(node.getId()) : 0;
@@ -247,7 +270,13 @@ public class SkillTreeGui {
         meta.setDisplayName(Lore.title(accent, node.getDisplay()));
         // Glint instead of a colour-coded dye, so the skill keeps its own
         // icon while still reading as "done" at a glance.
-        meta.setEnchantmentGlintOverride(complete ? Boolean.TRUE : null);
+        //
+        // V353: an enchant node is only finished when the enchant behind it
+        // is at its own ceiling. Unlocking one is the first of a thousand
+        // levels, so glinting it there told a player a skill was done while
+        // it was barely started, and Leon read the whole tree as glinting
+        // for no reason.
+        meta.setEnchantmentGlintOverride(fullyMaxed(plugin, data, node, complete) ? Boolean.TRUE : null);
         meta.setLore(lore);
         meta.getPersistentDataContainer().set(nodeIdKey(plugin), PersistentDataType.STRING, node.getId());
         icon.setItemMeta(meta);

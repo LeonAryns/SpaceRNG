@@ -29,6 +29,7 @@ import com.spacerng.solrng.gui.SkillTreeGui;
 import com.spacerng.solrng.gui.SkillTreeHolder;
 import com.spacerng.solrng.player.ArmorManager;
 import com.spacerng.solrng.player.ArmorPiece;
+import com.spacerng.solrng.player.ArmorTier;
 import com.spacerng.solrng.player.PlayerData;
 import com.spacerng.solrng.player.PrestigeManager;
 import com.spacerng.solrng.rarity.Rarity;
@@ -186,9 +187,19 @@ final class ProgressionClicks {
 
         NamespacedKey tierIdKey = ArmorGui.tierIdKey(plugin);
         String tierId = clicked.getItemMeta().getPersistentDataContainer().get(tierIdKey, PersistentDataType.STRING);
+        if (tierId == null) return;
+
+        // V353: the bottom row levels a set that is already owned, with
+        // more of the same drop it was bought with.
+        if (clicked.getItemMeta().getPersistentDataContainer()
+                .has(ArmorGui.upgradeKey(plugin), PersistentDataType.STRING)) {
+            handleArmorUpgrade(event, tierId);
+            return;
+        }
+
         String pieceName = clicked.getItemMeta().getPersistentDataContainer()
                 .get(ArmorGui.pieceKey(plugin), PersistentDataType.STRING);
-        if (tierId == null || pieceName == null) return;
+        if (pieceName == null) return;
 
         ArmorPiece piece;
         try {
@@ -206,9 +217,55 @@ final class ProgressionClicks {
             player.sendMessage(ChatColor.GREEN + "Bought: " + armor.get(tierId).pieceDisplay(piece));
             player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_LEVELUP, 0.6f, 1.4f);
             player.openInventory(ArmorGui.build(plugin, player)); // refresh
+        } else if (!armor.tierOpen(data, tierId)) {
+            ArmorTier previous = armor.previousTier(tierId);
+            player.sendMessage(ChatColor.RED + "Take "
+                    + ChatColor.YELLOW + (previous == null ? "the set below" : previous.getDisplay())
+                    + ChatColor.RED + " to level " + armor.maxArmorLevel() + " before you buy this one.");
         } else {
             player.sendMessage(ChatColor.RED + "You can't buy that yet.");
         }
+    }
+
+    /**
+     * One level on a set already owned. A shift click spends as far as the
+     * drops stretch, which matters because the late levels are many of a
+     * drop rather than one of a rarer one.
+     */
+    private void handleArmorUpgrade(InventoryClickEvent event, String tierId) {
+        Player player = (Player) event.getWhoClicked();
+        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+        ArmorManager armor = plugin.getArmorManager();
+        ArmorTier tier = armor.get(tierId);
+        if (tier == null) return;
+
+        int before = armor.levelOf(data, tierId);
+        if (before < 1) {
+            player.sendMessage(ChatColor.RED + "Buy a piece of that set first.");
+            return;
+        }
+        int limit = event.isShiftClick() ? armor.maxArmorLevel() : 1;
+        int bought = 0;
+        while (bought < limit && armor.levelUp(player, data, tierId)) {
+            bought++;
+        }
+
+        if (bought == 0) {
+            player.sendMessage(before >= armor.maxArmorLevel()
+                    ? ChatColor.GREEN + tier.getDisplay() + " is already at level " + armor.maxArmorLevel() + "."
+                    : ChatColor.RED + "You don't have the drops for that.");
+            player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.7f, 1.0f);
+            return;
+        }
+
+        int now = armor.levelOf(data, tierId);
+        player.sendMessage(ChatColor.GREEN + tier.getDisplay() + ChatColor.GRAY + " is now level "
+                + ChatColor.YELLOW + now + ChatColor.GRAY + " of " + armor.maxArmorLevel() + ".");
+        if (now >= armor.maxArmorLevel()) {
+            player.sendMessage(ChatColor.GOLD + "That set is maxed. The next one is open in /armor.");
+        }
+        player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_ANVIL_USE, 0.6f, 1.5f);
+        player.openInventory(ArmorGui.build(plugin, player));
     }
 
     void handlePrestigeClick(InventoryClickEvent event) {

@@ -374,10 +374,17 @@ public final class StatSources {
                 1.0 + plugin.getLinkedAccountManager().bonusFor(data.getUuid(), PerkStat.COINS_PERCENT),
                 Op.MULTIPLY));
 
+        // V353: the crop's own Coin Fortune, bought in /crops on the crop
+        // you are growing. It is in the fold rather than a footnote so
+        // /stats quotes the number the farm actually pays.
+        parts.add(new Part("Crop", "Coin Fortune in /crops",
+                com.spacerng.solrng.farming.CropBoosts.onSelected(plugin, data, "COIN_FORTUNE"),
+                Op.MULTIPLY));
+
         return new Stat(Id.COINS, "Coins",
                 "What every crop pays on the farm.",
                 Format.MULTIPLIER, parts, fold(parts),
-                "Each crop's own yield skills multiply this on top.");
+                "The Crop part is whichever crop you are growing now.");
     }
 
     // ---------------------------------------------------------- enchants
@@ -397,6 +404,9 @@ public final class StatSources {
                 Op.MULTIPLY));
         parts.add(new Part("Pets", "Wear pets in /pets",
                 1.0 + plugin.getPetManager().totalOf(data, Id.ENCHANT), Op.MULTIPLY));
+        parts.add(new Part("Crop", "Enchant Proc in /crops",
+                com.spacerng.solrng.farming.CropBoosts.onSelected(plugin, data, "ENCHANT_PROC"),
+                Op.MULTIPLY));
 
         return new Stat(Id.ENCHANT, "Enchant Proc",
                 "How often every hoe enchant fires.",

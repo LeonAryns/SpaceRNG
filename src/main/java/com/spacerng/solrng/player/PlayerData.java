@@ -29,6 +29,8 @@ public class PlayerData {
     // "speed_skill" -> 4 out of a maxLevel of 10. One-time nodes never
     // appear here - they live in unlockedNodes instead.
     private final Map<String, Integer> nodeLevels = new HashMap<>();
+    private final Map<String, Integer> cropBoosts = new HashMap<>();
+    private final Map<String, Integer> armorLevels = new HashMap<>();
     // Item display names (e.g. "Fallen Star") the player has ever rolled -
     // backs /index and its per-discovery luck bonus.
     private final Set<String> discoveredItems = new HashSet<>();
@@ -352,6 +354,41 @@ public class PlayerData {
 
     public void setNodeLevel(String nodeId, int level) {
         nodeLevels.put(nodeId, level);
+    }
+
+    /**
+     * Per-crop boost levels, keyed "<cropId>:<statId>" (V353). One flat map
+     * rather than a map of maps, so saving and loading is the same two
+     * lines node levels use, and a crop that was never boosted simply has
+     * no entries.
+     */
+    public Map<String, Integer> getCropBoosts() {
+        return cropBoosts;
+    }
+
+    public int getCropBoost(String key) {
+        return cropBoosts.getOrDefault(key, 0);
+    }
+
+    public void setCropBoost(String key, int level) {
+        cropBoosts.put(key, level);
+    }
+
+    /**
+     * Armour levels, one per tier id (V353). A tier bought is level 1 and
+     * climbs to armor.levels.max-level on drops of the same rarity it was
+     * bought with; the next tier does not open until this one is there.
+     */
+    public Map<String, Integer> getArmorLevels() {
+        return armorLevels;
+    }
+
+    public int getArmorLevel(String tierId) {
+        return armorLevels.getOrDefault(tierId, 0);
+    }
+
+    public void setArmorLevel(String tierId, int level) {
+        armorLevels.put(tierId, level);
     }
 
     public Set<String> getDiscoveredItems() {

@@ -38,6 +38,8 @@ public class ArmorGui {
     private static final int[] DIVIDER_COLUMNS = {0, 4, 8};
     private static final int PIECE_ROWS = 4; // helmet, chestplate, leggings, boots
     private static final int STATS_SLOT = 44;
+    // V353: the bottom row carries one upgrade button under each tier.
+    private static final int UPGRADE_ROW = 4;
 
     public static NamespacedKey tierIdKey(SolRNGPlugin plugin) {
         return SolRNGPlugin.key( "solrng_armor_tier_id");
@@ -46,6 +48,11 @@ public class ArmorGui {
     /** Which slot's piece this icon sells - pieces are bought one at a time. */
     public static NamespacedKey pieceKey(SolRNGPlugin plugin) {
         return SolRNGPlugin.key( "solrng_armor_piece");
+    }
+
+    /** Set on the bottom-row buttons that level a tier up (V353). */
+    public static NamespacedKey upgradeKey(SolRNGPlugin plugin) {
+        return SolRNGPlugin.key( "solrng_armor_upgrade");
     }
 
     public static Inventory build(SolRNGPlugin plugin, Player player) {
@@ -80,6 +87,8 @@ public class ArmorGui {
                 inv.setItem(row * 9 + col,
                         buildPieceIcon(plugin, player, data, armor, tier, pieces[row], rarityKey, tierIdKey, pieceKey(plugin)));
             }
+            inv.setItem(UPGRADE_ROW * 9 + col,
+                    buildUpgradeIcon(plugin, player, data, armor, tier, tierIdKey));
         }
 
         inv.setItem(STATS_SLOT, buildDropTotals(plugin, player, data));
@@ -93,20 +102,31 @@ public class ArmorGui {
                                              ArmorTier tier, ArmorPiece piece, NamespacedKey rarityKey,
                                              NamespacedKey tierIdKey, NamespacedKey pieceKey) {
         boolean owned = data.hasPurchasedArmor(tier.getId(), piece);
+        boolean open = armor.tierOpen(data, tier.getId());
+        int level = armor.levelOf(data, tier.getId());
 
         ItemStack icon = new ItemStack(tier.materialFor(piece));
         ItemMeta meta = icon.getItemMeta();
-        meta.setDisplayName(Lore.title(owned ? ChatColor.GREEN : ChatColor.AQUA,
+        meta.setDisplayName(Lore.title(owned ? ChatColor.GREEN : open ? ChatColor.AQUA : ChatColor.DARK_GRAY,
                 ChatColor.stripColor(tier.pieceDisplay(piece))));
+        meta.setEnchantmentGlintOverride(owned ? Boolean.TRUE : null);
 
         List<String> lore = new ArrayList<>();
         lore.add(Lore.section(ChatColor.AQUA, "While worn"));
         // Exactly the stat block the real item carries, so what you see in
-        // the shop is what you get.
-        lore.addAll(armor.statLines(tier));
+        // the shop is what you get, at the level this tier is on.
+        lore.addAll(wornLines(armor, tier, Math.max(1, level)));
         lore.add("");
         if (owned) {
             lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "Owned");
+        } else if (!open) {
+            // V353: the tier below has to be maxed first, and a Locked
+            // footer always says the one way in.
+            ArmorTier previous = armor.previousTier(tier.getId());
+            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Locked");
+            lore.add(ChatColor.RED + Lore.BULLET + " " + ChatColor.GRAY + "Take "
+                    + ChatColor.WHITE + (previous == null ? "the set below" : previous.getDisplay())
+                    + ChatColor.GRAY + " to level " + armor.maxArmorLevel() + " first.");
         } else {
             boolean affordable = true;
             lore.add(Lore.section(ChatColor.YELLOW, "Price"));
@@ -128,6 +148,111 @@ public class ArmorGui {
         meta.getPersistentDataContainer().set(pieceKey, PersistentDataType.STRING, piece.name());
         icon.setItemMeta(meta);
         return icon;
+    }
+
+    /**
+     * The While worn block at a given level. The numbers are the tier's own
+     * scaled by ArmorManager, so the shop and the real item cannot drift.
+     */
+    private static List<String> wornLines(ArmorManager armor, ArmorTier tier, int level) {
+        double scale = armor.levelScale(level);
+        List<String> lore = new ArrayList<>();
+        lore.add("");
+        lore.add(ChatColor.GRAY + "When Worn:");
+        lore.add(ChatColor.AQUA + "◆ " + ChatColor.GRAY + "Luck: " + ChatColor.GREEN
+                + "+" + Math.round(tier.getLuckBonus() * scale * 100) + "%");
+        lore.add(ChatColor.AQUA + "◆ " + ChatColor.GRAY + "Speed: " + ChatColor.YELLOW
+                + "+" + Math.round(tier.getSpeedBonus() * scale * 100));
+        return lore;
+    }
+
+    /**
+     * The bottom-row button that levels one tier up. It is the only place
+     * drops are spent on something already owned, so it says what the next
+     * level is worth as well as what it costs.
+     */
+    private static ItemStack buildUpgradeIcon(SolRNGPlugin plugin, Player player, PlayerData data,
+                                              ArmorManager armor, ArmorTier tier, NamespacedKey tierIdKey) {
+        int level = armor.levelOf(data, tier.getId());
+        int max = armor.maxArmorLevel();
+        boolean owned = level >= 1;
+        boolean maxed = level >= max;
+
+        ItemStack icon = new ItemStack(maxed ? Material.NETHER_STAR
+                : owned ? Material.ANVIL : Material.STONE_BUTTON);
+        ItemMeta meta = icon.getItemMeta();
+        meta.setDisplayName(Lore.title(maxed ? ChatColor.GREEN : owned ? ChatColor.YELLOW : ChatColor.DARK_GRAY,
+                tier.getDisplay() + " Level"));
+        meta.setEnchantmentGlintOverride(maxed ? Boolean.TRUE : null);
+
+        List<String> lore = new ArrayList<>();
+        lore.add(ChatColor.DARK_GRAY + "Set upgrade");
+        lore.add("");
+        if (!owned) {
+            lore.add(Lore.line(ChatColor.GRAY, "Buy a piece of this set to"));
+            lore.add(Lore.line(ChatColor.GRAY, "start levelling it."));
+            lore.add("");
+            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Locked");
+            lore.add(ChatColor.RED + Lore.BULLET + " " + ChatColor.GRAY + "Buy any piece above.");
+            meta.setLore(lore);
+            meta.getPersistentDataContainer().set(tierIdKey, PersistentDataType.STRING, tier.getId());
+            meta.getPersistentDataContainer().set(upgradeKey(plugin), PersistentDataType.STRING, "1");
+            icon.setItemMeta(meta);
+            return icon;
+        }
+
+        lore.add(Lore.line(ChatColor.GRAY, "Every level raises what each"));
+        lore.add(Lore.line(ChatColor.GRAY, "worn piece of this set is worth."));
+        lore.add("");
+        lore.add(Lore.section(ChatColor.AQUA, "Your set"));
+        lore.add(Lore.stat(ChatColor.AQUA, "Level", level + " / " + max));
+        lore.add(Lore.stat(ChatColor.GREEN, "Luck each",
+                "+" + Math.round(tier.getLuckBonus() * armor.levelScale(level) * 100) + "%"));
+        if (!maxed) {
+            lore.add(Lore.upgrade(ChatColor.GREEN, "Next",
+                    "+" + Math.round(tier.getLuckBonus() * armor.levelScale(level) * 100) + "%",
+                    "+" + Math.round(tier.getLuckBonus() * armor.levelScale(level + 1) * 100) + "%"));
+        }
+        lore.add(Lore.barMinimal(level / (double) max));
+        lore.add("");
+
+        if (maxed) {
+            lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "Maxed");
+            ArmorTier next = nextTier(armor, tier.getId());
+            if (next != null) {
+                lore.add(ChatColor.GREEN + Lore.BULLET + " " + ChatColor.GRAY + next.getDisplay() + " is open.");
+            }
+        } else {
+            Rarity rarity = armor.levelRarity(tier);
+            long cost = armor.levelCost(tier, level);
+            long held = rarity == null ? 0L : DropWallet.total(plugin, player, data, rarity);
+            boolean enough = rarity != null && held >= cost;
+            lore.add(Lore.section(ChatColor.YELLOW, "Price"));
+            if (rarity != null) {
+                lore.add(Lore.requirement(
+                        plugin.getRarityManager().style(rarity, rarity.displayName()),
+                        String.valueOf(held), String.valueOf(cost), enough));
+            }
+            lore.add("");
+            lore.add(enough
+                    ? ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to upgrade"
+                    : ChatColor.RED + "" + ChatColor.BOLD + "Not enough drops");
+        }
+
+        meta.setLore(lore);
+        meta.getPersistentDataContainer().set(tierIdKey, PersistentDataType.STRING, tier.getId());
+        meta.getPersistentDataContainer().set(upgradeKey(plugin), PersistentDataType.STRING, "1");
+        icon.setItemMeta(meta);
+        return icon;
+    }
+
+    private static ArmorTier nextTier(ArmorManager armor, String tierId) {
+        boolean found = false;
+        for (Map.Entry<String, ArmorTier> entry : armor.getTiers().entrySet()) {
+            if (found) return entry.getValue();
+            if (entry.getKey().equals(tierId)) found = true;
+        }
+        return null;
     }
 
     private static ItemStack glassFiller(Material material) {

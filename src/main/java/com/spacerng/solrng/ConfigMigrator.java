@@ -76,6 +76,14 @@ public final class ConfigMigrator {
      * server already has, like one more hologram panel.
      */
     private static final List<String> ADDED_SECTIONS = List.of(
+            // V353: the per-crop upgrades that replaced the farm tree's
+            // Yield nodes. A whole new top-level section, so it reaches a
+            // live config only from here.
+            "crop-boosts",
+            // V353: armour levels. A sub-section inside an armor: block
+            // every older config already has, so it never merges on its
+            // own and without it the server runs the code defaults.
+            "armor.levels",
             // V313: brand new keys, so a Patch cannot carry them - there
             // is no old default to match. Without these the live server
             // falls back to the code default of 0.0 and no egg would ever

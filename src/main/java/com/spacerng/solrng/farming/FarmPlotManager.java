@@ -718,13 +718,16 @@ public class FarmPlotManager {
         // than read there: it's earned live and resets when you stop.
         double multiplier = com.spacerng.solrng.stats.StatSources
                 .coins(plugin, data, momentumMultiplier(player, hoe, data, chain)).total();
-        // Per-crop yield skills stack on top, so specialising in one crop
-        // is a real choice against raising every crop a little.
-        double cropYield = plugin.getSkillTreeManager()
-                .multiplierOf(data, com.spacerng.solrng.player.SkillNode.Effect.CROP_YIELD, crop.getId());
+        // V353: the per-crop yield SKILLS are gone from /farmtree and live
+        // on the crop itself, bought in /crops. Coins and Gems take their
+        // own line now rather than sharing one multiplier, so a player can
+        // push a crop toward one or the other.
+        double coinFortune = CropBoosts.multiplierOf(plugin, data, crop.getId(), "COIN_FORTUNE");
+        double gemFortune = CropBoosts.multiplierOf(plugin, data, crop.getId(), "GEM_FORTUNE");
         // A Crop Yield perk raises every crop at once.
-        cropYield *= 1.0 + plugin.getPerkManager().totalOf(data, com.spacerng.solrng.perk.PerkStat.CROP_YIELD_PERCENT);
-        multiplier *= cropYield;
+        double perkYield = 1.0 + plugin.getPerkManager()
+                .totalOf(data, com.spacerng.solrng.perk.PerkStat.CROP_YIELD_PERCENT);
+        multiplier *= coinFortune * perkYield;
         long tokens = Math.round(crop.getTokens() * multiplier);
 
         // The golden crop pays many times over and then moves somewhere
@@ -736,7 +739,7 @@ public class FarmPlotManager {
 
         double gemMultiplier = plugin.getSkillTreeManager()
                 .multiplierOf(data, com.spacerng.solrng.player.SkillNode.Effect.GEM_MULTIPLIER)
-                * cropYield * data.boostMultiplier("GEMS");
+                * gemFortune * perkYield * data.boostMultiplier("GEMS");
         long shards = shardsUnlocked(data)
                 ? Math.round(crop.getShards() * gemMultiplier) : 0L;
 
@@ -853,8 +856,13 @@ public class FarmPlotManager {
      */
     private int regrowTicksFor(PlayerData data) {
         double faster = plugin.getHoeEnchantManager().powerOf(data, "SPEED");
+        // V353: Growth bought on this crop in /crops shortens the regrow
+        // on top of the Speed enchant. It divides rather than adding to
+        // `faster`, so the 90% floor the enchant respects is not spent
+        // twice and the two sources cannot stack into an instant field.
+        double growth = CropBoosts.onSelected(plugin, data, "GROWTH");
         return (int) Math.max(regrowFloorTicks,
-                Math.round(regrowTicks * (1.0 - Math.min(0.90, faster))));
+                Math.round(regrowTicks * (1.0 - Math.min(0.90, faster)) / Math.max(1.0, growth)));
     }
 
     /**

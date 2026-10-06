@@ -310,6 +310,19 @@ public class PlayerDataManager {
                 data.setNodeLevel(nodeId, nodeLevels.getInt(nodeId));
             }
         }
+        org.bukkit.configuration.ConfigurationSection armorLevels = yml.getConfigurationSection("armor-levels");
+        if (armorLevels != null) {
+            for (String tierId : armorLevels.getKeys(false)) {
+                data.setArmorLevel(tierId, armorLevels.getInt(tierId));
+            }
+        }
+        // V353: per-crop boost levels, keyed "<cropId>:<statId>".
+        org.bukkit.configuration.ConfigurationSection cropBoosts = yml.getConfigurationSection("crop-boosts");
+        if (cropBoosts != null) {
+            for (String key : cropBoosts.getKeys(false)) {
+                data.setCropBoost(key, cropBoosts.getInt(key));
+            }
+        }
         for (String itemName : yml.getStringList("discovered-items")) {
             data.getDiscoveredItems().add(com.spacerng.solrng.rarity.RarityManager.currentName(itemName));
         }
@@ -545,6 +558,12 @@ public class PlayerDataManager {
         yml.set("unlocked-nodes", new java.util.ArrayList<>(data.getUnlockedNodes()));
         for (Map.Entry<String, Integer> entry : data.getNodeLevels().entrySet()) {
             yml.set("node-levels." + entry.getKey(), entry.getValue());
+        }
+        for (Map.Entry<String, Integer> entry : data.getArmorLevels().entrySet()) {
+            yml.set("armor-levels." + entry.getKey(), entry.getValue());
+        }
+        for (Map.Entry<String, Integer> entry : data.getCropBoosts().entrySet()) {
+            yml.set("crop-boosts." + entry.getKey(), entry.getValue());
         }
         yml.set("discovered-items", new java.util.ArrayList<>(data.getDiscoveredItems()));
         yml.set("stash", new java.util.ArrayList<>(data.getStash()));
