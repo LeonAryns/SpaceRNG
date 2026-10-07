@@ -331,9 +331,24 @@ public class NovaCoreManager {
 
     /** {@code charge} is false for free attempts, e.g. the Nova Finder enchant. */
     public boolean attempt(Player player, PlayerData data, boolean charge) {
+        return attempt(player, data, charge, false);
+    }
+
+    /**
+     * {@code quiet} forges without saying anything (V357).
+     *
+     * Supernova forces several free climbs per proc, and every one of them
+     * wrote its own chat line and played its own effect whatever the
+     * player had set, so turning the Supernova message off removed one
+     * line out of five. At the top of the ladder it was worse: every
+     * attempt printed "already fully forged" and nothing else happened.
+     * A quiet climb still climbs, still shatters and still updates the
+     * board; it simply does not narrate.
+     */
+    public boolean attempt(Player player, PlayerData data, boolean charge, boolean quiet) {
         int tier = data.getNovaTier();
         if (tier >= maxTier) {
-            player.sendMessage(ChatColor.GREEN + "Your Nova Core is already fully forged.");
+            if (!quiet) player.sendMessage(ChatColor.GREEN + "Your Nova Core is already fully forged.");
             return false;
         }
 
@@ -367,27 +382,42 @@ public class NovaCoreManager {
             if (next > data.getNovaBestTier()) {
                 data.setNovaBestTier(next);
             }
-            player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD
-                    + "Your Nova Core is now Tier " + next + "! "
-                    + ChatColor.RESET + ChatColor.GRAY + "Nova Core Luck is now "
-                    + ChatColor.LIGHT_PURPLE + String.format("%.2f", multiplierAt(next)) + "x"
-                    + (isCheckpoint(next) ? ChatColor.AQUA + "  (checkpoint secured)" : ""));
-            NovaForgeFx.climbed(plugin, player, isCheckpoint(next));
+            if (!quiet) {
+                player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD
+                        + "Your Nova Core is now Tier " + next + "! "
+                        + ChatColor.RESET + ChatColor.GRAY + "Nova Core Luck is now "
+                        + ChatColor.LIGHT_PURPLE + String.format("%.2f", multiplierAt(next)) + "x"
+                        + (isCheckpoint(next) ? ChatColor.AQUA + "  (checkpoint secured)" : ""));
+                NovaForgeFx.climbed(plugin, player, isCheckpoint(next));
+            }
         } else if (holdsOnFailure(data)) {
             // Core Anchor: the attempt is still lost, and so are the Tokens.
             // Only the fall is cancelled - otherwise the skill would remove
             // the risk instead of softening it.
-            player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "Anchored! "
-                    + ChatColor.RESET + ChatColor.GRAY + "The climb failed but your Core held at tier "
-                    + ChatColor.WHITE + tier);
-            NovaForgeFx.anchored(plugin, player);
+            if (!quiet) {
+                player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "Anchored! "
+                        + ChatColor.RESET + ChatColor.GRAY + "The climb failed but your Core held at tier "
+                        + ChatColor.WHITE + tier);
+                NovaForgeFx.anchored(plugin, player);
+            }
         } else {
             int fallback = checkpointBelow(tier);
             data.setNovaTier(fallback);
-            player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Shattered! "
-                    + ChatColor.RESET + ChatColor.GRAY + "Back to tier " + ChatColor.WHITE + fallback
-                    + ChatColor.DARK_GRAY + " (was " + tier + ")");
-            NovaForgeFx.shattered(plugin, player);
+            // A shatter is the one thing a quiet climb still says, on the
+            // action bar rather than in chat. Losing tiers with no sign at
+            // all is a trap, and the action bar is not the chat log Leon
+            // turned off.
+            if (quiet) {
+                com.spacerng.solrng.gui.ActionBar.send(player,
+                        net.kyori.adventure.text.Component.text("Nova Core shattered, back to tier " + fallback,
+                                net.kyori.adventure.text.format.NamedTextColor.RED),
+                        2000L);
+            } else {
+                player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Shattered! "
+                        + ChatColor.RESET + ChatColor.GRAY + "Back to tier " + ChatColor.WHITE + fallback
+                        + ChatColor.DARK_GRAY + " (was " + tier + ")");
+                NovaForgeFx.shattered(plugin, player);
+            }
         }
 
         plugin.getScoreboardManager().update(player);

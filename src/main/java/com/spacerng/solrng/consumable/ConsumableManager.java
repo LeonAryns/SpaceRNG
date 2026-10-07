@@ -172,6 +172,10 @@ public class ConsumableManager {
         // A description may run over several lines, split on a newline
         // ("\n" in config), so an item that needs explaining can (V170).
         String[] descLines = description.isEmpty() ? new String[0] : description.split("\n");
+        // V357: bold at the logical points, Leon's ask. The words are
+        // picked at draw time rather than written into config, so this
+        // reaches a live server without a migration.
+        for (int i = 0; i < descLines.length; i++) descLines[i] = Lore.highlight(descLines[i]);
 
         List<String> lore = new ArrayList<>();
         switch (style == null ? "" : style.toLowerCase(java.util.Locale.ROOT)) {
@@ -229,6 +233,27 @@ public class ConsumableManager {
      * minus is written as a minus rather than hidden - the trade IS the
      * item.
      */
+    /**
+     * What kind of thing a consumable is, for a card's subtitle (V357).
+     *
+     * The crate card called everything that was not a draught a "Potion",
+     * which put "Potion" under a Nova Core. This reads what the thing
+     * actually does, and returns nothing at all rather than guessing,
+     * because a subtitle that is wrong costs more than a subtitle that is
+     * missing.
+     */
+    public String kindOf(Consumable consumable) {
+        if (consumable == null) return "";
+        if (consumable.isNovaCore()) return "Nova Core";
+        if (consumable.isBossSummon()) return "Boss summon";
+        if (consumable.isFreeSkill()) return "Voucher";
+        if (consumable.isPermanent()) return "Permanent boost";
+        if (consumable.isDraught()) return "Draught";
+        if (consumable.isCharge()) return "Roll charge";
+        if (consumable.isTimed()) return "Timed potion";
+        return "";
+    }
+
     public java.util.List<String> describe(Consumable consumable) {
         java.util.List<String> lines = new ArrayList<>();
         if (consumable.luck() != 0.0) {

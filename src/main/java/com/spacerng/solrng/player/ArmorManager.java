@@ -131,14 +131,30 @@ public class ArmorManager {
         return lowest;
     }
 
-    /** How many of that drop level `level` to `level + 1` costs. */
+    /**
+     * How many of that drop level {@code level} to {@code level + 1} costs.
+     *
+     * V357, Leon's call: the ladder is pinned at the TOP rather than
+     * grown from the tier's buy price. The last step, the one into
+     * max-level, costs armor.levels.top-cost drops, and every step below
+     * it is cost-growth cheaper than the one above. At 50 and 1.45 over
+     * ten levels that is 3, 4, 6, 8, 12, 17, 25, 36, 50, which is 161 for
+     * a maxed tier against 607 before, so every level costs less and the
+     * last one costs fifty.
+     *
+     * Pinning the top also means every tier's climb is the same COUNT of
+     * its own rarity. A Mythical tier asking for fifty Mythicals is
+     * already far harder than a Leather one asking for fifty Commons;
+     * multiplying that by the tier's price as well made the top tiers
+     * unreachable.
+     */
     public long levelCost(ArmorTier tier, int level) {
         Rarity rarity = levelRarity(tier);
         if (rarity == null) return 0L;
-        long base = tier.getCosts().getOrDefault(rarity, 1L);
-        double first = plugin.getConfig().getDouble("armor.levels.first-step", 0.5);
-        double growth = plugin.getConfig().getDouble("armor.levels.cost-growth", 1.45);
-        return Math.max(1L, Math.round(base * first * Math.pow(growth, Math.max(0, level - 1))));
+        double top = plugin.getConfig().getDouble("armor.levels.top-cost", 50.0);
+        double growth = Math.max(1.01, plugin.getConfig().getDouble("armor.levels.cost-growth", 1.45));
+        int last = Math.max(1, maxArmorLevel() - 1);
+        return Math.max(1L, Math.round(top * Math.pow(growth, Math.max(0, level) - last)));
     }
 
     /** The tier before this one in config order, or null for the first. */

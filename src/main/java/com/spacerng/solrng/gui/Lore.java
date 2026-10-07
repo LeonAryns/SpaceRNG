@@ -322,6 +322,81 @@ public final class Lore {
         return ChatColor.WHITE + "" + ChatColor.BOLD + text + ChatColor.RESET + ChatColor.GRAY;
     }
 
+    /**
+     * The words a description gets bold on, longest first (V357).
+     *
+     * Longest first matters: "Nova Core" has to be found before "Core",
+     * or the shorter one matches inside it and the result is half a word
+     * in bold. Nothing here is a verb or a connective, because bolding
+     * those is just a louder sentence.
+     */
+    private static final String[] KEY_WORDS = {
+            "Permanent Luck", "permanently", "Nova Core", "checkpoint", "Enchant Proc",
+            "Coin Fortune", "Gem Fortune", "Credits", "Coins", "Money", "Gems",
+            "Luck", "Speed", "Shiny", "shiny", "prestige", "Prestige",
+            "forever", "never runs out", "permanent",
+    };
+
+    /**
+     * Bolds the words that carry a description line (V357, Leon's ask).
+     *
+     * Leon asked for the longer descriptions to be bold at the logical
+     * points. Writing that by hand would mean editing every string in
+     * config, which does not reach a live server, so it is done at draw
+     * time instead: the currencies, the stats and the few nouns a reader
+     * is actually scanning for come out white and bold, and the sentence
+     * around them stays grey.
+     *
+     * Short lines are left alone. "quite a bit of text" was the ask, and
+     * bolding a word in a six word line is noise rather than emphasis.
+     */
+    public static String highlight(String text) {
+        if (text == null || text.length() < MIN_HIGHLIGHT) return text;
+        String out = text;
+        for (String word : KEY_WORDS) {
+            int at = out.indexOf(word);
+            if (at < 0) continue;
+            // Only inside a plain stretch: a word that already sits behind
+            // a colour code is somebody else's, and repainting it would
+            // take their colour away.
+            if (at > 0 && out.charAt(at - 1) == ChatColor.COLOR_CHAR) continue;
+            out = out.substring(0, at) + key(word) + out.substring(at + word.length());
+        }
+        return out;
+    }
+
+    /** Below this many characters a line is left unbolded. */
+    private static final int MIN_HIGHLIGHT = 24;
+
+    /**
+     * Splits a description into lore lines (V357).
+     *
+     * Two things bite here. A description in config may hold real "\n"
+     * separators, and a lore line is one string: left in, the break eats
+     * the words around it and the tooltip reads as half sentences, which
+     * is what Leon's Nova Core screenshot showed. And a line has to be
+     * wrapped on its visible length, so the measuring is done on the text
+     * before anything is painted on it.
+     */
+    public static java.util.List<String> describe(String text, int width) {
+        java.util.List<String> out = new java.util.ArrayList<>();
+        if (text == null || text.isBlank()) return out;
+        for (String para : text.split("\\\\n|\\n")) {
+            if (para.isBlank()) continue;
+            StringBuilder line = new StringBuilder();
+            for (String word : para.trim().split("\\s+")) {
+                if (line.length() > 0 && line.length() + 1 + word.length() > width) {
+                    out.add(line(ChatColor.GRAY, highlight(line.toString())));
+                    line.setLength(0);
+                }
+                if (line.length() > 0) line.append(' ');
+                line.append(word);
+            }
+            if (line.length() > 0) out.add(line(ChatColor.GRAY, highlight(line.toString())));
+        }
+        return out;
+    }
+
     /** ▎ Label: value - the most common shape. */
     public static String stat(ChatColor colour, String label, String value) {
         return switch (theme) {

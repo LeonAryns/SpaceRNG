@@ -98,9 +98,10 @@ public class PotionGui {
 
         List<String> lore = new ArrayList<>();
         lore.add(Lore.section(ChatColor.AQUA, "What it does"));
-        if (!consumable.description().isEmpty()) {
-            lore.add(Lore.line(ChatColor.AQUA, consumable.description()));
-        }
+        // V357: through Lore.describe, which splits a multi-line config
+        // description and bolds the words that carry it. One lore line
+        // holding a newline reads as half sentences.
+        lore.addAll(Lore.describe(consumable.description(), 34));
         lore.addAll(plugin.getConsumableManager().describe(consumable));
         lore.add("");
         lore.add(Lore.section(ChatColor.YELLOW, "Price"));

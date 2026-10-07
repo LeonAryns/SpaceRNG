@@ -20,14 +20,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-// The frame Leon spec'd, applied to every page of the skill tree.
-// Three vertical spines (Speed at col 2, Luck at col 5, Money at col 8)
-// converge on row 5, then the root sits at (5,6) with a flank either
-// side. Extras at row 3 (one per side spine), row 2 (both feeding the
-// Luck spine), row 4 and row 1 round out a 30-slot shape. Any slot not
-// in this set that is also not one of the four reserved buttons renders
-// as the dark border - which is why a node placed outside the set looks
-// like it is floating, see the V318 note on LAYOUT_SLOTS.
+// The frame Leon spec'd, applied to every page of both skill trees.
+// Three vertical lines, Speed at col 2, Luck at col 5 and Money at col 8,
+// standing on a trunk that fills the bottom two rows with the root in
+// the middle of it at (5,6). Nothing sits beside the lines above the
+// trunk. Any slot not in this set that is also not one of the four
+// reserved buttons renders as the dark border, which is why a node
+// placed outside the set looks like it is floating, see the V318 note on
+// LAYOUT_SLOTS.
 
 /**
  * A 6x9 skill tree, drawn entirely from config. Every node declares its
@@ -64,26 +64,30 @@ public class SkillTreeGui {
     // draw as "???", which is the same promise the rest of the empty
     // frame makes: there is room here and something is coming.
     private static final Set<Integer> LAYOUT_SLOTS = Set.of(
-            // V353, Leon's call: the V348 shape is back. V349 flattened
-            // everything onto three straight columns and he read that as
-            // a list, not a tree. This frame starts at one root in the
-            // middle of the bottom row and fans out: the Luck spine runs
-            // straight up the middle, and the Speed and Money spines
-            // branch away along row 5 before climbing their own column.
-            // Speed spine: (2,1)->(2,5), then right to (3,5) and (4,5)
-            1, 10, 19, 28, 37, 38, 39,
-            // Luck spine: (5,1)->(5,6). (5,6) is the root at the very bottom.
+            // V357, Leon's call: three lines and nothing beside them.
+            //
+            // V353 brought back the V348 fan-out, which hung extras at
+            // (3,3), (7,3), (4,2), (6,2), stubs at (3,4), (7,4) and more
+            // at (4,1), (6,1). Those are drawn as "???" whether or not a
+            // node ever claims them, so the tree read as three lines with
+            // bits floating around them however the nodes were placed.
+            // They are gone. What is left is a trunk along the bottom two
+            // rows with the root in the middle of it, and three lines
+            // climbing out of its left end, its middle and its right end.
+            //
+            // 26 slots, which is two more than the fullest page holds, so
+            // every node kept its page and the order they unlock in is
+            // untouched.
+            //
+            // Speed line, (2,1) up from the trunk at (2,6)
+            1, 10, 19, 28, 37, 46,
+            // Luck line, (5,1) down to the root at (5,6)
             4, 13, 22, 31, 40, 49,
-            // Money spine: (8,1)->(8,5), then left to (7,5) and (6,5)
-            7, 16, 25, 34, 43, 42, 41,
-            // Extras: (3,3) speed, (7,3) money, (4,2) and (6,2) luck
-            20, 24, 12, 14,
-            // The root's two flanks (4,6) and (6,6)
-            48, 50,
-            // The row 4 stubs (3,4) and (7,4)
-            29, 33,
-            // The row 1 stubs (4,1) and (6,1)
-            3, 5
+            // Money line, (8,1) up from the trunk at (8,6)
+            7, 16, 25, 34, 43, 52,
+            // The trunk, (3,5) (4,5) (6,5) (7,5) and (3,6) (4,6) (6,6) (7,6)
+            38, 39, 41, 42,
+            47, 48, 50, 51
     );
 
     /**

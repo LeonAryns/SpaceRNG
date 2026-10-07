@@ -1279,11 +1279,23 @@ public class FarmPlotManager {
             // Nova Finder gives you one free climb. Supernova is the same
             // idea several times over, which is what makes it the thing
             // you graduate to rather than a separate lottery.
-            for (int i = 0; i < supernovaAttempts; i++) {
-                plugin.getNovaCoreManager().attempt(player, data, false);
+            //
+            // V357: the climbs follow the Supernova message switch. Each
+            // one used to write its own line and play its own effect
+            // whatever the player had set, so switching Supernova off
+            // silenced one line out of five, and at the top of the ladder
+            // every attempt printed "already fully forged" and did
+            // nothing. At max tier there is no climb left to make, so the
+            // loop does not run at all.
+            boolean loud = data.isEnchantMessageOn("SUPERNOVA");
+            var nova2 = plugin.getNovaCoreManager();
+            if (data.getNovaTier() < nova2.getMaxTier()) {
+                for (int i = 0; i < supernovaAttempts; i++) {
+                    nova2.attempt(player, data, false, !loud);
+                }
+                procChat(player, data, "SUPERNOVA", ChatColor.AQUA + "  " + supernovaAttempts
+                        + " free Nova Core climbs on top.");
             }
-            procChat(player, data, "SUPERNOVA", ChatColor.AQUA + "  " + supernovaAttempts
-                    + " free Nova Core climbs on top.");
             procChat(player, data, "SUPERNOVA", "");
         }
     }

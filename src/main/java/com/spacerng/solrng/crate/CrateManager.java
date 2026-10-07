@@ -661,12 +661,23 @@ public class CrateManager {
         ChatColor accent = jackpot ? ChatColor.GOLD : ChatColor.AQUA;
 
         List<String> lore = new ArrayList<>();
-        lore.add(ChatColor.DARK_GRAY + (jackpot ? "Jackpot " : "") + kind(reward, consumable));
+        String kind = kind(reward, consumable);
+        if (jackpot) {
+            lore.add(ChatColor.GOLD + "Jackpot" + (kind.isEmpty() ? "" : ChatColor.DARK_GRAY + ", " + kind));
+        } else if (!kind.isEmpty()) {
+            lore.add(ChatColor.DARK_GRAY + kind);
+        }
         lore.add("");
         lore.addAll(describeLines(reward, consumable));
         lore.add("");
+        // V357: not when the name already says it. "5x Nova Core" under a
+        // card called "5x Nova Core" is a row saying nothing, which the
+        // menu-design skill argues against by name.
         String payout = payout(reward, consumable);
-        if (payout != null) lore.add(Lore.stat(accent, "You get", payout));
+        if (payout != null && !ChatColor.stripColor(meta.getDisplayName())
+                .contains(ChatColor.stripColor(payout))) {
+            lore.add(Lore.stat(accent, "You get", payout));
+        }
         lore.add(Lore.stat(accent, "Chance", chanceText(crate.chanceOf(reward))));
         meta.setLore(lore);
         meta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_ATTRIBUTES, org.bukkit.inventory.ItemFlag.HIDE_ENCHANTS);
@@ -706,7 +717,10 @@ public class CrateManager {
             case TICKETS -> "Perk roll";
             case BOOST -> "Timed boost";
             case PERMANENT -> "Permanent stat";
-            case CONSUMABLE -> consumable != null && consumable.isDraught() ? "Draught" : "Potion";
+            // V357: a Nova Core is not a potion. The subtitle is derived
+            // from what the consumable actually does, and when none of
+            // them fit it says nothing rather than something wrong.
+            case CONSUMABLE -> consumable == null ? "" : plugin.getConsumableManager().kindOf(consumable);
             case DROP -> Rarity.valueOf(reward.target()).displayName() + " drops";
         };
     }
@@ -749,9 +763,12 @@ public class CrateManager {
                     lines.add(Lore.line(ChatColor.GRAY, "Waits in " + Lore.key("/potions")));
                     lines.add(Lore.line(ChatColor.GRAY, "until you drink it."));
                 } else {
-                    for (String line : wrap(consumable.description(), 34)) {
-                        lines.add(Lore.line(ChatColor.GRAY, line));
-                    }
+                    // V357: through Lore.describe, which splits the real
+                    // "\n" separators in a config description before it
+                    // wraps. Wrapping straight over them swallowed the
+                    // words either side, which is why the Nova Core card
+                    // read as half sentences.
+                    lines.addAll(Lore.describe(consumable.description(), 34));
                 }
             }
             case DROP -> {

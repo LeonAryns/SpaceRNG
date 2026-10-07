@@ -145,8 +145,11 @@ public final class StatSources {
         // The base Luck per discovered drop is the Index Luck I skill's to
         // turn on, so it reads as a purchase instead of a freebie nobody
         // notices. Its levels then add more on top.
+        // V357: hasBought, not hasUnlocked. curator_1 has ten levels, so it
+        // lives in nodeLevels and never lands in unlockedNodes; this source
+        // paid nothing to anybody until now.
         parts.add(new Part("Index", "Buy Index Luck I in /skilltree",
-                data.hasUnlocked("curator_1")
+                data.hasBought("curator_1")
                         ? plugin.getConfig().getDouble("index.luck-per-discovery", 0.004)
                                 * data.getDiscoveredItems().size()
                         : 0.0,

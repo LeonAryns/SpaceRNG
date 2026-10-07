@@ -117,8 +117,10 @@ public class RanksGui {
         List<String> lore = new ArrayList<>();
         lore.add(ChatColor.DARK_GRAY + (free ? "Free while your Discord is linked" : "Permanent rank"));
         lore.add("");
+        // V357: Leon's own words from config, with the currencies and the
+        // stats inside them picked out in bold. Nothing is reworded.
         for (String pitch : ranks.blurbOf(tier)) {
-            lore.add(ChatColor.GRAY + pitch);
+            lore.add(ChatColor.GRAY + Lore.highlight(pitch));
         }
         lore.add("");
 

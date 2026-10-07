@@ -344,6 +344,20 @@ public class PlayerData {
         return unlockedNodes.contains(nodeId);
     }
 
+    /**
+     * Whether a node has been bought at all, leveled or not (V357).
+     *
+     * A node with a max-level is stored in nodeLevels and NEVER reaches
+     * unlockedNodes, so hasUnlocked is false for it however many levels
+     * are bought. Index Luck I is such a node and the Luck per discovered
+     * drop was gated on hasUnlocked("curator_1"), which meant that whole
+     * source read +0% for everybody, for ever. Anything gating on "did
+     * they buy this" asks this instead.
+     */
+    public boolean hasBought(String nodeId) {
+        return unlockedNodes.contains(nodeId) || nodeLevels.getOrDefault(nodeId, 0) > 0;
+    }
+
     public Map<String, Integer> getNodeLevels() {
         return nodeLevels;
     }
