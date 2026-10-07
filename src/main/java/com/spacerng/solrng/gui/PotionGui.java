@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * /potion - the brewing shelf.
+ * /brewer - the brewing shelf.
  *
  * Potions are bought with rolled drops rather than with any currency, so
  * the thing you spend to get luckier is the thing rolling produces. That
@@ -33,6 +33,12 @@ public class PotionGui {
     // beneath so the price and the wallet are never far apart.
     private static final int[] SLOTS = {10, 12, 14, 16, 28, 30, 32, 34};
     private static final int DROPS_SLOT = 49;
+    // V356: the shelf and the cupboard are two menus now, /brewer and
+    // /potions, so each one carries the way to the other in its bottom
+    // left corner. Brewing and drinking were one command with two
+    // aliases before this and which menu /potions opened was down to
+    // which of the two Bukkit registered first.
+    public static final int POTIONS_SLOT = 45;
 
     public static NamespacedKey potionKey(SolRNGPlugin plugin) {
         return SolRNGPlugin.key( "solrng_potion_id");
@@ -41,7 +47,7 @@ public class PotionGui {
     public static Inventory build(SolRNGPlugin plugin, Player player) {
         PotionHolder holder = new PotionHolder();
         Inventory inv = Bukkit.createInventory(holder, 54,
-                MenuStyle.title("Potions", "#FF7AD9", "#C77DFF"));
+                MenuStyle.title("Brewer", "#FF7AD9", "#C77DFF"));
         holder.setInventory(inv);
 
         ItemStack frame = pane(Material.PURPLE_STAINED_GLASS_PANE);
@@ -65,6 +71,7 @@ public class PotionGui {
         }
 
         inv.setItem(DROPS_SLOT, buildDrops(plugin, player, data));
+        inv.setItem(POTIONS_SLOT, crossLink(plugin, data));
         MenuStyle.apply(inv, MenuStyle.Palette.PURPLE);
         return inv;
     }
@@ -109,6 +116,39 @@ public class PotionGui {
         meta.setLore(lore);
         meta.setEnchantmentGlintOverride(affordable ? Boolean.TRUE : null);
         meta.getPersistentDataContainer().set(potionKey(plugin), PersistentDataType.STRING, consumable.id());
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    /** The corner button over to /potions, with what is waiting there. */
+    private static ItemStack crossLink(SolRNGPlugin plugin, PlayerData data) {
+        long stored = 0L;
+        for (Long count : data.getStoredBoosters().values()) {
+            if (count != null && count > 0L) stored += count;
+        }
+        ItemStack item = new ItemStack(Material.POTION);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(Lore.title(ChatColor.LIGHT_PURPLE, "Your Potions"));
+
+        List<String> lore = new ArrayList<>();
+        lore.add(ChatColor.DARK_GRAY + "The cupboard, not the shelf");
+        lore.add("");
+        lore.add(Lore.line(ChatColor.GRAY, "What you brew here waits there"));
+        lore.add(Lore.line(ChatColor.GRAY, "until you drink it."));
+        lore.add("");
+        lore.add(Lore.stat(ChatColor.AQUA, "Waiting", String.format("%,d", stored)));
+        lore.add("");
+        lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to open /potions");
+        meta.setLore(lore);
+        if (meta instanceof org.bukkit.inventory.meta.PotionMeta potion) {
+            // A plain potion item draws the pink swirl and the "Uncraftable
+            // Potion" hover; the colour is set and the effects hidden so it
+            // reads as a bottle rather than as a drink somebody can take.
+            potion.setColor(org.bukkit.Color.fromRGB(0xEA, 0x80, 0xFC));
+            // HIDE_POTION_EFFECTS is gone on 1.21.11; HIDE_ADDITIONAL_TOOLTIP
+            // is the one flag that covers it.
+            potion.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_ADDITIONAL_TOOLTIP);
+        }
         item.setItemMeta(meta);
         return item;
     }

@@ -308,6 +308,20 @@ public final class Lore {
         return mark(colour) + ChatColor.GRAY + text;
     }
 
+    /**
+     * A phrase inside a description line that carries its meaning (V356).
+     *
+     * Leon asked for the longer descriptions to be bold at the points
+     * that matter. A whole line in bold is just a louder line, so the
+     * bold goes on the two or three words a reader is actually looking
+     * for - the stat, the currency, the word that says the thing is
+     * permanent - and the sentence around it stays grey. The grey is put
+     * back afterwards, so this can sit in the middle of a line.
+     */
+    public static String key(String text) {
+        return ChatColor.WHITE + "" + ChatColor.BOLD + text + ChatColor.RESET + ChatColor.GRAY;
+    }
+
     /** ▎ Label: value - the most common shape. */
     public static String stat(ChatColor colour, String label, String value) {
         return switch (theme) {

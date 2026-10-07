@@ -71,8 +71,10 @@ public final class PetLore {
         if (!pet.blurb().isBlank()) {
             lore.add(Lore.line(ChatColor.GRAY, pet.blurb()));
         }
-        lore.add(ChatColor.GRAY + "Multiplies your " + ChatColor.WHITE + pet.statName()
-                + ChatColor.GRAY + " while worn,");
+        // V356: the stat is bold as well as white. Every one of the
+        // forty-two cards says the rule in these same words, so the stat
+        // is the only thing on the line a reader is looking for.
+        lore.add(ChatColor.GRAY + "Multiplies your " + Lore.key(pet.statName()) + " while worn,");
         lore.add(ChatColor.GRAY + "and nothing else.");
         lore.add("");
 

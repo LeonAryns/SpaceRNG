@@ -105,8 +105,8 @@ public final class PerkLore {
             ItemMeta meta = item.getItemMeta();
             meta.setDisplayName(Lore.title(ChatColor.DARK_GRAY, "No perk yet"));
             meta.setLore(List.of(
-                    Lore.line(ChatColor.GRAY, "Roll one with a Perk Ticket."),
-                    Lore.line(ChatColor.GRAY, "It boosts you until you roll again.")));
+                    Lore.line(ChatColor.GRAY, "Roll one with a " + Lore.key("Perk Ticket") + "."),
+                    Lore.line(ChatColor.GRAY, "It boosts you " + Lore.key("until you roll again") + ".")));
             item.setItemMeta(meta);
             return item;
         }

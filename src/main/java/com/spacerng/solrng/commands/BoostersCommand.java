@@ -9,7 +9,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-/** /boosters (V264): the stored potions from Potion Finder. */
+/** /potions (V264 as /boosters): the stored potions, brewed and found. */
 public class BoostersCommand implements CommandExecutor {
 
     private final SolRNGPlugin plugin;

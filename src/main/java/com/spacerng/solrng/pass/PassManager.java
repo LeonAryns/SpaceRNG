@@ -354,21 +354,50 @@ public class PassManager {
     }
 
     /**
-     * "in /boosters" on the end of a line that handed over a potion
+     * "in /potions" on the end of a line that handed over a potion
      * (V349, Leon's call).
      *
      * A potion never lands in the inventory, it goes straight to
-     * /boosters, and a reward line that does not say so leaves a player
+     * /potions, and a reward line that does not say so leaves a player
      * looking for an item that is not there.
      */
     private String boosterHint(Reward reward) {
         if (reward.consumable().isEmpty()) return "";
         var consumable = plugin.getConsumableManager().get(reward.consumable());
         if (consumable == null || !plugin.getConsumableManager().isStorableBooster(consumable)) return "";
-        return ChatColor.DARK_GRAY + "  in /boosters";
+        return ChatColor.DARK_GRAY + "  in /potions";
     }
 
     /** The same payout as one line per item, for a lore block. */
+    /**
+     * What kind of reward a rung holds, for the subtitle (V356).
+     *
+     * The card used to carry a "Reward:" header over the list, which is a
+     * row saying something the list below it already says. This row says
+     * where the reward sits in a set instead - "Coins", "Draught",
+     * "Legendary drops" - which is what the menu-design skill asks a
+     * subtitle to do. Two kinds are joined with "and", three or more fall
+     * back to "a bundle", because the name has to fit on one line.
+     */
+    public String kindOf(Reward reward) {
+        List<String> kinds = new ArrayList<>();
+        if (reward.tokens() > 0) kinds.add("Coins");
+        if (reward.gems() > 0) kinds.add("Gems");
+        if (reward.coins() > 0) kinds.add("Money");
+        if (reward.credits() > 0) kinds.add("Credits");
+        if (reward.dropRarity() != null && reward.dropAmount() > 0) {
+            kinds.add(reward.dropRarity().displayName() + " drops");
+        }
+        if (!reward.consumable().isEmpty()) {
+            var consumable = plugin.getConsumableManager().get(reward.consumable());
+            kinds.add(consumable != null && consumable.isDraught() ? "Draught" : "Potion");
+        }
+        if (kinds.isEmpty()) return "Reward";
+        if (kinds.size() == 1) return kinds.get(0);
+        if (kinds.size() == 2) return kinds.get(0) + " and " + kinds.get(1);
+        return "A bundle";
+    }
+
     public List<String> describeLines(Reward reward) {
         List<String> lines = new ArrayList<>();
         if (reward.tokens() > 0) {

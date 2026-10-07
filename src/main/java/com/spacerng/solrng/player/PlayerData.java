@@ -139,7 +139,7 @@ public class PlayerData {
     private final Map<Rarity, Integer> announced = new java.util.EnumMap<>(Rarity.class);
     // Enchants whose proc messages the player switched off (V271).
     private final java.util.Set<String> mutedEnchantMessages = new java.util.HashSet<>();
-    // Potions from Potion Finder waiting in /boosters (V264), by consumable id.
+    // Potions from Potion Finder waiting in /potions (V264), by consumable id.
     private final Map<String, Long> storedBoosters = new java.util.LinkedHashMap<>();
     // Multiplies Tokens earned from harvesting farm crops. 1.0 = base
     // reward. Nothing raises this yet - reserved for future farming

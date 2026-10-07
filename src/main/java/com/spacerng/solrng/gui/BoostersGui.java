@@ -16,20 +16,23 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * /boosters (V264): the potions Potion Finder digs up wait here instead of
- * filling the inventory. One icon per kind with how many are stored; a
- * click drinks one.
+ * /potions (V264 as /boosters): the potions Potion Finder digs up, and
+ * everything brewed in /brewer, wait here instead of filling the
+ * inventory. One icon per kind with how many are stored; a click drinks
+ * one.
  */
 public final class BoostersGui {
 
     private static final int[] SLOTS = {10, 11, 12, 13, 14, 15, 16, 19, 20, 21, 22, 23, 24, 25};
+    /** The corner button over to /brewer (V356). */
+    public static final int BREWER_SLOT = 27;
 
     private BoostersGui() {
     }
 
     public static Inventory build(SolRNGPlugin plugin, Player player) {
         BoostersHolder holder = new BoostersHolder();
-        Inventory inv = Bukkit.createInventory(holder, 36, MenuStyle.title("Boosters", "#EA80FC", "#7C4DFF"));
+        Inventory inv = Bukkit.createInventory(holder, 36, MenuStyle.title("Potions", "#EA80FC", "#7C4DFF"));
         holder.setInventory(inv);
 
         ItemStack filler = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
@@ -70,7 +73,32 @@ public final class BoostersGui {
             inv.setItem(13, none);
         }
 
+        inv.setItem(BREWER_SLOT, brewerLink(data));
         MenuStyle.apply(inv, MenuStyle.Palette.PURPLE);
         return inv;
+    }
+
+    /** The way back to the shelf, in the matching corner (V356). */
+    private static ItemStack brewerLink(PlayerData data) {
+        boolean unlocked = data.hasUnlocked("potion_unlock");
+        ItemStack item = new ItemStack(Material.BREWING_STAND);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(Lore.title(ChatColor.LIGHT_PURPLE, "The Brewer"));
+
+        List<String> lore = new ArrayList<>();
+        lore.add(ChatColor.DARK_GRAY + "The shelf, not the cupboard");
+        lore.add("");
+        lore.add(Lore.line(ChatColor.GRAY, "Brew a potion out of the drops"));
+        lore.add(Lore.line(ChatColor.GRAY, "you have rolled."));
+        lore.add("");
+        lore.add(unlocked
+                ? ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to open /brewer"
+                : ChatColor.RED + "" + ChatColor.BOLD + "Locked");
+        if (!unlocked) {
+            lore.add(Lore.line(ChatColor.DARK_GRAY, "Unlock Potions in /skilltree."));
+        }
+        meta.setLore(lore);
+        item.setItemMeta(meta);
+        return item;
     }
 }

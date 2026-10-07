@@ -198,8 +198,13 @@ public class PassGui {
         meta.setDisplayName(Lore.title(claimed ? ChatColor.GREEN : accent,
                 (premium ? "Premium" : "Free") + " " + rung.level()));
 
+        // V356: the collectable card's shape. A "Reward:" header over the
+        // list was a row repeating what the list said; the subtitle says
+        // what KIND of reward the rung holds, which is the thing a player
+        // scanning nine columns is looking for.
         List<String> lore = new ArrayList<>();
-        lore.add(Lore.section(accent, "Reward"));
+        lore.add(ChatColor.DARK_GRAY + pass.kindOf(reward));
+        lore.add("");
         lore.addAll(pass.describeLines(reward));
         if (!reward.note().isEmpty()) {
             lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " " + reward.note());
@@ -267,10 +272,11 @@ public class PassGui {
         meta.setDisplayName(Lore.title(ChatColor.LIGHT_PURPLE, "Premium Pass"));
 
         List<String> lore = new ArrayList<>();
-        lore.add(Lore.section(ChatColor.LIGHT_PURPLE, "What it does"));
-        lore.add(Lore.line(ChatColor.LIGHT_PURPLE, "Opens the second reward track."));
-        lore.add(Lore.line(ChatColor.LIGHT_PURPLE, "Back-pays every level you"));
-        lore.add(Lore.line(ChatColor.LIGHT_PURPLE, "have already cleared."));
+        lore.add(ChatColor.DARK_GRAY + "One season, bought once");
+        lore.add("");
+        lore.add(Lore.line(ChatColor.GRAY, "Opens the " + Lore.key("second track") + " and"));
+        lore.add(Lore.line(ChatColor.GRAY, Lore.key("back-pays") + " every level you"));
+        lore.add(Lore.line(ChatColor.GRAY, "have already cleared."));
         lore.add("");
         if (owned) {
             lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "Unlocked");

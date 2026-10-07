@@ -430,7 +430,7 @@ public class ConsumableManager {
                             + String.format("%,d", data.storedKeys(consumable.id()))));
             return;
         }
-        // V317: a potion goes to /boosters the same way, Leon's call
+        // V317: a potion goes to /potions the same way, Leon's call
         // ("potions puur digitaal via /boosters, ook als je ze inkoopt").
         // Potion Finder has put its finds there since V264 and a bought
         // one landed in the inventory instead, so the same potion lived
@@ -441,7 +441,7 @@ public class ConsumableManager {
             player.sendActionBar(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
                     .legacySection().deserialize(ChatColor.LIGHT_PURPLE + "+" + amount + " "
                             + ChatColor.stripColor(consumable.display())
-                            + ChatColor.GRAY + "  stored in " + ChatColor.LIGHT_PURPLE + "/boosters"));
+                            + ChatColor.GRAY + "  stored in " + ChatColor.LIGHT_PURPLE + "/potions"));
             return;
         }
         ItemStack item = build(consumable, amount);
@@ -449,11 +449,11 @@ public class ConsumableManager {
     }
 
     /**
-     * Whether this one belongs in /boosters rather than in a slot.
+     * Whether this one belongs in /potions rather than in a slot.
      *
      * Draughts and timed potions only. A charge, a Nova Core, a free
      * skill voucher and a permanent Luck grant stay items on purpose:
-     * /boosters drinks what you click and those are not drinks, and a
+     * /potions drinks what you click and those are not drinks, and a
      * permanent grant is something people like holding and gifting.
      */
     public boolean isStorableBooster(Consumable consumable) {

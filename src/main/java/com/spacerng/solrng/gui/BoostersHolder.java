@@ -5,7 +5,7 @@ import org.bukkit.inventory.Inventory;
 import java.util.HashMap;
 import java.util.Map;
 
-/** /boosters (V264): which slot holds which stored potion. */
+/** /potions (V264 as /boosters): which slot holds which stored potion. */
 public class BoostersHolder implements MenuHolder {
 
     private Inventory inventory;

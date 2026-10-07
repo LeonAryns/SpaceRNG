@@ -135,8 +135,9 @@ public final class HelpGui {
                 List.of("Brew timed boosts from drops."),
                 List.of("Paid with banked drops",
                         "Drinking again extends it",
-                        "See what runs in /boosts"),
-                "Open", "/potion"));
+                        "See what runs in /boosts",
+                        "Drink them in /potions"),
+                "Open", "/brewer"));
         inv.setItem(25, entry(Material.HOPPER, ChatColor.GRAY, "Convert",
                 List.of("Bank your drops so your", "inventory stays free."),
                 List.of("Banked drops pay for armor,",

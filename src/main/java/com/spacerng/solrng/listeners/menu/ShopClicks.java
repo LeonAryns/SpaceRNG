@@ -338,6 +338,15 @@ final class ShopClicks {
                 || !(event.getClickedInventory().getHolder()
                         instanceof com.spacerng.solrng.gui.PotionHolder)) return;
 
+        // V356: the corner button over to /potions. It is checked before
+        // the potion id because the button carries none, so without this
+        // the click would fall through and do nothing.
+        if (event.getRawSlot() == com.spacerng.solrng.gui.PotionGui.POTIONS_SLOT) {
+            Player viewer = (Player) event.getWhoClicked();
+            viewer.openInventory(com.spacerng.solrng.gui.BoostersGui.build(plugin, viewer));
+            return;
+        }
+
         ItemStack clicked = event.getCurrentItem();
         if (clicked == null || clicked.getItemMeta() == null) return;
         String id = clicked.getItemMeta().getPersistentDataContainer()
@@ -360,7 +369,7 @@ final class ShopClicks {
         player.sendMessage(ChatColor.GREEN + "Brewed " + ChatColor.WHITE + amount + "x "
                 + ChatColor.LIGHT_PURPLE + consumable.display() + ChatColor.GREEN + "."
                 + (plugin.getConsumableManager().isStorableBooster(consumable)
-                        ? ChatColor.GRAY + "  Drink it in " + ChatColor.LIGHT_PURPLE + "/boosters"
+                        ? ChatColor.GRAY + "  Drink it in " + ChatColor.LIGHT_PURPLE + "/potions"
                                 + ChatColor.GRAY + "."
                         : ""));
         player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_BREWING_STAND_BREW, 0.9f, 1.4f);

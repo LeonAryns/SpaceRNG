@@ -266,12 +266,12 @@ public final class SolRNGPlugin extends JavaPlugin {
         getCommand("discord").setExecutor(new com.spacerng.solrng.commands.DiscordCommand(this));
         getCommand("trash").setExecutor(new com.spacerng.solrng.commands.TrashCommand());
         getCommand("cropwatch").setExecutor(new com.spacerng.solrng.commands.CropWatchCommand());
-        getCommand("boosters").setExecutor(new com.spacerng.solrng.commands.BoostersCommand(this));
+        getCommand("potions").setExecutor(new com.spacerng.solrng.commands.BoostersCommand(this));
         getCommand("crates").setExecutor(new com.spacerng.solrng.commands.CratesCommand(this));
         com.spacerng.solrng.commands.FixHoeCommand fixHoe = new com.spacerng.solrng.commands.FixHoeCommand(this);
         getCommand("fixhoe").setExecutor(fixHoe);
         getCommand("fixhoe").setTabCompleter(fixHoe);
-        getCommand("potion").setExecutor(new com.spacerng.solrng.commands.PotionCommand(this));
+        getCommand("brewer").setExecutor(new com.spacerng.solrng.commands.PotionCommand(this));
         getCommand("shop").setExecutor(new com.spacerng.solrng.commands.ShopCommand(this));
         getCommand("ranks").setExecutor(new com.spacerng.solrng.commands.RanksCommand(this));
         getCommand("aura").setExecutor(new com.spacerng.solrng.commands.AuraCommand(this));

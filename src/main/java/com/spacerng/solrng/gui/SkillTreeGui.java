@@ -583,7 +583,7 @@ public class SkillTreeGui {
             case UNLOCK_AUTO_CONVERT -> gate("Unlocks the auto-convert switches in /convert");
             case UNLOCK_FARMING -> gate("Unlocks the farm and the Farmer's Hoe");
             case UNLOCK_ARMOR -> gate("Unlocks the /armor shop");
-            case UNLOCK_POTION -> gate("Unlocks the Brewing Shelf - /potion");
+            case UNLOCK_POTION -> gate("Unlocks the Brewing Shelf - /brewer");
             case UNLOCK_SHINY -> gate("Unlocks Shiny drops - 1 in 100 rolls");
             // V337: the multiplier is the best secret from /secretindex and
             // applies on its own, so this node is the tag and nothing else.

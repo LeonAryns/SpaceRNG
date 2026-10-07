@@ -91,7 +91,7 @@ public class BoostsCommand implements CommandExecutor {
         if (!any) {
             player.sendMessage(ChatColor.DARK_GRAY + Lore.BULLET + " Nothing running right now.");
             player.sendMessage(ChatColor.DARK_GRAY + Lore.BULLET
-                    + " Draughts come from /potion, /milestones, /pass and crates.");
+                    + " Draughts come from /brewer, /milestones, /pass and crates.");
         }
         player.sendMessage("");
         return true;

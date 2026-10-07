@@ -1103,7 +1103,7 @@ public class FarmPlotManager {
                 data.addStoredBooster(found.id(), 1);
                 procChat(player, data, "POTION_FINDER", ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "Potion found  "
                         + ChatColor.RESET + ChatColor.GRAY + found.display()
-                        + ChatColor.DARK_GRAY + "  stored in " + ChatColor.LIGHT_PURPLE + "/boosters");
+                        + ChatColor.DARK_GRAY + "  stored in " + ChatColor.LIGHT_PURPLE + "/potions");
                 playProc(player, data, 1.4f);
             }
         }

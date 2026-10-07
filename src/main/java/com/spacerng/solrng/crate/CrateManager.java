@@ -649,15 +649,25 @@ public class CrateManager {
 
         // V239: name, what kind of thing it is, what it does in two short
         // lines, then the chance, like the reference crate Leon showed.
+        //
+        // V356: the description block from the menu-design skill, because
+        // the card was three rows of generic sentence. The subtitle says
+        // what KIND of reward it is rather than the word "Reward", the
+        // pitch is bold at the words a reader is looking for, and "You
+        // get" states the amount on its own line. The amount used to live
+        // only inside the name, so a reward given a custom name in config
+        // showed its size nowhere at all.
+        boolean jackpot = crate.isJackpot(reward);
+        ChatColor accent = jackpot ? ChatColor.GOLD : ChatColor.AQUA;
+
         List<String> lore = new ArrayList<>();
-        lore.add(crate.isJackpot(reward)
-                ? ChatColor.GOLD + "Jackpot reward"
-                : ChatColor.DARK_GRAY + "Reward");
+        lore.add(ChatColor.DARK_GRAY + (jackpot ? "Jackpot " : "") + kind(reward, consumable));
         lore.add("");
-        for (String line : wrap(describe(reward, consumable), 34)) lore.add(ChatColor.GRAY + line);
+        lore.addAll(describeLines(reward, consumable));
         lore.add("");
-        lore.add(Lore.stat(crate.isJackpot(reward) ? ChatColor.GOLD : ChatColor.AQUA,
-                "Chance", chanceText(crate.chanceOf(reward))));
+        String payout = payout(reward, consumable);
+        if (payout != null) lore.add(Lore.stat(accent, "You get", payout));
+        lore.add(Lore.stat(accent, "Chance", chanceText(crate.chanceOf(reward))));
         meta.setLore(lore);
         meta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_ATTRIBUTES, org.bukkit.inventory.ItemFlag.HIDE_ENCHANTS);
         item.setItemMeta(meta);
@@ -680,18 +690,96 @@ public class CrateManager {
         return lines;
     }
 
-    private static String describe(CrateReward reward, Consumable consumable) {
+    /**
+     * The subtitle: what kind of thing this reward is (V356).
+     *
+     * One row that tells a reader where the reward sits in a set they
+     * already understand, in place of the word "Reward", which said
+     * nothing the menu was not already saying.
+     */
+    private String kind(CrateReward reward, Consumable consumable) {
         return switch (reward.type()) {
-            case COINS -> "Paid straight into your Coins.";
-            case GEMS -> "Paid straight into your Gems.";
-            case MONEY -> "Paid straight into your Money.";
-            case CREDITS -> "Paid straight into your Credits.";
-            case TICKETS -> "Perk rolls, spent in /perks.";
-            case BOOST -> "Runs on top of everything else you have.";
-            case PERMANENT -> "Yours forever, on top of everything else.";
-            case CONSUMABLE -> consumable == null || consumable.description().isEmpty()
-                    ? "Lands in your inventory." : consumable.description();
-            case DROP -> "Random drops of that rarity, logged in your index.";
+            case COINS -> "Coins";
+            case GEMS -> "Gems";
+            case MONEY -> "Money";
+            case CREDITS -> "Credits";
+            case TICKETS -> "Perk roll";
+            case BOOST -> "Timed boost";
+            case PERMANENT -> "Permanent stat";
+            case CONSUMABLE -> consumable != null && consumable.isDraught() ? "Draught" : "Potion";
+            case DROP -> Rarity.valueOf(reward.target()).displayName() + " drops";
+        };
+    }
+
+    /**
+     * The pitch: one or two grey lines, bold at the words that matter
+     * (V356, Leon's ask).
+     *
+     * Written out per line rather than wrapped, because a bold phrase
+     * inside a wrapped sentence either breaks the width maths, where the
+     * colour codes count as characters, or lands straddling a line break.
+     * A consumable's text comes from config and has no bold in it, so
+     * that one is still wrapped.
+     */
+    private List<String> describeLines(CrateReward reward, Consumable consumable) {
+        List<String> lines = new ArrayList<>();
+        switch (reward.type()) {
+            case COINS -> lines.add(Lore.line(ChatColor.GRAY,
+                    "Paid straight into your " + Lore.key("Coins") + "."));
+            case GEMS -> lines.add(Lore.line(ChatColor.GRAY,
+                    "Paid straight into your " + Lore.key("Gems") + "."));
+            case MONEY -> lines.add(Lore.line(ChatColor.GRAY,
+                    "Paid straight into your " + Lore.key("Money") + "."));
+            case CREDITS -> lines.add(Lore.line(ChatColor.GRAY,
+                    "Paid straight into your " + Lore.key("Credits") + "."));
+            case TICKETS -> {
+                lines.add(Lore.line(ChatColor.GRAY, Lore.key("Perk rolls") + ", one worn perk"));
+                lines.add(Lore.line(ChatColor.GRAY, "at a time. Spend them in " + Lore.key("/perks") + "."));
+            }
+            case BOOST -> {
+                lines.add(Lore.line(ChatColor.GRAY, "Runs " + Lore.key("on top of") + " everything"));
+                lines.add(Lore.line(ChatColor.GRAY, "else you have running."));
+            }
+            case PERMANENT -> {
+                lines.add(Lore.line(ChatColor.GRAY, Lore.key("Yours forever") + ", on top of"));
+                lines.add(Lore.line(ChatColor.GRAY, "everything else."));
+            }
+            case CONSUMABLE -> {
+                if (consumable == null || consumable.description().isEmpty()) {
+                    lines.add(Lore.line(ChatColor.GRAY, "Waits in " + Lore.key("/potions")));
+                    lines.add(Lore.line(ChatColor.GRAY, "until you drink it."));
+                } else {
+                    for (String line : wrap(consumable.description(), 34)) {
+                        lines.add(Lore.line(ChatColor.GRAY, line));
+                    }
+                }
+            }
+            case DROP -> {
+                lines.add(Lore.line(ChatColor.GRAY, "Random drops of that rarity,"));
+                lines.add(Lore.line(ChatColor.GRAY, Lore.key("logged in your index") + "."));
+            }
+        }
+        return lines;
+    }
+
+    /**
+     * The "You get" line: the size of the reward, stated once (V356).
+     *
+     * null for the two kinds whose whole name already is the amount,
+     * where a second copy of it would be a wasted row.
+     */
+    private String payout(CrateReward reward, Consumable consumable) {
+        return switch (reward.type()) {
+            case COINS -> Currency.COINS.amount(reward.amount());
+            case GEMS -> Currency.GEMS.amount(reward.amount());
+            case MONEY -> Currency.MONEY.amount(reward.amount());
+            case CREDITS -> Currency.CREDITS.amount(reward.amount());
+            case TICKETS -> reward.amount() + (reward.amount() == 1 ? " roll" : " rolls");
+            case DROP -> String.format("%,d", reward.amount()) + " "
+                    + Rarity.valueOf(reward.target()).displayName();
+            case CONSUMABLE -> consumable == null ? null
+                    : reward.amount() + "x " + ChatColor.stripColor(consumable.display());
+            case BOOST, PERMANENT -> null;
         };
     }
 

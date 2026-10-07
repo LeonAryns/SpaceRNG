@@ -93,10 +93,10 @@ commands:
     description: Every shop in one place
     usage: /shop
     aliases: [shops, menu]
-  potion:
+  brewer:
     description: Brew potions with rolled drops
-    usage: /potion
-    aliases: [potions, brew]
+    usage: /brewer
+    aliases: [brew, potion]
   limitluck:
     description: Roll with less Luck than you have, to fill in the common end of your index
     usage: /limitluck <percent|off>
@@ -119,10 +119,10 @@ commands:
   crates:
     description: Go to the crates, with your keys over each one
     usage: /crates
-  boosters:
-    description: Use the potions Potion Finder found
-    usage: /boosters
-    aliases: [potions]
+  potions:
+    description: Drink the potions you have brewed or found
+    usage: /potions
+    aliases: [boosters]
   cropwatch:
     description: Watch how fast someone breaks crops (staff)
     usage: /cropwatch <player|list|off>

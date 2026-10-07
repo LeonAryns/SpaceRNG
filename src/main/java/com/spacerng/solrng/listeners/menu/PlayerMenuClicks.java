@@ -97,11 +97,24 @@ final class PlayerMenuClicks {
         player.openInventory(com.spacerng.solrng.gui.SecretIndexGui.build(plugin, player));
     }
 
-    /** /boosters: a click on a stored potion drinks one (V264). */
+    /** /potions: a click on a stored potion drinks one (V264). */
     void handleBoostersClick(InventoryClickEvent event) {
         event.setCancelled(true);
         if (!(event.getClickedInventory() != null
                 && event.getClickedInventory().getHolder() instanceof com.spacerng.solrng.gui.BoostersHolder holder)) return;
+        // V356: the corner button over to /brewer. Checked before the slot
+        // map, which only knows the slots holding a potion.
+        if (event.getRawSlot() == com.spacerng.solrng.gui.BoostersGui.BREWER_SLOT) {
+            Player viewer = (Player) event.getWhoClicked();
+            PlayerData viewerData = plugin.getPlayerDataManager().get(viewer.getUniqueId());
+            if (!viewerData.hasUnlocked("potion_unlock")) {
+                viewer.sendMessage(ChatColor.RED + "Unlock " + ChatColor.YELLOW + "Potions"
+                        + ChatColor.RED + " in " + ChatColor.YELLOW + "/skilltree" + ChatColor.RED + " first.");
+                return;
+            }
+            viewer.openInventory(com.spacerng.solrng.gui.PotionGui.build(plugin, viewer));
+            return;
+        }
         String id = holder.slots().get(event.getRawSlot());
         if (id == null) return;
         Player player = (Player) event.getWhoClicked();
