@@ -167,13 +167,22 @@ final class ProgressionClicks {
     void handleNovaCoreClick(InventoryClickEvent event) {
         event.setCancelled(true);
         if (event.getClickedInventory() == null
-                || !(event.getClickedInventory().getHolder() instanceof NovaCoreHolder)) return;
-        if (event.getRawSlot() != NovaCoreGui.FORGE_SLOT) return;
+                || !(event.getClickedInventory().getHolder() instanceof NovaCoreHolder holder)) return;
 
         Player player = (Player) event.getWhoClicked();
+        // V355: a hundred tiers do not fit on one route, so the ladder
+        // pages. Walking it never forges anything.
+        if (event.getRawSlot() == NovaCoreGui.PREV_SLOT || event.getRawSlot() == NovaCoreGui.NEXT_SLOT) {
+            int page = holder.getPage() + (event.getRawSlot() == NovaCoreGui.NEXT_SLOT ? 1 : -1);
+            player.openInventory(NovaCoreGui.build(plugin, player, page));
+            return;
+        }
+        if (event.getRawSlot() != NovaCoreGui.FORGE_SLOT) return;
+
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         plugin.getNovaCoreManager().attempt(player, data);
-        // Reopened either way - the odds, the price and the board all moved.
+        // Reopened either way - the odds, the price and the board all moved,
+        // and on the page the next rung is on.
         player.openInventory(NovaCoreGui.build(plugin, player));
         plugin.getLuckBarManager().update(player);
     }

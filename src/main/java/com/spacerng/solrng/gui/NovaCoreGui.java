@@ -40,6 +40,13 @@ public class NovaCoreGui {
     };
 
     public static final int FORGE_SLOT = 49;
+    // V355: the ladder is a hundred tiers now, and the route above holds
+    // twenty. Before this, every tier past twenty existed, paid out and
+    // could be forged, and simply was not drawn - so the menu stopped at
+    // tier 20 and said nothing about the rest.
+    public static final int PREV_SLOT = 48;
+    public static final int NEXT_SLOT = 50;
+    private static final int PER_PAGE = PATH_SLOTS.length;
     private static final int INFO_SLOT = 45;
     // V331: cores are a balance now, so the menu has to say how many you
     // have, where they come from and what one is worth. Those are three
@@ -48,7 +55,22 @@ public class NovaCoreGui {
     private static final int PURSE_SLOT = 46;
     private static final int PROGRESS_SLOT = 53;
 
+    /** How many pages the ladder needs at its current length. */
+    public static int pageCount(SolRNGPlugin plugin) {
+        return Math.max(1, (int) Math.ceil(plugin.getNovaCoreManager().getMaxTier() / (double) PER_PAGE));
+    }
+
+    /** The page the player's next rung is on, which is where the menu opens. */
+    public static int pageOf(SolRNGPlugin plugin, int tier) {
+        return Math.min(pageCount(plugin) - 1, Math.max(0, tier / PER_PAGE));
+    }
+
     public static Inventory build(SolRNGPlugin plugin, Player player) {
+        PlayerData open = plugin.getPlayerDataManager().get(player.getUniqueId());
+        return build(plugin, player, pageOf(plugin, open.getNovaTier()));
+    }
+
+    public static Inventory build(SolRNGPlugin plugin, Player player, int page) {
         NovaCoreHolder holder = new NovaCoreHolder();
         Inventory inv = Bukkit.createInventory(holder, 54, MenuStyle.title("Nova Core", "#FF7AD9", "#C77DFF"));
         holder.setInventory(inv);
@@ -65,9 +87,25 @@ public class NovaCoreGui {
         nova.absorb(player);
         int tier = data.getNovaTier();
 
-        int rungs = Math.min(nova.getMaxTier(), PATH_SLOTS.length);
-        for (int t = 1; t <= rungs; t++) {
-            inv.setItem(PATH_SLOTS[t - 1], buildTier(nova, t, tier));
+        int pages = pageCount(plugin);
+        page = Math.max(0, Math.min(page, pages - 1));
+        holder.setPage(page);
+
+        int first = page * PER_PAGE + 1;
+        for (int i = 0; i < PER_PAGE; i++) {
+            int t = first + i;
+            if (t > nova.getMaxTier()) break;
+            inv.setItem(PATH_SLOTS[i], buildTier(nova, t, tier));
+        }
+
+        if (page > 0) {
+            inv.setItem(PREV_SLOT, pageButton(Material.SPECTRAL_ARROW, "\u25c0 Tiers "
+                    + ((page - 1) * PER_PAGE + 1) + " - " + (page * PER_PAGE), page, pages));
+        }
+        if (page < pages - 1) {
+            inv.setItem(NEXT_SLOT, pageButton(Material.ARROW, "Tiers "
+                    + ((page + 1) * PER_PAGE + 1) + " - "
+                    + Math.min(nova.getMaxTier(), (page + 2) * PER_PAGE) + " \u25b6", page + 2, pages));
         }
 
         inv.setItem(INFO_SLOT, buildInfo(plugin, data, nova, tier));
@@ -76,6 +114,15 @@ public class NovaCoreGui {
         inv.setItem(FORGE_SLOT, buildForge(plugin, player, data, nova, tier));
         MenuStyle.apply(inv, MenuStyle.Palette.PURPLE);
         return inv;
+    }
+
+    private static ItemStack pageButton(Material material, String label, int shownPage, int total) {
+        ItemStack item = new ItemStack(material);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(ChatColor.YELLOW + "" + ChatColor.BOLD + label);
+        meta.setLore(List.of(Lore.stat(ChatColor.AQUA, "Page", shownPage + " / " + total)));
+        item.setItemMeta(meta);
+        return item;
     }
 
     private static ItemStack buildTier(NovaCoreManager nova, int tier, int current) {

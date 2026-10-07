@@ -309,10 +309,17 @@ public class IndexGui {
         // V330: sorted by rarity, Common first, Leon's call. The table's
         // own order is the order items were written into config, which
         // reads as no order at all once there are two hundred of them.
+        //
+        // V355: and INSIDE a rarity, by how rare the drop is rather than
+        // alphabetically. Grouping by rarity and then sorting by name
+        // still read as no order within a group, which is what Leon was
+        // looking at; by odds the whole index is one straight ladder from
+        // the commonest drop in the game to the rarest.
         List<RollableItem> shown = new ArrayList<>(filter == null ? allItems
                 : allItems.stream().filter(i -> i.getRarity() == filter).toList());
         shown.sort(java.util.Comparator
                 .comparingInt((RollableItem i) -> i.getRarity().ordinal())
+                .thenComparingLong(RollableItem::getOdds)
                 .thenComparing(RollableItem::getDisplayName));
 
         int totalPages = Math.max(1, (int) Math.ceil(shown.size() / (double) PAGE_SIZE));

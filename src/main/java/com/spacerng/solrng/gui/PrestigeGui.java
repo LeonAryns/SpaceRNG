@@ -333,7 +333,7 @@ public class PrestigeGui {
             case REALM_ACCESS -> "Opens the Secret Realm, and the rest of this board.";
             case REALM_LUCK -> "Your Luck inside the Secret Realm.";
             case REALM_SPEED -> "Your roll Speed inside the Secret Realm.";
-            case REALM_TIME -> "Stay in the realm after it closes for everyone else.";
+            case REALM_TIME -> "One more minute in the realm after it closes.";
         };
     }
 
@@ -357,9 +357,23 @@ public class PrestigeGui {
     private static String value(PrestigeUpgrade upgrade, int level) {
         if (upgrade.isMultiplicative()) return String.format("%.2fx", upgrade.multiplierAt(level));
         double total = upgrade.totalAt(level);
+        // V355: Realm Time is seconds, and it read as a bare "+60.00",
+        // which told a player nothing about what it bought. Leon asked for
+        // the minute to be obvious, so it is written as time.
+        if (upgrade.getEffect() == PrestigeUpgrade.Effect.REALM_TIME) {
+            return "+" + clock((long) Math.round(total));
+        }
         if ("%".equals(upgrade.getUnit())) return "+" + String.format("%.1f", total * 100.0) + "%";
         if ("x".equals(upgrade.getUnit())) return "+" + String.format("%.2f", total) + "x";
         return "+" + String.format("%.2f", total);
+    }
+
+    /** Seconds as "45s", "1 min" or "3 min 30s". */
+    private static String clock(long seconds) {
+        if (seconds < 60L) return seconds + "s";
+        long minutes = seconds / 60L;
+        long rest = seconds % 60L;
+        return minutes + " min" + (rest == 0L ? "" : " " + rest + "s");
     }
 
     private static ItemStack back() {

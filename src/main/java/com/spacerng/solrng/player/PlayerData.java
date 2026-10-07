@@ -595,6 +595,8 @@ public class PlayerData {
 
     // Which armor reset this save has been through (V306).
     private int armorVersion;
+    /** Which round of the Nova Core ladder this save has been mapped onto (V355). */
+    private int novaScaleVersion;
 
     public int getArmorVersion() {
         return armorVersion;
@@ -602,6 +604,14 @@ public class PlayerData {
 
     public void setArmorVersion(int armorVersion) {
         this.armorVersion = armorVersion;
+    }
+
+    public int getNovaScaleVersion() {
+        return novaScaleVersion;
+    }
+
+    public void setNovaScaleVersion(int novaScaleVersion) {
+        this.novaScaleVersion = novaScaleVersion;
     }
 
     public Set<String> getPurchasedArmorTiers() {

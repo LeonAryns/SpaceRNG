@@ -34,8 +34,9 @@ public class NovaCoreManager {
 
     private final SolRNGPlugin plugin;
 
-    private int maxTier = 20;
+    private int maxTier = 100;
     private int firstCheckpoint = 5;
+    private int checkpointGapGrowth = 2;
     private double baseChance = 0.75;
     private boolean firstForgeFree = true;
     private String howToGet = "";
@@ -63,8 +64,9 @@ public class NovaCoreManager {
     }
 
     public void load(FileConfiguration config) {
-        maxTier = config.getInt("novacore.max-tier", 20);
+        maxTier = config.getInt("novacore.max-tier", 100);
         firstCheckpoint = Math.max(1, config.getInt("novacore.first-checkpoint", 5));
+        checkpointGapGrowth = Math.max(0, config.getInt("novacore.checkpoint-gap-growth", 2));
         baseChance = config.getDouble("novacore.base-chance", 0.75);
         firstForgeFree = config.getBoolean("novacore.first-forge-guaranteed",
                 config.getBoolean("novacore.first-tier-guaranteed", true));
@@ -101,9 +103,46 @@ public class NovaCoreManager {
         while (at <= maxTier) {
             out.add(at);
             at += gap;
-            gap++;
+            // V355: the gap grows by checkpointGapGrowth rather than by
+            // one. Over a hundred tiers a growth of one would hand out
+            // thirteen checkpoints and the climb would never be at risk.
+            gap += checkpointGapGrowth;
         }
         return out;
+    }
+
+    /**
+     * V355: the ladder went from thirty tiers to a hundred, so every
+     * account's tier is mapped onto the new one by how far up it was.
+     *
+     * Without this a player sitting at the old tier 30 would wake up at
+     * tier 30 of 100, which is a different rung of a different ladder and
+     * a silent loss of nearly everything they climbed. Keeping the
+     * PROPORTION keeps the multiplier close to where it was for everybody
+     * except the very top, and the top losing 120x for 25x is the change
+     * Leon asked for rather than an accident.
+     *
+     * novacore.rescale-version says which round this is; a save behind it
+     * is mapped once, on join, and never again.
+     */
+    public void rescaleIfOld(org.bukkit.entity.Player player, PlayerData data) {
+        int version = plugin.getConfig().getInt("novacore.rescale-version", 0);
+        if (data.getNovaScaleVersion() >= version) return;
+        int from = Math.max(1, plugin.getConfig().getInt("novacore.rescale-from-max-tier", 30));
+
+        int before = data.getNovaTier();
+        if (before > 0 && from != maxTier) {
+            int now = (int) Math.min(maxTier, Math.round(before / (double) from * maxTier));
+            data.setNovaTier(now);
+            if (data.getNovaBestTier() > 0) {
+                data.setNovaBestTier((int) Math.min(maxTier,
+                        Math.round(data.getNovaBestTier() / (double) from * maxTier)));
+            }
+            player.sendMessage(ChatColor.LIGHT_PURPLE + "The Nova Core ladder is " + maxTier
+                    + " tiers now, topping out at 25x rather than 120x. You were tier " + before
+                    + " of " + from + " and you are tier " + now + " of " + maxTier + ", the same way up.");
+        }
+        data.setNovaScaleVersion(version);
     }
 
     public boolean isCheckpoint(int tier) {

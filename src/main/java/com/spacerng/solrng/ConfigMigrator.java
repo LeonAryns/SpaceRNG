@@ -88,6 +88,12 @@ public final class ConfigMigrator {
             // the early ones. Brand new keys, so a Patch has nothing to
             // match on, and a missing one silently runs the code default.
             "prestige.level-cost-cap-level", "prestige.max-levels-per-prestige",
+            // V355: the blocks a right click is refused on, the two Nova
+            // Core keys that reshape the ladder, and the one-off that maps
+            // an old tier onto the new one. All new keys.
+            "protection.blocked-blocks",
+            "novacore.checkpoint-gap-growth",
+            "novacore.rescale-version", "novacore.rescale-from-max-tier",
             // V313: brand new keys, so a Patch cannot carry them - there
             // is no old default to match. Without these the live server
             // falls back to the code default of 0.0 and no egg would ever
@@ -1595,6 +1601,56 @@ public final class ConfigMigrator {
                 plugin.getLogger().info("Config patch top-odds-v350: Mythical and Divine made rarer");
             }
             applied.add("top-odds-v350");
+            changed = true;
+        }
+        // V355: a hundred Nova Core tiers topping out at 25x, in place of
+        // the thirty that ran to 120x. The whole list is replaced, and
+        // only when the live one is still exactly the thirty V351 shipped,
+        // so a ladder Leon has cut by hand keeps his numbers.
+        if (!applied.contains("nova-ladder-v355")) {
+            List<Double> ladder = disk.getDoubleList("novacore.multipliers");
+            if (ladder.size() == 30) {
+                disk.set("novacore.multipliers", List.of(
+                    1.02, 1.05, 1.09, 1.12, 1.16, 1.20, 1.24, 1.28, 1.32, 1.36,
+                    1.41, 1.46, 1.50, 1.55, 1.60, 1.66, 1.71, 1.77, 1.82, 1.88,
+                    1.95, 2.01, 2.08, 2.14, 2.22, 2.29, 2.36, 2.44, 2.52, 2.60,
+                    2.69, 2.78, 2.87, 2.96, 3.06, 3.16, 3.26, 3.37, 3.48, 3.60,
+                    3.71, 3.84, 3.96, 4.09, 4.23, 4.37, 4.51, 4.66, 4.81, 4.97,
+                    5.13, 5.30, 5.47, 5.65, 5.84, 6.03, 6.23, 6.43, 6.65, 6.86,
+                    7.09, 7.32, 7.56, 7.81, 8.07, 8.33, 8.61, 8.89, 9.18, 9.48,
+                    9.79, 10.12, 10.45, 10.79, 11.15, 11.51, 11.89, 12.28, 12.68, 13.10,
+                    13.53, 13.97, 14.43, 14.91, 15.40, 15.90, 16.42, 16.96, 17.52, 18.10,
+                    18.69, 19.31, 19.94, 20.59, 21.27, 21.97, 22.69, 23.44, 24.21, 25.00));
+                disk.set("novacore.max-tier", 100);
+                plugin.getLogger().info("Config patch nova-ladder-v355: a hundred tiers, 25x at the top");
+            }
+            applied.add("nova-ladder-v355");
+            changed = true;
+        }
+        // V355: half a percent of a perk roll out of the four crates that
+        // paid none. The boss crate already pays them and is left alone.
+        if (!applied.contains("crate-perks-v355")) {
+            java.util.Map<String, Double> weights = java.util.Map.of(
+                    "farm", 0.613, "cosmic", 0.472, "vote", 0.515, "nebula", 0.466);
+            boolean moved = false;
+            for (Map.Entry<String, Double> entry : weights.entrySet()) {
+                String path = "crates.types." + entry.getKey() + ".rewards";
+                List<Map<?, ?>> rewards = disk.getMapList(path);
+                if (rewards.isEmpty()) continue;
+                boolean has = false;
+                for (Map<?, ?> row : rewards) {
+                    if (row.containsKey("tickets")) has = true;
+                }
+                if (has) continue;
+                Map<String, Object> row = new java.util.LinkedHashMap<>();
+                row.put("weight", entry.getValue());
+                row.put("tickets", 1);
+                rewards.add(row);
+                disk.set(path, rewards);
+                moved = true;
+            }
+            if (moved) plugin.getLogger().info("Config patch crate-perks-v355: a perk roll in every crate");
+            applied.add("crate-perks-v355");
             changed = true;
         }
         // V354, Leon's call: the top tiers came far too fast. Mythical is

@@ -78,6 +78,59 @@ public class BlockProtectListener implements Listener {
     }
 
     /**
+     * No vanilla workbenches or containers (V355, Leon's ask).
+     *
+     * Everything in this plugin is a command or a menu, so a crafting
+     * table, a chest or an anvil is only ever a way around something: a
+     * chest is storage the plugin does not know about, a crafting table
+     * turns drops into blocks, an enchanting table competes with the hoe.
+     * The list is in protection.blocked-blocks so Leon can open one up
+     * without a jar.
+     *
+     * This cancels the interaction rather than the inventory, so the
+     * plugin's own menus - which are created inventories with no block
+     * under them - are never touched.
+     */
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onInteract(org.bukkit.event.player.PlayerInteractEvent event) {
+        if (event.getAction() != org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK) return;
+        Block block = event.getClickedBlock();
+        if (block == null) return;
+        Player player = event.getPlayer();
+        if (!guarded(player)) return;
+        if (!blocked(block.getType())) return;
+        event.setCancelled(true);
+        // One message, not one per click: a held right click fires this
+        // several times a second and a chat line each time is unreadable.
+        com.spacerng.solrng.gui.ActionBar.send(player,
+                net.kyori.adventure.text.Component.text("That is not used here. Everything is a command or a menu.",
+                        net.kyori.adventure.text.format.NamedTextColor.RED),
+                1500L);
+    }
+
+    /** The blocked set, read from config once and cached per reload. */
+    private java.util.Set<org.bukkit.Material> blockedCache;
+    private int blockedStamp = -1;
+
+    private boolean blocked(org.bukkit.Material material) {
+        int stamp = System.identityHashCode(plugin.getConfig());
+        if (blockedCache == null || blockedStamp != stamp) {
+            java.util.Set<org.bukkit.Material> set = java.util.EnumSet.noneOf(org.bukkit.Material.class);
+            for (String raw : plugin.getConfig().getStringList("protection.blocked-blocks")) {
+                org.bukkit.Material found = org.bukkit.Material.matchMaterial(raw);
+                if (found != null) {
+                    set.add(found);
+                } else {
+                    plugin.getLogger().warning("protection.blocked-blocks: no such block '" + raw + "'");
+                }
+            }
+            blockedCache = set;
+            blockedStamp = stamp;
+        }
+        return blockedCache.contains(material);
+    }
+
+    /**
      * No vanilla advancements (V256). The data pack route from
      * /rngadmin advancements needs a reload and a format the server
      * accepts; this stops every minecraft: criterion from being granted at

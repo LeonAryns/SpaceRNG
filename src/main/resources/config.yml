@@ -4014,6 +4014,11 @@ crates:
         - { weight: 2, drop: RARE }
         - { weight: 1.5, consumable: roll_10x }
         - { weight: 0.4, consumable: luck_5 }
+        # V355, Leon: perks in the crates, at half a percent. It pays a
+        # perk ROLL rather than a perk, because a perk is a single worn
+        # slot and handing one over would replace the one being worn
+        # without asking. The roll is spent in /perks.
+        - { weight: 0.613, tickets: 1 }
     cosmic:
       display: "Cosmic Crate"
       colors: ["#E1BEE7", "#7C4DFF", "#40C4FF"]
@@ -4036,6 +4041,11 @@ crates:
         # two entries, a 50 and a 250, and merging them keeps one line
         # per thing a crate can give.
         - { weight: 3, consumable: luck_10 }
+        # V355, Leon: perks in the crates, at half a percent. It pays a
+        # perk ROLL rather than a perk, because a perk is a single worn
+        # slot and handing one over would replace the one being worn
+        # without asking. The roll is spent in /perks.
+        - { weight: 0.472, tickets: 1 }
     # Hand these out from a voting plugin with
     #   rngadmin crate key vote 1 %player%
     vote:
@@ -4058,6 +4068,11 @@ crates:
         - { weight: 10, consumable: nova_core, amount: 3 }
         - { weight: 2, consumable: roll_10x }
         - { weight: 0.5, consumable: luck_5 }
+        # V355, Leon: perks in the crates, at half a percent. It pays a
+        # perk ROLL rather than a perk, because a perk is a single worn
+        # slot and handing one over would replace the one being worn
+        # without asking. The roll is spent in /perks.
+        - { weight: 0.515, tickets: 1 }
     # Rank key alls and events:  rngadmin crate keyall nebula 1
     # Key Finder turns one up now and then as well.
     nebula:
@@ -4081,6 +4096,11 @@ crates:
         # V315: the best crate pays a quarter, Leon's ladder, merged
         # from the old 50 and 250 entries.
         - { weight: 1.7, consumable: luck_25 }
+        # V355, Leon: perks in the crates, at half a percent. It pays a
+        # perk ROLL rather than a perk, because a perk is a single worn
+        # slot and handing one over would replace the one being worn
+        # without asking. The roll is spent in /perks.
+        - { weight: 0.466, tickets: 1 }
 
 # Floating text drawn by the plugin: panels over NPCs, live leaderboards
 # with player heads, and the text over crates placed with
@@ -5420,10 +5440,21 @@ novacore:
   # prestige upgrade and first-forge-guaranteed below are all skipped.
   # Set it to 0 to bring the old tier curve back.
   flat-chance: 0.5
-  max-tier: 30
-  # First checkpoint tier; each gap after it is one longer, so the
-  # defaults give 5, 11, 18 across a 20-tier ladder.
+  max-tier: 100
+  # The first checkpoint, and how much further apart each one after it
+  # sits. V355: the gap grows by checkpoint-gap-growth rather than by one,
+  # which is Leon's "every checkpoint a bit farther". At 5 and 2 the
+  # checkpoints across a hundred tiers are
+  #   5, 11, 19, 29, 41, 55, 71, 89
+  # so the early ones come quickly and the last stretch is a real climb.
   first-checkpoint: 5
+  checkpoint-gap-growth: 2
+  # V355: every account's tier is mapped onto the new ladder once, by how
+  # far up the old one it was, the first time it is seen. Raise
+  # rescale-version and set rescale-from-max-tier to the length the ladder
+  # had before, if it is ever re-cut again.
+  rescale-version: 1
+  rescale-from-max-tier: 30
   base-chance: 0.50
   # The very first forge a player ever makes always succeeds. The menu
   # still shows the real chance; only the result is guaranteed.
@@ -5440,15 +5471,24 @@ novacore:
   max-chance: 0.95
   # One entry per tier. This is a UNIVERSAL multiplier: it scales Luck,
   # the Money a roll pays and farm Coins together, so the ladder is worth
-  # climbing whatever you're grinding. Gentle at the bottom, steep at the
-  # very top.
-  # V351: thirty tiers, not twenty. Somebody sitting on 5,700 Nova Cores
-  # with nothing left to spend them on is a ladder that ended, and the
-  # whole point of a Core is that there is always one more rung.
-  multipliers: [1.02, 1.05, 1.10, 1.15, 1.25, 1.40, 1.55, 1.75, 2.00, 2.25,
-                2.50, 2.85, 3.25, 3.75, 4.25, 5.00, 6.00, 7.50, 9.00, 12.00,
-                15.00, 19.00, 24.00, 30.00, 38.00, 48.00, 60.00, 75.00,
-                95.00, 120.00]
+  # climbing whatever you are grinding.
+  #
+  # V355, Leon's call: a hundred tiers, and 25x at the top rather than
+  # 120x. The ladder used to be thirty rungs that ran away with
+  # themselves at the end; it is a hundred now and every rung is the same
+  # proportional step, about 3.3%, from 1.02x at tier 1 to 25.00x at tier
+  # 100. Long to climb, and the number at the end is one the rest of the
+  # game can live beside.
+  multipliers: [1.02, 1.05, 1.09, 1.12, 1.16, 1.20, 1.24, 1.28, 1.32, 1.36,
+                1.41, 1.46, 1.50, 1.55, 1.60, 1.66, 1.71, 1.77, 1.82, 1.88,
+                1.95, 2.01, 2.08, 2.14, 2.22, 2.29, 2.36, 2.44, 2.52, 2.60,
+                2.69, 2.78, 2.87, 2.96, 3.06, 3.16, 3.26, 3.37, 3.48, 3.60,
+                3.71, 3.84, 3.96, 4.09, 4.23, 4.37, 4.51, 4.66, 4.81, 4.97,
+                5.13, 5.30, 5.47, 5.65, 5.84, 6.03, 6.23, 6.43, 6.65, 6.86,
+                7.09, 7.32, 7.56, 7.81, 8.07, 8.33, 8.61, 8.89, 9.18, 9.48,
+                9.79, 10.12, 10.45, 10.79, 11.15, 11.51, 11.89, 12.28, 12.68, 13.10,
+                13.53, 13.97, 14.43, 14.91, 15.40, 15.90, 16.42, 16.96, 17.52, 18.10,
+                18.69, 19.31, 19.94, 20.59, 21.27, 21.97, 22.69, 23.44, 24.21, 25.00]
 
 # Shiny drops. A shiny is the same drop with a marker, an enchant glint
 # and its own entry in /index - 1 in 100 rolls by default, so roughly one
