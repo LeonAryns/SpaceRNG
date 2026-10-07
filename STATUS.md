@@ -5,10 +5,91 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V332**, 4 October 2026. The newest section is the
+Last updated at **V356**, 7 October 2026. The newest section is the
 first one below; older sections further down are history.
 
-## Start here: V331 and V332, 4 October 2026
+## Start here: V355 and V356, 7 October 2026
+
+Two jars, both **untested in game**. The local JDK 21 compile is clean
+for both; nobody has checked GitHub Actions from this session, so look
+at the run for 7b56231 before uploading.
+
+They are the rest of Leon's one-message list from the V353 / V354
+session. He asked for everything in it except the pets rework, which is
+the one subject still open.
+
+### V355, seven small things
+
+- **A hundred Nova Core tiers, 25x at the top**, in place of thirty
+  ending at 120x. Every rung is the same proportional step, about 3.3%.
+  Checkpoints grow by `novacore.checkpoint-gap-growth` (2) rather than
+  by one, which puts them at 5, 11, 19, 29, 41, 55, 71 and 89.
+- **Every account is mapped onto the new ladder once, on join**, by how
+  far up the old one it was. `novacore.rescale-version` says which round
+  this is and `rescale-from-max-tier` the old length, so a re-cut ladder
+  can do it again. Without it, the old tier 30 would have become tier 30
+  of 100.
+- **/novacore pages.** Prev and next on slots 48 and 50, opening on the
+  page the next rung is on. Before this, every tier past twenty existed,
+  paid out and could be forged, and simply was not drawn.
+- **Realm Time reads as time**, "+1 min" rather than "+60.00".
+- **No workbenches and no containers.** The interaction is cancelled, not
+  the inventory, so the plugin's own menus are untouched. The list is
+  `protection.blocked-blocks`.
+- **Perks in the Farm, Cosmic, Vote and Nebula crates at 0.5%.** It pays
+  a perk ROLL, not a perk, because a perk is one worn slot and handing
+  one over would replace what is being worn.
+- **/index sorts inside a rarity by odds**, so the whole index is one
+  ladder from the commonest drop to the rarest.
+
+No config-version bump. The four new keys are in `ADDED_SECTIONS`, and
+the ladder and the crate tables are two one-off patches that only fire
+while the live values still equal the defaults they shipped as.
+
+### V356, the menus
+
+- **/brewer and /potions are two commands.** `/potions` used to be an
+  alias on BOTH /potion and /boosters, so which menu it opened was down
+  to the order in plugin.yml. Now: `/brewer` (aliases brew, potion) is
+  the shelf, `/potions` (alias boosters) is the cupboard. Each carries
+  the way to the other in its bottom left corner, slot 45 in the brewer
+  and slot 27 in the cupboard, and the cupboard's button reads Locked
+  with the way in when Potions is not unlocked.
+- **Crate reward cards** are the description block now: a subtitle
+  saying what kind of reward it is, a two line pitch bold at the words
+  that matter, and a "You get" line. The amount used to live only inside
+  the name, so a reward named by hand in config showed its size nowhere.
+- **`Lore.key`** is the one shape for Leon's "bold at logical points":
+  white and bold for the two or three words that carry a line, grey put
+  back after. It is on the crate pitches, the pet card's stat, the
+  premium pass panel and the no-perk card. **The rank blurbs are left
+  alone on purpose**, because those are Leon's own words in config.
+- **The Battle Pass card** trades its "Reward:" header, a row repeating
+  the list under it, for a subtitle saying what kind of reward the rung
+  holds.
+
+### Worth knowing
+
+- **Three of these came from screenshots this session never saw.** Leon
+  sent pictures for the longer descriptions, the crate item cards and
+  the Battle Pass, and they were not in the conversation when the work
+  was done, so the layout came from `.claude/skills/menu-design` rather
+  than from his pictures. If any of the three is not what he meant, the
+  screenshot is the thing to ask for again.
+- **The money cap is not plugin work.** It is `max-money` in Essentials'
+  own config.yml, a hard number rather than an "unlimited" switch, and
+  the ceiling Essentials accepts is about 9e15.
+
+### Still open from that list
+
+- **The pets rework**, the one subject left: an Ender Dragon placed like
+  a crate that players hover for pets, a new egg every prestige, and a
+  choice in /pets of whether a pet's multiplier goes to Speed, Luck or
+  Money so a player can specialise. The pets that exist already have
+  rarity, eggs with `min-prestige` and Gem upgrades, so the dragon, the
+  per-prestige eggs and the stat focus are the three new pieces.
+
+## V331 and V332, 4 October 2026
 
 Two jars, both green, **neither tested**. No config-version bump: both
 reach the live server through Patches, ADDED_SECTIONS and one
