@@ -101,6 +101,14 @@ changes as patches, or the next `config-version` bump wipes his numbers.
 
 `pets.egg-bonus-growth` and `pets.index` are new keys in ADDED_SECTIONS.
 
+### The Discord post
+
+`/rngadmin discord post pets changelog` posts the player-facing card for
+the rework, written as `discord.cards.pets`. Posting it again edits the
+message already there instead of making a second one, so a correction is
+one command. It is in `ADDED_SECTIONS`, so it reaches the live config on
+its own; no `config-version` bump for it.
+
 ### Worth knowing
 
 - **`PetHatch` is dead code now.** `pets.eggs.instant` has been true

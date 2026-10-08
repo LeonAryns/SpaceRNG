@@ -280,6 +280,8 @@ public final class ConfigMigrator {
             "discord.cards.changelog",
             // V302: the second changelog card.
             "discord.cards.changelog2",
+            // V360: the pets rework card.
+            "discord.cards.pets",
             // V304: index completion by rarity.
             "index.completion.by-rarity",
             // V148: the podium's own text size.

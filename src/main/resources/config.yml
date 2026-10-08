@@ -6140,6 +6140,57 @@ discord:
   # is text, so the wording, the IPs and the vote links change without a
   # new jar. A field's value can be one line or a list of lines.
   cards:
+    # V360: the pets rework, for players.
+    #   /rngadmin discord post pets changelog
+    # Posting it twice edits the message that is already there rather than
+    # making a second one, so it can be corrected in place.
+    pets:
+      title: "Pets, rebuilt"
+      color: "#C77DFF"
+      description:
+        - "Pets are a different thing from today. Eggs come from Prestige, pets have one level ladder, and **you choose what each pet boosts**."
+        - ""
+        - "**Everyone starts again.** The pets you owned and your Cosmic Dust are gone, because the ladders they were bought on no longer exist. Nothing else on your account is touched."
+      fields:
+        - name: "The eggs"
+          value:
+            - "- **One egg every 10 Prestige**, from Prestige 10 up to 100. Ten eggs: Meteor, Comet, Nebula, Pulsar, Quasar, Supernova, Eclipse, Singularity, Horizon, Infinity"
+            - "- An egg **unlocks on its own** when you reach its Prestige. There is nothing to buy to open it up"
+            - "- Eggs are paid for in **Gems**, and the price on an egg is what **one opening** costs"
+            - "- Open **1, 3 or 9** at a time"
+            - "- **Auto open** keeps buying until your Gems or your pet storage run out. Linked accounts only, so run `/link` if you want it"
+          inline: false
+        - name: "What is inside an egg"
+          value:
+            - "- **Seven pets, one of every rarity**, Common up to Divine. Seventy pets in the game, and no two eggs share one"
+            - "- Every pet's **chance is printed on it**, and so is the one-in. A pet you have never found shows as **???**"
+            - "- The chances: Uncommon 25%, Rare 10%, Epic 2%, Legendary 0.2%, Mythical 0.02%, **Divine 0.001%**, and the rest Common"
+            - "- A later egg does not have better odds. It has **better pets**: the same rarity out of a later egg is worth more"
+          inline: false
+        - name: "Your pets"
+          value:
+            - "- A pet multiplies **one stat, and you pick which one**, any time, as often as you like, in `/pets`"
+            - "- A fresh pet is **1.1x at Common up to 2.0x at Divine**"
+            - "- **Level 1 to 10**, and every level is **10% more multiplier**. Levels are paid in **Cosmic Dust**, so the Cosmic Dust skills are what make pets grow faster"
+            - "- Levelling always works. There is no failed upgrade that eats your payment any more"
+            - "- **Storage holds 100 pets.** When it is full the eggs stop opening rather than throwing anything away"
+          inline: false
+        - name: "Pet Luck and the pet index"
+          value:
+            - "- **Pet Luck pushes every egg toward its rarer pets.** The rarer the pet, the more it matters"
+            - "- **+5% for every pet you discover**, whatever its rarity"
+            - "- **+100% for every egg you complete**, meaning all seven of its pets found"
+            - "- Discovering a pet counts forever. Throwing one away never takes the Pet Luck back"
+            - "- The pet index is in `/pets` and now also a button in `/index`, next to Normal, Shiny and Secret"
+            - "- There are **Pet Luck skills** on the Cosmic page of `/skilltree`"
+          inline: false
+        - name: "Where to start"
+          value:
+            - "- `/pets` for your slots, your storage and the eggs"
+            - "- Click an egg to see the seven pets in it and their chances before you spend anything"
+            - "- No Prestige 10 yet? Nothing to do yet. The first egg is waiting there"
+          inline: false
+      footer: "Found a bug or something that reads wrong? Say so in Discord, bug reports earn Credits."
     # V302: /rngadmin discord post changelog2 changelog (V306 brought it up
     # to date with V303 to V306)
     changelog2:
