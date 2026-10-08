@@ -60,6 +60,18 @@ public final class ConfigMigrator {
             // it, and a table that grew from nine to forty-two cannot
             // reach the server any other way.
             "pets.types",
+            // V359: the egg ladder. Ten eggs replacing three, each with
+            // its own seven pets, its Prestige and its Gem price, which
+            // no Patch can deliver and which the pets.types catalogue
+            // above is useless without: a pet names the egg it comes out
+            // of, and an egg names the seven pets in it.
+            //
+            // Prices ARE in here, which is the one thing this list is
+            // normally kept clear of. If Leon starts tuning egg prices on
+            // the server, take this back out and carry changes as
+            // patches instead, or the next config-version bump wipes his
+            // numbers.
+            "pets.eggs",
             // V345: the secret ladder. Thirty entries with their odds and
             // multipliers spread evenly from 1 in 1,000 to 1 in 1,000,000,
             // which cannot be delivered one Patch at a time, and nothing
@@ -109,7 +121,8 @@ public final class ConfigMigrator {
             // rarity or tier any more. The level ladder keys fall back to
             // the same code defaults, but they belong on disk where Leon
             // can tune them.
-            "pets.wipe-version", "pets.storage",
+            "pets.wipe-version", "pets.storage", "pets.egg-bonus-growth",
+            "pets.index",
             "pets.upgrades.max-level", "pets.upgrades.level-step",
             "pets.upgrades.level-base-cost", "pets.upgrades.level-cost-growth",
             // V315: the three small permanent Luck grants. The crates and

@@ -52,12 +52,16 @@ public class PetUpgrades {
     // Gems, for shiny.
     private long shinyCost = 100000L;
 
+    // How much more a pet out of each next egg is worth.
+    private double eggBonusGrowth = 1.15;
+
     public void load(org.bukkit.configuration.file.FileConfiguration config) {
         maxLevel = Math.max(1, config.getInt("pets.upgrades.max-level", 10));
         levelStep = Math.max(0.0, config.getDouble("pets.upgrades.level-step", 0.10));
         shinyBonus = Math.max(0.0, config.getDouble("pets.upgrades.shiny-bonus", 0.10));
         maxMultiplier = Math.max(1.0, config.getDouble("pets.upgrades.max-multiplier", 6.0));
         storage = Math.max(1, config.getInt("pets.storage", 100));
+        eggBonusGrowth = Math.max(1.0, config.getDouble("pets.egg-bonus-growth", 1.15));
 
         makeCost = Math.max(1L, config.getLong("pets.upgrades.make-cost", 100L));
         loadBonuses(config);
@@ -139,21 +143,45 @@ public class PetUpgrades {
                         Math.max(1L, egg.getLong("cost", makeCost)),
                         Math.max(0, egg.getInt("min-prestige", minPrestige)),
                         rarityOr(egg.getString("min-rarity"), defaultFloor(id)),
-                        chances));
+                        chances, egg.getStringList("pets"), 0));
             }
         }
         if (eggs.isEmpty()) {
             eggs.add(new PetEgg("stardust", "Stardust Egg", java.util.List.of("#C9D6FF", "#7FDBFF"),
                     org.bukkit.Material.TURTLE_EGG, makeCost, 0,
-                    defaultFloor("stardust"), defaultChances("stardust")));
-            eggs.add(new PetEgg("nebula", "Nebula Egg", java.util.List.of("#C77DFF", "#FF7AD9"),
-                    org.bukkit.Material.SNIFFER_EGG, makeCost * 15L, 10,
-                    defaultFloor("nebula"), defaultChances("nebula")));
-            eggs.add(new PetEgg("supernova", "Supernova Egg", java.util.List.of("#FFD54F", "#FF6F3C"),
-                    org.bukkit.Material.DRAGON_EGG, makeCost * 120L, 25,
-                    defaultFloor("supernova"), defaultChances("supernova")));
+                    defaultFloor("stardust"), defaultChances("stardust"),
+                    java.util.List.of(), 0));
         }
-        eggs.sort(java.util.Comparator.comparingLong(PetEgg::cost));
+        // V359: cheapest and earliest first, then numbered, because an
+        // egg's place in the ladder is what decides how much its pets are
+        // worth. Prestige leads, because that is the wall a player
+        // actually meets; the price only breaks a tie.
+        eggs.sort(java.util.Comparator.comparingInt(PetEgg::minPrestige)
+                .thenComparingLong(PetEgg::cost));
+        for (int i = 0; i < eggs.size(); i++) {
+            PetEgg egg = eggs.get(i);
+            eggs.set(i, new PetEgg(egg.id(), egg.display(), egg.colors(), egg.icon(), egg.cost(),
+                    egg.minPrestige(), egg.floor(), egg.chances(), egg.pets(), i));
+        }
+    }
+
+    /**
+     * What a pet out of the nth egg is worth, as a multiple of the same
+     * rarity out of the first one (V359).
+     *
+     * Leon gave 1.1x to 2.0x for the Prestige 10 egg and left the rest
+     * open, so the ladder above it is one knob. At 1.15 the Prestige 100
+     * egg is worth about 3.5 times the Prestige 10 one, which keeps a
+     * fully grown Divine inside the range the old cap allowed. This is
+     * the single number to move if the late eggs feel wrong.
+     */
+    public double eggBonusGrowth() {
+        return eggBonusGrowth;
+    }
+
+    /** The bonus a fresh pet of this rarity out of this egg carries. */
+    public double bonusFor(com.spacerng.solrng.rarity.Rarity rarity, int eggIndex) {
+        return bonusFor(rarity) * Math.pow(eggBonusGrowth, Math.max(0, eggIndex));
     }
 
     /**

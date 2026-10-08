@@ -49,7 +49,10 @@ public class PetsGui {
     private static final int INFO_SLOT = 8;
     private static final int[] SLOT_SLOTS = {11, 13, 15};
     private static final int FORGE_SLOT = 31;
-    private static final int[] PROGRESS_SLOTS = {38, 39, 40, 41, 42};
+    // V359: ten eggs. Five across row 4 and five across row 5, Prestige
+    // order, left to right and top to bottom.
+    private static final int[] EGG_SLOTS = {29, 30, 31, 32, 33, 38, 39, 40, 41, 42};
+    private static final int LUCK_SLOT = 53;
     // Storage and index: the back arrow top left, pets from the second row.
     private static final int BACK_SLOT = 0;
     private static final int FIRST_PET = 9;
@@ -91,23 +94,14 @@ public class PetsGui {
                     slot < equipped.size() ? equipped.get(slot) : null, slot, slot < open));
         }
 
+        // V359: ten eggs, one per ten Prestige, so they fill the two rows
+        // under the slots in Prestige order and the Cosmic Dust meter that
+        // used to sit beneath them is gone with the dust price.
         var eggs = pets.upgrades().eggs();
-        int[] eggSlots = eggs.size() == 1 ? new int[]{FORGE_SLOT}
-                : eggs.size() == 2 ? new int[]{30, 32} : new int[]{29, 31, 33};
-        for (int i = 0; i < eggs.size() && i < eggSlots.length; i++) {
-            inv.setItem(eggSlots[i], eggIcon(plugin, data, eggs.get(i), i + 1));
+        for (int i = 0; i < eggs.size() && i < EGG_SLOTS.length; i++) {
+            inv.setItem(EGG_SLOTS[i], eggIcon(plugin, data, eggs.get(i), i + 1));
         }
-        // The row under the eggs fills toward the next egg you can open
-        // but cannot pay for yet.
-        long cost = pets.upgrades().makeCost();
-        for (var egg : eggs) {
-            if (data.getPrestige() < egg.minPrestige()) break;
-            cost = egg.cost();
-            if (data.getCosmicDust() < egg.cost()) break;
-        }
-        for (int i = 0; i < PROGRESS_SLOTS.length; i++) {
-            inv.setItem(PROGRESS_SLOTS[i], progressBlock(data.getCosmicDust(), cost, i));
-        }
+        inv.setItem(LUCK_SLOT, PetEggGui.luckCard(plugin, data));
         MenuStyle.apply(inv, MenuStyle.Palette.CYAN);
         return inv;
     }
@@ -171,8 +165,62 @@ public class PetsGui {
             if (index >= RARITY_SLOTS.length) break;
             inv.setItem(RARITY_SLOTS[index++], rarityIcon(plugin, data, rarity));
         }
+        // V359: the eggs under the rarities, because an egg is what a
+        // player actually finishes, and the Pet Luck card that says what
+        // the whole index is paying.
+        var eggs = plugin.getPetManager().upgrades().eggs();
+        for (int i = 0; i < eggs.size() && i < EGG_SLOTS.length; i++) {
+            inv.setItem(EGG_SLOTS[i], eggProgress(plugin, data, eggs.get(i)));
+        }
+        inv.setItem(LUCK_SLOT, PetEggGui.luckCard(plugin, data));
         MenuStyle.apply(inv, MenuStyle.Palette.CYAN);
         return inv;
+    }
+
+    /**
+     * One egg's line in the pet index: which of its seven are found, and
+     * what finishing it is worth (V359).
+     *
+     * This is the "show the boost like it is with other stuff" Leon
+     * asked for. The drop index prints what completing a rarity pays; an
+     * egg prints the same thing, in Pet Luck.
+     */
+    private static ItemStack eggProgress(SolRNGPlugin plugin, PlayerData data,
+                                         com.spacerng.solrng.pet.PetEgg egg) {
+        PetManager pets = plugin.getPetManager();
+        int found = pets.foundIn(data, egg);
+        int total = egg.pets().size();
+        boolean complete = total > 0 && found >= total;
+        double perPet = plugin.getConfig().getDouble("pets.index.luck-per-pet", 0.05);
+        double perEgg = plugin.getConfig().getDouble("pets.index.luck-per-egg", 1.0);
+
+        ItemStack item = new ItemStack(egg.icon());
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(Lore.gradient(egg.display(), true, egg.stops()));
+
+        List<String> lore = new ArrayList<>();
+        lore.add(ChatColor.DARK_GRAY + "Prestige " + egg.minPrestige());
+        lore.add("");
+        lore.add(Lore.stat(complete ? ChatColor.GREEN : ChatColor.AQUA, "Found",
+                found + " / " + total + (complete ? "  " + Lore.TICK : "")));
+        lore.add(Lore.bar(total == 0 ? 0.0 : found / (double) total));
+        lore.add("");
+        lore.add(Lore.section(ChatColor.GREEN, "What it pays"));
+        lore.add(ChatColor.GREEN + Lore.BULLET + " " + ChatColor.GRAY + "Each pet found: "
+                + ChatColor.WHITE + "+" + Math.round(perPet * 100.0) + "% Pet Luck");
+        lore.add((complete ? ChatColor.GREEN : ChatColor.DARK_GRAY) + Lore.BULLET + " "
+                + ChatColor.GRAY + "All seven found: "
+                + (complete ? ChatColor.GREEN : ChatColor.WHITE)
+                + "+" + Math.round(perEgg * 100.0) + "% Pet Luck"
+                + (complete ? "  " + ChatColor.GREEN + Lore.TICK : ""));
+        lore.add("");
+        lore.add(Lore.pipe(ChatColor.LIGHT_PURPLE, "+"
+                + Math.round((perPet * found + (complete ? perEgg : 0.0)) * 100.0)
+                + "% from this egg"));
+        meta.setLore(lore);
+        if (complete) meta.setEnchantmentGlintOverride(Boolean.TRUE);
+        item.setItemMeta(meta);
+        return item;
     }
 
     /** The rarity a clicked index card carries, or null. */
@@ -325,43 +373,40 @@ public class PetsGui {
                                      com.spacerng.solrng.pet.PetEgg egg, int tier) {
         PetManager pets = plugin.getPetManager();
         long cost = egg.cost();
-        boolean canPay = data.getCosmicDust() >= cost;
+        boolean canPay = data.getShards() >= cost;
         boolean prestigeOk = data.getPrestige() >= egg.minPrestige();
-        double chance = plugin.getDustManager().cosmicChance(data);
+        int found = pets.foundIn(data, egg);
+        int total = egg.pets().size();
+        boolean complete = total > 0 && found >= total;
 
+        // V359: a locked egg keeps its own icon rather than going grey.
+        // The whole point of the ladder is seeing what is coming.
         ItemStack item = new ItemStack(egg.icon());
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(Lore.gradient(egg.display(), true, egg.stops()));
+        meta.setDisplayName(Lore.gradient(egg.display(), true, egg.stops())
+                + (prestigeOk ? "" : ChatColor.DARK_GRAY + "  " + Lore.state("Locked")));
 
         List<String> lore = new ArrayList<>();
-        lore.add(ChatColor.DARK_GRAY + "Tier " + tier + " egg");
+        lore.add(ChatColor.DARK_GRAY + "Egg " + tier + " of " + pets.upgrades().eggs().size());
         lore.add("");
-        lore.add(Lore.line(ChatColor.GRAY, "Hatches one pet. Its rarity is"));
-        lore.add(Lore.line(ChatColor.GRAY, "rolled first and decides the"));
-        lore.add(Lore.line(ChatColor.GRAY, "multiplier, its stat after."));
-        lore.add(Lore.line(ChatColor.GRAY, "A dearer egg is the same pets at"));
-        lore.add(Lore.line(ChatColor.GRAY, "better odds, never other pets."));
+        lore.add(Lore.line(ChatColor.GRAY, Lore.key("Seven pets") + ", one per rarity."));
+        lore.add(Lore.line(ChatColor.GRAY, "A later egg's pets are worth more."));
         lore.add("");
-        lore.add(Lore.section(ChatColor.YELLOW, "Chance per hatch"));
-        for (var entry : pets.odds(data, egg).entrySet()) {
-            lore.add(Lore.stat(ChatColor.AQUA, entry.getKey().displayName(), percent(entry.getValue())));
-        }
-        lore.add("");
-        lore.add(Lore.stat(ChatColor.AQUA, "Price", Currency.COSMIC_DUST.price(cost, canPay)));
+        lore.add(Lore.stat(ChatColor.AQUA, "Price", Currency.GEMS.price(cost, canPay)));
+        lore.add(Lore.stat(prestigeOk ? ChatColor.GREEN : ChatColor.RED, "Prestige",
+                String.valueOf(egg.minPrestige())));
+        lore.add(Lore.stat(complete ? ChatColor.GREEN : ChatColor.AQUA, "Discovered",
+                found + " / " + total + (complete ? "  " + Lore.TICK : "")));
+        lore.add(Lore.bar(total == 0 ? 0.0 : found / (double) total));
         lore.add("");
         if (!prestigeOk) {
-            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Locked");
-            lore.add(Lore.line(ChatColor.GRAY, "Reach Prestige " + egg.minPrestige() + " in /prestige"));
-        } else if (chance <= 0.0 && data.getCosmicDust() < cost) {
-            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Locked");
-            lore.add(Lore.line(ChatColor.GRAY, "Unlock Cosmic Dust in /skilltree"));
-        } else if (canPay) {
-            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to hatch");
+            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Prestige " + egg.minPrestige() + " first");
+            lore.add(Lore.line(ChatColor.GRAY, "It unlocks on its own when you get there"));
         } else {
-            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Not enough Cosmic Dust");
+            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to look inside");
         }
         meta.setLore(lore);
-        if (canPay && prestigeOk) meta.setEnchantmentGlintOverride(Boolean.TRUE);
+        if (complete) meta.setEnchantmentGlintOverride(Boolean.TRUE);
         meta.getPersistentDataContainer().set(forgeKey(), PersistentDataType.STRING, egg.id());
         item.setItemMeta(meta);
         return item;

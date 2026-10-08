@@ -5,10 +5,114 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V359**, 8 October 2026. The newest section is the
+Last updated at **V360**, 8 October 2026. The newest section is the
 first one below; older sections further down are history.
 
-## Start here: V359, 8 October 2026
+## Start here: V360, 8 October 2026
+
+One jar, **untested in game**. The local JDK 21 compile is clean. It is
+the rest of the pets rework: the eggs, the pet index, Pet Luck and the
+hovering egg. With V359 under it the whole thing Leon asked for on
+8 October is now built.
+
+### Ten eggs, one every ten Prestige
+
+- `prestige_10` through `prestige_100`: Meteor, Comet, Nebula, Pulsar,
+  Quasar, Supernova, Eclipse, Singularity, Horizon, Infinity.
+- **An egg unlocks on its own** at its Prestige. The number on it is the
+  price of ONE opening, never a fee to get in, which is what Leon
+  corrected.
+- **Paid in Gems**, 10,000 for the first and doubling each egg to
+  5,120,000 for the last. Cosmic Dust levels a pet, Gems open an egg, so
+  the two currencies are the two halves of the system.
+- **Seven pets in each, one per rarity**, Common to Divine. Seventy pets
+  in all, every one with its own name, icon, colours and line. That is
+  what makes "every rarity found" and "every pet found" the same
+  sentence.
+- **The chance of each rarity is the same ladder in every egg**: Divine
+  0.001%, Mythical 0.02%, Legendary 0.2%, Epic 2%, Rare 10%, Uncommon
+  25%, and the rest, about 62.8%, Common.
+- What a later egg buys is **pets worth more**, through
+  `pets.egg-bonus-growth` (1.15). The Prestige 100 egg's pets are worth
+  about 3.5 times the Prestige 10 egg's. **That is the one number to
+  move** if the late eggs feel wrong; Leon gave 1.1x to 2.0x for the
+  first egg and left the ladder above it open.
+
+### The egg screen
+
+A click on an egg in `/pets` opens its own screen instead of buying on
+the spot, which is the only way to see what is in an egg before paying
+for it. It is built from Leon's screenshot:
+
+- **The seven pets in a row**, Common on the left. A pet already found
+  shows what it is and what it is worth; one never found is a **"???"
+  barrier reading "Locked"**. Either way the card prints the chance and
+  the one-in.
+- Those chances are the LIVE ones, Pet Luck folded in, out of the same
+  method the roll uses, so a card can never promise odds the egg does
+  not use.
+- **Open 1, 3 or 9** (`pets.eggs.bulk`), and the number is the stack
+  size on the button.
+- **Auto open**, linked accounts only. With it on, the click keeps
+  buying until the Gems run out, the storage fills or 256 eggs have gone
+  (a tick guard, not a balance number). It always says why it stopped.
+
+### The pet index and Pet Luck
+
+- **Pet Luck tilts every egg toward its rarer pets.** Each chance above
+  the egg's Common is multiplied by 1 + Pet Luck and the Common absorbs
+  the difference. It cannot run away: if the raised chances would sum
+  past a whole egg they are scaled back.
+- **5% per pet found**, whatever its rarity, and **100% for every egg
+  whose seven are all found**. With everything that is 1,350%, which
+  turns the 0.001% Divine into about 0.0145%.
+- **Discovery is "have you ever held it"**, kept in `pets-found` on the
+  save, so throwing a pet away never costs the Pet Luck it bought.
+- **Three Pet Luck nodes** on page 5 of `/skilltree`, 10 levels each at
+  +10%, +20% and +40%, hanging off Steady Hands, Cosmic Yield and Pet
+  Slot III. Every one sits on the slot next to what it needs, so the
+  V358 rule still holds (the checker says 0 non-adjacent of 101).
+- **`/index` has a fourth button, Pet Index**, next to Normal, Shiny and
+  Secret. It opens the pet index screen `/pets` already had, and the
+  button itself prints pets found, eggs complete and the Pet Luck they
+  pay. Inside, each egg has a card saying what it has paid and what
+  finishing it would pay, which is the "show the boost like the other
+  stuff" he asked for.
+
+### The hovering egg
+
+`/rngadmin petegg place <egg>` while **holding the item it should look
+like** and looking at a block, exactly the gesture `crate place` uses.
+The item floats and turns over an invisible barrier; a click on it opens
+that egg. `remove` and `list` as well, with tab completion. It is a new
+`EGG` kind in `HoloManager`, so it is saved in `holograms.yml`, swept on
+start and never written into a chunk like every other floating thing.
+
+### Reaching the live config
+
+`config-version` is **49**. `pets.eggs` joined `ConfigMigrator.STRUCTURAL`
+beside `pets.types`, because a pet names the egg it comes from and an egg
+names its seven pets: one arriving without the other is a broken table.
+
+**Worth watching:** egg PRICES live inside that structural section, which
+is the one thing the list is normally kept clear of. If Leon starts
+tuning egg prices on the server, take `pets.eggs` back out and carry
+changes as patches, or the next `config-version` bump wipes his numbers.
+
+`pets.egg-bonus-growth` and `pets.index` are new keys in ADDED_SECTIONS.
+
+### Worth knowing
+
+- **`PetHatch` is dead code now.** `pets.eggs.instant` has been true
+  since V313 so the animation never ran, and the egg screen does not
+  call it at all. It is still in the tree if the build-up is ever wanted
+  back.
+- **One pet per rarity per egg was Leon's answer**, so an egg is seven
+  pets and nothing in the code assumes more. If he ever wants several
+  pets at one rarity, `PetEgg.petAt` is the one place that would have to
+  pick between them.
+
+## V359, 8 October 2026
 
 One jar, **untested in game**. The local JDK 21 compile is clean. It is
 the first of the pets rework, the subject Leon spelled out the same day;
@@ -244,9 +348,9 @@ while the live values still equal the defaults they shipped as.
 
 ### Still open from that list
 
-- **The pets rework**, the one subject left. Leon spelled the whole thing
-  out on 8 October with three screenshots; the spec is in the idea list
-  below under "The pets rework, Leon's full spec".
+- **The pets rework is built**, V359 and V360, and untested in game. The
+  spec and his answers are still in the idea list below as the record of
+  what was asked for.
 
 ## V331 and V332, 4 October 2026
 
@@ -1804,13 +1908,17 @@ jars; the split at the bottom is a proposal, not his words.
   P10 egg and nothing for P20 up, so the ladder uses one growth knob per
   egg and that knob is the single number to move.
 
-**Proposed split, one subject per jar**
+**What was built, 8 October**
 
-1. The eggs: per Prestige unlock, Gem price per open, 1 / 3 / 9, auto
-   open, the rarity chances on the card.
-2. The pets: the stat choice, 100 slots, auto delete by rarity, the
-   Cosmic Dust levelling.
-3. The pet index: Pet Luck, the skill tree nodes, the page in `/index`.
+1. **V359, the pet**: the level ladder, the stat choice, storage of 100,
+   the wipe.
+2. **V360, the rest**: the ten eggs, the egg screen, 1 / 3 / 9, auto
+   open, the pet index, Pet Luck, the skill tree nodes, the page in
+   `/index` and the hovering egg placed with a command.
+
+Both are untested in game. The one number left for Leon is
+`pets.egg-bonus-growth`, which decides what the eggs above Prestige 10
+are worth.
 
 ### The list Leon gave on 3 October, after V309, with the audit beside it
 

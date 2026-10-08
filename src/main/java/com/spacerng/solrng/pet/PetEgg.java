@@ -8,12 +8,19 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * One tier of egg on the pets screen.
+ * One egg on the pets screen.
  *
- * Every egg draws from the same forty-two pets. What a dearer egg buys
- * is the chance of each RARITY, written down one line each in config
- * (V324). Whatever is left over after those chances is the egg's floor
- * rarity, so the numbers always add up to one egg.
+ * V359, Leon's ladder: one egg every ten Prestige, and an egg holds its
+ * OWN seven pets, one per rarity from Common to Divine. That is what
+ * makes "every rarity found" and "every pet found" the same sentence,
+ * which is how the pet index pays its completion bonus.
+ *
+ * What a dearer egg buys is two things: pets that are worth more, through
+ * pets.egg-bonus-growth, and the Prestige wall in front of it. The chance
+ * of each RARITY is written down one line each in config (V324) and is
+ * the same ladder in every egg. Whatever is left over after those
+ * chances is the egg's floor rarity, so the numbers always add up to one
+ * egg.
  *
  * Until V324 an egg carried a single {@code boost} that multiplied the
  * weight of every pet from Epic up. That could not move Epic, Legendary
@@ -25,7 +32,18 @@ import java.util.Map;
  * config numbers rather than a calculation of them.
  */
 public record PetEgg(String id, String display, List<String> colors, Material icon,
-                     long cost, int minPrestige, Rarity floor, Map<Rarity, Double> chances) {
+                     long cost, int minPrestige, Rarity floor, Map<Rarity, Double> chances,
+                     List<String> pets, int index) {
+
+    /**
+     * The pet this egg hatches at a given rarity, or null when it has
+     * none there. The list is in rarity order, Common first, so the
+     * rarity's own position in {@link Rarity} is the position in it.
+     */
+    public String petAt(Rarity rarity) {
+        int at = rarity.ordinal();
+        return at >= 0 && at < pets.size() ? pets.get(at) : null;
+    }
 
     /** The chance this egg hatches a given rarity, floor included. */
     public double chanceOf(Rarity rarity) {

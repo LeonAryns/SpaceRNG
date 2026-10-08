@@ -8,7 +8,7 @@
 # their fresh defaults in on top of whatever is on disk, so a server
 # owner never has to delete the whole file to pick up a structural
 # change. Item table, prices and cosmetic tweaks are untouched.
-config-version: 48
+config-version: 49
 
 # One-off value changes the plugin has already made to this file, so none
 # is ever made twice. Managed by the plugin; leave it alone.
@@ -3573,6 +3573,46 @@ skilltree:
       max-level: 10
 
     # -- Tier branch. Tiers are bought with Gems, this makes them stick. --
+    # V359, the Pet Luck line. Pet Luck tilts every egg toward its rarer
+    # pets, and the pet index is where most of it comes from; these are
+    # the part of it a player can buy. Each hangs off the slot next to it
+    # the way the rest of the tree does.
+    pet_luck_1:
+      display: "Pet Luck I"
+      page: 5
+      slot: "3,6"
+      icon: RABBIT_FOOT
+      cost-money: 200000000000
+      cost-growth: 1.4
+      requires: "pet_tier_1"
+      effect: PET_LUCK
+      value: 0.10
+      max-level: 10
+
+    pet_luck_2:
+      display: "Pet Luck II"
+      page: 5
+      slot: "7,6"
+      icon: RABBIT_FOOT
+      cost-money: 600000000000
+      cost-growth: 1.4
+      requires: "cosmic_yield"
+      effect: PET_LUCK
+      value: 0.20
+      max-level: 10
+
+    pet_luck_3:
+      display: "Pet Luck III"
+      page: 5
+      slot: "5,3"
+      icon: RABBIT_FOOT
+      cost-money: 1800000000000
+      cost-growth: 1.4
+      requires: "pet_slot_3"
+      effect: PET_LUCK
+      value: 0.40
+      max-level: 10
+
     pet_tier_1:
       display: "Steady Hands"
       page: 5
@@ -6966,83 +7006,293 @@ pets:
   # away from a new player.
   min-prestige: 0
 
-  # The eggs on the pets screen, cheapest first. Every egg draws from the
-  # same forty-two pets. V324: what an egg buys is written out as the
-  # chance of each rarity, one line each, and whatever is left over is
-  # the egg's floor rarity. The old boost multiplied every rarity from
-  # Epic up by the same number, which could not move Epic, Legendary and
-  # Mythical against EACH OTHER however it was tuned, and that is why the
-  # second and third eggs felt identical.
+  # V359, Leon's egg ladder. One egg every ten Prestige, from 10 to 100,
+  # and an egg UNLOCKS on its own the moment the Prestige is reached. The
+  # cost on it is what one opening costs, not a fee to get in.
   #
-  # The chances on the tooltip are these numbers, not a calculation of
-  # them, so what the egg says is what the egg does.
+  # Paid in Gems. Buy 1, 3 or 9 at a time, and with auto open switched on
+  # the buying keeps going until the Gems run out, the storage fills or
+  # every pet in the egg is already found. Auto open is for linked
+  # accounts only.
+  #
+  # Every egg holds SEVEN pets, one per rarity from Common to Divine, and
+  # the chance of each rarity is written out rather than worked out from
+  # a boost, so what the card says is what the egg does. Finding all
+  # seven completes the egg, which is what pays the 100% Pet Luck.
+  #
+  # What a pet out of a later egg is WORTH is pets.egg-bonus-growth
+  # below, not a number here, so the whole ladder is retuned in one
+  # place.
   eggs:
     # V313: an egg hatches the moment it is bought, Leon's call. Set this
     # false to bring the V238 build-up, shake and crack back.
     instant: true
-    # Divine is one of the chances below like any other rarity.
+    # V359: how many eggs may be bought on one click. Leon asked for
+    # 1, 3 and 9, and with auto open on the buying keeps going.
+    bulk: [1, 3, 9]
     tiers:
-      stardust:
-        display: "Stardust Egg"
-        colors: ["#C9D6FF", "#7FDBFF"]
+      prestige_10:
+        display: "Meteor Egg"
+        colors: ["#BCAAA4", "#8D6E63"]
         icon: TURTLE_EGG
-        cost: 100
-        # V313: from the start, and never a Divine.
-        min-prestige: 0
-        min-rarity: COMMON
-        max-rarity: MYTHICAL
-        divine-chance: 0.0
-        # V324: the chance of each rarity, written down rather than worked
-        # out from a boost. Anything left over is the egg's floor rarity,
-        # here Common at about 68.9%.
-        chances:
-          UNCOMMON: 0.25
-          RARE: 0.06
-          EPIC: 0.01
-          LEGENDARY: 0.001
-          MYTHICAL: 0.0001
-      nebula:
-        display: "Nebula Egg"
-        colors: ["#C77DFF", "#FF7AD9"]
-        icon: SNIFFER_EGG
-        cost: 1500
-        # V313: Prestige 10, and a very small Divine chance: 1 in 1,000.
+        # Gems, per egg opened. It unlocks on its own at the Prestige
+        # below, so this is a price and never a fee to get in.
+        cost: 10000
         min-prestige: 10
-        min-rarity: UNCOMMON
-        max-rarity: MYTHICAL
-        divine-chance: 0.001
-        # V324: Mythical was running at about 1 in 4 out of this egg and
-        # 1 in 3.7 out of the Supernova, which is why the two eggs felt
-        # the same. A boost multiplied every rarity from Epic up by the
-        # same number, so their shares against each other never moved
-        # however it was tuned. These are the real chances; the rest,
-        # about 66.2%, is Uncommon.
+        min-rarity: COMMON
+        # The same ladder in every egg. Divine is Leon's 0.001%, and
+        # what is left over, about 62.8%, is the Common.
         chances:
-          RARE: 0.25
-          EPIC: 0.07
-          LEGENDARY: 0.015
-          MYTHICAL: 0.002
-      supernova:
+          DIVINE: 0.00001
+          MYTHICAL: 0.0002
+          LEGENDARY: 0.002
+          EPIC: 0.02
+          RARE: 0.10
+          UNCOMMON: 0.25
+        # One pet per rarity, Common first. Finding all seven is what
+        # completes the egg and pays the 100% Pet Luck.
+        pets:
+          - pebble_drifter
+          - iron_shard
+          - crater_hound
+          - impact_core
+          - falling_star
+          - skyfall_titan
+          - first_stone
+      prestige_20:
+        display: "Comet Egg"
+        colors: ["#B3E5FC", "#4FC3F7"]
+        icon: SNOWBALL
+        # Gems, per egg opened. It unlocks on its own at the Prestige
+        # below, so this is a price and never a fee to get in.
+        cost: 20000
+        min-prestige: 20
+        min-rarity: COMMON
+        chances:
+          DIVINE: 0.00001
+          MYTHICAL: 0.0002
+          LEGENDARY: 0.002
+          EPIC: 0.02
+          RARE: 0.10
+          UNCOMMON: 0.25
+        # One pet per rarity, Common first. Finding all seven is what
+        # completes the egg and pays the 100% Pet Luck.
+        pets:
+          - frost_mote
+          - ice_trail
+          - long_orbit
+          - blue_tail
+          - hale_runner
+          - perihelion
+          - long_period
+      prestige_30:
+        display: "Nebula Egg"
+        colors: ["#CE93D8", "#AB47BC"]
+        icon: SNIFFER_EGG
+        # Gems, per egg opened. It unlocks on its own at the Prestige
+        # below, so this is a price and never a fee to get in.
+        cost: 40000
+        min-prestige: 30
+        min-rarity: COMMON
+        chances:
+          DIVINE: 0.00001
+          MYTHICAL: 0.0002
+          LEGENDARY: 0.002
+          EPIC: 0.02
+          RARE: 0.10
+          UNCOMMON: 0.25
+        # One pet per rarity, Common first. Finding all seven is what
+        # completes the egg and pays the 100% Pet Luck.
+        pets:
+          - dust_wisp
+          - violet_veil
+          - star_nursery
+          - pillar_walker
+          - emission_heart
+          - dark_cloud
+          - first_light
+      prestige_40:
+        display: "Pulsar Egg"
+        colors: ["#FF8A80", "#FF5252"]
+        icon: REDSTONE
+        # Gems, per egg opened. It unlocks on its own at the Prestige
+        # below, so this is a price and never a fee to get in.
+        cost: 80000
+        min-prestige: 40
+        min-rarity: COMMON
+        chances:
+          DIVINE: 0.00001
+          MYTHICAL: 0.0002
+          LEGENDARY: 0.002
+          EPIC: 0.02
+          RARE: 0.10
+          UNCOMMON: 0.25
+        # One pet per rarity, Common first. Finding all seven is what
+        # completes the egg and pays the 100% Pet Luck.
+        pets:
+          - tick_mote
+          - beam_sweep
+          - spin_core
+          - magnetar
+          - lighthouse
+          - millisecond
+          - clockheart
+      prestige_50:
+        display: "Quasar Egg"
+        colors: ["#FFE082", "#FFB300"]
+        icon: GLOWSTONE_DUST
+        # Gems, per egg opened. It unlocks on its own at the Prestige
+        # below, so this is a price and never a fee to get in.
+        cost: 160000
+        min-prestige: 50
+        min-rarity: COMMON
+        chances:
+          DIVINE: 0.00001
+          MYTHICAL: 0.0002
+          LEGENDARY: 0.002
+          EPIC: 0.02
+          RARE: 0.10
+          UNCOMMON: 0.25
+        # One pet per rarity, Common first. Finding all seven is what
+        # completes the egg and pays the 100% Pet Luck.
+        pets:
+          - bright_speck
+          - jet_stream
+          - accretion
+          - blazar
+          - gold_torrent
+          - ancient_glare
+          - first_engine
+      prestige_60:
         display: "Supernova Egg"
         colors: ["#FFD54F", "#FF6F3C"]
-        icon: DRAGON_EGG
-        # V351: half the price and three times the Divine chance. At the
-        # old numbers one Divine pet averaged 1.2 million Cosmic Dust,
-        # which was 228 hours of rolling.
-        cost: 6000
-        # V313: Prestige 25, and ten times the Nebula's Divine chance.
-        min-prestige: 25
-        min-rarity: RARE
-        max-rarity: MYTHICAL
-        divine-chance: 0.03
-        # V324: ten times the Nebula on Mythical and three and a half
-        # times on Epic, so the dearest egg is clearly the one to save
-        # for. The rest, about 64%, is Rare.
+        icon: FIRE_CHARGE
+        # Gems, per egg opened. It unlocks on its own at the Prestige
+        # below, so this is a price and never a fee to get in.
+        cost: 320000
+        min-prestige: 60
+        min-rarity: COMMON
         chances:
-          EPIC: 0.25
-          LEGENDARY: 0.08
-          MYTHICAL: 0.02
-
+          DIVINE: 0.00001
+          MYTHICAL: 0.0002
+          LEGENDARY: 0.002
+          EPIC: 0.02
+          RARE: 0.10
+          UNCOMMON: 0.25
+        # One pet per rarity, Common first. Finding all seven is what
+        # completes the egg and pays the 100% Pet Luck.
+        pets:
+          - ember_fleck
+          - shockfront
+          - heavy_ash
+          - collapse
+          - remnant
+          - type_one
+          - last_light
+      prestige_70:
+        display: "Eclipse Egg"
+        colors: ["#B0BEC5", "#455A64"]
+        icon: INK_SAC
+        # Gems, per egg opened. It unlocks on its own at the Prestige
+        # below, so this is a price and never a fee to get in.
+        cost: 640000
+        min-prestige: 70
+        min-rarity: COMMON
+        chances:
+          DIVINE: 0.00001
+          MYTHICAL: 0.0002
+          LEGENDARY: 0.002
+          EPIC: 0.02
+          RARE: 0.10
+          UNCOMMON: 0.25
+        # One pet per rarity, Common first. Finding all seven is what
+        # completes the egg and pays the 100% Pet Luck.
+        pets:
+          - penumbra
+          - umbra
+          - corona
+          - diamond_ring
+          - totality
+          - saros
+          - black_sun
+      prestige_80:
+        display: "Singularity Egg"
+        colors: ["#B388FF", "#651FFF"]
+        icon: ENDER_EYE
+        # Gems, per egg opened. It unlocks on its own at the Prestige
+        # below, so this is a price and never a fee to get in.
+        cost: 1280000
+        min-prestige: 80
+        min-rarity: COMMON
+        chances:
+          DIVINE: 0.00001
+          MYTHICAL: 0.0002
+          LEGENDARY: 0.002
+          EPIC: 0.02
+          RARE: 0.10
+          UNCOMMON: 0.25
+        # One pet per rarity, Common first. Finding all seven is what
+        # completes the egg and pays the 100% Pet Luck.
+        pets:
+          - event_mote
+          - tidal_pull
+          - photon_ring
+          - horizon_walker
+          - time_dilate
+          - mass_well
+          - point_zero
+      prestige_90:
+        display: "Horizon Egg"
+        colors: ["#80DEEA", "#00ACC1"]
+        icon: ECHO_SHARD
+        # Gems, per egg opened. It unlocks on its own at the Prestige
+        # below, so this is a price and never a fee to get in.
+        cost: 2560000
+        min-prestige: 90
+        min-rarity: COMMON
+        chances:
+          DIVINE: 0.00001
+          MYTHICAL: 0.0002
+          LEGENDARY: 0.002
+          EPIC: 0.02
+          RARE: 0.10
+          UNCOMMON: 0.25
+        # One pet per rarity, Common first. Finding all seven is what
+        # completes the egg and pays the 100% Pet Luck.
+        pets:
+          - far_edge
+          - red_shift
+          - cold_glow
+          - deep_field
+          - lookback
+          - edge_walker
+          - observable
+      prestige_100:
+        display: "Infinity Egg"
+        colors: ["#F8BBD0", "#EC407A"]
+        icon: DRAGON_EGG
+        # Gems, per egg opened. It unlocks on its own at the Prestige
+        # below, so this is a price and never a fee to get in.
+        cost: 5120000
+        min-prestige: 100
+        min-rarity: COMMON
+        chances:
+          DIVINE: 0.00001
+          MYTHICAL: 0.0002
+          LEGENDARY: 0.002
+          EPIC: 0.02
+          RARE: 0.10
+          UNCOMMON: 0.25
+        # One pet per rarity, Common first. Finding all seven is what
+        # completes the egg and pays the 100% Pet Luck.
+        pets:
+          - one_more
+          - endless_row
+          - fold
+          - recursion
+          - uncountable
+          - absolute
+          - forever
   # V359, Leon's numbers: a fresh pet runs from 1.1x at Common to 2.0x at
   # Divine. The bonus above 1 doubles every step the way it always has,
   # 0.1 to 1.0, so a rarity is still exponentially better than the one
@@ -7060,6 +7310,28 @@ pets:
     LEGENDARY: 1.60
     MYTHICAL: 1.80
     DIVINE: 2.00
+
+  # V359, the pet index. Pet Luck tilts every egg toward its rarer pets:
+  # each chance above the egg's Common is multiplied by 1 + Pet Luck and
+  # the Common absorbs the difference.
+  #
+  # Leon's numbers: 5% for every pet discovered, whatever its rarity, and
+  # 100% for every egg whose seven rarities have all been found. With all
+  # seventy pets and all ten eggs that is 1,350%, which turns the 0.001%
+  # Divine into about 0.0145%. Discovery is "have you ever held it", so
+  # throwing a pet away never costs the luck it bought.
+  index:
+    luck-per-pet: 0.05
+    luck-per-egg: 1.0
+
+  # V359: how much more a pet out of each NEXT egg is worth, as a
+  # multiple of the same rarity out of the Prestige 10 one. Leon gave
+  # 1.1x to 2.0x for the first egg and left the ladder above it open, so
+  # it is one knob: at 1.15 the Prestige 100 egg's pets are worth about
+  # 3.5 times the Prestige 10 egg's, which puts a fully grown Divine
+  # around 6.7x its stat. This is the single number to move if the late
+  # eggs feel wrong.
+  egg-bonus-growth: 1.15
 
   # V359: the round of the pet rework a save has been through. A save
   # behind this has its pets, its worn pets and its Cosmic Dust cleared
@@ -7126,361 +7398,585 @@ pets:
     # Gems, one off, and it needs a shiny of the pet's own rarity found.
     shiny-cost: 100000
 
-  # V324: every stat at every rarity, Leon's call. Six stats times seven
-  # rarities is forty-two pets, each one multiplying ONE stat, so the
-  # rarity you hatch and the stat you wanted are two separate rolls: the
-  # best pet in the game can still land on a stat you do not care about.
+  # V359: seventy pets, seven in each of the ten eggs, one per rarity.
   #
-  # An entry carries no number of its own any more. What a pet is worth
-  # is pets.multipliers above, by rarity, so retuning the ladder is one
-  # block rather than forty-two lines, and weight only decides which pet
-  # inside a rarity you get. Equal weights means an even draw between
-  # the six stats.
+  # An entry carries no number of its own. What a pet is worth is its
+  # rarity in pets.multipliers above and which egg it came out of through
+  # pets.egg-bonus-growth, so retuning the ladder is two numbers rather
+  # than seventy lines. "egg" is which egg hatches it, and "stat" is only
+  # the stat a fresh copy STARTS on, because since V359 the owner points
+  # the multiplier wherever they like in /pets.
   types:
-    # ---- Common ----
-    pocket_comet:
-      display: "Pocket Comet"
-      colors: ["#E0F7FA", "#B2EBF2"]
+    # ---- Meteor Egg, Prestige 10 ----
+    pebble_drifter:
+      display: "Pebble Drifter"
+      colors: ["#9E9E9E", "#BDBDBD"]
+      icon: CLAY_BALL
+      rarity: COMMON
+      egg: prestige_10
+      stat: LUCK
+      blurb: "It fell a very long way to get here."
+    iron_shard:
+      display: "Iron Shard"
+      colors: ["#A5D6A7", "#66BB6A"]
+      icon: IRON_NUGGET
+      rarity: UNCOMMON
+      egg: prestige_10
+      stat: SPEED
+      blurb: "Cooled on the way down."
+    crater_hound:
+      display: "Crater Hound"
+      colors: ["#90CAF9", "#42A5F5"]
+      icon: BONE
+      rarity: RARE
+      egg: prestige_10
+      stat: MONEY
+      blurb: "It sleeps in the dent it made."
+    impact_core:
+      display: "Impact Core"
+      colors: ["#CE93D8", "#AB47BC"]
+      icon: FIRE_CHARGE
+      rarity: EPIC
+      egg: prestige_10
+      stat: COINS
+      blurb: "Still ringing from the landing."
+    falling_star:
+      display: "Falling Star"
+      colors: ["#FFE082", "#FFB300"]
+      icon: GOLD_NUGGET
+      rarity: LEGENDARY
+      egg: prestige_10
+      stat: ENCHANT
+      blurb: "Caught before it burned out."
+    skyfall_titan:
+      display: "Skyfall Titan"
+      colors: ["#FFAB91", "#FF5722"]
+      icon: NETHERITE_SCRAP
+      rarity: MYTHICAL
+      egg: prestige_10
+      stat: SHINY
+      blurb: "Something survived the fall intact."
+    first_stone:
+      display: "First Stone"
+      colors: ["#BCAAA4", "#8D6E63"]
+      icon: ANCIENT_DEBRIS
+      rarity: DIVINE
+      egg: prestige_10
+      stat: LUCK
+      blurb: "The oldest thing that ever hit the ground."
+    # ---- Comet Egg, Prestige 20 ----
+    frost_mote:
+      display: "Frost Mote"
+      colors: ["#9E9E9E", "#BDBDBD"]
       icon: SNOWBALL
       rarity: COMMON
+      egg: prestige_20
       stat: LUCK
-      weight: 1.0
-      blurb: "Small, cold, and oddly lucky."
-    draft_feather:
-      display: "Draft Feather"
-      colors: ["#E1F5FE", "#81D4FA"]
-      icon: FEATHER
-      rarity: COMMON
-      stat: SPEED
-      weight: 1.0
-      blurb: "It falls upward in a draught."
-    cinder_spark:
-      display: "Cinder Spark"
-      colors: ["#FFAB91", "#FF7043"]
-      icon: FIRE_CHARGE
-      rarity: COMMON
-      stat: MONEY
-      weight: 1.0
-      blurb: "Still warm from something that burned out."
-    dust_mote:
-      display: "Dust Mote"
-      colors: ["#B0BEC5", "#78909C"]
-      icon: PRISMARINE_CRYSTALS
-      rarity: COMMON
-      stat: COINS
-      weight: 1.0
-      blurb: "A speck of the old nebula."
-    frayed_rune:
-      display: "Frayed Rune"
-      colors: ["#E1BEE7", "#BA68C8"]
-      icon: PAPER
-      rarity: COMMON
-      stat: ENCHANT
-      weight: 1.0
-      blurb: "Half a word, still trying."
-    glow_speck:
-      display: "Glow Speck"
-      colors: ["#FFF9C4", "#FFEE58"]
-      icon: GLOWSTONE_DUST
-      rarity: COMMON
-      stat: SHINY
-      weight: 1.0
-      blurb: "Too small to light anything."
-    # ---- Uncommon ----
-    glass_shard:
-      display: "Glass Shard"
-      colors: ["#CE93D8", "#AB47BC"]
-      icon: AMETHYST_SHARD
-      rarity: UNCOMMON
-      stat: LUCK
-      weight: 1.0
-      blurb: "Cut from a sky that cracked."
-    slipstream_vial:
-      display: "Slipstream Vial"
-      colors: ["#B3E5FC", "#4FC3F7"]
-      icon: GLASS_BOTTLE
-      rarity: UNCOMMON
-      stat: SPEED
-      weight: 1.0
-      blurb: "Empty, and still moving."
-    copper_bead:
-      display: "Copper Bead"
-      colors: ["#FFCCBC", "#FF8A65"]
-      icon: COPPER_INGOT
-      rarity: UNCOMMON
-      stat: MONEY
-      weight: 1.0
-      blurb: "Somebody's first payment."
-    tally_stone:
-      display: "Tally Stone"
-      colors: ["#ECEFF1", "#B0BEC5"]
-      icon: CALCITE
-      rarity: UNCOMMON
-      stat: COINS
-      weight: 1.0
-      blurb: "Every harvest you ever made, scratched in."
-    ink_whisper:
-      display: "Ink Whisper"
-      colors: ["#D1C4E9", "#7E57C2"]
-      icon: INK_SAC
-      rarity: UNCOMMON
-      stat: ENCHANT
-      weight: 1.0
-      blurb: "It writes on its own in the dark."
-    mirror_flake:
-      display: "Mirror Flake"
-      colors: ["#E0F7FA", "#B2EBF2"]
-      icon: GLASS
-      rarity: UNCOMMON
-      stat: SHINY
-      weight: 1.0
-      blurb: "It shows a slightly better you."
-    # ---- Rare ----
-    lodestar_chip:
-      display: "Lodestar Chip"
+      blurb: "A tail with nothing on the end of it."
+    ice_trail:
+      display: "Ice Trail"
       colors: ["#A5D6A7", "#66BB6A"]
-      icon: PRISMARINE_SHARD
-      rarity: RARE
-      stat: LUCK
-      weight: 1.0
-      blurb: "It always knows which way is up."
-    tailwind_sail:
-      display: "Tailwind Sail"
-      colors: ["#B2EBF2", "#4DD0E1"]
-      icon: PHANTOM_MEMBRANE
-      rarity: RARE
+      icon: ICE
+      rarity: UNCOMMON
+      egg: prestige_20
       stat: SPEED
-      weight: 1.0
-      blurb: "The wind is always behind it."
-    gilded_slag:
-      display: "Gilded Slag"
+      blurb: "It leaves a line you can follow."
+    long_orbit:
+      display: "Long Orbit"
+      colors: ["#90CAF9", "#42A5F5"]
+      icon: COMPASS
+      rarity: RARE
+      egg: prestige_20
+      stat: MONEY
+      blurb: "Back once every so many lifetimes."
+    blue_tail:
+      display: "Blue Tail"
+      colors: ["#CE93D8", "#AB47BC"]
+      icon: PRISMARINE_CRYSTALS
+      rarity: EPIC
+      egg: prestige_20
+      stat: COINS
+      blurb: "Brighter the closer it gets."
+    hale_runner:
+      display: "Hale Runner"
       colors: ["#FFE082", "#FFB300"]
-      icon: RAW_GOLD
-      rarity: RARE
-      stat: MONEY
-      weight: 1.0
-      blurb: "What the furnace did not want."
-    tide_pearl:
-      display: "Tide Pearl"
-      colors: ["#80DEEA", "#00ACC1"]
+      icon: SUGAR
+      rarity: LEGENDARY
+      egg: prestige_20
+      stat: ENCHANT
+      blurb: "Outruns everything in its own sky."
+    perihelion:
+      display: "Perihelion"
+      colors: ["#FFAB91", "#FF5722"]
       icon: HEART_OF_THE_SEA
-      rarity: RARE
-      stat: COINS
-      weight: 1.0
-      blurb: "It pulls at whatever it is near."
-    lapis_sigil:
-      display: "Lapis Sigil"
-      colors: ["#9FA8DA", "#3949AB"]
-      icon: LAPIS_LAZULI
-      rarity: RARE
-      stat: ENCHANT
-      weight: 1.0
-      blurb: "Cheap magic, honestly made."
-    opal_tear:
-      display: "Opal Tear"
-      colors: ["#F8BBD0", "#F06292"]
-      icon: GHAST_TEAR
-      rarity: RARE
+      rarity: MYTHICAL
+      egg: prestige_20
       stat: SHINY
-      weight: 1.0
-      blurb: "It cried colours."
-    # ---- Epic ----
-    watcher_eye:
-      display: "Watcher Eye"
-      colors: ["#A5D6A7", "#43A047"]
-      icon: ENDER_EYE
-      rarity: EPIC
-      stat: LUCK
-      weight: 1.0
-      blurb: "It looks where you are about to."
-    quick_quartz:
-      display: "Quick Quartz"
-      colors: ["#E0F7FA", "#80DEEA"]
-      icon: QUARTZ
-      rarity: EPIC
-      stat: SPEED
-      weight: 1.0
-      blurb: "It hums a little ahead of time."
-    sunken_ingot:
-      display: "Sunken Ingot"
-      colors: ["#FFF59D", "#FBC02D"]
-      icon: GOLD_INGOT
-      rarity: EPIC
-      stat: MONEY
-      weight: 1.0
-      blurb: "Dredged up from a dead orbit."
-    emerald_seed:
-      display: "Emerald Seed"
-      colors: ["#A5D6A7", "#2E7D32"]
-      icon: EMERALD
-      rarity: EPIC
-      stat: COINS
-      weight: 1.0
-      blurb: "Plant it and it pays rent."
-    glyph_plate:
-      display: "Glyph Plate"
-      colors: ["#CE93D8", "#8E24AA"]
-      icon: BOOK
-      rarity: EPIC
-      stat: ENCHANT
-      weight: 1.0
-      blurb: "One line of something older."
-    aurora_wisp:
-      display: "Aurora Wisp"
-      colors: ["#B2EBF2", "#4DD0E1"]
-      icon: FIREWORK_STAR
-      rarity: EPIC
-      stat: SHINY
-      weight: 1.0
-      blurb: "A ribbon of sky that got loose."
-    # ---- Legendary ----
-    fate_thread:
-      display: "Fate Thread"
-      colors: ["#C5E1A5", "#7CB342"]
-      icon: STRING
-      rarity: LEGENDARY
-      stat: LUCK
-      weight: 1.0
-      blurb: "One end of it is already tied."
-    warp_coil:
-      display: "Warp Coil"
-      colors: ["#80D8FF", "#00B0FF"]
-      icon: LIGHTNING_ROD
-      rarity: LEGENDARY
-      stat: SPEED
-      weight: 1.0
-      blurb: "Distance is a suggestion."
-    vault_sigil:
-      display: "Vault Sigil"
-      colors: ["#FFE57F", "#FFA000"]
-      icon: GOLD_BLOCK
-      rarity: LEGENDARY
-      stat: MONEY
-      weight: 1.0
-      blurb: "It opens doors that charge rent."
-    harvest_crown:
-      display: "Harvest Crown"
-      colors: ["#FFF59D", "#F9A825"]
-      icon: HAY_BLOCK
-      rarity: LEGENDARY
-      stat: COINS
-      weight: 1.0
-      blurb: "Worn by whoever cut the most."
-    echo_fragment:
-      display: "Echo Fragment"
-      colors: ["#90A4AE", "#546E7A"]
-      icon: ECHO_SHARD
-      rarity: LEGENDARY
-      stat: ENCHANT
-      weight: 1.0
-      blurb: "It repeats what your hoe does."
-    spectrum_lens:
-      display: "Spectrum Lens"
-      colors: ["#F48FB1", "#CE93D8"]
-      icon: SPYGLASS
-      rarity: LEGENDARY
-      stat: SHINY
-      weight: 1.0
-      blurb: "Look through it and nothing is plain."
-    # ---- Mythical ----
-    oracle_sphere:
-      display: "Oracle Sphere"
-      colors: ["#80CBC4", "#26A69A"]
-      icon: ENDER_PEARL
-      rarity: MYTHICAL
-      stat: LUCK
-      weight: 1.0
-      blurb: "It answers before you ask."
-    void_shell:
-      display: "Void Shell"
-      colors: ["#B39DDB", "#673AB7"]
-      icon: SHULKER_SHELL
-      rarity: MYTHICAL
-      stat: SPEED
-      weight: 1.0
-      blurb: "Empty, and lighter than it should be."
-    midas_ember:
-      display: "Midas Ember"
-      colors: ["#FFECB3", "#FF8F00"]
-      icon: GOLDEN_CARROT
-      rarity: MYTHICAL
-      stat: MONEY
-      weight: 1.0
-      blurb: "Everything it touches is for sale."
-    coin_nebula:
-      display: "Coin Nebula"
-      colors: ["#A5D6A7", "#00897B"]
-      icon: EMERALD_BLOCK
-      rarity: MYTHICAL
-      stat: COINS
-      weight: 1.0
-      blurb: "A whole sky of small change."
-    spellbound_quill:
-      display: "Spellbound Quill"
-      colors: ["#E1BEE7", "#AB47BC"]
-      icon: ENCHANTED_BOOK
-      rarity: MYTHICAL
-      stat: ENCHANT
-      weight: 1.0
-      blurb: "It finishes your enchant for you."
-    prism_core:
-      display: "Prism Core"
-      colors: ["#F48FB1", "#EC407A"]
-      icon: END_CRYSTAL
-      rarity: MYTHICAL
-      stat: SHINY
-      weight: 1.0
-      blurb: "It splits an ordinary drop into colours."
-    # ---- Divine ----
-    starheart:
-      display: "Starheart"
-      colors: ["#FFF8E1", "#FFD54F"]
-      icon: NETHER_STAR
-      rarity: DIVINE
-      stat: LUCK
-      weight: 1.0
-      blurb: "The last thing a star leaves behind."
-    hourglass_nova:
-      display: "Hourglass Nova"
-      colors: ["#E1F5FE", "#00E5FF"]
+      blurb: "The one moment it is close."
+    long_period:
+      display: "Long Period"
+      colors: ["#B3E5FC", "#4FC3F7"]
       icon: CLOCK
       rarity: DIVINE
+      egg: prestige_20
+      stat: LUCK
+      blurb: "It will be back. Not for you."
+    # ---- Nebula Egg, Prestige 30 ----
+    dust_wisp:
+      display: "Dust Wisp"
+      colors: ["#9E9E9E", "#BDBDBD"]
+      icon: GLOWSTONE_DUST
+      rarity: COMMON
+      egg: prestige_30
+      stat: LUCK
+      blurb: "A cloud deciding what to be."
+    violet_veil:
+      display: "Violet Veil"
+      colors: ["#A5D6A7", "#66BB6A"]
+      icon: PURPLE_DYE
+      rarity: UNCOMMON
+      egg: prestige_30
       stat: SPEED
-      weight: 1.0
-      blurb: "The sand runs the other way."
-    treasury_core:
-      display: "Treasury Core"
-      colors: ["#FFF8E1", "#FFC107"]
-      icon: ENCHANTED_GOLDEN_APPLE
-      rarity: DIVINE
+      blurb: "Thin enough to see stars through."
+    star_nursery:
+      display: "Star Nursery"
+      colors: ["#90CAF9", "#42A5F5"]
+      icon: TURTLE_EGG
+      rarity: RARE
+      egg: prestige_30
       stat: MONEY
-      weight: 1.0
-      blurb: "A bank with a heartbeat."
-    vaultheart:
-      display: "Vaultheart"
-      colors: ["#FFF9C4", "#FDD835"]
-      icon: ENDER_CHEST
-      rarity: DIVINE
+      blurb: "Something is being born in there."
+    pillar_walker:
+      display: "Pillar Walker"
+      colors: ["#CE93D8", "#AB47BC"]
+      icon: AMETHYST_SHARD
+      rarity: EPIC
+      egg: prestige_30
       stat: COINS
-      weight: 1.0
-      blurb: "It beats once per payday."
-    rune_singularity:
-      display: "Rune Singularity"
-      colors: ["#F3E5F5", "#9C27B0"]
-      icon: ENCHANTING_TABLE
-      rarity: DIVINE
+      blurb: "It climbs columns of gas."
+    emission_heart:
+      display: "Emission Heart"
+      colors: ["#FFE082", "#FFB300"]
+      icon: GLOW_INK_SAC
+      rarity: LEGENDARY
+      egg: prestige_30
       stat: ENCHANT
-      weight: 1.0
-      blurb: "Every word at once, in one point."
-    kaleidostar:
-      display: "Kaleidostar"
-      colors: ["#FCE4EC", "#FF80AB"]
-      icon: DRAGON_BREATH
-      rarity: DIVINE
+      blurb: "It glows because it cannot help it."
+    dark_cloud:
+      display: "Dark Cloud"
+      colors: ["#FFAB91", "#FF5722"]
+      icon: INK_SAC
+      rarity: MYTHICAL
+      egg: prestige_30
       stat: SHINY
-      weight: 1.0
-      blurb: "Shine, forever folding in on itself."
-
+      blurb: "Light goes in and does not come out."
+    first_light:
+      display: "First Light"
+      colors: ["#CE93D8", "#AB47BC"]
+      icon: OCHRE_FROGLIGHT
+      rarity: DIVINE
+      egg: prestige_30
+      stat: LUCK
+      blurb: "The first thing that ever shone here."
+    # ---- Pulsar Egg, Prestige 40 ----
+    tick_mote:
+      display: "Tick Mote"
+      colors: ["#9E9E9E", "#BDBDBD"]
+      icon: REDSTONE
+      rarity: COMMON
+      egg: prestige_40
+      stat: LUCK
+      blurb: "On, off, on, off."
+    beam_sweep:
+      display: "Beam Sweep"
+      colors: ["#A5D6A7", "#66BB6A"]
+      icon: LIGHTNING_ROD
+      rarity: UNCOMMON
+      egg: prestige_40
+      stat: SPEED
+      blurb: "It passes over you twice a second."
+    spin_core:
+      display: "Spin Core"
+      colors: ["#90CAF9", "#42A5F5"]
+      icon: SCULK_SENSOR
+      rarity: RARE
+      egg: prestige_40
+      stat: MONEY
+      blurb: "Turning far faster than it should."
+    magnetar:
+      display: "Magnetar"
+      colors: ["#CE93D8", "#AB47BC"]
+      icon: COMPASS
+      rarity: EPIC
+      egg: prestige_40
+      stat: COINS
+      blurb: "It bends every needle in the room."
+    lighthouse:
+      display: "Lighthouse"
+      colors: ["#FFE082", "#FFB300"]
+      icon: SEA_LANTERN
+      rarity: LEGENDARY
+      egg: prestige_40
+      stat: ENCHANT
+      blurb: "A warning nobody is left to read."
+    millisecond:
+      display: "Millisecond"
+      colors: ["#FFAB91", "#FF5722"]
+      icon: CLOCK
+      rarity: MYTHICAL
+      egg: prestige_40
+      stat: SHINY
+      blurb: "A thousand turns while you blink."
+    clockheart:
+      display: "Clockheart"
+      colors: ["#FF8A80", "#FF5252"]
+      icon: RECOVERY_COMPASS
+      rarity: DIVINE
+      egg: prestige_40
+      stat: LUCK
+      blurb: "The most accurate thing there is."
+    # ---- Quasar Egg, Prestige 50 ----
+    bright_speck:
+      display: "Bright Speck"
+      colors: ["#9E9E9E", "#BDBDBD"]
+      icon: GLOWSTONE_DUST
+      rarity: COMMON
+      egg: prestige_50
+      stat: LUCK
+      blurb: "Far away and still too bright."
+    jet_stream:
+      display: "Jet Stream"
+      colors: ["#A5D6A7", "#66BB6A"]
+      icon: WIND_CHARGE
+      rarity: UNCOMMON
+      egg: prestige_50
+      stat: SPEED
+      blurb: "Thrown out at almost light."
+    accretion:
+      display: "Accretion"
+      colors: ["#90CAF9", "#42A5F5"]
+      icon: MAGMA_CREAM
+      rarity: RARE
+      egg: prestige_50
+      stat: MONEY
+      blurb: "Everything spirals in."
+    blazar:
+      display: "Blazar"
+      colors: ["#CE93D8", "#AB47BC"]
+      icon: BLAZE_POWDER
+      rarity: EPIC
+      egg: prestige_50
+      stat: COINS
+      blurb: "Pointed, by chance, straight at us."
+    gold_torrent:
+      display: "Gold Torrent"
+      colors: ["#FFE082", "#FFB300"]
+      icon: GOLD_INGOT
+      rarity: LEGENDARY
+      egg: prestige_50
+      stat: ENCHANT
+      blurb: "A river of light with no bed."
+    ancient_glare:
+      display: "Ancient Glare"
+      colors: ["#FFAB91", "#FF5722"]
+      icon: AMETHYST_CLUSTER
+      rarity: MYTHICAL
+      egg: prestige_50
+      stat: SHINY
+      blurb: "You are seeing it as it was."
+    first_engine:
+      display: "First Engine"
+      colors: ["#FFE082", "#FFB300"]
+      icon: BEACON
+      rarity: DIVINE
+      egg: prestige_50
+      stat: LUCK
+      blurb: "The brightest thing that has ever been."
+    # ---- Supernova Egg, Prestige 60 ----
+    ember_fleck:
+      display: "Ember Fleck"
+      colors: ["#9E9E9E", "#BDBDBD"]
+      icon: BLAZE_POWDER
+      rarity: COMMON
+      egg: prestige_60
+      stat: LUCK
+      blurb: "All that is left of something large."
+    shockfront:
+      display: "Shockfront"
+      colors: ["#A5D6A7", "#66BB6A"]
+      icon: FIREWORK_STAR
+      rarity: UNCOMMON
+      egg: prestige_60
+      stat: SPEED
+      blurb: "It arrives before the sound."
+    heavy_ash:
+      display: "Heavy Ash"
+      colors: ["#90CAF9", "#42A5F5"]
+      icon: GUNPOWDER
+      rarity: RARE
+      egg: prestige_60
+      stat: MONEY
+      blurb: "New elements, still warm."
+    collapse:
+      display: "Collapse"
+      colors: ["#CE93D8", "#AB47BC"]
+      icon: CRYING_OBSIDIAN
+      rarity: EPIC
+      egg: prestige_60
+      stat: COINS
+      blurb: "It fell inward in one second."
+    remnant:
+      display: "Remnant"
+      colors: ["#FFE082", "#FFB300"]
+      icon: SHULKER_SHELL
+      rarity: LEGENDARY
+      egg: prestige_60
+      stat: ENCHANT
+      blurb: "A shell expanding forever."
+    type_one:
+      display: "Type One"
+      colors: ["#FFAB91", "#FF5722"]
+      icon: TOTEM_OF_UNDYING
+      rarity: MYTHICAL
+      egg: prestige_60
+      stat: SHINY
+      blurb: "Always the same brightness, always."
+    last_light:
+      display: "Last Light"
+      colors: ["#FFD54F", "#FF6F3C"]
+      icon: NETHER_STAR
+      rarity: DIVINE
+      egg: prestige_60
+      stat: LUCK
+      blurb: "Brighter than the whole sky it was in."
+    # ---- Eclipse Egg, Prestige 70 ----
+    penumbra:
+      display: "Penumbra"
+      colors: ["#9E9E9E", "#BDBDBD"]
+      icon: GRAY_DYE
+      rarity: COMMON
+      egg: prestige_70
+      stat: LUCK
+      blurb: "The soft edge of a shadow."
+    umbra:
+      display: "Umbra"
+      colors: ["#A5D6A7", "#66BB6A"]
+      icon: BLACK_DYE
+      rarity: UNCOMMON
+      egg: prestige_70
+      stat: SPEED
+      blurb: "The part with no light at all."
+    corona:
+      display: "Corona"
+      colors: ["#90CAF9", "#42A5F5"]
+      icon: GLOW_BERRIES
+      rarity: RARE
+      egg: prestige_70
+      stat: MONEY
+      blurb: "Only visible when the rest is hidden."
+    diamond_ring:
+      display: "Diamond Ring"
+      colors: ["#CE93D8", "#AB47BC"]
+      icon: DIAMOND
+      rarity: EPIC
+      egg: prestige_70
+      stat: COINS
+      blurb: "One bead of light on a black circle."
+    totality:
+      display: "Totality"
+      colors: ["#FFE082", "#FFB300"]
+      icon: ECHO_SHARD
+      rarity: LEGENDARY
+      egg: prestige_70
+      stat: ENCHANT
+      blurb: "Two minutes that people travel for."
+    saros:
+      display: "Saros"
+      colors: ["#FFAB91", "#FF5722"]
+      icon: SPYGLASS
+      rarity: MYTHICAL
+      egg: prestige_70
+      stat: SHINY
+      blurb: "The same shadow, eighteen years later."
+    black_sun:
+      display: "Black Sun"
+      colors: ["#B0BEC5", "#455A64"]
+      icon: WITHER_SKELETON_SKULL
+      rarity: DIVINE
+      egg: prestige_70
+      stat: LUCK
+      blurb: "A hole where the sun was."
+    # ---- Singularity Egg, Prestige 80 ----
+    event_mote:
+      display: "Event Mote"
+      colors: ["#9E9E9E", "#BDBDBD"]
+      icon: ENDER_PEARL
+      rarity: COMMON
+      egg: prestige_80
+      stat: LUCK
+      blurb: "It is already falling in."
+    tidal_pull:
+      display: "Tidal Pull"
+      colors: ["#A5D6A7", "#66BB6A"]
+      icon: SLIME_BALL
+      rarity: UNCOMMON
+      egg: prestige_80
+      stat: SPEED
+      blurb: "Stretched longer than it is wide."
+    photon_ring:
+      display: "Photon Ring"
+      colors: ["#90CAF9", "#42A5F5"]
+      icon: END_ROD
+      rarity: RARE
+      egg: prestige_80
+      stat: MONEY
+      blurb: "Light going round in a circle."
+    horizon_walker:
+      display: "Horizon Walker"
+      colors: ["#CE93D8", "#AB47BC"]
+      icon: ENDER_EYE
+      rarity: EPIC
+      egg: prestige_80
+      stat: COINS
+      blurb: "It crossed and did not notice."
+    time_dilate:
+      display: "Time Dilate"
+      colors: ["#FFE082", "#FFB300"]
+      icon: CLOCK
+      rarity: LEGENDARY
+      egg: prestige_80
+      stat: ENCHANT
+      blurb: "A year for you, a second for it."
+    mass_well:
+      display: "Mass Well"
+      colors: ["#FFAB91", "#FF5722"]
+      icon: NETHERITE_INGOT
+      rarity: MYTHICAL
+      egg: prestige_80
+      stat: SHINY
+      blurb: "Heavy past any sensible number."
+    point_zero:
+      display: "Point Zero"
+      colors: ["#B388FF", "#651FFF"]
+      icon: END_CRYSTAL
+      rarity: DIVINE
+      egg: prestige_80
+      stat: LUCK
+      blurb: "Everything, in no space whatsoever."
+    # ---- Horizon Egg, Prestige 90 ----
+    far_edge:
+      display: "Far Edge"
+      colors: ["#9E9E9E", "#BDBDBD"]
+      icon: SPYGLASS
+      rarity: COMMON
+      egg: prestige_90
+      stat: LUCK
+      blurb: "The furthest anything can be seen."
+    red_shift:
+      display: "Red Shift"
+      colors: ["#A5D6A7", "#66BB6A"]
+      icon: RED_DYE
+      rarity: UNCOMMON
+      egg: prestige_90
+      stat: SPEED
+      blurb: "Running away, so it looks redder."
+    cold_glow:
+      display: "Cold Glow"
+      colors: ["#90CAF9", "#42A5F5"]
+      icon: SOUL_LANTERN
+      rarity: RARE
+      egg: prestige_90
+      stat: MONEY
+      blurb: "The warmth left over from the start."
+    deep_field:
+      display: "Deep Field"
+      colors: ["#CE93D8", "#AB47BC"]
+      icon: TINTED_GLASS
+      rarity: EPIC
+      egg: prestige_90
+      stat: COINS
+      blurb: "Nothing, until you look for days."
+    lookback:
+      display: "Lookback"
+      colors: ["#FFE082", "#FFB300"]
+      icon: RECOVERY_COMPASS
+      rarity: LEGENDARY
+      egg: prestige_90
+      stat: ENCHANT
+      blurb: "Every look is a look backwards."
+    edge_walker:
+      display: "Edge Walker"
+      colors: ["#FFAB91", "#FF5722"]
+      icon: PEARLESCENT_FROGLIGHT
+      rarity: MYTHICAL
+      egg: prestige_90
+      stat: SHINY
+      blurb: "It walks where seeing stops."
+    observable:
+      display: "Observable"
+      colors: ["#80DEEA", "#00ACC1"]
+      icon: CONDUIT
+      rarity: DIVINE
+      egg: prestige_90
+      stat: LUCK
+      blurb: "Everything there has ever been to see."
+    # ---- Infinity Egg, Prestige 100 ----
+    one_more:
+      display: "One More"
+      colors: ["#9E9E9E", "#BDBDBD"]
+      icon: PAPER
+      rarity: COMMON
+      egg: prestige_100
+      stat: LUCK
+      blurb: "And then one more after that."
+    endless_row:
+      display: "Endless Row"
+      colors: ["#A5D6A7", "#66BB6A"]
+      icon: IRON_CHAIN
+      rarity: UNCOMMON
+      egg: prestige_100
+      stat: SPEED
+      blurb: "It goes on past where you can count."
+    fold:
+      display: "Fold"
+      colors: ["#90CAF9", "#42A5F5"]
+      icon: PHANTOM_MEMBRANE
+      rarity: RARE
+      egg: prestige_100
+      stat: MONEY
+      blurb: "Twice as much in the same room."
+    recursion:
+      display: "Recursion"
+      colors: ["#CE93D8", "#AB47BC"]
+      icon: ITEM_FRAME
+      rarity: EPIC
+      egg: prestige_100
+      stat: COINS
+      blurb: "It contains a smaller one of itself."
+    uncountable:
+      display: "Uncountable"
+      colors: ["#FFE082", "#FFB300"]
+      icon: AMETHYST_BLOCK
+      rarity: LEGENDARY
+      egg: prestige_100
+      stat: ENCHANT
+      blurb: "More than every number there is."
+    absolute:
+      display: "Absolute"
+      colors: ["#FFAB91", "#FF5722"]
+      icon: HEAVY_CORE
+      rarity: MYTHICAL
+      egg: prestige_100
+      stat: SHINY
+      blurb: "Nothing is larger. Nothing can be."
+    forever:
+      display: "Forever"
+      colors: ["#F8BBD0", "#EC407A"]
+      icon: DRAGON_EGG
+      rarity: DIVINE
+      egg: prestige_100
+      stat: LUCK
+      blurb: "It was here first and it will be here last."
 # ---------------------------------------------------------------------
 # The Secret Realm (V229)
 #

@@ -40,7 +40,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             "reload", "setspawn", "starforge", "reset", "season", "give", "store", "drops",
             "bank", "rank", "cosmetic", "bedrock", "aura", "auras", "head", "reveal", "nextroll", "roll", "unlock", "unlockall", "lockall", "odds", "farmblock", "farmscan", "farmwheat", "farmland",
             "hoe", "consumable", "gradient", "welcome", "crops", "farmclear",
-            "milestones", "farmfill", "boost", "crowd", "nova", "points", "placeholders", "payout", "crate", "tophead", "floatingitem", "boss", "pet", "dust", "discord", "realm", "advancements", "protect", "cropwatch", "farmboard", "icon", "shiny", "firsts", "lorestyles", "tagstyles", "menustyles", "hoestyles", "standingstyles", "enchantstyles", "novastyles", "auratest", "holo", "help");
+            "milestones", "farmfill", "boost", "crowd", "nova", "points", "placeholders", "payout", "crate", "petegg", "tophead", "floatingitem", "boss", "pet", "dust", "discord", "realm", "advancements", "protect", "cropwatch", "farmboard", "icon", "shiny", "firsts", "lorestyles", "tagstyles", "menustyles", "hoestyles", "standingstyles", "enchantstyles", "novastyles", "auratest", "holo", "help");
     private static final List<String> CURRENCIES = List.of("money", "coins", "gems", "credits", "luck", "speed", "tickets");
 
     private final SolRNGPlugin plugin;
@@ -118,6 +118,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             case "placeholders" -> showcase.doPlaceholders(sender);
             case "payout" -> world.doPayout(sender);
             case "crate" -> world.doCrate(sender, args);
+            case "petegg" -> world.doPetEgg(sender, args);
             case "holo" -> world.doHolo(sender, args);
             case "tophead" -> world.doTopHead(sender, args);
             case "floatingitem" -> world.doFloatingItem(sender, args);
@@ -185,6 +186,8 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         line(sender, "points", "<fix|give|set> ...", "Prestige points; fix refunds what the rework lost");
         line(sender, "placeholders", "", "What every %spacerng_% placeholder resolves to right now");
         line(sender, "payout", "", "Run the farming payout now and reset the period");
+        line(sender, "petegg", "<place|remove|list>",
+                "Float a pet egg over a block, holding the item it should look like");
         line(sender, "crate", "<place|set|remove|list|key|keyall|preview>",
                 "Place crates and hand out keys (key all refunds every type)");
         line(sender, "holo", "<panel|board|leader|remove|list>", "NPC text, leaderboard walls and #1 heads");
@@ -217,6 +220,16 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         plugin.reloadAll();
         sender.sendMessage(ChatColor.GREEN + "SolRNG config reloaded.");
         return true;
+    }
+
+    private List<String> petEggTab(String[] args) {
+        if (args.length == 2) return partial(args[1], List.of("place", "remove", "list"));
+        if (args.length == 3 && args[1].equalsIgnoreCase("place")) {
+            List<String> ids = new ArrayList<>();
+            for (var egg : plugin.getPetManager().upgrades().eggs()) ids.add(egg.id());
+            return partial(args[2], ids);
+        }
+        return List.of();
     }
 
     private List<String> crateTab(String[] args) {
@@ -269,6 +282,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         }
         String sub = args[0].toLowerCase(Locale.ROOT);
         if (sub.equals("crate")) return crateTab(args);
+        if (sub.equals("petegg")) return petEggTab(args);
         if (sub.equals("bedrock")) {
             if (args.length == 2) return partial(args[1], List.of("on", "off"));
             return args.length == 3 ? null : List.of();

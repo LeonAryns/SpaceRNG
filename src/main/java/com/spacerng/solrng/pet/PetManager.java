@@ -48,6 +48,10 @@ public class PetManager {
     private final PetUpgrades upgrades = new PetUpgrades();
     private boolean enabled = true;
     private int baseSlots = 1;
+    // V359, Leon's numbers: 5% Pet Luck for every pet found and 100% for
+    // every egg finished.
+    private double perPetLuck = 0.05;
+    private double perEggLuck = 1.0;
 
     public PetManager(SolRNGPlugin plugin) {
         this.plugin = plugin;
@@ -57,6 +61,8 @@ public class PetManager {
         types.clear();
         enabled = config.getBoolean("pets.enabled", true);
         baseSlots = Math.max(1, Math.min(MAX_SLOTS, config.getInt("pets.base-slots", 1)));
+        perPetLuck = Math.max(0.0, config.getDouble("pets.index.luck-per-pet", 0.05));
+        perEggLuck = Math.max(0.0, config.getDouble("pets.index.luck-per-egg", 1.0));
         upgrades.load(config);
 
         ConfigurationSection section = config.getConfigurationSection("pets.types");
@@ -90,17 +96,20 @@ public class PetManager {
             }
 
             // V324: what a pet is worth is its RARITY, from
-            // pets.multipliers, not a number on its own entry. An old
-            // config that still carries percent is honoured, so a server
-            // that has not taken the new table yet keeps its nine pets
-            // working exactly as they did.
+            // pets.multipliers, not a number on its own entry. V359 adds
+            // the egg it came out of, because a later egg's pets are
+            // worth proportionally more. An old config that still carries
+            // percent is honoured, so a server that has not taken the new
+            // table yet keeps its pets working exactly as they did.
+            String eggId = p.getString("egg", "");
+            PetEgg from = eggId.isBlank() ? null : upgrades.egg(eggId);
             double bonus = p.contains("percent")
                     ? Math.max(0.0, p.getDouble("percent", 0.0))
-                    : upgrades.bonusFor(rarity);
+                    : upgrades.bonusFor(rarity, from == null ? 0 : from.index());
             types.put(id, new PetType(id, p.getString("display", rawId), colors, icon, rarity, stat,
                     bonus,
                     Math.max(0.0, p.getDouble("weight", 1.0)),
-                    p.getString("blurb", "")));
+                    p.getString("blurb", ""), eggId));
         }
         plugin.getLogger().info("Loaded " + types.size() + " pets.");
     }
@@ -185,6 +194,7 @@ public class PetManager {
         data.getOwnedPets().clear();
         data.getEquippedPets().clear();
         data.getPetAutoTrash().clear();
+        data.getPetsFound().clear();
         if (dust > 0) data.spendCosmicDust(dust);
         data.setPetWipeVersion(version);
 
@@ -243,17 +253,28 @@ public class PetManager {
         return upgrades.eggs().isEmpty() ? Made.none() : make(data, upgrades.eggs().get(0));
     }
 
-    /** Hatches one egg: its price in Cosmic Dust, its odds on the roll. */
+    /**
+     * Opens one egg: its price in Gems, its odds on the roll.
+     *
+     * V359: Gems, Leon's call. Cosmic Dust is what LEVELS a pet now, so
+     * the two currencies are the two halves of the system rather than
+     * both coming out of rolling.
+     */
     public Made make(PlayerData data, PetEgg egg) {
         if (!enabled || types.isEmpty() || egg == null) return Made.none();
         if (data.getPrestige() < egg.minPrestige()) return Made.none();
         if (storageFull(data)) return Made.none();
         long cost = egg.cost();
-        if (data.getCosmicDust() < cost) return Made.none();
+        if (data.getShards() < cost) return Made.none();
 
         PetType picked = roll(data, egg);
         if (picked == null) return Made.none();
-        if (!data.spendCosmicDust(cost)) return Made.none();
+        if (!data.spendShards(cost)) return Made.none();
+
+        // V359: the index records it the moment it lands, before autotrash
+        // gets a look at it. A pet thrown away was still discovered, and
+        // the Pet Luck it paid for is never taken back.
+        data.discoverPet(picked.id());
 
         PetInstance had = data.getPet(picked.id());
         if (data.isPetAutoTrash(picked.id())) {
@@ -280,6 +301,66 @@ public class PetManager {
         return new Made(picked, grown, false, false);
     }
 
+    /**
+     * Opens several eggs on one click (V359).
+     *
+     * Leon asked for 1, 3 and 9, and for the buying to keep going while
+     * auto open is on. It stops the moment it cannot honestly continue:
+     * out of Gems, out of storage, or the Prestige wall. Whatever it did
+     * manage is paid for and kept, because a batch that rolls back half
+     * way is a worse answer than a batch that says where it stopped.
+     */
+    public Batch makeMany(PlayerData data, PetEgg egg, int count) {
+        java.util.List<Made> made = new ArrayList<>();
+        Stop stop = Stop.DONE;
+        for (int i = 0; i < Math.max(1, count); i++) {
+            if (storageFull(data)) {
+                stop = Stop.STORAGE_FULL;
+                break;
+            }
+            if (egg != null && data.getShards() < egg.cost()) {
+                stop = Stop.OUT_OF_GEMS;
+                break;
+            }
+            Made one = make(data, egg);
+            if (!one.happened()) {
+                stop = Stop.REFUSED;
+                break;
+            }
+            made.add(one);
+        }
+        return new Batch(made, stop);
+    }
+
+    /** What a batch of openings did, and why it stopped. */
+    public record Batch(java.util.List<Made> made, Stop stop) {
+        public int opened() {
+            return made.size();
+        }
+
+        public int fresh() {
+            int count = 0;
+            for (Made one : made) if (one.isNew()) count++;
+            return count;
+        }
+
+        /** The best thing that came out of it, for the chat line. */
+        public Made best() {
+            Made best = null;
+            for (Made one : made) {
+                if (best == null || one.type().rarity().ordinal() > best.type().rarity().ordinal()) {
+                    best = one;
+                }
+            }
+            return best;
+        }
+    }
+
+    /** Why a batch stopped early, so the menu can say it in one line. */
+    public enum Stop {
+        DONE, OUT_OF_GEMS, STORAGE_FULL, REFUSED
+    }
+
     /** What {@link #make} did, so the menu and the chat line can say it. */
     public record Made(PetType type, PetInstance pet, boolean isNew, boolean trashed) {
         public static Made none() {
@@ -292,48 +373,149 @@ public class PetManager {
     }
 
     /**
-     * Picks which pet an egg becomes, in two steps.
+     * Picks which pet an egg becomes.
      *
-     * First the rarity, from the egg's own written chances: one draw
-     * walked from the rarest down, and anything left over is the egg's
-     * floor. Then which pet inside that rarity, by weight. The two steps
-     * are the whole design Leon asked for, because every stat exists at
-     * every rarity: the rarity you hatch and the stat you wanted are
-     * separate rolls, so a Divine can still be a stat you do not care
-     * about.
+     * V359: an egg holds its own seven pets, one per rarity, so the whole
+     * roll is the RARITY roll. Draw a rarity against the egg's written
+     * ladder, and the egg's pet at that rarity is the pet. There is no
+     * second draw to make any more, which is what lets the egg screen
+     * print a chance beside every pet in it and be telling the truth.
      *
-     * Nothing is excluded for being maxed any more. A pet you already own
-     * comes back as a duplicate, so there is always something to hatch.
+     * Nothing is excluded for being maxed. A pet you already own comes
+     * back as a duplicate, so there is always something to hatch.
      */
     private PetType roll(PlayerData data, PetEgg egg) {
-        Rarity rarity = rollRarity(egg);
-        PetType picked = pickIn(rarity);
+        Rarity rarity = rollRarity(data, egg);
+        PetType picked = types.get(egg.petAt(rarity));
         if (picked != null) return picked;
-        // No pet defined at that rarity: walk down rather than eat the
-        // dust for nothing.
+        // An egg with a gap in its list: walk down rather than eat the
+        // payment for nothing.
         for (int ordinal = rarity.ordinal() - 1; ordinal >= 0; ordinal--) {
-            PetType lower = pickIn(Rarity.values()[ordinal]);
+            PetType lower = types.get(egg.petAt(Rarity.values()[ordinal]));
             if (lower != null) return lower;
         }
         for (int ordinal = rarity.ordinal() + 1; ordinal < Rarity.values().length; ordinal++) {
-            PetType higher = pickIn(Rarity.values()[ordinal]);
+            PetType higher = types.get(egg.petAt(Rarity.values()[ordinal]));
             if (higher != null) return higher;
         }
-        return null;
+        // An egg with no list at all falls back to the whole catalogue, so
+        // a half written config still hatches something.
+        return pickIn(rarity);
     }
 
-    /** One draw against the egg's ladder, rarest first. */
-    private Rarity rollRarity(PetEgg egg) {
+    /**
+     * One draw against the egg's ladder, rarest first, with Pet Luck on
+     * top (V359).
+     *
+     * Pet Luck multiplies every rarity ABOVE the floor and the floor
+     * absorbs the difference, which is exactly "the odds of the rarer
+     * pets go up". It cannot run away: if the raised chances would add up
+     * past a whole egg they are scaled back to leave a sliver of floor,
+     * because a ladder that sums past 1 would silently make the rarest
+     * entry impossible.
+     */
+    private Rarity rollRarity(PlayerData data, PetEgg egg) {
+        double luck = 1.0 + petLuck(data);
+        Rarity[] all = Rarity.values();
+
+        double raised = 0.0;
+        for (Rarity rarity : all) {
+            if (rarity == egg.floor()) continue;
+            raised += Math.max(0.0, egg.chances().getOrDefault(rarity, 0.0)) * luck;
+        }
+        double scale = raised > 0.999 ? 0.999 / raised : 1.0;
+
         double pick = ThreadLocalRandom.current().nextDouble();
         double acc = 0.0;
-        Rarity[] all = Rarity.values();
         for (int ordinal = all.length - 1; ordinal >= 0; ordinal--) {
             Rarity rarity = all[ordinal];
             if (rarity == egg.floor()) continue;
-            acc += Math.max(0.0, egg.chances().getOrDefault(rarity, 0.0));
+            acc += Math.max(0.0, egg.chances().getOrDefault(rarity, 0.0)) * luck * scale;
             if (pick < acc) return rarity;
         }
         return egg.floor();
+    }
+
+    // ---------------------------------------------------------------
+    // Pet Luck
+    // ---------------------------------------------------------------
+
+    /**
+     * How much the rarer pets are tilted toward, as a fraction (0.35 is
+     * +35%). Leon's numbers (V359):
+     *
+     * <ul>
+     *   <li>5% for every pet discovered, whatever its rarity. "5% if a
+     *       common gets discovered etc" were his words, so a Common
+     *       counts the same as a Divine.
+     *   <li>100% for every egg whose seven rarities have all been found.
+     *       An egg is seven pets, one per rarity, so completing it and
+     *       finding every rarity in it are the same thing.
+     *   <li>whatever the Pet Luck nodes in /skilltree add.
+     * </ul>
+     *
+     * Discovery is "have you ever owned it", which is what the pet index
+     * records, so throwing a pet away never costs the luck it bought.
+     */
+    public double petLuck(PlayerData data) {
+        return perPetLuck * found(data) + perEggLuck * eggsCompleted(data)
+                + Math.max(0.0, plugin.getSkillTreeManager().totalOf(data, SkillNode.Effect.PET_LUCK));
+    }
+
+    /** How many different pets this player has discovered. */
+    public int found(PlayerData data) {
+        int count = 0;
+        for (String id : data.getPetsFound()) if (types.containsKey(id)) count++;
+        return count;
+    }
+
+    /** Whether every pet in an egg has been discovered. */
+    public boolean completed(PlayerData data, PetEgg egg) {
+        if (egg == null || egg.pets().isEmpty()) return false;
+        for (String id : egg.pets()) {
+            if (!types.containsKey(id)) continue;
+            if (!data.getPetsFound().contains(id)) return false;
+        }
+        return true;
+    }
+
+    /** How many of this player's eggs are finished. */
+    public int eggsCompleted(PlayerData data) {
+        int count = 0;
+        for (PetEgg egg : upgrades.eggs()) if (completed(data, egg)) count++;
+        return count;
+    }
+
+    /**
+     * The chance this egg hatches a rarity right now, Pet Luck included.
+     *
+     * The egg screen prints this beside every pet, and the roll uses the
+     * same arithmetic, so a card can never promise odds the egg does not
+     * use. The floor rarity is whatever the others leave behind.
+     */
+    public double liveChance(PlayerData data, PetEgg egg, Rarity rarity) {
+        if (egg == null) return 0.0;
+        double luck = 1.0 + petLuck(data);
+        double raised = 0.0;
+        for (Rarity other : Rarity.values()) {
+            if (other == egg.floor()) continue;
+            raised += Math.max(0.0, egg.chances().getOrDefault(other, 0.0)) * luck;
+        }
+        double scale = raised > 0.999 ? 0.999 / raised : 1.0;
+        if (rarity == egg.floor()) return Math.max(0.0, 1.0 - raised * scale);
+        return Math.max(0.0, egg.chances().getOrDefault(rarity, 0.0)) * luck * scale;
+    }
+
+    /** How many pets an egg has, and how many of them are found. */
+    public int foundIn(PlayerData data, PetEgg egg) {
+        int count = 0;
+        for (String id : egg.pets()) if (data.getPetsFound().contains(id)) count++;
+        return count;
+    }
+
+    /** Every pet in the catalogue, so the index can say "of seventy". */
+    public int catalogue() {
+        return types.size();
     }
 
     /** One pet of this rarity, weighted among themselves, or null if none exist. */

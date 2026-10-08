@@ -293,6 +293,90 @@ final class WorldAdmin extends AdminTools {
         return true;
     }
 
+    /**
+     * The floating pet egg (V359): placed, removed and listed the way a
+     * crate is, because Leon asked for it to work "like it is with
+     * crates" and holding the model in hand is the same gesture.
+     */
+    boolean doPetEgg(CommandSender sender, String[] args) {
+        var pets = plugin.getPetManager();
+        String action = args.length >= 2 ? args[1].toLowerCase(Locale.ROOT) : "";
+        switch (action) {
+            case "place" -> {
+                if (!(sender instanceof Player player)) {
+                    sender.sendMessage(ChatColor.RED + "Stand in game, hold the egg and look at a block.");
+                    return true;
+                }
+                var egg = args.length >= 3 ? pets.upgrades().egg(args[2]) : null;
+                if (egg == null) {
+                    sender.sendMessage(ChatColor.RED + "Usage: /rngadmin petegg place <egg>");
+                    sender.sendMessage(ChatColor.DARK_GRAY + "Eggs: " + eggNames());
+                    return true;
+                }
+                ItemStack held = player.getInventory().getItemInMainHand();
+                if (held.getType().isAir()) {
+                    sender.sendMessage(ChatColor.RED + "Hold the item the egg should look like.");
+                    return true;
+                }
+                org.bukkit.block.Block target = player.getTargetBlockExact(6);
+                if (target == null || target.getType().isAir()) {
+                    sender.sendMessage(ChatColor.RED + "Look at the block the egg should float over.");
+                    return true;
+                }
+                org.bukkit.block.Block block = target.getRelative(org.bukkit.block.BlockFace.UP);
+                if (!block.getType().isAir()) {
+                    sender.sendMessage(ChatColor.RED + "The space on top of that block has to be empty.");
+                    return true;
+                }
+                // The barrier takes the clicks; the item floats over it.
+                block.setType(org.bukkit.Material.BARRIER);
+                ItemStack model = held.clone();
+                model.setAmount(1);
+                plugin.getHoloManager().placeEgg(egg.id(), block,
+                        player.getLocation().getYaw() + 180f, model);
+                sender.sendMessage(ChatColor.GREEN + "Placed the "
+                        + ChatColor.stripColor(egg.display()) + ChatColor.GREEN
+                        + ". A click on it opens the egg.");
+            }
+            case "remove" -> {
+                if (!(sender instanceof Player player)) {
+                    sender.sendMessage(ChatColor.RED + "Stand in game and look at the egg.");
+                    return true;
+                }
+                org.bukkit.block.Block block = player.getTargetBlockExact(6);
+                if (block == null || !plugin.getHoloManager().removeEgg(block)) {
+                    sender.sendMessage(ChatColor.RED + "The block you are looking at is not a pet egg.");
+                    return true;
+                }
+                sender.sendMessage(ChatColor.YELLOW + "Removed that pet egg.");
+            }
+            case "list" -> {
+                int shown = 0;
+                for (var spot : plugin.getHoloManager().list()) {
+                    if (spot.kind() != com.spacerng.solrng.holo.HoloManager.Kind.EGG) continue;
+                    shown++;
+                    sender.sendMessage(ChatColor.YELLOW + spot.key() + ChatColor.GRAY + " at "
+                            + (spot.at().getWorld() == null ? "?" : spot.at().getWorld().getName())
+                            + " " + spot.at().getBlockX() + ", " + spot.at().getBlockY()
+                            + ", " + spot.at().getBlockZ());
+                }
+                if (shown == 0) sender.sendMessage(ChatColor.GRAY + "No pet eggs placed yet.");
+                sender.sendMessage(ChatColor.DARK_GRAY + "Eggs: " + eggNames());
+            }
+            default -> {
+                sender.sendMessage(ChatColor.RED + "Usage: /rngadmin petegg <place|remove|list>");
+                sender.sendMessage(ChatColor.DARK_GRAY + "Eggs: " + eggNames());
+            }
+        }
+        return true;
+    }
+
+    private String eggNames() {
+        List<String> ids = new ArrayList<>();
+        for (var egg : plugin.getPetManager().upgrades().eggs()) ids.add(egg.id());
+        return String.join(", ", ids);
+    }
+
     boolean doCrate(CommandSender sender, String[] args) {
         var crates = plugin.getCrateManager();
         String action = args.length >= 2 ? args[1].toLowerCase(Locale.ROOT) : "";

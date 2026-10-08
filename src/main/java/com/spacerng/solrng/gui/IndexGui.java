@@ -51,7 +51,7 @@ public class IndexGui {
     // next to each other and say which one you are looking at; the tier
     // ladder keeps stepping, because seven rarities will not fit as
     // buttons and it is a sort, not a collection.
-    private static final int[] MODE_SLOTS = {0, 1, 2};
+    private static final int[] MODE_SLOTS = {0, 1, 2, 3};
     private static final int MODE_SLOT = 0;
     private static final int RARITY_SLOT = 4;
     private static final int PROGRESS_SLOT = 8;
@@ -60,7 +60,11 @@ public class IndexGui {
     public enum Mode {
         NORMAL("Normal Index", Material.HEART_OF_THE_SEA),
         SHINY("Shiny Index", Material.NAUTILUS_SHELL),
-        SECRET("Secret Index", Material.END_PORTAL_FRAME);
+        SECRET("Secret Index", Material.END_PORTAL_FRAME),
+        // V359: the pet index is a collection like the others, so it is a
+        // button on the same rail rather than somewhere only /pets knows
+        // about. It opens the screen /pets already had.
+        PETS("Pet Index", Material.TURTLE_EGG);
 
         private final String label;
         private final Material icon;
@@ -126,8 +130,10 @@ public class IndexGui {
         int found = switch (button) {
             case SHINY -> data.getDiscoveredShiny().size();
             case SECRET -> data.getSecretsFound().size();
+            case PETS -> plugin.getPetManager().found(data);
             case NORMAL -> data.getDiscoveredItems().size();
         };
+        if (button == Mode.PETS) total = plugin.getPetManager().catalogue();
         int secretTotal = plugin.getRealmManager().secrets().size();
         int minPrestige = plugin.getConfig().getInt("secret-realm.min-prestige", 0);
         boolean allowed = data.getPrestige() >= minPrestige;
@@ -142,6 +148,7 @@ public class IndexGui {
             case NORMAL -> lore.add(Lore.line(ChatColor.GRAY, "Every drop you have rolled."));
             case SHINY -> lore.add(Lore.line(ChatColor.GRAY, "The shiny copy of the same drops."));
             case SECRET -> lore.add(Lore.line(ChatColor.GRAY, "Secrets out of the Secret Realm."));
+            case PETS -> lore.add(Lore.line(ChatColor.GRAY, "Every pet in every egg."));
         }
         lore.add("");
         if (button == Mode.SECRET) {
@@ -150,6 +157,16 @@ public class IndexGui {
                     ? Lore.stat(ChatColor.GREEN, "Prestige", data.getPrestige() + " of " + minPrestige)
                     : Lore.requirement("Prestige", String.valueOf(data.getPrestige()),
                             String.valueOf(minPrestige), false));
+        } else if (button == Mode.PETS) {
+            // V359: the pet index pays Pet Luck rather than a Luck
+            // multiplier, so it says what it is paying in its own words.
+            var pets = plugin.getPetManager();
+            lore.add(Lore.stat(ChatColor.AQUA, "Found", found + " / " + total));
+            lore.add(Lore.bar(total <= 0 ? 0.0 : (double) found / total));
+            lore.add(Lore.stat(ChatColor.AQUA, "Eggs complete",
+                    pets.eggsCompleted(data) + " / " + pets.upgrades().eggs().size()));
+            lore.add(Lore.pipe(ChatColor.LIGHT_PURPLE,
+                    "+" + Math.round(pets.petLuck(data) * 100.0) + "% Pet Luck"));
         } else {
             lore.add(Lore.stat(ChatColor.AQUA, button == Mode.SHINY ? "Shinies" : "Found",
                     found + " / " + total));
@@ -300,6 +317,7 @@ public class IndexGui {
     public static Inventory build(SolRNGPlugin plugin, Player player, Rarity filter, int page,
                                   Mode mode) {
         if (mode == Mode.SECRET) return SecretIndexGui.build(plugin, player);
+        if (mode == Mode.PETS) return PetsGui.index(plugin, player);
         boolean shinyView = mode == Mode.SHINY;
         syncHeld(plugin, player);
         IndexHolder holder = new IndexHolder();

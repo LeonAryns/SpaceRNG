@@ -21,7 +21,8 @@ import java.util.List;
  * 2.00x.
  */
 public record PetType(String id, String display, List<String> colors, Material icon,
-                      Rarity rarity, StatSources.Id stat, double bonus, double weight, String blurb) {
+                      Rarity rarity, StatSources.Id stat, double bonus, double weight, String blurb,
+                      String egg) {
 
     /** The gradient stops in the shape Lore wants them. */
     public String[] stops() {

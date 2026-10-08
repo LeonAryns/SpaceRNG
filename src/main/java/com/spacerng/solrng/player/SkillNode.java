@@ -40,6 +40,7 @@ public class SkillNode {
         // level costs in Cosmic Dust instead. Same node, same name, same
         // place in the tree; it buys the one thing a pet still has.
         PET_LEVEL_DISCOUNT, // -value of the Cosmic Dust a pet level costs
+        PET_LUCK,           // +value to Pet Luck, which tilts an egg to the rarer pets
 
         // --- general tree: gates ---
         AUTO_ROLL,

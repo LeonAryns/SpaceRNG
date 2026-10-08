@@ -55,6 +55,9 @@ import java.util.Set;
  *   CRATE  a crate as a big floating head with a panel above it; the block
  *          under the head is an invisible barrier registered as the crate,
  *          so clicking it goes through CrateListener like any crate
+ *   EGG    a pet egg on the same pattern (V359): the item the admin was
+ *          holding, floating and turning over an invisible barrier, and a
+ *          click on it opens that egg's screen
  *
  * Every piece is its own TextDisplay, which is what lets a title be far
  * bigger than the lines under it; a hologram plugin draws a whole block of
@@ -64,7 +67,7 @@ import java.util.Set;
  */
 public final class HoloManager {
 
-    public enum Kind { PANEL, BOARD, CRATE, LEADER }
+    public enum Kind { PANEL, BOARD, CRATE, LEADER, EGG }
 
     public record Spot(String id, Kind kind, String key, Location at, float yaw, ItemStack head) {
     }
@@ -225,6 +228,58 @@ public final class HoloManager {
         add(Kind.CRATE, crateId, block.getLocation().add(0.5, 0.0, 0.5), yaw, head);
     }
 
+    /**
+     * A pet egg floating over a block (V359).
+     *
+     * Built on the crate's shape on purpose, because Leon asked for it to
+     * work "like it is with crates": the item he is holding becomes the
+     * model, the block under it is an invisible barrier, and a click on
+     * the barrier opens the egg. The item is whatever he held, not a head,
+     * so an egg can be a dragon egg, a turtle egg or a custom model.
+     */
+    public void placeEgg(String eggId, Block block, float yaw, ItemStack model) {
+        add(Kind.EGG, eggId, block.getLocation().add(0.5, 0.0, 0.5), yaw, model);
+    }
+
+    /**
+     * Which egg stands on this block, or null.
+     *
+     * The click listener asks this rather than keeping a second map of
+     * placements: the spots are already saved and already loaded, and two
+     * stores of the same fact drift apart the moment one is edited.
+     */
+    public String eggAt(Block block) {
+        for (Spot spot : spots.values()) {
+            if (spot.kind() != Kind.EGG || spot.at().getWorld() == null) continue;
+            if (!spot.at().getWorld().equals(block.getWorld())) continue;
+            if (spot.at().getBlockX() == block.getX() && spot.at().getBlockY() == block.getY()
+                    && spot.at().getBlockZ() == block.getZ()) {
+                return spot.key();
+            }
+        }
+        return null;
+    }
+
+    /** Removes the pet egg standing on this block, and its barrier. */
+    public boolean removeEgg(Block block) {
+        String found = null;
+        for (Spot spot : spots.values()) {
+            if (spot.kind() != Kind.EGG || spot.at().getWorld() == null) continue;
+            if (spot.at().getWorld().equals(block.getWorld())
+                    && spot.at().getBlockX() == block.getX() && spot.at().getBlockY() == block.getY()
+                    && spot.at().getBlockZ() == block.getZ()) {
+                found = spot.id();
+                break;
+            }
+        }
+        if (found == null) return false;
+        spots.remove(found);
+        despawn(found);
+        if (block.getType() == Material.BARRIER) block.setType(Material.AIR);
+        saveSpots();
+        return true;
+    }
+
     /** A board's top three as a podium three blocks in front of an admin, turned to face them. */
     public void placeLeader(String board, Location eye) {
         Vector ahead = eye.getDirection().setY(0);
@@ -261,7 +316,8 @@ public final class HoloManager {
     public int removeNear(Location at, double radius) {
         List<String> doomed = new ArrayList<>();
         for (Spot spot : spots.values()) {
-            if (spot.kind() == Kind.CRATE || spot.at().getWorld() == null) continue;
+            if (spot.kind() == Kind.CRATE || spot.kind() == Kind.EGG
+                    || spot.at().getWorld() == null) continue;
             if (spot.at().getWorld().equals(at.getWorld()) && spot.at().distanceSquared(at) <= radius * radius) {
                 doomed.add(spot.id());
             }
@@ -400,6 +456,8 @@ public final class HoloManager {
         if (spot.kind() == Kind.CRATE) {
             spinCrate(spot.id());
             tickCrateKeys(spot);
+        } else if (spot.kind() == Kind.EGG) {
+            spinCrate(spot.id());
         }
     }
 
@@ -525,6 +583,7 @@ public final class HoloManager {
             case PANEL -> drawPanel(spot, pieces);
             case BOARD -> drawBoard(spot, pieces);
             case CRATE -> drawCrate(spot, pieces);
+            case EGG -> drawEgg(spot, pieces);
             case LEADER -> drawLeader(spot, pieces);
         }
     }
@@ -581,6 +640,49 @@ public final class HoloManager {
         crateTextTop.put(spot.id(),
                 stack(spot, spot.at().clone().add(0, headY + crateBob + 0.3, 0), parse(title), lines,
                         click == null || click.isBlank() ? null : parse(click), pieces));
+    }
+
+    /**
+     * A pet egg: the item turning over an invisible barrier, with its name,
+     * its Prestige and its price above it (V359).
+     *
+     * It borrows the crate's scale and spin so the two read as the same
+     * kind of thing in the world, and it is registered in crateHeads for
+     * the same reason: that map is what the spin ticker walks.
+     */
+    private void drawEgg(Spot spot, List<Display> pieces) {
+        double headY = crateHeadScale / 2.0 + crateHeadLift;
+        Location centre = spot.at().clone().add(0, headY, 0);
+        centre.setYaw(spot.yaw());
+        centre.setPitch(0f);
+        ItemStack model = spot.head() == null ? new ItemStack(Material.TURTLE_EGG) : spot.head().clone();
+        ItemDisplay display = centre.getWorld().spawn(centre, ItemDisplay.class, d -> {
+            d.setPersistent(false);
+            d.setItemStack(model);
+            d.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
+            d.setTransformation(new Transformation(new Vector3f(), new Quaternionf(),
+                    new Vector3f(crateHeadScale, crateHeadScale, crateHeadScale), new Quaternionf()));
+            d.setViewRange(viewRange);
+            d.setShadowRadius(0.6f);
+            d.setShadowStrength(0.6f);
+            d.getPersistentDataContainer().set(tagKey, PersistentDataType.STRING, spot.id());
+        });
+        pieces.add(display);
+        crateHeads.put(spot.id(), display);
+
+        var egg = plugin.getPetManager().upgrades().egg(spot.key());
+        String name = egg == null ? spot.key() : egg.display();
+        String title = gradient(egg == null ? List.of() : egg.colors(),
+                "<b>" + name.toUpperCase(Locale.ROOT) + "</b>");
+        List<Component> lines = new ArrayList<>();
+        if (egg != null) {
+            lines.add(parse("<white>Seven pets, one of every rarity"));
+            lines.add(parse("<gray>Prestige <white>" + egg.minPrestige()
+                    + " <dark_gray>|<gray> <#69F0AE>" + String.format("%,d", egg.cost()) + " Gems</#69F0AE> an egg"));
+        }
+        String click = plugin.getConfig().getString("holograms.click", "");
+        stack(spot, spot.at().clone().add(0, headY + crateBob + 0.3, 0), parse(title), lines,
+                click == null || click.isBlank() ? null : parse(click), pieces);
     }
 
     private void drawBoard(Spot spot, List<Display> pieces) {

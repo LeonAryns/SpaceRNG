@@ -422,69 +422,14 @@ final class PlayerMenuClicks {
             return;
         }
 
-        // The forge star: ten Cosmic Dust becomes a pet, or a rarity on one
-        // you already have.
+        // V359: a click on an egg opens that egg's own screen, where the
+        // seven pets in it, their chances and the 1 / 3 / 9 buttons live.
+        // It used to buy one on the spot, which gave a player no way to
+        // see what was in an egg before paying for it.
         String eggId = com.spacerng.solrng.gui.PetsGui.clickedEgg(event.getCurrentItem());
         if (eggId != null) {
-            if (com.spacerng.solrng.pet.PetHatch.isHatching(player)) {
-                player.sendMessage(ChatColor.GRAY + "Your egg is still hatching.");
-                return;
-            }
-            var egg = pets.upgrades().egg(eggId);
-            if (egg != null && data.getPrestige() < egg.minPrestige()) {
-                player.sendMessage(ChatColor.RED + "The " + ChatColor.stripColor(egg.display())
-                        + " opens at Prestige " + egg.minPrestige() + ".");
-                player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
-                return;
-            }
-            // V359: a full storage refuses before anything is charged, and
-            // says so, because "nothing happened" on a paid click is the
-            // one message a menu must never give.
-            if (pets.storageFull(data)) {
-                player.sendMessage(ChatColor.RED + "Your pet storage is full, "
-                        + pets.held(data) + " of " + pets.storage() + ". "
-                        + ChatColor.GRAY + "Nothing opens until you make room.");
-                player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
-                return;
-            }
-            var made = pets.make(data, egg);
-            if (!made.happened()) {
-                player.sendMessage(ChatColor.RED + "Not enough Cosmic Dust, or every pet is already maxed.");
-                player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
-                return;
-            }
-            String shown = com.spacerng.solrng.gui.Lore.gradient(
-                    made.type().display(), true, made.type().stops());
-            // V238: the pet is saved now; the hatch decides when the player
-            // sees it, and the chat line and the worn pets wait for it.
-            int tier = pets.upgrades().eggs().indexOf(egg) + 1;
-            Runnable landed = () -> {
-                if (made.trashed()) {
-                    player.sendMessage(ChatColor.GRAY + "Hatched " + ChatColor.RESET + shown
-                            + ChatColor.GRAY + " and threw it away. Autotrash is on for it in the index.");
-                } else if (made.isNew()) {
-                    player.sendMessage(ChatColor.LIGHT_PURPLE + "A new pet hatched: " + ChatColor.RESET
-                            + shown + ChatColor.GRAY + ". " + made.type().boostText() + ".");
-                } else {
-                    player.sendMessage(ChatColor.LIGHT_PURPLE + "Another " + ChatColor.RESET + shown
-                            + ChatColor.GRAY + ". You hold " + ChatColor.WHITE + made.pet().copies()
-                            + ChatColor.GRAY + " of them.");
-                }
-                plugin.getPetManager().refresh(player);
-                plugin.getScoreboardManager().update(player);
-            };
-            // V313: an egg hatches on the spot, Leon's call ("pet eggs die
-            // gelijk hatch"). The V238 build-up is still in the jar behind
-            // pets.eggs.instant, because taking a spectacle out is cheap
-            // to undo and expensive to rewrite.
-            if (plugin.getConfig().getBoolean("pets.eggs.instant", true)) {
-                landed.run();
-                player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_LEVELUP, 0.7f, 1.6f);
-                player.openInventory(com.spacerng.solrng.gui.PetsGui.build(plugin, player));
-                return;
-            }
-            player.closeInventory();
-            com.spacerng.solrng.pet.PetHatch.start(plugin, player, egg, tier, made, landed);
+            player.openInventory(com.spacerng.solrng.gui.PetEggGui.build(plugin, player, eggId));
+            player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.5f, 1.4f);
             return;
         }
 
@@ -554,6 +499,120 @@ final class PlayerMenuClicks {
                 ? com.spacerng.solrng.gui.PetsGui.storage(plugin, player)
                 : com.spacerng.solrng.gui.PetsGui.build(plugin, player));
     }
+
+    /**
+     * One egg's own screen (V359): the 1 / 3 / 9 buttons, the auto open
+     * switch and the way back.
+     *
+     * Auto open keeps buying after the click lands, so a player with it
+     * on presses once and the batch runs until the Gems, the storage or
+     * the egg itself stops it. The reason it stopped is always said out
+     * loud, because a click that quietly does nothing is the worst
+     * answer a menu can give.
+     */
+    void handlePetEggClick(InventoryClickEvent event) {
+        event.setCancelled(true);
+        if (event.getClickedInventory() == null
+                || !(event.getClickedInventory().getHolder()
+                        instanceof com.spacerng.solrng.gui.PetEggHolder holder)) return;
+
+        Player player = (Player) event.getWhoClicked();
+        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+        var pets = plugin.getPetManager();
+        var egg = pets.upgrades().egg(holder.eggId());
+        int slot = event.getRawSlot();
+
+        if (slot == com.spacerng.solrng.gui.PetEggGui.BACK_SLOT) {
+            player.openInventory(com.spacerng.solrng.gui.PetsGui.build(plugin, player));
+            return;
+        }
+
+        if (slot == com.spacerng.solrng.gui.PetEggGui.AUTO_SLOT) {
+            if (!plugin.getLinkedAccountManager().isLinked(player.getUniqueId())) {
+                player.sendMessage(ChatColor.RED + "Auto open is for linked accounts. "
+                        + ChatColor.GRAY + "Run " + ChatColor.YELLOW + "/link"
+                        + ChatColor.GRAY + " first.");
+                player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.7f, 1.0f);
+                return;
+            }
+            boolean on = data.togglePetAutoOpen();
+            player.sendMessage((on ? ChatColor.GREEN + "Auto open is on. "
+                    + ChatColor.GRAY + "A click keeps buying until the Gems or the room run out."
+                    : ChatColor.RED + "Auto open is off."));
+            player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.5f, on ? 1.5f : 0.8f);
+            player.openInventory(com.spacerng.solrng.gui.PetEggGui.build(plugin, player, holder.eggId()));
+            return;
+        }
+
+        int count = com.spacerng.solrng.gui.PetEggGui.clickedBuy(event.getCurrentItem());
+        if (count <= 0 || egg == null) return;
+
+        if (data.getPrestige() < egg.minPrestige()) {
+            player.sendMessage(ChatColor.RED + "The " + ChatColor.stripColor(egg.display())
+                    + " opens at Prestige " + egg.minPrestige() + ".");
+            player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
+            return;
+        }
+
+        // Auto open turns the button into "keep going": the number on it
+        // is the batch, and it repeats while there is anything to spend.
+        int wanted = count;
+        if (data.isPetAutoOpen() && plugin.getLinkedAccountManager().isLinked(player.getUniqueId())) {
+            long affordable = egg.cost() <= 0 ? 0 : data.getShards() / egg.cost();
+            int room = pets.storage() - pets.held(data);
+            wanted = (int) Math.max(count, Math.min(affordable, Math.max(0, room)));
+            wanted = Math.min(wanted, AUTO_OPEN_CAP);
+        }
+
+        var batch = pets.makeMany(data, egg, wanted);
+        if (batch.opened() == 0) {
+            player.sendMessage(switch (batch.stop()) {
+                case STORAGE_FULL -> ChatColor.RED + "Your pet storage is full, " + pets.held(data)
+                        + " of " + pets.storage() + ". " + ChatColor.GRAY + "Nothing opens until you make room.";
+                case OUT_OF_GEMS -> ChatColor.RED + "Not enough Gems. " + ChatColor.GRAY + "One "
+                        + ChatColor.stripColor(egg.display()) + " is "
+                        + String.format("%,d", egg.cost()) + ".";
+                default -> ChatColor.RED + "That egg cannot open right now.";
+            });
+            player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
+            return;
+        }
+
+        var best = batch.best();
+        String shown = com.spacerng.solrng.gui.Lore.gradient(
+                best.type().display(), true, best.type().stops());
+        if (batch.opened() == 1) {
+            player.sendMessage((best.isNew() ? ChatColor.GREEN + "A new pet: " : ChatColor.GRAY + "Another ")
+                    + ChatColor.RESET + shown + ChatColor.GRAY + ", "
+                    + plugin.getRarityManager().style(best.type().rarity(),
+                            best.type().rarity().displayName()) + ChatColor.GRAY + ".");
+        } else {
+            player.sendMessage(ChatColor.GREEN + "Opened " + ChatColor.WHITE + batch.opened()
+                    + ChatColor.GREEN + ", " + ChatColor.WHITE + batch.fresh()
+                    + ChatColor.GREEN + " new. " + ChatColor.GRAY + "Best: " + ChatColor.RESET + shown
+                    + ChatColor.GRAY + ".");
+        }
+        if (batch.stop() == com.spacerng.solrng.pet.PetManager.Stop.STORAGE_FULL) {
+            player.sendMessage(ChatColor.GRAY + "It stopped there: storage is full at "
+                    + pets.storage() + ".");
+        } else if (batch.stop() == com.spacerng.solrng.pet.PetManager.Stop.OUT_OF_GEMS) {
+            player.sendMessage(ChatColor.GRAY + "It stopped there: out of Gems.");
+        }
+        player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_AMETHYST_BLOCK_CHIME,
+                0.7f, best.type().rarity().ordinal() >= 4 ? 1.8f : 1.2f);
+        plugin.getPetManager().refresh(player);
+        plugin.getScoreboardManager().update(player);
+        player.openInventory(com.spacerng.solrng.gui.PetEggGui.build(plugin, player, holder.eggId()));
+    }
+
+    /**
+     * The most eggs one auto click will open.
+     *
+     * Not a balance number: it is there so a player sitting on billions
+     * of Gems cannot ask the server for a hundred thousand rolls inside
+     * one click and freeze the tick while it runs.
+     */
+    private static final int AUTO_OPEN_CAP = 256;
 
     /**
      * The next stat in the list, wrapping at the end (V359).

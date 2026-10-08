@@ -547,6 +547,9 @@ public class SkillTreeGui {
             case PET_SLOTS -> scaled(ChatColor.AQUA,
                     "+" + (long) value + " pet worn at once",
                     "+" + (long) (value * level), leveled);
+            case PET_LUCK -> scaled(ChatColor.LIGHT_PURPLE,
+                    "+" + pct(value) + "% Pet Luck in every egg",
+                    "+" + pct(value * level) + "%", leveled);
             case PET_LEVEL_DISCOUNT -> scaled(ChatColor.GREEN,
                     pct(value) + "% off what a pet level costs",
                     pct(value * level) + "% off", leveled);

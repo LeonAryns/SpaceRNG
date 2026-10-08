@@ -237,6 +237,8 @@ public final class SolRNGPlugin extends JavaPlugin {
                 new com.spacerng.solrng.consumable.ConsumableListener(this), this);
         getServer().getPluginManager().registerEvents(
                 new com.spacerng.solrng.crate.CrateListener(this), this);
+        getServer().getPluginManager().registerEvents(
+                new com.spacerng.solrng.pet.PetEggListener(this), this);
 
         getCommand("rngcore").setExecutor(new RngCoreCommand(this));
         getCommand("skilltree").setExecutor(new SkillTreeCommand(this));

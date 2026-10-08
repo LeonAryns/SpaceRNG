@@ -1554,6 +1554,45 @@ public class PlayerData {
     private final List<String> equippedPets = new ArrayList<>();
     private final java.util.Set<String> petAutoTrash = new java.util.LinkedHashSet<>();
 
+    /**
+     * Every pet this player has ever had in their hands (V359).
+     *
+     * Separate from the pets they own, because discovery is what the pet
+     * index pays Pet Luck on and throwing a pet away must never take
+     * that back. Nothing is ever removed from this set; the V359 wipe
+     * clears it once along with everything else, and that is the only
+     * time it shrinks.
+     */
+    private final java.util.Set<String> petsFound = new java.util.LinkedHashSet<>();
+
+    /**
+     * Whether a bought egg opens itself and keeps buying (V359).
+     *
+     * Leon's gate: linked accounts only. The switch lives here either
+     * way, because a player who unlinks and links again should find it
+     * the way they left it, and the menu asks the link store rather than
+     * this field before it honours it.
+     */
+    private boolean petAutoOpen;
+
+    public boolean isPetAutoOpen() {
+        return petAutoOpen;
+    }
+
+    public boolean togglePetAutoOpen() {
+        petAutoOpen = !petAutoOpen;
+        return petAutoOpen;
+    }
+
+    public java.util.Set<String> getPetsFound() {
+        return petsFound;
+    }
+
+    /** Records a discovery. True when it is the first time. */
+    public boolean discoverPet(String id) {
+        return id != null && petsFound.add(id);
+    }
+
     public java.util.Set<String> getPetAutoTrash() {
         return petAutoTrash;
     }
