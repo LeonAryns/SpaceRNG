@@ -5,10 +5,81 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V356**, 7 October 2026. The newest section is the
+Last updated at **V358**, 8 October 2026. The newest section is the
 first one below; older sections further down are history.
 
-## Start here: V355 and V356, 7 October 2026
+## Start here: V358, 8 October 2026
+
+One jar, **untested in game**. The local JDK 21 compile is clean. It is
+Dantey's bug report from 8 October: the skill trees looked like they
+blocked skills at random, and Bedrock menus named a button Bedrock does
+not have.
+
+### The trees are wired to the picture now
+
+A node's `requires` is printed in its tooltip as a "Needs:" line. In both
+trees that line very often named a node on the far side of the screen:
+**55 of the 150 prerequisites were not touching the node that needed
+them**. Gem Greed at the left end of the trunk needed Coin Greed at the
+right end, Convert needed Speed I two slots over, and Luck II sat between
+two skills that both needed it, which is what Dantey read as Luck II
+blocking the skill above and below it.
+
+The cause is that the slots were laid out by theme (a Speed line, a Luck
+line, a Money line) while `requires` was written by the order Leon wanted
+things bought in, and the two were never reconciled. V357 narrowed the
+frame to three lines and a trunk, which made the mismatch impossible to
+miss.
+
+The rule now, in both trees, on every page: **a node needs the slot
+touching it, one step in toward the root.** Row 6 runs outward from the
+middle, then the column climbs, and row 5 hangs off the trunk beneath it.
+Every page root keeps its cross-page prerequisite, which is the one
+"Needs:" that is allowed to point somewhere you cannot see.
+
+- **64 prerequisites rewired, 25 nodes moved.** No price, no effect and
+  no value changed anywhere, so nothing is rebalanced. What changes is
+  the ORDER things are bought in inside a line.
+- **Nothing sits behind an enchant that cannot be bought.** Gem Greed and
+  Gem Cascade are `coming-soon`, so under the new rule they would have
+  blocked a whole arm. Gem Greed moved to the spur directly above Coin
+  Greed, which is both a dead end and exactly where Dantey expected it.
+  Gem Cascade moved to the spur above its own arm, and the farm page 3
+  right arm shifted one slot down behind it.
+- **Speed Enchant took the slot Gem Greed left**, right next to the Wheat
+  root, which is nearer to Leon's V298 request than where it was.
+- **Two cycles were in the config and are gone**: Nuke needed Black Hole
+  while Black Hole needed Nuke, and the same between Enchant Mastery I
+  and II. Both were unbuyable deadlocks. Enchant Mastery I and II also
+  swapped slots so I comes before II.
+- **`SkillTreeManager` warns in the server log** if an edit ever points a
+  prerequisite at a slot that is not touching, so this cannot drift back
+  silently.
+- `config-version` is **48**. Both trees are in `ConfigMigrator.STRUCTURAL`,
+  so the live config is overwritten on first start with this jar.
+
+Nobody loses anything they bought: prerequisites are only checked when a
+node is bought, never re-checked afterwards.
+
+### Bedrock stopped naming a button it does not have
+
+Geyser reports every menu click as a left click, so a Bedrock player has
+no right click inside a menu. Every ladder and card that said
+"Right-click steps back" said it to them too.
+
+- **The ladders in `/options` and `/index`** now print "It wraps round to
+  the start." for Bedrock. One footer, `Stepper.footer`, so the two
+  screens cannot disagree.
+- **The hoe card** said the enchant toggle is a right click. For Bedrock
+  it says "open it" instead, and the switch is in the level screen.
+- **The pet storage card** says a click opens the pet and that it is worn
+  from its own card, which is what already happens there for Bedrock.
+
+Worth saying: every one of these was reachable already, the text was the
+lie. If Dantey still cannot change something, the next thing to ask is
+WHICH option, because the logic has a Bedrock path everywhere.
+
+## V355 and V356, 7 October 2026
 
 Two jars, both **untested in game**. The local JDK 21 compile is clean
 for both; nobody has checked GitHub Actions from this session, so look
@@ -82,12 +153,9 @@ while the live values still equal the defaults they shipped as.
 
 ### Still open from that list
 
-- **The pets rework**, the one subject left: an Ender Dragon placed like
-  a crate that players hover for pets, a new egg every prestige, and a
-  choice in /pets of whether a pet's multiplier goes to Speed, Luck or
-  Money so a player can specialise. The pets that exist already have
-  rarity, eggs with `min-prestige` and Gem upgrades, so the dragon, the
-  per-prestige eggs and the stat focus are the three new pieces.
+- **The pets rework**, the one subject left. Leon spelled the whole thing
+  out on 8 October with three screenshots; the spec is in the idea list
+  below under "The pets rework, Leon's full spec".
 
 ## V331 and V332, 4 October 2026
 
@@ -1571,6 +1639,77 @@ given to remove TAB so ours draws it.
 
 When Leon asks what is left, answer from this list and from the open
 questions further down. Keep it current.
+
+### The pets rework, Leon's full spec (8 October 2026)
+
+He gave this in one message with three screenshots while V358 was being
+built, and asked whether it is enough to work from. It is the next
+subject after V358 is confirmed in game. It is big enough to be several
+jars; the split at the bottom is a proposal, not his words.
+
+**The eggs**
+
+- **One egg per ten Prestige**: an egg at P10, then P20, P30 and up.
+- **An egg auto unlocks** when the Prestige is reached. The price on the
+  card is **per egg opened, not a price to unlock the egg**. (His
+  screenshot shows a card reading "CACTUS [EGG] / Price: $50k /
+  Prestige Required: [3]", which is the layout he wants, not the
+  numbers.)
+- **Eggs cost Gems to open.**
+- **Buy 1, 3 or 9 eggs** at a time, and with auto open on it keeps
+  buying.
+- **Auto open is a toggle, for linked accounts only.**
+- **Every egg holds all rarities, Common up to Divine**, and each rarity
+  **shows its chance on the card**. Divine is around **0.001%**.
+- The egg screen looks like his second screenshot: a grid of pets with
+  the ones not yet found drawn as "???  Locked" and a "Chance: 31.86%"
+  line on each.
+
+**The pets**
+
+- A pet gives a **stat multiplier**, and in `/pets` a player **picks
+  which stat it boosts**, so a player can specialise.
+- **Storage holds 100 pets.**
+- `/pets` shows the pets owned and the pets worn, like his first
+  screenshot: egg tabs along the top, the grid under it, and a bottom
+  rail of buttons.
+- **Auto delete by rarity**: clicking a rarity marks it to be thrown away
+  on sight.
+- **Pets level up from Cosmic Dust**, so the further the Cosmic Dust
+  skills are levelled, the faster pets level.
+
+**The pet index**
+
+- **Every pet discovered raises Pet Luck**, about **5% each**, and
+  **100% more with every pet discovered**.
+- **Pet Luck skills go in the skill tree.**
+- The pet index also appears **in `/index`**, with its boost shown the
+  way the other collections show theirs.
+
+**What has to be asked before building it**
+
+- Is the 5% **per pet** discovered or **per egg** completed? He wrote it
+  both ways in the same sentence.
+- **What does Pet Luck do**: shift an egg's odds toward the rarer end, or
+  something else?
+- The screenshot card says **$50k** but the text says eggs cost **Gems**.
+  Which one pays?
+- Does every egg hold **the same pets at different odds**, or its own
+  set of pets?
+- Which stats can a pet's multiplier be pointed at: **Speed, Luck and
+  Money**, as in the September note, or more?
+- What happens when **storage is full at 100** and auto delete is off?
+- What does a **pet level** give: more multiplier, or something else?
+- Do the pets and eggs players own today **carry over**, and what happens
+  to the three Cosmic Dust eggs that exist now?
+
+**Proposed split, one subject per jar**
+
+1. The eggs: per Prestige unlock, Gem price per open, 1 / 3 / 9, auto
+   open, the rarity chances on the card.
+2. The pets: the stat choice, 100 slots, auto delete by rarity, the
+   Cosmic Dust levelling.
+3. The pet index: Pet Luck, the skill tree nodes, the page in `/index`.
 
 ### The list Leon gave on 3 October, after V309, with the audit beside it
 

@@ -126,12 +126,27 @@ public final class Stepper {
      * coloured line, so the tooltip scans as one mark in a grey column.
      */
     public static ItemStack item(SolRNGPlugin plugin, Material icon, String label, Rarity lowest,
-                                 int index, String everything, List<String> description) {
+                                 int index, String everything, List<String> description,
+                                 boolean bedrock) {
         List<String> steps = new ArrayList<>();
         for (int step = 0; step < steps(lowest); step++) {
             steps.add(stepLabel(plugin, lowest, step, everything));
         }
-        return ladder(icon, label, index, steps, "Shown from", description);
+        return ladder(icon, label, index, steps, "Shown from", description, bedrock);
+    }
+
+    /**
+     * The two lines under any ladder in the plugin (V358).
+     *
+     * Geyser sends every menu click as a left click, so a Bedrock player
+     * has no step back, and a footnote telling them to right-click sends
+     * them hunting for a button their client cannot press. Dantey reported
+     * it as options he could not change. They are told the ladder wraps
+     * instead, which is the way back they do have.
+     */
+    public static List<String> footer(boolean bedrock) {
+        return List.of(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to step up",
+                Lore.footnote(bedrock ? "It wraps round to the start." : "Right-click steps back."));
     }
 
     /**
@@ -170,7 +185,7 @@ public final class Stepper {
      * the same two clicks and it has to look the same.
      */
     public static ItemStack ladder(Material icon, String label, int index, List<String> stepLabels,
-                                   String sectionHeader, List<String> description) {
+                                   String sectionHeader, List<String> description, boolean bedrock) {
         int bounded = Math.max(0, Math.min(index, stepLabels.size() - 1));
         String current = stepLabels.get(bounded);
         ChatColor colour = bounded == 0 ? ChatColor.GREEN
@@ -201,8 +216,7 @@ public final class Stepper {
             }
         }
         lore.add("");
-        lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to step up");
-        lore.add(Lore.footnote("Right-click steps back."));
+        lore.addAll(footer(bedrock));
         meta.setLore(lore);
         meta.setEnchantmentGlintOverride(bounded == 0 ? Boolean.TRUE : null);
         item.setItemMeta(meta);

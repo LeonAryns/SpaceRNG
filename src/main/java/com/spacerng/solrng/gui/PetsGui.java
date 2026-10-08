@@ -79,7 +79,8 @@ public class PetsGui {
         ItemStack filler = pane(Material.BLACK_STAINED_GLASS_PANE);
         for (int i = 0; i < SIZE; i++) inv.setItem(i, i < 9 || (i >= 18 && i < 27) ? rail : filler);
 
-        inv.setItem(STORAGE_SLOT, storageIcon(plugin, data));
+        inv.setItem(STORAGE_SLOT, storageIcon(plugin, data,
+                com.spacerng.solrng.platform.Bedrock.is(player)));
         inv.setItem(INDEX_SLOT, indexButton(plugin, data));
         inv.setItem(INFO_SLOT, infoIcon(plugin, player, data));
 
@@ -205,7 +206,7 @@ public class PetsGui {
         inv.setItem(BACK_SLOT, back);
     }
 
-    private static ItemStack storageIcon(SolRNGPlugin plugin, PlayerData data) {
+    private static ItemStack storageIcon(SolRNGPlugin plugin, PlayerData data, boolean bedrock) {
         PetManager pets = plugin.getPetManager();
         ItemStack item = new ItemStack(Material.CHEST);
         ItemMeta meta = item.getItemMeta();
@@ -213,8 +214,10 @@ public class PetsGui {
         meta.setLore(List.of(
                 ChatColor.DARK_GRAY + "The pets you have hatched",
                 "",
-                Lore.line(ChatColor.GRAY, "Left click one to wear it,"),
-                Lore.line(ChatColor.GRAY, "right click it to grow it."),
+                // V358: in storage a Bedrock click opens the pet instead of
+                // wearing it, because Geyser sends no right click in a menu.
+                Lore.line(ChatColor.GRAY, bedrock ? "Click one to open it, and" : "Left click one to wear it,"),
+                Lore.line(ChatColor.GRAY, bedrock ? "wear it from its own card." : "right click it to grow it."),
                 "",
                 Lore.stat(ChatColor.AQUA, "Owned", data.getOwnedPets().size() + " / " + pets.getTypes().size()),
                 Lore.stat(ChatColor.AQUA, "Worn",

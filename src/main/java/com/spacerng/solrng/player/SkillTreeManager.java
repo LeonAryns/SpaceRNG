@@ -59,6 +59,33 @@ public class SkillTreeManager {
             loadTree(config, tree);
         }
         logger.info("Loaded " + nodes.size() + " skill nodes across " + TREES.size() + " trees.");
+        warnAboutDistantRequirements();
+    }
+
+    /**
+     * V358: a node's prerequisite has to be the slot next to it.
+     *
+     * Every node names what it needs, and the menu prints that name in a
+     * "Needs:" line. When the named node sits on the other side of the
+     * screen the player reads it as a bug, which is exactly what happened:
+     * 55 of the 150 prerequisites pointed somewhere that was not touching,
+     * so the tree looked like it blocked skills at random. The wiring now
+     * follows the picture, and this check says so out loud if an edit ever
+     * breaks that again. A prerequisite on an earlier page is the one
+     * exception, because a page root is meant to reach back.
+     */
+    private void warnAboutDistantRequirements() {
+        for (SkillNode node : nodes.values()) {
+            SkillNode parent = nodes.get(node.getRequires());
+            if (parent == null || node.getSlot() < 0 || parent.getSlot() < 0) continue;
+            if (!node.getTree().equals(parent.getTree()) || node.getPage() != parent.getPage()) continue;
+            int dx = Math.abs(node.getSlot() % 9 - parent.getSlot() % 9);
+            int dy = Math.abs(node.getSlot() / 9 - parent.getSlot() / 9);
+            if (dx + dy != 1) {
+                logger.warning("Skill node '" + node.getId() + "' needs '" + parent.getId()
+                        + "', which is not the slot next to it. The tree will read as broken there.");
+            }
+        }
     }
 
     private void loadTree(FileConfiguration config, String tree) {

@@ -101,7 +101,8 @@ public class HoeGui {
         int i = 0;
         for (HoeEnchantManager.Enchant enchant : hoe.ordered()) {
             if (i >= SLOTS.length) break;
-            inv.setItem(SLOTS[i], buildEnchant(plugin, data, hoe, enchant));
+            inv.setItem(SLOTS[i], buildEnchant(plugin, data, hoe, enchant,
+                    com.spacerng.solrng.platform.Bedrock.is(player)));
             i++;
         }
         for (; i < SLOTS.length; i++) {
@@ -190,7 +191,7 @@ public class HoeGui {
     }
 
     private static ItemStack buildEnchant(SolRNGPlugin plugin, PlayerData data, HoeEnchantManager hoe,
-                                          HoeEnchantManager.Enchant enchant) {
+                                          HoeEnchantManager.Enchant enchant, boolean bedrock) {
         boolean unlocked = hoe.isUnlocked(data, enchant.id());
         int level = hoe.levelOf(data, enchant.id());
 
@@ -209,8 +210,12 @@ public class HoeGui {
         if (unlocked && level > 0) {
             // V266: the state and how to flip it, right under what it does.
             lore.add("");
+            // V358: Bedrock cannot right-click in a menu, so there the card
+            // points at the switch in the level screen instead of naming a
+            // button their client never sends.
             lore.add(Lore.stat(on ? ChatColor.GREEN : ChatColor.RED, "Enchant Toggle",
-                    (on ? ChatColor.GREEN + "On" : ChatColor.RED + "Off") + ChatColor.DARK_GRAY + "  right-click"));
+                    (on ? ChatColor.GREEN + "On" : ChatColor.RED + "Off") + ChatColor.DARK_GRAY
+                            + (bedrock ? "  open it" : "  right-click")));
             lore.add(Lore.stat(ChatColor.GRAY, "Messages", data.isEnchantMessageOn(enchant.id())
                     ? ChatColor.GREEN + "Shown" : ChatColor.RED + "Hidden"));
         }

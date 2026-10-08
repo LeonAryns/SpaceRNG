@@ -45,6 +45,9 @@ public class OptionsGui {
         }
 
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+        // V358: Bedrock has no right click in a menu, so every ladder here
+        // says so in its own footnote rather than promising a step back.
+        boolean bedrock = com.spacerng.solrng.platform.Bedrock.is(player);
 
         inv.setItem(OptionsHolder.SOUND_SLOT, toggleItem(Material.NOTE_BLOCK,
                 "Rolling Sound", data.isRollSoundEnabled(),
@@ -54,7 +57,7 @@ public class OptionsGui {
                 "Every roll",
                 List.of("The names flashing on screen and the",
                         "reveal that follows. Below your step a",
-                        "drop lands at the speed of any roll.")));
+                        "drop lands at the speed of any roll."), bedrock));
         inv.setItem(OptionsHolder.WORN_AURA_SLOT, toggleItem(Material.AMETHYST_CLUSTER,
                 "Worn Auras", data.isWornAurasVisible(),
                 "The auras players wear with an", "Epic or rarer tag, yours too."));
@@ -63,15 +66,15 @@ public class OptionsGui {
         inv.setItem(OptionsHolder.AURA_STEP_SLOT, Stepper.item(plugin, Material.FIREWORK_ROCKET,
                 "Reveal Auras", SHOW_FLOOR, auraStep(data), "Every tier",
                 List.of("The build-up and burst for a drop,",
-                        "yours and everyone else's.")));
+                        "yours and everyone else's."), bedrock));
         inv.setItem(OptionsHolder.SHOUT_STEP_SLOT, Stepper.item(plugin, Material.BELL,
                 "Announcements", SHOW_FLOOR, shoutStep(data), "Every tier",
                 List.of("Other players' drops announced in",
-                        "your chat. Yours are always shown.")));
+                        "your chat. Yours are always shown."), bedrock));
         inv.setItem(OptionsHolder.DROP_STEP_SLOT, Stepper.item(plugin, Material.PAPER,
                 "Your Drop Messages", DROP_FLOOR, dropStep(data), "Every tier",
                 List.of("Your own drops printed in chat. The",
-                        "drop is still yours either way.")));
+                        "drop is still yours either way."), bedrock));
 
         MenuStyle.apply(inv, MenuStyle.Palette.BLUE);
 

@@ -173,7 +173,8 @@ public class IndexGui {
      * is the one a player is looking at, and seven tabs each repeating the
      * block was most of why the top row read as clutter.
      */
-    private static ItemStack buildRarityBlock(SolRNGPlugin plugin, PlayerData data, Rarity filter) {
+    private static ItemStack buildRarityBlock(SolRNGPlugin plugin, PlayerData data, Rarity filter,
+                                              boolean bedrock) {
         var rarities = plugin.getRarityManager();
         var prestige = plugin.getPrestigeManager();
 
@@ -219,8 +220,7 @@ public class IndexGui {
         lore.add(Lore.section(ChatColor.YELLOW, "Showing"));
         lore.addAll(Stepper.breadcrumb(steps, index, 4));
         lore.add("");
-        lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to step up");
-        lore.add(Lore.footnote("Right-click steps back."));
+        lore.addAll(Stepper.footer(bedrock));
         meta.setLore(lore);
         meta.setEnchantmentGlintOverride(done ? Boolean.TRUE : null);
         item.setItemMeta(meta);
@@ -346,7 +346,7 @@ public class IndexGui {
         for (int i = 0; i < MODE_SLOTS.length; i++) {
             inv.setItem(MODE_SLOTS[i], modeButton(plugin, data, Mode.values()[i], mode));
         }
-        inv.setItem(RARITY_SLOT, buildRarityBlock(plugin, data, filter));
+        inv.setItem(RARITY_SLOT, buildRarityBlock(plugin, data, filter, com.spacerng.solrng.platform.Bedrock.is(player)));
         inv.setItem(PROGRESS_SLOT, buildProfile(plugin, player, data, filter, shown.size()));
         if (page > 0) {
             inv.setItem(PREV_SLOT, buildPageButton(false, page, totalPages));
