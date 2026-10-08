@@ -1,33 +1,38 @@
 package com.spacerng.solrng.pet;
 
 /**
- * The maths behind a pet: what rarity and tier are worth, what they cost,
- * and how likely a tier upgrade is to take.
+ * The maths behind a pet: what a level is worth, what it costs, and the
+ * ceiling on all of it.
  *
  * This exists for the same reason {@code StatSources} does. The moment
  * the curve is half in the manager and half in the menu, nobody can say
- * what a Tier 7 pet is actually worth without reading two files, and it
+ * what a level 7 pet is actually worth without reading two files, and it
  * stops being tunable. Every number a pet has comes from here.
  *
- * The cap is the important part. A pet's base percentage is multiplied by
- * rarity, by tier and again by shiny, and three multipliers stacked on a
- * player who has been grinding for a month runs away fast. maxMultiplier
- * is the ceiling on all of it together.
+ * V359, Leon's rework. There used to be two ladders, a rarity bought
+ * with Gems and a tier bought with Gems that could fail, plus a cap to
+ * stop the two of them multiplying away from each other. There is one
+ * ladder now: level 1 to 10, every level worth 10% more multiplier, paid
+ * in Cosmic Dust, which is what ties growing a pet to the Cosmic Dust
+ * skills. It always takes. Shiny is still bought on top, and the cap
+ * still exists because shiny multiplies the level.
  */
 public class PetUpgrades {
 
-    private int maxRarity = 10;
-    private int maxTier = 10;
+    private int maxLevel = 10;
 
-    // What one step is worth, as a fraction of the base percentage.
-    private double rarityStep = 0.25;
-    private double tierStep = 0.15;
+    // What one level is worth, as a fraction of the pet's base bonus.
+    private double levelStep = 0.10;
     private double shinyBonus = 0.10;
 
-    // The ceiling on rarity x tier x shiny together.
+    // The ceiling on level x shiny together.
     private double maxMultiplier = 6.0;
 
-    // Cosmic Dust, for making a pet and for rarity.
+    // How many pets a player may hold. Full stops the opening, Leon's
+    // call, so nothing is ever thrown away to make room.
+    private int storage = 100;
+
+    // Cosmic Dust, for making a pet.
     private long makeCost = 100L;
 
     // The eggs, cheapest first.
@@ -39,42 +44,27 @@ public class PetUpgrades {
             new java.util.EnumMap<>(com.spacerng.solrng.rarity.Rarity.class);
     // The Prestige a player needs before any pet can be made.
     private int minPrestige = 10;
-    private long rarityBaseCost = 8L;
-    private double rarityCostGrowth = 1.35;
-    private long shinyCost = 50L;
 
-    // Farm Dust, for tier.
-    private long tierBaseCost = 25L;
-    private double tierCostGrowth = 1.40;
+    // Cosmic Dust, for levels.
+    private long levelBaseCost = 250L;
+    private double levelCostGrowth = 1.8;
 
-    // The chance a tier upgrade takes. Falls off as the tier climbs, and
-    // the skill tree adds back onto it.
-    private double tierBaseChance = 0.80;
-    private double tierChanceFalloff = 0.06;
-    private double tierMinChance = 0.15;
+    // Gems, for shiny.
+    private long shinyCost = 100000L;
 
     public void load(org.bukkit.configuration.file.FileConfiguration config) {
-        maxRarity = Math.max(1, config.getInt("pets.upgrades.max-rarity", 10));
-        maxTier = Math.max(1, config.getInt("pets.upgrades.max-tier", 10));
-
-        rarityStep = Math.max(0.0, config.getDouble("pets.upgrades.rarity-step", 0.25));
-        tierStep = Math.max(0.0, config.getDouble("pets.upgrades.tier-step", 0.15));
+        maxLevel = Math.max(1, config.getInt("pets.upgrades.max-level", 10));
+        levelStep = Math.max(0.0, config.getDouble("pets.upgrades.level-step", 0.10));
         shinyBonus = Math.max(0.0, config.getDouble("pets.upgrades.shiny-bonus", 0.10));
         maxMultiplier = Math.max(1.0, config.getDouble("pets.upgrades.max-multiplier", 6.0));
+        storage = Math.max(1, config.getInt("pets.storage", 100));
 
         makeCost = Math.max(1L, config.getLong("pets.upgrades.make-cost", 100L));
         loadBonuses(config);
         loadEggs(config);
-        rarityBaseCost = Math.max(1L, config.getLong("pets.upgrades.rarity-base-cost", 8L));
-        rarityCostGrowth = Math.max(1.0, config.getDouble("pets.upgrades.rarity-cost-growth", 1.35));
-        shinyCost = Math.max(1L, config.getLong("pets.upgrades.shiny-cost", 50L));
-
-        tierBaseCost = Math.max(1L, config.getLong("pets.upgrades.tier-base-cost", 25L));
-        tierCostGrowth = Math.max(1.0, config.getDouble("pets.upgrades.tier-cost-growth", 1.40));
-
-        tierBaseChance = clamp(config.getDouble("pets.upgrades.tier-base-chance", 0.80));
-        tierChanceFalloff = Math.max(0.0, config.getDouble("pets.upgrades.tier-chance-falloff", 0.06));
-        tierMinChance = clamp(config.getDouble("pets.upgrades.tier-min-chance", 0.15));
+        levelBaseCost = Math.max(1L, config.getLong("pets.upgrades.level-base-cost", 250L));
+        levelCostGrowth = Math.max(1.0, config.getDouble("pets.upgrades.level-cost-growth", 1.8));
+        shinyCost = Math.max(1L, config.getLong("pets.upgrades.shiny-cost", 100000L));
     }
 
     /**
@@ -235,29 +225,27 @@ public class PetUpgrades {
     // ---------------------------------------------------------------
 
     /**
-     * The multiplier on a pet's base percentage. A fresh Rarity 1 Tier 1
-     * pet returns exactly 1.0, so the numbers Leon already tuned in
-     * pets.types are still what a new pet gives.
+     * The multiplier on a pet's base bonus. A fresh level 1 pet returns
+     * exactly 1.0, so what the rarity ladder in pets.multipliers says is
+     * exactly what a new pet gives. Level 10 lands on 1.9, which is
+     * Leon's "every level is 10% more multi" counted from level 1.
      */
     public double multiplier(PetInstance pet) {
         if (pet == null) return 1.0;
-        double value = (1.0 + rarityStep * (pet.rarity() - 1))
-                * (1.0 + tierStep * (pet.tier() - 1));
+        double value = 1.0 + levelStep * (pet.level() - 1);
         if (pet.shiny()) value *= 1.0 + shinyBonus;
         return Math.min(maxMultiplier, value);
     }
 
-    /** The most any pet can be worth: top rarity, top tier and shiny, under the ceiling. */
+    /** The most any pet can be worth: top level and shiny, under the ceiling. */
     public double topMultiplier() {
-        return Math.min(maxMultiplier, (1.0 + rarityStep * (maxRarity - 1))
-                * (1.0 + tierStep * (maxTier - 1)) * (1.0 + shinyBonus));
+        return Math.min(maxMultiplier, (1.0 + levelStep * (maxLevel - 1)) * (1.0 + shinyBonus));
     }
 
     /** True once a pet is pinned against the ceiling, so the menu can say so. */
     public boolean capped(PetInstance pet) {
         if (pet == null) return false;
-        double raw = (1.0 + rarityStep * (pet.rarity() - 1))
-                * (1.0 + tierStep * (pet.tier() - 1))
+        double raw = (1.0 + levelStep * (pet.level() - 1))
                 * (pet.shiny() ? 1.0 + shinyBonus : 1.0);
         return raw > maxMultiplier;
     }
@@ -271,17 +259,12 @@ public class PetUpgrades {
         return makeCost;
     }
 
-    /** Cosmic Dust to go from this rarity to the next. */
-    public long rarityCost(int fromRarity) {
-        return (long) Math.ceil(rarityBaseCost * Math.pow(rarityCostGrowth, Math.max(0, fromRarity - 1)));
+    /** Cosmic Dust to go from this level to the next. */
+    public long levelCost(int fromLevel) {
+        return (long) Math.ceil(levelBaseCost * Math.pow(levelCostGrowth, Math.max(0, fromLevel - 1)));
     }
 
-    /** Farm Dust to attempt the next tier. Paid whether or not it takes. */
-    public long tierCost(int fromTier) {
-        return (long) Math.ceil(tierBaseCost * Math.pow(tierCostGrowth, Math.max(0, fromTier - 1)));
-    }
-
-    /** Cosmic Dust to make a pet shiny. */
+    /** Gems to make a pet shiny. */
     public long shinyCost() {
         return shinyCost;
     }
@@ -290,30 +273,20 @@ public class PetUpgrades {
     // Whether it takes
     // ---------------------------------------------------------------
 
-    /**
-     * The chance a tier attempt succeeds, before the skill tree bonus.
-     * Climbing gets harder, which is what makes a high tier worth
-     * anything, but it never drops below tierMinChance or the last few
-     * tiers become a wall nobody bothers with.
-     */
-    public double tierChance(int fromTier, double skillBonus) {
-        double raw = tierBaseChance - tierChanceFalloff * Math.max(0, fromTier - 1);
-        return clamp(Math.max(tierMinChance, raw) + Math.max(0.0, skillBonus));
+    public int maxLevel() {
+        return maxLevel;
     }
 
-    public int maxRarity() {
-        return maxRarity;
+    /** How many pets a player may hold before the eggs stop opening. */
+    public int storage() {
+        return storage;
     }
 
-    public int maxTier() {
-        return maxTier;
+    public double levelStep() {
+        return levelStep;
     }
 
     public double shinyBonus() {
         return shinyBonus;
-    }
-
-    private static double clamp(double value) {
-        return Math.max(0.0, Math.min(1.0, value));
     }
 }

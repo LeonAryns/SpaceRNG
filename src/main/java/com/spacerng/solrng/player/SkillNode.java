@@ -36,7 +36,10 @@ public class SkillNode {
         COSMIC_DUST_CHANCE, // +value chance per roll of one Cosmic Dust
         COSMIC_DUST_AMOUNT, // +value on the TOP of the Cosmic Dust range (V314)
         PET_SLOTS,          // +value pets worn at once, capped at PetManager.MAX_SLOTS
-        PET_TIER_CHANCE,    // +value to the chance a tier upgrade takes
+        // V359: tiers are gone, so this is the discount on what a pet
+        // level costs in Cosmic Dust instead. Same node, same name, same
+        // place in the tree; it buys the one thing a pet still has.
+        PET_LEVEL_DISCOUNT, // -value of the Cosmic Dust a pet level costs
 
         // --- general tree: gates ---
         AUTO_ROLL,

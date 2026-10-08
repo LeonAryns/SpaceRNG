@@ -220,6 +220,11 @@ public class PetsGui {
                 Lore.line(ChatColor.GRAY, bedrock ? "wear it from its own card." : "right click it to grow it."),
                 "",
                 Lore.stat(ChatColor.AQUA, "Owned", data.getOwnedPets().size() + " / " + pets.getTypes().size()),
+                // V359: storage is a hundred and a full one stops the eggs,
+                // so the number has to be somewhere it is read before the
+                // egg refuses rather than after.
+                Lore.stat(pets.storageFull(data) ? ChatColor.RED : ChatColor.AQUA, "Storage",
+                        pets.held(data) + " / " + pets.storage()),
                 Lore.stat(ChatColor.AQUA, "Worn",
                         Math.min(data.getEquippedPets().size(), pets.slots(data)) + " / " + pets.slots(data)),
                 "",
@@ -415,13 +420,14 @@ public class PetsGui {
                 ChatColor.DARK_GRAY + pet.rarity().displayName() + " pet, slot " + (slot + 1),
                 "",
                 Lore.line(ChatColor.GRAY, "Worn, so it is multiplying your"),
-                Lore.line(ChatColor.GRAY, pet.statName() + " right now."),
+                Lore.line(ChatColor.GRAY,
+                        com.spacerng.solrng.pet.PetType.statName(instance.statOr(pet)) + " right now."),
                 "",
-                Lore.stat(ChatColor.GREEN, pet.statName(), pet.multiText(multiplier)),
-                Lore.stat(ChatColor.AQUA, "Rarity",
-                        instance.rarity() + " / " + plugin.getPetManager().upgrades().maxRarity()),
-                Lore.stat(ChatColor.AQUA, "Tier",
-                        instance.tier() + " / " + plugin.getPetManager().upgrades().maxTier()),
+                Lore.stat(ChatColor.GREEN,
+                        com.spacerng.solrng.pet.PetType.statName(instance.statOr(pet)),
+                        pet.multiText(multiplier)),
+                Lore.stat(ChatColor.AQUA, "Level",
+                        instance.level() + " / " + plugin.getPetManager().upgrades().maxLevel()),
                 "",
                 ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to take it off"));
         meta.setEnchantmentGlintOverride(Boolean.TRUE);

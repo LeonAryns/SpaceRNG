@@ -102,6 +102,16 @@ public final class ConfigMigrator {
             // V314: the Cosmic Dust range. New keys, so ADDED_SECTIONS
             // rather than a patch.
             "pets.dust.cosmic-min", "pets.dust.cosmic-max",
+            // V359, the pet rework. Four new keys, and every one of them
+            // matters on a live config: without wipe-version the server
+            // reads 0 and nobody's old pets are ever cleared, which
+            // leaves rarity 7 tier 4 pets sitting in a game that has no
+            // rarity or tier any more. The level ladder keys fall back to
+            // the same code defaults, but they belong on disk where Leon
+            // can tune them.
+            "pets.wipe-version", "pets.storage",
+            "pets.upgrades.max-level", "pets.upgrades.level-step",
+            "pets.upgrades.level-base-cost", "pets.upgrades.level-cost-growth",
             // V315: the three small permanent Luck grants. The crates and
             // the pass are rewritten to hand these out further down, so
             // the definitions have to arrive first or those rewards point
@@ -309,6 +319,17 @@ public final class ConfigMigrator {
             // ten, which is Leon's "make the first ones a bit harder".
             // The late ones are made easier by the two caps above, not
             // here.
+            // V359: what a fresh pet is worth, Leon's 1.1x to 2.0x. The
+            // live config carries the V324 ladder, which runs ten times
+            // lower, and pets: is not a structural section, so each rung
+            // comes over as its own patch.
+            new Patch("pet-multi-common-v359", "pets.multipliers.COMMON", 1.01, 1.10),
+            new Patch("pet-multi-uncommon-v359", "pets.multipliers.UNCOMMON", 1.02, 1.15),
+            new Patch("pet-multi-rare-v359", "pets.multipliers.RARE", 1.04, 1.25),
+            new Patch("pet-multi-epic-v359", "pets.multipliers.EPIC", 1.08, 1.40),
+            new Patch("pet-multi-legendary-v359", "pets.multipliers.LEGENDARY", 1.16, 1.60),
+            new Patch("pet-multi-mythical-v359", "pets.multipliers.MYTHICAL", 1.32, 1.80),
+            new Patch("pet-multi-divine-v359", "pets.multipliers.DIVINE", 1.64, 2.00),
             new Patch("first-prestige-levels-v354", "prestige.first-prestige-levels", 10, 13),
             // V352: Luck has to keep mattering. Epic, Legendary and
             // Mythical climb hard with it now; Divine and Astral stay

@@ -6,6 +6,7 @@ import com.spacerng.solrng.player.PlayerData;
 import com.spacerng.solrng.player.SkillNode;
 import com.spacerng.solrng.rarity.Rarity;
 import com.spacerng.solrng.stats.StatSources;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -157,6 +158,73 @@ public class PetManager {
     }
 
     // ---------------------------------------------------------------
+    // The V359 wipe
+    // ---------------------------------------------------------------
+
+    /**
+     * Clears the pets and the Cosmic Dust a save carries from before the
+     * rework, once, on join (V359).
+     *
+     * Leon's call, and it is not tidiness. A pet used to carry a rarity
+     * level and a tier, two ladders bought with Gems, and both are gone;
+     * the multipliers under them moved by a factor of ten as well. There
+     * is no honest way to map a Rarity 7 Tier 4 pet onto a level, so
+     * rather than invent one the collection starts again, and the dust
+     * that paid for it goes with it so nobody is sitting on a balance
+     * bought against the old prices.
+     *
+     * pets.wipe-version says which round this is. Raising it in config
+     * does it again, which is the door to use if the eggs are re-cut.
+     */
+    public void wipeIfOld(Player player, PlayerData data) {
+        int version = plugin.getConfig().getInt("pets.wipe-version", 0);
+        if (data.getPetWipeVersion() >= version) return;
+
+        int had = data.getOwnedPets().size();
+        long dust = data.getCosmicDust();
+        data.getOwnedPets().clear();
+        data.getEquippedPets().clear();
+        data.getPetAutoTrash().clear();
+        if (dust > 0) data.spendCosmicDust(dust);
+        data.setPetWipeVersion(version);
+
+        if (had > 0 || dust > 0) {
+            player.sendMessage(ChatColor.LIGHT_PURPLE + "Pets have been rebuilt. "
+                    + ChatColor.GRAY + "A pet is one level ladder now, 1 to 10, paid in Cosmic Dust, "
+                    + "and you pick which stat it boosts. The old rarity and tier ladders are gone, "
+                    + "so the " + ChatColor.WHITE + had + ChatColor.GRAY + " pets and "
+                    + ChatColor.WHITE + dust + ChatColor.GRAY + " Cosmic Dust bought against them "
+                    + "went with them.");
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // Storage
+    // ---------------------------------------------------------------
+
+    /**
+     * How many pets this player holds, counting one per kind.
+     *
+     * V359: Leon asked for a hundred and for a full storage to STOP the
+     * opening rather than throw anything away. Duplicates do not count,
+     * because a duplicate is a number on a pet already in the list and
+     * nobody would understand a collection that filled up without any new
+     * pet appearing in it.
+     */
+    public int held(PlayerData data) {
+        return data.getOwnedPets().size();
+    }
+
+    public int storage() {
+        return upgrades.storage();
+    }
+
+    /** True when no more pets fit, so the eggs refuse before taking payment. */
+    public boolean storageFull(PlayerData data) {
+        return held(data) >= upgrades.storage();
+    }
+
+    // ---------------------------------------------------------------
     // Making and growing
     // ---------------------------------------------------------------
 
@@ -179,6 +247,7 @@ public class PetManager {
     public Made make(PlayerData data, PetEgg egg) {
         if (!enabled || types.isEmpty() || egg == null) return Made.none();
         if (data.getPrestige() < egg.minPrestige()) return Made.none();
+        if (storageFull(data)) return Made.none();
         long cost = egg.cost();
         if (data.getCosmicDust() < cost) return Made.none();
 
@@ -313,33 +382,56 @@ public class PetManager {
         return true;
     }
 
-    /** Buys one rarity level with Gems (V313). Always takes. */
-    public Result upgradeRarity(PlayerData data, String typeId) {
+    /**
+     * Buys one level with Cosmic Dust (V359). Always takes.
+     *
+     * Dust is the point of it. Leon asked for pets to grow on the back of
+     * the Cosmic Dust skills, so the thing that makes a pet stronger is
+     * the same thing those skills pay out, and a player who has levelled
+     * them levels pets faster without a second ladder to read.
+     */
+    public Result upgradeLevel(PlayerData data, String typeId) {
         PetInstance pet = data.getPet(typeId);
         if (pet == null) return Result.LOCKED;
-        if (pet.rarity() >= upgrades.maxRarity()) return Result.MAXED;
-        if (!data.spendShards(upgrades.rarityCost(pet.rarity()))) return Result.TOO_POOR;
-        data.putPet(pet.withRarity(pet.rarity() + 1));
+        if (pet.level() >= upgrades.maxLevel()) return Result.MAXED;
+        if (!data.spendCosmicDust(levelCost(data, pet))) return Result.TOO_POOR;
+        data.putPet(pet.withLevel(pet.level() + 1));
         return Result.DONE;
     }
 
     /**
-     * Attempts one tier with Gems (V313). The Gems are spent either way: a
-     * tier attempt that cost nothing on a failure would just be a slower
-     * guaranteed upgrade, and then the percentage means nothing.
+     * What the next level costs this player, Steady Hands taken off.
+     *
+     * The menu and the purchase both read this, so the price on the
+     * button is the price that is charged. The discount never passes 90%,
+     * or a long enough skill tree would make levels free.
      */
-    public Result upgradeTier(PlayerData data, String typeId) {
-        PetInstance pet = data.getPet(typeId);
-        if (pet == null) return Result.LOCKED;
-        if (pet.tier() >= upgrades.maxTier()) return Result.MAXED;
-        if (!data.spendShards(upgrades.tierCost(pet.tier()))) return Result.TOO_POOR;
+    public long levelCost(PlayerData data, PetInstance pet) {
+        long base = upgrades.levelCost(pet == null ? 1 : pet.level());
+        double off = Math.min(0.90, Math.max(0.0,
+                plugin.getSkillTreeManager().totalOf(data, SkillNode.Effect.PET_LEVEL_DISCOUNT)));
+        return Math.max(1L, (long) Math.ceil(base * (1.0 - off)));
+    }
 
-        double bonus = plugin.getSkillTreeManager().totalOf(data, SkillNode.Effect.PET_TIER_CHANCE);
-        if (ThreadLocalRandom.current().nextDouble() >= upgrades.tierChance(pet.tier(), bonus)) {
-            return Result.FAILED;
-        }
-        data.putPet(pet.withTier(pet.tier() + 1));
+    /**
+     * Points a pet's multiplier at another stat (V359).
+     *
+     * Free and reversible at any time, Leon's call. What a pet is worth
+     * is its rarity and its level; which stat it pays is the player's
+     * choice, so a collection is never wasted on stats nobody wanted.
+     */
+    public Result setStat(PlayerData data, String typeId, StatSources.Id stat) {
+        PetInstance pet = data.getPet(typeId);
+        if (pet == null || stat == null) return Result.LOCKED;
+        data.putPet(pet.withStat(stat));
         return Result.DONE;
+    }
+
+    /** Which stat an owned pet pays, falling back to the type's own. */
+    public StatSources.Id statOf(PlayerData data, PetType type) {
+        if (type == null) return StatSources.Id.LUCK;
+        PetInstance pet = data.getPet(type.id());
+        return pet == null ? type.stat() : pet.statOr(type);
     }
 
     /**
@@ -438,17 +530,20 @@ public class PetManager {
      * two pets at 5% each come back as 0.10. StatSources turns that into
      * the 1.10x it applies.
      *
-     * Rarity, tier and shiny are folded in here through PetUpgrades, so
-     * every stat picks them up without StatSources knowing pets have
-     * levels at all.
+     * Level and shiny are folded in here through PetUpgrades, so every
+     * stat picks them up without StatSources knowing pets have levels at
+     * all.
      */
     public double totalOf(PlayerData data, StatSources.Id stat) {
         if (!enabled) return 0.0;
         double total = 0.0;
         for (String id : worn(data)) {
             PetType type = types.get(id);
-            if (type == null || type.stat() != stat) continue;
+            if (type == null) continue;
             PetInstance pet = data.getPet(id);
+            // V359: the stat is the player's choice, held on the owned
+            // copy, so a worn pet pays wherever it has been pointed.
+            if ((pet == null ? type.stat() : pet.statOr(type)) != stat) continue;
             total += type.bonus() * upgrades.multiplier(pet);
         }
         return total;

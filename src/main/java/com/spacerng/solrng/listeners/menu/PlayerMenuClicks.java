@@ -437,6 +437,16 @@ final class PlayerMenuClicks {
                 player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
                 return;
             }
+            // V359: a full storage refuses before anything is charged, and
+            // says so, because "nothing happened" on a paid click is the
+            // one message a menu must never give.
+            if (pets.storageFull(data)) {
+                player.sendMessage(ChatColor.RED + "Your pet storage is full, "
+                        + pets.held(data) + " of " + pets.storage() + ". "
+                        + ChatColor.GRAY + "Nothing opens until you make room.");
+                player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
+                return;
+            }
             var made = pets.make(data, egg);
             if (!made.happened()) {
                 player.sendMessage(ChatColor.RED + "Not enough Cosmic Dust, or every pet is already maxed.");
@@ -546,6 +556,24 @@ final class PlayerMenuClicks {
     }
 
     /**
+     * The next stat in the list, wrapping at the end (V359).
+     *
+     * One direction only, because Geyser cannot tell a left click from a
+     * right one in a menu, and a list you can only walk forward through
+     * still reaches every entry as long as it comes back round.
+     */
+    private com.spacerng.solrng.stats.StatSources.Id nextStat(PlayerData data,
+                                                              com.spacerng.solrng.pet.PetType type) {
+        var values = com.spacerng.solrng.stats.StatSources.Id.values();
+        var pet = data.getPet(type.id());
+        var current = pet == null ? type.stat() : pet.statOr(type);
+        for (int i = 0; i < values.length; i++) {
+            if (values[i] == current) return values[(i + 1) % values.length];
+        }
+        return values[0];
+    }
+
+    /**
      * The wear button on the pet screen, which only Bedrock players get
      * (V223): on Java a left click on the pets screen wears a pet, and
      * Bedrock cannot tell that click from the right click that opens it.
@@ -614,8 +642,10 @@ final class PlayerMenuClicks {
         }
 
         var result = switch (action) {
-            case "rarity" -> pets.upgradeRarity(data, type.id());
-            case "tier" -> pets.upgradeTier(data, type.id());
+            case "level" -> pets.upgradeLevel(data, type.id());
+            // V359: the stat steps forward and wraps, the one shape that
+            // works without a right click, so Bedrock reaches every stat.
+            case "stat" -> pets.setStat(data, type.id(), nextStat(data, type));
             case "shiny" -> pets.makeShiny(data, type.id());
             default -> null;
         };
@@ -626,8 +656,9 @@ final class PlayerMenuClicks {
             case DONE -> {
                 var pet = data.getPet(type.id());
                 String what = switch (action) {
-                    case "rarity" -> "is now rarity " + (pet == null ? "?" : pet.rarity());
-                    case "tier" -> "is now tier " + (pet == null ? "?" : pet.tier());
+                    case "level" -> "is now level " + (pet == null ? "?" : pet.level());
+                    case "stat" -> "boosts " + com.spacerng.solrng.pet.PetType.statName(
+                            pet == null ? type.stat() : pet.statOr(type)) + " now";
                     default -> "is shiny";
                 };
                 player.sendMessage(ChatColor.GREEN + "" + ChatColor.RESET + shown

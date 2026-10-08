@@ -5,10 +5,101 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V358**, 8 October 2026. The newest section is the
+Last updated at **V359**, 8 October 2026. The newest section is the
 first one below; older sections further down are history.
 
-## Start here: V358, 8 October 2026
+## Start here: V359, 8 October 2026
+
+One jar, **untested in game**. The local JDK 21 compile is clean. It is
+the first of the pets rework, the subject Leon spelled out the same day;
+the full spec and his answers are in the idea list below.
+
+This jar is **the pet itself**. The eggs, the pet index and the hologram
+are the jars after it, and they are listed at the end of this section.
+
+### One ladder, not two
+
+A pet used to carry a rarity level and a tier. Both were bought with
+Gems, one of them could fail and keep the payment, and a cap existed to
+stop the two of them multiplying away from each other.
+
+There is one ladder now, and it is Leon's: **level 1 to 10, every level
+10% more multiplier, paid in Cosmic Dust**. It always takes. Dust is the
+point of it, because he asked for pets to grow off the Cosmic Dust
+skills, so the thing that levels a pet is the thing those skills pay
+out.
+
+- `pets.upgrades` is `max-level`, `level-step`, `level-base-cost` and
+  `level-cost-growth`. Level 2 costs 250 dust and level 10 costs 32,187,
+  about 71,000 dust to take one pet all the way. A find is 1 to 10 dust.
+- **Steady Hands was repointed rather than left dead.** It bought the
+  chance a tier took, and tiers are gone. It is `PET_LEVEL_DISCOUNT`
+  now, 3% off a level per skill level, 15% at its max. Same node, same
+  name, same slot on page 5, and it buys the one thing a pet still has.
+
+### The stat is the player's, and it can change at any time
+
+A pet is a multiplier looking for a job. `PetType.stat` is the stat a
+freshly hatched copy STARTS on; the owner points it wherever they like
+and that choice lives on the owned copy.
+
+- The old rarity and tier buttons in the pet screen are a **Level up**
+  button and a **Boosting** button. The stat block prints all six stats
+  with the current one ticked and steps forward on a click, wrapping, so
+  Bedrock reaches every one of them without a right click.
+- It is free and reversible as often as they like, Leon's call.
+
+### What a pet is worth
+
+**1.1x at Common to 2.0x at Divine**, Leon's numbers, in
+`pets.multipliers`. That is ten times the old ladder, which ran 1.01x to
+1.64x. Level 10 multiplies the bonus by 1.9, so a Divine lands at 2.9x
+and a Common at 1.19x, and shiny is 10% on top again.
+
+### Storage, and the wipe
+
+- **A hundred pets**, `pets.storage`. A kind counts once however many
+  copies sit behind it. **Full stops the opening**, Leon's call: the egg
+  refuses and says so before anything is charged, and nothing is ever
+  thrown away to make room. The number is on the storage card, in red
+  when it is full.
+- **Nothing carries over.** `pets.wipe-version` is 1, and a save behind
+  it has its pets, its worn pets, its autotrash list and its Cosmic Dust
+  cleared once on join, with a line in chat saying why. There is no
+  honest way to map a Rarity 7 Tier 4 pet onto a level, and the dust goes
+  with the pets because it was earned against the old prices. Raising
+  that number does it again, which is the door to use if the eggs are
+  ever re-cut.
+
+### Reaching the live config
+
+`pets:` is not a structural section, so none of this merges on its own.
+`pets.wipe-version`, `pets.storage` and the four level keys are in
+`ConfigMigrator.ADDED_SECTIONS`, and the seven rungs of
+`pets.multipliers` come over as seven one-off patches, each of which only
+fires while the live value still equals the V324 default it shipped as.
+Without the wipe-version key the server would read 0 and clear nobody.
+
+### What is left of the rework
+
+1. **The eggs.** One per ten Prestige from P10, auto unlocked, paid per
+   open in **Gems**, buy 1 / 3 / 9, auto open for linked accounts, the
+   chance of each rarity on the card with Divine around 0.001%, and each
+   egg holding its own seven pets, one per rarity. The egg screen is his
+   second screenshot: the pets not yet found drawn as "???  Locked" with
+   their chance under them.
+2. **The pet index.** 5% Pet Luck per pet found, 100% for an egg whose
+   rarities are all found, Pet Luck raising the odds of the rarer pets,
+   the Pet Luck nodes in `/skilltree`, and the pet index as a page in
+   `/index` with its boost shown the way the other collections show
+   theirs.
+3. **The hovering pet egg**, placed with a command the way crates are,
+   holding the egg in hand when the command is run.
+
+The eggs in config are still the three Cosmic Dust ones. They work, they
+are just not the ladder he asked for yet, which is jar 2.
+
+## V358, 8 October 2026
 
 One jar, **untested in game**. The local JDK 21 compile is clean. It is
 Dantey's bug report from 8 October: the skill trees looked like they
@@ -1686,22 +1777,32 @@ jars; the split at the bottom is a proposal, not his words.
 - The pet index also appears **in `/index`**, with its boost shown the
   way the other collections show theirs.
 
-**What has to be asked before building it**
+**His answers, same day**
 
-- Is the 5% **per pet** discovered or **per egg** completed? He wrote it
-  both ways in the same sentence.
-- **What does Pet Luck do**: shift an egg's odds toward the rarer end, or
-  something else?
-- The screenshot card says **$50k** but the text says eggs cost **Gems**.
-  Which one pays?
-- Does every egg hold **the same pets at different odds**, or its own
-  set of pets?
-- Which stats can a pet's multiplier be pointed at: **Speed, Luck and
-  Money**, as in the September note, or more?
-- What happens when **storage is full at 100** and auto delete is off?
-- What does a **pet level** give: more multiplier, or something else?
-- Do the pets and eggs players own today **carry over**, and what happens
-  to the three Cosmic Dust eggs that exist now?
+- **5% per pet, whatever its rarity.** "5% if a common gets discovered
+  etc". **All the rarities of one egg found is 100%** for that egg. Each
+  egg holds seven pets, one per rarity, so "every rarity found" and
+  "every pet found" are the same sentence. Say the word if an egg should
+  hold more than one pet per rarity.
+- **Pet Luck raises the odds of the rarer pets**, and the rarer the
+  rarity the lower its chance to begin with.
+- **Gems pay.** The $50k on the screenshot was the layout, not the price.
+- **The stat is chosen, at any time, in `/pets`**, so a pet is a
+  multiplier looking for a stat rather than a fixed one.
+- **Storage full stops the opening.** No silent overwrite.
+- **The P10 egg runs 1.1x to 2.0x**, Common to Divine. A pet levels to
+  **level 10** and **every level is 10% more multiplier**.
+- **Nothing carries over.** The pets owned today and the Cosmic Dust
+  balance are both wiped with the rework.
+- **It may be split over several jars**, as long as it looks right, and
+  he wants to **place a hovering pet egg with a command** the way crates
+  are placed, holding the egg in his hand when he runs it.
+
+**Still his call, flagged rather than guessed**
+
+- **What the eggs above P10 are worth.** He gave 1.1x to 2.0x for the
+  P10 egg and nothing for P20 up, so the ladder uses one growth knob per
+  egg and that knob is the single number to move.
 
 **Proposed split, one subject per jar**
 

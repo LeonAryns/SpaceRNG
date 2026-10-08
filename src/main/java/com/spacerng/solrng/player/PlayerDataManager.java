@@ -334,6 +334,7 @@ public class PlayerDataManager {
         }
         data.setArmorVersion(yml.getInt("armor-version", 0));
         data.setNovaScaleVersion(yml.getInt("nova-scale-version", 0));
+        data.setPetWipeVersion(yml.getInt("pet-wipe-version", 0));
         for (String entry : yml.getStringList("purchased-armor-tiers")) {
             if (entry.contains(":")) {
                 data.getPurchasedArmorTiers().add(entry);
@@ -581,6 +582,7 @@ public class PlayerDataManager {
         yml.set("purchased-armor-tiers", new java.util.ArrayList<>(data.getPurchasedArmorTiers()));
         yml.set("armor-version", data.getArmorVersion());
         yml.set("nova-scale-version", data.getNovaScaleVersion());
+        yml.set("pet-wipe-version", data.getPetWipeVersion());
 
         if (data.getEquippedTagItemKey() != null) {
             yml.set("tag-item", data.getEquippedTagItemKey());

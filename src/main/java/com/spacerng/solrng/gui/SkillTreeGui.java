@@ -547,9 +547,9 @@ public class SkillTreeGui {
             case PET_SLOTS -> scaled(ChatColor.AQUA,
                     "+" + (long) value + " pet worn at once",
                     "+" + (long) (value * level), leveled);
-            case PET_TIER_CHANCE -> scaled(ChatColor.GREEN,
-                    "+" + pct(value) + "% chance a pet tier takes",
-                    "+" + pct(value * level) + "%", leveled);
+            case PET_LEVEL_DISCOUNT -> scaled(ChatColor.GREEN,
+                    pct(value) + "% off what a pet level costs",
+                    pct(value * level) + "% off", leveled);
 
             case SUPERCHARGE -> List.of(
                     ChatColor.LIGHT_PURPLE + "▎ Every " + ChatColor.WHITE + String.format("%,d", node.getInterval())

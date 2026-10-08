@@ -6,7 +6,7 @@ import com.spacerng.solrng.pet.PetManager;
 import com.spacerng.solrng.pet.PetType;
 import com.spacerng.solrng.pet.PetUpgrades;
 import com.spacerng.solrng.player.PlayerData;
-import com.spacerng.solrng.player.SkillNode;
+import com.spacerng.solrng.stats.StatSources;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -21,24 +21,25 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * One pet, and the three things you can spend on it.
+ * One pet: what it gives, and the three things you do to it.
  *
- * The card in the middle is what the pet gives right now. The three
- * buttons under it are the three ways it grows, and they are deliberately
- * not interchangeable: rarity is Cosmic Dust out of rolling and always
- * takes, tier is Farm Dust out of farming and can fail, shiny is a
- * one-off that needs you to have actually found a shiny of the pet's own
- * rarity.
+ * The card in the middle is what the pet pays right now. Under it sit
+ * the level, the stat and shiny.
  *
- * The tier button always shows its chance before you press it. An upgrade
- * that can eat your dust has to say so up front, every time.
+ * V359, Leon's rework. The rarity ladder and the tier ladder are gone,
+ * and with them the upgrade that could eat the payment on a failure.
+ * What is left is one level, 1 to 10, bought with Cosmic Dust and always
+ * taking, and a button that points the pet's multiplier at whichever
+ * stat the player wants. The stat is free and can be changed as often as
+ * they like, which is the whole point: what a pet is worth is its rarity
+ * and its level, where it pays is their choice.
  */
 public class PetUpgradeGui {
 
     private static final int SIZE = 45;
     private static final int CARD_SLOT = 13;
-    private static final int RARITY_SLOT = 29;
-    private static final int TIER_SLOT = 31;
+    private static final int LEVEL_SLOT = 29;
+    private static final int STAT_SLOT = 31;
     private static final int SHINY_SLOT = 33;
     private static final int BACK_SLOT = 40;
 
@@ -68,8 +69,8 @@ public class PetUpgradeGui {
         }
 
         inv.setItem(CARD_SLOT, card(plugin, type, owned));
-        inv.setItem(RARITY_SLOT, rarityButton(plugin, data, owned));
-        inv.setItem(TIER_SLOT, tierButton(plugin, data, owned));
+        inv.setItem(LEVEL_SLOT, levelButton(plugin, data, owned));
+        inv.setItem(STAT_SLOT, statButton(plugin, player, type, owned));
         inv.setItem(SHINY_SLOT, shinyButton(plugin, data, type, owned));
         inv.setItem(BACK_SLOT, back());
         // Bedrock (V223): a menu there cannot tell a left click from a
@@ -122,15 +123,15 @@ public class PetUpgradeGui {
         if (!type.blurb().isBlank()) lore.add(Lore.line(ChatColor.GRAY, type.blurb()));
         lore.add("");
         lore.add(Lore.section(ChatColor.YELLOW, "Now"));
-        lore.add(Lore.pipe(ChatColor.GREEN, type.boostText(multiplier)));
-        lore.add(Lore.stat(ChatColor.AQUA, "Rarity", owned.rarity() + " / " + upgrades.maxRarity()));
-        lore.add(Lore.stat(ChatColor.AQUA, "Tier", owned.tier() + " / " + upgrades.maxTier()));
+        lore.add(Lore.pipe(ChatColor.GREEN, type.boostText(multiplier, owned.statOr(type))));
+        lore.add(Lore.stat(ChatColor.AQUA, "Level", owned.level() + " / " + upgrades.maxLevel()));
+        lore.add(Lore.stat(ChatColor.AQUA, "Boosting", PetType.statName(owned.statOr(type))));
         lore.add(Lore.stat(ChatColor.AQUA, "Shiny", owned.shiny() ? Lore.TICK : Lore.CROSS));
         if (owned.copies() > 1) {
             lore.add(Lore.stat(ChatColor.AQUA, "Copies", String.valueOf(owned.copies())));
         }
         lore.add("");
-        lore.add(Lore.stat(ChatColor.AQUA, "Fresh", type.boostText()));
+        lore.add(Lore.stat(ChatColor.AQUA, "Fresh", type.boostText(1.0, owned.statOr(type))));
         lore.add(Lore.stat(ChatColor.AQUA, "Grown by", trim(multiplier) + "x"));
         if (upgrades.capped(owned)) {
             lore.add("");
@@ -142,77 +143,85 @@ public class PetUpgradeGui {
         return item;
     }
 
-    private static ItemStack rarityButton(SolRNGPlugin plugin, PlayerData data, PetInstance owned) {
+    /**
+     * The one ladder a pet has: level, paid in Cosmic Dust.
+     *
+     * Dust is the point. Leon asked for pets to grow off the Cosmic Dust
+     * skills, so the thing that levels a pet is the thing those skills
+     * pay out, and there is nothing here that can fail and swallow the
+     * payment.
+     */
+    private static ItemStack levelButton(SolRNGPlugin plugin, PlayerData data, PetInstance owned) {
         PetUpgrades upgrades = plugin.getPetManager().upgrades();
-        boolean maxed = owned.rarity() >= upgrades.maxRarity();
-        long cost = upgrades.rarityCost(owned.rarity());
-        boolean canPay = data.getShards() >= cost;
+        boolean maxed = owned.level() >= upgrades.maxLevel();
+        long cost = plugin.getPetManager().levelCost(data, owned);
+        boolean canPay = data.getCosmicDust() >= cost;
 
-        ItemStack item = new ItemStack(Material.AMETHYST_SHARD);
+        ItemStack item = new ItemStack(Material.NETHER_STAR);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(Lore.title(ChatColor.LIGHT_PURPLE, "Raise rarity"));
+        meta.setDisplayName(Lore.title(ChatColor.LIGHT_PURPLE, "Level up"));
 
         List<String> lore = new ArrayList<>();
-        lore.add(Lore.line(ChatColor.GRAY, "Rarity is the roller's half of"));
-        lore.add(Lore.line(ChatColor.GRAY, "a pet. It always takes."));
+        lore.add(Lore.line(ChatColor.GRAY, "Every level is "
+                + ChatColor.WHITE + Math.round(upgrades.levelStep() * 100.0) + "% more"));
+        lore.add(Lore.line(ChatColor.GRAY, "multiplier. It always takes."));
         lore.add("");
         if (maxed) {
-            lore.add(Lore.stat(ChatColor.AQUA, "Rarity", owned.rarity() + " / " + upgrades.maxRarity()));
+            lore.add(Lore.stat(ChatColor.AQUA, "Level", owned.level() + " / " + upgrades.maxLevel()));
             lore.add("");
             lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "Maxed");
         } else {
-            lore.add(Lore.upgrade(ChatColor.LIGHT_PURPLE, "Rarity",
-                    String.valueOf(owned.rarity()), String.valueOf(owned.rarity() + 1)));
-            lore.add(Lore.stat(ChatColor.AQUA, "Cost", Currency.GEMS.price(cost, canPay)));
-            lore.add(Lore.stat(ChatColor.AQUA, "You hold", Currency.GEMS.amount(data.getShards())));
+            lore.add(Lore.upgrade(ChatColor.LIGHT_PURPLE, "Level",
+                    String.valueOf(owned.level()), String.valueOf(owned.level() + 1)));
+            lore.add(Lore.stat(ChatColor.AQUA, "Cost", Currency.COSMIC_DUST.price(cost, canPay)));
+            lore.add(Lore.stat(ChatColor.AQUA, "You hold",
+                    Currency.COSMIC_DUST.amount(data.getCosmicDust())));
             lore.add("");
             lore.add(canPay
-                    ? ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to upgrade"
-                    : ChatColor.RED + "" + ChatColor.BOLD + "Not enough Gems");
-            if (!canPay) lore.add(Lore.line(ChatColor.GRAY, "Gems come off the farm and from crates"));
+                    ? ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to level up"
+                    : ChatColor.RED + "" + ChatColor.BOLD + "Not enough Cosmic Dust");
+            if (!canPay) lore.add(Lore.line(ChatColor.GRAY, "Cosmic Dust falls out of rolling"));
         }
         meta.setLore(lore);
-        meta.getPersistentDataContainer().set(actionKey(), PersistentDataType.STRING, "rarity");
+        meta.getPersistentDataContainer().set(actionKey(), PersistentDataType.STRING, "level");
         item.setItemMeta(meta);
         return item;
     }
 
-    private static ItemStack tierButton(SolRNGPlugin plugin, PlayerData data, PetInstance owned) {
-        PetUpgrades upgrades = plugin.getPetManager().upgrades();
-        boolean maxed = owned.tier() >= upgrades.maxTier();
-        long cost = upgrades.tierCost(owned.tier());
-        boolean canPay = data.getShards() >= cost;
-        double bonus = plugin.getSkillTreeManager().totalOf(data, SkillNode.Effect.PET_TIER_CHANCE);
-        double chance = upgrades.tierChance(owned.tier(), bonus);
+    /**
+     * Which stat this pet pays into, and the whole list under it so the
+     * next click is readable without pressing it (V359).
+     *
+     * Free, and as often as they like. Bedrock gets the same click: the
+     * list steps forward and wraps, which is the one shape that works
+     * without a right click.
+     */
+    private static ItemStack statButton(SolRNGPlugin plugin, Player player, PetType type, PetInstance owned) {
+        StatSources.Id current = owned.statOr(type);
 
-        ItemStack item = new ItemStack(Material.WHEAT);
+        ItemStack item = new ItemStack(Material.COMPASS);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(Lore.title(ChatColor.GREEN, "Raise tier"));
+        meta.setDisplayName(Lore.title(ChatColor.AQUA, "Boosting")
+                + ChatColor.DARK_GRAY + " - " + ChatColor.GREEN + ChatColor.BOLD
+                + PetType.statName(current));
 
         List<String> lore = new ArrayList<>();
-        lore.add(Lore.line(ChatColor.GRAY, "Tier is the farmer's half. It"));
-        lore.add(Lore.line(ChatColor.GRAY, "can fail, and the dust is spent"));
-        lore.add(Lore.line(ChatColor.GRAY, "either way."));
+        lore.add(Lore.line(ChatColor.GRAY, "What this pet multiplies."));
+        lore.add(Lore.line(ChatColor.GRAY, "Change it as often as you like."));
         lore.add("");
-        if (maxed) {
-            lore.add(Lore.stat(ChatColor.AQUA, "Tier", owned.tier() + " / " + upgrades.maxTier()));
-            lore.add("");
-            lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "Maxed");
-        } else {
-            lore.add(Lore.upgrade(ChatColor.GREEN, "Tier",
-                    String.valueOf(owned.tier()), String.valueOf(owned.tier() + 1)));
-            lore.add(Lore.stat(ChatColor.AQUA, "Chance", Math.round(chance * 100.0) + "%"));
-            lore.add(Lore.bar(chance));
-            lore.add(Lore.stat(ChatColor.AQUA, "Cost", Currency.GEMS.price(cost, canPay)));
-            lore.add(Lore.stat(ChatColor.AQUA, "You hold", Currency.GEMS.amount(data.getShards())));
-            lore.add("");
-            lore.add(canPay
-                    ? ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to try"
-                    : ChatColor.RED + "" + ChatColor.BOLD + "Not enough Gems");
-            if (!canPay) lore.add(Lore.line(ChatColor.GRAY, "Gems come off the farm and from crates"));
+        lore.add(Lore.section(ChatColor.YELLOW, "Pointing at"));
+        for (StatSources.Id stat : StatSources.Id.values()) {
+            if (stat == current) {
+                lore.add(ChatColor.GREEN + Lore.BULLET + " " + ChatColor.WHITE + PetType.statName(stat)
+                        + ChatColor.GREEN + "  " + Lore.TICK);
+            } else {
+                lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " " + PetType.statName(stat));
+            }
         }
+        lore.add("");
+        lore.addAll(Stepper.footer(com.spacerng.solrng.platform.Bedrock.is(player)));
         meta.setLore(lore);
-        meta.getPersistentDataContainer().set(actionKey(), PersistentDataType.STRING, "tier");
+        meta.getPersistentDataContainer().set(actionKey(), PersistentDataType.STRING, "stat");
         item.setItemMeta(meta);
         return item;
     }

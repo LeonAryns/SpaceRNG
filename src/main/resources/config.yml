@@ -3581,7 +3581,7 @@ skilltree:
       cost-money: 140000000000
       cost-growth: 1.35
       requires: "cosmic_dust_2"
-      effect: PET_TIER_CHANCE
+      effect: PET_LEVEL_DISCOUNT
       value: 0.03
       max-level: 5
 
@@ -7043,21 +7043,36 @@ pets:
           LEGENDARY: 0.08
           MYTHICAL: 0.02
 
-  # V324: what a FRESH pet of each rarity multiplies its one stat by.
-  # Leon asked for multipliers rather than percentages and for every
-  # rarity to be exponentially better than the one under it, so the bonus
-  # doubles every step: 1%, 2%, 4%, 8%, 16%, 32%, 64%. Rarity, tier and
-  # shiny in pets.upgrades below multiply that bonus on top, under
-  # max-multiplier, so a fully grown Divine pet is the only thing on the
-  # server worth 4.84x a stat and a Common one never passes 1.06x.
+  # V359, Leon's numbers: a fresh pet runs from 1.1x at Common to 2.0x at
+  # Divine. The bonus above 1 doubles every step the way it always has,
+  # 0.1 to 1.0, so a rarity is still exponentially better than the one
+  # under it, it just starts ten times higher than the old ladder did.
+  #
+  # Level in pets.upgrades below multiplies that bonus on top, under
+  # max-multiplier: a level 10 pet is 1.9 times its fresh bonus, so a
+  # Divine lands at 2.9x and a Common at 1.19x, and shiny is 10% on top
+  # of that again.
   multipliers:
-    COMMON: 1.01
-    UNCOMMON: 1.02
-    RARE: 1.04
-    EPIC: 1.08
-    LEGENDARY: 1.16
-    MYTHICAL: 1.32
-    DIVINE: 1.64
+    COMMON: 1.10
+    UNCOMMON: 1.15
+    RARE: 1.25
+    EPIC: 1.40
+    LEGENDARY: 1.60
+    MYTHICAL: 1.80
+    DIVINE: 2.00
+
+  # V359: the round of the pet rework a save has been through. A save
+  # behind this has its pets, its worn pets and its Cosmic Dust cleared
+  # once, on join, because the rarity and tier ladders they were bought
+  # on no longer exist and the multipliers moved by a factor of ten.
+  # Raising this number does it again, which is the door to use if the
+  # eggs are ever re-cut.
+  wipe-version: 1
+
+  # V359: how many pets one player may hold, Leon's number. A kind counts
+  # once however many copies of it are sitting there. When it is full the
+  # eggs refuse to open rather than throwing anything away.
+  storage: 100
 
   dust:
     # The action bar line when a dust falls. Rolling is fast and dust is
@@ -7075,47 +7090,41 @@ pets:
     cosmic-min: 1
     cosmic-max: 10
 
-  # What rarity and tier do to a pet, what they cost, and how likely a
-  # tier is to take. A fresh pet is rarity 1 tier 1 and gives exactly the
-  # percent in pets.types below, so these only ever add on top.
+  # V359: one ladder instead of two. A pet has a LEVEL, 1 to 10, every
+  # level is 10% more multiplier, and it is paid for in Cosmic Dust so
+  # that the Cosmic Dust skills are what make pets grow faster. It always
+  # takes; there is no failed attempt to explain any more.
+  #
+  # The rarity ladder and the tier ladder it replaces were both bought
+  # with Gems, and one of them could eat the payment on a failure.
   upgrades:
-    max-rarity: 10
-    max-tier: 10
+    max-level: 10
 
-    # One step, as a fraction of the base percent. A rarity 10 tier 10
-    # shiny pet lands on 3.25 x 2.35 x 1.10, which is why the cap exists.
-    rarity-step: 0.25
-    tier-step: 0.15
+    # One level, as a fraction of the pet's fresh bonus. Level 10 is 1.9
+    # times fresh, which is Leon's "every level is 10% more multi"
+    # counted from level 1.
+    level-step: 0.10
     shiny-bonus: 0.10
 
-    # The ceiling on rarity, tier and shiny together. A Starheart at 15%
-    # Luck cannot pay more than 90% however long it is fed.
+    # The ceiling on level and shiny together. Nothing reaches it at
+    # max-level 10; it is here so that raising max-level later cannot
+    # quietly run away.
     max-multiplier: 6.0
 
-    # Cosmic Dust, out of rolling. A hundred since V215, Leon's call.
-    # Only the egg is paid in dust; every upgrade below is Gems.
+    # Cosmic Dust for one pet, when an egg is paid for in dust. The egg
+    # ladder Leon asked for is paid in Gems and sets its own price per
+    # egg; this stays as the fallback for an egg with no cost of its own.
     make-cost: 100
 
-    # V313: Gems, and exponential, Leon's call ("pet upgrade met Gems
-    # exponentieel duurder"). A growth of 2.0 is a doubling per level,
-    # which is the one curve a player can read off the menu without
-    # arithmetic: rarity 10 is 1,000 to 256,000 and 511,000 Gems in all,
-    # tier 10 another 766,500 before a single failed attempt. Gems come
-    # off the farm in the thousands an hour, so this is the long sink at
-    # the end of farming rather than something bought in an evening.
-    rarity-base-cost: 1000
-    rarity-cost-growth: 2.0
+    # Cosmic Dust per level, exponential. Level 2 costs 250 and level 10
+    # costs 32,187, about 71,000 dust for one pet taken all the way. A
+    # find is 1 to 10 dust (pets.dust below), so this is the long sink
+    # that rolling pays for.
+    level-base-cost: 250
+    level-cost-growth: 1.8
+
+    # Gems, one off, and it needs a shiny of the pet's own rarity found.
     shiny-cost: 100000
-
-    tier-base-cost: 1500
-    tier-cost-growth: 2.0
-
-    # A tier attempt spends the dust whether or not it takes. The chance
-    # falls off as the tier climbs and the Steady Hands skill adds back
-    # onto it, but it never drops below tier-min-chance.
-    tier-base-chance: 0.80
-    tier-chance-falloff: 0.06
-    tier-min-chance: 0.15
 
   # V324: every stat at every rarity, Leon's call. Six stats times seven
   # rarities is forty-two pets, each one multiplying ONE stat, so the

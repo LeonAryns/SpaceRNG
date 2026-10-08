@@ -60,7 +60,9 @@ public final class PetHatch {
     private final int tier;
     private final PetType pet;
     private final boolean isNew;
-    private final int newRarity;
+    // V359: a duplicate says which copy it is. It used to say the
+    // rarity level a duplicate bought, and rarity levels are gone.
+    private final int copies;
     private final Runnable after;
     private final int duration;
     private final boolean bedrock;
@@ -73,14 +75,14 @@ public final class PetHatch {
     private boolean hatched;
 
     private PetHatch(SolRNGPlugin plugin, Player player, PetEgg egg, int tier, PetType pet,
-                     boolean isNew, int newRarity, Runnable after) {
+                     boolean isNew, int copies, Runnable after) {
         this.plugin = plugin;
         this.player = player;
         this.egg = egg;
         this.tier = tier;
         this.pet = pet;
         this.isNew = isNew;
-        this.newRarity = newRarity;
+        this.copies = copies;
         this.after = after;
         this.duration = 70 + 20 * Math.max(0, Math.min(3, tier) - 1); // 3.5 s, 4.5 s, 5.5 s
         this.bedrock = com.spacerng.solrng.platform.Bedrock.is(player);
@@ -106,7 +108,7 @@ public final class PetHatch {
         PetHatch running = RUNNING.remove(player.getUniqueId());
         if (running != null) running.stop();
         PetHatch hatch = new PetHatch(plugin, player, egg, tier, made.type(), made.isNew(),
-                made.pet().rarity(), after);
+                made.pet().copies(), after);
         RUNNING.put(player.getUniqueId(), hatch);
         hatch.begin();
     }
@@ -251,7 +253,7 @@ public final class PetHatch {
         String name = Lore.gradient(pet.display(), true, pet.stops());
         player.sendTitle(name, isNew
                 ? ChatColor.GRAY + "a new " + ChatColor.WHITE + rarity.displayName() + ChatColor.GRAY + " pet"
-                : ChatColor.GRAY + "rarity " + ChatColor.GREEN + newRarity, 0, 50, 15);
+                : ChatColor.GRAY + "copy " + ChatColor.GREEN + copies, 0, 50, 15);
         if (after != null) after.run();
     }
 

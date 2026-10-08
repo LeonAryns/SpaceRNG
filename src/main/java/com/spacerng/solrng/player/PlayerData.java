@@ -620,6 +620,24 @@ public class PlayerData {
         this.armorVersion = armorVersion;
     }
 
+    /**
+     * Which round of the pet rework this save has been through (V359).
+     *
+     * Leon's call: the pets owned under the old rarity and tier ladders
+     * and the Cosmic Dust balance behind them do not carry over, because
+     * the ladders they were bought on no longer exist. A save behind
+     * pets.wipe-version is cleared once, on join, and never again.
+     */
+    private int petWipeVersion;
+
+    public int getPetWipeVersion() {
+        return petWipeVersion;
+    }
+
+    public void setPetWipeVersion(int petWipeVersion) {
+        this.petWipeVersion = petWipeVersion;
+    }
+
     public int getNovaScaleVersion() {
         return novaScaleVersion;
     }

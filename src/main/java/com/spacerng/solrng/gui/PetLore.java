@@ -81,9 +81,11 @@ public final class PetLore {
         if (owned != null) {
             double multiplier = pets.upgrades().multiplier(owned);
             lore.add(Lore.section(ChatColor.GOLD, "Your boost"));
-            lore.add(Lore.stat(ChatColor.GREEN, pet.statName(), pet.multiText(multiplier)));
-            lore.add(Lore.stat(ChatColor.AQUA, "Rarity", owned.rarity() + " / " + pets.upgrades().maxRarity()));
-            lore.add(Lore.stat(ChatColor.AQUA, "Tier", owned.tier() + " / " + pets.upgrades().maxTier()));
+            lore.add(Lore.stat(ChatColor.GREEN,
+                    com.spacerng.solrng.pet.PetType.statName(owned.statOr(pet)),
+                    pet.multiText(multiplier)));
+            lore.add(Lore.stat(ChatColor.AQUA, "Level",
+                    owned.level() + " / " + pets.upgrades().maxLevel()));
             if (owned.shiny()) {
                 lore.add(Lore.stat(ChatColor.LIGHT_PURPLE, "Shiny", Lore.SPARK + " worth more again"));
             }

@@ -147,6 +147,7 @@ public class JoinQuitListener implements Listener {
         plugin.getPerkManager().applyConfirmDefaults(data);
         plugin.getArmorManager().wipeIfOld(player, data);
         plugin.getNovaCoreManager().rescaleIfOld(player, data);
+        plugin.getPetManager().wipeIfOld(player, data);
         // Rebuilds the equipped-tag team prefix (empty if none equipped).
         plugin.getTagManager().refreshPrefix(player, data);
         // The rank name in tab, and the size a /size rank picked, come back on join.
