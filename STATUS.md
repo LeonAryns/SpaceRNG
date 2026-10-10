@@ -5,10 +5,72 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V360**, 8 October 2026. The newest section is the
+Last updated at **V364**, 10 October 2026. The newest section is the
 first one below; older sections further down are history.
 
-## Start here: V360, 8 October 2026
+## Start here: V362 to V364, 10 October 2026
+
+Three jars, all **untested in game**, all green on GitHub Actions. They
+are Leon's one message of 10 October (screenshots of another server's
+egg menu and opening animation), and he asked for all of it.
+
+### V362, pets
+
+- **A Prestige 0 egg**, the Stardust Egg, 2,500 Gems, seven new pets
+  (Lint Mote to First Spark). Its pets are worth `worth: 0.2` of a
+  rarity's bonus, so 1.02x to 1.2x ("pretty bad multi"). An egg that
+  writes `worth` stays out of the growth ladder, so the ten eggs above
+  it are worth exactly what they were. Eggs are now P0, P10 ... P100.
+- **The opening** (`pet/PetOpenShow`): the menu closes, one head per egg
+  (up to nine, three to a row) floats in front of the player, shakes for
+  two seconds and pops into the pet with its name over it. The heads are
+  Leon's skull, `pets.eggs.open-head`; he will make egg heads later.
+  Bedrock keeps the instant chat line. `pets.eggs.animation: false`
+  turns it off.
+- **One egg that opens /pets**: `/rngadmin petegg place` with no egg
+  named. Empty hand is a dragon egg. Text in `holograms.pet-eggs`.
+
+### V363, both skill trees
+
+- **No lower layer.** Only the root is on row 6 at (5,6); row 5 is the
+  trunk; Speed climbs column 2, Luck column 5, Money column 8. The frame
+  is 20 slots (`SkillTreeGui.LAYOUT_SLOTS`).
+- `/skilltree` page 1: Auto Roll, Convert on top (5,000), Luck I above
+  it, Farming above Luck, Speed I and Auto Convert left, Money I and
+  Armor right. **Six pages** now, each a price band opened by its root;
+  pets are page 6. Shiny climbs the Money side from page 2 (it is not
+  Luck, and Leon wanted it later). Forge Attunement is on the Money side
+  because Speed had 37 skills for 35 slots.
+- `/farmtree`: Coin Greed is the root at (5,6) for 50,000. Enchants
+  left, Growth and Proc middle, Coins and Gems right. The coming-soon
+  enchants sit at the top of a line.
+- Only Convert and Coin Greed changed price. Layout checked by script:
+  no collisions, every requires touches its node.
+
+### V364, the small things
+
+- **Coin Greed** full (base cap 10,000) in about 30,000 Wheat crops from
+  scratch: cubic curve, level 1 costs 5, the last 10,274, 25.7M total.
+  Patches carry it to the live config only if the old numbers are still
+  there; if Leon tuned Coin Greed by hand they will not fire.
+- **Coins I** 5% a level (was 1%). The later Coins nodes are untouched.
+- **[AFK]** in gold in tab.
+- **/options ladders**: on the switch-backed ladders "Every tier" and
+  "lowest tier and up" saved the same thing, so that click did nothing.
+  Fixed for Drop Messages, Reveal Auras and Announcements.
+- **/milestone** potion: a chat line says it is in /potions.
+- **Starforge**: forging replaces the carried one; an owned tier in
+  /starforge says "Click to equip" and swaps it in.
+
+### What to test first
+
+1. `/pets` shows eleven eggs; open the Stardust Egg x1, x3 and x9 and
+   watch the heads.
+2. `/rngadmin petegg place` empty handed.
+3. `/skilltree` and `/farmtree` page 1 look like the description above.
+4. Right click on Your Drop Messages in `/options` steps back.
+
+## V360, 8 October 2026
 
 One jar, **untested in game**. The local JDK 21 compile is clean. It is
 the rest of the pets rework: the eggs, the pet index, Pet Luck and the
