@@ -63,15 +63,15 @@ public class OptionsGui {
                 "The auras players wear with an", "Epic or rarer tag, yours too."));
         inv.setItem(OptionsHolder.OWN_AURA_SLOT, ownAuraItem(data.getOwnAuraView()));
 
-        inv.setItem(OptionsHolder.AURA_STEP_SLOT, Stepper.item(plugin, Material.FIREWORK_ROCKET,
+        inv.setItem(OptionsHolder.AURA_STEP_SLOT, Stepper.flagItem(Material.FIREWORK_ROCKET,
                 "Reveal Auras", SHOW_FLOOR, auraStep(data), "Every tier",
                 List.of("The build-up and burst for a drop,",
                         "yours and everyone else's."), bedrock));
-        inv.setItem(OptionsHolder.SHOUT_STEP_SLOT, Stepper.item(plugin, Material.BELL,
+        inv.setItem(OptionsHolder.SHOUT_STEP_SLOT, Stepper.flagItem(Material.BELL,
                 "Announcements", SHOW_FLOOR, shoutStep(data), "Every tier",
                 List.of("Other players' drops announced in",
                         "your chat. Yours are always shown."), bedrock));
-        inv.setItem(OptionsHolder.DROP_STEP_SLOT, Stepper.item(plugin, Material.PAPER,
+        inv.setItem(OptionsHolder.DROP_STEP_SLOT, Stepper.flagItem(Material.PAPER,
                 "Your Drop Messages", DROP_FLOOR, dropStep(data), "Every tier",
                 List.of("Your own drops printed in chat. The",
                         "drop is still yours either way."), bedrock));
@@ -83,35 +83,35 @@ public class OptionsGui {
 
     /** Which step each ladder is sitting on, read back off the switches. */
     public static int auraStep(PlayerData data) {
-        return Stepper.indexFromFlags(SHOW_FLOOR, data::isAuraEnabled);
+        return Stepper.flagIndex(SHOW_FLOOR, data::isAuraEnabled);
     }
 
     public static int shoutStep(PlayerData data) {
-        return Stepper.indexFromFlags(SHOW_FLOOR, data::isBroadcastEnabled);
+        return Stepper.flagIndex(SHOW_FLOOR, data::isBroadcastEnabled);
     }
 
     public static int dropStep(PlayerData data) {
-        return Stepper.indexFromFlags(DROP_FLOOR, data::isDropMessageEnabled);
+        return Stepper.flagIndex(DROP_FLOOR, data::isDropMessageEnabled);
     }
 
     public static void setAuraStep(PlayerData data, int step) {
-        Stepper.applyToFlags(SHOW_FLOOR, step, data::setAuraEnabled);
+        Stepper.applyFlagIndex(SHOW_FLOOR, step, data::setAuraEnabled);
     }
 
     public static void setShoutStep(PlayerData data, int step) {
-        Stepper.applyToFlags(SHOW_FLOOR, step, data::setBroadcastEnabled);
+        Stepper.applyFlagIndex(SHOW_FLOOR, step, data::setBroadcastEnabled);
     }
 
     public static void setDropStep(PlayerData data, int step) {
-        Stepper.applyToFlags(DROP_FLOOR, step, data::setDropMessageEnabled);
+        Stepper.applyFlagIndex(DROP_FLOOR, step, data::setDropMessageEnabled);
     }
 
     public static int auraSteps() {
-        return Stepper.steps(SHOW_FLOOR);
+        return Stepper.flagSteps(SHOW_FLOOR);
     }
 
     public static int dropSteps() {
-        return Stepper.steps(DROP_FLOOR);
+        return Stepper.flagSteps(DROP_FLOOR);
     }
 
     /**

@@ -333,6 +333,14 @@ public final class ConfigMigrator {
     }
 
     private static final List<Patch> PATCHES = List.of(
+            // V364: Coin Greed maxed in about 30,000 crops, cheap early and
+            // hardest at the end (Leon). farming.enchants is not structural,
+            // so each number comes over on its own, and only while the live
+            // value is still the one it shipped as.
+            new Patch("coin-greed-base-v364", "farming.enchants.TOKEN_GREED.base-cost", 608, 5),
+            new Patch("coin-greed-linear-v364", "farming.enchants.TOKEN_GREED.cost-linear", 102.16216216216216, 0.0),
+            new Patch("coin-greed-step-v364", "farming.enchants.TOKEN_GREED.cost-step", 0.28291022388071, 0.0000000102716),
+            new Patch("coin-greed-power-v364", "farming.enchants.TOKEN_GREED.cost-power", 2.25, 3.0),
             // V354: the first prestige asks thirteen levels rather than
             // ten, which is Leon's "make the first ones a bit harder".
             // The late ones are made easier by the two caps above, not

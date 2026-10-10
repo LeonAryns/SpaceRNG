@@ -8,7 +8,7 @@
 # their fresh defaults in on top of whatever is on disk, so a server
 # owner never has to delete the whole file to pick up a structural
 # change. Item table, prices and cosmetic tweaks are untouched.
-config-version: 51
+config-version: 52
 
 # One-off value changes the plugin has already made to this file, so none
 # is ever made twice. Managed by the plugin; leave it alone.
@@ -448,18 +448,25 @@ farming:
     TOKEN_GREED:
       display: "Coin Greed"
       icon: GOLD_NUGGET
-      base-cost: 608
-      cost-linear: 102.16216216216216
-      cost-step: 0.28291022388071
-      cost-power: 2.25
+      # V364, Leon: Coin Greed maxed in about 30,000 crops farmed from a
+      # fresh start, cheap early and hardest at the end. Cubic, fitted by
+      # simulating Wheat at 100 Coins a crop with every Coin going into
+      # Coin Greed and nothing else boosting it: level 1,000 after about
+      # 50 crops, 5,000 after 3,400, 9,000 after 21,600 and the base cap
+      # of 10,000 at 30,000. Level 1 costs 5, level 1,000 costs 15 and
+      # the last level 10,274; about 25.7 million Coins for all of it.
+      # Anything else that raises Coins only gets there sooner.
+      base-cost: 5
+      cost-linear: 0.0
+      cost-step: 0.0000000102716
+      cost-power: 3.0
       description: "More Coins from every crop."
       color: "&e"
       max-level: 20000
       base-cap: 10000
       # V281: a tenth, Leon's call; it was +10,000% at level 10,000.
+      # +1000% at the base cap.
       per-level: 0.001
-      # +1000% at the ceiling (the line below predates V159's 10,000 levels). Level 1 costs 710, level 1,000 costs 385,680,
-      # 145,800,000 Coins for all of it.
 
     MOMENTUM:
       display: "Momentum"
@@ -4927,7 +4934,8 @@ farmtree:
       requires: "golden_crop"
       effect: "TOKEN_GAIN"
       # V281: a tenth, the Coins nodes together x10 instead of x92.
-      value: 0.01
+      # V364, Leon: 5% a level rather than 1%, so the start is easy.
+      value: 0.05
       max-level: 10
 
     farming_shards:

@@ -434,7 +434,8 @@ public class RankManager {
         // player list for who is actually around will see it.
         String away = plugin.getTabListManager() != null
                 && plugin.getTabListManager().isAfk(player.getUniqueId())
-                ? ChatColor.DARK_GRAY + " afk" : "";
+                // V364, Leon: [AFK] and not grey, so it reads at a glance.
+                ? " " + ChatColor.GOLD + "[" + ChatColor.YELLOW + "AFK" + ChatColor.GOLD + "]" : "";
         return tag + badgeOf(shownRankOf(data), stops) + coloredName(player)
                 + (prestige.isEmpty() ? "" : " " + prestige.trim()) + away;
     }

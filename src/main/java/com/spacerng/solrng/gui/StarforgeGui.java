@@ -120,8 +120,9 @@ public class StarforgeGui {
             // V325: every tier you have forged stays yours, and the one in
             // your hand is the one that pays. So an owned tier is a thing
             // you can ask for another of.
-            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to take one out");
-            lore.add(Lore.footnote("Whichever Starforge you hold is the one that counts."));
+            // V364: you carry one; a click swaps it for this tier.
+            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to equip");
+            lore.add(Lore.footnote("Swaps the Starforge you carry for this one."));
         } else if (isNext) {
             lore.add(Lore.section(ChatColor.YELLOW, "Price"));
             for (Map.Entry<Rarity, Long> cost : tier.getCosts().entrySet()) {

@@ -108,6 +108,52 @@ public final class Stepper {
         }
     }
 
+    // ---------------------------------------------------------------
+    // V364: ladders stored as per-rarity switches.
+    //
+    // On the switches "everything" and "the ladder's lowest tier and up"
+    // are the same set: every switch on. So step 1 saved exactly what
+    // step 0 saves, read back as step 0, and the ladder sat still on that
+    // click. Leon met it on Your Drop Messages ("right click does not go
+    // down"); Reveal Auras and Announcements had the same blind step. A
+    // switch ladder simply has no step 1: everything, then the second
+    // tier and up, and so on to off. The animation ladder stores its step
+    // as a number and keeps the methods above.
+    // ---------------------------------------------------------------
+
+    /** Positions on a switch ladder: everything, each tier above the lowest, off. */
+    public static int flagSteps(Rarity lowest) {
+        return band(lowest).size() + 1;
+    }
+
+    /** Which step a set of switches is on: 0 everything, the band position, or off. */
+    public static int flagIndex(Rarity lowest, Predicate<Rarity> on) {
+        List<Rarity> band = band(lowest);
+        for (int i = 0; i < band.size(); i++) {
+            if (on.test(band.get(i))) return i;
+        }
+        return band.size();
+    }
+
+    /** Writes a switch ladder's step back onto the switches. */
+    public static void applyFlagIndex(Rarity lowest, int index, BiConsumer<Rarity, Boolean> set) {
+        List<Rarity> band = band(lowest);
+        for (int i = 0; i < band.size(); i++) {
+            set.accept(band.get(i), index < band.size() && i >= index);
+        }
+    }
+
+    /** The block for a switch ladder. */
+    public static ItemStack flagItem(Material icon, String label, Rarity lowest, int index,
+                                     String everything, List<String> description, boolean bedrock) {
+        List<Rarity> band = band(lowest);
+        List<String> steps = new ArrayList<>();
+        steps.add(everything);
+        for (int i = 1; i < band.size(); i++) steps.add(band.get(i).displayName() + " and up");
+        steps.add("Off");
+        return ladder(icon, label, index, steps, "Shown from", description, bedrock);
+    }
+
     /** The name of one step, coloured by the rarity it names. */
     public static String stepLabel(SolRNGPlugin plugin, Rarity lowest, int index, String everything) {
         List<Rarity> band = band(lowest);

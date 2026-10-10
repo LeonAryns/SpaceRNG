@@ -176,6 +176,15 @@ public class MilestoneManager {
                 + ChatColor.RESET + ChatColor.YELLOW + track.getDisplay() + ChatColor.GRAY + " » "
                 + ChatColor.WHITE + String.format("%,d", tier.threshold()) + " " + track.getUnit()
                 + (reward.isEmpty() ? "" : ChatColor.GRAY + "  +" + reward));
+        // V364, Leon: a potion goes to /potions, and the action bar line
+        // that said so was gone before anybody read it. Say it in chat.
+        if (!tier.consumable().isEmpty()) {
+            var consumables = plugin.getConsumableManager();
+            if (consumables.isStorableBooster(consumables.get(tier.consumable()))) {
+                player.sendMessage(ChatColor.GRAY + "Your potion is in " + ChatColor.LIGHT_PURPLE + "/potions"
+                        + ChatColor.GRAY + ". Open it there to drink it.");
+            }
+        }
         player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.9f, 1.4f);
         return true;
     }

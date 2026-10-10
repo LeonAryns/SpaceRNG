@@ -186,7 +186,9 @@ public class StarforgeManager {
      */
     public boolean takeOut(Player player, PlayerData data, StarforgeTier tier) {
         if (!owns(data, tier)) return false;
-        com.spacerng.solrng.player.Stash.give(plugin, player, create(tier));
+        // V364, Leon: one Starforge at a time. Picking a tier in
+        // /starforge swaps the one you carry for it.
+        replaceHeldStarforge(player, tier);
         return true;
     }
 
@@ -262,10 +264,11 @@ public class StarforgeManager {
         }
 
         data.setStarforgeTier(target.getId());
-        // V325: the old ones stay. Until now every Starforge in the
-        // inventory was swapped for the new tier, so a ladder that forks
-        // into Luck and Speed could only ever be walked one way.
-        com.spacerng.solrng.player.Stash.give(plugin, player, create(target));
+        // V364, Leon: a new Starforge replaces the one you carry. V325 let
+        // the old ones pile up so both forks could be walked; that still
+        // holds, because every tier you own can be equipped again from
+        // /starforge, it just is not a second item in the inventory.
+        replaceHeldStarforge(player, target);
         return true;
     }
 
@@ -274,15 +277,23 @@ public class StarforgeManager {
      * item, or just gives them one if they'd lost it.
      */
     public void replaceHeldStarforge(Player player, StarforgeTier tier) {
+        // V364: the new one takes the slot of the one in hand if there is
+        // one, else the first Starforge found; every other Starforge goes,
+        // so the player ends up carrying exactly one.
         ItemStack[] contents = player.getInventory().getContents();
-        boolean replacedAny = false;
+        int keep = -1;
+        int hand = player.getInventory().getHeldItemSlot();
+        if (hand < contents.length && isStarforge(contents[hand])) keep = hand;
+        for (int i = 0; i < contents.length && keep < 0; i++) {
+            if (isStarforge(contents[i])) keep = i;
+        }
+        boolean replacedAny = keep >= 0;
         for (int i = 0; i < contents.length; i++) {
-            if (isStarforge(contents[i])) {
-                contents[i] = create(tier);
-                replacedAny = true;
-            }
+            if (!isStarforge(contents[i])) continue;
+            contents[i] = i == keep ? create(tier) : null;
         }
         player.getInventory().setContents(contents);
+        if (isStarforge(player.getItemOnCursor())) player.setItemOnCursor(null);
         if (!replacedAny) {
             com.spacerng.solrng.player.Stash.give(plugin, player, create(tier));
         }

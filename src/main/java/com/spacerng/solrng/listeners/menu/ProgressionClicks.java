@@ -87,8 +87,8 @@ final class ProgressionClicks {
         var clickedTier = plugin.getStarforgeManager().get(tierId);
         if (clickedTier != null && plugin.getStarforgeManager().owns(data, clickedTier)) {
             plugin.getStarforgeManager().takeOut(player, data, clickedTier);
-            player.sendMessage(ChatColor.GREEN + "Took out " + clickedTier.styledDisplay()
-                    + ChatColor.GRAY + ". The one in your hand is the one that counts.");
+            player.sendMessage(ChatColor.GREEN + "Equipped " + clickedTier.styledDisplay()
+                    + ChatColor.GRAY + ". It replaced the Starforge you carried.");
             player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_ITEM_PICKUP, 0.6f, 1.2f);
             return;
         }
