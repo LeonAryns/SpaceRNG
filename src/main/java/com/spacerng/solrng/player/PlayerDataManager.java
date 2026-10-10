@@ -337,6 +337,7 @@ public class PlayerDataManager {
         data.setPetWipeVersion(yml.getInt("pet-wipe-version", 0));
         data.getPetsFound().addAll(yml.getStringList("pets-found"));
         if (yml.getBoolean("pet-auto-open", false)) data.togglePetAutoOpen();
+        if (!yml.getBoolean("pet-egg-animation", true)) data.togglePetEggAnimation();
         for (String entry : yml.getStringList("purchased-armor-tiers")) {
             if (entry.contains(":")) {
                 data.getPurchasedArmorTiers().add(entry);
@@ -587,6 +588,7 @@ public class PlayerDataManager {
         yml.set("pet-wipe-version", data.getPetWipeVersion());
         yml.set("pets-found", new java.util.ArrayList<>(data.getPetsFound()));
         yml.set("pet-auto-open", data.isPetAutoOpen());
+        yml.set("pet-egg-animation", data.isPetEggAnimation());
 
         if (data.getEquippedTagItemKey() != null) {
             yml.set("tag-item", data.getEquippedTagItemKey());

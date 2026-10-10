@@ -44,6 +44,7 @@ public class PetEggGui {
     public static final int BACK_SLOT = 45;
     public static final int LUCK_SLOT = 46;
     public static final int AUTO_SLOT = 52;
+    public static final int ANIMATION_SLOT = 53;
 
     public static NamespacedKey buyKey() {
         return SolRNGPlugin.key("solrng_egg_buy");
@@ -129,8 +130,27 @@ public class PetEggGui {
         }
         inv.setItem(LUCK_SLOT, luckCard(plugin, data));
         inv.setItem(AUTO_SLOT, autoButton(plugin, player, data));
+        inv.setItem(ANIMATION_SLOT, animationButton(data));
         MenuStyle.apply(inv, MenuStyle.Palette.CYAN);
         return inv;
+    }
+
+    /** V369: the opening with the shaking heads, on or off for you. */
+    private static ItemStack animationButton(PlayerData data) {
+        boolean on = data.isPetEggAnimation();
+        ItemStack item = new ItemStack(on ? Material.ITEM_FRAME : Material.GRAY_DYE);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(Lore.title(on ? ChatColor.GREEN : ChatColor.GRAY, "Egg animation")
+                + ChatColor.DARK_GRAY + " - " + (on ? ChatColor.GREEN + "On" : ChatColor.RED + "Off"));
+        meta.setLore(List.of(
+                Lore.line(ChatColor.GRAY, "The heads that shake and turn"),
+                Lore.line(ChatColor.GRAY, "into your pets. Off, an egg"),
+                Lore.line(ChatColor.GRAY, "opens straight away in chat."),
+                "",
+                ChatColor.YELLOW + "" + ChatColor.BOLD + (on ? "Click to switch off" : "Click to switch on")));
+        if (on) meta.setEnchantmentGlintOverride(Boolean.TRUE);
+        item.setItemMeta(meta);
+        return item;
     }
 
     private static final String RULE = ChatColor.DARK_GRAY + "" + ChatColor.STRIKETHROUGH

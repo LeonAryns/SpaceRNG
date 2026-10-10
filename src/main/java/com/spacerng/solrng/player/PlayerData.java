@@ -1603,6 +1603,19 @@ public class PlayerData {
         return petAutoOpen;
     }
 
+    // V369, Leon: the egg opening can be switched off per player, in the
+    // egg screen. On by default.
+    private boolean petEggAnimation = true;
+
+    public boolean isPetEggAnimation() {
+        return petEggAnimation;
+    }
+
+    public boolean togglePetEggAnimation() {
+        petEggAnimation = !petEggAnimation;
+        return petEggAnimation;
+    }
+
     public java.util.Set<String> getPetsFound() {
         return petsFound;
     }

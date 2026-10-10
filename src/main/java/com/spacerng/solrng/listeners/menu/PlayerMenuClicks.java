@@ -541,6 +541,15 @@ final class PlayerMenuClicks {
             return;
         }
 
+        if (slot == com.spacerng.solrng.gui.PetEggGui.ANIMATION_SLOT) {
+            boolean on = data.togglePetEggAnimation();
+            player.sendMessage(on ? ChatColor.GREEN + "Egg animation is on."
+                    : ChatColor.RED + "Egg animation is off. " + ChatColor.GRAY + "Eggs open straight away.");
+            player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.5f, on ? 1.5f : 0.8f);
+            player.openInventory(com.spacerng.solrng.gui.PetEggGui.build(plugin, player, holder.eggId()));
+            return;
+        }
+
         if (slot == com.spacerng.solrng.gui.PetEggGui.AUTO_SLOT) {
             if (!plugin.getLinkedAccountManager().isLinked(player.getUniqueId())) {
                 player.sendMessage(ChatColor.RED + "Auto open is for linked accounts. "
@@ -620,6 +629,7 @@ final class PlayerMenuClicks {
         // on the reveal frame. Bedrock cannot draw the displays and keeps
         // the old instant answer with the menu reopened.
         boolean show = !com.spacerng.solrng.platform.Bedrock.is(player)
+                && data.isPetEggAnimation()
                 && plugin.getConfig().getBoolean("pets.eggs.animation", true);
         if (show) {
             player.closeInventory();
