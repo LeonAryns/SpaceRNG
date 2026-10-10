@@ -968,7 +968,15 @@ public final class ConfigMigrator {
             // V126: Index Luck I moved in front of Tag Luck.
             new EntryPatch("guide-hint-tag-luck-after-index", "guide.quests", "index_luck", "hint",
                     "In /skilltree, right above Luck I. It's what lets you equip a tag.",
-                    "In /skilltree, right after Index Luck I. It's what lets you equip a tag."));
+                    "In /skilltree, right after Index Luck I. It's what lets you equip a tag."),
+            // V362: Convert sits between Auto Roll and Luck now, and Farming
+            // is directly above Luck I rather than after Armor.
+            new EntryPatch("guide-hint-luck-above-convert", "guide.quests", "first_luck", "hint",
+                    "Luck sits directly above Auto Roll in /skilltree.",
+                    "Luck sits above Convert, over Auto Roll, in /skilltree."),
+            new EntryPatch("guide-hint-farming-above-luck", "guide.quests", "farming_unlock", "hint",
+                    "Buy Farming in /skilltree, right after Armor, to get the Farmer's Hoe.",
+                    "Buy Farming in /skilltree, right above Luck I, to get the Farmer's Hoe."));
 
     /**
      * Replaces one exact line anywhere inside a (nested) list, like a

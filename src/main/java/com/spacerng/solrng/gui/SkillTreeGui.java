@@ -22,9 +22,8 @@ import java.util.Set;
 
 // The frame Leon spec'd, applied to every page of both skill trees.
 // Three vertical lines, Speed at col 2, Luck at col 5 and Money at col 8,
-// standing on a trunk that fills the bottom two rows with the root in
-// the middle of it at (5,6). Nothing sits beside the lines above the
-// trunk. Any slot not in this set that is also not one of the four
+// standing on a trunk along row 5, with only the root under it at (5,6)
+// (V362). Nothing sits beside the lines above the trunk. Any slot not in this set that is also not one of the four
 // reserved buttons renders as the dark border, which is why a node
 // placed outside the set looks like it is floating, see the V318 note on
 // LAYOUT_SLOTS.
@@ -64,30 +63,27 @@ public class SkillTreeGui {
     // draw as "???", which is the same promise the rest of the empty
     // frame makes: there is room here and something is coming.
     private static final Set<Integer> LAYOUT_SLOTS = Set.of(
-            // V357, Leon's call: three lines and nothing beside them.
+            // V362, Leon's call: no lower layer. Only the root sits on the
+            // bottom row, at (5,6); the trunk is row 5 alone and the three
+            // lines climb out of its ends and its middle. Speed is the left
+            // line, Luck the middle and Money the right, and nothing of one
+            // kind sits on another's side.
             //
-            // V353 brought back the V348 fan-out, which hung extras at
-            // (3,3), (7,3), (4,2), (6,2), stubs at (3,4), (7,4) and more
-            // at (4,1), (6,1). Those are drawn as "???" whether or not a
-            // node ever claims them, so the tree read as three lines with
-            // bits floating around them however the nodes were placed.
-            // They are gone. What is left is a trunk along the bottom two
-            // rows with the root in the middle of it, and three lines
-            // climbing out of its left end, its middle and its right end.
+            // 20 slots, six fewer than V357's two-row trunk, so the general
+            // tree went from five pages to six and every page is a price
+            // band: a page's root opens it, and everything on it costs about
+            // what that root does or more.
             //
-            // 26 slots, which is two more than the fullest page holds, so
-            // every node kept its page and the order they unlock in is
-            // untouched.
-            //
-            // Speed line, (2,1) up from the trunk at (2,6)
-            1, 10, 19, 28, 37, 46,
-            // Luck line, (5,1) down to the root at (5,6)
-            4, 13, 22, 31, 40, 49,
-            // Money line, (8,1) up from the trunk at (8,6)
-            7, 16, 25, 34, 43, 52,
-            // The trunk, (3,5) (4,5) (6,5) (7,5) and (3,6) (4,6) (6,6) (7,6)
+            // Speed line, (2,1) up from the trunk at (2,5)
+            1, 10, 19, 28, 37,
+            // Luck line, (5,1) down to the junction at (5,5)
+            4, 13, 22, 31, 40,
+            // Money line, (8,1) up from the trunk at (8,5)
+            7, 16, 25, 34, 43,
+            // The trunk, (3,5) (4,5) (6,5) (7,5)
             38, 39, 41, 42,
-            47, 48, 50, 51
+            // The root
+            49
     );
 
     /**
