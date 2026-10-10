@@ -330,21 +330,37 @@ public class RarityManager {
     }
 
     /**
-     * Every finished rarity multiplied together. Finishing a whole tier is
-     * the end of the collection game rather than a step in it, so the
-     * tiers multiply rather than add - and completing all of them in shiny
-     * is meant to be the largest number in the plugin.
+     * The index completion multiplier (V365, Leon): each finished rarity
+     * ADDS its bonus, and every rarity finished is 5x. The rarer the tier
+     * the bigger its share: Common +0.1, Uncommon +0.2, up to Astral +1.0.
+     * The shiny index is its own ladder on the same numbers, so a full
+     * shiny index is another 5x on top.
      *
-     * V343: no longer gated. It sat behind the Tag Luck skill, and that
-     * node is gone, so finishing a rarity pays the moment it is finished.
+     * Until now every finished tier multiplied the next (1.1 x 1.25 x ...
+     * about 30x) and a shiny finish replaced the plain one.
      */
-    public double completionMultiplier(com.spacerng.solrng.player.PlayerData data,
-                                       double perRarity, double perShiny) {
+    public double completionMultiplier(com.spacerng.solrng.player.PlayerData data, boolean shiny) {
         double total = 1.0;
         for (Rarity rarity : Rarity.values()) {
-            total *= completionMultiplierFor(data, rarity, perRarity, perShiny);
+            if (isComplete(data, rarity, shiny)) total += completionBonus(rarity);
         }
         return total;
+    }
+
+    /** What finishing one tier adds, index.completion.bonus. */
+    public double completionBonus(Rarity rarity) {
+        var plugin = org.bukkit.plugin.java.JavaPlugin.getPlugin(com.spacerng.solrng.SolRNGPlugin.class);
+        double fallback = switch (rarity) {
+            case COMMON -> 0.1;
+            case UNCOMMON -> 0.2;
+            case RARE -> 0.3;
+            case EPIC -> 0.4;
+            case LEGENDARY -> 0.5;
+            case MYTHICAL -> 0.7;
+            case DIVINE -> 0.8;
+            default -> 1.0;
+        };
+        return Math.max(0.0, plugin.getConfig().getDouble("index.completion.bonus." + rarity.name(), fallback));
     }
 
     /** An item's own "colors"/bold/underline/strikethrough, or null if it doesn't define any. */

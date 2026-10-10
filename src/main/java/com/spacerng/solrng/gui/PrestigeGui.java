@@ -89,7 +89,7 @@ public class PrestigeGui {
 
     /** The prestige held and what it is worth, in the top middle. */
     private static ItemStack overview(SolRNGPlugin plugin, PlayerData data) {
-        double per = plugin.getConfig().getDouble("prestige.luck-multiplier-per-prestige", 0.10);
+        double per = plugin.getPrestigeManager().getLuckMultiplierPerPrestige();
         ItemStack item = new ItemStack(Material.BEACON);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(Lore.title(ChatColor.LIGHT_PURPLE, "Prestige " + data.getPrestige()));
@@ -98,7 +98,7 @@ public class PrestigeGui {
                 Lore.line(ChatColor.GRAY, "your Luck, for good."),
                 "",
                 Lore.stat(ChatColor.GREEN, "Luck multiplier",
-                        String.format("%.2fx", 1.0 + data.getPrestige() * per)),
+                        String.format("%.2fx", plugin.getPrestigeManager().prestigeMultiplier(data.getPrestige()))),
                 Lore.stat(ChatColor.AQUA, "Per prestige", String.format("+%.2fx", per))));
         item.setItemMeta(meta);
         return item;
@@ -155,7 +155,7 @@ public class PrestigeGui {
         int needed = prestige.levelsNeededForNextPrestige(data);
         boolean can = prestige.canPrestige(data);
         int next = data.getPrestige() + 1;
-        double per = plugin.getConfig().getDouble("prestige.luck-multiplier-per-prestige", 0.10);
+        double per = plugin.getPrestigeManager().getLuckMultiplierPerPrestige();
         int points = prestige.getPointsPerPrestige();
 
         ItemStack item = new ItemStack(Material.NETHER_STAR);
@@ -172,7 +172,7 @@ public class PrestigeGui {
         lore.add("");
         lore.add(Lore.section(ChatColor.GREEN, "You gain"));
         lore.add(Lore.upgrade(ChatColor.GREEN, "Luck",
-                String.format("%.2fx", 1.0 + data.getPrestige() * per), String.format("%.2fx", 1.0 + next * per)));
+                String.format("%.2fx", prestige.prestigeMultiplier(data.getPrestige())), String.format("%.2fx", prestige.prestigeMultiplier(next))));
         lore.add(Lore.line(ChatColor.GREEN, "+" + points + " Prestige Point" + (points == 1 ? "" : "s")));
         lore.add("");
         lore.add(Lore.section(ChatColor.RED, "You lose"));

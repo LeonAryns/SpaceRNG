@@ -1101,7 +1101,9 @@ prestige:
   first-prestige-levels: 13
   # V298: each prestige asks one level more than the last, not five.
   levels-increment-per-prestige: 1
-  luck-multiplier-per-prestige: 0.10
+  # V365: linear, 1 + this x prestige. Leon: 5.5x at prestige 55, so
+  # 4.5 / 55. It compounded before (1.1 to the power of the prestige).
+  luck-multiplier-per-prestige: 0.0818182
 
 # /armor - sets bought with rolled drops. Each worn piece grants its
 # tier's Luck bonus and a smaller Speed bonus (speed-bonus 0.01 = +1
@@ -2254,6 +2256,21 @@ index:
   # Gated behind the same Tag Luck skill the tag multiplier is: until
   # that's bought, the index is a collection log and nothing more.
   completion:
+    # V365, Leon: a finished rarity ADDS this to a ladder that starts at
+    # 1x, and every rarity finished is 5x. The rarer the tier, the bigger
+    # its share. The shiny index is its own ladder on the same numbers, so
+    # a full shiny index is another 5x. The keys below it (per-rarity,
+    # by-rarity, per-shiny-rarity) are the old multiplying ladder and are
+    # no longer read.
+    bonus:
+      COMMON: 0.1
+      UNCOMMON: 0.2
+      RARE: 0.3
+      EPIC: 0.4
+      LEGENDARY: 0.5
+      MYTHICAL: 0.7
+      DIVINE: 0.8
+      ASTRAL: 1.0
     per-rarity: 2.0
     # V304: what finishing each tier is worth, rising to 2x for Divine;
     # a tier finished in shiny gives per-shiny-rarity instead.

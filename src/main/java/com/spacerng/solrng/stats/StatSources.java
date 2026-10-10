@@ -180,16 +180,15 @@ public final class StatSources {
         parts.add(new Part("Secret", "Your best secret, found in /realm",
                 1.0 + (plugin.getRarityManager().tagMultiplierFor(data) - 1.0)
                         * skills.multiplierOf(data, SkillNode.Effect.TAG_MASTERY), Op.MULTIPLY));
+        // V365: two ladders that add up to 5x each, Leon's numbers.
         parts.add(new Part("Index completion", "Finish whole rarities in /index",
-                plugin.getPrestigeManager().indexCompletion(data), Op.MULTIPLY));
-        // COMPOUNDING, not linear. Each prestige is worth 1.1x on top of
-        // the last, so the tenth is worth more than the first: prestige 10
-        // is 2.59x rather than 2.00x, and prestige 30 is 17.4x rather than
-        // 4.00x. Resetting has to get better the more often you have done
-        // it, or nobody does it twice.
+                plugin.getPrestigeManager().indexCompletion(data, false), Op.MULTIPLY));
+        parts.add(new Part("Shiny index completion", "Finish whole rarities in shiny",
+                plugin.getPrestigeManager().indexCompletion(data, true), Op.MULTIPLY));
+        // V365: linear, Leon's 5.5x at prestige 55. It compounded at 1.1x
+        // a prestige, which is 189x at 55.
         parts.add(new Part("Prestige", "Prestige again in /prestige",
-                Math.pow(1.0 + plugin.getPrestigeManager().getLuckMultiplierPerPrestige(),
-                        data.getPrestige()),
+                plugin.getPrestigeManager().prestigeMultiplier(data.getPrestige()),
                 Op.MULTIPLY));
 
         parts.add(new Part("Prestige upgrades", "Spend Prestige Points in /prestige",

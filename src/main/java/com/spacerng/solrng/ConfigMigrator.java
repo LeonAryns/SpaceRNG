@@ -114,6 +114,8 @@ public final class ConfigMigrator {
             // V362: the egg opening switch, whose skull it shakes, and the
             // words over the one egg that opens /pets. All new keys.
             "pets.eggs.animation", "pets.eggs.open-head", "holograms.pet-eggs",
+            // V365: the additive index completion ladder. New keys.
+            "index.completion.bonus",
             // V314: the Cosmic Dust range. New keys, so ADDED_SECTIONS
             // rather than a patch.
             "pets.dust.cosmic-min", "pets.dust.cosmic-max",
@@ -333,6 +335,8 @@ public final class ConfigMigrator {
     }
 
     private static final List<Patch> PATCHES = List.of(
+            // V365: prestige Luck is linear now, Leon's 5.5x at prestige 55.
+            new Patch("prestige-luck-linear-v365", "prestige.luck-multiplier-per-prestige", 0.1, 0.0818182),
             // V364: Coin Greed maxed in about 30,000 crops, cheap early and
             // hardest at the end (Leon). farming.enchants is not structural,
             // so each number comes over on its own, and only while the live

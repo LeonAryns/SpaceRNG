@@ -1114,7 +1114,10 @@ public class FarmPlotManager {
             String[] keys = {"TOKENS", "GEMS", "ENCHANT_PROC"};
             String[] names = {"Coins", "Gems", "enchant procs"};
             int pick = ThreadLocalRandom.current().nextInt(keys.length);
-            data.applyBoost(keys[pick], gambaMultiplier, gambaSeconds * 1000L);
+            // V365: its own slot, so it multiplies a running potion
+            // instead of replacing it.
+            data.applyBoost(com.spacerng.solrng.player.PlayerData.GAMBA_PREFIX + keys[pick],
+                    gambaMultiplier, gambaSeconds * 1000L);
             procChat(player, data, "GAMBA", ChatColor.GOLD + "" + ChatColor.BOLD + "Gamba  "
                     + ChatColor.RESET + ChatColor.GRAY + "it landed on "
                     + ChatColor.WHITE + names[pick] + ChatColor.GRAY + ", "

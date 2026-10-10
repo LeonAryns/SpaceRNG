@@ -284,10 +284,27 @@ public class PrestigeManager {
         return luckMultiplierPerPrestige;
     }
 
+    /**
+     * What a prestige count multiplies Luck by (V365): linear, 1 plus
+     * luck-multiplier-per-prestige for every prestige.
+     *
+     * It compounded until now, 1.1 to the power of the prestige, which
+     * put prestige 55 at 189x while /prestige printed the linear number.
+     * Leon: 5.5x at prestige 55. One method, so /stats and /prestige can
+     * never disagree again.
+     */
+    public double prestigeMultiplier(int prestige) {
+        return 1.0 + Math.max(0, prestige) * luckMultiplierPerPrestige;
+    }
+
     /** The Luck multiplier earned by finishing whole rarities in /index. */
     public double indexCompletion(PlayerData data) {
-        return plugin.getRarityManager().completionMultiplier(data,
-                indexCompletionPerRarity, indexCompletionPerShiny);
+        return indexCompletion(data, false) * indexCompletion(data, true);
+    }
+
+    /** One of the two completion ladders (V365): the index, or the shiny index. */
+    public double indexCompletion(PlayerData data, boolean shiny) {
+        return plugin.getRarityManager().completionMultiplier(data, shiny);
     }
 
     public double getIndexCompletionPerRarity() {

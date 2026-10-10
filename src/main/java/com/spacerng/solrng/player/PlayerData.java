@@ -957,20 +957,39 @@ public class PlayerData {
      * Expiry is checked on read rather than swept on a timer: a boost
      * nobody is reading doesn't need to have ended yet.
      */
+    /**
+     * A timed boost on one effect, times the Gamba window on it.
+     *
+     * V365: Gamba used to write into the same slot as the potions, and a
+     * 3x landing on a running 2x Coins potion replaced it outright, so the
+     * potion was gone when the Gamba minute ran out. Gamba keeps its own
+     * slot, {@link #GAMBA_PREFIX} plus the effect, and the two multiply.
+     */
     public double boostMultiplier(String effect) {
-        double[] state = boosts.get(effect);
+        return slotMultiplier(effect) * slotMultiplier(GAMBA_PREFIX + effect);
+    }
+
+    /** The prefix Gamba's own boost slots are stored under. */
+    public static final String GAMBA_PREFIX = "GAMBA_";
+
+    private double slotMultiplier(String key) {
+        double[] state = boosts.get(key);
         if (state == null) return 1.0;
         if (System.currentTimeMillis() >= state[1]) {
-            boosts.remove(effect);
+            boosts.remove(key);
             return 1.0;
         }
         return state[0];
     }
 
     public long boostRemainingMillis(String effect) {
-        double[] state = boosts.get(effect);
-        if (state == null) return 0L;
-        return Math.max(0L, (long) state[1] - System.currentTimeMillis());
+        long now = System.currentTimeMillis();
+        long best = 0L;
+        for (String key : new String[]{effect, GAMBA_PREFIX + effect}) {
+            double[] state = boosts.get(key);
+            if (state != null) best = Math.max(best, (long) state[1] - now);
+        }
+        return Math.max(0L, best);
     }
 
     /**
