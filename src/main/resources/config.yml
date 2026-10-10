@@ -448,18 +448,17 @@ farming:
     TOKEN_GREED:
       display: "Coin Greed"
       icon: GOLD_NUGGET
-      # V364, Leon: Coin Greed maxed in about 30,000 crops farmed from a
-      # fresh start, cheap early and hardest at the end. Cubic, fitted by
-      # simulating Wheat at 100 Coins a crop with every Coin going into
-      # Coin Greed and nothing else boosting it: level 1,000 after about
-      # 50 crops, 5,000 after 3,400, 9,000 after 21,600 and the base cap
-      # of 10,000 at 30,000. Level 1 costs 5, level 1,000 costs 15 and
-      # the last level 10,274; about 25.7 million Coins for all of it.
-      # Anything else that raises Coins only gets there sooner.
-      base-cost: 5
+      # V366, Leon: millions to max, rising exponentially. Every level
+      # costs 0.05% more than the last: level 1 is 80 Coins, level 5,000
+      # 974 and the last of the base cap 11,852, about 23.6 million Coins
+      # for all 10,000. Simulated on Wheat at 100 Coins a crop with every
+      # Coin going into Coin Greed: full after about 28,000 crops.
+      # (V364's cubic curve put the first 2,000 levels at 51,000 Coins.)
+      base-cost: 80
+      cost-growth: 1.0005
       cost-linear: 0.0
-      cost-step: 0.0000000102716
-      cost-power: 3.0
+      cost-step: 0.0
+      cost-power: 1.0
       description: "More Coins from every crop."
       color: "&e"
       max-level: 20000
@@ -4238,6 +4237,8 @@ holograms:
   panel-height: 2.3
   board-refresh-seconds: 60
   crate-head-scale: 2.6
+  # V366: the floating pet egg, smaller than a crate head (Leon).
+  pet-egg-scale: 1.2
   # How far the head floats above the crate block, how fast it turns and
   # how far it bobs.
   crate-head-lift: 0.15

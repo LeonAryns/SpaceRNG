@@ -44,11 +44,9 @@ import java.util.List;
 public class PetsGui {
 
     private static final int SIZE = 54;
-    private static final int STORAGE_SLOT = 0;
-    private static final int INDEX_SLOT = 1;
+    private static final int STORAGE_SLOT = -1;
+    private static final int INDEX_SLOT = -1;
     private static final int INFO_SLOT = 8;
-    private static final int[] SLOT_SLOTS = {11, 13, 15};
-    private static final int FORGE_SLOT = 31;
     // V359: ten eggs, five across row 4 and five across row 5. V362 adds
     // the Prestige 0 egg: six on row 4 with the middle left open so the
     // two rows stay symmetric, then five. Prestige order, left to right
@@ -72,73 +70,92 @@ public class PetsGui {
     }
 
     public static Inventory build(SolRNGPlugin plugin, Player player) {
-        PetsHolder holder = new PetsHolder(PetsHolder.View.MAIN);
+        return build(plugin, player, 0);
+    }
+
+    /**
+     * /pets (V366, Leon): your three slots and the pets you have hatched,
+     * nothing else. The eggs live on the pet egg in the world and on its
+     * own screen; /pets used to sell them too, which Leon did not want.
+     *
+     * The slots sit in the middle of the top row, the pets fill the four
+     * rows under it, rarest first, 36 a page, and the bottom row pages.
+     * A left click wears a pet, a right click opens it to level it, a
+     * shift click throws one spare copy away.
+     */
+    public static Inventory build(SolRNGPlugin plugin, Player player, int page) {
+        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+        PetManager pets = plugin.getPetManager();
+        boolean bedrock = com.spacerng.solrng.platform.Bedrock.is(player);
+
+        List<PetType> owned = new ArrayList<>();
+        for (PetType pet : pets.getTypes().values()) {
+            if (data.getPet(pet.id()) != null) owned.add(pet);
+        }
+        owned.sort(java.util.Comparator.comparingInt((PetType pet) -> pet.rarity().ordinal()).reversed());
+        int pages = Math.max(1, (owned.size() + PAGE_PETS.length - 1) / PAGE_PETS.length);
+        page = Math.max(0, Math.min(page, pages - 1));
+
+        PetsHolder holder = new PetsHolder(PetsHolder.View.MAIN, page);
         Inventory inv = Bukkit.createInventory(holder, SIZE,
                 MenuStyle.title("Pets", "#80DEEA", "#26C6DA"));
         holder.setInventory(inv);
 
-        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
-        PetManager pets = plugin.getPetManager();
-
         ItemStack rail = pane(Material.CYAN_STAINED_GLASS_PANE);
         ItemStack filler = pane(Material.BLACK_STAINED_GLASS_PANE);
-        for (int i = 0; i < SIZE; i++) inv.setItem(i, i < 9 || (i >= 18 && i < 27) ? rail : filler);
-
-        inv.setItem(STORAGE_SLOT, storageIcon(plugin, data,
-                com.spacerng.solrng.platform.Bedrock.is(player)));
-        inv.setItem(INDEX_SLOT, indexButton(plugin, data));
-        inv.setItem(INFO_SLOT, infoIcon(plugin, player, data));
+        for (int i = 0; i < SIZE; i++) inv.setItem(i, i < 9 || i >= 45 ? rail : filler);
 
         List<PetType> equipped = pets.equipped(data);
         int open = pets.slots(data);
         for (int slot = 0; slot < PetManager.MAX_SLOTS; slot++) {
-            inv.setItem(SLOT_SLOTS[slot], slotIcon(plugin, data,
+            inv.setItem(WORN_SLOTS[slot], slotIcon(plugin, data,
                     slot < equipped.size() ? equipped.get(slot) : null, slot, slot < open));
         }
+        inv.setItem(INFO_SLOT, infoIcon(plugin, player, data));
 
-        // V359: ten eggs, one per ten Prestige, so they fill the two rows
-        // under the slots in Prestige order and the Cosmic Dust meter that
-        // used to sit beneath them is gone with the dust price.
-        var eggs = pets.upgrades().eggs();
-        for (int i = 0; i < eggs.size() && i < EGG_SLOTS.length; i++) {
-            inv.setItem(EGG_SLOTS[i], eggIcon(plugin, data, eggs.get(i), i + 1));
+        int from = page * PAGE_PETS.length;
+        for (int i = 0; i < PAGE_PETS.length && from + i < owned.size(); i++) {
+            inv.setItem(PAGE_PETS[i], petIcon(plugin, data, owned.get(from + i), bedrock));
         }
-        inv.setItem(LUCK_SLOT, PetEggGui.luckCard(plugin, data));
-        MenuStyle.apply(inv, MenuStyle.Palette.CYAN);
-        return inv;
-    }
-
-    /** The pets you own, to wear and to upgrade. */
-    public static Inventory storage(SolRNGPlugin plugin, Player player) {
-        PetsHolder holder = new PetsHolder(PetsHolder.View.STORAGE);
-        Inventory inv = Bukkit.createInventory(holder, SIZE,
-                MenuStyle.title("Pet Storage", "#80DEEA", "#26C6DA"));
-        holder.setInventory(inv);
-        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
-        PetManager pets = plugin.getPetManager();
-        fillSubScreen(inv);
-
-        int slot = FIRST_PET;
-        for (PetType pet : pets.getTypes().values()) {
-            if (slot >= SIZE) break;
-            if (data.getPet(pet.id()) == null) continue;
-            inv.setItem(slot++, petIcon(plugin, data, pet, com.spacerng.solrng.platform.Bedrock.is(player)));
-        }
-        if (slot == FIRST_PET) {
+        if (owned.isEmpty()) {
             ItemStack none = new ItemStack(Material.STONE_BUTTON);
             ItemMeta meta = none.getItemMeta();
             meta.setDisplayName(Lore.title(ChatColor.DARK_GRAY, "No pets yet"));
             meta.setLore(List.of(
                     ChatColor.DARK_GRAY + "Nothing hatched",
                     "",
-                    Lore.line(ChatColor.GRAY, "Cosmic Dust drops while you roll."),
-                    Lore.line(ChatColor.GRAY, "Spend it on an egg on the pets"),
-                    Lore.line(ChatColor.GRAY, "screen for your first pet.")));
+                    Lore.line(ChatColor.GRAY, "Open an egg at the pet egg"),
+                    Lore.line(ChatColor.GRAY, "for your first pet.")));
             none.setItemMeta(meta);
             inv.setItem(31, none);
         }
+        if (page > 0) inv.setItem(PREV_SLOT, pageArrow(Material.SPECTRAL_ARROW, page, pages));
+        if (page < pages - 1) inv.setItem(NEXT_SLOT, pageArrow(Material.ARROW, page + 2, pages));
         MenuStyle.apply(inv, MenuStyle.Palette.CYAN);
         return inv;
+    }
+
+    private static final int[] WORN_SLOTS = {3, 4, 5};
+    private static final int[] PAGE_PETS = {
+            9, 10, 11, 12, 13, 14, 15, 16, 17,
+            18, 19, 20, 21, 22, 23, 24, 25, 26,
+            27, 28, 29, 30, 31, 32, 33, 34, 35,
+            36, 37, 38, 39, 40, 41, 42, 43, 44};
+    public static final int PREV_SLOT = 45;
+    public static final int NEXT_SLOT = 53;
+
+    private static ItemStack pageArrow(Material material, int toPage, int pages) {
+        ItemStack item = new ItemStack(material);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(Lore.title(ChatColor.AQUA, "Page " + toPage + "/" + pages));
+        meta.setLore(List.of(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to turn"));
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    /** V366: storage is /pets now. */
+    public static Inventory storage(SolRNGPlugin plugin, Player player) {
+        return build(plugin, player, 0);
     }
 
     /** Where the seven rarity cards sit, one row, centred. */
@@ -249,7 +266,7 @@ public class PetsGui {
         ItemMeta meta = back.getItemMeta();
         meta.setDisplayName(Lore.title(ChatColor.AQUA, "Pets"));
         meta.setLore(List.of(
-                Lore.line(ChatColor.GRAY, "Your slots and the eggs."),
+                Lore.line(ChatColor.GRAY, "Your slots and your pets."),
                 "",
                 ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to go back"));
         back.setItemMeta(meta);

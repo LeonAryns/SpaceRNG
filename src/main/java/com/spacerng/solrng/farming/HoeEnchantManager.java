@@ -31,7 +31,8 @@ public class HoeEnchantManager {
     /** One enchant definition. Level comes from the player's skill nodes. */
     public record Enchant(String id, String display, String description, String icon, int maxLevel,
                           int baseCap, double perLevel, String colour, long baseCost,
-                          double costLinear, double costStep, double costPower, boolean comingSoon) {
+                          double costLinear, double costStep, double costPower, boolean comingSoon,
+                          double costGrowth) {
 
         /** e.g. "Token Greed III" in the enchant's own colour. */
         public String styled(int level) {
@@ -83,7 +84,10 @@ public class HoeEnchantManager {
                     // everywhere it would cost anybody a Coin. Better than
                     // deleting one: the rack keeps its shape and a player
                     // can see what is coming.
-                    e.getBoolean("coming-soon", false)));
+                    e.getBoolean("coming-soon", false),
+                    // V366: an exponential price, base-cost x this^level.
+                    // 1.0 (the default) leaves the old polynomial alone.
+                    Math.max(1.0, e.getDouble("cost-growth", 1.0))));
         }
         plugin.getLogger().info("Loaded " + enchants.size() + " hoe enchants.");
     }
@@ -192,7 +196,7 @@ public class HoeEnchantManager {
      * a long grind rather than a wall with a sign on it.
      */
     public long costFor(Enchant enchant, int currentLevel) {
-        return Math.round(enchant.baseCost()
+        return Math.round(enchant.baseCost() * Math.pow(enchant.costGrowth(), currentLevel)
                 + enchant.costLinear() * currentLevel
                 + enchant.costStep() * Math.pow(currentLevel, enchant.costPower()));
     }

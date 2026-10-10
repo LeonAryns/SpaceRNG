@@ -8,6 +8,7 @@ public class PetsHolder implements MenuHolder {
     public enum View { MAIN, STORAGE, INDEX }
 
     private final View view;
+    private final int page;
     private Inventory inventory;
 
     public PetsHolder() {
@@ -15,7 +16,17 @@ public class PetsHolder implements MenuHolder {
     }
 
     public PetsHolder(View view) {
+        this(view, 0);
+    }
+
+    /** V366: /pets pages through storage, 36 pets a page. */
+    public PetsHolder(View view, int page) {
         this.view = view;
+        this.page = Math.max(0, page);
+    }
+
+    public int page() {
+        return page;
     }
 
     public View view() {

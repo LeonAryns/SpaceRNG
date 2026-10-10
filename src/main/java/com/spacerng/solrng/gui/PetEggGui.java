@@ -20,31 +20,41 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * One egg's own screen (V359), built from Leon's screenshot.
+ * The egg screen (V366), built to Leon's screenshot.
  *
- * The seven pets the egg can hatch sit in a row, one per rarity, Common
- * on the left. A pet already discovered shows what it is and what it is
- * worth. One that has never been found is a "???  Locked" card, and
- * every card, found or not, prints the chance of pulling it. That is
- * only honest because an egg holds exactly one pet per rarity: the
- * rarity roll IS the pet roll, so the number beside a pet is the number
- * the egg actually uses.
+ *   top row      every egg, one per Prestige step, seven to a page with
+ *                arrows at the ends; the one you are looking at glints
+ *   middle       the seven pets in this egg, five over two, a found one
+ *                as itself and a missing one as a "???" barrier, each
+ *                with its multiplier and its live chance
+ *   bottom row   back to /pets, your Pet Luck, Open 1, 3 and 9, and
+ *                auto open on the right for linked accounts
  *
- * Under them are the three buy buttons Leon asked for, 1, 3 and 9, and
- * the auto open switch for linked accounts. Everything is paid in Gems.
+ * A click on a found pet marks it to be thrown away whenever it hatches
+ * again (auto delete). Everything is paid in Gems.
  */
 public class PetEggGui {
 
     private static final int SIZE = 54;
-    private static final int[] PET_SLOTS = {10, 11, 12, 13, 14, 15, 16};
-    private static final int[] BUY_SLOTS = {29, 31, 33};
-    public static final int CARD_SLOT = 22;
-    public static final int AUTO_SLOT = 49;
+    private static final int[] PET_SLOTS = {20, 21, 22, 23, 24, 30, 32};
+    private static final int[] EGG_TABS = {1, 2, 3, 4, 5, 6, 7};
+    private static final int[] BUY_SLOTS = {48, 49, 50};
+    public static final int PREV_EGGS = 0;
+    public static final int NEXT_EGGS = 8;
     public static final int BACK_SLOT = 45;
-    public static final int LUCK_SLOT = 53;
+    public static final int LUCK_SLOT = 46;
+    public static final int AUTO_SLOT = 52;
 
     public static NamespacedKey buyKey() {
         return SolRNGPlugin.key("solrng_egg_buy");
+    }
+
+    public static NamespacedKey tabKey() {
+        return SolRNGPlugin.key("solrng_egg_tab");
+    }
+
+    public static NamespacedKey trashKey() {
+        return SolRNGPlugin.key("solrng_egg_trash");
     }
 
     /** How many eggs this button buys, or 0 when it is not a buy button. */
@@ -55,27 +65,59 @@ public class PetEggGui {
         return count == null ? 0 : count;
     }
 
+    /** The egg a clicked tab or page arrow leads to, or null. */
+    public static String clickedTab(ItemStack item) {
+        if (item == null || item.getItemMeta() == null) return null;
+        return item.getItemMeta().getPersistentDataContainer().get(tabKey(), PersistentDataType.STRING);
+    }
+
+    /** The pet a clicked card marks for auto delete, or null. */
+    public static String clickedTrash(ItemStack item) {
+        if (item == null || item.getItemMeta() == null) return null;
+        return item.getItemMeta().getPersistentDataContainer().get(trashKey(), PersistentDataType.STRING);
+    }
+
+    /** The first egg, for the placed egg and anything that does not name one. */
+    public static String firstEgg(SolRNGPlugin plugin) {
+        var eggs = plugin.getPetManager().upgrades().eggs();
+        return eggs.isEmpty() ? "" : eggs.get(0).id();
+    }
+
     public static Inventory build(SolRNGPlugin plugin, Player player, String eggId) {
         PetManager pets = plugin.getPetManager();
+        var eggs = pets.upgrades().eggs();
         PetEgg egg = pets.upgrades().egg(eggId);
-        PetEggHolder holder = new PetEggHolder(eggId);
+        if (egg == null && !eggs.isEmpty()) egg = eggs.get(0);
+        PetEggHolder holder = new PetEggHolder(egg == null ? eggId : egg.id());
         Inventory inv = Bukkit.createInventory(holder, SIZE, MenuStyle.title(
-                egg == null ? "Egg" : ChatColor.stripColor(egg.display()), "#C77DFF", "#7FDBFF"));
+                "Egg: " + (egg == null ? "?" : ChatColor.stripColor(egg.display()).replace(" Egg", "")),
+                "#C77DFF", "#7FDBFF"));
         holder.setInventory(inv);
 
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         ItemStack rail = pane(Material.CYAN_STAINED_GLASS_PANE);
         ItemStack filler = pane(Material.BLACK_STAINED_GLASS_PANE);
-        for (int i = 0; i < SIZE; i++) {
-            inv.setItem(i, i < 9 || (i >= 18 && i < 27) || i >= 45 ? rail : filler);
-        }
+        for (int i = 0; i < SIZE; i++) inv.setItem(i, i < 9 || i >= 45 ? rail : filler);
+        inv.setItem(BACK_SLOT, back());
         if (egg == null) {
-            inv.setItem(BACK_SLOT, back());
             MenuStyle.apply(inv, MenuStyle.Palette.CYAN);
             return inv;
         }
 
-        inv.setItem(CARD_SLOT, eggCard(plugin, data, egg));
+        // The egg row, seven to a page, on the page that holds this egg.
+        int at = egg.index();
+        int page = at / EGG_TABS.length;
+        int from = page * EGG_TABS.length;
+        for (int i = 0; i < EGG_TABS.length && from + i < eggs.size(); i++) {
+            inv.setItem(EGG_TABS[i], eggTab(plugin, data, eggs.get(from + i), from + i == at));
+        }
+        if (page > 0) {
+            inv.setItem(PREV_EGGS, pageArrow(Material.SPECTRAL_ARROW, eggs.get(from - 1).id(), "Earlier eggs"));
+        }
+        if (from + EGG_TABS.length < eggs.size()) {
+            inv.setItem(NEXT_EGGS, pageArrow(Material.ARROW, eggs.get(from + EGG_TABS.length).id(), "Later eggs"));
+        }
+
         for (int i = 0; i < PET_SLOTS.length && i < Rarity.values().length; i++) {
             inv.setItem(PET_SLOTS[i], petCard(plugin, data, egg, Rarity.values()[i]));
         }
@@ -85,71 +127,75 @@ public class PetEggGui {
         for (int i = 0; i < BUY_SLOTS.length && i < bulk.size(); i++) {
             inv.setItem(BUY_SLOTS[i], buyButton(plugin, data, egg, Math.max(1, bulk.get(i))));
         }
-
-        inv.setItem(AUTO_SLOT, autoButton(plugin, player, data));
         inv.setItem(LUCK_SLOT, luckCard(plugin, data));
-        inv.setItem(BACK_SLOT, back());
+        inv.setItem(AUTO_SLOT, autoButton(plugin, player, data));
         MenuStyle.apply(inv, MenuStyle.Palette.CYAN);
         return inv;
     }
 
-    /** The egg itself: what it costs, what it needs and how far through it you are. */
-    private static ItemStack eggCard(SolRNGPlugin plugin, PlayerData data, PetEgg egg) {
-        PetManager pets = plugin.getPetManager();
+    private static final String RULE = ChatColor.DARK_GRAY + "" + ChatColor.STRIKETHROUGH
+            + "                         ";
+
+    /**
+     * One egg in the top row, in the shape of Leon's second screenshot:
+     * the name, a rule, the price, a rule, and the Prestige it needs.
+     */
+    private static ItemStack eggTab(SolRNGPlugin plugin, PlayerData data, PetEgg egg, boolean current) {
         boolean reached = data.getPrestige() >= egg.minPrestige();
         boolean canPay = data.getShards() >= egg.cost();
-        int found = pets.foundIn(data, egg);
+        int found = plugin.getPetManager().foundIn(data, egg);
         int total = egg.pets().size();
 
         ItemStack item = new ItemStack(egg.icon());
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(Lore.gradient(egg.display(), true, egg.stops()));
-
         List<String> lore = new ArrayList<>();
-        lore.add(Lore.line(ChatColor.GRAY, Lore.key("Seven pets") + ", one per rarity."));
+        lore.add(ChatColor.DARK_GRAY + "Egg");
+        lore.add(RULE);
+        lore.add(ChatColor.GRAY + " Price: " + Currency.GEMS.price(egg.cost(), canPay && reached));
+        lore.add(RULE);
+        lore.add(ChatColor.GRAY + " Found: " + (found >= total ? ChatColor.GREEN : ChatColor.AQUA)
+                + found + ChatColor.DARK_GRAY + " / " + ChatColor.AQUA + total);
         lore.add("");
-        lore.add(Lore.section(ChatColor.YELLOW, "This egg"));
-        lore.add(Lore.stat(ChatColor.AQUA, "Price", Currency.GEMS.price(egg.cost(), canPay)));
-        lore.add(Lore.stat(reached ? ChatColor.GREEN : ChatColor.RED, "Prestige",
-                (reached ? "" + Lore.TICK + " " : "") + egg.minPrestige() + " needed"));
-        lore.add(Lore.stat(ChatColor.AQUA, "Discovered", found + " / " + total));
-        lore.add(Lore.bar(total == 0 ? 0.0 : found / (double) total));
+        lore.add((reached ? ChatColor.GREEN : ChatColor.RED) + "Prestige required: "
+                + ChatColor.DARK_GRAY + "[" + (reached ? ChatColor.GREEN : ChatColor.YELLOW)
+                + egg.minPrestige() + ChatColor.DARK_GRAY + "]");
         lore.add("");
-        if (found >= total && total > 0) {
-            lore.add(ChatColor.GREEN + Lore.BULLET + " " + ChatColor.WHITE + "Complete"
-                    + ChatColor.GREEN + "  " + Lore.TICK);
-            lore.add(Lore.line(ChatColor.GRAY, "It pays its full Pet Luck."));
-        } else {
-            lore.add(Lore.line(ChatColor.GRAY, "Finding all seven pays"));
-            lore.add(Lore.line(ChatColor.GRAY, "+100% Pet Luck on its own."));
-        }
-        if (!reached) {
-            lore.add("");
-            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Locked until Prestige " + egg.minPrestige());
-        }
+        lore.add(current ? ChatColor.GREEN + "" + ChatColor.BOLD + "Viewing"
+                : ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to view");
         meta.setLore(lore);
-        if (found >= total && total > 0) meta.setEnchantmentGlintOverride(Boolean.TRUE);
+        if (current) meta.setEnchantmentGlintOverride(Boolean.TRUE);
+        meta.getPersistentDataContainer().set(tabKey(), PersistentDataType.STRING, egg.id());
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    private static ItemStack pageArrow(Material material, String eggId, String label) {
+        ItemStack item = new ItemStack(material);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(Lore.title(ChatColor.AQUA, label));
+        meta.setLore(List.of(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to turn"));
+        meta.getPersistentDataContainer().set(tabKey(), PersistentDataType.STRING, eggId);
         item.setItemMeta(meta);
         return item;
     }
 
     /**
-     * One pet in the egg, found or not.
-     *
-     * A pet never found is a barrier called "???" with the chance still
-     * printed, which is the shape Leon's screenshot has. The chance is
-     * the live one, Pet Luck included, so the card and the roll cannot
-     * drift apart.
+     * One pet in the egg, in the shape of Leon's screenshot: its name, its
+     * rarity, the multiplier with the stat it starts on, the live chance,
+     * and auto delete on a click. A pet never found is a "???" barrier
+     * that still prints its chance.
      */
     private static ItemStack petCard(SolRNGPlugin plugin, PlayerData data, PetEgg egg, Rarity rarity) {
         PetManager pets = plugin.getPetManager();
         String id = egg.petAt(rarity);
         PetType type = id == null ? null : pets.get(id);
-        if (type == null) return pane(Material.GRAY_STAINED_GLASS_PANE);
+        if (type == null) return pane(Material.BLACK_STAINED_GLASS_PANE);
 
         boolean found = data.getPetsFound().contains(type.id());
-        boolean owned = data.ownsPet(type.id());
+        boolean trash = data.isPetAutoTrash(type.id());
         double chance = pets.liveChance(data, egg, rarity);
+        String rarityName = plugin.getRarityManager().style(rarity, rarity.displayName());
 
         ItemStack item = new ItemStack(found ? type.icon() : Material.BARRIER);
         ItemMeta meta = item.getItemMeta();
@@ -158,31 +204,29 @@ public class PetEggGui {
                 : Lore.title(ChatColor.DARK_GRAY, "???"));
 
         List<String> lore = new ArrayList<>();
-        lore.add(ChatColor.DARK_GRAY + plugin.getRarityManager().style(rarity, rarity.displayName())
-                + ChatColor.DARK_GRAY + " pet");
+        lore.add(rarityName);
         lore.add("");
-        if (found) {
-            if (!type.blurb().isBlank()) lore.add(Lore.line(ChatColor.GRAY, type.blurb()));
-            lore.add(Lore.stat(ChatColor.GREEN, "Fresh", type.boostText()));
+        lore.add(Lore.stat(ChatColor.YELLOW, "Multi", ChatColor.GREEN + type.multiText(1.0)
+                + ChatColor.GRAY + " (" + type.statName() + ")"));
+        lore.add(Lore.stat(ChatColor.YELLOW, "Chance", ChatColor.AQUA + percent(chance)
+                + ChatColor.DARK_GRAY + "  1 in " + oneIn(chance)));
+        lore.add("");
+        if (!found) {
+            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Locked");
+            lore.add(Lore.line(ChatColor.GRAY, "Open this egg to find it"));
+        } else if (trash) {
+            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Auto delete on");
+            lore.add(Lore.footnote("Click to keep it again."));
         } else {
-            lore.add(Lore.line(ChatColor.DARK_GRAY, "Locked"));
-            lore.add(Lore.line(ChatColor.DARK_GRAY, "Open the egg to find out."));
+            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to auto delete");
         }
-        lore.add("");
-        lore.add(Lore.stat(ChatColor.AQUA, "Chance", ChatColor.WHITE + percent(chance)));
-        lore.add(Lore.stat(ChatColor.AQUA, "One in", ChatColor.WHITE + oneIn(chance)));
-        lore.add("");
-        lore.add(found
-                ? (owned ? ChatColor.GREEN + Lore.BULLET + " " + ChatColor.WHITE + "In your storage"
-                        : ChatColor.YELLOW + Lore.BULLET + " " + ChatColor.WHITE + "Discovered, not held")
-                : ChatColor.DARK_GRAY + Lore.BULLET + " Never found");
         meta.setLore(lore);
-        if (owned) meta.setEnchantmentGlintOverride(Boolean.TRUE);
+        if (found) meta.getPersistentDataContainer().set(trashKey(), PersistentDataType.STRING, type.id());
         item.setItemMeta(meta);
         return item;
     }
 
-    /** Buy one, three or nine. */
+    /** Open 1, 3 or 9, in the shape of Leon's screenshot. */
     private static ItemStack buyButton(SolRNGPlugin plugin, PlayerData data, PetEgg egg, int count) {
         PetManager pets = plugin.getPetManager();
         long cost = egg.cost() * count;
@@ -190,36 +234,31 @@ public class PetEggGui {
         boolean reached = data.getPrestige() >= egg.minPrestige();
         boolean room = !pets.storageFull(data);
 
-        ItemStack item = new ItemStack(count >= 9 ? Material.EMERALD_BLOCK
-                : count >= 3 ? Material.EMERALD : Material.LIME_DYE);
+        ItemStack item = new ItemStack(Material.TURTLE_EGG);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(Lore.title(ChatColor.GREEN, "Open " + count));
-
+        meta.setDisplayName(Lore.title(ChatColor.GREEN, count == 1 ? "Open egg" : "Open eggs")
+                + ChatColor.GRAY + " (x" + count + ")");
         List<String> lore = new ArrayList<>();
-        lore.add(Lore.line(ChatColor.GRAY, count == 1
-                ? "One egg, one pet." : count + " eggs, one after the other."));
+        lore.add(ChatColor.DARK_GRAY + "Utility");
         lore.add("");
-        lore.add(Lore.stat(ChatColor.AQUA, "Cost", Currency.GEMS.price(cost, canPay)));
-        lore.add(Lore.stat(ChatColor.AQUA, "You hold", Currency.GEMS.amount(data.getShards())));
+        lore.add(Lore.stat(ChatColor.YELLOW, "Cost", Currency.GEMS.price(cost, canPay)));
         lore.add(Lore.stat(pets.storageFull(data) ? ChatColor.RED : ChatColor.AQUA, "Storage",
                 pets.held(data) + " / " + pets.storage()));
         lore.add("");
         if (!reached) {
-            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Prestige " + egg.minPrestige() + " first");
+            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Locked");
+            lore.add(Lore.line(ChatColor.GRAY, "Reach Prestige " + egg.minPrestige() + " in /prestige"));
         } else if (!room) {
             lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Storage full");
             lore.add(Lore.line(ChatColor.GRAY, "Nothing opens until you make room"));
         } else if (!canPay) {
             lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Not enough Gems");
-            lore.add(Lore.line(ChatColor.GRAY, "Gems come off the farm and from crates"));
         } else {
             lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to open");
         }
         meta.setLore(lore);
         meta.getPersistentDataContainer().set(buyKey(), PersistentDataType.INTEGER, count);
         item.setItemMeta(meta);
-        // The stack size is the number on the button, which reads faster
-        // than the name does.
         item.setAmount(Math.max(1, Math.min(64, count)));
         return item;
     }
@@ -281,7 +320,7 @@ public class PetEggGui {
         ItemStack item = new ItemStack(Material.SPECTRAL_ARROW);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(Lore.title(ChatColor.AQUA, "Pets"));
-        meta.setLore(List.of(Lore.line(ChatColor.GRAY, "Your slots and the eggs."), "",
+        meta.setLore(List.of(Lore.line(ChatColor.GRAY, "Your slots and your pets."), "",
                 ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to go back"));
         item.setItemMeta(meta);
         return item;

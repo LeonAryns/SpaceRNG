@@ -107,6 +107,8 @@ public final class HoloManager {
     private float textScale = 1.1f;
     private double panelHeight = 2.3;
     private float crateHeadScale = 2.6f;
+    // V366, Leon: the pet egg smaller than a crate head.
+    private float petEggScale = 1.2f;
     private double crateHeadLift = 0.15;
     private double crateSpinDegrees = 90.0;
     private double crateBob = 0.12;
@@ -163,6 +165,7 @@ public final class HoloManager {
         textScale = (float) config.getDouble("holograms.text-scale", 1.1);
         panelHeight = config.getDouble("holograms.panel-height", 2.3);
         crateHeadScale = (float) config.getDouble("holograms.crate-head-scale", 2.6);
+        petEggScale = (float) config.getDouble("holograms.pet-egg-scale", 1.2);
         crateHeadLift = config.getDouble("holograms.crate-head-lift", 0.15);
         // Past about 170 degrees an update, interpolation takes the short way round and spins backwards.
         crateSpinDegrees = Math.max(0.0, Math.min(170.0, config.getDouble("holograms.crate-spin-degrees", 45.0)));
@@ -654,7 +657,7 @@ public final class HoloManager {
      * the same reason: that map is what the spin ticker walks.
      */
     private void drawEgg(Spot spot, List<Display> pieces) {
-        double headY = crateHeadScale / 2.0 + crateHeadLift;
+        double headY = petEggScale / 2.0 + crateHeadLift;
         Location centre = spot.at().clone().add(0, headY, 0);
         centre.setYaw(spot.yaw());
         centre.setPitch(0f);
@@ -664,7 +667,7 @@ public final class HoloManager {
             d.setItemStack(model);
             d.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
             d.setTransformation(new Transformation(new Vector3f(), new Quaternionf(),
-                    new Vector3f(crateHeadScale, crateHeadScale, crateHeadScale), new Quaternionf()));
+                    new Vector3f(petEggScale, petEggScale, petEggScale), new Quaternionf()));
             d.setViewRange(viewRange);
             d.setShadowRadius(0.6f);
             d.setShadowStrength(0.6f);

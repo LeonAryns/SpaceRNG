@@ -41,9 +41,10 @@ public class PetEggListener implements Listener {
         // job as well, and so a barrier is never punched out from under
         // one of these.
         event.setCancelled(true);
-        event.getPlayer().openInventory(com.spacerng.solrng.holo.HoloManager.ALL_EGGS.equals(eggId)
-                ? com.spacerng.solrng.gui.PetsGui.build(plugin, event.getPlayer())
-                : PetEggGui.build(plugin, event.getPlayer(), eggId));
+        // V366: the one pet egg opens the egg screen on the first egg; the
+        // eggs are bought there and nowhere else.
+        event.getPlayer().openInventory(PetEggGui.build(plugin, event.getPlayer(),
+                com.spacerng.solrng.holo.HoloManager.ALL_EGGS.equals(eggId) ? PetEggGui.firstEgg(plugin) : eggId));
         event.getPlayer().playSound(event.getPlayer().getLocation(),
                 org.bukkit.Sound.UI_BUTTON_CLICK, 0.6f, 1.4f);
     }

@@ -367,6 +367,11 @@ final class PlayerMenuClicks {
         player.openInventory(com.spacerng.solrng.gui.AuraGui.build(plugin, player));
     }
 
+    /** The three worn slots on /pets (V366), where a click always takes a pet off. */
+    private static boolean isWornSlot(int slot) {
+        return slot >= 3 && slot <= 5;
+    }
+
     /** /pets: put a pet in a slot, or take one out. */
     void handlePetsClick(InventoryClickEvent event) {
         event.setCancelled(true);
@@ -381,6 +386,15 @@ final class PlayerMenuClicks {
         // V215: the main screen opens storage and the index; both of those
         // come back to it with the arrow top left.
         if (view == com.spacerng.solrng.gui.PetsHolder.View.MAIN) {
+            // V366: /pets is the storage and pages through it.
+            if (event.getSlot() == com.spacerng.solrng.gui.PetsGui.PREV_SLOT
+                    || event.getSlot() == com.spacerng.solrng.gui.PetsGui.NEXT_SLOT) {
+                if (event.getCurrentItem() == null || event.getCurrentItem().getType().name().endsWith("PANE")) return;
+                int to = holder.page() + (event.getSlot() == com.spacerng.solrng.gui.PetsGui.NEXT_SLOT ? 1 : -1);
+                player.openInventory(com.spacerng.solrng.gui.PetsGui.build(plugin, player, to));
+                player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.4f, 1.4f);
+                return;
+            }
             if (com.spacerng.solrng.gui.PetsGui.isStorageButton(event.getSlot())) {
                 player.openInventory(com.spacerng.solrng.gui.PetsGui.storage(plugin, player));
                 player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.4f, 1.6f);
@@ -441,7 +455,9 @@ final class PlayerMenuClicks {
 
         // V324: a shift click in storage throws one spare copy away. The
         // copy that IS the pet never goes, so this cannot lose a pet.
-        if (event.isShiftClick() && view == com.spacerng.solrng.gui.PetsHolder.View.STORAGE) {
+        boolean inStorage = view == com.spacerng.solrng.gui.PetsHolder.View.STORAGE
+                || view == com.spacerng.solrng.gui.PetsHolder.View.MAIN;
+        if (event.isShiftClick() && inStorage) {
             if (pets.trashCopy(data, pet.id())) {
                 player.sendMessage(ChatColor.GRAY + "Threw away one spare "
                         + com.spacerng.solrng.gui.Lore.gradient(pet.display(), true, pet.stops())
@@ -451,7 +467,7 @@ final class PlayerMenuClicks {
                 player.sendMessage(ChatColor.GRAY + "You have no spare copy of that pet.");
                 player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.6f, 1.0f);
             }
-            player.openInventory(com.spacerng.solrng.gui.PetsGui.storage(plugin, player));
+            player.openInventory(com.spacerng.solrng.gui.PetsGui.build(plugin, player, holder.page()));
             return;
         }
 
@@ -460,7 +476,7 @@ final class PlayerMenuClicks {
         // storage opens it there, and the pet screen has a wear button for
         // them. The worn slots on the main screen still take a pet off.
         if ((event.isRightClick() || (com.spacerng.solrng.platform.Bedrock.is(player)
-                        && view == com.spacerng.solrng.gui.PetsHolder.View.STORAGE))
+                        && inStorage && !isWornSlot(event.getSlot())))
                 && data.ownsPet(pet.id())) {
             player.openInventory(com.spacerng.solrng.gui.PetUpgradeGui.build(plugin, player, pet.id()));
             player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.4f, 1.6f);
@@ -495,9 +511,7 @@ final class PlayerMenuClicks {
         // The pieces are part of the aura, so the aura is what rebuilds.
         plugin.getPetManager().refresh(player);
         plugin.getScoreboardManager().update(player);
-        player.openInventory(view == com.spacerng.solrng.gui.PetsHolder.View.STORAGE
-                ? com.spacerng.solrng.gui.PetsGui.storage(plugin, player)
-                : com.spacerng.solrng.gui.PetsGui.build(plugin, player));
+        player.openInventory(com.spacerng.solrng.gui.PetsGui.build(plugin, player, holder.page()));
     }
 
     /**
@@ -540,6 +554,28 @@ final class PlayerMenuClicks {
                     + ChatColor.GRAY + "A click keeps buying until the Gems or the room run out."
                     : ChatColor.RED + "Auto open is off."));
             player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.5f, on ? 1.5f : 0.8f);
+            player.openInventory(com.spacerng.solrng.gui.PetEggGui.build(plugin, player, holder.eggId()));
+            return;
+        }
+
+        // V366: the egg row and its arrows switch egg, and a found pet's
+        // card switches auto delete for it.
+        String tab = com.spacerng.solrng.gui.PetEggGui.clickedTab(event.getCurrentItem());
+        if (tab != null) {
+            player.openInventory(com.spacerng.solrng.gui.PetEggGui.build(plugin, player, tab));
+            player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.4f, 1.5f);
+            return;
+        }
+        String trash = com.spacerng.solrng.gui.PetEggGui.clickedTrash(event.getCurrentItem());
+        if (trash != null) {
+            var type = pets.get(trash);
+            boolean on = data.togglePetAutoTrash(trash);
+            if (type != null) {
+                player.sendMessage((on ? ChatColor.RED + "Auto delete on for " : ChatColor.GREEN + "Keeping ")
+                        + ChatColor.RESET + com.spacerng.solrng.gui.Lore.gradient(type.display(), true, type.stops())
+                        + ChatColor.GRAY + (on ? ". New copies are thrown away as they hatch." : " again."));
+            }
+            player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.5f, on ? 0.8f : 1.5f);
             player.openInventory(com.spacerng.solrng.gui.PetEggGui.build(plugin, player, holder.eggId()));
             return;
         }

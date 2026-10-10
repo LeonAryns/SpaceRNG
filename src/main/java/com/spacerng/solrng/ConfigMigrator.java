@@ -116,6 +116,11 @@ public final class ConfigMigrator {
             "pets.eggs.animation", "pets.eggs.open-head", "holograms.pet-eggs",
             // V365: the additive index completion ladder. New keys.
             "index.completion.bonus",
+            // V366: Coin Greed's exponential price. A new key, so it cannot
+            // be a patch, and without it the live price would stay flat.
+            "farming.enchants.TOKEN_GREED.cost-growth",
+            // V366: the floating pet egg's size.
+            "holograms.pet-egg-scale",
             // V314: the Cosmic Dust range. New keys, so ADDED_SECTIONS
             // rather than a patch.
             "pets.dust.cosmic-min", "pets.dust.cosmic-max",
@@ -337,14 +342,18 @@ public final class ConfigMigrator {
     private static final List<Patch> PATCHES = List.of(
             // V365: prestige Luck is linear now, Leon's 5.5x at prestige 55.
             new Patch("prestige-luck-linear-v365", "prestige.luck-multiplier-per-prestige", 0.1, 0.0818182),
-            // V364: Coin Greed maxed in about 30,000 crops, cheap early and
-            // hardest at the end (Leon). farming.enchants is not structural,
-            // so each number comes over on its own, and only while the live
-            // value is still the one it shipped as.
+            // V364 / V366: Coin Greed. V364 set a cubic curve that sold the
+            // first 2,000 levels for 51,000 Coins; Leon wants millions to
+            // max, rising exponentially. farming.enchants is not
+            // structural, so each number is its own patch, and the V366
+            // ones accept either the V364 value or the original one.
             new Patch("coin-greed-base-v364", "farming.enchants.TOKEN_GREED.base-cost", 608, 5),
             new Patch("coin-greed-linear-v364", "farming.enchants.TOKEN_GREED.cost-linear", 102.16216216216216, 0.0),
             new Patch("coin-greed-step-v364", "farming.enchants.TOKEN_GREED.cost-step", 0.28291022388071, 0.0000000102716),
             new Patch("coin-greed-power-v364", "farming.enchants.TOKEN_GREED.cost-power", 2.25, 3.0),
+            new Patch("coin-greed-base-v366", "farming.enchants.TOKEN_GREED.base-cost", 5, 80),
+            new Patch("coin-greed-step-v366", "farming.enchants.TOKEN_GREED.cost-step", 0.0000000102716, 0.0),
+            new Patch("coin-greed-power-v366", "farming.enchants.TOKEN_GREED.cost-power", 3.0, 1.0),
             // V354: the first prestige asks thirteen levels rather than
             // ten, which is Leon's "make the first ones a bit harder".
             // The late ones are made easier by the two caps above, not
