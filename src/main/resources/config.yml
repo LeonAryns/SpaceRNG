@@ -3963,8 +3963,9 @@ guide:
     - id: farm_skills
       display: "Buy your first farming skill"
       hint: "/farmtree is a whole second tree - crops, hoe enchants and Token multipliers."
-      goal: HAS_NODE
-      target: growth_1
+      # V368: any farm skill. It named growth_1, two skills behind the root.
+      goal: TREE_NODES
+      target: farmtree
       amount: 1
     - id: nova_core
       display: "Forge a Nova Core tier"

@@ -77,6 +77,17 @@ public class QuestManager {
             case SKILL_NODES -> data.getUnlockedNodes().size() + data.getNodeLevels().size();
             case HAS_NODE -> quest.getTarget() != null
                     && (data.hasUnlocked(quest.getTarget()) || data.getNodeLevel(quest.getTarget()) > 0) ? 1L : 0L;
+            // V368: any node in one tree, so "your first farming skill"
+            // counts whichever node a player starts the tree with. It named
+            // Growth I, which since V363 sits two skills behind the root.
+            case TREE_NODES -> {
+                long owned = 0L;
+                String tree = quest.getTarget() == null ? "farmtree" : quest.getTarget();
+                for (String id : plugin.getSkillTreeManager().getNodes(tree).keySet()) {
+                    if (data.hasUnlocked(id) || data.getNodeLevel(id) > 0) owned++;
+                }
+                yield owned;
+            }
             case TAG_EQUIPPED -> data.getEquippedTagItemKey() != null ? 1L : 0L;
             case BANKED_DROPS -> {
                 long total = 0L;

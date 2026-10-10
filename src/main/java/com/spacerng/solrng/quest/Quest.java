@@ -20,6 +20,7 @@ public class Quest {
         DISCOVERIES,        // unique drops in the index
         SKILL_NODES,        // skill tree nodes owned, across both trees
         HAS_NODE,           // a specific node - target is its id
+        TREE_NODES,         // nodes owned in one tree - target is the tree (V368)
         TAG_EQUIPPED,       // 1 once a tag is on
         BANKED_DROPS,       // drops stored via /convert
         STARFORGE_TIER,     // ladder position, 0 = Basic

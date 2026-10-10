@@ -1002,7 +1002,12 @@ public final class ConfigMigrator {
                     "Luck sits above Convert, over Auto Roll, in /skilltree."),
             new EntryPatch("guide-hint-farming-above-luck", "guide.quests", "farming_unlock", "hint",
                     "Buy Farming in /skilltree, right after Armor, to get the Farmer's Hoe.",
-                    "Buy Farming in /skilltree, right above Luck I, to get the Farmer's Hoe."));
+                    "Buy Farming in /skilltree, right above Luck I, to get the Farmer's Hoe."),
+            // V368: "your first farming skill" counts any farm tree node.
+            new EntryPatch("guide-farm-skills-goal-v368", "guide.quests", "farm_skills", "goal",
+                    "HAS_NODE", "TREE_NODES"),
+            new EntryPatch("guide-farm-skills-target-v368", "guide.quests", "farm_skills", "target",
+                    "growth_1", "farmtree"));
 
     /**
      * Replaces one exact line anywhere inside a (nested) list, like a
