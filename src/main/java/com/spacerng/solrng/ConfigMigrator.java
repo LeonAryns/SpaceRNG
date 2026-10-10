@@ -119,6 +119,7 @@ public final class ConfigMigrator {
             // V366: Coin Greed's exponential price. A new key, so it cannot
             // be a patch, and without it the live price would stay flat.
             "farming.enchants.TOKEN_GREED.cost-growth", "farming.enchants.MOMENTUM.cost-growth",
+            "farming.enchants.WALK_SPEED.cost-growth",
             // V366: the floating pet egg's size.
             "holograms.pet-egg-scale",
             // V314: the Cosmic Dust range. New keys, so ADDED_SECTIONS
@@ -354,6 +355,14 @@ public final class ConfigMigrator {
             new Patch("coin-greed-base-v366", "farming.enchants.TOKEN_GREED.base-cost", 5, 80),
             new Patch("coin-greed-step-v366", "farming.enchants.TOKEN_GREED.cost-step", 0.0000000102716, 0.0),
             new Patch("coin-greed-power-v366", "farming.enchants.TOKEN_GREED.cost-power", 3.0, 1.0),
+            // V370: Speed is ten levels to +250%, about 10 million Coins.
+            new Patch("walk-speed-base-v370", "farming.enchants.WALK_SPEED.base-cost", 500, 10000),
+            new Patch("walk-speed-linear-v370", "farming.enchants.WALK_SPEED.cost-linear", 80, 0.0),
+            new Patch("walk-speed-step-v370", "farming.enchants.WALK_SPEED.cost-step", 0.2, 0.0),
+            new Patch("walk-speed-power-v370", "farming.enchants.WALK_SPEED.cost-power", 2.25, 1.0),
+            new Patch("walk-speed-max-v370", "farming.enchants.WALK_SPEED.max-level", 20000, 10),
+            new Patch("walk-speed-cap-v370", "farming.enchants.WALK_SPEED.base-cap", 10000, 10),
+            new Patch("walk-speed-per-v370", "farming.enchants.WALK_SPEED.per-level", 0.00025, 0.25),
             // V367: Momentum the same way, from 1,000 and exponential.
             new Patch("momentum-base-v367", "farming.enchants.MOMENTUM.base-cost", 1324, 1000),
             new Patch("momentum-linear-v367", "farming.enchants.MOMENTUM.cost-linear", 222.63589587466222, 0.0),

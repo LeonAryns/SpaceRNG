@@ -257,6 +257,12 @@ public class PlayerDataManager {
                 data.setHoeEnchantLevel(id, hoeLevels.getInt(id));
             }
         }
+        // V370: Speed went from 10,000 levels to 10. A level bought on the
+        // old ladder is carried over in proportion, rounded up, once.
+        if (!yml.getBoolean("walk-speed-rescaled", false)) {
+            int old = data.getHoeEnchantLevel("WALK_SPEED");
+            if (old > 0) data.setHoeEnchantLevel("WALK_SPEED", Math.min(10, (int) Math.ceil(old / 1000.0)));
+        }
         data.getClaimedMilestones().addAll(yml.getStringList("claimed-milestones"));
         data.getAnnouncedMilestones().addAll(yml.getStringList("announced-milestones"));
         data.getCompletedQuests().addAll(yml.getStringList("completed-quests"));
@@ -543,6 +549,7 @@ public class PlayerDataManager {
         for (Map.Entry<String, Integer> entry : data.getHoeEnchantLevels().entrySet()) {
             yml.set("hoe-enchants." + entry.getKey(), entry.getValue());
         }
+        yml.set("walk-speed-rescaled", true);
         yml.set("claimed-milestones", new java.util.ArrayList<>(data.getClaimedMilestones()));
         yml.set("announced-milestones", new java.util.ArrayList<>(data.getAnnouncedMilestones()));
         yml.set("completed-quests", new java.util.ArrayList<>(data.getCompletedQuests()));
