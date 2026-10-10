@@ -111,6 +111,9 @@ public final class ConfigMigrator {
             // falls back to the code default of 0.0 and no egg would ever
             // hatch a Divine.
             "pets.eggs.instant",
+            // V362: the egg opening switch, whose skull it shakes, and the
+            // words over the one egg that opens /pets. All new keys.
+            "pets.eggs.animation", "pets.eggs.open-head", "holograms.pet-eggs",
             // V314: the Cosmic Dust range. New keys, so ADDED_SECTIONS
             // rather than a patch.
             "pets.dust.cosmic-min", "pets.dust.cosmic-max",

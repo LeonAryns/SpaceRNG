@@ -49,9 +49,11 @@ public class PetsGui {
     private static final int INFO_SLOT = 8;
     private static final int[] SLOT_SLOTS = {11, 13, 15};
     private static final int FORGE_SLOT = 31;
-    // V359: ten eggs. Five across row 4 and five across row 5, Prestige
-    // order, left to right and top to bottom.
-    private static final int[] EGG_SLOTS = {29, 30, 31, 32, 33, 38, 39, 40, 41, 42};
+    // V359: ten eggs, five across row 4 and five across row 5. V362 adds
+    // the Prestige 0 egg: six on row 4 with the middle left open so the
+    // two rows stay symmetric, then five. Prestige order, left to right
+    // and top to bottom.
+    private static final int[] EGG_SLOTS = {28, 29, 30, 32, 33, 34, 38, 39, 40, 41, 42};
     private static final int LUCK_SLOT = 53;
     // Storage and index: the back arrow top left, pets from the second row.
     private static final int BACK_SLOT = 0;

@@ -186,8 +186,8 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         line(sender, "points", "<fix|give|set> ...", "Prestige points; fix refunds what the rework lost");
         line(sender, "placeholders", "", "What every %spacerng_% placeholder resolves to right now");
         line(sender, "payout", "", "Run the farming payout now and reset the period");
-        line(sender, "petegg", "<place|remove|list>",
-                "Float a pet egg over a block, holding the item it should look like");
+        line(sender, "petegg", "<place [egg]|remove|list>",
+                "Float a pet egg over a block; no egg named is the one that opens /pets, empty hand is a dragon egg");
         line(sender, "crate", "<place|set|remove|list|key|keyall|preview>",
                 "Place crates and hand out keys (key all refunds every type)");
         line(sender, "holo", "<panel|board|leader|remove|list>", "NPC text, leaderboard walls and #1 heads");
@@ -226,6 +226,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         if (args.length == 2) return partial(args[1], List.of("place", "remove", "list"));
         if (args.length == 3 && args[1].equalsIgnoreCase("place")) {
             List<String> ids = new ArrayList<>();
+            ids.add(com.spacerng.solrng.holo.HoloManager.ALL_EGGS);
             for (var egg : plugin.getPetManager().upgrades().eggs()) ids.add(egg.id());
             return partial(args[2], ids);
         }

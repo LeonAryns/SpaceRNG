@@ -143,14 +143,15 @@ public class PetUpgrades {
                         Math.max(1L, egg.getLong("cost", makeCost)),
                         Math.max(0, egg.getInt("min-prestige", minPrestige)),
                         rarityOr(egg.getString("min-rarity"), defaultFloor(id)),
-                        chances, egg.getStringList("pets"), 0));
+                        chances, egg.getStringList("pets"), 0,
+                        egg.contains("worth") ? Math.max(0.0, egg.getDouble("worth")) : -1.0));
             }
         }
         if (eggs.isEmpty()) {
             eggs.add(new PetEgg("stardust", "Stardust Egg", java.util.List.of("#C9D6FF", "#7FDBFF"),
                     org.bukkit.Material.TURTLE_EGG, makeCost, 0,
                     defaultFloor("stardust"), defaultChances("stardust"),
-                    java.util.List.of(), 0));
+                    java.util.List.of(), 0, -1.0));
         }
         // V359: cheapest and earliest first, then numbered, because an
         // egg's place in the ladder is what decides how much its pets are
@@ -158,10 +159,15 @@ public class PetUpgrades {
         // actually meets; the price only breaks a tie.
         eggs.sort(java.util.Comparator.comparingInt(PetEgg::minPrestige)
                 .thenComparingLong(PetEgg::cost));
+        // V362: an egg that writes its own worth (the Prestige 0 starter)
+        // stays out of the growth ladder, so adding it did not make every
+        // egg above it worth 15% more.
+        int rung = 0;
         for (int i = 0; i < eggs.size(); i++) {
             PetEgg egg = eggs.get(i);
+            double worth = egg.worth() >= 0.0 ? egg.worth() : Math.pow(eggBonusGrowth, rung++);
             eggs.set(i, new PetEgg(egg.id(), egg.display(), egg.colors(), egg.icon(), egg.cost(),
-                    egg.minPrestige(), egg.floor(), egg.chances(), egg.pets(), i));
+                    egg.minPrestige(), egg.floor(), egg.chances(), egg.pets(), i, worth));
         }
     }
 
@@ -180,8 +186,8 @@ public class PetUpgrades {
     }
 
     /** The bonus a fresh pet of this rarity out of this egg carries. */
-    public double bonusFor(com.spacerng.solrng.rarity.Rarity rarity, int eggIndex) {
-        return bonusFor(rarity) * Math.pow(eggBonusGrowth, Math.max(0, eggIndex));
+    public double bonusFor(com.spacerng.solrng.rarity.Rarity rarity, PetEgg egg) {
+        return bonusFor(rarity) * (egg == null ? 1.0 : egg.worth());
     }
 
     /**

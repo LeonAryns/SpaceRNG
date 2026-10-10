@@ -546,6 +546,7 @@ final class PlayerMenuClicks {
 
         int count = com.spacerng.solrng.gui.PetEggGui.clickedBuy(event.getCurrentItem());
         if (count <= 0 || egg == null) return;
+        if (com.spacerng.solrng.pet.PetOpenShow.isRunning(player)) return;
 
         if (data.getPrestige() < egg.minPrestige()) {
             player.sendMessage(ChatColor.RED + "The " + ChatColor.stripColor(egg.display())
@@ -578,6 +579,31 @@ final class PlayerMenuClicks {
             return;
         }
 
+        // V362: Leon's opening, the heads that shake and turn into the
+        // pets. The menu closes so the row is in view; the chat lines land
+        // on the reveal frame. Bedrock cannot draw the displays and keeps
+        // the old instant answer with the menu reopened.
+        boolean show = !com.spacerng.solrng.platform.Bedrock.is(player)
+                && plugin.getConfig().getBoolean("pets.eggs.animation", true);
+        if (show) {
+            player.closeInventory();
+            com.spacerng.solrng.pet.PetOpenShow.start(plugin, player, batch.made(),
+                    () -> tellOpened(player, data, batch));
+            plugin.getPetManager().refresh(player);
+            plugin.getScoreboardManager().update(player);
+            return;
+        }
+        tellOpened(player, data, batch);
+        player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_AMETHYST_BLOCK_CHIME,
+                0.7f, batch.best().type().rarity().ordinal() >= 4 ? 1.8f : 1.2f);
+        plugin.getPetManager().refresh(player);
+        plugin.getScoreboardManager().update(player);
+        player.openInventory(com.spacerng.solrng.gui.PetEggGui.build(plugin, player, holder.eggId()));
+    }
+
+    /** The chat lines for an opened batch: what came out and why it stopped. */
+    private void tellOpened(Player player, PlayerData data, com.spacerng.solrng.pet.PetManager.Batch batch) {
+        var pets = plugin.getPetManager();
         var best = batch.best();
         String shown = com.spacerng.solrng.gui.Lore.gradient(
                 best.type().display(), true, best.type().stops());
@@ -598,11 +624,6 @@ final class PlayerMenuClicks {
         } else if (batch.stop() == com.spacerng.solrng.pet.PetManager.Stop.OUT_OF_GEMS) {
             player.sendMessage(ChatColor.GRAY + "It stopped there: out of Gems.");
         }
-        player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_AMETHYST_BLOCK_CHIME,
-                0.7f, best.type().rarity().ordinal() >= 4 ? 1.8f : 1.2f);
-        plugin.getPetManager().refresh(player);
-        plugin.getScoreboardManager().update(player);
-        player.openInventory(com.spacerng.solrng.gui.PetEggGui.build(plugin, player, holder.eggId()));
     }
 
     /**

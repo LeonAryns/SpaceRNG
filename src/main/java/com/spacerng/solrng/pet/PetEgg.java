@@ -30,10 +30,14 @@ import java.util.Map;
  * and the two eggs felt the same. Leon reported exactly that. A chance
  * per rarity cannot come apart that way, and the tooltip prints the
  * config numbers rather than a calculation of them.
+ *
+ * V362: {@code worth} is what this egg's pets are worth as a multiple of
+ * the same rarity's fresh bonus. The Prestige 0 starter egg writes its own
+ * (Leon: "pretty bad multi"); every other egg gets the growth ladder.
  */
 public record PetEgg(String id, String display, List<String> colors, Material icon,
                      long cost, int minPrestige, Rarity floor, Map<Rarity, Double> chances,
-                     List<String> pets, int index) {
+                     List<String> pets, int index, double worth) {
 
     /**
      * The pet this egg hatches at a given rarity, or null when it has

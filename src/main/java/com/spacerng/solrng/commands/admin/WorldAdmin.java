@@ -307,17 +307,19 @@ final class WorldAdmin extends AdminTools {
                     sender.sendMessage(ChatColor.RED + "Stand in game, hold the egg and look at a block.");
                     return true;
                 }
-                var egg = args.length >= 3 ? pets.upgrades().egg(args[2]) : null;
-                if (egg == null) {
-                    sender.sendMessage(ChatColor.RED + "Usage: /rngadmin petegg place <egg>");
-                    sender.sendMessage(ChatColor.DARK_GRAY + "Eggs: " + eggNames());
+                // V362: no egg named, or "pets", is the one egg for the
+                // whole system: a click opens /pets with every egg on it.
+                String key = args.length >= 3 ? args[2] : com.spacerng.solrng.holo.HoloManager.ALL_EGGS;
+                var egg = key.equalsIgnoreCase(com.spacerng.solrng.holo.HoloManager.ALL_EGGS)
+                        ? null : pets.upgrades().egg(key);
+                if (egg == null && !key.equalsIgnoreCase(com.spacerng.solrng.holo.HoloManager.ALL_EGGS)) {
+                    sender.sendMessage(ChatColor.RED + "Usage: /rngadmin petegg place [egg]");
+                    sender.sendMessage(ChatColor.DARK_GRAY + "Eggs: pets, " + eggNames());
                     return true;
                 }
+                // Empty handed is a dragon egg, Leon's look for it.
                 ItemStack held = player.getInventory().getItemInMainHand();
-                if (held.getType().isAir()) {
-                    sender.sendMessage(ChatColor.RED + "Hold the item the egg should look like.");
-                    return true;
-                }
+                if (held.getType().isAir()) held = new ItemStack(org.bukkit.Material.DRAGON_EGG);
                 org.bukkit.block.Block target = player.getTargetBlockExact(6);
                 if (target == null || target.getType().isAir()) {
                     sender.sendMessage(ChatColor.RED + "Look at the block the egg should float over.");
@@ -332,11 +334,11 @@ final class WorldAdmin extends AdminTools {
                 block.setType(org.bukkit.Material.BARRIER);
                 ItemStack model = held.clone();
                 model.setAmount(1);
-                plugin.getHoloManager().placeEgg(egg.id(), block,
-                        player.getLocation().getYaw() + 180f, model);
-                sender.sendMessage(ChatColor.GREEN + "Placed the "
-                        + ChatColor.stripColor(egg.display()) + ChatColor.GREEN
-                        + ". A click on it opens the egg.");
+                plugin.getHoloManager().placeEgg(egg == null ? com.spacerng.solrng.holo.HoloManager.ALL_EGGS : egg.id(),
+                        block, player.getLocation().getYaw() + 180f, model);
+                sender.sendMessage(ChatColor.GREEN + "Placed "
+                        + (egg == null ? "the pet egg" : "the " + ChatColor.stripColor(egg.display()))
+                        + ChatColor.GREEN + ". A click on it opens " + (egg == null ? "/pets." : "the egg."));
             }
             case "remove" -> {
                 if (!(sender instanceof Player player)) {
@@ -361,7 +363,7 @@ final class WorldAdmin extends AdminTools {
                             + ", " + spot.at().getBlockZ());
                 }
                 if (shown == 0) sender.sendMessage(ChatColor.GRAY + "No pet eggs placed yet.");
-                sender.sendMessage(ChatColor.DARK_GRAY + "Eggs: " + eggNames());
+                sender.sendMessage(ChatColor.DARK_GRAY + "Eggs: pets, " + eggNames());
             }
             default -> {
                 sender.sendMessage(ChatColor.RED + "Usage: /rngadmin petegg <place|remove|list>");

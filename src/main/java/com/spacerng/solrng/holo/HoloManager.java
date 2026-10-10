@@ -69,6 +69,9 @@ public final class HoloManager {
 
     public enum Kind { PANEL, BOARD, CRATE, LEADER, EGG }
 
+    /** The egg key for the one egg that opens /pets rather than one egg (V362). */
+    public static final String ALL_EGGS = "pets";
+
     public record Spot(String id, Kind kind, String key, Location at, float yaw, ItemStack head) {
     }
 
@@ -670,6 +673,25 @@ public final class HoloManager {
         pieces.add(display);
         crateHeads.put(spot.id(), display);
 
+        if (ALL_EGGS.equals(spot.key())) {
+            // V362, Leon's screenshot: one egg for the whole system with a
+            // feature panel over it. The words are in holograms.pet-eggs.
+            String title = plugin.getConfig().getString("holograms.pet-eggs.title",
+                    "<gradient:#FFE082:#FFB300><b>PET EGGS</b></gradient> <#FFB300>[Feature]");
+            List<Component> lines = new ArrayList<>();
+            for (String line : plugin.getConfig().getStringList("holograms.pet-eggs.lines")) {
+                lines.add(parse(line));
+            }
+            if (lines.isEmpty()) {
+                lines.add(parse("<white>Find special pets"));
+                lines.add(parse("<white>by opening these eggs!"));
+            }
+            String click = plugin.getConfig().getString("holograms.pet-eggs.click",
+                    plugin.getConfig().getString("holograms.click", ""));
+            stack(spot, spot.at().clone().add(0, headY + crateBob + 0.3, 0), parse(title), lines,
+                    click == null || click.isBlank() ? null : parse(click), pieces);
+            return;
+        }
         var egg = plugin.getPetManager().upgrades().egg(spot.key());
         String name = egg == null ? spot.key() : egg.display();
         String title = gradient(egg == null ? List.of() : egg.colors(),

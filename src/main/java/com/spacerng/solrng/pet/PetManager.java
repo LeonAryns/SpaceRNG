@@ -105,7 +105,7 @@ public class PetManager {
             PetEgg from = eggId.isBlank() ? null : upgrades.egg(eggId);
             double bonus = p.contains("percent")
                     ? Math.max(0.0, p.getDouble("percent", 0.0))
-                    : upgrades.bonusFor(rarity, from == null ? 0 : from.index());
+                    : upgrades.bonusFor(rarity, from);
             types.put(id, new PetType(id, p.getString("display", rawId), colors, icon, rarity, stat,
                     bonus,
                     Math.max(0.0, p.getDouble("weight", 1.0)),

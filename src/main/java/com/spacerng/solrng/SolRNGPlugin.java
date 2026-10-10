@@ -363,6 +363,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         // Everybody in the Secret Realm goes back before the save.
         if (realmManager != null) realmManager.stop();
         com.spacerng.solrng.pet.PetHatch.stopAll();
+        com.spacerng.solrng.pet.PetOpenShow.stopAll();
         if (discordBot != null) discordBot.shutdown();
         if (momentumBar != null) momentumBar.removeAll();
         if (playerDataManager != null) {
