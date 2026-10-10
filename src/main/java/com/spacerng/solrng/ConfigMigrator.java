@@ -118,7 +118,7 @@ public final class ConfigMigrator {
             "index.completion.bonus",
             // V366: Coin Greed's exponential price. A new key, so it cannot
             // be a patch, and without it the live price would stay flat.
-            "farming.enchants.TOKEN_GREED.cost-growth",
+            "farming.enchants.TOKEN_GREED.cost-growth", "farming.enchants.MOMENTUM.cost-growth",
             // V366: the floating pet egg's size.
             "holograms.pet-egg-scale",
             // V314: the Cosmic Dust range. New keys, so ADDED_SECTIONS
@@ -354,6 +354,11 @@ public final class ConfigMigrator {
             new Patch("coin-greed-base-v366", "farming.enchants.TOKEN_GREED.base-cost", 5, 80),
             new Patch("coin-greed-step-v366", "farming.enchants.TOKEN_GREED.cost-step", 0.0000000102716, 0.0),
             new Patch("coin-greed-power-v366", "farming.enchants.TOKEN_GREED.cost-power", 3.0, 1.0),
+            // V367: Momentum the same way, from 1,000 and exponential.
+            new Patch("momentum-base-v367", "farming.enchants.MOMENTUM.base-cost", 1324, 1000),
+            new Patch("momentum-linear-v367", "farming.enchants.MOMENTUM.cost-linear", 222.63589587466222, 0.0),
+            new Patch("momentum-step-v367", "farming.enchants.MOMENTUM.cost-step", 0.61653228581778, 0.0),
+            new Patch("momentum-power-v367", "farming.enchants.MOMENTUM.cost-power", 2.25, 1.0),
             // V354: the first prestige asks thirteen levels rather than
             // ten, which is Leon's "make the first ones a bit harder".
             // The late ones are made easier by the two caps above, not

@@ -470,10 +470,16 @@ farming:
     MOMENTUM:
       display: "Momentum"
       icon: POWERED_RAIL
-      base-cost: 1324
-      cost-linear: 222.63589587466222
-      cost-step: 0.61653228581778
-      cost-power: 2.25
+      # V367, Leon: a lot cheaper, starting at 1,000 and exponential.
+      # Every level 0.05% dearer than the last, like Coin Greed: level 1
+      # is 1,000 Coins, level 5,000 is 12,169 and the last of the base
+      # cap 148,154; about 294 million for all 10,000, where the old
+      # curve wanted about 2 trillion.
+      base-cost: 1000
+      cost-growth: 1.0005
+      cost-linear: 0.0
+      cost-step: 0.0
+      cost-power: 1.0
       description: "An unbroken run of harvests builds a multiplier."
       color: "&2"
       max-level: 20000
