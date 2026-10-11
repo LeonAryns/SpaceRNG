@@ -256,7 +256,14 @@ public class ArmorManager {
             inv.setItem(slot, item);
             player.sendMessage(ChatColor.GREEN + "Equipped " + ChatColor.AQUA + tier.pieceDisplay(piece));
             if (empty) return;
-            item = worn;
+            // V375, Leon: the piece it replaced goes straight to /stash,
+            // not the bag, and says so.
+            plugin.getPlayerDataManager().get(player.getUniqueId()).getStash().add(worn);
+            String old = worn.hasItemMeta() && worn.getItemMeta().hasDisplayName()
+                    ? worn.getItemMeta().getDisplayName() : ChatColor.AQUA + wornTier.pieceDisplay(piece);
+            player.sendMessage(ChatColor.GRAY + "Your old " + old + ChatColor.GRAY + " went to "
+                    + ChatColor.GOLD + "/stash" + ChatColor.GRAY + ".");
+            return;
         }
 
         Stash.give(plugin, player, item);

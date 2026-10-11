@@ -116,6 +116,8 @@ public final class ConfigMigrator {
             "pets.eggs.animation", "pets.eggs.open-head", "holograms.pet-eggs",
             // V365: the additive index completion ladder. New keys.
             "index.completion.bonus",
+            // V375: the exponential price, for the enchants that had none.
+            "farming.enchants.SHARD_GREED.cost-growth", "farming.enchants.KEY_FINDER.cost-growth", "farming.enchants.BLAST_HARVEST.cost-growth", "farming.enchants.POTION_FINDER.cost-growth", "farming.enchants.LIGHTNING.cost-growth", "farming.enchants.NOVA_FINDER.cost-growth", "farming.enchants.COIN_FACTORY.cost-growth", "farming.enchants.PROSPECTOR.cost-growth", "farming.enchants.GEM_RUSH.cost-growth", "farming.enchants.GEM_CASCADE.cost-growth", "farming.enchants.COIN_STORM.cost-growth", "farming.enchants.METEOR.cost-growth", "farming.enchants.GAMBA.cost-growth", "farming.enchants.BLACK_HOLE.cost-growth", "farming.enchants.NUKE.cost-growth", "farming.enchants.SUPERNOVA.cost-growth",
             // V373: the ordered completion ladders. New keys.
             "index.completion.ladder", "index.completion.shiny-ladder",
             // V366: Coin Greed's exponential price. A new key, so it cannot
@@ -903,7 +905,78 @@ public final class ConfigMigrator {
                     List.of("LEGENDARY", "MYTHICAL", "DIVINE", "ASTRAL")),
             // V371, Leon: the floating pet egg was still too big and hid
             // the bottom of its own text.
-            new Patch("pet-egg-scale-v371", "holograms.pet-egg-scale", 1.2, 0.7));
+            new Patch("pet-egg-scale-v371", "holograms.pet-egg-scale", 1.2, 0.7),
+            // V375, Leon: every enchant on one gentle exponential, 0.02% a
+            // level, the last level 50x the first. Each part of a curve is
+            // its own patch, so a number Leon tuned by hand stays his.
+            new Patch("curve-v375-base-TOKEN_GREED", "farming.enchants.TOKEN_GREED.base-cost", 80, 760),
+            new Patch("curve-v375-growth-TOKEN_GREED", "farming.enchants.TOKEN_GREED.cost-growth", 1.0005, 1.0001956),
+            new Patch("curve-v375-base-MOMENTUM", "farming.enchants.MOMENTUM.base-cost", 1000, 9500),
+            new Patch("curve-v375-growth-MOMENTUM", "farming.enchants.MOMENTUM.cost-growth", 1.0005, 1.0001956),
+            new Patch("curve-v375-base-SHARD_GREED", "farming.enchants.SHARD_GREED.base-cost", 738, 15200),
+            new Patch("curve-v375-cost-linear-SHARD_GREED", "farming.enchants.SHARD_GREED.cost-linear", 124.12702702702701, 0.0),
+            new Patch("curve-v375-cost-step-SHARD_GREED", "farming.enchants.SHARD_GREED.cost-step", 0.34373808525885, 0.0),
+            new Patch("curve-v375-cost-power-SHARD_GREED", "farming.enchants.SHARD_GREED.cost-power", 2.25, 1.0),
+            new Patch("curve-v375-base-KEY_FINDER", "farming.enchants.KEY_FINDER.base-cost", 897, 16700),
+            new Patch("curve-v375-cost-linear-KEY_FINDER", "farming.enchants.KEY_FINDER.cost-linear", 150.81433783783783, 0.0),
+            new Patch("curve-v375-cost-step-KEY_FINDER", "farming.enchants.KEY_FINDER.cost-step", 0.41764078210276, 0.0),
+            new Patch("curve-v375-cost-power-KEY_FINDER", "farming.enchants.KEY_FINDER.cost-power", 2.25, 1.0),
+            new Patch("curve-v375-base-BLAST_HARVEST", "farming.enchants.BLAST_HARVEST.base-cost", 1090, 33000),
+            new Patch("curve-v375-cost-linear-BLAST_HARVEST", "farming.enchants.BLAST_HARVEST.cost-linear", 183.239420472973, 0.0),
+            new Patch("curve-v375-cost-step-BLAST_HARVEST", "farming.enchants.BLAST_HARVEST.cost-step", 0.5074331146016, 0.0),
+            new Patch("curve-v375-cost-power-BLAST_HARVEST", "farming.enchants.BLAST_HARVEST.cost-power", 2.25, 1.0),
+            new Patch("curve-v375-base-POTION_FINDER", "farming.enchants.POTION_FINDER.base-cost", 1609, 67000),
+            new Patch("curve-v375-cost-linear-POTION_FINDER", "farming.enchants.POTION_FINDER.cost-linear", 270.50261348771465, 0.0),
+            new Patch("curve-v375-cost-step-POTION_FINDER", "farming.enchants.POTION_FINDER.cost-step", 0.74908570573681, 0.0),
+            new Patch("curve-v375-cost-power-POTION_FINDER", "farming.enchants.POTION_FINDER.cost-power", 2.25, 1.0),
+            new Patch("curve-v375-base-LIGHTNING", "farming.enchants.LIGHTNING.base-cost", 1954, 130000),
+            new Patch("curve-v375-cost-linear-LIGHTNING", "farming.enchants.LIGHTNING.cost-linear", 328.66067538757324, 0.0),
+            new Patch("curve-v375-cost-step-LIGHTNING", "farming.enchants.LIGHTNING.cost-step", 0.91014194168264, 0.0),
+            new Patch("curve-v375-cost-power-LIGHTNING", "farming.enchants.LIGHTNING.cost-power", 2.25, 1.0),
+            new Patch("curve-v375-base-NOVA_FINDER", "farming.enchants.NOVA_FINDER.base-cost", 2375, 270000),
+            new Patch("curve-v375-cost-linear-NOVA_FINDER", "farming.enchants.NOVA_FINDER.cost-linear", 399.3227205959015, 0.0),
+            new Patch("curve-v375-cost-step-NOVA_FINDER", "farming.enchants.NOVA_FINDER.cost-step", 1.10581978513473, 0.0),
+            new Patch("curve-v375-cost-power-NOVA_FINDER", "farming.enchants.NOVA_FINDER.cost-power", 2.25, 1.0),
+            new Patch("curve-v375-base-COIN_FACTORY", "farming.enchants.COIN_FACTORY.base-cost", 2885, 530000),
+            new Patch("curve-v375-cost-linear-COIN_FACTORY", "farming.enchants.COIN_FACTORY.cost-linear", 485.1771055240205, 0.0),
+            new Patch("curve-v375-cost-step-COIN_FACTORY", "farming.enchants.COIN_FACTORY.cost-step", 1.34357291675449, 0.0),
+            new Patch("curve-v375-cost-power-COIN_FACTORY", "farming.enchants.COIN_FACTORY.cost-power", 2.25, 1.0),
+            new Patch("curve-v375-base-PROSPECTOR", "farming.enchants.PROSPECTOR.base-cost", 3505, 1100000),
+            new Patch("curve-v375-cost-linear-PROSPECTOR", "farming.enchants.PROSPECTOR.cost-linear", 589.4901832116849, 0.0),
+            new Patch("curve-v375-cost-step-PROSPECTOR", "farming.enchants.PROSPECTOR.cost-step", 1.63244192009564, 0.0),
+            new Patch("curve-v375-cost-power-PROSPECTOR", "farming.enchants.PROSPECTOR.cost-power", 2.25, 1.0),
+            new Patch("curve-v375-base-GEM_RUSH", "farming.enchants.GEM_RUSH.base-cost", 5175, 2100000),
+            new Patch("curve-v375-cost-linear-GEM_RUSH", "farming.enchants.GEM_RUSH.cost-linear", 870.2201457116696, 0.0),
+            new Patch("curve-v375-cost-step-GEM_RUSH", "farming.enchants.GEM_RUSH.cost-step", 2.40984907562264, 0.0),
+            new Patch("curve-v375-cost-power-GEM_RUSH", "farming.enchants.GEM_RUSH.cost-power", 2.25, 1.0),
+            new Patch("curve-v375-base-GEM_CASCADE", "farming.enchants.GEM_CASCADE.base-cost", 9281, 4300000),
+            new Patch("curve-v375-cost-linear-GEM_CASCADE", "farming.enchants.GEM_CASCADE.cost-linear", 1560.8384925428998, 0.0),
+            new Patch("curve-v375-cost-step-GEM_CASCADE", "farming.enchants.GEM_CASCADE.cost-step", 4.32234038569148, 0.0),
+            new Patch("curve-v375-cost-power-GEM_CASCADE", "farming.enchants.GEM_CASCADE.cost-power", 2.25, 1.0),
+            new Patch("curve-v375-base-COIN_STORM", "farming.enchants.COIN_STORM.base-cost", 11277, 8600000),
+            new Patch("curve-v375-cost-linear-COIN_STORM", "farming.enchants.COIN_STORM.cost-linear", 1896.4187684396231, 0.0),
+            new Patch("curve-v375-cost-step-COIN_STORM", "farming.enchants.COIN_STORM.cost-step", 5.25164181097958, 0.0),
+            new Patch("curve-v375-cost-power-COIN_STORM", "farming.enchants.COIN_STORM.cost-power", 2.25, 1.0),
+            new Patch("curve-v375-base-METEOR", "farming.enchants.METEOR.base-cost", 13701, 17000000),
+            new Patch("curve-v375-cost-linear-METEOR", "farming.enchants.METEOR.cost-linear", 2304.1488036541423, 0.0),
+            new Patch("curve-v375-cost-step-METEOR", "farming.enchants.METEOR.cost-step", 6.3807464678406, 0.0),
+            new Patch("curve-v375-cost-power-METEOR", "farming.enchants.METEOR.cost-power", 2.25, 1.0),
+            new Patch("curve-v375-base-GAMBA", "farming.enchants.GAMBA.base-cost", 20226, 34000000),
+            new Patch("curve-v375-cost-linear-GAMBA", "farming.enchants.GAMBA.cost-linear", 3401.4420676743375, 0.0),
+            new Patch("curve-v375-cost-step-GAMBA", "farming.enchants.GAMBA.cost-step", 9.41941672957599, 0.0),
+            new Patch("curve-v375-cost-power-GAMBA", "farming.enchants.GAMBA.cost-power", 2.25, 1.0),
+            new Patch("curve-v375-base-BLACK_HOLE", "farming.enchants.BLACK_HOLE.base-cost", 24575, 68000000),
+            new Patch("curve-v375-cost-linear-BLACK_HOLE", "farming.enchants.BLACK_HOLE.cost-linear", 4132.75211222432, 0.0),
+            new Patch("curve-v375-cost-step-BLACK_HOLE", "farming.enchants.BLACK_HOLE.cost-step", 11.44459009458767, 0.0),
+            new Patch("curve-v375-cost-power-BLACK_HOLE", "farming.enchants.BLACK_HOLE.cost-power", 2.25, 1.0),
+            new Patch("curve-v375-base-NUKE", "farming.enchants.NUKE.base-cost", 29859, 140000000),
+            new Patch("curve-v375-cost-linear-NUKE", "farming.enchants.NUKE.cost-linear", 5021.29381635255, 0.0),
+            new Patch("curve-v375-cost-step-NUKE", "farming.enchants.NUKE.cost-step", 13.90517583823455, 0.0),
+            new Patch("curve-v375-cost-power-NUKE", "farming.enchants.NUKE.cost-power", 2.25, 1.0),
+            new Patch("curve-v375-base-SUPERNOVA", "farming.enchants.SUPERNOVA.base-cost", 36278, 270000000),
+            new Patch("curve-v375-cost-linear-SUPERNOVA", "farming.enchants.SUPERNOVA.cost-linear", 6100.8719868683465, 0.0),
+            new Patch("curve-v375-cost-step-SUPERNOVA", "farming.enchants.SUPERNOVA.cost-step", 16.89479070154108, 0.0),
+            new Patch("curve-v375-cost-power-SUPERNOVA", "farming.enchants.SUPERNOVA.cost-power", 2.25, 1.0));
 
     // V159: every hoe enchant runs to level 10,000, except Credit Finder,
     // which stays at 1,000 because it pays Credits.
@@ -1487,6 +1560,25 @@ public final class ConfigMigrator {
                 plugin.getLogger().info("Config patch tier-gaps-v374: Rare, Epic and Mythical respaced");
             }
             applied.add("tier-gaps-v374");
+            changed = true;
+        }
+        // V375, Leon: the Farm Crate's Gems reward is 5,000, from 50. Only
+        // the entry that still reads 50 moves.
+        if (!applied.contains("farm-crate-gems-v375")) {
+            List<Map<?, ?>> rewards = disk.getMapList("crates.types.farm.rewards");
+            boolean moved = false;
+            for (Map<?, ?> entry : rewards) {
+                if (!(entry.get("gems") instanceof Number gems) || gems.longValue() != 50L) continue;
+                @SuppressWarnings("unchecked")
+                Map<Object, Object> editable = (Map<Object, Object>) entry;
+                editable.put("gems", 5000);
+                moved = true;
+            }
+            if (moved) {
+                disk.set("crates.types.farm.rewards", rewards);
+                plugin.getLogger().info("Config patch farm-crate-gems-v375: Farm Crate pays 5,000 Gems");
+            }
+            applied.add("farm-crate-gems-v375");
             changed = true;
         }
         // V319: the new top-tier drops. Leon asked for at least ten Divine

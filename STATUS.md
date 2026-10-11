@@ -5,8 +5,27 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V374**, 11 October 2026. The newest section is the
+Last updated at **V375**, 11 October 2026. The newest section is the
 first one below; older sections further down are history.
+
+## V375, 11 October 2026 (untested in game)
+
+- Every hoe enchant (not Speed, not Credit Finder) on one curve:
+  base-cost x 1.0001956^level, so each level 0.02% dearer and the last
+  level (20,000) 50x the first. Coin Greed 760 a level at the start,
+  23.6m to 10,000 (same total as V366). Momentum 9,500, 295m to 10,000
+  (same total as V367). Gem Greed 20x Coin Greed (15,200), Key Finder
+  16,700, Blast Harvest 2x that, then 2x per enchant in tree order up to
+  Supernova at 270m a level. Patches `curve-v375-*` per number, so a
+  hand-tuned value stays. Credit Finder untouched (it pays Credits).
+  Momentum (9,500) is cheaper than Gem Greed although it comes after it.
+- Bought armor that replaces a worn piece sends the old one to /stash
+  with a chat line.
+- Farm Crate Gems reward 5,000 (was 50).
+- Waiting on Leon: wheat 1 Gem a crop, and a new "unlock Gem earnings"
+  node where Gem Harvest is with Gem Harvest two nodes further. Gem
+  Harvest IS the Gem earnings unlock today, so what the moved one does
+  is unclear.
 
 ## V374, 11 October 2026 (untested in game)
 

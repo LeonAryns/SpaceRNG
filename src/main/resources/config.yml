@@ -454,8 +454,11 @@ farming:
       # for all 10,000. Simulated on Wheat at 100 Coins a crop with every
       # Coin going into Coin Greed: full after about 28,000 crops.
       # (V364's cubic curve put the first 2,000 levels at 51,000 Coins.)
-      base-cost: 80
-      cost-growth: 1.0005
+      # V375, Leon: gradual and only a little exponential. Every level
+      # 0.02% dearer, the last level 50x the first: 760, 5,372 at 10,000, 37,977
+      # at 20,000. 23,583,445 Coins to 10,000, 190,309,776 to 20,000.
+      base-cost: 760
+      cost-growth: 1.0001956
       cost-linear: 0.0
       cost-step: 0.0
       cost-power: 1.0
@@ -475,8 +478,11 @@ farming:
       # is 1,000 Coins, level 5,000 is 12,169 and the last of the base
       # cap 148,154; about 294 million for all 10,000, where the old
       # curve wanted about 2 trillion.
-      base-cost: 1000
-      cost-growth: 1.0005
+      # V375, Leon: gradual and only a little exponential. Every level
+      # 0.02% dearer, the last level 50x the first: 9,500, 67,148 at 10,000, 474,715
+      # at 20,000. 294,793,068 Coins to 10,000, 2,378,872,205 to 20,000.
+      base-cost: 9500
+      cost-growth: 1.0001956
       cost-linear: 0.0
       cost-step: 0.0
       cost-power: 1.0
@@ -495,10 +501,14 @@ farming:
       display: "Gem Greed"
       coming-soon: true
       icon: PRISMARINE_CRYSTALS
-      base-cost: 738
-      cost-linear: 124.12702702702701
-      cost-step: 0.34373808525885
-      cost-power: 2.25
+      # V375, Leon: gradual and only a little exponential. Every level
+      # 0.02% dearer, the last level 50x the first: 15,200, 107,437 at 10,000, 759,543
+      # at 20,000. 471,668,909 Coins to 10,000, 3,806,195,527 to 20,000.
+      base-cost: 15200
+      cost-growth: 1.0001956
+      cost-linear: 0.0
+      cost-step: 0.0
+      cost-power: 1.0
       description: "A chance at a bonus Gem."
       color: "&b"
       max-level: 20000
@@ -511,10 +521,14 @@ farming:
     KEY_FINDER:
       display: "Key Finder"
       icon: TRIPWIRE_HOOK
-      base-cost: 897
-      cost-linear: 150.81433783783783
-      cost-step: 0.41764078210276
-      cost-power: 2.25
+      # V375, Leon: gradual and only a little exponential. Every level
+      # 0.02% dearer, the last level 50x the first: 16,700, 118,040 at 10,000, 834,498
+      # at 20,000. 518,215,183 Coins to 10,000, 4,181,806,928 to 20,000.
+      base-cost: 16700
+      cost-growth: 1.0001956
+      cost-linear: 0.0
+      cost-step: 0.0
+      cost-power: 1.0
       description: "A chance to turn up a crate key."
       color: "&6"
       max-level: 20000
@@ -527,10 +541,14 @@ farming:
     BLAST_HARVEST:
       display: "TNT Blast"
       icon: TNT
-      base-cost: 1090
-      cost-linear: 183.23942047297299
-      cost-step: 0.5074331146016
-      cost-power: 2.25
+      # V375, Leon: gradual and only a little exponential. Every level
+      # 0.02% dearer, the last level 50x the first: 33,000, 233,252 at 10,000, 1,649,008
+      # at 20,000. 1,024,018,027 Coins to 10,000, 8,263,450,816 to 20,000.
+      base-cost: 33000
+      cost-growth: 1.0001956
+      cost-linear: 0.0
+      cost-step: 0.0
+      cost-power: 1.0
       description: "A chance to blow the neighbouring crops out too."
       color: "&c"
       max-level: 20000
@@ -544,10 +562,14 @@ farming:
     POTION_FINDER:
       display: "Potion Finder"
       icon: BREWING_STAND
-      base-cost: 1609
-      cost-linear: 270.50261348771465
-      cost-step: 0.74908570573681
-      cost-power: 2.25
+      # V375, Leon: gradual and only a little exponential. Every level
+      # 0.02% dearer, the last level 50x the first: 67,000, 473,573 at 10,000, 3,347,987
+      # at 20,000. 2,079,066,904 Coins to 10,000, 16,777,309,232 to 20,000.
+      base-cost: 67000
+      cost-growth: 1.0001956
+      cost-linear: 0.0
+      cost-step: 0.0
+      cost-power: 1.0
       description: "A chance to dig up a potion."
       color: "&d"
       max-level: 20000
@@ -560,10 +582,14 @@ farming:
     LIGHTNING:
       display: "Lightning"
       icon: LIGHTNING_ROD
-      base-cost: 1954
-      cost-linear: 328.66067538757324
-      cost-step: 0.91014194168264
-      cost-power: 2.25
+      # V375, Leon: gradual and only a little exponential. Every level
+      # 0.02% dearer, the last level 50x the first: 130,000, 918,873 at 10,000, 6,496,094
+      # at 20,000. 4,034,010,410 Coins to 10,000, 32,552,988,062 to 20,000.
+      base-cost: 130000
+      cost-growth: 1.0001956
+      cost-linear: 0.0
+      cost-step: 0.0
+      cost-power: 1.0
       description: "A chance to call bolts down on nearby crops."
       color: "&e"
       max-level: 20000
@@ -576,10 +602,14 @@ farming:
     NOVA_FINDER:
       display: "Nova Finder"
       icon: HEART_OF_THE_SEA
-      base-cost: 2375
-      cost-linear: 399.3227205959015
-      cost-step: 1.10581978513473
-      cost-power: 2.25
+      # V375, Leon: gradual and only a little exponential. Every level
+      # 0.02% dearer, the last level 50x the first: 270,000, 1,908,428 at 10,000, 13,491,887
+      # at 20,000. 8,378,329,313 Coins to 10,000, 67,610,052,130 to 20,000.
+      base-cost: 270000
+      cost-growth: 1.0001956
+      cost-linear: 0.0
+      cost-step: 0.0
+      cost-power: 1.0
       description: "A chance to find a Nova Core while farming."
       color: "&b"
       max-level: 20000
@@ -598,10 +628,14 @@ farming:
     NUKE:
       display: "Nuke"
       icon: FIRE_CHARGE
-      base-cost: 29859
-      cost-linear: 5021.29381635254958
-      cost-step: 13.90517583823455
-      cost-power: 2.25
+      # V375, Leon: gradual and only a little exponential. Every level
+      # 0.02% dearer, the last level 50x the first: 140,000,000, 989,555,220 at 10,000, 6,995,793,354
+      # at 20,000. 4,344,318,903,000 Coins to 10,000, 35,057,064,067,272 to 20,000.
+      base-cost: 140000000
+      cost-growth: 1.0001956
+      cost-linear: 0.0
+      cost-step: 0.0
+      cost-power: 1.0
       description: "A rare chance to level the whole field at once."
       color: "&4"
       max-level: 20000
@@ -614,10 +648,14 @@ farming:
     COIN_FACTORY:
       display: "Coin Factory"
       icon: HOPPER
-      base-cost: 2885
-      cost-linear: 485.17710552402048
-      cost-step: 1.34357291675449
-      cost-power: 2.25
+      # V375, Leon: gradual and only a little exponential. Every level
+      # 0.02% dearer, the last level 50x the first: 530,000, 3,746,173 at 10,000, 26,484,075
+      # at 20,000. 16,446,350,133 Coins to 10,000, 132,716,028,255 to 20,000.
+      base-cost: 530000
+      cost-growth: 1.0001956
+      cost-linear: 0.0
+      cost-step: 0.0
+      cost-power: 1.0
       description: "A chance to be paid your last minute of Coins again."
       color: "&6"
       max-level: 20000
@@ -645,10 +683,14 @@ farming:
     GAMBA:
       display: "Gamba"
       icon: SUNFLOWER
-      base-cost: 20226
-      cost-linear: 3401.44206767433752
-      cost-step: 9.41941672957599
-      cost-power: 2.25
+      # V375, Leon: gradual and only a little exponential. Every level
+      # 0.02% dearer, the last level 50x the first: 34,000,000, 240,320,554 at 10,000, 1,698,978,386
+      # at 20,000. 1,055,048,876,443 Coins to 10,000, 8,513,858,416,338 to 20,000.
+      base-cost: 34000000
+      cost-growth: 1.0001956
+      cost-linear: 0.0
+      cost-step: 0.0
+      cost-power: 1.0
       description: "A chance at 3x Coins, Gems or procs. You do not pick."
       color: "&6"
       max-level: 20000
@@ -665,10 +707,14 @@ farming:
     PROSPECTOR:
       display: "Prospector"
       icon: RAW_GOLD
-      base-cost: 3505
-      cost-linear: 589.49018321168489
-      cost-step: 1.63244192009564
-      cost-power: 2.25
+      # V375, Leon: gradual and only a little exponential. Every level
+      # 0.02% dearer, the last level 50x the first: 1,100,000, 7,775,077 at 10,000, 54,966,948
+      # at 20,000. 34,133,934,238 Coins to 10,000, 275,448,360,529 to 20,000.
+      base-cost: 1100000
+      cost-growth: 1.0001956
+      cost-linear: 0.0
+      cost-step: 0.0
+      cost-power: 1.0
       description: "A chance at Gems worth a slice of the crop."
       color: "&b"
       max-level: 20000
@@ -682,10 +728,14 @@ farming:
       display: "Gem Rush"
       coming-soon: true
       icon: AMETHYST_CLUSTER
-      base-cost: 5175
-      cost-linear: 870.2201457116696
-      cost-step: 2.40984907562264
-      cost-power: 2.25
+      # V375, Leon: gradual and only a little exponential. Every level
+      # 0.02% dearer, the last level 50x the first: 2,100,000, 14,843,328 at 10,000, 104,936,900
+      # at 20,000. 65,164,783,545 Coins to 10,000, 525,855,961,009 to 20,000.
+      base-cost: 2100000
+      cost-growth: 1.0001956
+      cost-linear: 0.0
+      cost-step: 0.0
+      cost-power: 1.0
       description: "A chance to triple every Gem for a while."
       color: "&b"
       max-level: 20000
@@ -699,10 +749,14 @@ farming:
       display: "Gem Cascade"
       coming-soon: true
       icon: PRISMARINE_SHARD
-      base-cost: 9281
-      cost-linear: 1560.83849254289976
-      cost-step: 4.32234038569148
-      cost-power: 2.25
+      # V375, Leon: gradual and only a little exponential. Every level
+      # 0.02% dearer, the last level 50x the first: 4,300,000, 30,393,482 at 10,000, 214,870,796
+      # at 20,000. 133,432,652,021 Coins to 10,000, 1,076,752,682,066 to 20,000.
+      base-cost: 4300000
+      cost-growth: 1.0001956
+      cost-linear: 0.0
+      cost-step: 0.0
+      cost-power: 1.0
       description: "A chance to chain Gems from crop to crop."
       color: "&b"
       max-level: 20000
@@ -715,10 +769,14 @@ farming:
     COIN_STORM:
       display: "Coin Storm"
       icon: GOLD_BLOCK
-      base-cost: 11277
-      cost-linear: 1896.41876843962314
-      cost-step: 5.25164181097958
-      cost-power: 2.25
+      # V375, Leon: gradual and only a little exponential. Every level
+      # 0.02% dearer, the last level 50x the first: 8,600,000, 60,786,964 at 10,000, 429,741,592
+      # at 20,000. 266,865,304,041 Coins to 10,000, 2,153,505,364,132 to 20,000.
+      base-cost: 8600000
+      cost-growth: 1.0001956
+      cost-linear: 0.0
+      cost-step: 0.0
+      cost-power: 1.0
       description: "A chance at a downpour of Coins."
       color: "&6"
       max-level: 20000
@@ -731,10 +789,14 @@ farming:
     METEOR:
       display: "Meteor"
       icon: MAGMA_CREAM
-      base-cost: 13701
-      cost-linear: 2304.14880365414228
-      cost-step: 6.3807464678406
-      cost-power: 2.25
+      # V375, Leon: gradual and only a little exponential. Every level
+      # 0.02% dearer, the last level 50x the first: 17,000,000, 120,160,277 at 10,000, 849,489,193
+      # at 20,000. 527,524,438,221 Coins to 10,000, 4,256,929,208,169 to 20,000.
+      base-cost: 17000000
+      cost-growth: 1.0001956
+      cost-linear: 0.0
+      cost-step: 0.0
+      cost-power: 1.0
       description: "A chance to call a meteor down on the field."
       color: "&c"
       max-level: 20000
@@ -747,10 +809,14 @@ farming:
     BLACK_HOLE:
       display: "Black Hole"
       icon: ENDER_EYE
-      base-cost: 24575
-      cost-linear: 4132.75211222431972
-      cost-step: 11.44459009458767
-      cost-power: 2.25
+      # V375, Leon: gradual and only a little exponential. Every level
+      # 0.02% dearer, the last level 50x the first: 68,000,000, 480,641,107 at 10,000, 3,397,956,772
+      # at 20,000. 2,110,097,752,886 Coins to 10,000, 17,027,716,832,675 to 20,000.
+      base-cost: 68000000
+      cost-growth: 1.0001956
+      cost-linear: 0.0
+      cost-step: 0.0
+      cost-power: 1.0
       description: "A chance to swallow the field whole."
       color: "&5"
       max-level: 20000
@@ -763,10 +829,14 @@ farming:
     SUPERNOVA:
       display: "Supernova"
       icon: NETHER_STAR
-      base-cost: 36278
-      cost-linear: 6100.87198686834654
-      cost-step: 16.89479070154108
-      cost-power: 2.25
+      # V375, Leon: gradual and only a little exponential. Every level
+      # 0.02% dearer, the last level 50x the first: 270,000,000, 1,908,427,925 at 10,000, 13,491,887,183
+      # at 20,000. 8,378,329,312,929 Coins to 10,000, 67,610,052,129,740 to 20,000.
+      base-cost: 270000000
+      cost-growth: 1.0001956
+      cost-linear: 0.0
+      cost-step: 0.0
+      cost-power: 1.0
       description: "Nova Finder, several times over, and a fortune with it."
       color: "&6"
       max-level: 20000
@@ -4125,7 +4195,8 @@ crates:
       jackpot-below: 0.03
       rewards:
         - { weight: 30, coins: 25000 }
-        - { weight: 18, gems: 50 }
+        # V375, Leon: 5,000 Gems (was 50).
+        - { weight: 18, gems: 5000 }
         - { weight: 14, money: 50000 }
         - { weight: 12, coins: 100000 }
         - { weight: 10, consumable: coin_potion }
