@@ -266,6 +266,37 @@ public final class HoloManager {
         return null;
     }
 
+    /** The pet egg nearest to a spot within range, or null (V381, where an opening plays). */
+    public Spot nearestEgg(Location from, double range) {
+        Spot best = null;
+        double bestSq = range * range;
+        for (Spot spot : spots.values()) {
+            if (spot.kind() != Kind.EGG || spot.at().getWorld() == null) continue;
+            if (!spot.at().getWorld().equals(from.getWorld())) continue;
+            double d = spot.at().distanceSquared(from);
+            if (d <= bestSq) {
+                bestSq = d;
+                best = spot;
+            }
+        }
+        return best;
+    }
+
+    /**
+     * Hides or shows the words over one spot for one player (V381): an
+     * egg opening plays where the egg's text floats, so the text steps
+     * aside for the opener while it runs. The model stays.
+     */
+    public void setTextHidden(String spotId, org.bukkit.entity.Player player, boolean hidden) {
+        List<Display> pieces = drawn.get(spotId);
+        if (pieces == null) return;
+        for (Display piece : pieces) {
+            if (!(piece instanceof TextDisplay) || !piece.isValid()) continue;
+            if (hidden) player.hideEntity(plugin, piece);
+            else player.showEntity(plugin, piece);
+        }
+    }
+
     /** Removes the pet egg standing on this block, and its barrier. */
     public boolean removeEgg(Block block) {
         String found = null;

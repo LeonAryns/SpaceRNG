@@ -66,10 +66,23 @@ public record PetInstance(String typeId, int level, boolean shiny, int copies, S
         return Math.max(0, copies - 1);
     }
 
+    /**
+     * The stats a pet can point at (V381, Leon): its multiplier is the
+     * same whichever one it pays.
+     */
+    public static final java.util.List<StatSources.Id> CHOICES = java.util.List.of(
+            StatSources.Id.LUCK, StatSources.Id.MONEY, StatSources.Id.SPEED,
+            StatSources.Id.COINS, StatSources.Id.GEMS);
+
+    /** A stat outside {@link #CHOICES} (Enchant Proc, Shiny) pays Luck instead. */
+    public static StatSources.Id allowed(StatSources.Id stat) {
+        return stat != null && CHOICES.contains(stat) ? stat : StatSources.Id.LUCK;
+    }
+
     /** Which stat this copy pays, falling back to the type's own. */
     public StatSources.Id statOr(PetType type) {
-        if (stat != null) return stat;
-        return type == null ? StatSources.Id.LUCK : type.stat();
+        if (stat != null) return allowed(stat);
+        return type == null ? StatSources.Id.LUCK : allowed(type.stat());
     }
 
     /**

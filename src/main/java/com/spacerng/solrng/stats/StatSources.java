@@ -41,7 +41,9 @@ public final class StatSources {
     }
 
     public enum Id {
-        LUCK, SPEED, MONEY, COINS, ENCHANT, SHINY
+        LUCK, SPEED, MONEY, COINS, ENCHANT, SHINY,
+        /** V381: only pets point at Gems; the farm reads it in FarmPlotManager. */
+        GEMS
     }
 
     /**

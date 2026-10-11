@@ -600,10 +600,24 @@ final class PlayerMenuClicks {
             return;
         }
 
+        boolean show = !com.spacerng.solrng.platform.Bedrock.is(player)
+                && data.isPetEggAnimation()
+                && plugin.getConfig().getBoolean("pets.eggs.animation", true);
+        boolean auto = data.isPetAutoOpen() && plugin.getLinkedAccountManager().isLinked(player.getUniqueId());
+        // V381, Leon: with the animation on, auto open plays the batch,
+        // then opens the next one by itself, until Gems or room run out
+        // or the player sneaks.
+        if (auto && show) {
+            player.closeInventory();
+            player.sendMessage(ChatColor.GREEN + "Auto open is running. " + ChatColor.GRAY + "Sneak to stop.");
+            autoBatch(player, data, holder.eggId(), count, true);
+            return;
+        }
+
         // Auto open turns the button into "keep going": the number on it
         // is the batch, and it repeats while there is anything to spend.
         int wanted = count;
-        if (data.isPetAutoOpen() && plugin.getLinkedAccountManager().isLinked(player.getUniqueId())) {
+        if (auto) {
             long affordable = egg.cost() <= 0 ? 0 : data.getShards() / egg.cost();
             int room = pets.storage() - pets.held(data);
             wanted = (int) Math.max(count, Math.min(affordable, Math.max(0, room)));
@@ -612,14 +626,7 @@ final class PlayerMenuClicks {
 
         var batch = pets.makeMany(data, egg, wanted);
         if (batch.opened() == 0) {
-            player.sendMessage(switch (batch.stop()) {
-                case STORAGE_FULL -> ChatColor.RED + "Your pet storage is full, " + pets.held(data)
-                        + " of " + pets.storage() + ". " + ChatColor.GRAY + "Nothing opens until you make room.";
-                case OUT_OF_GEMS -> ChatColor.RED + "Not enough Gems. " + ChatColor.GRAY + "One "
-                        + ChatColor.stripColor(egg.display()) + " is "
-                        + String.format("%,d", egg.cost()) + ".";
-                default -> ChatColor.RED + "That egg cannot open right now.";
-            });
+            player.sendMessage(nothingOpened(data, egg, batch.stop()));
             player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
             return;
         }
@@ -628,13 +635,11 @@ final class PlayerMenuClicks {
         // pets. The menu closes so the row is in view; the chat lines land
         // on the reveal frame. Bedrock cannot draw the displays and keeps
         // the old instant answer with the menu reopened.
-        boolean show = !com.spacerng.solrng.platform.Bedrock.is(player)
-                && data.isPetEggAnimation()
-                && plugin.getConfig().getBoolean("pets.eggs.animation", true);
         if (show) {
             player.closeInventory();
             com.spacerng.solrng.pet.PetOpenShow.start(plugin, player, batch.made(),
-                    () -> tellOpened(player, data, batch));
+                    () -> tellOpened(player, data, batch),
+                    plugin.getHoloManager().nearestEgg(player.getLocation(), EGG_RANGE), null);
             plugin.getPetManager().refresh(player);
             plugin.getScoreboardManager().update(player);
             return;
@@ -645,6 +650,72 @@ final class PlayerMenuClicks {
         plugin.getPetManager().refresh(player);
         plugin.getScoreboardManager().update(player);
         player.openInventory(com.spacerng.solrng.gui.PetEggGui.build(plugin, player, holder.eggId()));
+    }
+
+    /** How far a world egg may be for an opening to play over it (V381). */
+    private static final double EGG_RANGE = 12.0;
+
+    /** The line for a click that opened nothing. */
+    private String nothingOpened(PlayerData data, com.spacerng.solrng.pet.PetEgg egg,
+                                 com.spacerng.solrng.pet.PetManager.Stop stop) {
+        var pets = plugin.getPetManager();
+        return switch (stop) {
+            case STORAGE_FULL -> ChatColor.RED + "Your pet storage is full, " + pets.held(data)
+                    + " of " + pets.storage() + ". " + ChatColor.GRAY + "Nothing opens until you make room.";
+            case OUT_OF_GEMS -> ChatColor.RED + "Not enough Gems. " + ChatColor.GRAY + "One "
+                    + ChatColor.stripColor(egg.display()) + " is "
+                    + String.format("%,d", egg.cost()) + ".";
+            default -> ChatColor.RED + "That egg cannot open right now.";
+        };
+    }
+
+    /**
+     * One round of auto open with the animation (V381). Each round opens
+     * the batch on the clicked button and plays it over the nearest world
+     * egg; when it has played to its end the next round starts, until
+     * auto open is switched off, the player sneaks, or a batch stops short.
+     * The rounds report on the action bar so chat stays quiet; only the
+     * reason it stopped goes to chat.
+     */
+    private void autoBatch(Player player, PlayerData data, String eggId, int count, boolean first) {
+        if (!player.isOnline()) return;
+        var pets = plugin.getPetManager();
+        var egg = pets.upgrades().egg(eggId);
+        if (egg == null) return;
+        if (!first && (!data.isPetAutoOpen() || player.isSneaking())) {
+            player.sendMessage(ChatColor.GRAY + "Auto open stopped.");
+            return;
+        }
+        var batch = pets.makeMany(data, egg, count);
+        if (batch.opened() == 0) {
+            player.sendMessage(first ? nothingOpened(data, egg, batch.stop())
+                    : ChatColor.GRAY + "Auto open stopped: " + ChatColor.stripColor(nothingOpened(data, egg, batch.stop())));
+            player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
+            return;
+        }
+        com.spacerng.solrng.pet.PetOpenShow.start(plugin, player, batch.made(),
+                () -> {
+                    var best = batch.best();
+                    com.spacerng.solrng.gui.ActionBar.send(player,
+                            net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection()
+                                    .deserialize(ChatColor.GREEN + "Opened " + ChatColor.WHITE + batch.opened()
+                                            + ChatColor.GREEN + ", " + ChatColor.WHITE + batch.fresh()
+                                            + ChatColor.GREEN + " new" + ChatColor.GRAY + "  best "
+                                            + com.spacerng.solrng.gui.Lore.gradient(best.type().display(), true,
+                                                    best.type().stops())),
+                            3000L);
+                },
+                plugin.getHoloManager().nearestEgg(player.getLocation(), EGG_RANGE),
+                () -> {
+                    if (batch.stop() != com.spacerng.solrng.pet.PetManager.Stop.DONE) {
+                        player.sendMessage(ChatColor.GRAY + "Auto open stopped: "
+                                + ChatColor.stripColor(nothingOpened(data, egg, batch.stop())));
+                        return;
+                    }
+                    autoBatch(player, data, eggId, count, false);
+                });
+        pets.refresh(player);
+        plugin.getScoreboardManager().update(player);
     }
 
     /** The chat lines for an opened batch: what came out and why it stopped. */
@@ -690,13 +761,11 @@ final class PlayerMenuClicks {
      */
     private com.spacerng.solrng.stats.StatSources.Id nextStat(PlayerData data,
                                                               com.spacerng.solrng.pet.PetType type) {
-        var values = com.spacerng.solrng.stats.StatSources.Id.values();
+        var values = com.spacerng.solrng.pet.PetInstance.CHOICES;
         var pet = data.getPet(type.id());
-        var current = pet == null ? type.stat() : pet.statOr(type);
-        for (int i = 0; i < values.length; i++) {
-            if (values[i] == current) return values[(i + 1) % values.length];
-        }
-        return values[0];
+        var current = pet == null ? com.spacerng.solrng.pet.PetInstance.allowed(type.stat()) : pet.statOr(type);
+        int at = values.indexOf(current);
+        return values.get((at + 1) % values.size());
     }
 
     /**

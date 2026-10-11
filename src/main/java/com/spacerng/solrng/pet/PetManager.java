@@ -613,7 +613,7 @@ public class PetManager {
     public StatSources.Id statOf(PlayerData data, PetType type) {
         if (type == null) return StatSources.Id.LUCK;
         PetInstance pet = data.getPet(type.id());
-        return pet == null ? type.stat() : pet.statOr(type);
+        return pet == null ? PetInstance.allowed(type.stat()) : pet.statOr(type);
     }
 
     /**
@@ -725,7 +725,7 @@ public class PetManager {
             PetInstance pet = data.getPet(id);
             // V359: the stat is the player's choice, held on the owned
             // copy, so a worn pet pays wherever it has been pointed.
-            if ((pet == null ? type.stat() : pet.statOr(type)) != stat) continue;
+            if ((pet == null ? PetInstance.allowed(type.stat()) : pet.statOr(type)) != stat) continue;
             total += type.bonus() * upgrades.multiplier(pet);
         }
         return total;

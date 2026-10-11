@@ -210,7 +210,7 @@ public class PetUpgradeGui {
         lore.add(Lore.line(ChatColor.GRAY, "Change it as often as you like."));
         lore.add("");
         lore.add(Lore.section(ChatColor.YELLOW, "Pointing at"));
-        for (StatSources.Id stat : StatSources.Id.values()) {
+        for (StatSources.Id stat : PetInstance.CHOICES) {
             if (stat == current) {
                 lore.add(ChatColor.GREEN + Lore.BULLET + " " + ChatColor.WHITE + PetType.statName(stat)
                         + ChatColor.GREEN + "  " + Lore.TICK);

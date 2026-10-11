@@ -74,6 +74,10 @@ public final class PetOpenShow {
     private final Player player;
     private final List<PetManager.Made> shown;
     private final Runnable after;
+    /** V381: runs when the show plays to its end, which is what keeps auto open going. */
+    private final Runnable onEnd;
+    /** V381: the world egg it plays over, or null for in front of the player. */
+    private final com.spacerng.solrng.holo.HoloManager.Spot anchor;
     private final List<Location> spots = new ArrayList<>();
     private final List<ItemDisplay> heads = new ArrayList<>();
     private final List<TextDisplay> names = new ArrayList<>();
@@ -81,10 +85,13 @@ public final class PetOpenShow {
     private int elapsed;
     private boolean revealed;
 
-    private PetOpenShow(SolRNGPlugin plugin, Player player, List<PetManager.Made> made, Runnable after) {
+    private PetOpenShow(SolRNGPlugin plugin, Player player, List<PetManager.Made> made, Runnable after,
+                        com.spacerng.solrng.holo.HoloManager.Spot anchor, Runnable onEnd) {
         this.plugin = plugin;
         this.player = player;
         this.after = after;
+        this.anchor = anchor;
+        this.onEnd = onEnd;
         List<PetManager.Made> pick = new ArrayList<>(made);
         if (pick.size() > MAX_SHOWN) {
             pick.sort(Comparator.comparingInt((PetManager.Made m) -> m.type().rarity().ordinal()).reversed());
@@ -100,13 +107,23 @@ public final class PetOpenShow {
 
     /** Starts one; {@code after} runs on the reveal frame (chat lines). */
     public static void start(SolRNGPlugin plugin, Player player, List<PetManager.Made> made, Runnable after) {
+        start(plugin, player, made, after, null, null);
+    }
+
+    /**
+     * V381: over a world egg when {@code anchor} is set, with the egg's
+     * text hidden for the opener while it plays; {@code onEnd} runs when
+     * it plays to its end (not when it is cut short).
+     */
+    public static void start(SolRNGPlugin plugin, Player player, List<PetManager.Made> made, Runnable after,
+                             com.spacerng.solrng.holo.HoloManager.Spot anchor, Runnable onEnd) {
         PetOpenShow running = RUNNING.remove(player.getUniqueId());
         if (running != null) running.stop();
         if (made.isEmpty()) {
             if (after != null) after.run();
             return;
         }
-        PetOpenShow show = new PetOpenShow(plugin, player, made, after);
+        PetOpenShow show = new PetOpenShow(plugin, player, made, after, anchor, onEnd);
         RUNNING.put(player.getUniqueId(), show);
         show.begin();
     }
@@ -125,12 +142,21 @@ public final class PetOpenShow {
     private void layout() {
         Location eye = player.getEyeLocation();
         Vector forward = eye.getDirection().setY(0);
+        Location base;
+        int n = shown.size();
+        int rows = (n + 2) / 3;
+        if (anchor != null && anchor.at().getWorld() != null) {
+            // V381, Leon: over the egg, the row facing the player. The
+            // lowest row clears the egg model, the others stack upward.
+            forward = anchor.at().toVector().subtract(player.getLocation().toVector()).setY(0);
+            base = anchor.at().clone().add(0, 1.6 + (rows - 1) / 2.0 * SPACING * 0.95, 0);
+        } else {
+            base = null;
+        }
         if (forward.lengthSquared() < 1.0E-4) forward = new Vector(0, 0, 1);
         forward.normalize();
         Vector right = forward.clone().crossProduct(new Vector(0, 1, 0)).normalize();
-        Location base = eye.clone().add(forward.clone().multiply(3.2)).add(0, -0.45, 0);
-        int n = shown.size();
-        int rows = (n + 2) / 3;
+        if (base == null) base = eye.clone().add(forward.clone().multiply(3.2)).add(0, -0.45, 0);
         for (int i = 0; i < n; i++) {
             int row = i / 3;
             int inRow = Math.min(3, n - row * 3);
@@ -147,6 +173,7 @@ public final class PetOpenShow {
 
     private void begin() {
         ItemStack head = head(plugin);
+        if (anchor != null) plugin.getHoloManager().setTextHidden(anchor.id(), player, true);
         for (Location at : spots) {
             heads.add(spawnItem(at, head, true));
         }
@@ -158,7 +185,10 @@ public final class PetOpenShow {
                     return;
                 }
                 frame();
-                if (++elapsed > SHAKE_TICKS + HOLD_TICKS) stop();
+                if (++elapsed > SHAKE_TICKS + HOLD_TICKS) {
+                    stop();
+                    if (onEnd != null && player.isOnline()) onEnd.run();
+                }
             } catch (Throwable t) {
                 plugin.getLogger().warning("Egg opening failed for " + player.getName() + " (" + t + ").");
                 stop();
@@ -313,6 +343,7 @@ public final class PetOpenShow {
         }
         for (Entity e : heads) if (e.isValid()) e.remove();
         for (Entity e : names) if (e.isValid()) e.remove();
+        if (anchor != null && player.isOnline()) plugin.getHoloManager().setTextHidden(anchor.id(), player, false);
         RUNNING.remove(player.getUniqueId(), this);
     }
 

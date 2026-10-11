@@ -5,8 +5,23 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V381**, 11 October 2026. The newest section is the
+Last updated at **V382**, 11 October 2026. The newest section is the
 first one below; older sections further down are history.
+
+## V382, 11 October 2026 (untested in game)
+
+- Auto open with the animation on repeats: the batch plays, then the
+  next opens by itself until Gems or room run out, auto open is off,
+  or the player sneaks. Rounds report on the action bar.
+- The opening plays above the nearest world egg (12 blocks) and that
+  egg's text is hidden for the opener while it runs.
+- Pets point at Luck, Money, Speed, Coins or Gems (new). Pets still on
+  Enchant Proc or Shiny, including 20 types that start there, pay Luck.
+- Nova Core forge results go to the action bar, not chat.
+- Nuke is drawn and heard by the farmer only (was a real explosion).
+  All other enchant sounds were already the farmer's alone.
+- Open: Legendary odds. Leon asked why 11 Legendaries make 1 in 24.7k;
+  waiting on his pick: raise each label ~11x, or roll the tier first.
 
 ## V381, 11 October 2026 (untested in game)
 

@@ -383,9 +383,9 @@ public class NovaCoreManager {
                 data.setNovaBestTier(next);
             }
             if (!quiet) {
-                player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD
-                        + "Your Nova Core is now Tier " + next + "! "
-                        + ChatColor.RESET + ChatColor.GRAY + "Nova Core Luck is now "
+                bar(player, ChatColor.GREEN + "" + ChatColor.BOLD
+                        + "Nova Core Tier " + next + "  "
+                        + ChatColor.RESET + ChatColor.GRAY + "Luck "
                         + ChatColor.LIGHT_PURPLE + String.format("%.2f", multiplierAt(next)) + "x"
                         + (isCheckpoint(next) ? ChatColor.AQUA + "  (checkpoint secured)" : ""));
                 NovaForgeFx.climbed(plugin, player, isCheckpoint(next));
@@ -395,7 +395,7 @@ public class NovaCoreManager {
             // Only the fall is cancelled - otherwise the skill would remove
             // the risk instead of softening it.
             if (!quiet) {
-                player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "Anchored! "
+                bar(player, ChatColor.AQUA + "" + ChatColor.BOLD + "Anchored  "
                         + ChatColor.RESET + ChatColor.GRAY + "The climb failed but your Core held at tier "
                         + ChatColor.WHITE + tier);
                 NovaForgeFx.anchored(plugin, player);
@@ -413,7 +413,7 @@ public class NovaCoreManager {
                                 net.kyori.adventure.text.format.NamedTextColor.RED),
                         2000L);
             } else {
-                player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Shattered! "
+                bar(player, ChatColor.RED + "" + ChatColor.BOLD + "Shattered  "
                         + ChatColor.RESET + ChatColor.GRAY + "Back to tier " + ChatColor.WHITE + fallback
                         + ChatColor.DARK_GRAY + " (was " + tier + ")");
                 NovaForgeFx.shattered(plugin, player);
@@ -422,5 +422,15 @@ public class NovaCoreManager {
 
         plugin.getScoreboardManager().update(player);
         return success;
+    }
+
+    /**
+     * A forge result on the action bar (V381, Leon: forging spammed the
+     * chat). Each click replaces the last line instead of stacking up.
+     */
+    private static void bar(Player player, String text) {
+        com.spacerng.solrng.gui.ActionBar.send(player,
+                net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().deserialize(text),
+                2500L);
     }
 }

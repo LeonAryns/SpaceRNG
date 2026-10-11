@@ -62,6 +62,7 @@ public record PetType(String id, String display, List<String> colors, Material i
             case COINS -> "Coins";
             case ENCHANT -> "Enchant Proc";
             case SHINY -> "Shiny Boost";
+            case GEMS -> "Gems";
         };
     }
 

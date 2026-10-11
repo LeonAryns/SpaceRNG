@@ -788,7 +788,9 @@ public class FarmPlotManager {
         double gemMultiplier = plugin.getSkillTreeManager()
                 .multiplierOf(data, com.spacerng.solrng.player.SkillNode.Effect.GEM_MULTIPLIER)
                 * (1.0 + hoe.powerOf(data, "SHARD_GREED"))
-                * gemFortune * perkYield * data.boostMultiplier("GEMS");
+                * gemFortune * perkYield * data.boostMultiplier("GEMS")
+                // V381: pets pointed at Gems in /pets.
+                * (1.0 + plugin.getPetManager().totalOf(data, com.spacerng.solrng.stats.StatSources.Id.GEMS));
         long shards = shardsUnlocked(data)
                 ? Math.round(crop.getShards() * gemMultiplier) : 0L;
 
@@ -1162,7 +1164,13 @@ public class FarmPlotManager {
             // V268: Coins only. Nuke used to add its 10,000 crops to crops
             // farmed, the boss, the pass and Farm Dust as well, which is
             // how players showed more crops farmed than anyone could break.
-            player.getWorld().createExplosion(plot.clone().add(0.5, 1.0, 0.5), 3.0f, false, false);
+            // V381, Leon: other players heard every Nuke. A real explosion
+            // is world-wide, so it is drawn and played for the farmer alone.
+            Location boom = plot.clone().add(0.5, 1.0, 0.5);
+            player.spawnParticle(org.bukkit.Particle.EXPLOSION_EMITTER, boom, 1, 0, 0, 0, 0);
+            if (data.isEnchantSoundEnabled()) {
+                player.playSound(boom, org.bukkit.Sound.ENTITY_GENERIC_EXPLODE, 1.0f, 0.9f);
+            }
             procChat(player, data, "NUKE", ChatColor.RED + "" + ChatColor.BOLD + "Nuke  "
                     + ChatColor.RESET + ChatColor.GRAY + String.format("%,d", nukeCrops)
                     + " crops vaporised for " + Currency.COINS.amount(paid) + ChatColor.GRAY + ".");
