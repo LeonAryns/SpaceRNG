@@ -8,7 +8,7 @@
 # their fresh defaults in on top of whatever is on disk, so a server
 # owner never has to delete the whole file to pick up a structural
 # change. Item table, prices and cosmetic tweaks are untouched.
-config-version: 53
+config-version: 54
 
 # One-off value changes the plugin has already made to this file, so none
 # is ever made twice. Managed by the plugin; leave it alone.
@@ -804,8 +804,9 @@ farming:
   # plot would be a race between farmers rather than a reason to keep
   # looking around your own field.
   #
-  # multiplier is the base. The Golden Harvest node in /farmtree adds to
-  # it, so a maxed farmer is finding something worth 30x.
+  # multiplier is the base. V372: the Golden Harvest node in /farmtree
+  # unlocks it, Golden Harvest Multi adds to it (up to 40x) and Golden
+  # Harvest Total puts more out at once.
   golden-crop:
     enabled: true
     multiplier: 10.0
@@ -4828,23 +4829,24 @@ farmtree:
       page: 1
       slot: "4,5"
       icon: "SUGAR"
-      cost-money: 6500
+      # V372, Leon: 50,000 Coins in game (x4.0 farmtree multiplier).
+      cost-money: 12500
       requires: "golden_crop"
       effect: "UNLOCK_ENCHANT"
       value: 0
       target: "WALK_SPEED"
 
+    # V372, Leon: one level that unlocks the golden crop, 50,000 Coins in
+    # game. Golden Harvest Multi and Total on pages 2 and 3 upgrade it.
     golden_crop:
-      display: "Golden Harvest I"
+      display: "Golden Harvest"
       page: 1
       slot: "5,5"
       icon: "GOLD_NUGGET"
-      cost-money: 10500
-      cost-growth: 1.55
+      cost-money: 12500
       requires: "enchant_token_greed"
-      effect: "GOLDEN_CROP"
-      value: 2
-      max-level: 10
+      effect: "UNLOCK_GOLDEN"
+      value: 0
 
     growth_1:
       display: "Growth I"
@@ -4959,7 +4961,7 @@ farmtree:
       page: 1
       slot: "6,5"
       icon: "HAY_BLOCK"
-      cost-money: 6500
+      cost-money: 12500
       cost-growth: 1.25
       requires: "golden_crop"
       effect: "TOKEN_GAIN"
@@ -4973,7 +4975,8 @@ farmtree:
       page: 1
       slot: "7,5"
       icon: "AMETHYST_CLUSTER"
-      cost-money: 10500
+      # V372, Leon: 100,000 Coins in game (x4.0 farmtree multiplier).
+      cost-money: 25000
       requires: "tokens_1"
       effect: "UNLOCK_SHARDS"
       value: 0
@@ -4987,7 +4990,8 @@ farmtree:
       cost-growth: 1.25
       requires: "farming_shards"
       effect: "GEM_MULTIPLIER"
-      value: 0.1
+      # V372, Leon: 5% a level.
+      value: 0.05
       max-level: 10
 
     growth_2:
@@ -5056,7 +5060,7 @@ farmtree:
 
     # -- Middle line --
     golden_crop_2:
-      display: "Golden Harvest II"
+      display: "Golden Harvest Multi"
       page: 2
       slot: "5,6"
       icon: "GOLD_NUGGET"
@@ -5242,16 +5246,17 @@ farmtree:
     # ====================================================================
 
     # -- Middle line --
+    # V372: one more golden crop out at once per level.
     golden_crop_3:
-      display: "Golden Harvest III"
+      display: "Golden Harvest Total"
       page: 3
       slot: "5,6"
       icon: "GOLD_NUGGET"
       cost-money: 47239000
       cost-growth: 1.55
       requires: "growth_3"
-      effect: "GOLDEN_CROP"
-      value: 4
+      effect: "GOLDEN_TOTAL"
+      value: 1
       max-level: 10
 
     growth_5:

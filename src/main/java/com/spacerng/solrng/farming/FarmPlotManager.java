@@ -100,7 +100,10 @@ public class FarmPlotManager {
     // because every farmer already sees their own crop on every tile - a
     // shared golden plot would be a race, and this is meant to be a reason
     // to keep looking around your own field.
-    private final Map<UUID, Location> golden = new HashMap<>();
+    // V372: a set, because Golden Harvest Total puts more than one out at
+    // once, and each one wears a gold glow only its owner sees.
+    private final Map<UUID, Set<Location>> golden = new HashMap<>();
+    private final Map<UUID, Map<Location, org.bukkit.entity.BlockDisplay>> goldenGlow = new HashMap<>();
     private double goldenMultiplier = 10.0;
     private boolean goldenEnabled = true;
     private double prospectorShare = 0.02;
@@ -411,7 +414,7 @@ public class FarmPlotManager {
         }
         plots.clear();
         harvested.clear();
-        golden.clear();
+        clearGolden();
         savePlots();
         renderAll();
         return removed;
@@ -732,7 +735,8 @@ public class FarmPlotManager {
 
         // The golden crop pays many times over and then moves somewhere
         // else in the field, so there is always exactly one to look for.
-        boolean wasGolden = goldenEnabled && plot.equals(golden.get(player.getUniqueId()));
+        boolean wasGolden = goldenEnabled
+                && golden.getOrDefault(player.getUniqueId(), Set.of()).contains(plot);
         if (wasGolden) {
             tokens = Math.round(tokens * goldenMultiplierFor(data));
         }
@@ -820,7 +824,7 @@ public class FarmPlotManager {
 
         if (wasGolden) {
             plugin.getDustManager().onGoldenCrop(player, data);
-            Location next = moveGolden(player.getUniqueId());
+            Location next = moveGolden(player, data, plot);
             EnchantFx.pulse(plugin, player, plot, false);
             player.playSound(plot, org.bukkit.Sound.BLOCK_AMETHYST_BLOCK_CHIME, 0.9f, 1.6f);
             player.playSound(plot, org.bukkit.Sound.ENTITY_PLAYER_LEVELUP, 0.6f, 1.8f);
@@ -1305,15 +1309,61 @@ public class FarmPlotManager {
 
     // ------------------------------------------------------- golden crop
 
-    private Location moveGolden(UUID uuid) {
-        if (plots.isEmpty()) {
-            golden.remove(uuid);
-            return null;
+    /**
+     * Takes a harvested golden crop away and puts a new one out somewhere
+     * else. Returns where the new one went, or null when none could.
+     */
+    private Location moveGolden(Player player, PlayerData data, Location taken) {
+        UUID uuid = player.getUniqueId();
+        Set<Location> mine = golden.get(uuid);
+        if (mine != null) mine.remove(taken);
+        removeGlow(uuid, taken);
+        return topUpGolden(player, data);
+    }
+
+    /**
+     * Puts golden crops out until the player has as many as Golden
+     * Harvest Total allows. Picks plots that are grown for them and not
+     * already golden. Returns the last one placed, or null.
+     *
+     * Until V372 the first golden crop was never placed at all: only
+     * harvesting a golden crop moved it, so nobody ever had one.
+     */
+    private Location topUpGolden(Player player, PlayerData data) {
+        UUID uuid = player.getUniqueId();
+        Set<Location> mine = golden.computeIfAbsent(uuid, k -> new HashSet<>());
+        mine.removeIf(at -> !plots.contains(at));
+        int want = goldenCountFor(data);
+        if (mine.size() >= want) return null;
+        long now = System.currentTimeMillis();
+        Map<Location, Long> gone = harvested.getOrDefault(uuid, Map.of());
+        List<Location> pool = new ArrayList<>();
+        for (Location at : plots) {
+            if (mine.contains(at) || gone.getOrDefault(at, 0L) > now) continue;
+            pool.add(at);
         }
-        List<Location> pool = new ArrayList<>(plots);
-        Location picked = pool.get(ThreadLocalRandom.current().nextInt(pool.size()));
-        golden.put(uuid, picked);
-        return picked;
+        Location placed = null;
+        while (mine.size() < want && !pool.isEmpty()) {
+            placed = pool.remove(ThreadLocalRandom.current().nextInt(pool.size()));
+            mine.add(placed);
+        }
+        return placed;
+    }
+
+    /**
+     * Whether this player has golden crops at all (V372): the Golden
+     * Harvest node above Coin Greed unlocks them.
+     */
+    public boolean goldenUnlocked(PlayerData data) {
+        return data != null && !plugin.getSkillTreeManager()
+                .owned(data, com.spacerng.solrng.player.SkillNode.Effect.UNLOCK_GOLDEN).isEmpty();
+    }
+
+    /** How many golden crops this player has out at once: one, plus Golden Harvest Total. */
+    public int goldenCountFor(PlayerData data) {
+        if (!goldenUnlocked(data)) return 0;
+        return 1 + (int) Math.round(plugin.getSkillTreeManager()
+                .totalOf(data, com.spacerng.solrng.player.SkillNode.Effect.GOLDEN_TOTAL));
     }
 
     /** What a golden crop is worth, skills included. */
@@ -1325,27 +1375,88 @@ public class FarmPlotManager {
 
     public void forgetGolden(UUID uuid) {
         golden.remove(uuid);
+        Map<Location, org.bukkit.entity.BlockDisplay> glows = goldenGlow.remove(uuid);
+        if (glows != null) glows.values().forEach(org.bukkit.entity.Entity::remove);
+    }
+
+    /** Every golden crop and glow gone, for a farm reset and onDisable (PlugManX). */
+    public void clearGolden() {
+        for (UUID uuid : new ArrayList<>(goldenGlow.keySet())) forgetGolden(uuid);
+        golden.clear();
+    }
+
+    private void removeGlow(UUID uuid, Location at) {
+        Map<Location, org.bukkit.entity.BlockDisplay> glows = goldenGlow.get(uuid);
+        if (glows == null) return;
+        org.bukkit.entity.BlockDisplay glow = glows.remove(at);
+        if (glow != null) glow.remove();
+    }
+
+    private static final org.bukkit.Color GOLD_GLOW = org.bukkit.Color.fromRGB(255, 199, 44);
+
+    /**
+     * The gold outline round a golden crop (V372). A block display of the
+     * player's own crop, glowing gold, shown only to them: the glow draws
+     * through other crops, so it can be spotted across the field. Bedrock
+     * cannot draw displays and keeps the shimmer.
+     */
+    private void drawGlow(Player player, Location at, BlockData crop) {
+        Map<Location, org.bukkit.entity.BlockDisplay> glows =
+                goldenGlow.computeIfAbsent(player.getUniqueId(), k -> new HashMap<>());
+        org.bukkit.entity.BlockDisplay glow = glows.get(at);
+        if (glow != null && glow.isValid()) {
+            if (glow.getBlock().getMaterial() != crop.getMaterial()) glow.setBlock(crop);
+            return;
+        }
+        Location spot = at.clone();
+        spot.setYaw(0f);
+        spot.setPitch(0f);
+        org.bukkit.entity.BlockDisplay made = spot.getWorld().spawn(spot, org.bukkit.entity.BlockDisplay.class, d -> {
+            d.setPersistent(false);
+            d.setVisibleByDefault(false);
+            d.setBlock(crop);
+            d.setGlowing(true);
+            d.setGlowColorOverride(GOLD_GLOW);
+            d.setBrightness(new org.bukkit.entity.Display.Brightness(15, 15));
+        });
+        player.showEntity(plugin, made);
+        glows.put(at, made);
     }
 
     /**
-     * The shimmer over a player's golden crop.
+     * Keeps every player's golden crops out, glowing and shimmering, every
+     * half second.
      *
-     * Player-sided, like every other effect on the farm: it is only their
-     * golden plot, and twenty farmers would otherwise light up twenty
-     * tiles for everybody.
+     * Player-sided, like every other effect on the farm: they are only
+     * that player's golden plots, and twenty farmers would otherwise
+     * light up twenty tiles for everybody.
      */
     public void tickGolden() {
-        if (!goldenEnabled) return;
         for (Player player : Bukkit.getOnlinePlayers()) {
-            Location plot = golden.get(player.getUniqueId());
-            if (plot == null || !plots.contains(plot)) continue;
-            if (plot.getWorld() == null || !plot.getWorld().equals(player.getWorld())) continue;
-            if (plot.distanceSquared(player.getLocation()) > 64 * 64) continue;
-
-            Location at = plot.clone().add(0.5, 0.6, 0.5);
-            player.spawnParticle(org.bukkit.Particle.DUST, at, 4, 0.22, 0.35, 0.22, 0.0,
-                    new org.bukkit.Particle.DustOptions(org.bukkit.Color.fromRGB(255, 199, 44), 1.1f));
-            player.spawnParticle(org.bukkit.Particle.END_ROD, at, 1, 0.1, 0.2, 0.1, 0.0);
+            UUID uuid = player.getUniqueId();
+            PlayerData data = plugin.getPlayerDataManager().get(uuid);
+            if (!goldenEnabled || plots.isEmpty() || !goldenUnlocked(data)) {
+                if (golden.containsKey(uuid) || goldenGlow.containsKey(uuid)) forgetGolden(uuid);
+                continue;
+            }
+            topUpGolden(player, data);
+            CropType crop = cropFor(data);
+            long now = System.currentTimeMillis();
+            Map<Location, Long> gone = harvested.getOrDefault(uuid, Map.of());
+            boolean bedrock = com.spacerng.solrng.platform.Bedrock.is(player);
+            for (Location plot : golden.getOrDefault(uuid, Set.of())) {
+                boolean near = plot.getWorld() != null && plot.getWorld().equals(player.getWorld())
+                        && plot.distanceSquared(player.getLocation()) <= 64 * 64;
+                if (!near || crop == null || gone.getOrDefault(plot, 0L) > now) {
+                    removeGlow(uuid, plot);
+                    continue;
+                }
+                if (!bedrock) drawGlow(player, plot, grownData(crop.getMaterial()));
+                Location at = plot.clone().add(0.5, 0.6, 0.5);
+                player.spawnParticle(org.bukkit.Particle.DUST, at, 4, 0.22, 0.35, 0.22, 0.0,
+                        new org.bukkit.Particle.DustOptions(GOLD_GLOW, 1.1f));
+                player.spawnParticle(org.bukkit.Particle.END_ROD, at, 1, 0.1, 0.2, 0.1, 0.0);
+            }
         }
     }
 

@@ -82,7 +82,11 @@ public class QuestManager {
             // Growth I, which since V363 sits two skills behind the root.
             case TREE_NODES -> {
                 long owned = 0L;
-                String tree = quest.getTarget() == null ? "farmtree" : quest.getTarget();
+                // V372: a target that is not a tree counts the farm tree.
+                // The live config still named yield_wheat here, a node gone
+                // since V353, so the step counted an empty tree forever.
+                String tree = com.spacerng.solrng.player.SkillTreeManager.TREES.contains(quest.getTarget())
+                        ? quest.getTarget() : "farmtree";
                 for (String id : plugin.getSkillTreeManager().getNodes(tree).keySet()) {
                     if (data.hasUnlocked(id) || data.getNodeLevel(id) > 0) owned++;
                 }

@@ -65,6 +65,8 @@ public class SkillNode {
         ENCHANT_CAP,        // +value to the level ceiling of every hoe enchant
         CROP_YIELD,         // target = crop id, +value x its Tokens and Gems
         GOLDEN_CROP,        // +value to what the golden crop pays
+        UNLOCK_GOLDEN,      // the golden crop appears on the farm (V372)
+        GOLDEN_TOTAL,       // +value golden crops out at once (V372)
         HOE_TIER,           // +value steps up farming.hoe-tiers
         TOKEN_MULTIPLIER,   // +value to the farm Token multiplier per level
         FARM_SPEED,         // -value regrow time per level

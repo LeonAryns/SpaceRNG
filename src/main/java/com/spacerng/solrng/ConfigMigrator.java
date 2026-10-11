@@ -1026,7 +1026,12 @@ public final class ConfigMigrator {
                     "Luck I sits directly above Auto Roll in /skilltree."),
             new EntryPatch("guide-hint-farming-v371", "guide.quests", "farming_unlock", "hint",
                     "Buy Farming in /skilltree, right above Luck I, to get the Farmer's Hoe.",
-                    "Buy Farming in /skilltree, right above Convert, to get the Farmer's Hoe."));
+                    "Buy Farming in /skilltree, right above Convert, to get the Farmer's Hoe."),
+            // V372: V353 moved this target to growth_1 without a patch, so
+            // the live config kept yield_wheat and the V368 patch, which
+            // only replaced growth_1, never landed.
+            new EntryPatch("guide-farm-skills-target-v372", "guide.quests", "farm_skills", "target",
+                    "yield_wheat", "farmtree"));
 
     /**
      * Replaces one exact line anywhere inside a (nested) list, like a

@@ -402,6 +402,17 @@ public class PlayerDataManager {
             plugin.getPerkManager().migrateOldVault(data, yml.getStringList("perk-vault"),
                     yml.getLong("perk-save-rolls", 0L));
         }
+        // V372: a node that went from leveled to one level (Golden Harvest)
+        // keeps its buyers. Their levels sat in nodeLevels, which a one
+        // level node never reads, so they would have lost it and every
+        // node behind it.
+        if (plugin.getSkillTreeManager() != null) {
+            for (var node : plugin.getSkillTreeManager().getNodes().values()) {
+                if (node.isLeveled() || data.getNodeLevel(node.getId()) <= 0) continue;
+                data.getUnlockedNodes().add(node.getId());
+                data.getNodeLevels().remove(node.getId());
+            }
+        }
 
         return data;
     }

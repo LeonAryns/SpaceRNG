@@ -354,6 +354,9 @@ public final class SolRNGPlugin extends JavaPlugin {
         if (holoManager != null) holoManager.stop();
         if (bedrockSupport != null) bedrockSupport.stop();
         if (auraManager != null) auraManager.stop();
+        // V372: the golden crop glows are entities, so a PlugManX reload
+        // would otherwise leave them behind.
+        if (farmPlotManager != null) farmPlotManager.clearGolden();
         if (tabListManager != null) tabListManager.stop();
         if (floatingItemManager != null) floatingItemManager.stop();
         if (crowdBoostManager != null) crowdBoostManager.stop();

@@ -5,8 +5,29 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V371**, 11 October 2026. The newest section is the
+Last updated at **V372**, 11 October 2026. The newest section is the
 first one below; older sections further down are history.
+
+## V372, 11 October 2026 (untested in game)
+
+- **Golden Harvest works for the first time.** Until now the first
+  golden crop was never placed (only harvesting a golden crop moved it),
+  so nobody ever had one. Now: the farmtree node above Coin Greed,
+  "Golden Harvest", is one level for 50,000 Coins and unlocks it; page 2
+  root "Golden Harvest Multi" adds +3x a level to the 10x base (40x max);
+  page 3 root "Golden Harvest Total" puts one more golden crop out per
+  level (11 max). Each golden crop has a gold glow outline only its owner
+  sees (a BlockDisplay, removed on quit, reset and disable); Bedrock
+  keeps the shimmer. Buyers of the old leveled node keep it as an unlock.
+- Farmtree prices in game: Speed Enchant, Golden Harvest and Coins I
+  50,000, Gem Harvest 100,000 (cost-money is a quarter, multiplier 4.0).
+  Gems I is 5% a level (was 10%).
+- Guide step "Buy your first farming skill" was stuck because the live
+  config still targeted yield_wheat (gone since V353, no patch then, so
+  the V368 patch skipped it). Code now falls back to the farm tree and a
+  patch fixes the config. config-version 54.
+- Open: Leon said "golden harvest total also 50k". Read as the page 1
+  unlock node; Total stays the page 3 root at its old price. Ask him.
 
 ## V371, 11 October 2026 (untested in game)
 

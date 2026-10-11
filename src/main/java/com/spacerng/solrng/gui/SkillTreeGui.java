@@ -491,6 +491,9 @@ public class SkillTreeGui {
             case GOLDEN_CROP -> scaled(ChatColor.GOLD,
                     "+" + trim(value) + "x on the golden crop",
                     "+" + trim(value * level) + "x", leveled);
+            case GOLDEN_TOTAL -> scaled(ChatColor.GOLD,
+                    "+" + (long) value + " golden crop out at once",
+                    "+" + (long) (value * level), leveled);
             case LUCK -> scaled(ChatColor.GREEN, "+" + pct(value) + "% Luck", pct(value * level) + "%", leveled);
             case ROLL_SPEED -> scaled(ChatColor.YELLOW, "+" + pct(value) + " Speed", "+" + pct(value * level), leveled);
             case BONUS_ROLL_CHANCE -> scaled(ChatColor.LIGHT_PURPLE,
@@ -598,6 +601,7 @@ public class SkillTreeGui {
 
             case UNLOCK_CROP -> gate("Unlocks " + target + " on the farm");
             case UNLOCK_SHARDS -> gate("Farm crops start paying Gems");
+            case UNLOCK_GOLDEN -> gate("A golden crop glows in your field, worth many times the Coins");
             case UNLOCK_ENCHANT -> List.of(
                     ChatColor.LIGHT_PURPLE + "▎ Unlocks the " + target + " hoe enchant",
                     ChatColor.DARK_GRAY + "▎ Level it up on the hoe itself.");
