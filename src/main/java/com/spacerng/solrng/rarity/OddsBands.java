@@ -20,7 +20,7 @@ public final class OddsBands {
     public static final Map<Rarity, long[]> TARGETS = Map.of(
             Rarity.COMMON, new long[]{2L, 750L},
             Rarity.UNCOMMON, new long[]{800L, 4500L},
-            Rarity.RARE, new long[]{5000L, 15000L});
+            Rarity.RARE, new long[]{10000L, 15000L});
 
     private static final Rarity[] ORDER = {Rarity.COMMON, Rarity.UNCOMMON, Rarity.RARE, Rarity.EPIC};
 

@@ -1920,131 +1920,131 @@ items:
   - material: GOLD_INGOT
     name: "Gold"
     rarity: RARE
-    odds: 5000
+    odds: 10000
   - material: QUARTZ
     name: "Quartz"
     rarity: RARE
-    odds: 5100
+    odds: 10050
   - material: AMETHYST_SHARD
     name: "Amethyst Shard"
     rarity: RARE
-    odds: 5200
+    odds: 10100
   - material: EMERALD
     name: "Emerald"
     rarity: RARE
-    odds: 5300
+    odds: 10150
   - material: PRISMARINE_CRYSTALS
     name: "Prismarine Crystals"
     rarity: RARE
-    odds: 5350
+    odds: 10200
   - material: GOLD_BLOCK
     name: "Gold Block"
     rarity: RARE
-    odds: 5450
+    odds: 10200
   - material: DIAMOND_ORE
     name: "Diamond Ore"
     rarity: RARE
-    odds: 5550
+    odds: 10300
   - material: EMERALD_ORE
     name: "Emerald Ore"
     rarity: RARE
-    odds: 5650
+    odds: 10300
   - material: ENDER_PEARL
     name: "Ender Pearl"
     rarity: RARE
-    odds: 5750
+    odds: 10400
   - material: BLAZE_ROD
     name: "Blaze Rod"
     rarity: RARE
-    odds: 5850
+    odds: 10400
   - material: GHAST_TEAR
     name: "Ghast Tear"
     rarity: RARE
-    odds: 5950
+    odds: 10500
   - material: SHULKER_SHELL
     name: "Shulker Shell"
     rarity: RARE
-    odds: 6050
+    odds: 10500
   - material: DIAMOND_HORSE_ARMOR
     name: "Diamond Horse Armor"
     rarity: RARE
-    odds: 6200
+    odds: 10600
   - material: ECHO_SHARD
     name: "Echo Shard"
     rarity: RARE
-    odds: 6300
+    odds: 10650
   - material: MUSIC_DISC_13
     name: "Music Disc 13"
     rarity: RARE
-    odds: 6400
+    odds: 10700
   - material: TRIDENT
     name: "Trident"
     rarity: RARE
-    odds: 6550
+    odds: 10800
   - material: CROSSBOW
     name: "Crossbow"
     rarity: RARE
-    odds: 6650
+    odds: 10800
   - material: SPECTRAL_ARROW
     name: "Spectral Arrow"
     rarity: RARE
-    odds: 6750
+    odds: 10900
   - material: ENCHANTED_BOOK
     name: "Enchanted Book"
     rarity: RARE
-    odds: 6850
+    odds: 10900
   - material: EXPERIENCE_BOTTLE
     name: "Experience Bottle"
     rarity: RARE
-    odds: 7000
+    odds: 11000
   - material: AMETHYST_BLOCK
     name: "Amethyst Block"
     rarity: RARE
-    odds: 7100
+    odds: 11050
   - material: BUDDING_AMETHYST
     name: "Budding Amethyst"
     rarity: RARE
-    odds: 7250
+    odds: 11100
   - material: RECOVERY_COMPASS
     name: "Recovery Compass"
     rarity: RARE
-    odds: 7400
+    odds: 11200
   - material: BRUSH
     name: "Brush"
     rarity: RARE
-    odds: 7500
+    odds: 11250
   - material: ARMOR_STAND
     name: "Armor Stand"
     rarity: RARE
-    odds: 7650
+    odds: 11300
   - material: NETHERITE_SCRAP
     name: "Netherite Scrap"
     rarity: RARE
-    odds: 7850
+    odds: 11400
   - material: ANCIENT_DEBRIS
     name: "Ancient Debris"
     rarity: RARE
-    odds: 8150
+    odds: 11600
   - material: WITHER_ROSE
     name: "Wither Rose"
     rarity: RARE
-    odds: 8450
+    odds: 11700
   - material: HEART_OF_THE_SEA
     name: "Heart of the Sea"
     rarity: RARE
-    odds: 8750
+    odds: 11900
   - material: BEACON
     name: "Beacon"
     rarity: RARE
-    odds: 9050
+    odds: 12000
   - material: NETHERITE_INGOT
     name: "Netherite Ingot"
     rarity: RARE
-    odds: 11500
+    odds: 13250
   - material: ENCHANTED_GOLDEN_APPLE
     name: "Enchanted Golden Apple"
     rarity: RARE
-    odds: 13500
+    odds: 14250
   - material: SCULK_CATALYST
     name: "Sculk Catalyst"
     rarity: RARE
@@ -2056,43 +2056,43 @@ items:
   - material: ZOMBIE_SPAWN_EGG
     name: "Rotten Zombie"
     rarity: EPIC
-    odds: 15000
+    odds: 50000
   - material: SKELETON_SPAWN_EGG
     name: "Bone Marksman"
     rarity: EPIC
-    odds: 16600
+    odds: 55300
   - material: CREEPER_SPAWN_EGG
     name: "Creeper Menace"
     rarity: EPIC
-    odds: 18500
+    odds: 61700
   - material: SPIDER_SPAWN_EGG
     name: "Cave Crawler"
     rarity: EPIC
-    odds: 20400
+    odds: 68000
   - material: ENDERMAN_SPAWN_EGG
     name: "Void Wanderer"
     rarity: EPIC
-    odds: 22500
+    odds: 75000
   - material: WITCH_SPAWN_EGG
     name: "Vile Witch"
     rarity: EPIC
-    odds: 25000
+    odds: 83300
   - material: BLAZE_SPAWN_EGG
     name: "Blazing Fiend"
     rarity: EPIC
-    odds: 27600
+    odds: 92000
   - material: PIGLIN_SPAWN_EGG
     name: "Piglin Raider"
     rarity: EPIC
-    odds: 30600
+    odds: 102000
   - material: GUARDIAN_SPAWN_EGG
     name: "Abyssal Guardian"
     rarity: EPIC
-    odds: 34000
+    odds: 113300
   - material: SLIME_SPAWN_EGG
     name: "Gelatinous Slime"
     rarity: EPIC
-    odds: 37500
+    odds: 125000
   # --- Legendary ---
   - material: DRAGON_EGG
     name: "Dragon Egg"
@@ -2118,15 +2118,15 @@ items:
   - material: NETHER_STAR
     name: "The Wither"
     rarity: MYTHICAL
-    odds: 18800000
+    odds: 5000000
   - material: SCULK_SHRIEKER
     name: "The Warden"
     rarity: MYTHICAL
-    odds: 37520000
+    odds: 9980000
   - material: ELYTRA
     name: "The Ender Dragon"
     rarity: MYTHICAL
-    odds: 75200000
+    odds: 20000000
   # --- Legendary, V319 ---
   # Leon asked for more at every tier from Legendary up. The band is
   # 937,500 to 1,875,000, set by V304's rule that a tier's lowest is five
@@ -2161,23 +2161,23 @@ items:
   - material: DRAGON_HEAD
     name: "Dragon Crown"
     rarity: MYTHICAL
-    odds: 56000000
+    odds: 14890000
   - material: ENCHANTED_GOLDEN_APPLE
     name: "Godly Apple"
     rarity: MYTHICAL
-    odds: 28000000
+    odds: 7450000
   - material: BEACON
     name: "Lighthouse"
     rarity: MYTHICAL
-    odds: 44800000
+    odds: 11910000
   - material: END_CRYSTAL
     name: "End Crystal"
     rarity: MYTHICAL
-    odds: 22400000
+    odds: 5960000
   - material: ECHO_SHARD
     name: "Echo of the Deep"
     rarity: MYTHICAL
-    odds: 66000000
+    odds: 17550000
   # --- Divine ---
   # Leon asked for at least ten. There was ONE, which is why a Divine was
   # a single named drop rather than a tier. The band runs from 187,500,000

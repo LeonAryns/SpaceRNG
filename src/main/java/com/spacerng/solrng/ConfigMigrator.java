@@ -1455,6 +1455,40 @@ public final class ConfigMigrator {
             applied.add("drops-easier-v340");
             changed = true;
         }
+        // V374, Leon: the gaps between tiers. Highest Uncommon is about 5k,
+        // so the lowest Rare is 10k; highest Rare 15k, so the lowest Epic
+        // is 50k; and the lowest Mythical is 5m, from 18.8m. Rare is
+        // squeezed into 10k to 15k, Epic and Mythical scaled with their
+        // spread kept. Every old value is named so a drop Leon retuned by
+        // hand keeps his number. Epic and Mythical roll at their label,
+        // so Epic gets rarer and Mythical commoner, and Money follows.
+        if (!applied.contains("tier-gaps-v374")) {
+            java.util.Map<String, Long> gaps = new java.util.HashMap<>();
+            long[][] rare = {{5000L, 10000L}, {5100L, 10050L}, {5200L, 10100L}, {5300L, 10150L}, {5350L, 10200L}, {5450L, 10200L}, {5550L, 10300L}, {5650L, 10300L}, {5750L, 10400L}, {5850L, 10400L}, {5950L, 10500L}, {6050L, 10500L}, {6200L, 10600L}, {6300L, 10650L}, {6400L, 10700L}, {6550L, 10800L}, {6650L, 10800L}, {6750L, 10900L}, {6850L, 10900L}, {7000L, 11000L}, {7100L, 11050L}, {7250L, 11100L}, {7400L, 11200L}, {7500L, 11250L}, {7650L, 11300L}, {7850L, 11400L}, {8150L, 11600L}, {8450L, 11700L}, {8750L, 11900L}, {9050L, 12000L}, {11500L, 13250L}, {13500L, 14250L}};
+            for (long[] row : rare) gaps.put("RARE:" + row[0], row[1]);
+            long[][] epic = {{15000L, 50000L}, {16600L, 55300L}, {18500L, 61700L}, {20400L, 68000L}, {22500L, 75000L}, {25000L, 83300L}, {27600L, 92000L}, {30600L, 102000L}, {34000L, 113300L}, {37500L, 125000L}};
+            for (long[] row : epic) gaps.put("EPIC:" + row[0], row[1]);
+            long[][] mythical = {{18800000L, 5000000L}, {22400000L, 5960000L}, {28000000L, 7450000L}, {37520000L, 9980000L}, {44800000L, 11910000L}, {56000000L, 14890000L}, {66000000L, 17550000L}, {75200000L, 20000000L}};
+            for (long[] row : mythical) gaps.put("MYTHICAL:" + row[0], row[1]);
+            List<Map<?, ?>> items = disk.getMapList("items");
+            boolean moved = false;
+            for (Map<?, ?> entry : items) {
+                Object odds = entry.get("odds");
+                if (!(odds instanceof Number number)) continue;
+                Long now = gaps.get(entry.get("rarity") + ":" + number.longValue());
+                if (now == null) continue;
+                @SuppressWarnings("unchecked")
+                Map<Object, Object> editable = (Map<Object, Object>) entry;
+                editable.put("odds", now);
+                moved = true;
+            }
+            if (moved) {
+                disk.set("items", items);
+                plugin.getLogger().info("Config patch tier-gaps-v374: Rare, Epic and Mythical respaced");
+            }
+            applied.add("tier-gaps-v374");
+            changed = true;
+        }
         // V319: the new top-tier drops. Leon asked for at least ten Divine
         // and more at every tier from Legendary; there was ONE Divine, so a
         // Divine was a single named drop rather than a tier.

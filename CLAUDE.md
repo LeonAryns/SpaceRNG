@@ -113,7 +113,8 @@ Packages are by feature under `com.spacerng.solrng`. Where new things go:
   Rarities with `true-odds: true` (Epic and up) roll at exactly their
   label. Common, Uncommon and Rare are bands with a `share` of what is
   left, and their labels only rank items inside the band. See
-  `RarityManager.assignRollWeights`. Epic as a whole is about 1 in 5,000.
+  `RarityManager.assignRollWeights`. Epic as a whole is about 1 in 7,600
+  (V374).
 - **YAML numbers.** Never write scientific notation. `3e-06` parses as a
   String and `getDouble` silently returns the default.
 - **Farm plots.** The real block is a `STRUCTURE_VOID` marker and the crop

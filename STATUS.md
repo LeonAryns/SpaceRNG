@@ -5,8 +5,17 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V373**, 11 October 2026. The newest section is the
+Last updated at **V374**, 11 October 2026. The newest section is the
 first one below; older sections further down are history.
+
+## V374, 11 October 2026 (untested in game)
+
+- Tier gaps, Leon's numbers: Rare labels 10k to 15k (were 5k to 15k),
+  Epic 50k to 125k (were 15k to 37.5k), Mythical 5m to 20m (were 18.8m
+  to 75.2m). Patch `tier-gaps-v374` names every old value. Epic as a
+  whole is now about 1 in 7,600 (was 2,300), Mythical about 1 in 1.2m
+  (was 4.4m). Not asked about: Mythical tops at 20m and Divine starts at
+  750m, a 37x jump, the same kind of gap Leon just closed lower down.
 
 ## V373, 11 October 2026 (untested in game)
 
