@@ -165,6 +165,19 @@ public class BlockProtectListener implements Listener {
         if (blockedCache == null || blockedStamp != stamp) {
             java.util.Set<org.bukkit.Material> set = java.util.EnumSet.noneOf(org.bukkit.Material.class);
             for (String raw : plugin.getConfig().getStringList("protection.blocked-blocks")) {
+                // V378: a * stands for any text, so POTTED_* is every
+                // flower pot with a plant in it and *_SHULKER_BOX every colour.
+                if (raw.contains("*")) {
+                    String pattern = raw.toUpperCase().replace("*", ".*");
+                    int before = set.size();
+                    for (org.bukkit.Material m : org.bukkit.Material.values()) {
+                        if (!m.isLegacy() && m.isBlock() && m.name().matches(pattern)) set.add(m);
+                    }
+                    if (set.size() == before) {
+                        plugin.getLogger().warning("protection.blocked-blocks: nothing matches '" + raw + "'");
+                    }
+                    continue;
+                }
                 org.bukkit.Material found = org.bukkit.Material.matchMaterial(raw);
                 if (found != null) {
                     set.add(found);

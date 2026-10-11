@@ -909,7 +909,10 @@ public final class ConfigMigrator {
             // the bottom of its own text.
             new Patch("pet-egg-scale-v371", "holograms.pet-egg-scale", 1.2, 0.7),
             // V376: Gem Greed is a multiplier like Coin Greed, not a proc.
-            new Patch("gem-greed-ready-v376", "farming.enchants.SHARD_GREED.coming-soon", true, false),
+            // V378: the Gem on wheat, on the key the farm reads. V376 put
+            // it on farming.crops, so wheat stayed at 0 Gems.
+            new Patch("wheat-gem-v378", "farming.crop-types.WHEAT.shards", 0, 1),
+            new Patch("gem-greed-ready-v376","farming.enchants.SHARD_GREED.coming-soon", true, false),
             new Patch("gem-greed-per-level-v376", "farming.enchants.SHARD_GREED.per-level", 0.000005, 0.001),
             new Patch("gem-greed-desc-v376", "farming.enchants.SHARD_GREED.description",
                     "A chance at a bonus Gem.", "More Gems from every crop."),

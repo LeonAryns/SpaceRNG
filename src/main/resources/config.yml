@@ -387,7 +387,8 @@ farming:
   crops:
     WHEAT:
       tokens: 100
-      # V376, Leon: 1 Gem a crop, once Gem Earnings is bought.
+      # V376 put the wheat Gem here, but Gems are read from crop-types
+      # below (fixed in V378). This line does nothing.
       shards: 1
     CARROTS:
       tokens: 100
@@ -949,7 +950,9 @@ farming:
       display: "Wheat"
       material: WHEAT
       tokens: 100
-      shards: 0
+      # V378: 1 Gem a crop once Gem Earnings is bought. V376 set it on
+      # farming.crops, which the farm never reads for Gems.
+      shards: 1
       requires-node: ""
     CARROTS:
       display: "Carrots"
@@ -6868,6 +6871,36 @@ tab:
 # on|off switches it in game.
 protection:
   block-break: true
+  # Blocks nobody can right click (V355, list added in V378: V355 shipped
+  # the check without a list, so nothing was ever blocked). A * stands for
+  # any text. Take a line out to open that block up again.
+  blocked-blocks:
+    - CRAFTING_TABLE
+    - CRAFTER
+    - CHEST
+    - TRAPPED_CHEST
+    - BARREL
+    - ENDER_CHEST
+    - "*SHULKER_BOX"
+    - FURNACE
+    - BLAST_FURNACE
+    - SMOKER
+    - "*ANVIL"
+    - ENCHANTING_TABLE
+    - SMITHING_TABLE
+    - GRINDSTONE
+    - STONECUTTER
+    - LOOM
+    - CARTOGRAPHY_TABLE
+    - BREWING_STAND
+    - HOPPER
+    - DROPPER
+    - DISPENSER
+    - BEACON
+    # V378, Leon: no taking plants out of pots or storing items in them.
+    - FLOWER_POT
+    - "POTTED_*"
+    - DECORATED_POT
 
 # The line in chat when somebody joins or leaves.
 #
