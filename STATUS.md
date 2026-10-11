@@ -5,8 +5,24 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V375**, 11 October 2026. The newest section is the
+Last updated at **V376**, 11 October 2026. The newest section is the
 first one below; older sections further down are history.
+
+## V376, 11 October 2026 (untested in game)
+
+- Golden Harvest Total on every farmtree page: Total I on page 1 (the
+  unlock, 1 golden crop), Total II as the page 2 root (2), Total III as
+  the page 3 root (4). Each is one level and multiplies the count by its
+  value. Golden Harvest Multi moved to (5,3) on page 2.
+- Gems: wheat pays 1 Gem a crop (`farming.crops.WHEAT.shards`, the other
+  crops still 0). Page 1 (7,5) is now "Gem Earnings" (same node id
+  farming_shards, unlocks earning Gems, 100k). "Gem Harvest" (node
+  enchant_shard_greed) is at (8,4), two after it, for 100k, and unlocks
+  the Gem Greed enchant. Growth II moved to (5,2).
+- Gem Greed is no longer coming soon and is a multiplier like Coin
+  Greed: +0.1% Gems a level, +1000% at 10,000. The prestige SHARD_BONUS
+  upgrade is still a chance at one bonus Gem.
+- config-version 55.
 
 ## V375, 11 October 2026 (untested in game)
 
@@ -22,10 +38,6 @@ first one below; older sections further down are history.
 - Bought armor that replaces a worn piece sends the old one to /stash
   with a chat line.
 - Farm Crate Gems reward 5,000 (was 50).
-- Waiting on Leon: wheat 1 Gem a crop, and a new "unlock Gem earnings"
-  node where Gem Harvest is with Gem Harvest two nodes further. Gem
-  Harvest IS the Gem earnings unlock today, so what the moved one does
-  is unclear.
 
 ## V374, 11 October 2026 (untested in game)
 

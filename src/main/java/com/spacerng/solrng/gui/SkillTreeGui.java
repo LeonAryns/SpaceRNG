@@ -492,8 +492,8 @@ public class SkillTreeGui {
                     "+" + trim(value) + "x on the golden crop",
                     "+" + trim(value * level) + "x", leveled);
             case GOLDEN_TOTAL -> scaled(ChatColor.GOLD,
-                    "+" + (long) value + " golden crop out at once",
-                    "+" + (long) (value * level), leveled);
+                    "x" + trim(value) + " golden crops out at once",
+                    "x" + trim(value), leveled);
             case LUCK -> scaled(ChatColor.GREEN, "+" + pct(value) + "% Luck", pct(value * level) + "%", leveled);
             case ROLL_SPEED -> scaled(ChatColor.YELLOW, "+" + pct(value) + " Speed", "+" + pct(value * level), leveled);
             case BONUS_ROLL_CHANCE -> scaled(ChatColor.LIGHT_PURPLE,

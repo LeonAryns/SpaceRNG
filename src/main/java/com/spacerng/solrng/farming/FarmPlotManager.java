@@ -741,14 +741,17 @@ public class FarmPlotManager {
             tokens = Math.round(tokens * goldenMultiplierFor(data));
         }
 
+        // V376: Gem Greed is a multiplier on every crop's Gems, like Coin
+        // Greed on Coins. It was a chance at one bonus Gem.
         double gemMultiplier = plugin.getSkillTreeManager()
                 .multiplierOf(data, com.spacerng.solrng.player.SkillNode.Effect.GEM_MULTIPLIER)
+                * (1.0 + hoe.powerOf(data, "SHARD_GREED"))
                 * gemFortune * perkYield * data.boostMultiplier("GEMS");
         long shards = shardsUnlocked(data)
                 ? Math.round(crop.getShards() * gemMultiplier) : 0L;
 
-        double shardGreed = hoe.powerOf(data, "SHARD_GREED")
-                + plugin.getPrestigeManager().upgradeTotal(data,
+        // The prestige upgrade is still a chance at one bonus Gem.
+        double shardGreed = plugin.getPrestigeManager().upgradeTotal(data,
                         com.spacerng.solrng.player.PrestigeUpgrade.Effect.SHARD_BONUS);
         boolean gemProc = shardsUnlocked(data) && shardGreed > 0
                 && ThreadLocalRandom.current().nextDouble() < shardGreed;
@@ -1359,11 +1362,19 @@ public class FarmPlotManager {
                 .owned(data, com.spacerng.solrng.player.SkillNode.Effect.UNLOCK_GOLDEN).isEmpty();
     }
 
-    /** How many golden crops this player has out at once: one, plus Golden Harvest Total. */
+    /**
+     * How many golden crops this player has out at once (V376): one from
+     * Golden Harvest Total I, and every later Total node multiplies it by
+     * its value, so 1, 2, 4 across the three pages.
+     */
     public int goldenCountFor(PlayerData data) {
         if (!goldenUnlocked(data)) return 0;
-        return 1 + (int) Math.round(plugin.getSkillTreeManager()
-                .totalOf(data, com.spacerng.solrng.player.SkillNode.Effect.GOLDEN_TOTAL));
+        double count = 1.0;
+        for (var node : plugin.getSkillTreeManager()
+                .owned(data, com.spacerng.solrng.player.SkillNode.Effect.GOLDEN_TOTAL)) {
+            count *= Math.max(1.0, node.getValue());
+        }
+        return (int) Math.min(64, Math.round(count));
     }
 
     /** What a golden crop is worth, skills included. */

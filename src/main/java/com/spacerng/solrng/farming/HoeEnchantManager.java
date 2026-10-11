@@ -322,7 +322,9 @@ public class HoeEnchantManager {
     }
 
     /** Enchants whose number is a bonus rather than a chance; they grow without a ceiling. */
-    private static final java.util.Set<String> ALWAYS_ON = java.util.Set.of("TOKEN_GREED", "MOMENTUM", "WALK_SPEED");
+    private static final java.util.Set<String> ALWAYS_ON = java.util.Set.of("TOKEN_GREED", "MOMENTUM", "WALK_SPEED",
+            // V376, Leon: Gem Greed multiplies Gems the way Coin Greed does Coins.
+            "SHARD_GREED");
 
     /** The same figure the skill tree quotes, for one player. */
     public String describePower(PlayerData data, String enchantId) {

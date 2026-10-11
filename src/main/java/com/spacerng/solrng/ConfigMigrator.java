@@ -118,6 +118,8 @@ public final class ConfigMigrator {
             "index.completion.bonus",
             // V375: the exponential price, for the enchants that had none.
             "farming.enchants.SHARD_GREED.cost-growth", "farming.enchants.KEY_FINDER.cost-growth", "farming.enchants.BLAST_HARVEST.cost-growth", "farming.enchants.POTION_FINDER.cost-growth", "farming.enchants.LIGHTNING.cost-growth", "farming.enchants.NOVA_FINDER.cost-growth", "farming.enchants.COIN_FACTORY.cost-growth", "farming.enchants.PROSPECTOR.cost-growth", "farming.enchants.GEM_RUSH.cost-growth", "farming.enchants.GEM_CASCADE.cost-growth", "farming.enchants.COIN_STORM.cost-growth", "farming.enchants.METEOR.cost-growth", "farming.enchants.GAMBA.cost-growth", "farming.enchants.BLACK_HOLE.cost-growth", "farming.enchants.NUKE.cost-growth", "farming.enchants.SUPERNOVA.cost-growth",
+            // V376: wheat pays 1 Gem. A new key.
+            "farming.crops.WHEAT.shards",
             // V373: the ordered completion ladders. New keys.
             "index.completion.ladder", "index.completion.shiny-ladder",
             // V366: Coin Greed's exponential price. A new key, so it cannot
@@ -906,6 +908,11 @@ public final class ConfigMigrator {
             // V371, Leon: the floating pet egg was still too big and hid
             // the bottom of its own text.
             new Patch("pet-egg-scale-v371", "holograms.pet-egg-scale", 1.2, 0.7),
+            // V376: Gem Greed is a multiplier like Coin Greed, not a proc.
+            new Patch("gem-greed-ready-v376", "farming.enchants.SHARD_GREED.coming-soon", true, false),
+            new Patch("gem-greed-per-level-v376", "farming.enchants.SHARD_GREED.per-level", 0.000005, 0.001),
+            new Patch("gem-greed-desc-v376", "farming.enchants.SHARD_GREED.description",
+                    "A chance at a bonus Gem.", "More Gems from every crop."),
             // V375, Leon: every enchant on one gentle exponential, 0.02% a
             // level, the last level 50x the first. Each part of a curve is
             // its own patch, so a number Leon tuned by hand stays his.

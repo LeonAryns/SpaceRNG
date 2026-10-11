@@ -8,7 +8,7 @@
 # their fresh defaults in on top of whatever is on disk, so a server
 # owner never has to delete the whole file to pick up a structural
 # change. Item table, prices and cosmetic tweaks are untouched.
-config-version: 54
+config-version: 55
 
 # One-off value changes the plugin has already made to this file, so none
 # is ever made twice. Managed by the plugin; leave it alone.
@@ -387,6 +387,8 @@ farming:
   crops:
     WHEAT:
       tokens: 100
+      # V376, Leon: 1 Gem a crop, once Gem Earnings is bought.
+      shards: 1
     CARROTS:
       tokens: 100
     POTATOES:
@@ -499,7 +501,6 @@ farming:
 
     SHARD_GREED:
       display: "Gem Greed"
-      coming-soon: true
       icon: PRISMARINE_CRYSTALS
       # V375, Leon: gradual and only a little exponential. Every level
       # 0.02% dearer, the last level 50x the first: 15,200, 107,437 at 10,000, 759,543
@@ -509,12 +510,13 @@ farming:
       cost-linear: 0.0
       cost-step: 0.0
       cost-power: 1.0
-      description: "A chance at a bonus Gem."
+      description: "More Gems from every crop."
       color: "&b"
       max-level: 20000
       base-cap: 10000
-      # V274: 1% of crops at the ceiling after proc-scale, Leon's call.
-      per-level: 0.000005
+      # V376, Leon: a multiplier like Coin Greed, +0.1% a level, +1000% at
+      # the base cap. It was a 1% chance at one bonus Gem.
+      per-level: 0.001
       # 80% of crops at the ceiling. Level 1 costs 862, level 1,000 costs 468,603,
       # 177,147,000 Coins for all of it.
 
@@ -4929,7 +4931,7 @@ farmtree:
     # V372, Leon: one level that unlocks the golden crop, 50,000 Coins in
     # game. Golden Harvest Multi and Total on pages 2 and 3 upgrade it.
     golden_crop:
-      display: "Golden Harvest"
+      display: "Golden Harvest Total I"
       page: 1
       slot: "5,5"
       icon: "GOLD_NUGGET"
@@ -4963,13 +4965,15 @@ farmtree:
       value: 0
       target: "TOKEN_GREED"
 
+    # V376, Leon: Gem Harvest unlocks the Gem Greed enchant, two skills
+    # after Gem Earnings. It sat at (5,2), where Growth II went.
     enchant_shard_greed:
-      display: "Gem Greed"
+      display: "Gem Harvest"
       page: 1
-      slot: "5,2"
+      slot: "8,4"
       icon: "PRISMARINE_CRYSTALS"
-      cost-money: 84000
-      requires: "proc_1"
+      cost-money: 25000
+      requires: "gems_1"
       effect: "UNLOCK_ENCHANT"
       value: 0
       target: "SHARD_GREED"
@@ -5061,7 +5065,7 @@ farmtree:
       max-level: 10
 
     farming_shards:
-      display: "Gem Harvest"
+      display: "Gem Earnings"
       page: 1
       slot: "7,5"
       icon: "AMETHYST_CLUSTER"
@@ -5087,11 +5091,11 @@ farmtree:
     growth_2:
       display: "Growth II"
       page: 1
-      slot: "8,4"
+      slot: "5,2"
       icon: "BONE_MEAL"
       cost-money: 27600
       cost-growth: 1.25
-      requires: "gems_1"
+      requires: "proc_1"
       effect: "FARM_SPEED"
       value: 0.03
       max-level: 10
@@ -5103,7 +5107,7 @@ farmtree:
       icon: "HAY_BLOCK"
       cost-money: 44600
       cost-growth: 1.25
-      requires: "growth_2"
+      requires: "enchant_shard_greed"
       effect: "TOKEN_GAIN"
       # V281: a tenth, the Coins nodes together x10 instead of x92.
       value: 0.02
@@ -5149,14 +5153,27 @@ farmtree:
     # ====================================================================
 
     # -- Middle line --
+    # V376, Leon: a Golden Harvest Total on every page, each doubling how
+    # many golden crops are out at once: 1 on page 1, 2, then 4.
+    golden_total_2:
+      display: "Golden Harvest Total II"
+      page: 2
+      slot: "5,6"
+      icon: "GOLD_BLOCK"
+      cost-money: 629800
+      requires: "growth_1"
+      effect: "GOLDEN_TOTAL"
+      value: 2
+
+    # V376: moved up the middle line to make room for Total II.
     golden_crop_2:
       display: "Golden Harvest Multi"
       page: 2
-      slot: "5,6"
+      slot: "5,3"
       icon: "GOLD_NUGGET"
       cost-money: 629800
       cost-growth: 1.55
-      requires: "growth_1"
+      requires: "growth_3"
       effect: "GOLDEN_CROP"
       value: 3
       max-level: 10
@@ -5253,7 +5270,7 @@ farmtree:
       slot: "5,5"
       icon: "FIREWORK_STAR"
       cost-money: 629800
-      requires: "golden_crop_2"
+      requires: "golden_total_2"
       effect: "ENCHANT_PROC"
       value: 0.1
 
@@ -5336,18 +5353,16 @@ farmtree:
     # ====================================================================
 
     # -- Middle line --
-    # V372: one more golden crop out at once per level.
+    # V376: Total III doubles it again, 4 golden crops out at once.
     golden_crop_3:
-      display: "Golden Harvest Total"
+      display: "Golden Harvest Total III"
       page: 3
       slot: "5,6"
-      icon: "GOLD_NUGGET"
+      icon: "GOLD_BLOCK"
       cost-money: 47239000
-      cost-growth: 1.55
       requires: "growth_3"
       effect: "GOLDEN_TOTAL"
-      value: 1
-      max-level: 10
+      value: 2
 
     growth_5:
       display: "Growth V"
