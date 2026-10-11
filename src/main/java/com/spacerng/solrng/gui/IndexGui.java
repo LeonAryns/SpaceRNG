@@ -219,20 +219,22 @@ public class IndexGui {
         lore.add(Lore.requirement("Shiny", String.valueOf(shiny), String.valueOf(total), shinyDone));
         lore.add(Lore.bar(total <= 0 ? 0.0 : (double) found / total));
         if (filter != null) {
-            // V365: a finished tier adds to a ladder that tops out at 5x,
-            // and the shiny index is its own ladder on the same numbers.
-            double bonus = rarities.completionBonus(filter);
+            // V373: an ordered ladder. This tier's figure is what the
+            // whole ladder is worth once it and every tier below are done.
+            double plain = rarities.ladderValue(filter, false);
+            double shinyValue = rarities.ladderValue(filter, true);
             lore.add("");
             lore.add(Lore.section(ChatColor.GREEN, "Completion reward"));
             lore.add((done ? ChatColor.GREEN : ChatColor.DARK_GRAY) + Lore.BULLET + " "
                     + ChatColor.GRAY + "Every one found: "
-                    + (done ? ChatColor.GREEN : ChatColor.WHITE) + "+" + trim(bonus) + "x Luck"
+                    + (done ? ChatColor.GREEN : ChatColor.WHITE) + trim(plain) + "x Luck"
                     + (done ? "  " + ChatColor.GREEN + Lore.TICK : ""));
             lore.add((shinyDone ? ChatColor.GREEN : ChatColor.DARK_GRAY) + Lore.BULLET + " "
                     + ChatColor.GRAY + "Every one shiny: "
-                    + (shinyDone ? ChatColor.GREEN : ChatColor.WHITE) + "+" + trim(bonus) + "x more"
+                    + (shinyDone ? ChatColor.GREEN : ChatColor.WHITE) + "+" + trim(shinyValue) + "x more"
                     + (shinyDone ? "  " + ChatColor.GREEN + Lore.TICK : ""));
-            lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " Every tier done is 5x, and 5x again in shiny.");
+            lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " Counts once every tier below is done too.");
+            lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " All done is 5x, plus 10x in shiny: 15x.");
         }
         lore.add("");
         lore.add(Lore.section(ChatColor.YELLOW, "Showing"));
@@ -471,10 +473,10 @@ public class IndexGui {
                 + ChatColor.GRAY + "Completion: "
                 + (completion > 1.0 ? ChatColor.GREEN : ChatColor.GRAY)
                 + trim(completion) + "x" + ChatColor.DARK_GRAY + " of 5x");
-        lore.add((shinyCompletion > 1.0 ? ChatColor.GREEN : ChatColor.DARK_GRAY) + "▎ "
+        lore.add((shinyCompletion > 0.0 ? ChatColor.GREEN : ChatColor.DARK_GRAY) + "▎ "
                 + ChatColor.GRAY + "Shiny completion: "
-                + (shinyCompletion > 1.0 ? ChatColor.GREEN : ChatColor.GRAY)
-                + trim(shinyCompletion) + "x" + ChatColor.DARK_GRAY + " of 5x");
+                + (shinyCompletion > 0.0 ? ChatColor.GREEN : ChatColor.GRAY)
+                + "+" + trim(shinyCompletion) + "x" + ChatColor.DARK_GRAY + " of 10x");
 
         lore.add("");
         lore.add(ChatColor.DARK_GRAY + "BY RARITY");

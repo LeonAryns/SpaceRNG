@@ -297,12 +297,16 @@ public class PrestigeManager {
         return 1.0 + Math.max(0, prestige) * luckMultiplierPerPrestige;
     }
 
-    /** The Luck multiplier earned by finishing whole rarities in /index. */
+    /**
+     * The Luck multiplier earned by finishing whole rarities in /index,
+     * in order (V373): the plain ladder (1x to 5x) plus the shiny ladder
+     * (0 to 10x), so 15x at most. It multiplied the two before.
+     */
     public double indexCompletion(PlayerData data) {
-        return indexCompletion(data, false) * indexCompletion(data, true);
+        return indexCompletion(data, false) + indexCompletion(data, true);
     }
 
-    /** One of the two completion ladders (V365): the index, or the shiny index. */
+    /** One of the two completion ladders: the index (from 1x), or the shiny index (from 0). */
     public double indexCompletion(PlayerData data, boolean shiny) {
         return plugin.getRarityManager().completionMultiplier(data, shiny);
     }

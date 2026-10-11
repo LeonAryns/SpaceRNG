@@ -180,11 +180,10 @@ public final class StatSources {
         parts.add(new Part("Secret", "Your best secret, found in /realm",
                 1.0 + (plugin.getRarityManager().tagMultiplierFor(data) - 1.0)
                         * skills.multiplierOf(data, SkillNode.Effect.TAG_MASTERY), Op.MULTIPLY));
-        // V365: two ladders that add up to 5x each, Leon's numbers.
-        parts.add(new Part("Index completion", "Finish whole rarities in /index",
-                plugin.getPrestigeManager().indexCompletion(data, false), Op.MULTIPLY));
-        parts.add(new Part("Shiny index completion", "Finish whole rarities in shiny",
-                plugin.getPrestigeManager().indexCompletion(data, true), Op.MULTIPLY));
+        // V373: one line, the plain ladder (to 5x) plus the shiny ladder
+        // (to 10x), each counted in order from Common. Leon's numbers.
+        parts.add(new Part("Index completion", "Finish rarities in /index in order, then in shiny",
+                plugin.getPrestigeManager().indexCompletion(data), Op.MULTIPLY));
         // V365: linear, Leon's 5.5x at prestige 55. It compounded at 1.1x
         // a prestige, which is 189x at 55.
         parts.add(new Part("Prestige", "Prestige again in /prestige",

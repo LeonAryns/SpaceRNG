@@ -330,37 +330,42 @@ public class RarityManager {
     }
 
     /**
-     * The index completion multiplier (V365, Leon): each finished rarity
-     * ADDS its bonus, and every rarity finished is 5x. The rarer the tier
-     * the bigger its share: Common +0.1, Uncommon +0.2, up to Astral +1.0.
-     * The shiny index is its own ladder on the same numbers, so a full
-     * shiny index is another 5x on top.
+     * One index completion ladder (V373, Leon). Tiers count only in order
+     * from Common: the multiplier is the ladder value of the highest tier
+     * that has every tier below it finished too. Common and Rare done but
+     * not Uncommon is still Common's 1.1x. The plain ladder tops out at 5x
+     * (Astral) and starts at 1x; the shiny ladder tops out at 10x and
+     * starts at 0, because the two ADD (PrestigeManager.indexCompletion),
+     * so both full is 15x.
      *
-     * Until now every finished tier multiplied the next (1.1 x 1.25 x ...
-     * about 30x) and a shiny finish replaced the plain one.
+     * V365 added every finished tier's bonus whatever the order.
      */
     public double completionMultiplier(com.spacerng.solrng.player.PlayerData data, boolean shiny) {
-        double total = 1.0;
+        double value = shiny ? 0.0 : 1.0;
         for (Rarity rarity : Rarity.values()) {
-            if (isComplete(data, rarity, shiny)) total += completionBonus(rarity);
+            if (countIn(rarity) <= 0) continue;
+            if (!isComplete(data, rarity, shiny)) break;
+            value = ladderValue(rarity, shiny);
         }
-        return total;
+        return value;
     }
 
-    /** What finishing one tier adds, index.completion.bonus. */
-    public double completionBonus(Rarity rarity) {
+    /** What reaching this tier on a ladder is worth, index.completion.ladder or shiny-ladder. */
+    public double ladderValue(Rarity rarity, boolean shiny) {
         var plugin = org.bukkit.plugin.java.JavaPlugin.getPlugin(com.spacerng.solrng.SolRNGPlugin.class);
         double fallback = switch (rarity) {
-            case COMMON -> 0.1;
-            case UNCOMMON -> 0.2;
-            case RARE -> 0.3;
-            case EPIC -> 0.4;
-            case LEGENDARY -> 0.5;
-            case MYTHICAL -> 0.7;
-            case DIVINE -> 0.8;
-            default -> 1.0;
+            case COMMON -> 1.1;
+            case UNCOMMON -> 1.25;
+            case RARE -> 1.5;
+            case EPIC -> 2.0;
+            case LEGENDARY -> 2.5;
+            case MYTHICAL -> 3.0;
+            case DIVINE -> 4.0;
+            default -> 5.0;
         };
-        return Math.max(0.0, plugin.getConfig().getDouble("index.completion.bonus." + rarity.name(), fallback));
+        if (shiny) fallback *= 2.0;
+        String path = "index.completion." + (shiny ? "shiny-ladder." : "ladder.") + rarity.name();
+        return Math.max(0.0, plugin.getConfig().getDouble(path, fallback));
     }
 
     /** An item's own "colors"/bold/underline/strikethrough, or null if it doesn't define any. */

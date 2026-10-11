@@ -5,8 +5,17 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V372**, 11 October 2026. The newest section is the
+Last updated at **V373**, 11 October 2026. The newest section is the
 first one below; older sections further down are history.
+
+## V373, 11 October 2026 (untested in game)
+
+- Index completion is an ordered ladder: the value of the highest rarity
+  with every rarity below it finished. Plain 1.1 / 1.25 / 1.5 / 2 / 2.5 /
+  3 / 4 / 5x (`index.completion.ladder`), shiny 2.2 / 2.5 / 3 / 4 / 5 / 6
+  / 8 / 10x (`shiny-ladder`, the shiny steps are my doubling of Leon's
+  plain ones, he only gave the 10x top). The two ADD: 15x max. /stats
+  shows one "Index completion" line.
 
 ## V372, 11 October 2026 (untested in game)
 

@@ -2265,12 +2265,31 @@ index:
   # Gated behind the same Tag Luck skill the tag multiplier is: until
   # that's bought, the index is a collection log and nothing more.
   completion:
-    # V365, Leon: a finished rarity ADDS this to a ladder that starts at
-    # 1x, and every rarity finished is 5x. The rarer the tier, the bigger
-    # its share. The shiny index is its own ladder on the same numbers, so
-    # a full shiny index is another 5x. The keys below it (per-rarity,
-    # by-rarity, per-shiny-rarity) are the old multiplying ladder and are
-    # no longer read.
+    # V373, Leon: an ordered ladder. The multiplier is the value of the
+    # highest rarity that has every rarity below it finished too, so
+    # Common and Rare done without Uncommon is still 1.1x. All done is 5x.
+    ladder:
+      COMMON: 1.1
+      UNCOMMON: 1.25
+      RARE: 1.5
+      EPIC: 2.0
+      LEGENDARY: 2.5
+      MYTHICAL: 3.0
+      DIVINE: 4.0
+      ASTRAL: 5.0
+    # The same in shiny, up to 10x, and it ADDS to the ladder above, so
+    # both finished is 15x.
+    shiny-ladder:
+      COMMON: 2.2
+      UNCOMMON: 2.5
+      RARE: 3.0
+      EPIC: 4.0
+      LEGENDARY: 5.0
+      MYTHICAL: 6.0
+      DIVINE: 8.0
+      ASTRAL: 10.0
+    # Everything below is no longer read: V365's additive bonus and the
+    # older multiplying ladder.
     bonus:
       COMMON: 0.1
       UNCOMMON: 0.2

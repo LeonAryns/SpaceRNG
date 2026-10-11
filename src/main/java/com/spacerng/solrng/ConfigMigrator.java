@@ -116,6 +116,8 @@ public final class ConfigMigrator {
             "pets.eggs.animation", "pets.eggs.open-head", "holograms.pet-eggs",
             // V365: the additive index completion ladder. New keys.
             "index.completion.bonus",
+            // V373: the ordered completion ladders. New keys.
+            "index.completion.ladder", "index.completion.shiny-ladder",
             // V366: Coin Greed's exponential price. A new key, so it cannot
             // be a patch, and without it the live price would stay flat.
             "farming.enchants.TOKEN_GREED.cost-growth", "farming.enchants.MOMENTUM.cost-growth",
