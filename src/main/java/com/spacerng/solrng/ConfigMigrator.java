@@ -923,6 +923,12 @@ public final class ConfigMigrator {
             new Patch("curve-v375-growth-TOKEN_GREED", "farming.enchants.TOKEN_GREED.cost-growth", 1.0005, 1.0001956),
             new Patch("curve-v375-base-MOMENTUM", "farming.enchants.MOMENTUM.base-cost", 1000, 9500),
             new Patch("curve-v375-growth-MOMENTUM", "farming.enchants.MOMENTUM.cost-growth", 1.0005, 1.0001956),
+            // V378, Leon: Momentum cheap to start, billions by level 5,000.
+            // 1,000 + 0.1 x level squared: 4.2 billion to 5,000.
+            new Patch("momentum-base-v378", "farming.enchants.MOMENTUM.base-cost", 9500, 1000),
+            new Patch("momentum-growth-v378", "farming.enchants.MOMENTUM.cost-growth", 1.0001956, 1.0),
+            new Patch("momentum-step-v378", "farming.enchants.MOMENTUM.cost-step", 0.0, 0.1),
+            new Patch("momentum-power-v378", "farming.enchants.MOMENTUM.cost-power", 1.0, 2.0),
             new Patch("curve-v375-base-SHARD_GREED", "farming.enchants.SHARD_GREED.base-cost", 738, 15200),
             new Patch("curve-v375-cost-linear-SHARD_GREED", "farming.enchants.SHARD_GREED.cost-linear", 124.12702702702701, 0.0),
             new Patch("curve-v375-cost-step-SHARD_GREED", "farming.enchants.SHARD_GREED.cost-step", 0.34373808525885, 0.0),

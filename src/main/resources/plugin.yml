@@ -96,7 +96,7 @@ commands:
   brewer:
     description: Brew potions with rolled drops
     usage: /brewer
-    aliases: [brew, potion]
+    aliases: [brew]
   limitluck:
     description: Roll with less Luck than you have, to fill in the common end of your index
     usage: /limitluck <percent|off>
@@ -122,7 +122,7 @@ commands:
   potions:
     description: Drink the potions you have brewed or found
     usage: /potions
-    aliases: [boosters]
+    aliases: [boosters, potion]
   cropwatch:
     description: Watch how fast someone breaks crops (staff)
     usage: /cropwatch <player|list|off>

@@ -491,11 +491,19 @@ public class CrateManager {
             boolean rare = crate.isJackpot(row.getKey());
             player.sendMessage((rare ? ChatColor.GOLD : ChatColor.YELLOW) + Lore.BULLET + " "
                     + ChatColor.WHITE + row.getValue() + "x " + ChatColor.RESET + label(row.getKey())
-                    + ChatColor.DARK_GRAY + "  (" + chanceText(crate.chanceOf(row.getKey())) + ")");
+                    + ChatColor.DARK_GRAY + "  (" + chanceText(crate.chanceOf(row.getKey())) + ")" + potionHint(row.getKey()));
         }
         player.sendMessage("");
         player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.9f, 1.3f);
         CrateFx.burst(plugin, player, at, crate, jackpot);
+    }
+
+    /** "  /potions" behind a reward that lands in /potions (V378, Leon), so people know where it went. */
+    private String potionHint(CrateReward reward) {
+        if (reward.type() != CrateReward.Type.CONSUMABLE) return "";
+        Consumable consumable = plugin.getConsumableManager().get(reward.target());
+        if (!plugin.getConsumableManager().isStorableBooster(consumable)) return "";
+        return ChatColor.GRAY + "  " + ChatColor.LIGHT_PURPLE + "/potions";
     }
 
     /** Pays one reward. `tell` is false inside a quick open, which summarises instead. */
@@ -536,7 +544,7 @@ public class CrateManager {
 
         if (tell) {
             player.sendMessage(styledName(crate) + ChatColor.GRAY + "  You won " + ChatColor.RESET + label(reward)
-                    + ChatColor.DARK_GRAY + "  (" + chanceText(crate.chanceOf(reward)) + ")");
+                    + ChatColor.DARK_GRAY + "  (" + chanceText(crate.chanceOf(reward)) + ")" + potionHint(reward));
         }
         // V271: off by default, Leon wants no crate lines in chat.
         if (crate.isJackpot(reward) && plugin.getConfig().getBoolean("crates.announce-jackpots", false)) {

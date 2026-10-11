@@ -44,7 +44,7 @@ public class ShopGui {
                     new String[]{"Buy armor that adds Luck and",
                                  "Speed while you wear it."}),
             new Entry(14, Material.BREWING_STAND, ChatColor.LIGHT_PURPLE, "Brewing Shelf",
-                    "potion_unlock", "potion",
+                    "potion_unlock", "brewer",
                     new String[]{"Draughts of Luck and Speed,",
                                  "brewed from your own drops."}),
             new Entry(16, Material.CHEST, ChatColor.GREEN, "Convert", "convert_unlock", "convert",

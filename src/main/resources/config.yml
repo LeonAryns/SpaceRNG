@@ -8,7 +8,7 @@
 # their fresh defaults in on top of whatever is on disk, so a server
 # owner never has to delete the whole file to pick up a structural
 # change. Item table, prices and cosmetic tweaks are untouched.
-config-version: 55
+config-version: 56
 
 # One-off value changes the plugin has already made to this file, so none
 # is ever made twice. Managed by the plugin; leave it alone.
@@ -484,11 +484,15 @@ farming:
       # V375, Leon: gradual and only a little exponential. Every level
       # 0.02% dearer, the last level 50x the first: 9,500, 67,148 at 10,000, 474,715
       # at 20,000. 294,793,068 Coins to 10,000, 2,378,872,205 to 20,000.
-      base-cost: 9500
-      cost-growth: 1.0001956
+      # V378, Leon: cheap to start, billions by level 5,000. 1,000 + 0.1 x
+      # level squared: 101,000 at level 1,000, 2,501,000 at 5,000,
+      # 10,001,000 at 10,000. 34 million Coins to 1,000, 4.2 billion to
+      # 5,000, 33 billion to 10,000, 267 billion to 20,000.
+      base-cost: 1000
+      cost-growth: 1.0
       cost-linear: 0.0
-      cost-step: 0.0
-      cost-power: 1.0
+      cost-step: 0.1
+      cost-power: 2.0
       description: "An unbroken run of harvests builds a multiplier."
       color: "&2"
       max-level: 20000
@@ -3769,7 +3773,8 @@ milestones:
     # be to keep climbing; the tops are untouched.
     prestige: {10: 100, 25: 150, 50: 250, 100: 350}
     rarity: {100: 100, 120: 150, 130: 200, 140: 250, 144: 400}
-    farming: {10000: 100, 100000: 200, 1000000: 500, 10000000: 1200}
+    # V378, Leon: no Credits at 10,000 crops, the first are at 100,000.
+    farming: {100000: 200, 1000000: 500, 10000000: 1200}
   tracks:
     prestige:
       verb: "Reach"
@@ -3816,7 +3821,8 @@ milestones:
       tiers:
         - { at: 1000, consumable: roll_10x, consumable-amount: 2 }
         - { at: 5000, consumable: enchant_potion }
-        - { at: 10000, consumable: roll_10x, consumable-amount: 5 }
+        # V378, Leon: just a Perk Ticket at 10,000.
+        - { at: 10000, tickets: 1 }
         - { at: 25000, consumable: luck_potion, consumable-amount: 3 }
         - { at: 50000, consumable: nova_core }
         - { at: 100000, consumable: roll_100x }
@@ -5113,7 +5119,8 @@ farmtree:
       requires: "enchant_shard_greed"
       effect: "TOKEN_GAIN"
       # V281: a tenth, the Coins nodes together x10 instead of x92.
-      value: 0.02
+      # V379, Leon: 5% a level, like Coins I.
+      value: 0.05
       max-level: 10
 
     gems_2:

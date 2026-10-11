@@ -816,6 +816,7 @@ public class FarmPlotManager {
             lastCropTokens = tokens;
         }
         if (shards > 0) data.addShards(shards);
+        creditWindows(player.getUniqueId(), tokens, shards);
         // V343, Leon's question: a plot swept up by Blast Harvest,
         // Lightning or a Nuke used to count toward crops farmed like a
         // plot you clicked, so one click could be a hundred crops on the
@@ -925,6 +926,58 @@ public class FarmPlotManager {
      * boss bar exists so nobody is quietly sitting on a number they can't
      * see.
      */
+    /**
+     * A window enchant (Golden Touch, Gem Rush, Gamba) that is open, and
+     * the extra it has paid so far (V378, Leon: every proc says what it
+     * gave). The extra on a crop is what it paid minus what it would have
+     * paid without the window's multiplier.
+     */
+    private static final class Window {
+        final String name;
+        final boolean gems;
+        final double multiplier;
+        double extra;
+
+        Window(String name, boolean gems, double multiplier) {
+            this.name = name;
+            this.gems = gems;
+            this.multiplier = multiplier;
+        }
+    }
+
+    private final Map<UUID, List<Window>> windows = new HashMap<>();
+
+    private void openWindow(Player player, String enchantId, String name, boolean gems,
+                            double multiplier, long seconds) {
+        if (multiplier <= 1.0) return;
+        Window window = new Window(name, gems, multiplier);
+        windows.computeIfAbsent(player.getUniqueId(), k -> new ArrayList<>()).add(window);
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+            List<Window> open = windows.get(player.getUniqueId());
+            if (open != null) {
+                open.remove(window);
+                if (open.isEmpty()) windows.remove(player.getUniqueId());
+            }
+            long extra = Math.round(window.extra);
+            if (extra <= 0 || !player.isOnline()) return;
+            PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+            procChat(player, data, enchantId, (window.gems ? ChatColor.AQUA : Currency.COINS.colour())
+                    + "" + ChatColor.BOLD + window.name + " over  " + ChatColor.RESET + ChatColor.GRAY + "it gave you "
+                    + (window.gems ? ChatColor.AQUA + "+" + String.format("%,d", extra) + " Gems"
+                                   : Currency.COINS.amount(extra))
+                    + ChatColor.GRAY + " extra.");
+        }, seconds * 20L);
+    }
+
+    private void creditWindows(UUID uuid, long tokens, long shards) {
+        List<Window> open = windows.get(uuid);
+        if (open == null) return;
+        for (Window window : open) {
+            long paid = window.gems ? shards : tokens;
+            if (paid > 0) window.extra += paid - paid / window.multiplier;
+        }
+    }
+
     /** A proc's action bar line, unless its messages are switched off (V271). */
     private void procBar(Player player, PlayerData data, String enchantId, String text) {
         if (data.isEnchantMessageOn(enchantId)) sendActionBar(player, text);
@@ -1046,6 +1099,7 @@ public class FarmPlotManager {
             plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
                 if (!player.isOnline()) return;
                 int swept = 0;
+                long before = data.getTokens();
                 // A circle: the corners of the square stay standing. r*r + r
                 // rounds the edge out so small blasts are not a plus sign.
                 // V267: r*r + 1, rounder than r*r + r, which left flat sides.
@@ -1071,7 +1125,8 @@ public class FarmPlotManager {
                 }
                 if (swept > 0) {
                     procBar(player, data, "BLAST_HARVEST", ChatColor.RED + "" + ChatColor.BOLD + "Blast  "
-                            + ChatColor.RESET + ChatColor.GRAY + swept + " extra crops");
+                            + ChatColor.RESET + ChatColor.GRAY + swept + " extra crops, "
+                            + Currency.COINS.amount(data.getTokens() - before));
                 }
             }, 20L);
         }
@@ -1079,6 +1134,7 @@ public class FarmPlotManager {
         double lightning = hoe.powerOf(data, "LIGHTNING");
         if (lightning > 0 && ThreadLocalRandom.current().nextDouble() < lightning) {
             int struck = 0;
+            long before = data.getTokens();
             for (int attempt = 0; attempt < lightningBolts; attempt++) {
                 int dx = ThreadLocalRandom.current().nextInt(-lightningRadius, lightningRadius + 1);
                 int dz = ThreadLocalRandom.current().nextInt(-lightningRadius, lightningRadius + 1);
@@ -1091,7 +1147,8 @@ public class FarmPlotManager {
             }
             if (struck > 0) {
                 procBar(player, data, "LIGHTNING", ChatColor.YELLOW + "" + ChatColor.BOLD + "Lightning  "
-                        + ChatColor.RESET + ChatColor.GRAY + struck + " crops struck");
+                        + ChatColor.RESET + ChatColor.GRAY + struck + " crops struck, "
+                        + Currency.COINS.amount(data.getTokens() - before));
             }
         }
 
@@ -1167,6 +1224,7 @@ public class FarmPlotManager {
             // instead of replacing it.
             data.applyBoost(com.spacerng.solrng.player.PlayerData.GAMBA_PREFIX + keys[pick],
                     gambaMultiplier, gambaSeconds * 1000L);
+            if (pick < 2) openWindow(player, "GAMBA", "Gamba", pick == 1, gambaMultiplier, gambaSeconds);
             procChat(player, data, "GAMBA", ChatColor.GOLD + "" + ChatColor.BOLD + "Gamba  "
                     + ChatColor.RESET + ChatColor.GRAY + "it landed on "
                     + ChatColor.WHITE + names[pick] + ChatColor.GRAY + ", "
@@ -1231,6 +1289,7 @@ public class FarmPlotManager {
         double golden = hoe.powerOf(data, "GOLDEN_TOUCH");
         if (golden > 0 && ThreadLocalRandom.current().nextDouble() < golden) {
             data.applyBoost("TOKENS", goldenTouchMultiplier, goldenTouchSeconds * 1000L);
+            openWindow(player, "GOLDEN_TOUCH", "Golden Touch", false, goldenTouchMultiplier, goldenTouchSeconds);
             EnchantFx.coinStorm(plugin, player, (int) (goldenTouchSeconds * 20L));
             procChat(player, data, "GOLDEN_TOUCH", Currency.COINS.colour() + "" + ChatColor.BOLD + "Golden Touch  "
                     + ChatColor.RESET + ChatColor.GRAY + "Coins x" + trimTimes(goldenTouchMultiplier)
@@ -1240,6 +1299,7 @@ public class FarmPlotManager {
         double rush = hoe.powerOf(data, "GEM_RUSH");
         if (rush > 0 && ThreadLocalRandom.current().nextDouble() < rush) {
             data.applyBoost("GEMS", gemRushMultiplier, gemRushSeconds * 1000L);
+            openWindow(player, "GEM_RUSH", "Gem Rush", true, gemRushMultiplier, gemRushSeconds);
             EnchantFx.gemRush(plugin, player, (int) (gemRushSeconds * 20L));
             procChat(player, data, "GEM_RUSH", ChatColor.AQUA + "" + ChatColor.BOLD + "Gem Rush  "
                     + ChatColor.RESET + ChatColor.GRAY + "Gems x" + trimTimes(gemRushMultiplier)
@@ -1290,19 +1350,22 @@ public class FarmPlotManager {
         double meteor = hoe.powerOf(data, "METEOR");
         if (meteor > 0 && ThreadLocalRandom.current().nextDouble() < meteor) {
             EnchantFx.meteor(plugin, player, plot, meteorRadius);
+            long before = data.getTokens();
             int hit = sweep(player, plot, meteorRadius);
             if (hit > 0) {
                 long paid = base * hit;
                 data.addTokens(paid);
                 data.trackCoins(paid);
                 procBar(player, data, "METEOR", ChatColor.RED + "" + ChatColor.BOLD + "Meteor  "
-                        + ChatColor.RESET + ChatColor.GRAY + hit + " crops, paid twice");
+                        + ChatColor.RESET + ChatColor.GRAY + hit + " crops, paid twice, "
+                        + Currency.COINS.amount(data.getTokens() - before));
             }
         }
 
         double hole = hoe.powerOf(data, "BLACK_HOLE");
         if (hole > 0 && ThreadLocalRandom.current().nextDouble() < hole) {
             EnchantFx.blackHole(plugin, player, plot, blastMaxRadius);
+            long before = data.getTokens();
             int pulled = sweep(player, plot, blastMaxRadius);
             if (pulled > 0) {
                 long paid = base * pulled * 2L;
@@ -1311,7 +1374,7 @@ public class FarmPlotManager {
                 data.addShards(pulled);
                 procChat(player, data, "BLACK_HOLE", ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + "Black Hole  "
                         + ChatColor.RESET + ChatColor.GRAY + pulled + " crops swallowed for "
-                        + Currency.COINS.amount(paid) + ChatColor.GRAY + " and " + ChatColor.AQUA
+                        + Currency.COINS.amount(data.getTokens() - before) + ChatColor.GRAY + " and " + ChatColor.AQUA
                         + pulled + " Gems" + ChatColor.GRAY + ".");
             }
         }

@@ -5,8 +5,30 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V377**, 11 October 2026. The newest section is the
+Last updated at **V379**, 11 October 2026. The newest section is the
 first one below; older sections further down are history.
+
+## V379, 11 October 2026 (untested in game)
+
+- `/potion` opens /potions (your potions); only `/brewer` and `/brew`
+  open the brewer. The shop's Brewing Shelf button runs /brewer.
+- A potion won from a crate says `/potions` behind the chat line.
+- Farming milestone 10,000 crops: 1 Perk Ticket, no Credits. Credits on
+  that track start at 100,000 (200). config-version 56.
+- Enchant procs say what they paid: Blast, Lightning, Meteor and Black
+  Hole name the Coins of their sweep; Golden Touch, Gem Rush and Gamba
+  (Coins or Gems) post the extra they gave when the window ends.
+- Momentum price: 1,000 + 0.1 x level squared. 34 million to level
+  1,000, 4.2 billion to 5,000, 267 billion to 20,000.
+- Coins II is 5% a level, like Coins I (was 2%).
+
+## V378, 11 October 2026 (untested in game)
+
+- Wheat pays 1 Gem (with Gem Earnings). V376 put it on
+  `farming.crops`, the farm reads `farming.crop-types`.
+- Right clicking flower pots, potted plants and decorated pots is
+  blocked. `protection.blocked-blocks` was never in config.yml, so
+  V355's workbench and chest block never worked; the list is in now.
 
 ## V377, 11 October 2026 (untested in game)
 
