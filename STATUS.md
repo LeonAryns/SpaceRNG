@@ -5,8 +5,14 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V379**, 11 October 2026. The newest section is the
+Last updated at **V380**, 11 October 2026. The newest section is the
 first one below; older sections further down are history.
+
+## V380, 11 October 2026 (untested in game)
+
+- Farming milestones every million from 1M to 5M: 1M 2x 100x roll,
+  2M 2 Nova Cores (was at 2.5M), 3M 5 Luck Potions, 4M 3x 100x roll,
+  5M 3 Perk Tickets. 10M unchanged. config-version 57.
 
 ## V379, 11 October 2026 (untested in game)
 

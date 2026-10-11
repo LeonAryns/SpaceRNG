@@ -8,7 +8,7 @@
 # their fresh defaults in on top of whatever is on disk, so a server
 # owner never has to delete the whole file to pick up a structural
 # change. Item table, prices and cosmetic tweaks are untouched.
-config-version: 56
+config-version: 57
 
 # One-off value changes the plugin has already made to this file, so none
 # is ever made twice. Managed by the plugin; leave it alone.
@@ -3828,8 +3828,11 @@ milestones:
         - { at: 100000, consumable: roll_100x }
         - { at: 250000, consumable: speed_potion, consumable-amount: 5 }
         - { at: 500000, tickets: 1 }
+        # V380, Leon: every million from 1M to 5M.
         - { at: 1000000, consumable: roll_100x, consumable-amount: 2 }
-        - { at: 2500000, consumable: nova_core, consumable-amount: 2 }
+        - { at: 2000000, consumable: nova_core, consumable-amount: 2 }
+        - { at: 3000000, consumable: luck_potion, consumable-amount: 5 }
+        - { at: 4000000, consumable: roll_100x, consumable-amount: 3 }
         - { at: 5000000, tickets: 3 }
         - { at: 10000000, consumable: luck_25 }
     playtime:
