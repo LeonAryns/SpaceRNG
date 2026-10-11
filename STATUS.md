@@ -5,8 +5,15 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V376**, 11 October 2026. The newest section is the
+Last updated at **V377**, 11 October 2026. The newest section is the
 first one below; older sections further down are history.
+
+## V377, 11 October 2026 (untested in game)
+
+- `/rngadmin farmclear <radius> confirm` removes only the farm plots
+  within that many blocks of you (1 to 128, measured flat). Without
+  `confirm` it says how many it would remove. `farmclear confirm` still
+  clears everything.
 
 ## V376, 11 October 2026 (untested in game)
 
