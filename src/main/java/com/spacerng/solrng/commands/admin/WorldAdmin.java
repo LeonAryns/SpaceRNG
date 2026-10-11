@@ -50,6 +50,27 @@ final class WorldAdmin extends AdminTools {
      */
     boolean doFarmClear(CommandSender sender, String[] args) {
         var farm = plugin.getFarmPlotManager();
+        // /rngadmin farmclear <radius> [confirm] (V377): only the plots around you.
+        if (args.length >= 2 && args[1].matches("\\d+")) {
+            if (!(sender instanceof Player player)) {
+                sender.sendMessage(ChatColor.RED + "Stand where you want to clear; run this in game.");
+                return true;
+            }
+            int radius = Math.max(1, Math.min(128, Integer.parseInt(args[1])));
+            boolean confirmed = args.length >= 3 && args[2].equalsIgnoreCase("confirm");
+            if (!confirmed) {
+                int near = farm.plotsNear(player.getLocation(), radius).size();
+                sender.sendMessage(ChatColor.RED + "This removes " + near + " farm plots within "
+                        + radius + " blocks of you.");
+                sender.sendMessage(ChatColor.RED + "Run " + ChatColor.YELLOW
+                        + "/rngadmin farmclear " + radius + " confirm" + ChatColor.RED + " if you're sure.");
+                return true;
+            }
+            int removed = farm.clearNear(player.getLocation(), radius);
+            sender.sendMessage(ChatColor.GREEN + "Removed " + removed + " farm plots within "
+                    + radius + " blocks.");
+            return true;
+        }
         int count = farm.plotCount();
         if (args.length < 2 || !args[1].equalsIgnoreCase("confirm")) {
             sender.sendMessage(ChatColor.RED + "This removes all " + count + " farm plots.");

@@ -420,6 +420,48 @@ public class FarmPlotManager {
         return removed;
     }
 
+    /**
+     * The plots within {@code radius} blocks of the centre, measured flat
+     * (x and z only) so a field on a slope goes as a whole (V377).
+     */
+    public List<Location> plotsNear(Location centre, int radius) {
+        List<Location> near = new ArrayList<>();
+        double rangeSq = (double) radius * radius;
+        for (Location plot : plots) {
+            if (plot.getWorld() == null || !plot.getWorld().equals(centre.getWorld())) continue;
+            double dx = plot.getX() - centre.getBlockX();
+            double dz = plot.getZ() - centre.getBlockZ();
+            if (dx * dx + dz * dz <= rangeSq) near.add(plot);
+        }
+        return near;
+    }
+
+    /**
+     * Removes the plots within the radius and their marker blocks, like
+     * clearAll but only around one spot (V377, /rngadmin farmclear
+     * <radius> confirm). Harvest timers and golden crops on those plots go
+     * too, so nothing keeps pointing at a plot that is gone.
+     */
+    public int clearNear(Location centre, int radius) {
+        List<Location> near = plotsNear(centre, radius);
+        for (Location plot : near) {
+            plots.remove(plot);
+            for (Map<Location, Long> timers : harvested.values()) timers.remove(plot);
+            for (Map.Entry<UUID, Set<Location>> entry : golden.entrySet()) {
+                if (entry.getValue().remove(plot)) removeGlow(entry.getKey(), plot);
+            }
+            World world = plot.getWorld();
+            if (world.isChunkLoaded(plot.getBlockX() >> 4, plot.getBlockZ() >> 4)) {
+                Block block = plot.getBlock();
+                if (block.getType() == MARKER || LEGACY_MARKERS.contains(block.getType())) {
+                    block.setType(Material.AIR, false);
+                }
+            }
+        }
+        if (!near.isEmpty()) savePlots();
+        return near.size();
+    }
+
     public int plotCount() {
         return plots.size();
     }
