@@ -66,6 +66,54 @@ public class BlockProtectListener implements Listener {
         if (guarded(event.getPlayer())) event.setCancelled(true);
     }
 
+    /**
+     * No boats, minecarts, armor stands or end crystals either (V371,
+     * Leon's screenshot). They are entities, so BlockPlaceEvent never saw
+     * them.
+     */
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onEntityPlace(org.bukkit.event.entity.EntityPlaceEvent event) {
+        if (event.getPlayer() != null && guarded(event.getPlayer())) event.setCancelled(true);
+    }
+
+    /**
+     * A boat already out in the world goes on the first hit, for anyone
+     * (V371). Leon could not break the ones players had placed; this event
+     * fires before vanilla or another plugin decides whether the hit
+     * counts, and a boat has no business being there at all. A chest boat
+     * drops what was stored in it so nothing is lost.
+     */
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onBoatHit(io.papermc.paper.event.player.PrePlayerAttackEntityEvent event) {
+        if (!(event.getAttacked() instanceof org.bukkit.entity.Boat boat)) return;
+        if (boat instanceof org.bukkit.entity.ChestBoat chest) {
+            for (org.bukkit.inventory.ItemStack item : chest.getInventory().getContents()) {
+                if (item != null && !item.getType().isAir()) boat.getWorld().dropItemNaturally(boat.getLocation(), item);
+            }
+            chest.getInventory().clear();
+        }
+        boat.eject();
+        boat.remove();
+        event.setCancelled(true);
+    }
+
+    /**
+     * No crafting at all (V371). The crafting table was already blocked
+     * (V355), but the 2x2 grid in the inventory still made planks, sticks
+     * and a table. Clearing the result means nothing shows to take.
+     */
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onPrepareCraft(org.bukkit.event.inventory.PrepareItemCraftEvent event) {
+        if (event.getView().getPlayer() instanceof Player player && guarded(player)) {
+            event.getInventory().setResult(null);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onCraft(org.bukkit.event.inventory.CraftItemEvent event) {
+        if (event.getWhoClicked() instanceof Player player && guarded(player)) event.setCancelled(true);
+    }
+
     /** Paintings and item frames are blocks to a player, so they are kept too. */
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onHangingBreak(org.bukkit.event.hanging.HangingBreakByEntityEvent event) {

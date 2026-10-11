@@ -898,7 +898,10 @@ public final class ConfigMigrator {
                     List.of("MYTHICAL", "DIVINE"), List.of("MYTHICAL", "DIVINE", "ASTRAL")),
             new Patch("astral-firsts", "first-ten.rarities",
                     List.of("LEGENDARY", "MYTHICAL", "DIVINE"),
-                    List.of("LEGENDARY", "MYTHICAL", "DIVINE", "ASTRAL")));
+                    List.of("LEGENDARY", "MYTHICAL", "DIVINE", "ASTRAL")),
+            // V371, Leon: the floating pet egg was still too big and hid
+            // the bottom of its own text.
+            new Patch("pet-egg-scale-v371", "holograms.pet-egg-scale", 1.2, 0.7));
 
     // V159: every hoe enchant runs to level 10,000, except Credit Finder,
     // which stays at 1,000 because it pays Credits.
@@ -1016,7 +1019,14 @@ public final class ConfigMigrator {
             new EntryPatch("guide-farm-skills-goal-v368", "guide.quests", "farm_skills", "goal",
                     "HAS_NODE", "TREE_NODES"),
             new EntryPatch("guide-farm-skills-target-v368", "guide.quests", "farm_skills", "target",
-                    "growth_1", "farmtree"));
+                    "growth_1", "farmtree"),
+            // V371: Luck I and Convert swapped places, so the hints follow.
+            new EntryPatch("guide-hint-luck-v371", "guide.quests", "first_luck", "hint",
+                    "Luck sits above Convert, over Auto Roll, in /skilltree.",
+                    "Luck I sits directly above Auto Roll in /skilltree."),
+            new EntryPatch("guide-hint-farming-v371", "guide.quests", "farming_unlock", "hint",
+                    "Buy Farming in /skilltree, right above Luck I, to get the Farmer's Hoe.",
+                    "Buy Farming in /skilltree, right above Convert, to get the Farmer's Hoe."));
 
     /**
      * Replaces one exact line anywhere inside a (nested) list, like a

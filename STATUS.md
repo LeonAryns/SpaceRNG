@@ -5,8 +5,23 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V364**, 10 October 2026. The newest section is the
+Last updated at **V371**, 11 October 2026. The newest section is the
 first one below; older sections further down are history.
+
+## V371, 11 October 2026 (untested in game)
+
+- Floating pet egg 1.2 to 0.7 (`holograms.pet-egg-scale`, patched on the
+  live config), and its text now starts above the egg's top instead of
+  through it.
+- No boats, minecarts, armor stands or crystals can be placed
+  (`EntityPlaceEvent`), any hit removes a boat (chest boats drop their
+  contents), and the 2x2 inventory crafting grid gives nothing. Admin in
+  creative is exempt from placing and crafting, like the rest of
+  `BlockProtectListener`.
+- Skill tree page 1: Luck I at (5,5) over Auto Roll, Convert at (5,4)
+  above it, Farming over Convert. Guide hints follow. config-version 53.
+- Coin Greed farmtree node costs 50,000 Coins in game: `cost-money`
+  12,500 times the farmtree multiplier 4.0 (it showed 200,000).
 
 ## Start here: V362 to V364, 10 October 2026
 

@@ -108,7 +108,7 @@ public final class HoloManager {
     private double panelHeight = 2.3;
     private float crateHeadScale = 2.6f;
     // V366, Leon: the pet egg smaller than a crate head.
-    private float petEggScale = 1.2f;
+    private float petEggScale = 0.7f;
     private double crateHeadLift = 0.15;
     private double crateSpinDegrees = 90.0;
     private double crateBob = 0.12;
@@ -165,7 +165,7 @@ public final class HoloManager {
         textScale = (float) config.getDouble("holograms.text-scale", 1.1);
         panelHeight = config.getDouble("holograms.panel-height", 2.3);
         crateHeadScale = (float) config.getDouble("holograms.crate-head-scale", 2.6);
-        petEggScale = (float) config.getDouble("holograms.pet-egg-scale", 1.2);
+        petEggScale = (float) config.getDouble("holograms.pet-egg-scale", 0.7);
         crateHeadLift = config.getDouble("holograms.crate-head-lift", 0.15);
         // Past about 170 degrees an update, interpolation takes the short way round and spins backwards.
         crateSpinDegrees = Math.max(0.0, Math.min(170.0, config.getDouble("holograms.crate-spin-degrees", 45.0)));
@@ -675,6 +675,10 @@ public final class HoloManager {
         });
         pieces.add(display);
         crateHeads.put(spot.id(), display);
+        // V371: a block item such as a dragon egg is centred on the display,
+        // so its top is a half scale above it. The text starts above that,
+        // or the front of the egg covers the bottom lines.
+        double textY = headY + petEggScale / 2.0 + crateBob + 0.2;
 
         if (ALL_EGGS.equals(spot.key())) {
             // V362, Leon's screenshot: one egg for the whole system with a
@@ -691,7 +695,7 @@ public final class HoloManager {
             }
             String click = plugin.getConfig().getString("holograms.pet-eggs.click",
                     plugin.getConfig().getString("holograms.click", ""));
-            stack(spot, spot.at().clone().add(0, headY + crateBob + 0.3, 0), parse(title), lines,
+            stack(spot, spot.at().clone().add(0, textY, 0), parse(title), lines,
                     click == null || click.isBlank() ? null : parse(click), pieces);
             return;
         }
@@ -706,7 +710,7 @@ public final class HoloManager {
                     + " <dark_gray>|<gray> <#69F0AE>" + String.format("%,d", egg.cost()) + " Gems</#69F0AE> an egg"));
         }
         String click = plugin.getConfig().getString("holograms.click", "");
-        stack(spot, spot.at().clone().add(0, headY + crateBob + 0.3, 0), parse(title), lines,
+        stack(spot, spot.at().clone().add(0, textY, 0), parse(title), lines,
                 click == null || click.isBlank() ? null : parse(click), pieces);
     }
 

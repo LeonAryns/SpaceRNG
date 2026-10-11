@@ -8,7 +8,7 @@
 # their fresh defaults in on top of whatever is on disk, so a server
 # owner never has to delete the whole file to pick up a structural
 # change. Item table, prices and cosmetic tweaks are untouched.
-config-version: 52
+config-version: 53
 
 # One-off value changes the plugin has already made to this file, so none
 # is ever made twice. Managed by the plugin; leave it alone.
@@ -2359,8 +2359,8 @@ economy:
 # 5, and three lines climb at columns 2, 5 and 8: Speed on the left, Luck
 # in the middle and Money on the right. Shiny is not Luck, so it climbs
 # the Money side, and it starts on page 2 (Leon: later in the tree).
-# Page 1 is Auto Roll, then Convert above it for 5,000, Luck I above
-# that with Farming over it, Speed I and Auto Convert to the left and
+# Page 1 is Auto Roll, then Luck I above it, Convert above that for
+# 5,000 with Farming over it (swapped in V371, Leon), Speed I and Auto Convert to the left and
 # Money I and Armor to the right. Each page is a price band opened by
 # its root; page 6 is the pets.
 #
@@ -2434,11 +2434,11 @@ skilltree:
     luck_skill:
       display: "Luck I"
       page: 1
-      slot: "5,4"
+      slot: "5,5"
       icon: RABBIT_FOOT
       cost-money: 700
       cost-growth: 1.22
-      requires: "convert_unlock"
+      requires: "auto_roll_root"
       effect: LUCK
       value: 0.05
       max-level: 10
@@ -2501,7 +2501,7 @@ skilltree:
       icon: SUGAR
       cost-money: 1220
       cost-growth: 1.22
-      requires: "convert_unlock"
+      requires: "luck_skill"
       effect: ROLL_SPEED
       value: 0.01
       max-level: 10
@@ -2584,7 +2584,7 @@ skilltree:
       icon: GOLD_INGOT
       cost-money: 1220
       cost-growth: 1.25
-      requires: "convert_unlock"
+      requires: "luck_skill"
       effect: MONEY_MULTIPLIER
       value: 0.06
       max-level: 10
@@ -2651,7 +2651,7 @@ skilltree:
       slot: "5,3"
       icon: WHEAT
       cost-money: 3750
-      requires: "luck_skill"
+      requires: "convert_unlock"
       effect: UNLOCK_FARMING
       value: 0
 
@@ -2659,10 +2659,10 @@ skilltree:
     convert_unlock:
       display: "Convert"
       page: 1
-      slot: "5,5"
+      slot: "5,4"
       icon: CHEST
       cost-money: 5000
-      requires: "auto_roll_root"
+      requires: "luck_skill"
       effect: UNLOCK_CONVERT
       value: 0
 
@@ -3922,7 +3922,7 @@ guide:
       amount: 1
     - id: first_luck
       display: "Buy your first Luck level"
-      hint: "Luck sits above Convert, over Auto Roll, in /skilltree."
+      hint: "Luck I sits directly above Auto Roll in /skilltree."
       goal: HAS_NODE
       target: luck_skill
       amount: 1
@@ -3954,7 +3954,7 @@ guide:
       amount: 1
     - id: farming_unlock
       display: "Unlock farming"
-      hint: "Buy Farming in /skilltree, right above Luck I, to get the Farmer's Hoe."
+      hint: "Buy Farming in /skilltree, right above Convert, to get the Farmer's Hoe."
       goal: HAS_NODE
       target: farming_unlock
       amount: 1
@@ -4248,7 +4248,7 @@ holograms:
   board-refresh-seconds: 60
   crate-head-scale: 2.6
   # V366: the floating pet egg, smaller than a crate head (Leon).
-  pet-egg-scale: 1.2
+  pet-egg-scale: 0.7
   # How far the head floats above the crate block, how fast it turns and
   # how far it bobs.
   crate-head-lift: 0.15
@@ -4863,7 +4863,9 @@ farmtree:
       page: 1
       slot: "5,6"
       icon: "GOLD_NUGGET"
-      cost-money: 50000
+      # V371, Leon: 50,000 Coins in game. The farmtree multiplier in
+      # economy.skill-prices is 4.0, so 12,500 here.
+      cost-money: 12500
       requires: ""
       effect: "UNLOCK_ENCHANT"
       value: 0
