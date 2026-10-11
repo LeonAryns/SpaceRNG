@@ -929,6 +929,8 @@ public final class ConfigMigrator {
             new Patch("momentum-growth-v378", "farming.enchants.MOMENTUM.cost-growth", 1.0001956, 1.0),
             new Patch("momentum-step-v378", "farming.enchants.MOMENTUM.cost-step", 0.0, 0.1),
             new Patch("momentum-power-v378", "farming.enchants.MOMENTUM.cost-power", 1.0, 2.0),
+            // V381, Leon: Momentum maxes at 10,000.
+            new Patch("momentum-max-v381", "farming.enchants.MOMENTUM.max-level", 20000, 10000),
             new Patch("curve-v375-base-SHARD_GREED", "farming.enchants.SHARD_GREED.base-cost", 738, 15200),
             new Patch("curve-v375-cost-linear-SHARD_GREED", "farming.enchants.SHARD_GREED.cost-linear", 124.12702702702701, 0.0),
             new Patch("curve-v375-cost-step-SHARD_GREED", "farming.enchants.SHARD_GREED.cost-step", 0.34373808525885, 0.0),
@@ -1035,8 +1037,9 @@ public final class ConfigMigrator {
      * them. Nothing anybody has is touched, because base-cap did not
      * move.
      */
+    // V381: Momentum left out, it maxes at 10,000 and this would lift it back.
     private static final List<Patch> ENCHANT_MAX_PATCHES = java.util.stream.Stream.of(
-                    "TOKEN_GREED", "MOMENTUM", "SHARD_GREED", "KEY_FINDER", "BLAST_HARVEST",
+                    "TOKEN_GREED", "SHARD_GREED", "KEY_FINDER", "BLAST_HARVEST",
                     "POTION_FINDER", "LIGHTNING", "NOVA_FINDER", "NUKE", "COIN_FACTORY", "GAMBA",
                     "PROSPECTOR", "GEM_RUSH", "GEM_CASCADE", "COIN_STORM", "METEOR",
                     "BLACK_HOLE", "SUPERNOVA", "WALK_SPEED")

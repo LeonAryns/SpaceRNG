@@ -5,8 +5,13 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V380**, 11 October 2026. The newest section is the
+Last updated at **V381**, 11 October 2026. The newest section is the
 first one below; older sections further down are history.
+
+## V381, 11 October 2026 (untested in game)
+
+- Momentum maxes at level 10,000 (was 20,000 with mastery), +400%.
+  33 billion Coins to max.
 
 ## V380, 11 October 2026 (untested in game)
 
