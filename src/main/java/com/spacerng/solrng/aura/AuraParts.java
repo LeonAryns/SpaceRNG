@@ -177,10 +177,15 @@ public final class AuraParts {
 
     /** A fullbright item or block model, centred on its own origin so it can tumble in place. */
     public ItemDisplay item(Player player, Material material, Transformation pose) {
+        return item(player, new ItemStack(material), pose);
+    }
+
+    /** The same with a whole item, for a pet's custom skull (V384). */
+    public ItemDisplay item(Player player, ItemStack stack, Transformation pose) {
         Transformation scaled = withPlayerSize(player, pose);
         return player.getWorld().spawn(level(player), ItemDisplay.class, display -> {
             common(display, scaled);
-            display.setItemStack(new ItemStack(material));
+            display.setItemStack(stack);
             display.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
         });
     }

@@ -59,7 +59,7 @@ public final class PetLore {
         double fresh = 1.0 + pet.bonus();
         double grown = 1.0 + pet.bonus() * pets.upgrades().topMultiplier();
 
-        ItemStack item = new ItemStack(owned != null ? pet.icon() : Material.STONE_BUTTON);
+        ItemStack item = owned != null ? pet.item() : new ItemStack(Material.STONE_BUTTON);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(owned != null
                 ? PetsGui.name(pet, owned)
@@ -159,7 +159,7 @@ public final class PetLore {
         }
         boolean allTrashed = !inRarity.isEmpty() && trashed == inRarity.size();
 
-        ItemStack item = new ItemStack(inRarity.isEmpty() ? Material.STONE_BUTTON : inRarity.get(0).icon());
+        ItemStack item = inRarity.isEmpty() ? new ItemStack(Material.STONE_BUTTON) : inRarity.get(0).item();
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(plugin.getRarityManager().styleBold(rarity, rarity.displayName() + " pets"));
 

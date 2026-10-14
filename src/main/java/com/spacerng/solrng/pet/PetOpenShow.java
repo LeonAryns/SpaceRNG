@@ -246,7 +246,7 @@ public final class PetOpenShow {
             Location at = spots.get(i);
             ItemDisplay head = heads.get(i);
             if (head.isValid()) head.remove();
-            heads.set(i, spawnItem(at, new ItemStack(pet.icon()), false));
+            heads.set(i, spawnItem(at, pet.item(), false));
             names.add(spawnName(at.clone().add(0, 0.62, 0), made));
             if (pet.rarity().ordinal() > best.ordinal()) best = pet.rarity();
 

@@ -109,7 +109,7 @@ public class PetManager {
             types.put(id, new PetType(id, p.getString("display", rawId), colors, icon, rarity, stat,
                     bonus,
                     Math.max(0.0, p.getDouble("weight", 1.0)),
-                    p.getString("blurb", ""), eggId));
+                    p.getString("blurb", ""), eggId, p.getString("head", "")));
         }
         plugin.getLogger().info("Loaded " + types.size() + " pets.");
     }
@@ -741,7 +741,7 @@ public class PetManager {
         List<PetOrbit.Worn> relics = new ArrayList<>();
         for (PetType pet : equipped(data)) {
             PetInstance owned = data.getPet(pet.id());
-            relics.add(new PetOrbit.Worn(pet.icon(),
+            relics.add(new PetOrbit.Worn(pet.item(),
                     com.spacerng.solrng.roll.RollAura.colorFor(pet.rarity()),
                     owned != null && owned.shiny()));
         }

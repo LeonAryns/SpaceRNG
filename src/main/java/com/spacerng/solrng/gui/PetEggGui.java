@@ -217,7 +217,7 @@ public class PetEggGui {
         double chance = pets.liveChance(data, egg, rarity);
         String rarityName = plugin.getRarityManager().style(rarity, rarity.displayName());
 
-        ItemStack item = new ItemStack(found ? type.icon() : Material.BARRIER);
+        ItemStack item = found ? type.item() : new ItemStack(Material.BARRIER);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(found
                 ? Lore.gradient(type.display(), true, type.stops())

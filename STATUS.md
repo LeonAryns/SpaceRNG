@@ -5,8 +5,19 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V383**, 14 October 2026. The newest section is the
+Last updated at **V384**, 14 October 2026. The newest section is the
 first one below; older sections further down are history.
+
+## V384, 14 October 2026 (untested in game)
+
+- Pets are custom skulls: `head:` per pet in `pets.types` holds the
+  texture Value from minecraft-heads.com; empty falls back to `icon`.
+  Used on every card, the worn pet, the hatch and the egg opening
+  (`PetType.item()`).
+- Leon gave 23 animal heads for 77 pets. Recycled so no head repeats
+  inside an egg or in the egg before or after it: egg e's pet of
+  rarity j gets head (7e + j) mod 23. config-version 58 (pets.types
+  is structural).
 
 ## V383, 14 October 2026 (untested in game)
 
@@ -2063,9 +2074,8 @@ questions further down. Keep it current.
 
 ### Pet skulls (14 October 2026)
 
-Leon wants custom skulls for the pets. Next step: a `head:` key per
-pet in `pets.types` taking the texture Value (base64) from
-minecraft-heads.com, used on the cards, the worn pet and the opening.
+V384 has 23 heads spread over 77 pets. Leon may send more Values to
+replace repeats; each goes in a pet's `head:` in `pets.types`.
 
 ### The pets rework, Leon's full spec (8 October 2026)
 

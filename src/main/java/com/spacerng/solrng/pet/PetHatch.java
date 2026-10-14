@@ -248,7 +248,7 @@ public final class PetHatch {
         }
 
         if (!bedrock) {
-            petDisplay = spawnItem(new ItemStack(pet.icon()), 0.1f);
+            petDisplay = spawnItem(pet.item(), 0.1f);
         }
         String name = Lore.gradient(pet.display(), true, pet.stops());
         player.sendTitle(name, isNew

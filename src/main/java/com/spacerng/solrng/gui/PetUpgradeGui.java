@@ -115,7 +115,7 @@ public class PetUpgradeGui {
         PetUpgrades upgrades = plugin.getPetManager().upgrades();
         double multiplier = upgrades.multiplier(owned);
 
-        ItemStack item = new ItemStack(type.icon());
+        ItemStack item = type.item();
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(PetsGui.name(type, owned));
 

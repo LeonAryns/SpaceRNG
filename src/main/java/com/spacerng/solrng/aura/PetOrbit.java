@@ -45,7 +45,7 @@ public final class PetOrbit implements AuraConcept {
     private static final double SPREAD = 46.0;
 
     /** One worn pet: what it looks like, what colour it is and whether it is shiny. */
-    public record Worn(Material icon, Color colour, boolean shiny) {
+    public record Worn(org.bukkit.inventory.ItemStack icon, Color colour, boolean shiny) {
     }
 
     private final List<Worn> pets;

@@ -523,7 +523,7 @@ public class PetsGui {
 
         PetInstance owned = data.getPet(pet.id());
         double multiplier = plugin.getPetManager().upgrades().multiplier(owned);
-        ItemStack item = new ItemStack(pet.icon());
+        ItemStack item = pet.item();
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(name(pet, owned));
         PetInstance instance = data.getPet(pet.id());

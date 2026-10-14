@@ -8,7 +8,7 @@
 # their fresh defaults in on top of whatever is on disk, so a server
 # owner never has to delete the whole file to pick up a structural
 # change. Item table, prices and cosmetic tweaks are untouched.
-config-version: 57
+config-version: 58
 
 # One-off value changes the plugin has already made to this file, so none
 # is ever made twice. Managed by the plugin; leave it alone.
@@ -7713,6 +7713,7 @@ pets:
       display: "Lint Mote"
       colors: ["#9E9E9E", "#BDBDBD"]
       icon: STRING
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYmZmM2ExZmU4ZDA3OTEzMjVjY2ViZWJhNDVkODUzOTZhZmJlOWFjYTQ1YTdlNzJjYjc2YjhjNTJjMDQwMGIwIn19fQ=="
       rarity: COMMON
       egg: prestige_0
       stat: MONEY
@@ -7721,6 +7722,7 @@ pets:
       display: "Glimmer Pup"
       colors: ["#A5D6A7", "#66BB6A"]
       icon: GLOW_LICHEN
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvY2NlYzUxZmMxYTNhM2NjYmJlYzg3ZDM0YThjNTljN2Y1MTQwNGNhNGE1NThjMjAzNTRlYjRlYjI1OTNiNjcxMCJ9fX0="
       rarity: UNCOMMON
       egg: prestige_0
       stat: SPEED
@@ -7729,6 +7731,7 @@ pets:
       display: "Ember Moth"
       colors: ["#90CAF9", "#42A5F5"]
       icon: TORCHFLOWER
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTQxNDU4ZGIyNzIxMGU4OTA1Nzk1YjBmMzM2ODAxNWNkMGYyN2Y2ODhmYjBhMTRmNThiN2E0NDcwNzlhZWQ4ZiJ9fX0="
       rarity: RARE
       egg: prestige_0
       stat: LUCK
@@ -7737,6 +7740,7 @@ pets:
       display: "Comet Kit"
       colors: ["#CE93D8", "#AB47BC"]
       icon: FEATHER
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNWE0ZGZiMGI2Y2E3ZWExMmViZjQwNmMyOTEwMWNjZTYxODdmYjhmYWRmZTRlODI2NjRhMjI1ZjQ1NzRlMjllOSJ9fX0="
       rarity: EPIC
       egg: prestige_0
       stat: MONEY
@@ -7745,6 +7749,7 @@ pets:
       display: "Moon Hare"
       colors: ["#FFE082", "#FFB300"]
       icon: RABBIT_FOOT
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNTYwODgzZmQ4ZjliNWU4ZjQyMWEzYThiMDkxOGFjMGRkN2U2YTNkZWRiMzFhM2IyODgzMjdkNmRhODk2YzBjOSJ9fX0="
       rarity: LEGENDARY
       egg: prestige_0
       stat: LUCK
@@ -7753,6 +7758,7 @@ pets:
       display: "Lantern Owl"
       colors: ["#FF8A80", "#FF5252"]
       icon: LANTERN
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOThlMjU0MWYyNjUxYWM2MGY2YjE2ZWU0OTBmYzk0OWYzNTNjYTdhMWYzYjJlMWE2ZjQ5OGM2ZDU2MDIyNTBlIn19fQ=="
       rarity: MYTHICAL
       egg: prestige_0
       stat: SPEED
@@ -7761,6 +7767,7 @@ pets:
       display: "First Spark"
       colors: ["#FFF8E1", "#FFE082"]
       icon: SUNFLOWER
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNTQ2ODUzN2UxZTk5MDQwYjc2MGM4M2U1MzA5NmM4Njg3MGNkY2Q5Mjg1ZDUzMzAwNzYxZDBlMzZmZjllMTkyZiJ9fX0="
       rarity: DIVINE
       egg: prestige_0
       stat: LUCK
@@ -7770,6 +7777,7 @@ pets:
       display: "Pebble Drifter"
       colors: ["#9E9E9E", "#BDBDBD"]
       icon: CLAY_BALL
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZGEwY2EyYjkwZDgzMWYxN2Y3YzhiNzcxZmIzOTczY2NhMmQ3NmE0NTZiYjdiNDdiODBkNjg3MmIwNWIyNTFmNSJ9fX0="
       rarity: COMMON
       egg: prestige_10
       stat: LUCK
@@ -7778,6 +7786,7 @@ pets:
       display: "Iron Shard"
       colors: ["#A5D6A7", "#66BB6A"]
       icon: IRON_NUGGET
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYTg5YTc2ZGVlZGQ0MmI0MTAzNDQxMDBkZjJmYTc5YjZlZWFjN2U2ZjI4Nzc0NWQ2NTYxNzkzNjgzNDBmZmFkZSJ9fX0="
       rarity: UNCOMMON
       egg: prestige_10
       stat: SPEED
@@ -7786,6 +7795,7 @@ pets:
       display: "Crater Hound"
       colors: ["#90CAF9", "#42A5F5"]
       icon: BONE
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvODE4MDdmZDA2NjYwMDI5MDg0MmFmYzMwZjAxNTJhYjlkODUyODMxMjQ2M2M2YjU3YzhkYjY1MDNhOWQ5NTM5NyJ9fX0="
       rarity: RARE
       egg: prestige_10
       stat: MONEY
@@ -7794,6 +7804,7 @@ pets:
       display: "Impact Core"
       colors: ["#CE93D8", "#AB47BC"]
       icon: FIRE_CHARGE
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMWIwNmQxNTE1NWM2MGQwZjBmMjY3YmUwNWM4NDM2YzVhMWU3NjRhOGM4YWNhMjM2YmIzNzIyM2Y0OWQ5YTFkMCJ9fX0="
       rarity: EPIC
       egg: prestige_10
       stat: COINS
@@ -7802,6 +7813,7 @@ pets:
       display: "Falling Star"
       colors: ["#FFE082", "#FFB300"]
       icon: GOLD_NUGGET
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZDBmNzU3MjkwM2ZmMzlkNzU3YzRhMzFiMDU4MDA0MTkwNDA4OGU3MGM5OGJlZjk3OGJlM2IxNDlhNTI4NTg3OSJ9fX0="
       rarity: LEGENDARY
       egg: prestige_10
       stat: ENCHANT
@@ -7810,6 +7822,7 @@ pets:
       display: "Skyfall Titan"
       colors: ["#FFAB91", "#FF5722"]
       icon: NETHERITE_SCRAP
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZWMwODlhNDVlNjZlZDY4YmQ2M2MyODExOWZjNmY4OTU3NGZlNTJlMGNjNjkzMjk2Yzc2YjdjNGFmZTRlNzRiZiJ9fX0="
       rarity: MYTHICAL
       egg: prestige_10
       stat: SHINY
@@ -7818,6 +7831,7 @@ pets:
       display: "First Stone"
       colors: ["#BCAAA4", "#8D6E63"]
       icon: ANCIENT_DEBRIS
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNDg5NTdiNTA1YTIxZTMzYWEwOTJlMmFhNDdkODFlODgxNWVkYTU4MDNkMTRiMzM5OTBmMjRlZmZiNzQxNzE5OCJ9fX0="
       rarity: DIVINE
       egg: prestige_10
       stat: LUCK
@@ -7827,6 +7841,7 @@ pets:
       display: "Frost Mote"
       colors: ["#9E9E9E", "#BDBDBD"]
       icon: SNOWBALL
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNDM2MDdlOTMxZWVhOGYyN2ZhMTlmNmYzODU5NDY5ODIwYTIxZjU3NDM2MWYxOTBkMWE4YjM4MTNjZTMzZTM5ZCJ9fX0="
       rarity: COMMON
       egg: prestige_20
       stat: LUCK
@@ -7835,6 +7850,7 @@ pets:
       display: "Ice Trail"
       colors: ["#A5D6A7", "#66BB6A"]
       icon: ICE
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYzVkODBkMjBkMjFlMmNhMzdmNjhkZjkxYWZmOTk3NGNiNTFhOWQ1OTBjMGZhMTQxYjU0NGQ3ZWY5MDU2ODIzMiJ9fX0="
       rarity: UNCOMMON
       egg: prestige_20
       stat: SPEED
@@ -7843,6 +7859,7 @@ pets:
       display: "Long Orbit"
       colors: ["#90CAF9", "#42A5F5"]
       icon: COMPASS
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYmMyMjk5YTQ3NzdiOGQwMjYyYWRhNWZlYjcyZTUxYTRjMWQ1MDZiMTJlZGJjZTM4Mjc3MzdkOTIyZTc5YTFmYSJ9fX0="
       rarity: RARE
       egg: prestige_20
       stat: MONEY
@@ -7851,6 +7868,7 @@ pets:
       display: "Blue Tail"
       colors: ["#CE93D8", "#AB47BC"]
       icon: PRISMARINE_CRYSTALS
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZWM2MzM5NzYzNGY3YTIyODkwNTBlMTE2YzVhNWZjZTdjMzJjNzY5NjhhZmZhYzI3YWZkMTE2MDNiNjgwOGRkNyJ9fX0="
       rarity: EPIC
       egg: prestige_20
       stat: COINS
@@ -7859,6 +7877,7 @@ pets:
       display: "Hale Runner"
       colors: ["#FFE082", "#FFB300"]
       icon: SUGAR
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmM1ODNjZjBhYmE3NTY4MTU1MDM5ZjQ2ZTY4NjcwM2MxNmY0NGEyOTM0NzNkMzI5YTNiNmI2Y2I0YjEzMWI5NCJ9fX0="
       rarity: LEGENDARY
       egg: prestige_20
       stat: ENCHANT
@@ -7867,6 +7886,7 @@ pets:
       display: "Perihelion"
       colors: ["#FFAB91", "#FF5722"]
       icon: HEART_OF_THE_SEA
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvY2NhZjlkNDA5MGJiM2RlYTNhMjYwMjY1YzQxZjA4Zjk2N2Y1MGM0N2VjOTI4NTE0MjU4YTMzODdmMjM2NzU1NCJ9fX0="
       rarity: MYTHICAL
       egg: prestige_20
       stat: SHINY
@@ -7875,6 +7895,7 @@ pets:
       display: "Long Period"
       colors: ["#B3E5FC", "#4FC3F7"]
       icon: CLOCK
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYTgwNmEwM2I1ZmM5MzkwODVmMjE5MTg5MGQ2ZWFlYzViODVhYzdkYzY5MmYwOGJmNDEwNGU1ZDY2NzJjZGM5ZiJ9fX0="
       rarity: DIVINE
       egg: prestige_20
       stat: LUCK
@@ -7884,6 +7905,7 @@ pets:
       display: "Dust Wisp"
       colors: ["#9E9E9E", "#BDBDBD"]
       icon: GLOWSTONE_DUST
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOWY1MTNkNzFiY2QyOWM1ZThmYWMzOTYzNzg2MDlhMGYyOTU0MDQ0M2FhYWFlNjUyZjdlNjE4ZGNiOThlZjJhZCJ9fX0="
       rarity: COMMON
       egg: prestige_30
       stat: LUCK
@@ -7892,6 +7914,7 @@ pets:
       display: "Violet Veil"
       colors: ["#A5D6A7", "#66BB6A"]
       icon: PURPLE_DYE
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMzllNjgzYTIyMjY1MjQ5M2JlMDUwZDRhMWE4NjVhODc5YjBmMzMxYTgxNzA0MTNmNWRlNzA3MjExZDRlZjc2NCJ9fX0="
       rarity: UNCOMMON
       egg: prestige_30
       stat: SPEED
@@ -7900,6 +7923,7 @@ pets:
       display: "Star Nursery"
       colors: ["#90CAF9", "#42A5F5"]
       icon: TURTLE_EGG
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYmZmM2ExZmU4ZDA3OTEzMjVjY2ViZWJhNDVkODUzOTZhZmJlOWFjYTQ1YTdlNzJjYjc2YjhjNTJjMDQwMGIwIn19fQ=="
       rarity: RARE
       egg: prestige_30
       stat: MONEY
@@ -7908,6 +7932,7 @@ pets:
       display: "Pillar Walker"
       colors: ["#CE93D8", "#AB47BC"]
       icon: AMETHYST_SHARD
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvY2NlYzUxZmMxYTNhM2NjYmJlYzg3ZDM0YThjNTljN2Y1MTQwNGNhNGE1NThjMjAzNTRlYjRlYjI1OTNiNjcxMCJ9fX0="
       rarity: EPIC
       egg: prestige_30
       stat: COINS
@@ -7916,6 +7941,7 @@ pets:
       display: "Emission Heart"
       colors: ["#FFE082", "#FFB300"]
       icon: GLOW_INK_SAC
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTQxNDU4ZGIyNzIxMGU4OTA1Nzk1YjBmMzM2ODAxNWNkMGYyN2Y2ODhmYjBhMTRmNThiN2E0NDcwNzlhZWQ4ZiJ9fX0="
       rarity: LEGENDARY
       egg: prestige_30
       stat: ENCHANT
@@ -7924,6 +7950,7 @@ pets:
       display: "Dark Cloud"
       colors: ["#FFAB91", "#FF5722"]
       icon: INK_SAC
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNWE0ZGZiMGI2Y2E3ZWExMmViZjQwNmMyOTEwMWNjZTYxODdmYjhmYWRmZTRlODI2NjRhMjI1ZjQ1NzRlMjllOSJ9fX0="
       rarity: MYTHICAL
       egg: prestige_30
       stat: SHINY
@@ -7932,6 +7959,7 @@ pets:
       display: "First Light"
       colors: ["#CE93D8", "#AB47BC"]
       icon: OCHRE_FROGLIGHT
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNTYwODgzZmQ4ZjliNWU4ZjQyMWEzYThiMDkxOGFjMGRkN2U2YTNkZWRiMzFhM2IyODgzMjdkNmRhODk2YzBjOSJ9fX0="
       rarity: DIVINE
       egg: prestige_30
       stat: LUCK
@@ -7941,6 +7969,7 @@ pets:
       display: "Tick Mote"
       colors: ["#9E9E9E", "#BDBDBD"]
       icon: REDSTONE
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOThlMjU0MWYyNjUxYWM2MGY2YjE2ZWU0OTBmYzk0OWYzNTNjYTdhMWYzYjJlMWE2ZjQ5OGM2ZDU2MDIyNTBlIn19fQ=="
       rarity: COMMON
       egg: prestige_40
       stat: LUCK
@@ -7949,6 +7978,7 @@ pets:
       display: "Beam Sweep"
       colors: ["#A5D6A7", "#66BB6A"]
       icon: LIGHTNING_ROD
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNTQ2ODUzN2UxZTk5MDQwYjc2MGM4M2U1MzA5NmM4Njg3MGNkY2Q5Mjg1ZDUzMzAwNzYxZDBlMzZmZjllMTkyZiJ9fX0="
       rarity: UNCOMMON
       egg: prestige_40
       stat: SPEED
@@ -7957,6 +7987,7 @@ pets:
       display: "Spin Core"
       colors: ["#90CAF9", "#42A5F5"]
       icon: SCULK_SENSOR
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZGEwY2EyYjkwZDgzMWYxN2Y3YzhiNzcxZmIzOTczY2NhMmQ3NmE0NTZiYjdiNDdiODBkNjg3MmIwNWIyNTFmNSJ9fX0="
       rarity: RARE
       egg: prestige_40
       stat: MONEY
@@ -7965,6 +7996,7 @@ pets:
       display: "Magnetar"
       colors: ["#CE93D8", "#AB47BC"]
       icon: COMPASS
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYTg5YTc2ZGVlZGQ0MmI0MTAzNDQxMDBkZjJmYTc5YjZlZWFjN2U2ZjI4Nzc0NWQ2NTYxNzkzNjgzNDBmZmFkZSJ9fX0="
       rarity: EPIC
       egg: prestige_40
       stat: COINS
@@ -7973,6 +8005,7 @@ pets:
       display: "Lighthouse"
       colors: ["#FFE082", "#FFB300"]
       icon: SEA_LANTERN
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvODE4MDdmZDA2NjYwMDI5MDg0MmFmYzMwZjAxNTJhYjlkODUyODMxMjQ2M2M2YjU3YzhkYjY1MDNhOWQ5NTM5NyJ9fX0="
       rarity: LEGENDARY
       egg: prestige_40
       stat: ENCHANT
@@ -7981,6 +8014,7 @@ pets:
       display: "Millisecond"
       colors: ["#FFAB91", "#FF5722"]
       icon: CLOCK
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMWIwNmQxNTE1NWM2MGQwZjBmMjY3YmUwNWM4NDM2YzVhMWU3NjRhOGM4YWNhMjM2YmIzNzIyM2Y0OWQ5YTFkMCJ9fX0="
       rarity: MYTHICAL
       egg: prestige_40
       stat: SHINY
@@ -7989,6 +8023,7 @@ pets:
       display: "Clockheart"
       colors: ["#FF8A80", "#FF5252"]
       icon: RECOVERY_COMPASS
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZDBmNzU3MjkwM2ZmMzlkNzU3YzRhMzFiMDU4MDA0MTkwNDA4OGU3MGM5OGJlZjk3OGJlM2IxNDlhNTI4NTg3OSJ9fX0="
       rarity: DIVINE
       egg: prestige_40
       stat: LUCK
@@ -7998,6 +8033,7 @@ pets:
       display: "Bright Speck"
       colors: ["#9E9E9E", "#BDBDBD"]
       icon: GLOWSTONE_DUST
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZWMwODlhNDVlNjZlZDY4YmQ2M2MyODExOWZjNmY4OTU3NGZlNTJlMGNjNjkzMjk2Yzc2YjdjNGFmZTRlNzRiZiJ9fX0="
       rarity: COMMON
       egg: prestige_50
       stat: LUCK
@@ -8006,6 +8042,7 @@ pets:
       display: "Jet Stream"
       colors: ["#A5D6A7", "#66BB6A"]
       icon: WIND_CHARGE
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNDg5NTdiNTA1YTIxZTMzYWEwOTJlMmFhNDdkODFlODgxNWVkYTU4MDNkMTRiMzM5OTBmMjRlZmZiNzQxNzE5OCJ9fX0="
       rarity: UNCOMMON
       egg: prestige_50
       stat: SPEED
@@ -8014,6 +8051,7 @@ pets:
       display: "Accretion"
       colors: ["#90CAF9", "#42A5F5"]
       icon: MAGMA_CREAM
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNDM2MDdlOTMxZWVhOGYyN2ZhMTlmNmYzODU5NDY5ODIwYTIxZjU3NDM2MWYxOTBkMWE4YjM4MTNjZTMzZTM5ZCJ9fX0="
       rarity: RARE
       egg: prestige_50
       stat: MONEY
@@ -8022,6 +8060,7 @@ pets:
       display: "Blazar"
       colors: ["#CE93D8", "#AB47BC"]
       icon: BLAZE_POWDER
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYzVkODBkMjBkMjFlMmNhMzdmNjhkZjkxYWZmOTk3NGNiNTFhOWQ1OTBjMGZhMTQxYjU0NGQ3ZWY5MDU2ODIzMiJ9fX0="
       rarity: EPIC
       egg: prestige_50
       stat: COINS
@@ -8030,6 +8069,7 @@ pets:
       display: "Gold Torrent"
       colors: ["#FFE082", "#FFB300"]
       icon: GOLD_INGOT
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYmMyMjk5YTQ3NzdiOGQwMjYyYWRhNWZlYjcyZTUxYTRjMWQ1MDZiMTJlZGJjZTM4Mjc3MzdkOTIyZTc5YTFmYSJ9fX0="
       rarity: LEGENDARY
       egg: prestige_50
       stat: ENCHANT
@@ -8038,6 +8078,7 @@ pets:
       display: "Ancient Glare"
       colors: ["#FFAB91", "#FF5722"]
       icon: AMETHYST_CLUSTER
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZWM2MzM5NzYzNGY3YTIyODkwNTBlMTE2YzVhNWZjZTdjMzJjNzY5NjhhZmZhYzI3YWZkMTE2MDNiNjgwOGRkNyJ9fX0="
       rarity: MYTHICAL
       egg: prestige_50
       stat: SHINY
@@ -8046,6 +8087,7 @@ pets:
       display: "First Engine"
       colors: ["#FFE082", "#FFB300"]
       icon: BEACON
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmM1ODNjZjBhYmE3NTY4MTU1MDM5ZjQ2ZTY4NjcwM2MxNmY0NGEyOTM0NzNkMzI5YTNiNmI2Y2I0YjEzMWI5NCJ9fX0="
       rarity: DIVINE
       egg: prestige_50
       stat: LUCK
@@ -8055,6 +8097,7 @@ pets:
       display: "Ember Fleck"
       colors: ["#9E9E9E", "#BDBDBD"]
       icon: BLAZE_POWDER
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvY2NhZjlkNDA5MGJiM2RlYTNhMjYwMjY1YzQxZjA4Zjk2N2Y1MGM0N2VjOTI4NTE0MjU4YTMzODdmMjM2NzU1NCJ9fX0="
       rarity: COMMON
       egg: prestige_60
       stat: LUCK
@@ -8063,6 +8106,7 @@ pets:
       display: "Shockfront"
       colors: ["#A5D6A7", "#66BB6A"]
       icon: FIREWORK_STAR
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYTgwNmEwM2I1ZmM5MzkwODVmMjE5MTg5MGQ2ZWFlYzViODVhYzdkYzY5MmYwOGJmNDEwNGU1ZDY2NzJjZGM5ZiJ9fX0="
       rarity: UNCOMMON
       egg: prestige_60
       stat: SPEED
@@ -8071,6 +8115,7 @@ pets:
       display: "Heavy Ash"
       colors: ["#90CAF9", "#42A5F5"]
       icon: GUNPOWDER
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOWY1MTNkNzFiY2QyOWM1ZThmYWMzOTYzNzg2MDlhMGYyOTU0MDQ0M2FhYWFlNjUyZjdlNjE4ZGNiOThlZjJhZCJ9fX0="
       rarity: RARE
       egg: prestige_60
       stat: MONEY
@@ -8079,6 +8124,7 @@ pets:
       display: "Collapse"
       colors: ["#CE93D8", "#AB47BC"]
       icon: CRYING_OBSIDIAN
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMzllNjgzYTIyMjY1MjQ5M2JlMDUwZDRhMWE4NjVhODc5YjBmMzMxYTgxNzA0MTNmNWRlNzA3MjExZDRlZjc2NCJ9fX0="
       rarity: EPIC
       egg: prestige_60
       stat: COINS
@@ -8087,6 +8133,7 @@ pets:
       display: "Remnant"
       colors: ["#FFE082", "#FFB300"]
       icon: SHULKER_SHELL
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYmZmM2ExZmU4ZDA3OTEzMjVjY2ViZWJhNDVkODUzOTZhZmJlOWFjYTQ1YTdlNzJjYjc2YjhjNTJjMDQwMGIwIn19fQ=="
       rarity: LEGENDARY
       egg: prestige_60
       stat: ENCHANT
@@ -8095,6 +8142,7 @@ pets:
       display: "Type One"
       colors: ["#FFAB91", "#FF5722"]
       icon: TOTEM_OF_UNDYING
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvY2NlYzUxZmMxYTNhM2NjYmJlYzg3ZDM0YThjNTljN2Y1MTQwNGNhNGE1NThjMjAzNTRlYjRlYjI1OTNiNjcxMCJ9fX0="
       rarity: MYTHICAL
       egg: prestige_60
       stat: SHINY
@@ -8103,6 +8151,7 @@ pets:
       display: "Last Light"
       colors: ["#FFD54F", "#FF6F3C"]
       icon: NETHER_STAR
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTQxNDU4ZGIyNzIxMGU4OTA1Nzk1YjBmMzM2ODAxNWNkMGYyN2Y2ODhmYjBhMTRmNThiN2E0NDcwNzlhZWQ4ZiJ9fX0="
       rarity: DIVINE
       egg: prestige_60
       stat: LUCK
@@ -8112,6 +8161,7 @@ pets:
       display: "Penumbra"
       colors: ["#9E9E9E", "#BDBDBD"]
       icon: GRAY_DYE
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNWE0ZGZiMGI2Y2E3ZWExMmViZjQwNmMyOTEwMWNjZTYxODdmYjhmYWRmZTRlODI2NjRhMjI1ZjQ1NzRlMjllOSJ9fX0="
       rarity: COMMON
       egg: prestige_70
       stat: LUCK
@@ -8120,6 +8170,7 @@ pets:
       display: "Umbra"
       colors: ["#A5D6A7", "#66BB6A"]
       icon: BLACK_DYE
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNTYwODgzZmQ4ZjliNWU4ZjQyMWEzYThiMDkxOGFjMGRkN2U2YTNkZWRiMzFhM2IyODgzMjdkNmRhODk2YzBjOSJ9fX0="
       rarity: UNCOMMON
       egg: prestige_70
       stat: SPEED
@@ -8128,6 +8179,7 @@ pets:
       display: "Corona"
       colors: ["#90CAF9", "#42A5F5"]
       icon: GLOW_BERRIES
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOThlMjU0MWYyNjUxYWM2MGY2YjE2ZWU0OTBmYzk0OWYzNTNjYTdhMWYzYjJlMWE2ZjQ5OGM2ZDU2MDIyNTBlIn19fQ=="
       rarity: RARE
       egg: prestige_70
       stat: MONEY
@@ -8136,6 +8188,7 @@ pets:
       display: "Diamond Ring"
       colors: ["#CE93D8", "#AB47BC"]
       icon: DIAMOND
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNTQ2ODUzN2UxZTk5MDQwYjc2MGM4M2U1MzA5NmM4Njg3MGNkY2Q5Mjg1ZDUzMzAwNzYxZDBlMzZmZjllMTkyZiJ9fX0="
       rarity: EPIC
       egg: prestige_70
       stat: COINS
@@ -8144,6 +8197,7 @@ pets:
       display: "Totality"
       colors: ["#FFE082", "#FFB300"]
       icon: ECHO_SHARD
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZGEwY2EyYjkwZDgzMWYxN2Y3YzhiNzcxZmIzOTczY2NhMmQ3NmE0NTZiYjdiNDdiODBkNjg3MmIwNWIyNTFmNSJ9fX0="
       rarity: LEGENDARY
       egg: prestige_70
       stat: ENCHANT
@@ -8152,6 +8206,7 @@ pets:
       display: "Saros"
       colors: ["#FFAB91", "#FF5722"]
       icon: SPYGLASS
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYTg5YTc2ZGVlZGQ0MmI0MTAzNDQxMDBkZjJmYTc5YjZlZWFjN2U2ZjI4Nzc0NWQ2NTYxNzkzNjgzNDBmZmFkZSJ9fX0="
       rarity: MYTHICAL
       egg: prestige_70
       stat: SHINY
@@ -8160,6 +8215,7 @@ pets:
       display: "Black Sun"
       colors: ["#B0BEC5", "#455A64"]
       icon: WITHER_SKELETON_SKULL
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvODE4MDdmZDA2NjYwMDI5MDg0MmFmYzMwZjAxNTJhYjlkODUyODMxMjQ2M2M2YjU3YzhkYjY1MDNhOWQ5NTM5NyJ9fX0="
       rarity: DIVINE
       egg: prestige_70
       stat: LUCK
@@ -8169,6 +8225,7 @@ pets:
       display: "Event Mote"
       colors: ["#9E9E9E", "#BDBDBD"]
       icon: ENDER_PEARL
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMWIwNmQxNTE1NWM2MGQwZjBmMjY3YmUwNWM4NDM2YzVhMWU3NjRhOGM4YWNhMjM2YmIzNzIyM2Y0OWQ5YTFkMCJ9fX0="
       rarity: COMMON
       egg: prestige_80
       stat: LUCK
@@ -8177,6 +8234,7 @@ pets:
       display: "Tidal Pull"
       colors: ["#A5D6A7", "#66BB6A"]
       icon: SLIME_BALL
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZDBmNzU3MjkwM2ZmMzlkNzU3YzRhMzFiMDU4MDA0MTkwNDA4OGU3MGM5OGJlZjk3OGJlM2IxNDlhNTI4NTg3OSJ9fX0="
       rarity: UNCOMMON
       egg: prestige_80
       stat: SPEED
@@ -8185,6 +8243,7 @@ pets:
       display: "Photon Ring"
       colors: ["#90CAF9", "#42A5F5"]
       icon: END_ROD
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZWMwODlhNDVlNjZlZDY4YmQ2M2MyODExOWZjNmY4OTU3NGZlNTJlMGNjNjkzMjk2Yzc2YjdjNGFmZTRlNzRiZiJ9fX0="
       rarity: RARE
       egg: prestige_80
       stat: MONEY
@@ -8193,6 +8252,7 @@ pets:
       display: "Horizon Walker"
       colors: ["#CE93D8", "#AB47BC"]
       icon: ENDER_EYE
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNDg5NTdiNTA1YTIxZTMzYWEwOTJlMmFhNDdkODFlODgxNWVkYTU4MDNkMTRiMzM5OTBmMjRlZmZiNzQxNzE5OCJ9fX0="
       rarity: EPIC
       egg: prestige_80
       stat: COINS
@@ -8201,6 +8261,7 @@ pets:
       display: "Time Dilate"
       colors: ["#FFE082", "#FFB300"]
       icon: CLOCK
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNDM2MDdlOTMxZWVhOGYyN2ZhMTlmNmYzODU5NDY5ODIwYTIxZjU3NDM2MWYxOTBkMWE4YjM4MTNjZTMzZTM5ZCJ9fX0="
       rarity: LEGENDARY
       egg: prestige_80
       stat: ENCHANT
@@ -8209,6 +8270,7 @@ pets:
       display: "Mass Well"
       colors: ["#FFAB91", "#FF5722"]
       icon: NETHERITE_INGOT
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYzVkODBkMjBkMjFlMmNhMzdmNjhkZjkxYWZmOTk3NGNiNTFhOWQ1OTBjMGZhMTQxYjU0NGQ3ZWY5MDU2ODIzMiJ9fX0="
       rarity: MYTHICAL
       egg: prestige_80
       stat: SHINY
@@ -8217,6 +8279,7 @@ pets:
       display: "Point Zero"
       colors: ["#B388FF", "#651FFF"]
       icon: END_CRYSTAL
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYmMyMjk5YTQ3NzdiOGQwMjYyYWRhNWZlYjcyZTUxYTRjMWQ1MDZiMTJlZGJjZTM4Mjc3MzdkOTIyZTc5YTFmYSJ9fX0="
       rarity: DIVINE
       egg: prestige_80
       stat: LUCK
@@ -8226,6 +8289,7 @@ pets:
       display: "Far Edge"
       colors: ["#9E9E9E", "#BDBDBD"]
       icon: SPYGLASS
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZWM2MzM5NzYzNGY3YTIyODkwNTBlMTE2YzVhNWZjZTdjMzJjNzY5NjhhZmZhYzI3YWZkMTE2MDNiNjgwOGRkNyJ9fX0="
       rarity: COMMON
       egg: prestige_90
       stat: LUCK
@@ -8234,6 +8298,7 @@ pets:
       display: "Red Shift"
       colors: ["#A5D6A7", "#66BB6A"]
       icon: RED_DYE
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmM1ODNjZjBhYmE3NTY4MTU1MDM5ZjQ2ZTY4NjcwM2MxNmY0NGEyOTM0NzNkMzI5YTNiNmI2Y2I0YjEzMWI5NCJ9fX0="
       rarity: UNCOMMON
       egg: prestige_90
       stat: SPEED
@@ -8242,6 +8307,7 @@ pets:
       display: "Cold Glow"
       colors: ["#90CAF9", "#42A5F5"]
       icon: SOUL_LANTERN
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvY2NhZjlkNDA5MGJiM2RlYTNhMjYwMjY1YzQxZjA4Zjk2N2Y1MGM0N2VjOTI4NTE0MjU4YTMzODdmMjM2NzU1NCJ9fX0="
       rarity: RARE
       egg: prestige_90
       stat: MONEY
@@ -8250,6 +8316,7 @@ pets:
       display: "Deep Field"
       colors: ["#CE93D8", "#AB47BC"]
       icon: TINTED_GLASS
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYTgwNmEwM2I1ZmM5MzkwODVmMjE5MTg5MGQ2ZWFlYzViODVhYzdkYzY5MmYwOGJmNDEwNGU1ZDY2NzJjZGM5ZiJ9fX0="
       rarity: EPIC
       egg: prestige_90
       stat: COINS
@@ -8258,6 +8325,7 @@ pets:
       display: "Lookback"
       colors: ["#FFE082", "#FFB300"]
       icon: RECOVERY_COMPASS
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOWY1MTNkNzFiY2QyOWM1ZThmYWMzOTYzNzg2MDlhMGYyOTU0MDQ0M2FhYWFlNjUyZjdlNjE4ZGNiOThlZjJhZCJ9fX0="
       rarity: LEGENDARY
       egg: prestige_90
       stat: ENCHANT
@@ -8266,6 +8334,7 @@ pets:
       display: "Edge Walker"
       colors: ["#FFAB91", "#FF5722"]
       icon: PEARLESCENT_FROGLIGHT
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMzllNjgzYTIyMjY1MjQ5M2JlMDUwZDRhMWE4NjVhODc5YjBmMzMxYTgxNzA0MTNmNWRlNzA3MjExZDRlZjc2NCJ9fX0="
       rarity: MYTHICAL
       egg: prestige_90
       stat: SHINY
@@ -8274,6 +8343,7 @@ pets:
       display: "Observable"
       colors: ["#80DEEA", "#00ACC1"]
       icon: CONDUIT
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYmZmM2ExZmU4ZDA3OTEzMjVjY2ViZWJhNDVkODUzOTZhZmJlOWFjYTQ1YTdlNzJjYjc2YjhjNTJjMDQwMGIwIn19fQ=="
       rarity: DIVINE
       egg: prestige_90
       stat: LUCK
@@ -8283,6 +8353,7 @@ pets:
       display: "One More"
       colors: ["#9E9E9E", "#BDBDBD"]
       icon: PAPER
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvY2NlYzUxZmMxYTNhM2NjYmJlYzg3ZDM0YThjNTljN2Y1MTQwNGNhNGE1NThjMjAzNTRlYjRlYjI1OTNiNjcxMCJ9fX0="
       rarity: COMMON
       egg: prestige_100
       stat: LUCK
@@ -8291,6 +8362,7 @@ pets:
       display: "Endless Row"
       colors: ["#A5D6A7", "#66BB6A"]
       icon: IRON_CHAIN
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTQxNDU4ZGIyNzIxMGU4OTA1Nzk1YjBmMzM2ODAxNWNkMGYyN2Y2ODhmYjBhMTRmNThiN2E0NDcwNzlhZWQ4ZiJ9fX0="
       rarity: UNCOMMON
       egg: prestige_100
       stat: SPEED
@@ -8299,6 +8371,7 @@ pets:
       display: "Fold"
       colors: ["#90CAF9", "#42A5F5"]
       icon: PHANTOM_MEMBRANE
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNWE0ZGZiMGI2Y2E3ZWExMmViZjQwNmMyOTEwMWNjZTYxODdmYjhmYWRmZTRlODI2NjRhMjI1ZjQ1NzRlMjllOSJ9fX0="
       rarity: RARE
       egg: prestige_100
       stat: MONEY
@@ -8307,6 +8380,7 @@ pets:
       display: "Recursion"
       colors: ["#CE93D8", "#AB47BC"]
       icon: ITEM_FRAME
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNTYwODgzZmQ4ZjliNWU4ZjQyMWEzYThiMDkxOGFjMGRkN2U2YTNkZWRiMzFhM2IyODgzMjdkNmRhODk2YzBjOSJ9fX0="
       rarity: EPIC
       egg: prestige_100
       stat: COINS
@@ -8315,6 +8389,7 @@ pets:
       display: "Uncountable"
       colors: ["#FFE082", "#FFB300"]
       icon: AMETHYST_BLOCK
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOThlMjU0MWYyNjUxYWM2MGY2YjE2ZWU0OTBmYzk0OWYzNTNjYTdhMWYzYjJlMWE2ZjQ5OGM2ZDU2MDIyNTBlIn19fQ=="
       rarity: LEGENDARY
       egg: prestige_100
       stat: ENCHANT
@@ -8323,6 +8398,7 @@ pets:
       display: "Absolute"
       colors: ["#FFAB91", "#FF5722"]
       icon: HEAVY_CORE
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNTQ2ODUzN2UxZTk5MDQwYjc2MGM4M2U1MzA5NmM4Njg3MGNkY2Q5Mjg1ZDUzMzAwNzYxZDBlMzZmZjllMTkyZiJ9fX0="
       rarity: MYTHICAL
       egg: prestige_100
       stat: SHINY
@@ -8331,6 +8407,7 @@ pets:
       display: "Forever"
       colors: ["#F8BBD0", "#EC407A"]
       icon: DRAGON_EGG
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZGEwY2EyYjkwZDgzMWYxN2Y3YzhiNzcxZmIzOTczY2NhMmQ3NmE0NTZiYjdiNDdiODBkNjg3MmIwNWIyNTFmNSJ9fX0="
       rarity: DIVINE
       egg: prestige_100
       stat: LUCK
