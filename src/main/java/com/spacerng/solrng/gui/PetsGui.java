@@ -112,6 +112,7 @@ public class PetsGui {
                     slot < equipped.size() ? equipped.get(slot) : null, slot, slot < open));
         }
         inv.setItem(INFO_SLOT, infoIcon(plugin, player, data));
+        if (!owned.isEmpty()) inv.setItem(STAT_ALL_SLOT, statAllButton(plugin, data, owned));
 
         int from = page * PAGE_PETS.length;
         for (int i = 0; i < PAGE_PETS.length && from + i < owned.size(); i++) {
@@ -131,8 +132,54 @@ public class PetsGui {
         }
         if (page > 0) inv.setItem(PREV_SLOT, pageArrow(Material.SPECTRAL_ARROW, page, pages));
         if (page < pages - 1) inv.setItem(NEXT_SLOT, pageArrow(Material.ARROW, page + 2, pages));
-        MenuStyle.apply(inv, MenuStyle.Palette.CYAN);
+        MenuStyle.apply(inv, MenuStyle.Palette.GREY);
         return inv;
+    }
+
+    /** V383, Leon: one button on /pets that points every pet at one stat. */
+    public static final int STAT_ALL_SLOT = 0;
+
+    /**
+     * The stat every pet pays, or null when they are split. A click steps
+     * all of them to the next stat in {@link PetInstance#CHOICES}.
+     */
+    public static com.spacerng.solrng.stats.StatSources.Id sharedStat(SolRNGPlugin plugin, PlayerData data,
+                                                                     List<PetType> owned) {
+        com.spacerng.solrng.stats.StatSources.Id shared = null;
+        for (PetType pet : owned) {
+            var stat = plugin.getPetManager().statOf(data, pet);
+            if (shared == null) shared = stat;
+            else if (shared != stat) return null;
+        }
+        return shared;
+    }
+
+    private static ItemStack statAllButton(SolRNGPlugin plugin, PlayerData data, List<PetType> owned) {
+        var shared = sharedStat(plugin, data, owned);
+        ItemStack item = new ItemStack(Material.COMPASS);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(Lore.title(ChatColor.AQUA, "All pets boost")
+                + ChatColor.DARK_GRAY + " - " + ChatColor.GREEN + ChatColor.BOLD
+                + (shared == null ? "Mixed" : PetType.statName(shared)));
+        List<String> lore = new ArrayList<>();
+        lore.add(Lore.line(ChatColor.GRAY, "Points every pet you own at"));
+        lore.add(Lore.line(ChatColor.GRAY, "one stat. Free, change it any time."));
+        lore.add("");
+        lore.add(Lore.section(ChatColor.YELLOW, "Pointing at"));
+        for (var stat : PetInstance.CHOICES) {
+            if (stat == shared) {
+                lore.add(ChatColor.GREEN + Lore.BULLET + " " + ChatColor.WHITE + PetType.statName(stat)
+                        + ChatColor.GREEN + "  " + Lore.TICK);
+            } else {
+                lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " " + PetType.statName(stat));
+            }
+        }
+        lore.add("");
+        lore.add(Lore.footnote("One pet on its own: right click it."));
+        lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click for the next stat");
+        meta.setLore(lore);
+        item.setItemMeta(meta);
+        return item;
     }
 
     private static final int[] WORN_SLOTS = {3, 4, 5};
@@ -192,7 +239,7 @@ public class PetsGui {
             inv.setItem(EGG_SLOTS[i], eggProgress(plugin, data, eggs.get(i)));
         }
         inv.setItem(LUCK_SLOT, PetEggGui.luckCard(plugin, data));
-        MenuStyle.apply(inv, MenuStyle.Palette.CYAN);
+        MenuStyle.apply(inv, MenuStyle.Palette.GREY);
         return inv;
     }
 

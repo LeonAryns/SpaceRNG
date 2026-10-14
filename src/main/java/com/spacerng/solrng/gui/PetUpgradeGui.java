@@ -64,7 +64,7 @@ public class PetUpgradeGui {
         if (type == null || owned == null) {
             inv.setItem(CARD_SLOT, missing());
             inv.setItem(BACK_SLOT, back());
-            MenuStyle.apply(inv, MenuStyle.Palette.CYAN);
+            MenuStyle.apply(inv, MenuStyle.Palette.GREY);
             return inv;
         }
 
@@ -79,7 +79,7 @@ public class PetUpgradeGui {
         if (com.spacerng.solrng.platform.Bedrock.is(player)) {
             inv.setItem(WEAR_SLOT, wearButton(plugin, data, type));
         }
-        MenuStyle.apply(inv, MenuStyle.Palette.CYAN);
+        MenuStyle.apply(inv, MenuStyle.Palette.GREY);
         return inv;
     }
 

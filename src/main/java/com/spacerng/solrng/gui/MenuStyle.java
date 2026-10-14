@@ -40,7 +40,9 @@ public final class MenuStyle {
         CYAN(Material.LIGHT_GRAY_STAINED_GLASS_PANE, Material.CYAN_STAINED_GLASS_PANE, Material.LIGHT_BLUE_STAINED_GLASS_PANE),
         GOLD(Material.LIGHT_GRAY_STAINED_GLASS_PANE, Material.ORANGE_STAINED_GLASS_PANE, Material.YELLOW_STAINED_GLASS_PANE),
         GREEN(Material.LIGHT_GRAY_STAINED_GLASS_PANE, Material.GREEN_STAINED_GLASS_PANE, Material.LIME_STAINED_GLASS_PANE),
-        RED(Material.LIGHT_GRAY_STAINED_GLASS_PANE, Material.RED_STAINED_GLASS_PANE, Material.PINK_STAINED_GLASS_PANE);
+        RED(Material.LIGHT_GRAY_STAINED_GLASS_PANE, Material.RED_STAINED_GLASS_PANE, Material.PINK_STAINED_GLASS_PANE),
+        // V383, Leon: the pet screens, one grey all round, no colours.
+        GREY(Material.GRAY_STAINED_GLASS_PANE);
 
         private final Material[] panes;
 

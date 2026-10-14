@@ -5,8 +5,24 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V382**, 11 October 2026. The newest section is the
+Last updated at **V383**, 14 October 2026. The newest section is the
 first one below; older sections further down are history.
+
+## V383, 14 October 2026 (untested in game)
+
+- Pet screens (/pets, egg screen, pet screen) are one grey all round:
+  `MenuStyle.Palette.GREY`, ring and inside both gray glass.
+- /pets top left: a compass "All pets boost". A click points every
+  owned pet at the next stat (Luck, Money, Speed, Coins, Gems); split
+  pets go to Luck first. Per pet still on right click.
+- Egg animation off: an egg waits as long as the animation (101 ticks,
+  about 5s) before the next. Auto open without the animation now runs
+  the same rounds every 5s instead of up to 256 in one click.
+- The opening plays over the egg the player clicked (was the nearest),
+  the heads start above the egg's model, and hidden egg text stays
+  hidden through a redraw. If the text still shows, check
+  `/version SpaceRNG` first.
+- World pet egg 0.7 to 1.3 (patch `pet-egg-scale-v383`).
 
 ## V382, 11 October 2026 (untested in game)
 
@@ -2044,6 +2060,12 @@ given to remove TAB so ours draws it.
 
 When Leon asks what is left, answer from this list and from the open
 questions further down. Keep it current.
+
+### Pet skulls (14 October 2026)
+
+Leon wants custom skulls for the pets. Next step: a `head:` key per
+pet in `pets.types` taking the texture Value (base64) from
+minecraft-heads.com, used on the cards, the worn pet and the opening.
 
 ### The pets rework, Leon's full spec (8 October 2026)
 

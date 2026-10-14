@@ -58,6 +58,8 @@ public final class PetOpenShow {
     public static final int MAX_SHOWN = 9;
     private static final int SHAKE_TICKS = 40;
     private static final int HOLD_TICKS = 60;
+    /** V383: how long one opening plays, which is also the egg cooldown with the animation off. */
+    public static final int LENGTH_TICKS = SHAKE_TICKS + HOLD_TICKS + 1;
     private static final float HEAD_SIZE = 0.75f;
     private static final float PET_SIZE = 0.8f;
     private static final double SPACING = 1.05;
@@ -149,7 +151,12 @@ public final class PetOpenShow {
             // V381, Leon: over the egg, the row facing the player. The
             // lowest row clears the egg model, the others stack upward.
             forward = anchor.at().toVector().subtract(player.getLocation().toVector()).setY(0);
-            base = anchor.at().clone().add(0, 1.6 + (rows - 1) / 2.0 * SPACING * 0.95, 0);
+            // V383: the lowest row starts clear of the top of the egg's
+            // model, whatever size the egg is, instead of at a fixed 1.6
+            // that left the first row inside a big egg.
+            double lowest = plugin.getHoloManager().eggTop() + HEAD_SIZE / 2.0 + 0.25;
+            base = anchor.at().clone().add(0, lowest + (rows - 1) / 2.0 * SPACING * 0.95
+                    - (rows > 1 ? 0.35 : 0.0), 0);
         } else {
             base = null;
         }

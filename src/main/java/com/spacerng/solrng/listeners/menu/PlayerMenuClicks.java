@@ -395,6 +395,28 @@ final class PlayerMenuClicks {
                 player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.4f, 1.4f);
                 return;
             }
+            // V383, Leon: point every pet at the next stat in one click.
+            if (event.getSlot() == com.spacerng.solrng.gui.PetsGui.STAT_ALL_SLOT
+                    && event.getCurrentItem() != null
+                    && event.getCurrentItem().getType() == org.bukkit.Material.COMPASS) {
+                java.util.List<com.spacerng.solrng.pet.PetType> owned = new java.util.ArrayList<>();
+                for (var type : pets.getTypes().values()) {
+                    if (data.getPet(type.id()) != null) owned.add(type);
+                }
+                var shared = com.spacerng.solrng.gui.PetsGui.sharedStat(plugin, data, owned);
+                var choices = com.spacerng.solrng.pet.PetInstance.CHOICES;
+                // Split pets start on the first choice, Luck.
+                var next = shared == null ? choices.get(0)
+                        : choices.get((choices.indexOf(shared) + 1) % choices.size());
+                for (var type : owned) pets.setStat(data, type.id(), next);
+                pets.refresh(player);
+                plugin.getScoreboardManager().update(player);
+                player.sendMessage(ChatColor.GREEN + "All your pets boost "
+                        + com.spacerng.solrng.pet.PetType.statName(next) + " now.");
+                player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_BEACON_POWER_SELECT, 0.7f, 1.5f);
+                player.openInventory(com.spacerng.solrng.gui.PetsGui.build(plugin, player, holder.page()));
+                return;
+            }
             if (com.spacerng.solrng.gui.PetsGui.isStorageButton(event.getSlot())) {
                 player.openInventory(com.spacerng.solrng.gui.PetsGui.storage(plugin, player));
                 player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.4f, 1.6f);
@@ -607,24 +629,28 @@ final class PlayerMenuClicks {
         // V381, Leon: with the animation on, auto open plays the batch,
         // then opens the next one by itself, until Gems or room run out
         // or the player sneaks.
-        if (auto && show) {
+        // V383, Leon: with the animation off an egg waits as long as the
+        // animation would have played, so turning it off is not faster.
+        if (!show) {
+            long wait = eggReadyAt.getOrDefault(player.getUniqueId(), 0L) - System.currentTimeMillis();
+            if (wait > 0 || quietAuto.contains(player.getUniqueId())) {
+                if (wait > 0) {
+                    com.spacerng.solrng.gui.ActionBar.send(player,
+                            net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection()
+                                    .deserialize(ChatColor.RED + "Next egg in "
+                                            + String.format("%.1f", wait / 1000.0) + "s"), 1500L);
+                }
+                return;
+            }
+        }
+        if (auto) {
             player.closeInventory();
             player.sendMessage(ChatColor.GREEN + "Auto open is running. " + ChatColor.GRAY + "Sneak to stop.");
-            autoBatch(player, data, holder.eggId(), count, true);
+            autoBatch(player, data, holder.eggId(), count, true, show);
             return;
         }
 
-        // Auto open turns the button into "keep going": the number on it
-        // is the batch, and it repeats while there is anything to spend.
-        int wanted = count;
-        if (auto) {
-            long affordable = egg.cost() <= 0 ? 0 : data.getShards() / egg.cost();
-            int room = pets.storage() - pets.held(data);
-            wanted = (int) Math.max(count, Math.min(affordable, Math.max(0, room)));
-            wanted = Math.min(wanted, AUTO_OPEN_CAP);
-        }
-
-        var batch = pets.makeMany(data, egg, wanted);
+        var batch = pets.makeMany(data, egg, count);
         if (batch.opened() == 0) {
             player.sendMessage(nothingOpened(data, egg, batch.stop()));
             player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
@@ -639,11 +665,12 @@ final class PlayerMenuClicks {
             player.closeInventory();
             com.spacerng.solrng.pet.PetOpenShow.start(plugin, player, batch.made(),
                     () -> tellOpened(player, data, batch),
-                    plugin.getHoloManager().nearestEgg(player.getLocation(), EGG_RANGE), null);
+                    plugin.getHoloManager().eggFor(player, EGG_RANGE), null);
             plugin.getPetManager().refresh(player);
             plugin.getScoreboardManager().update(player);
             return;
         }
+        eggReadyAt.put(player.getUniqueId(), System.currentTimeMillis() + OPEN_COOLDOWN_MS);
         tellOpened(player, data, batch);
         player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_AMETHYST_BLOCK_CHIME,
                 0.7f, batch.best().type().rarity().ordinal() >= 4 ? 1.8f : 1.2f);
@@ -677,7 +704,9 @@ final class PlayerMenuClicks {
      * The rounds report on the action bar so chat stays quiet; only the
      * reason it stopped goes to chat.
      */
-    private void autoBatch(Player player, PlayerData data, String eggId, int count, boolean first) {
+    private void autoBatch(Player player, PlayerData data, String eggId, int count, boolean first, boolean show) {
+        java.util.UUID id = player.getUniqueId();
+        quietAuto.remove(id);
         if (!player.isOnline()) return;
         var pets = plugin.getPetManager();
         var egg = pets.upgrades().egg(eggId);
@@ -693,26 +722,47 @@ final class PlayerMenuClicks {
             player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
             return;
         }
+        Runnable report = () -> {
+            var best = batch.best();
+            com.spacerng.solrng.gui.ActionBar.send(player,
+                    net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection()
+                            .deserialize(ChatColor.GREEN + "Opened " + ChatColor.WHITE + batch.opened()
+                                    + ChatColor.GREEN + ", " + ChatColor.WHITE + batch.fresh()
+                                    + ChatColor.GREEN + " new" + ChatColor.GRAY + "  best "
+                                    + com.spacerng.solrng.gui.Lore.gradient(best.type().display(), true,
+                                            best.type().stops())),
+                    3000L);
+        };
+        if (!show) {
+            // V383: no animation, same pace. The next round waits as long
+            // as the opening would have played.
+            report.run();
+            player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_AMETHYST_BLOCK_CHIME,
+                    0.7f, batch.best().type().rarity().ordinal() >= 4 ? 1.8f : 1.2f);
+            eggReadyAt.put(id, System.currentTimeMillis() + OPEN_COOLDOWN_MS);
+            pets.refresh(player);
+            plugin.getScoreboardManager().update(player);
+            if (batch.stop() != com.spacerng.solrng.pet.PetManager.Stop.DONE) {
+                player.sendMessage(ChatColor.GRAY + "Auto open stopped: "
+                        + ChatColor.stripColor(nothingOpened(data, egg, batch.stop())));
+                return;
+            }
+            quietAuto.add(id);
+            plugin.getServer().getScheduler().runTaskLater(plugin,
+                    () -> autoBatch(player, data, eggId, count, false, false),
+                    com.spacerng.solrng.pet.PetOpenShow.LENGTH_TICKS);
+            return;
+        }
         com.spacerng.solrng.pet.PetOpenShow.start(plugin, player, batch.made(),
-                () -> {
-                    var best = batch.best();
-                    com.spacerng.solrng.gui.ActionBar.send(player,
-                            net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection()
-                                    .deserialize(ChatColor.GREEN + "Opened " + ChatColor.WHITE + batch.opened()
-                                            + ChatColor.GREEN + ", " + ChatColor.WHITE + batch.fresh()
-                                            + ChatColor.GREEN + " new" + ChatColor.GRAY + "  best "
-                                            + com.spacerng.solrng.gui.Lore.gradient(best.type().display(), true,
-                                                    best.type().stops())),
-                            3000L);
-                },
-                plugin.getHoloManager().nearestEgg(player.getLocation(), EGG_RANGE),
+                report,
+                plugin.getHoloManager().eggFor(player, EGG_RANGE),
                 () -> {
                     if (batch.stop() != com.spacerng.solrng.pet.PetManager.Stop.DONE) {
                         player.sendMessage(ChatColor.GRAY + "Auto open stopped: "
                                 + ChatColor.stripColor(nothingOpened(data, egg, batch.stop())));
                         return;
                     }
-                    autoBatch(player, data, eggId, count, false);
+                    autoBatch(player, data, eggId, count, false, true);
                 });
         pets.refresh(player);
         plugin.getScoreboardManager().update(player);
@@ -743,14 +793,11 @@ final class PlayerMenuClicks {
         }
     }
 
-    /**
-     * The most eggs one auto click will open.
-     *
-     * Not a balance number: it is there so a player sitting on billions
-     * of Gems cannot ask the server for a hundred thousand rolls inside
-     * one click and freeze the tick while it runs.
-     */
-    private static final int AUTO_OPEN_CAP = 256;
+    /** V383: the egg cooldown with the animation off, as long as the animation. */
+    private static final long OPEN_COOLDOWN_MS = com.spacerng.solrng.pet.PetOpenShow.LENGTH_TICKS * 50L;
+    private final java.util.Map<java.util.UUID, Long> eggReadyAt = new java.util.HashMap<>();
+    /** Players with a quiet auto open waiting for its next round. */
+    private final java.util.Set<java.util.UUID> quietAuto = new java.util.HashSet<>();
 
     /**
      * The next stat in the list, wrapping at the end (V359).

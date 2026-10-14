@@ -41,6 +41,7 @@ public class PetEggListener implements Listener {
         // job as well, and so a barrier is never punched out from under
         // one of these.
         event.setCancelled(true);
+        plugin.getHoloManager().rememberEgg(event.getPlayer(), block);
         // V366: the one pet egg opens the egg screen on the first egg; the
         // eggs are bought there and nowhere else.
         event.getPlayer().openInventory(PetEggGui.build(plugin, event.getPlayer(),

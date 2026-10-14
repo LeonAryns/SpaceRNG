@@ -4353,8 +4353,8 @@ holograms:
   panel-height: 2.3
   board-refresh-seconds: 60
   crate-head-scale: 2.6
-  # V366: the floating pet egg, smaller than a crate head (Leon).
-  pet-egg-scale: 0.7
+  # V366: the floating pet egg. V383: a bit bigger than a block (Leon).
+  pet-egg-scale: 1.3
   # How far the head floats above the crate block, how fast it turns and
   # how far it bobs.
   crate-head-lift: 0.15

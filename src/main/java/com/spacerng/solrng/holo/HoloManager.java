@@ -108,7 +108,7 @@ public final class HoloManager {
     private double panelHeight = 2.3;
     private float crateHeadScale = 2.6f;
     // V366, Leon: the pet egg smaller than a crate head.
-    private float petEggScale = 0.7f;
+    private float petEggScale = 1.3f;
     private double crateHeadLift = 0.15;
     private double crateSpinDegrees = 90.0;
     private double crateBob = 0.12;
@@ -165,7 +165,7 @@ public final class HoloManager {
         textScale = (float) config.getDouble("holograms.text-scale", 1.1);
         panelHeight = config.getDouble("holograms.panel-height", 2.3);
         crateHeadScale = (float) config.getDouble("holograms.crate-head-scale", 2.6);
-        petEggScale = (float) config.getDouble("holograms.pet-egg-scale", 0.7);
+        petEggScale = (float) config.getDouble("holograms.pet-egg-scale", 1.3);
         crateHeadLift = config.getDouble("holograms.crate-head-lift", 0.15);
         // Past about 170 degrees an update, interpolation takes the short way round and spins backwards.
         crateSpinDegrees = Math.max(0.0, Math.min(170.0, config.getDouble("holograms.crate-spin-degrees", 45.0)));
@@ -266,6 +266,44 @@ public final class HoloManager {
         return null;
     }
 
+    private final Map<String, java.util.Set<java.util.UUID>> textHidden = new HashMap<>();
+    /** V383: the egg each player last clicked, so the opening plays over that one. */
+    private final Map<java.util.UUID, String> clickedEgg = new HashMap<>();
+
+    /** Remembers the egg on this block as the one this player opened. */
+    public void rememberEgg(org.bukkit.entity.Player player, Block block) {
+        for (Spot spot : spots.values()) {
+            if (spot.kind() != Kind.EGG || spot.at().getWorld() == null) continue;
+            if (spot.at().getWorld().equals(block.getWorld())
+                    && spot.at().getBlockX() == block.getX() && spot.at().getBlockY() == block.getY()
+                    && spot.at().getBlockZ() == block.getZ()) {
+                clickedEgg.put(player.getUniqueId(), spot.id());
+                return;
+            }
+        }
+    }
+
+    /**
+     * The egg an opening plays over (V383): the one the player clicked when
+     * it is still within range, otherwise the nearest. Until V383 it was
+     * always the nearest, which with several eggs side by side was often
+     * not the one in front of them.
+     */
+    public Spot eggFor(org.bukkit.entity.Player player, double range) {
+        Spot clicked = spots.get(clickedEgg.get(player.getUniqueId()));
+        if (clicked != null && clicked.kind() == Kind.EGG && clicked.at().getWorld() != null
+                && clicked.at().getWorld().equals(player.getWorld())
+                && clicked.at().distanceSquared(player.getLocation()) <= range * range) {
+            return clicked;
+        }
+        return nearestEgg(player.getLocation(), range);
+    }
+
+    /** How high the top of a pet egg's model floats over its block (V383). */
+    public double eggTop() {
+        return crateHeadLift + petEggScale + crateBob;
+    }
+
     /** The pet egg nearest to a spot within range, or null (V381, where an opening plays). */
     public Spot nearestEgg(Location from, double range) {
         Spot best = null;
@@ -288,6 +326,13 @@ public final class HoloManager {
      * aside for the opener while it runs. The model stays.
      */
     public void setTextHidden(String spotId, org.bukkit.entity.Player player, boolean hidden) {
+        // V383: remembered, so a redraw in the middle of an opening (a
+        // chunk reload, a piece gone invalid) hides the new text as well.
+        if (hidden) textHidden.computeIfAbsent(spotId, k -> new java.util.HashSet<>()).add(player.getUniqueId());
+        else {
+            java.util.Set<java.util.UUID> set = textHidden.get(spotId);
+            if (set != null) set.remove(player.getUniqueId());
+        }
         List<Display> pieces = drawn.get(spotId);
         if (pieces == null) return;
         for (Display piece : pieces) {
@@ -622,6 +667,16 @@ public final class HoloManager {
             case CRATE -> drawCrate(spot, pieces);
             case EGG -> drawEgg(spot, pieces);
             case LEADER -> drawLeader(spot, pieces);
+        }
+        java.util.Set<java.util.UUID> hidden = textHidden.get(spot.id());
+        if (hidden != null) {
+            for (java.util.UUID id : hidden) {
+                org.bukkit.entity.Player player = plugin.getServer().getPlayer(id);
+                if (player == null) continue;
+                for (Display piece : pieces) {
+                    if (piece instanceof TextDisplay) player.hideEntity(plugin, piece);
+                }
+            }
         }
     }
 

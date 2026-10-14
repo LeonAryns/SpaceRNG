@@ -908,6 +908,8 @@ public final class ConfigMigrator {
             // V371, Leon: the floating pet egg was still too big and hid
             // the bottom of its own text.
             new Patch("pet-egg-scale-v371", "holograms.pet-egg-scale", 1.2, 0.7),
+            // V383, Leon: now a bit bigger than one block.
+            new Patch("pet-egg-scale-v383", "holograms.pet-egg-scale", 0.7, 1.3),
             // V376: Gem Greed is a multiplier like Coin Greed, not a proc.
             // V378: the Gem on wheat, on the key the farm reads. V376 put
             // it on farming.crops, so wheat stayed at 0 Gems.

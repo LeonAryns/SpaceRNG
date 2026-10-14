@@ -101,7 +101,7 @@ public class PetEggGui {
         for (int i = 0; i < SIZE; i++) inv.setItem(i, i < 9 || i >= 45 ? rail : filler);
         inv.setItem(BACK_SLOT, back());
         if (egg == null) {
-            MenuStyle.apply(inv, MenuStyle.Palette.CYAN);
+            MenuStyle.apply(inv, MenuStyle.Palette.GREY);
             return inv;
         }
 
@@ -131,7 +131,7 @@ public class PetEggGui {
         inv.setItem(LUCK_SLOT, luckCard(plugin, data));
         inv.setItem(AUTO_SLOT, autoButton(plugin, player, data));
         inv.setItem(ANIMATION_SLOT, animationButton(data));
-        MenuStyle.apply(inv, MenuStyle.Palette.CYAN);
+        MenuStyle.apply(inv, MenuStyle.Palette.GREY);
         return inv;
     }
 
