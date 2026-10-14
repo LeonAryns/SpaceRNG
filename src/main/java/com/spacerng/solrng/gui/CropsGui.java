@@ -92,12 +92,15 @@ public class CropsGui {
         }
         lore.add(Lore.section(ChatColor.GREEN, "Earns per crop"));
         lore.add(Currency.COINS.colour() + Lore.BULLET + " " + Currency.COINS.exact(crop.getTokens()));
-        if (crop.getShards() > 0) {
+        double baseGems = farm.gemsFor(crop);
+        if (baseGems > 0) {
             boolean gems = farm.shardsUnlocked(data);
+            String shown = baseGems == Math.rint(baseGems) ? String.format("%,d", (long) baseGems)
+                    : String.format("%,.1f", baseGems);
             lore.add((gems ? Currency.GEMS.colour() : ChatColor.DARK_GRAY) + Lore.BULLET + " "
-                    + (gems ? Currency.GEMS.exact(crop.getShards())
+                    + (gems ? Currency.GEMS.exact(baseGems)
                             : ChatColor.DARK_GRAY + Currency.GEMS.icon() + " "
-                                    + String.format("%,d", crop.getShards()) + " Gems (locked)"));
+                                    + shown + " Gems (locked)"));
         }
         lore.add("");
         if (selected) {

@@ -5,8 +5,17 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V385**, 14 October 2026. The newest section is the
+Last updated at **V386**, 14 October 2026. The newest section is the
 first one below; older sections further down are history.
+
+## V386, 14 October 2026 (untested in game)
+
+- Crop Gems follow crop Coins: base Gems = crop tokens / WHEAT tokens
+  x `farming.base-gems` (1). Jar values: Wheat 1, Carrots 2.5,
+  Potatoes 6, Beetroot 15, Nether Wart 40, Fern 100 (were 0/1, 1, 2,
+  5, 12, 30). Fractions pay as a chance. `crop-types.*.shards` is no
+  longer read, which also ends wheat's live 0 (the V378 patch only
+  fired when the live value still read 0).
 
 ## V385, 14 October 2026 (untested in game)
 

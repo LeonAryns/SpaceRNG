@@ -275,6 +275,21 @@ public class FarmPlotManager {
         player.playSound(player.getLocation(), procSound, 0.8f, pitch);
     }
 
+    /**
+     * A crop's base Gems (V386): its Coins over the first crop's Coins,
+     * times {@code farming.base-gems} (1). Wheat pays 1, Carrots at 250
+     * Coins against wheat's 100 pay 2.5. Read from the live Coins, so
+     * retuning a crop's Coins moves its Gems with it. The old per crop
+     * {@code shards} keys are no longer read.
+     */
+    public double gemsFor(CropType crop) {
+        CropType first = crops.containsKey("WHEAT") ? crops.get("WHEAT")
+                : crops.values().stream().findFirst().orElse(null);
+        if (crop == null || first == null || first.getTokens() <= 0) return 0.0;
+        return plugin.getConfig().getDouble("farming.base-gems", 1.0)
+                * crop.getTokens() / (double) first.getTokens();
+    }
+
     public Map<String, CropType> getCrops() {
         return crops;
     }
@@ -791,8 +806,15 @@ public class FarmPlotManager {
                 * gemFortune * perkYield * data.boostMultiplier("GEMS")
                 // V381: pets pointed at Gems in /pets.
                 * (1.0 + plugin.getPetManager().totalOf(data, com.spacerng.solrng.stats.StatSources.Id.GEMS));
-        long shards = shardsUnlocked(data)
-                ? Math.round(crop.getShards() * gemMultiplier) : 0L;
+        // V386, Leon: Gems follow Coins, so a crop paying 2.5x wheat's
+        // Coins pays 2.5x wheat's Gem. The fraction left after the
+        // multiplier is paid as a chance, so 2.5 averages 2.5.
+        long shards = 0L;
+        if (shardsUnlocked(data)) {
+            double gems = gemsFor(crop) * gemMultiplier;
+            shards = (long) Math.floor(gems);
+            if (ThreadLocalRandom.current().nextDouble() < gems - shards) shards++;
+        }
 
         // The prestige upgrade is still a chance at one bonus Gem.
         double shardGreed = plugin.getPrestigeManager().upgradeTotal(data,

@@ -950,6 +950,9 @@ farming:
     NETHER_WART: 500000
     SWEET_BERRIES: 1000000
 
+  # V386: a crop's Gems are its tokens over WHEAT's tokens (wheat 1,
+  # carrots 2.5, and so on), times farming.base-gems (default 1). The
+  # shards keys below are no longer read.
   crop-types:
     WHEAT:
       display: "Wheat"

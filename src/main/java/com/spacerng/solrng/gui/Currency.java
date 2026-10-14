@@ -107,6 +107,12 @@ public enum Currency {
         return paint(String.format("%,d", value));
     }
 
+    /** The same with one decimal when it is not whole: "2.5 Gems" (V386). */
+    public String exact(double value) {
+        if (value == Math.rint(value)) return exact((long) value);
+        return paint(String.format("%,.1f", value));
+    }
+
     /**
      * Credits take the rainbow across the whole readout, number and word.
      *
