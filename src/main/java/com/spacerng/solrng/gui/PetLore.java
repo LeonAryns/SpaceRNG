@@ -53,9 +53,18 @@ public final class PetLore {
      * look at a pet you do not have.
      */
     public static ItemStack card(SolRNGPlugin plugin, PlayerData data, PetType pet, boolean bedrock) {
+        return card(plugin, data, pet, bedrock, false);
+    }
+
+    /**
+     * {@code spare} is a duplicate's own card in /pets (V388): the same
+     * pet, marked as a copy, never shown as worn.
+     */
+    public static ItemStack card(SolRNGPlugin plugin, PlayerData data, PetType pet, boolean bedrock,
+                                 boolean spare) {
         PetManager pets = plugin.getPetManager();
         PetInstance owned = data.getPet(pet.id());
-        boolean worn = data.getEquippedPets().contains(pet.id());
+        boolean worn = !spare && data.getEquippedPets().contains(pet.id());
         double fresh = 1.0 + pet.bonus();
         double grown = 1.0 + pet.bonus() * pets.upgrades().topMultiplier();
 
@@ -66,7 +75,9 @@ public final class PetLore {
                 : Lore.title(ChatColor.DARK_GRAY, "???"));
 
         List<String> lore = new ArrayList<>();
-        lore.add(ChatColor.DARK_GRAY + pet.rarity().displayName() + " pet");
+        // V388: the rarity in its own colours, not dark grey.
+        lore.add(plugin.getRarityManager().styleBold(pet.rarity(), pet.rarity().displayName())
+                + ChatColor.DARK_GRAY + " pet" + (spare ? ", spare copy" : ""));
         lore.add("");
         if (!pet.blurb().isBlank()) {
             lore.add(Lore.line(ChatColor.GRAY, pet.blurb()));
@@ -92,12 +103,14 @@ public final class PetLore {
             // V324: duplicates. The spare copies are the ones a shift
             // click throws away; the copy you wear is never one of them.
             if (owned.copies() > 1) {
-                lore.add(Lore.stat(ChatColor.AQUA, "Copies", owned.copies() + " " + ChatColor.DARK_GRAY
-                        + "(" + owned.spare() + " spare)"));
+                lore.add(Lore.stat(ChatColor.AQUA, "Copies", String.valueOf(owned.copies())));
             }
             lore.add(Lore.stat(ChatColor.DARK_GRAY, "Fully grown", multi(grown)));
             lore.add("");
-            if (bedrock) {
+            if (spare) {
+                lore.add(ChatColor.DARK_GRAY + "" + ChatColor.BOLD + "Spare copy");
+                lore.add(Lore.line(ChatColor.GRAY, "Shift click to throw it away"));
+            } else if (bedrock) {
                 // One click opens the pet on Bedrock, where wearing it is a
                 // button of its own (V223).
                 if (worn) lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "Worn");
@@ -112,8 +125,8 @@ public final class PetLore {
             } else {
                 lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Left click to wear");
             }
-            if (!bedrock) lore.add(Lore.footnote("Right click to grow it."));
-            if (!bedrock && owned.spare() > 0) {
+            if (!bedrock && !spare) lore.add(Lore.footnote("Right click to grow it."));
+            if (!bedrock && !spare && owned.spare() > 0) {
                 lore.add(Lore.footnote("Shift click throws one copy away."));
             }
         } else {
@@ -128,6 +141,7 @@ public final class PetLore {
         if (worn) meta.setEnchantmentGlintOverride(Boolean.TRUE);
         if (owned != null) {
             meta.getPersistentDataContainer().set(PetsGui.petKey(), PersistentDataType.STRING, pet.id());
+            if (spare) meta.getPersistentDataContainer().set(PetsGui.spareKey(), PersistentDataType.BYTE, (byte) 1);
         }
         item.setItemMeta(meta);
         return item;

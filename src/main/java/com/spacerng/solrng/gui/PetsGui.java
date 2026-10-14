@@ -65,6 +65,16 @@ public class PetsGui {
         return SolRNGPlugin.key("solrng_pet");
     }
 
+    /** Marks a spare copy's card in /pets (V388). */
+    public static NamespacedKey spareKey() {
+        return SolRNGPlugin.key("solrng_pet_spare");
+    }
+
+    public static boolean isSpare(ItemStack item) {
+        return item != null && item.getItemMeta() != null && item.getItemMeta()
+                .getPersistentDataContainer().has(spareKey(), PersistentDataType.BYTE);
+    }
+
     public static NamespacedKey forgeKey() {
         return SolRNGPlugin.key("solrng_pet_forge");
     }
@@ -93,7 +103,19 @@ public class PetsGui {
             if (data.getPet(pet.id()) != null) owned.add(pet);
         }
         owned.sort(java.util.Comparator.comparingInt((PetType pet) -> pet.rarity().ordinal()).reversed());
-        int pages = Math.max(1, (owned.size() + PAGE_PETS.length - 1) / PAGE_PETS.length);
+        // V388, Leon: every copy is its own card instead of one card per
+        // pet with a count. The first card is the pet itself; the others
+        // are its spare copies.
+        List<PetType> cards = new ArrayList<>();
+        List<Boolean> spare = new ArrayList<>();
+        for (PetType pet : owned) {
+            int copies = Math.max(1, data.getPet(pet.id()).copies());
+            for (int c = 0; c < copies; c++) {
+                cards.add(pet);
+                spare.add(c > 0);
+            }
+        }
+        int pages = Math.max(1, (cards.size() + PAGE_PETS.length - 1) / PAGE_PETS.length);
         page = Math.max(0, Math.min(page, pages - 1));
 
         PetsHolder holder = new PetsHolder(PetsHolder.View.MAIN, page);
@@ -115,8 +137,9 @@ public class PetsGui {
         if (!owned.isEmpty()) inv.setItem(STAT_ALL_SLOT, statAllButton(plugin, data, owned));
 
         int from = page * PAGE_PETS.length;
-        for (int i = 0; i < PAGE_PETS.length && from + i < owned.size(); i++) {
-            inv.setItem(PAGE_PETS[i], petIcon(plugin, data, owned.get(from + i), bedrock));
+        for (int i = 0; i < PAGE_PETS.length && from + i < cards.size(); i++) {
+            inv.setItem(PAGE_PETS[i], PetLore.card(plugin, data, cards.get(from + i), bedrock,
+                    spare.get(from + i)));
         }
         if (owned.isEmpty()) {
             ItemStack none = new ItemStack(Material.STONE_BUTTON);
@@ -175,7 +198,6 @@ public class PetsGui {
             }
         }
         lore.add("");
-        lore.add(Lore.footnote("One pet on its own: right click it."));
         lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click for the next stat");
         meta.setLore(lore);
         item.setItemMeta(meta);
@@ -547,11 +569,6 @@ public class PetsGui {
         return item;
     }
 
-    /** One pet card, written in {@link PetLore}'s shape (V340). */
-    private static ItemStack petIcon(SolRNGPlugin plugin, PlayerData data, PetType pet, boolean bedrock) {
-        return PetLore.card(plugin, data, pet, bedrock);
-    }
-
     /**
      * A pet's name, with a shiny one marked by the spark rather than by a
      * colour. The gradient is the pet's own and has to stay recognisable.
@@ -560,7 +577,10 @@ public class PetsGui {
         String text = owned != null && owned.shiny()
                 ? Lore.SPARK + " " + pet.display()
                 : pet.display();
-        return Lore.gradient(text, true, pet.stops());
+        // V388, Leon: the name is in the rarity's colours, bold, so the
+        // rarity reads at a glance. It was the pet's own gradient.
+        return SolRNGPlugin.getPlugin(SolRNGPlugin.class).getRarityManager()
+                .styleBold(pet.rarity(), text);
     }
 
     /** The pet id on a clicked item, or null when it carries none. */

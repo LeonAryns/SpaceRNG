@@ -1433,6 +1433,8 @@ rarities:
     colors: ["#D0A2FF", "#B388FF", "#80D8FF", "#B388FF", "#D0A2FF"]
     symbol: true
     symbol-char: "✵"
+    # V388: the marks flicker (Minecraft's obfuscated text).
+    symbol-obfuscated: true
     bold: true
     italic: true
     underline: true

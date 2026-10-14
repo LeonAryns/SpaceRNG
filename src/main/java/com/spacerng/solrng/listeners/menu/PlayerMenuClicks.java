@@ -505,6 +505,10 @@ final class PlayerMenuClicks {
             return;
         }
 
+        // V388: a spare copy's card only throws itself away (shift click)
+        // or opens the pet; it never takes the worn copy off.
+        if (inStorage && com.spacerng.solrng.gui.PetsGui.isSpare(event.getCurrentItem())) return;
+
         switch (pets.toggle(data, pet)) {
             case EQUIPPED -> {
                 player.sendMessage(ChatColor.GREEN + "Wearing " + ChatColor.RESET
@@ -800,22 +804,6 @@ final class PlayerMenuClicks {
     private final java.util.Set<java.util.UUID> quietAuto = new java.util.HashSet<>();
 
     /**
-     * The next stat in the list, wrapping at the end (V359).
-     *
-     * One direction only, because Geyser cannot tell a left click from a
-     * right one in a menu, and a list you can only walk forward through
-     * still reaches every entry as long as it comes back round.
-     */
-    private com.spacerng.solrng.stats.StatSources.Id nextStat(PlayerData data,
-                                                              com.spacerng.solrng.pet.PetType type) {
-        var values = com.spacerng.solrng.pet.PetInstance.CHOICES;
-        var pet = data.getPet(type.id());
-        var current = pet == null ? com.spacerng.solrng.pet.PetInstance.allowed(type.stat()) : pet.statOr(type);
-        int at = values.indexOf(current);
-        return values.get((at + 1) % values.size());
-    }
-
-    /**
      * The wear button on the pet screen, which only Bedrock players get
      * (V223): on Java a left click on the pets screen wears a pet, and
      * Bedrock cannot tell that click from the right click that opens it.
@@ -885,10 +873,7 @@ final class PlayerMenuClicks {
 
         var result = switch (action) {
             case "level" -> pets.upgradeLevel(data, type.id());
-            // V359: the stat steps forward and wraps, the one shape that
-            // works without a right click, so Bedrock reaches every stat.
-            case "stat" -> pets.setStat(data, type.id(), nextStat(data, type));
-            case "shiny" -> pets.makeShiny(data, type.id());
+            case "shiny" -> pets.makeShiny(player, data, type.id());
             default -> null;
         };
         if (result == null) return;
@@ -899,8 +884,6 @@ final class PlayerMenuClicks {
                 var pet = data.getPet(type.id());
                 String what = switch (action) {
                     case "level" -> "is now level " + (pet == null ? "?" : pet.level());
-                    case "stat" -> "boosts " + com.spacerng.solrng.pet.PetType.statName(
-                            pet == null ? type.stat() : pet.statOr(type)) + " now";
                     default -> "is shiny";
                 };
                 player.sendMessage(ChatColor.GREEN + "" + ChatColor.RESET + shown
@@ -916,7 +899,10 @@ final class PlayerMenuClicks {
                 player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_FIRE_EXTINGUISH, 0.8f, 0.8f);
             }
             case TOO_POOR -> {
-                player.sendMessage(ChatColor.RED + "You do not have the dust for that.");
+                player.sendMessage("shiny".equals(action)
+                        ? ChatColor.RED + "You need " + pets.upgrades().shinyCost(type.rarity())
+                                + " shinies for that."
+                        : ChatColor.RED + "You do not have the dust for that.");
                 player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.8f, 1.0f);
             }
             case MAXED -> {

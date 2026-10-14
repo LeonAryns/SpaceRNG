@@ -6,7 +6,6 @@ import com.spacerng.solrng.pet.PetManager;
 import com.spacerng.solrng.pet.PetType;
 import com.spacerng.solrng.pet.PetUpgrades;
 import com.spacerng.solrng.player.PlayerData;
-import com.spacerng.solrng.stats.StatSources;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -39,7 +38,6 @@ public class PetUpgradeGui {
     private static final int SIZE = 45;
     private static final int CARD_SLOT = 13;
     private static final int LEVEL_SLOT = 29;
-    private static final int STAT_SLOT = 31;
     private static final int SHINY_SLOT = 33;
     private static final int BACK_SLOT = 40;
 
@@ -70,8 +68,7 @@ public class PetUpgradeGui {
 
         inv.setItem(CARD_SLOT, card(plugin, type, owned));
         inv.setItem(LEVEL_SLOT, levelButton(plugin, data, owned));
-        inv.setItem(STAT_SLOT, statButton(plugin, player, type, owned));
-        inv.setItem(SHINY_SLOT, shinyButton(plugin, data, type, owned));
+        inv.setItem(SHINY_SLOT, shinyButton(plugin, player, data, type, owned));
         inv.setItem(BACK_SLOT, back());
         // Bedrock (V223): a menu there cannot tell a left click from a
         // right one, so a click on the pets screen always opens this one,
@@ -188,50 +185,14 @@ public class PetUpgradeGui {
         return item;
     }
 
-    /**
-     * Which stat this pet pays into, and the whole list under it so the
-     * next click is readable without pressing it (V359).
-     *
-     * Free, and as often as they like. Bedrock gets the same click: the
-     * list steps forward and wraps, which is the one shape that works
-     * without a right click.
-     */
-    private static ItemStack statButton(SolRNGPlugin plugin, Player player, PetType type, PetInstance owned) {
-        StatSources.Id current = owned.statOr(type);
-
-        ItemStack item = new ItemStack(Material.COMPASS);
-        ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(Lore.title(ChatColor.AQUA, "Boosting")
-                + ChatColor.DARK_GRAY + " - " + ChatColor.GREEN + ChatColor.BOLD
-                + PetType.statName(current));
-
-        List<String> lore = new ArrayList<>();
-        lore.add(Lore.line(ChatColor.GRAY, "What this pet multiplies."));
-        lore.add(Lore.line(ChatColor.GRAY, "Change it as often as you like."));
-        lore.add("");
-        lore.add(Lore.section(ChatColor.YELLOW, "Pointing at"));
-        for (StatSources.Id stat : PetInstance.CHOICES) {
-            if (stat == current) {
-                lore.add(ChatColor.GREEN + Lore.BULLET + " " + ChatColor.WHITE + PetType.statName(stat)
-                        + ChatColor.GREEN + "  " + Lore.TICK);
-            } else {
-                lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " " + PetType.statName(stat));
-            }
-        }
-        lore.add("");
-        lore.addAll(Stepper.footer(com.spacerng.solrng.platform.Bedrock.is(player)));
-        meta.setLore(lore);
-        meta.getPersistentDataContainer().set(actionKey(), PersistentDataType.STRING, "stat");
-        item.setItemMeta(meta);
-        return item;
-    }
-
-    private static ItemStack shinyButton(SolRNGPlugin plugin, PlayerData data,
+    private static ItemStack shinyButton(SolRNGPlugin plugin, Player player, PlayerData data,
                                          PetType type, PetInstance owned) {
         PetUpgrades upgrades = plugin.getPetManager().upgrades();
-        long cost = upgrades.shinyCost();
-        boolean canPay = data.getShards() >= cost;
-        boolean hasShiny = plugin.getRarityManager().foundIn(data, type.rarity(), true) > 0;
+        // V388, Leon: paid in shinies, 1 for a Common and doubling with
+        // every rarity up, instead of Gems.
+        long cost = upgrades.shinyCost(type.rarity());
+        long have = com.spacerng.solrng.player.DropWallet.shinies(plugin, player, data);
+        boolean canPay = have >= cost;
 
         ItemStack item = new ItemStack(Material.GLOW_INK_SAC);
         ItemMeta meta = item.getItemMeta();
@@ -250,18 +211,16 @@ public class PetUpgradeGui {
         } else {
             lore.add(Lore.stat(ChatColor.LIGHT_PURPLE, "Worth",
                     trim(1.0 + upgrades.shinyBonus()) + "x what it is now"));
-            lore.add(Lore.stat(ChatColor.AQUA, "Cost", Currency.GEMS.price(cost, canPay)));
-            lore.add(Lore.requirement("Shiny " + type.rarity().displayName() + " found",
-                    hasShiny ? "1" : "0", "1", hasShiny));
+            lore.add(Lore.stat(canPay ? ChatColor.YELLOW : ChatColor.RED, "Cost",
+                    (canPay ? ChatColor.WHITE : ChatColor.RED) + String.valueOf(cost)
+                            + (cost == 1 ? " shiny " : " shinies ") + Lore.SPARK));
+            lore.add(Lore.stat(ChatColor.AQUA, "You have", String.format("%,d", have)));
             lore.add("");
-            if (!hasShiny) {
-                lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Locked");
-                lore.add(Lore.line(ChatColor.GRAY, "Find a shiny "
-                        + type.rarity().displayName() + " first"));
-            } else if (canPay) {
+            if (canPay) {
                 lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to upgrade");
             } else {
-                lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Not enough Gems");
+                lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Not enough shinies");
+                lore.add(Lore.footnote("Common 1, and double for each rarity up."));
             }
         }
         meta.setLore(lore);

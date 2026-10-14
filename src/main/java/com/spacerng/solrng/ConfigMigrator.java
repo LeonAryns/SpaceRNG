@@ -88,6 +88,8 @@ public final class ConfigMigrator {
      * server already has, like one more hologram panel.
      */
     private static final List<String> ADDED_SECTIONS = List.of(
+            // V388: Astral's flickering marks. A new key.
+            "rarities.ASTRAL.symbol-obfuscated",
             // V385: Leon's skulls for the placed crates. New keys.
             "crates.types.nebula.head", "crates.types.farm.head", "crates.types.vote.head",
             // V353: the per-crop upgrades that replaced the farm tree's

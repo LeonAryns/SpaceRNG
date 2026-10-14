@@ -5,8 +5,26 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V387**, 14 October 2026. The newest section is the
+Last updated at **V388**, 14 October 2026. The newest section is the
 first one below; older sections further down are history.
+
+## V388, 14 October 2026 (untested in game)
+
+- /pets shows every copy as its own card. Spare copies say "spare
+  copy", shift click throws one away, a left click on a spare does
+  nothing (so it cannot take the worn copy off), right click opens the
+  pet.
+- Pet names are in their rarity's colours, bold (`styleBold`), and the
+  subtitle names the rarity in its colours.
+- Making a pet shiny costs shinies, not Gems: 1 for Common, doubling
+  per rarity up to 64 for Divine (`PetUpgrades.shinyCost(rarity)`),
+  spent through `DropWallet.spendShinies`. The old "find a shiny of
+  this rarity first" gate is gone; the cost replaces it.
+- The per pet stat button on the pet screen is gone; only the top left
+  "All pets boost" compass in /pets stays (since V383).
+- Astral marks flicker: `rarities.ASTRAL.symbol-obfuscated`, via
+  ADDED_SECTIONS. V210 had removed the flicker because it shoved names
+  about in tab; the client keeps the width now, but check tab.
 
 ## V387, 14 October 2026 (untested in game)
 

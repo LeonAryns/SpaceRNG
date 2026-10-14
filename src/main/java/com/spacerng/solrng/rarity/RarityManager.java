@@ -121,6 +121,8 @@ public class RarityManager {
      * both: the nametag keeps its flicker, tab and chat get this.
      */
     private final Map<Rarity, String> symbolMark = new EnumMap<>(Rarity.class);
+    // V388: rarities whose mark flickers (Minecraft's obfuscated text).
+    private final java.util.Set<Rarity> symbolObfuscated = java.util.EnumSet.noneOf(Rarity.class);
     private final Logger logger;
     /** How long a drop's name may be where it shares a line, from tag.max-name-length. */
     private int maxPlainName = 18;
@@ -137,6 +139,7 @@ public class RarityManager {
         styles.clear();
         symbolFlair.clear();
         symbolMark.clear();
+        symbolObfuscated.clear();
         maxPlainName = config.getInt("tag.max-name-length", 18);
 
         exponentCurve = !"linear".equalsIgnoreCase(config.getString("luck-curve", "exponent"));
@@ -161,6 +164,7 @@ public class RarityManager {
                         r.getBoolean("italic", false)));
                 symbolFlair.put(rarity, r.getBoolean("symbol", false));
                 symbolMark.put(rarity, r.getString("symbol-char", "✦"));
+                if (r.getBoolean("symbol-obfuscated", false)) symbolObfuscated.add(rarity);
             }
         }
 
@@ -559,8 +563,11 @@ public class RarityManager {
         if (mark.isEmpty()) return colored;
         // Colour only on the marks. The name's own codes include its
         // weight, and Divine's underline ran under the star as well (V212).
-        String left = colourOnly(leadingCodes(colored)) + mark + ChatColor.RESET;
-        String right = lastColour(colored) + mark + ChatColor.RESET;
+        // V388, Leon: Astral's marks flicker again (symbol-obfuscated).
+        // The client swaps in glyphs of the same width, so the name holds.
+        String magic = symbolObfuscated.contains(item.getRarity()) ? ChatColor.MAGIC.toString() : "";
+        String left = colourOnly(leadingCodes(colored)) + magic + mark + ChatColor.RESET;
+        String right = lastColour(colored) + magic + mark + ChatColor.RESET;
         return left + " " + colored + ChatColor.RESET + " " + right;
     }
 

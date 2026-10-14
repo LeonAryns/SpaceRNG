@@ -624,14 +624,16 @@ public class PetManager {
      * closest the plugin has to "owning a shiny aura": there is no shiny
      * aura item to combine, only the rarity you have proven you can find.
      */
-    public Result makeShiny(PlayerData data, String typeId) {
+    public Result makeShiny(org.bukkit.entity.Player player, PlayerData data, String typeId) {
         PetInstance pet = data.getPet(typeId);
         if (pet == null) return Result.LOCKED;
         if (pet.shiny()) return Result.MAXED;
         PetType type = get(typeId);
         if (type == null) return Result.LOCKED;
-        if (plugin.getRarityManager().foundIn(data, type.rarity(), true) <= 0) return Result.NO_SHINY;
-        if (!data.spendShards(upgrades.shinyCost())) return Result.TOO_POOR;
+        // V388, Leon: shinies instead of Gems, doubling per rarity. The
+        // cost replaces the old "find a shiny of this rarity" gate.
+        if (!com.spacerng.solrng.player.DropWallet.spendShinies(plugin, player, data,
+                (int) upgrades.shinyCost(type.rarity()))) return Result.TOO_POOR;
         data.putPet(pet.asShiny());
         return Result.DONE;
     }

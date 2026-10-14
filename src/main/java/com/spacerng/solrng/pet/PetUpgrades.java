@@ -299,6 +299,11 @@ public class PetUpgrades {
     }
 
     /** Gems to make a pet shiny. */
+    /** Shinies to make a pet of this rarity shiny (V388): 1, 2, 4, 8 and on. */
+    public long shinyCost(com.spacerng.solrng.rarity.Rarity rarity) {
+        return 1L << Math.min(30, rarity.ordinal());
+    }
+
     public long shinyCost() {
         return shinyCost;
     }
