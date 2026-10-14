@@ -109,6 +109,7 @@ public final class HoloManager {
     private float crateHeadScale = 2.6f;
     // V366, Leon: the pet egg smaller than a crate head.
     private float petEggScale = 1.3f;
+    private double petEggTextLift = 0.5;
     private double crateHeadLift = 0.15;
     private double crateSpinDegrees = 90.0;
     private double crateBob = 0.12;
@@ -166,6 +167,7 @@ public final class HoloManager {
         panelHeight = config.getDouble("holograms.panel-height", 2.3);
         crateHeadScale = (float) config.getDouble("holograms.crate-head-scale", 2.6);
         petEggScale = (float) config.getDouble("holograms.pet-egg-scale", 1.3);
+        petEggTextLift = config.getDouble("holograms.pet-egg-text-lift", 0.5);
         crateHeadLift = config.getDouble("holograms.crate-head-lift", 0.15);
         // Past about 170 degrees an update, interpolation takes the short way round and spins backwards.
         crateSpinDegrees = Math.max(0.0, Math.min(170.0, config.getDouble("holograms.crate-spin-degrees", 45.0)));
@@ -301,7 +303,7 @@ public final class HoloManager {
 
     /** How high the top of a pet egg's model floats over its block (V383). */
     public double eggTop() {
-        return crateHeadLift + petEggScale + crateBob;
+        return crateHeadLift + petEggScale + crateBob + petEggTextLift;
     }
 
     /** The pet egg nearest to a spot within range, or null (V381, where an opening plays). */
@@ -769,7 +771,9 @@ public final class HoloManager {
         // V371: a block item such as a dragon egg is centred on the display,
         // so its top is a half scale above it. The text starts above that,
         // or the front of the egg covers the bottom lines.
-        double textY = headY + petEggScale / 2.0 + crateBob + 0.2;
+        // V387, Leon's screenshot: at 1.3 the egg's top still ran into the
+        // panel, so the text sits petEggTextLift higher.
+        double textY = headY + petEggScale / 2.0 + crateBob + 0.2 + petEggTextLift;
 
         if (ALL_EGGS.equals(spot.key())) {
             // V362, Leon's screenshot: one egg for the whole system with a

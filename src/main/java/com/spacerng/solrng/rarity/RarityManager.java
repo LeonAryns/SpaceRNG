@@ -191,7 +191,7 @@ public class RarityManager {
         }
 
         assignLuckMultipliers(config);
-        assignRollWeights();
+        assignRollWeights(config.getDouble("rolling.pick-exponent", 0.5));
 
         byName.clear();
         for (RollableItem item : items) {
@@ -649,19 +649,35 @@ public class RarityManager {
      *
      * A band with no share falls back to its raw label sum, which is the
      * old behaviour. Configure shares on every non-literal band or on none.
+     *
+     * Since V387 a true-odds rarity as a whole rolls at its most common
+     * item's label, not at the sum of every label in it.
      */
-    private void assignRollWeights() {
-        double literal = 0.0;
+    private void assignRollWeights(double exponent) {
+        // V387, Leon: a rarity hits as often as its most common item's
+        // label, and only then is the item inside it picked. Until V387
+        // every true-odds item rolled at its own label, so eleven
+        // Legendaries made "any Legendary" 1 in 24.7k instead of 1 in
+        // 188k. Inside a rarity the pick leans toward the lower label by
+        // the square root (rolling.pick-exponent), so 1 in 188k beats
+        // 1 in 375k by 1.4x rather than 2x: "not by much". The bands
+        // (Common, Uncommon, Rare) keep their shares and get the same pick.
+        Map<Rarity, Double> pickSum = new EnumMap<>(Rarity.class);
+        Map<Rarity, Long> lowestLabel = new EnumMap<>(Rarity.class);
         Map<Rarity, Double> bandSum = new EnumMap<>(Rarity.class);
         for (RollableItem item : items) {
-            double raw = 1.0 / Math.max(1L, item.getOdds());
-            if (trueOdds.getOrDefault(item.getRarity(), false)) {
-                literal += raw;
-            } else {
-                bandSum.merge(item.getRarity(), raw, Double::sum);
+            long odds = Math.max(1L, item.getOdds());
+            pickSum.merge(item.getRarity(), Math.pow(1.0 / odds, exponent), Double::sum);
+            lowestLabel.merge(item.getRarity(), odds, Math::min);
+            if (!trueOdds.getOrDefault(item.getRarity(), false)) {
+                bandSum.merge(item.getRarity(), 1.0 / odds, Double::sum);
             }
         }
 
+        double literal = 0.0;
+        for (Map.Entry<Rarity, Long> lowest : lowestLabel.entrySet()) {
+            if (trueOdds.getOrDefault(lowest.getKey(), false)) literal += 1.0 / lowest.getValue();
+        }
         double shareTotal = 0.0;
         for (Map.Entry<Rarity, Double> band : bandSum.entrySet()) {
             shareTotal += shares.getOrDefault(band.getKey(), band.getValue());
@@ -669,15 +685,17 @@ public class RarityManager {
         double room = Math.max(0.0, 1.0 - literal);
 
         for (RollableItem item : items) {
-            double raw = 1.0 / Math.max(1L, item.getOdds());
-            if (trueOdds.getOrDefault(item.getRarity(), false)) {
-                item.setRollWeight(raw);
-                continue;
+            Rarity rarity = item.getRarity();
+            double rarityChance;
+            if (trueOdds.getOrDefault(rarity, false)) {
+                rarityChance = 1.0 / lowestLabel.get(rarity);
+            } else {
+                double share = shares.getOrDefault(rarity, bandSum.get(rarity));
+                rarityChance = shareTotal <= 0.0 ? 0.0 : share / shareTotal * room;
             }
-            double sum = bandSum.get(item.getRarity());
-            double share = shares.getOrDefault(item.getRarity(), sum);
-            double bandWeight = shareTotal <= 0.0 ? 0.0 : share / shareTotal * room;
-            item.setRollWeight(sum <= 0.0 ? 0.0 : raw / sum * bandWeight);
+            double pick = Math.pow(1.0 / Math.max(1L, item.getOdds()), exponent);
+            double sum = pickSum.get(rarity);
+            item.setRollWeight(sum <= 0.0 ? 0.0 : pick / sum * rarityChance);
         }
     }
 

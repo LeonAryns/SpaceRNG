@@ -4364,6 +4364,8 @@ holograms:
   crate-head-scale: 2.6
   # V366: the floating pet egg. V383: a bit bigger than a block (Leon).
   pet-egg-scale: 1.3
+  # V387: how much higher the text over a pet egg sits.
+  pet-egg-text-lift: 0.5
   # How far the head floats above the crate block, how fast it turns and
   # how far it bobs.
   crate-head-lift: 0.15

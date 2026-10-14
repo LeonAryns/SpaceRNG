@@ -5,8 +5,24 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V386**, 14 October 2026. The newest section is the
+Last updated at **V387**, 14 October 2026. The newest section is the
 first one below; older sections further down are history.
+
+## V387, 14 October 2026 (untested in game)
+
+- Rolls: a true-odds rarity (Epic and up) hits at its most common
+  item's label, then the item inside is picked by 1/label to the power
+  `rolling.pick-exponent` (0.5, square root). Labels and Money
+  unchanged. Jar tiers, no Luck: Epic 1 in 50k (was 7.6k), Legendary
+  188k (24.7k), Mythical 5M (1.16M), Divine 750M (144M), Astral 37.5B
+  (21B). Common, Uncommon and Rare keep their band shares (applying the
+  lowest label there would make Uncommon 1 in 800 instead of 1 in 20)
+  and get the same square root pick inside, which makes a Common pay
+  about 1.9x the Money on average. `RarityManager.assignRollWeights`.
+- Pet egg text 0.5 higher (`holograms.pet-egg-text-lift`). The opening
+  starts above the text height too.
+- Open: Leon said "reverse the pet egg to how it was before, keep it
+  as big"; asked what he means.
 
 ## V386, 14 October 2026 (untested in game)
 
@@ -66,8 +82,7 @@ first one below; older sections further down are history.
 - Nova Core forge results go to the action bar, not chat.
 - Nuke is drawn and heard by the farmer only (was a real explosion).
   All other enchant sounds were already the farmer's alone.
-- Open: Legendary odds. Leon asked why 11 Legendaries make 1 in 24.7k;
-  waiting on his pick: raise each label ~11x, or roll the tier first.
+- Legendary odds: settled in V387 (rarity first, then the item).
 
 ## V381, 11 October 2026 (untested in game)
 
