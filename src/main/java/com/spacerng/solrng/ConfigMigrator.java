@@ -88,6 +88,8 @@ public final class ConfigMigrator {
      * server already has, like one more hologram panel.
      */
     private static final List<String> ADDED_SECTIONS = List.of(
+            // V385: Leon's skulls for the placed crates. New keys.
+            "crates.types.nebula.head", "crates.types.farm.head", "crates.types.vote.head",
             // V353: the per-crop upgrades that replaced the farm tree's
             // Yield nodes. A whole new top-level section, so it reaches a
             // live config only from here.

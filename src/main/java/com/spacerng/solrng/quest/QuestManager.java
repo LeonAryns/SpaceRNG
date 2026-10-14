@@ -248,8 +248,13 @@ public class QuestManager {
                         + "  Spend it on anything in /skilltree, whatever it costs.");
             }
             player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "You've finished the starting guide!");
-            player.sendMessage(ChatColor.GRAY + "  Type " + ChatColor.YELLOW + "/help" + ChatColor.GRAY
-                    + " to see how every feature works.");
+            player.sendMessage(ChatColor.GRAY + "  Check " + ChatColor.YELLOW + "/help" + ChatColor.GRAY
+                    + " for all the other info: every feature, explained.");
+            // V385, Leon: on screen too, so it is not lost under the
+            // reward lines in chat.
+            player.sendTitle(ChatColor.GOLD + "" + ChatColor.BOLD + "Guide complete",
+                    ChatColor.GRAY + "Check " + ChatColor.YELLOW + "/help" + ChatColor.GRAY + " for all the other info",
+                    10, 80, 20);
             player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0f, 1.0f);
         } else {
             player.sendMessage(ChatColor.GRAY + "Next: " + ChatColor.YELLOW + next.getDisplay());

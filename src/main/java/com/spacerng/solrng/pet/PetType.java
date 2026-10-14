@@ -28,30 +28,11 @@ public record PetType(String id, String display, List<String> colors, Material i
      * What the pet looks like on a card, worn and in the opening (V384):
      * a custom skull when {@code head} holds a texture Value from
      * minecraft-heads.com, otherwise the plain item in {@code icon}.
-     * Built once per type and cloned, so a menu full of pets does not
-     * build 36 profiles every time it opens.
+     * {@link com.spacerng.solrng.gui.Heads} builds each texture once.
      */
     public org.bukkit.inventory.ItemStack item() {
-        org.bukkit.inventory.ItemStack built = ITEMS.computeIfAbsent(id + "|" + head, k -> build());
-        return built.clone();
-    }
-
-    private static final java.util.Map<String, org.bukkit.inventory.ItemStack> ITEMS =
-            new java.util.concurrent.ConcurrentHashMap<>();
-
-    private org.bukkit.inventory.ItemStack build() {
-        if (head == null || head.isBlank()) return new org.bukkit.inventory.ItemStack(icon);
-        org.bukkit.inventory.ItemStack skull = new org.bukkit.inventory.ItemStack(Material.PLAYER_HEAD);
-        if (skull.getItemMeta() instanceof org.bukkit.inventory.meta.SkullMeta meta) {
-            // The same texture always gets the same id, so the client
-            // caches one skin per head however many pets share it.
-            java.util.UUID uuid = java.util.UUID.nameUUIDFromBytes(head.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-            com.destroystokyo.paper.profile.PlayerProfile profile = org.bukkit.Bukkit.createProfile(uuid, null);
-            profile.setProperty(new com.destroystokyo.paper.profile.ProfileProperty("textures", head));
-            meta.setPlayerProfile(profile);
-            skull.setItemMeta(meta);
-        }
-        return skull;
+        org.bukkit.inventory.ItemStack skull = com.spacerng.solrng.gui.Heads.textured(head);
+        return skull != null ? skull : new org.bukkit.inventory.ItemStack(icon);
     }
 
     /** The gradient stops in the shape Lore wants them. */

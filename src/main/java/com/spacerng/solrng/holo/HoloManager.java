@@ -702,7 +702,12 @@ public final class HoloManager {
         Location centre = spot.at().clone().add(0, headY, 0);
         centre.setYaw(spot.yaw());
         centre.setPitch(0f);
-        ItemStack head = spot.head() == null ? new ItemStack(Material.PLAYER_HEAD) : spot.head().clone();
+        // V385, Leon: a crate type's head: in config wins over the item it
+        // was placed with, so a new skull reaches crates already standing.
+        ItemStack configured = com.spacerng.solrng.gui.Heads.textured(
+                plugin.getConfig().getString("crates.types." + spot.key() + ".head", ""));
+        ItemStack head = configured != null ? configured
+                : spot.head() == null ? new ItemStack(Material.PLAYER_HEAD) : spot.head().clone();
         ItemDisplay display = centre.getWorld().spawn(centre, ItemDisplay.class, d -> {
             d.setPersistent(false);
             d.setItemStack(head);

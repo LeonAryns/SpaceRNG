@@ -5,8 +5,18 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V384**, 14 October 2026. The newest section is the
+Last updated at **V385**, 14 October 2026. The newest section is the
 first one below; older sections further down are history.
+
+## V385, 14 October 2026 (untested in game)
+
+- Crate skulls: `crates.types.<id>.head` (minecraft-heads.com Value)
+  wins over the item a crate was placed with, so standing crates change
+  without re-placing. Nebula, Farm and Vote have Leon's heads; reach
+  the live config through `ADDED_SECTIONS`. Cosmic and Boss keep theirs.
+  Shared builder: `gui/Heads`.
+- Finishing the guide shows a title "Guide complete / Check /help for
+  all the other info"; the chat line says the same.
 
 ## V384, 14 October 2026 (untested in game)
 

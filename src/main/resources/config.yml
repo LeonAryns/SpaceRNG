@@ -4199,6 +4199,8 @@ crates:
   types:
     farm:
       display: "Farm Crate"
+      # V385: the skull over a placed crate (minecraft-heads.com Value).
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZDBhYmQ1ZTQzMDY1MjU1MzRjYWY0ZGY1NzJjN2QzNzZmNWU0MTcyYzYwNTk5YjEzODg3YjEwMjYzNjg4N2EifX19"
       colors: ["#FFE082", "#FF8F00"]
       key: crate_key
       key-source: "Farm Keys are dug up by the Key Finder enchant on your hoe."
@@ -4258,6 +4260,8 @@ crates:
     #   rngadmin crate key vote 1 %player%
     vote:
       display: "Vote Crate"
+      # V385: the skull over a placed crate (minecraft-heads.com Value).
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNTlkZDc3MTVlNmRjNjQyZTUyZDVjMDJjNjI0YmZhMWE1NmYwNWNkYWJiZTljYTc4OWY1MGVjNjExODk5ZiJ9fX0="
       colors: ["#B9F6CA", "#00C853"]
       key: vote_key
       key-source: "Vote Keys come from voting for the server."
@@ -4285,6 +4289,8 @@ crates:
     # Key Finder turns one up now and then as well.
     nebula:
       display: "Nebula Crate"
+      # V385: the skull over a placed crate (minecraft-heads.com Value).
+      head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMmM2MjMzZDU3Yzk1ZTg1ZTExZDRkYmRjOGJhODIxMjUyZDE0ZDViZmFmY2NkNGViZmE2YWMyNzA3OWFiMzVmNyJ9fX0="
       colors: ["#80D8FF", "#448AFF", "#B388FF"]
       key: nebula_key
       key-source: "Nebula Keys come from key alls, events and the rare Key Finder find."
