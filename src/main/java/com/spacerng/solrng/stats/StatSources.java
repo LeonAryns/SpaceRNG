@@ -198,6 +198,11 @@ public final class StatSources {
         // A perk's 1.5x Luck is a multiplier; two perks' bonuses add before it multiplies.
         parts.add(new Part("Perks", "Equip perks in /perks",
                 1.0 + plugin.getPerkManager().totalOf(data, PerkStat.LUCK_PERCENT), Op.MULTIPLY));
+        // V394: the clan's Luck upgrade, and Clan Bond near a clan member.
+        parts.add(new Part("Clan", "Clan Luck in /clan upgrades",
+                plugin.getClanManager().multiplier(data.getUuid(), "LUCK"), Op.MULTIPLY));
+        parts.add(new Part("Clan Bond", "A clan member within 10 blocks",
+                plugin.getClanManager().bond(data.getUuid()), Op.MULTIPLY));
         parts.add(new Part("Pets", "Wear pets in /pets",
                 1.0 + plugin.getPetManager().totalOf(data, Id.LUCK), Op.MULTIPLY));
         parts.add(new Part("Rank", "Buy a rank in /ranks",
@@ -284,6 +289,8 @@ public final class StatSources {
                 plugin.getRankManager().multiplierOf(data), Op.MULTIPLY));
         parts.add(new Part("Ability", "Shift-right-click a late Starforge",
                 data.boostMultiplier("SPEED"), Op.MULTIPLY));
+        parts.add(new Part("Clan", "Clan Speed in /clan upgrades",
+                plugin.getClanManager().multiplier(data.getUuid(), "SPEED"), Op.MULTIPLY));
 
         return new Stat(Id.SPEED, "Speed",
                 "How fast a roll resolves. Higher is more rolls an hour.",
@@ -321,6 +328,8 @@ public final class StatSources {
                 plugin.getRankManager().multiplierOf(data), Op.MULTIPLY));
         parts.add(new Part("Your boost", "A Money boost from a Boss Box",
                 data.boostMultiplier("MONEY"), Op.MULTIPLY));
+        parts.add(new Part("Clan", "Clan Money in /clan upgrades",
+                plugin.getClanManager().multiplier(data.getUuid(), "MONEY"), Op.MULTIPLY));
 
         return new Stat(Id.MONEY, "Money",
                 "What rolling pays. Rarer drops pay more of it.",

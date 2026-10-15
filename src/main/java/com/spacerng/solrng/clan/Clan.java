@@ -22,6 +22,8 @@ public final class Clan {
     private long xp;
     private final Map<String, Integer> upgrades = new java.util.HashMap<>();
     private final long created;
+    /** V394: the clan chest, 54 slots, null for an empty slot. */
+    private final org.bukkit.inventory.ItemStack[] chest = new org.bukkit.inventory.ItemStack[54];
 
     public Clan(String id, String name, UUID owner, long created) {
         this.id = id;
@@ -69,6 +71,10 @@ public final class Clan {
 
     public int upgrade(String id) {
         return upgrades.getOrDefault(id, 0);
+    }
+
+    public org.bukkit.inventory.ItemStack[] chest() {
+        return chest;
     }
 
     public long created() {

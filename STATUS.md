@@ -5,8 +5,26 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V393**, 15 October 2026. The newest section is the
+Last updated at **V394**, 15 October 2026. The newest section is the
 first one below; older sections further down are history.
+
+## V394, 15 October 2026 (untested in game)
+
+- Clan chest: one shared 54 slot inventory per clan
+  (`ClanManager.chest`, holder `clan/ClanChestHolder`, NOT a
+  MenuHolder so items move), live for every member viewing, written to
+  clans.yml when anybody closes it. Disbanding hands the items to the
+  owner (Stash). A kicked or leaving member's window closes. The bound
+  hoe cannot go in (FarmingListener blocks every custom top inventory).
+- Clan upgrades (/clan upgrades, owner buys): one clan point per clan
+  level. Level L of an upgrade costs base-cost + cost-step x L:
+  Member Slot 10 +5 a level (5 to 10 seats), Clan Luck / Money / Speed
+  1 +0.2 a level, +0.01x a level up to 100, Clan Bond 25 points: Luck 2x
+  while another member is within 10 blocks every way. All in
+  `clans.upgrades`, defaults in code. StatSources has Clan parts in
+  Luck, Money and Speed, plus Clan Bond in Luck.
+- Clan level curve 1.1 to 1.03 a level (patch): at 1.1 a clan could
+  barely pass level 60, so one point a level bought almost nothing.
 
 ## V393, 15 October 2026 (untested in game)
 
@@ -2231,7 +2249,7 @@ eggs go.
    farming that crop, stored in /pets and opened there. 1% of eggs are
    shiny: every pet stat from that egg 2x. An egg gives Common to
    Divine, Divine 1%. Old 11 eggs go.
-5. V393 done (chest and upgrades V394): Clans: create, invite, 5 members, up to 10 with upgrades. Clan level
+5. V393 and V394 done: Clans: create, invite, 5 members, up to 10 with upgrades. Clan level
    from members' battle pass XP, a clan level leaderboard. Clan chest.
    1 upgrade point per clan level; costs climb per level. Upgrades:
    member slot (starts at 10 points), Luck, Money, Speed (+0.01x a

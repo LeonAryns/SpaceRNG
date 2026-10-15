@@ -4832,8 +4832,23 @@ consumables:
 # level-xp x level-growth^L. A clan starts with base-members seats.
 clans:
   level-xp: 50000
-  level-growth: 1.1
+  # V394: 1.03, so level 100 is about 30M XP all told and the upgrades,
+  # paid one point a level, stay in reach.
+  level-growth: 1.03
   base-members: 5
+  # V394: Clan Bond, Luck times bond-multiplier while another member is
+  # within bond-range blocks every way.
+  bond-range: 10
+  bond-multiplier: 2.0
+  # V394: clan upgrades, bought with one clan point per clan level.
+  # Level L costs base-cost + cost-step x L points, at least 1. Missing
+  # keys use these same defaults.
+  upgrades:
+    SLOTS: {base-cost: 10, cost-step: 5, max-level: 5, per-level: 1}
+    LUCK: {base-cost: 1, cost-step: 0.2, max-level: 100, per-level: 0.01}
+    MONEY: {base-cost: 1, cost-step: 0.2, max-level: 100, per-level: 0.01}
+    SPEED: {base-cost: 1, cost-step: 0.2, max-level: 100, per-level: 0.01}
+    BOND: {base-cost: 25, cost-step: 0, max-level: 1, per-level: 1}
 
 # V391, Leon: the /crops upgrades every crop shares, paid in crop coins.
 # One crop coin per crops-per-coin farmed, one coin a level, per-level

@@ -422,6 +422,8 @@ public final class ConfigMigrator {
             new Patch("nova-250-v389", "novacore.max-tier", 100, 250),
             // V392, Leon: a shiny pet is worth 2x.
             new Patch("pet-shiny-2x-v392", "pets.upgrades.shiny-bonus", 0.10, 1.0),
+            // V394: a gentler clan level curve, so one point a level buys something.
+            new Patch("clan-growth-v394", "clans.level-growth", 1.1, 1.03),
             // V391, Leon: Wheat to 250k, then a crop every 500k.
             new Patch("unlock-carrots-v391", "farming.crop-unlock-at.CARROTS", 50000, 250000),
             new Patch("unlock-potatoes-v391", "farming.crop-unlock-at.POTATOES", 100000, 500000),

@@ -98,7 +98,7 @@ public final class ClanManager {
     /** What level {@code level} to {@code level + 1} costs. */
     public long xpFor(int level) {
         double base = plugin.getConfig().getDouble("clans.level-xp", 50000);
-        double growth = plugin.getConfig().getDouble("clans.level-growth", 1.1);
+        double growth = plugin.getConfig().getDouble("clans.level-growth", 1.03);
         return Math.max(1L, Math.round(base * Math.pow(growth, level)));
     }
 
@@ -145,11 +145,146 @@ public final class ClanManager {
         }
     }
 
+    // ------------------------------------------------------------ upgrades
+
+    /**
+     * One clan upgrade (V394, Leon). Bought with clan points, one point
+     * per clan level. Every level costs a little more than the last:
+     * base-cost + cost-step x level, rounded, at least 1.
+     */
+    public record Upgrade(String id, String display, org.bukkit.Material icon, org.bukkit.ChatColor colour,
+                          String pitch, int max, double base, double step, double perLevel) {
+    }
+
+    public static final List<Upgrade> UPGRADES = List.of(
+            new Upgrade("SLOTS", "Member Slot", org.bukkit.Material.ARMOR_STAND, org.bukkit.ChatColor.AQUA,
+                    "One more seat in the clan.", 5, 10, 5, 1),
+            new Upgrade("LUCK", "Clan Luck", org.bukkit.Material.RABBIT_FOOT, org.bukkit.ChatColor.GREEN,
+                    "Every member's Luck, +0.01x a level.", 100, 1, 0.2, 0.01),
+            new Upgrade("MONEY", "Clan Money", org.bukkit.Material.EMERALD, org.bukkit.ChatColor.GREEN,
+                    "Every member's Money, +0.01x a level.", 100, 1, 0.2, 0.01),
+            new Upgrade("SPEED", "Clan Speed", org.bukkit.Material.SUGAR, org.bukkit.ChatColor.AQUA,
+                    "Every member's Speed, +0.01x a level.", 100, 1, 0.2, 0.01),
+            new Upgrade("BOND", "Clan Bond", org.bukkit.Material.LEAD, org.bukkit.ChatColor.LIGHT_PURPLE,
+                    "2x Luck while a clan member is within 10 blocks.", 1, 25, 0, 1));
+
+    public Upgrade upgrade(String id) {
+        for (Upgrade upgrade : UPGRADES) if (upgrade.id().equals(id)) return upgrade;
+        return null;
+    }
+
+    private double tuned(Upgrade upgrade, String key, double fallback) {
+        return plugin.getConfig().getDouble("clans.upgrades." + upgrade.id() + "." + key, fallback);
+    }
+
+    public int maxOf(Upgrade upgrade) {
+        return (int) tuned(upgrade, "max-level", upgrade.max());
+    }
+
+    public double perLevel(Upgrade upgrade) {
+        return tuned(upgrade, "per-level", upgrade.perLevel());
+    }
+
+    /** What level {@code level} to {@code level + 1} of an upgrade costs. */
+    public long costAt(Upgrade upgrade, int level) {
+        return Math.max(1L, Math.round(tuned(upgrade, "base-cost", upgrade.base())
+                + tuned(upgrade, "cost-step", upgrade.step()) * level));
+    }
+
+    public long spentPoints(Clan clan) {
+        long total = 0;
+        for (Upgrade upgrade : UPGRADES) {
+            for (int level = 0; level < clan.upgrade(upgrade.id()); level++) total += costAt(upgrade, level);
+        }
+        return total;
+    }
+
+    /** Points to spend: one per clan level, minus what is already spent. */
+    public long points(Clan clan) {
+        return Math.max(0L, levelOf(clan) - spentPoints(clan));
+    }
+
+    public Result buyUpgrade(UUID player, Upgrade upgrade) {
+        Clan clan = of(player);
+        if (clan == null) return Result.NOT_IN_CLAN;
+        if (!clan.isOwner(player)) return Result.NOT_OWNER;
+        int level = clan.upgrade(upgrade.id());
+        if (level >= maxOf(upgrade)) return Result.MAXED;
+        if (points(clan) < costAt(upgrade, level)) return Result.TOO_POOR;
+        clan.upgrades().put(upgrade.id(), level + 1);
+        save();
+        return Result.DONE;
+    }
+
+    /** 1 + per-level x level of a clan stat upgrade for this player, 1.0 outside a clan. */
+    public double multiplier(UUID player, String id) {
+        Clan clan = player == null ? null : of(player);
+        Upgrade upgrade = upgrade(id);
+        if (clan == null || upgrade == null) return 1.0;
+        return 1.0 + perLevel(upgrade) * clan.upgrade(id);
+    }
+
+    /**
+     * Clan Bond (V394, Leon): 2x Luck while another member of the clan is
+     * within 10 blocks every way (a cube, not a sphere).
+     */
+    public double bond(UUID player) {
+        Clan clan = player == null ? null : of(player);
+        if (clan == null || clan.upgrade("BOND") <= 0) return 1.0;
+        org.bukkit.entity.Player me = plugin.getServer().getPlayer(player);
+        if (me == null) return 1.0;
+        int range = plugin.getConfig().getInt("clans.bond-range", 10);
+        org.bukkit.Location at = me.getLocation();
+        for (UUID member : clan.members()) {
+            if (member.equals(player)) continue;
+            org.bukkit.entity.Player other = plugin.getServer().getPlayer(member);
+            if (other == null || !other.getWorld().equals(me.getWorld())) continue;
+            org.bukkit.Location there = other.getLocation();
+            if (Math.abs(there.getX() - at.getX()) <= range && Math.abs(there.getY() - at.getY()) <= range
+                    && Math.abs(there.getZ() - at.getZ()) <= range) {
+                return plugin.getConfig().getDouble("clans.bond-multiplier", 2.0);
+            }
+        }
+        return 1.0;
+    }
+
+    // ------------------------------------------------------------ chest
+
+    private final Map<String, org.bukkit.inventory.Inventory> chests = new HashMap<>();
+
+    /**
+     * The clan chest (V394): one shared inventory per clan, so two members
+     * looking at it see each other's changes live. Written back to the
+     * clan when it closes.
+     */
+    public org.bukkit.inventory.Inventory chest(Clan clan) {
+        return chests.computeIfAbsent(clan.id(), id -> {
+            ClanChestHolder holder = new ClanChestHolder(id);
+            org.bukkit.inventory.Inventory inv = plugin.getServer().createInventory(holder, 54,
+                    com.spacerng.solrng.gui.MenuStyle.title("Clan Chest", "#80D8FF", "#448AFF"));
+            holder.setInventory(inv);
+            inv.setContents(clan.chest().clone());
+            return inv;
+        });
+    }
+
+    /** Copies the shared chest back onto the clan and saves. */
+    public void storeChest(String clanId) {
+        Clan clan = clans.get(clanId);
+        org.bukkit.inventory.Inventory inv = chests.get(clanId);
+        if (clan == null || inv == null) return;
+        org.bukkit.inventory.ItemStack[] contents = inv.getContents();
+        for (int i = 0; i < clan.chest().length; i++) {
+            clan.chest()[i] = i < contents.length ? contents[i] : null;
+        }
+        save();
+    }
+
     // ------------------------------------------------------------ actions
 
     public enum Result {
         DONE, ALREADY_IN_CLAN, NOT_IN_CLAN, NAME_TAKEN, BAD_NAME, NOT_OWNER, FULL, NO_INVITE,
-        NOT_MEMBER, OWNER_CANNOT_LEAVE, SELF
+        NOT_MEMBER, OWNER_CANNOT_LEAVE, SELF, MAXED, TOO_POOR
     }
 
     /** 3 to 16 letters, digits or underscores. */
@@ -209,8 +344,18 @@ public final class ClanManager {
         if (clan.isOwner(player)) return Result.OWNER_CANNOT_LEAVE;
         clan.members().remove(player);
         byMember.remove(player);
+        closeChestFor(clan, player);
         save();
         return Result.DONE;
+    }
+
+    /** A player who left or was kicked loses the chest window at once. */
+    private void closeChestFor(Clan clan, UUID player) {
+        org.bukkit.inventory.Inventory open = chests.get(clan.id());
+        if (open == null) return;
+        for (org.bukkit.entity.HumanEntity viewer : new ArrayList<>(open.getViewers())) {
+            if (viewer.getUniqueId().equals(player)) viewer.closeInventory();
+        }
     }
 
     public Result kick(UUID owner, UUID target) {
@@ -221,6 +366,7 @@ public final class ClanManager {
         if (!clan.members().contains(target)) return Result.NOT_MEMBER;
         clan.members().remove(target);
         byMember.remove(target);
+        closeChestFor(clan, target);
         save();
         return Result.DONE;
     }
@@ -240,6 +386,18 @@ public final class ClanManager {
         Clan clan = of(owner);
         if (clan == null) return Result.NOT_IN_CLAN;
         if (!clan.isOwner(owner)) return Result.NOT_OWNER;
+        // V394: the chest goes back to the owner rather than with the clan.
+        org.bukkit.inventory.Inventory open = chests.remove(clan.id());
+        if (open != null) {
+            for (org.bukkit.entity.HumanEntity viewer : new ArrayList<>(open.getViewers())) viewer.closeInventory();
+            org.bukkit.inventory.ItemStack[] contents = open.getContents();
+            for (int i = 0; i < clan.chest().length; i++) clan.chest()[i] = i < contents.length ? contents[i] : null;
+        }
+        org.bukkit.entity.Player ownerOnline = plugin.getServer().getPlayer(owner);
+        for (org.bukkit.inventory.ItemStack stack : clan.chest()) {
+            if (stack == null || stack.getType().isAir()) continue;
+            if (ownerOnline != null) com.spacerng.solrng.player.Stash.give(plugin, ownerOnline, stack);
+        }
         for (UUID member : clan.members()) byMember.remove(member);
         clans.remove(clan.id());
         for (Map<String, Long> mine : invites.values()) mine.remove(clan.id());
@@ -268,6 +426,12 @@ public final class ClanManager {
                 if (up != null) {
                     for (String key : up.getKeys(false)) clan.upgrades().put(key, up.getInt(key));
                 }
+                List<?> chest = s.getList("chest");
+                if (chest != null) {
+                    for (int i = 0; i < chest.size() && i < clan.chest().length; i++) {
+                        if (chest.get(i) instanceof org.bukkit.inventory.ItemStack stack) clan.chest()[i] = stack;
+                    }
+                }
                 clans.put(id, clan);
                 for (UUID member : clan.members()) byMember.put(member, id);
             } catch (IllegalArgumentException ex) {
@@ -289,6 +453,7 @@ public final class ClanManager {
             yml.set(path + "xp", clan.xp());
             yml.set(path + "created", clan.created());
             clan.upgrades().forEach((key, level) -> yml.set(path + "upgrades." + key, level));
+            yml.set(path + "chest", java.util.Arrays.asList(clan.chest()));
         }
         try {
             yml.save(file);

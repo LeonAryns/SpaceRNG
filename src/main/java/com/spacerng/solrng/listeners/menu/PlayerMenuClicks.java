@@ -269,6 +269,48 @@ final class PlayerMenuClicks {
             return;
         }
         if (clan == null) return;
+        if (holder.view() == com.spacerng.solrng.gui.ClanHolder.View.UPGRADES) {
+            if (slot == com.spacerng.solrng.gui.ClanGui.UPGRADES_BACK_SLOT) {
+                player.openInventory(com.spacerng.solrng.gui.ClanGui.main(plugin, player, clan));
+                return;
+            }
+            String id = com.spacerng.solrng.gui.ClanGui.clickedUpgrade(event.getCurrentItem());
+            var upgrade = id == null ? null : clans.upgrade(id);
+            if (upgrade == null) return;
+            var result = clans.buyUpgrade(player.getUniqueId(), upgrade);
+            switch (result) {
+                case DONE -> {
+                    for (java.util.UUID member : clan.members()) {
+                        Player online = plugin.getServer().getPlayer(member);
+                        if (online != null) online.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "CLAN "
+                                + ChatColor.RESET + upgrade.colour() + upgrade.display() + ChatColor.GRAY
+                                + " is now level " + ChatColor.WHITE + clan.upgrade(upgrade.id()) + ChatColor.GRAY + ".");
+                    }
+                    player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_AMETHYST_BLOCK_CHIME, 0.7f, 1.6f);
+                }
+                case NOT_OWNER -> player.sendMessage(ChatColor.RED + "Only the clan owner buys upgrades.");
+                case MAXED -> player.sendMessage(ChatColor.GREEN + upgrade.display() + " is maxed.");
+                case TOO_POOR -> player.sendMessage(ChatColor.RED + "Not enough clan points. "
+                        + ChatColor.GRAY + "One comes with every clan level.");
+                default -> {
+                }
+            }
+            if (result != com.spacerng.solrng.clan.ClanManager.Result.DONE) {
+                player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.7f, 1.0f);
+            }
+            player.openInventory(com.spacerng.solrng.gui.ClanGui.upgrades(plugin, player, clan));
+            return;
+        }
+        if (slot == com.spacerng.solrng.gui.ClanGui.CHEST_SLOT) {
+            player.openInventory(clans.chest(clan));
+            player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_CHEST_OPEN, 0.5f, 1.2f);
+            return;
+        }
+        if (slot == com.spacerng.solrng.gui.ClanGui.UPGRADES_SLOT) {
+            player.openInventory(com.spacerng.solrng.gui.ClanGui.upgrades(plugin, player, clan));
+            player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.4f, 1.6f);
+            return;
+        }
         if (slot == com.spacerng.solrng.gui.ClanGui.TOP_SLOT) {
             player.openInventory(com.spacerng.solrng.gui.ClanGui.top(plugin, player));
             player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.4f, 1.6f);

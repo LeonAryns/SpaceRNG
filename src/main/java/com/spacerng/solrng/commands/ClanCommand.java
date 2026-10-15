@@ -25,7 +25,7 @@ import java.util.UUID;
 public class ClanCommand implements CommandExecutor, TabCompleter {
 
     private static final List<String> SUBS = List.of(
-            "create", "invite", "join", "leave", "kick", "transfer", "disband", "top", "info");
+            "create", "invite", "join", "leave", "kick", "transfer", "disband", "top", "info", "chest", "upgrades");
 
     private final SolRNGPlugin plugin;
 
@@ -142,6 +142,14 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
                 disband(player);
             }
             case "top" -> player.openInventory(ClanGui.top(plugin, player));
+            case "chest", "upgrades" -> {
+                Clan clan = clans.of(me);
+                if (clan == null) {
+                    player.sendMessage(ChatColor.RED + "You are not in a clan.");
+                    return true;
+                }
+                player.openInventory(sub.equals("chest") ? clans.chest(clan) : ClanGui.upgrades(plugin, player, clan));
+            }
             case "info" -> {
                 Clan clan = arg == null ? clans.of(me) : clans.byName(arg);
                 if (clan == null) {
@@ -269,7 +277,7 @@ public class ClanCommand implements CommandExecutor, TabCompleter {
         player.sendMessage(ChatColor.YELLOW + "/clan create <name>" + ChatColor.GRAY + "  start one");
         player.sendMessage(ChatColor.YELLOW + "/clan invite <player>" + ChatColor.GRAY + "  owner only");
         player.sendMessage(ChatColor.YELLOW + "/clan join <clan>" + ChatColor.GRAY + "  accept an invite");
-        player.sendMessage(ChatColor.YELLOW + "/clan leave, kick, transfer, disband, top, info");
+        player.sendMessage(ChatColor.YELLOW + "/clan chest, upgrades, leave, kick, transfer, disband, top, info");
     }
 
     @Override

@@ -224,6 +224,12 @@ public class GuiListener implements Listener {
         Inventory top = event.getInventory();
         if (!(event.getPlayer() instanceof Player player)) return;
 
+        if (top.getHolder() instanceof com.spacerng.solrng.clan.ClanChestHolder chest) {
+            // V394: one shared inventory per clan; the last edit is written
+            // back to the clan whenever anybody closes it.
+            plugin.getClanManager().storeChest(chest.clanId());
+            return;
+        }
         if (top.getHolder() instanceof com.spacerng.solrng.gui.PrivateVaultHolder vault) {
             // The page inventory is virtual: what is in it when the window
             // closes only survives if it is written back onto the player.

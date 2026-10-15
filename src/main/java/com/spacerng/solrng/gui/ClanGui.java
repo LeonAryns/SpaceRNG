@@ -88,6 +88,8 @@ public final class ClanGui {
             }
         }
 
+        inv.setItem(CHEST_SLOT, chestButton());
+        inv.setItem(UPGRADES_SLOT, upgradesButton(plugin, clan));
         inv.setItem(TOP_SLOT, topButton(plugin, clan));
         inv.setItem(LEAVE_SLOT, leaveButton(clan.isOwner(player.getUniqueId())));
         MenuStyle.apply(inv, MenuStyle.Palette.BLUE);
@@ -127,6 +129,139 @@ public final class ClanGui {
         }
         MenuStyle.apply(inv, MenuStyle.Palette.BLUE);
         return inv;
+    }
+
+    private static final int POINTS_SLOT = 4;
+    private static final int[] UPGRADE_SLOTS = {20, 21, 22, 23, 24};
+    public static final int UPGRADES_BACK_SLOT = 36;
+
+    public static NamespacedKey upgradeKey() {
+        return SolRNGPlugin.key("solrng_clan_upgrade");
+    }
+
+    public static String clickedUpgrade(ItemStack item) {
+        if (item == null || item.getItemMeta() == null) return null;
+        return item.getItemMeta().getPersistentDataContainer().get(upgradeKey(), PersistentDataType.STRING);
+    }
+
+    /** The clan upgrades (V394): points on top, the five upgrades in a row. */
+    public static Inventory upgrades(SolRNGPlugin plugin, Player player, Clan clan) {
+        ClanManager clans = plugin.getClanManager();
+        ClanHolder holder = new ClanHolder(ClanHolder.View.UPGRADES);
+        Inventory inv = Bukkit.createInventory(holder, 45, MenuStyle.title("Clan Upgrades", "#80D8FF", "#448AFF"));
+        holder.setInventory(inv);
+        fill(inv);
+        inv.setItem(POINTS_SLOT, pointsCard(plugin, clan));
+        boolean owner = clan.isOwner(player.getUniqueId());
+        for (int i = 0; i < ClanManager.UPGRADES.size() && i < UPGRADE_SLOTS.length; i++) {
+            inv.setItem(UPGRADE_SLOTS[i], upgradeIcon(plugin, clan, ClanManager.UPGRADES.get(i), owner));
+        }
+        inv.setItem(UPGRADES_BACK_SLOT, back());
+        MenuStyle.apply(inv, MenuStyle.Palette.BLUE);
+        return inv;
+    }
+
+    private static ItemStack pointsCard(SolRNGPlugin plugin, Clan clan) {
+        ClanManager clans = plugin.getClanManager();
+        long points = clans.points(clan);
+        ItemStack item = new ItemStack(Material.NETHER_STAR);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(Lore.title(ChatColor.AQUA, String.format("%,d", points)
+                + (points == 1 ? " clan point" : " clan points")));
+        meta.setLore(List.of(
+                ChatColor.DARK_GRAY + "Level " + clans.levelOf(clan) + " clan",
+                "",
+                Lore.line(ChatColor.GRAY, "One point for every clan level."),
+                Lore.line(ChatColor.GRAY, "Every level of an upgrade costs a"),
+                Lore.line(ChatColor.GRAY, "little more than the one before."),
+                "",
+                Lore.stat(ChatColor.AQUA, "Spent", String.format("%,d", clans.spentPoints(clan)))));
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    private static ItemStack upgradeIcon(SolRNGPlugin plugin, Clan clan, ClanManager.Upgrade upgrade, boolean owner) {
+        ClanManager clans = plugin.getClanManager();
+        int level = clan.upgrade(upgrade.id());
+        int max = clans.maxOf(upgrade);
+        boolean maxed = level >= max;
+        long cost = maxed ? 0 : clans.costAt(upgrade, level);
+        boolean canPay = clans.points(clan) >= cost;
+
+        ItemStack item = new ItemStack(upgrade.icon());
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(Lore.title(upgrade.colour(), upgrade.display()));
+        List<String> lore = new ArrayList<>();
+        lore.add(ChatColor.DARK_GRAY + "Clan upgrade");
+        lore.add("");
+        lore.add(Lore.line(ChatColor.GRAY, upgrade.pitch()));
+        lore.add("");
+        lore.add(Lore.stat(upgrade.colour(), "Level", level + " / " + max));
+        if (max > 1) lore.add(Lore.bar(level / (double) max));
+        lore.add(Lore.stat(upgrade.colour(), "Now", effect(plugin, clan, upgrade, level)));
+        if (!maxed) {
+            lore.add(Lore.stat(ChatColor.DARK_GRAY, "Next", effect(plugin, clan, upgrade, level + 1)));
+            lore.add(Lore.stat(canPay ? ChatColor.YELLOW : ChatColor.RED, "Cost",
+                    (canPay ? ChatColor.WHITE : ChatColor.RED) + String.format("%,d", cost)
+                            + (cost == 1 ? " point" : " points")));
+        }
+        lore.add("");
+        if (maxed) {
+            lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "Maxed");
+        } else if (!owner) {
+            lore.add(ChatColor.DARK_GRAY + "" + ChatColor.BOLD + "The owner buys upgrades");
+        } else if (canPay) {
+            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to upgrade");
+        } else {
+            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Not enough clan points");
+        }
+        meta.setLore(lore);
+        if (maxed) meta.setEnchantmentGlintOverride(Boolean.TRUE);
+        meta.addItemFlags(org.bukkit.inventory.ItemFlag.values());
+        meta.getPersistentDataContainer().set(upgradeKey(), PersistentDataType.STRING, upgrade.id());
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    /** What an upgrade is worth at a level, in the words its card uses. */
+    private static String effect(SolRNGPlugin plugin, Clan clan, ClanManager.Upgrade upgrade, int level) {
+        ClanManager clans = plugin.getClanManager();
+        return switch (upgrade.id()) {
+            case "SLOTS" -> (plugin.getConfig().getInt("clans.base-members", 5) + level) + " members";
+            case "BOND" -> level > 0 ? "2x Luck near a member" : "Off";
+            default -> String.format("%.2f", 1.0 + clans.perLevel(upgrade) * level) + "x";
+        };
+    }
+
+    private static ItemStack chestButton() {
+        ItemStack item = new ItemStack(Material.CHEST);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(Lore.title(ChatColor.GOLD, "Clan chest"));
+        meta.setLore(List.of(
+                ChatColor.DARK_GRAY + "Shared storage",
+                "",
+                Lore.line(ChatColor.GRAY, "Six rows every member can use."),
+                "",
+                ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to open"));
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    private static ItemStack upgradesButton(SolRNGPlugin plugin, Clan clan) {
+        ItemStack item = new ItemStack(Material.ANVIL);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(Lore.title(ChatColor.AQUA, "Clan upgrades"));
+        meta.setLore(List.of(
+                ChatColor.DARK_GRAY + "Spend clan points",
+                "",
+                Lore.line(ChatColor.GRAY, "Seats, Luck, Money, Speed and"),
+                Lore.line(ChatColor.GRAY, "Clan Bond, for every member."),
+                "",
+                Lore.stat(ChatColor.AQUA, "Points", String.format("%,d", plugin.getClanManager().points(clan))),
+                "",
+                ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to open"));
+        item.setItemMeta(meta);
+        return item;
     }
 
     // ------------------------------------------------------------ items
