@@ -80,6 +80,18 @@ public class BoostManager {
         return boughtBy;
     }
 
+    public long expiresAt() {
+        return expiresAtMillis;
+    }
+
+    /** Puts a boost back after a reload (V395). */
+    public void restore(int level, long expiresAt, String boughtBy) {
+        if (level <= 0 || expiresAt <= System.currentTimeMillis()) return;
+        this.level = Math.min(maxLevel, level);
+        this.expiresAtMillis = expiresAt;
+        this.boughtBy = boughtBy;
+    }
+
     public long secondsLeft() {
         expireIfDue();
         if (level <= 0) return 0L;

@@ -317,6 +317,8 @@ public class RollListener implements Listener {
      * armor upgrades) shortens the wait.
      */
     public void startRoll(Player player) {
+        // V395: no rolls while frozen for an update (auto roll included).
+        if (plugin.isFrozen()) return;
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
 
         // Supercharge fires on the roll NUMBER, so it has to be decided

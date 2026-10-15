@@ -165,6 +165,17 @@ public class CrowdBoostManager {
         return left <= 0L ? 0L : (left + 59_999L) / 60_000L;
     }
 
+    /** {threshold, readyAt, lastTriggerAt}, for a reload (V395). */
+    public long[] state() {
+        return new long[]{threshold, readyAt, lastTriggerAt};
+    }
+
+    public void restore(long threshold, long readyAt, long lastTriggerAt) {
+        this.threshold = (int) Math.max(startThreshold, threshold);
+        this.readyAt = readyAt;
+        this.lastTriggerAt = lastTriggerAt;
+    }
+
     /** Puts the bar back to its starting value, for /rngadmin. */
     public void reset() {
         threshold = startThreshold;

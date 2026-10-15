@@ -1087,6 +1087,17 @@ public class FarmPlotManager {
      * from where it was down to nothing over a minute, so stopping is a
      * decision with a visible cost rather than a light switch.
      */
+    /** Every running Momentum, copied, for a reload (V395). */
+    public Map<UUID, long[]> momentumState() {
+        Map<UUID, long[]> copy = new HashMap<>();
+        momentum.forEach((uuid, state) -> copy.put(uuid, state.clone()));
+        return copy;
+    }
+
+    public void restoreMomentum(Map<UUID, long[]> runs) {
+        momentum.putAll(runs);
+    }
+
     public void expireMomentum() {
         long now = System.currentTimeMillis();
         HoeEnchantManager hoe = plugin.getHoeEnchantManager();

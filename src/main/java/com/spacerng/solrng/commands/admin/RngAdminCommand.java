@@ -37,7 +37,7 @@ import java.util.UUID;
 public class RngAdminCommand implements CommandExecutor, TabCompleter {
 
     private static final List<String> SUBCOMMANDS = List.of(
-            "reload", "setspawn", "starforge", "reset", "season", "give", "store", "drops",
+            "reload", "freeze", "unfreeze", "setspawn", "starforge", "reset", "season", "give", "store", "drops",
             "bank", "rank", "cosmetic", "bedrock", "aura", "auras", "head", "reveal", "nextroll", "roll", "unlock", "unlockall", "lockall", "odds", "farmblock", "farmscan", "farmwheat", "farmland",
             "hoe", "consumable", "gradient", "welcome", "crops", "farmclear",
             "milestones", "farmfill", "boost", "crowd", "nova", "points", "placeholders", "payout", "crate", "petegg", "tophead", "floatingitem", "boss", "pet", "dust", "discord", "realm", "advancements", "protect", "cropwatch", "farmboard", "icon", "shiny", "firsts", "lorestyles", "tagstyles", "menustyles", "hoestyles", "standingstyles", "enchantstyles", "novastyles", "auratest", "holo", "help");
@@ -74,6 +74,8 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             case "starforge" -> players.doStarforge(sender, args);
             case "reset" -> players.doReset(sender, args);
             case "season" -> players.doSeason(sender, args);
+            case "freeze" -> freeze(sender, true);
+            case "unfreeze" -> freeze(sender, false);
             case "give" -> players.doGive(sender, args);
             case "store" -> players.doStore(sender, args);
             case "rank" -> players.doRank(sender, args);
@@ -146,6 +148,8 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
     private void sendHelp(CommandSender sender) {
         sender.sendMessage(ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + "SpaceRNG admin");
         line(sender, "reload", "", "Reload config.yml");
+        line(sender, "freeze", "", "Before an update: stop commands, menus, rolls and farming, save all");
+        line(sender, "unfreeze", "", "Lift a freeze without reloading");
         line(sender, "setspawn", "", "Set the join/spawn point to where you stand");
         line(sender, "starforge", "[tier] [player]", "Give a Starforge (defaults to the tier they own)");
         line(sender, "reset", "<player> confirm", "Wipe a player back to a brand-new account");
@@ -479,5 +483,35 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         List<String> out = new ArrayList<>();
         for (Player player : Bukkit.getOnlinePlayers()) out.add(player.getName());
         return out;
+    }
+
+    /**
+     * V395, Leon: before /plugman reload. Freezing closes every menu,
+     * saves every player, the clans and the reload state, and stops
+     * everything for players until the reload (or unfreeze) lifts it.
+     */
+    private boolean freeze(CommandSender sender, boolean on) {
+        plugin.setFrozen(on);
+        if (!on) {
+            sender.sendMessage(ChatColor.GREEN + "Unfrozen.");
+            for (org.bukkit.entity.Player player : plugin.getServer().getOnlinePlayers()) {
+                player.sendMessage(ChatColor.GREEN + "Back to normal. Thanks for waiting.");
+            }
+            return true;
+        }
+        plugin.closeMenus();
+        for (org.bukkit.entity.Player player : plugin.getServer().getOnlinePlayers()) {
+            plugin.getRollListener().cancelRoll(player.getUniqueId());
+            player.showTitle(net.kyori.adventure.title.Title.title(
+                    net.kyori.adventure.text.Component.text(ChatColor.AQUA + "" + ChatColor.BOLD + "Updating"),
+                    net.kyori.adventure.text.Component.text(ChatColor.GRAY + "One moment. Everything you have is kept.")));
+            player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "UPDATE " + ChatColor.RESET + ChatColor.GRAY
+                    + "SpaceRNG is updating. Luck, boosts and Momentum are kept; this takes a few seconds.");
+        }
+        plugin.getPlayerDataManager().saveAll();
+        if (plugin.getClanManager() != null) plugin.getClanManager().save();
+        sender.sendMessage(ChatColor.GREEN + "Frozen and saved. " + ChatColor.GRAY
+                + "Now /plugman reload SpaceRNG; the reload unfreezes. /rngadmin unfreeze to undo.");
+        return true;
     }
 }

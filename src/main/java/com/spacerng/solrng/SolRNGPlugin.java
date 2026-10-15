@@ -225,6 +225,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new com.spacerng.solrng.firsts.FirstTenFireworks(), this);
         getServer().getPluginManager().registerEvents(new ChatListener(this), this);
         getServer().getPluginManager().registerEvents(new GuiListener(this), this);
+        getServer().getPluginManager().registerEvents(new com.spacerng.solrng.listeners.FreezeListener(this), this);
         getServer().getPluginManager().registerEvents(new FarmingListener(this), this);
         getServer().getPluginManager().registerEvents(new com.spacerng.solrng.farming.FarmPlotListener(this), this);
         getServer().getPluginManager().registerEvents(new com.spacerng.solrng.listeners.BlockProtectListener(this), this);
@@ -334,6 +335,7 @@ public final class SolRNGPlugin extends JavaPlugin {
             }
         });
 
+        ReloadState.restore(this);
         getLogger().info("SpaceRNG enabled.");
     }
 
@@ -343,6 +345,9 @@ public final class SolRNGPlugin extends JavaPlugin {
         // V211): a stop takes the whole world down anyway, a reload keeps
         // it running and the new instance must not find the old one's
         // leftovers.
+        // V395: menus shut first, then what a reload would forget is written.
+        closeMenus();
+        ReloadState.save(this);
         for (var expansion : expansions) expansion.unregister();
         expansions.clear();
         if (rollListener != null) {
@@ -702,6 +707,38 @@ public final class SolRNGPlugin extends JavaPlugin {
 
     public com.spacerng.solrng.clan.ClanManager getClanManager() {
         return clanManager;
+    }
+
+    // V395: /rngadmin freeze, the minute before a jar update.
+    private long frozenSince = 0L;
+
+    public boolean isFrozen() {
+        return frozenSince > 0L;
+    }
+
+    public long frozenSince() {
+        return frozenSince;
+    }
+
+    public void setFrozen(boolean frozen) {
+        frozenSince = frozen ? System.currentTimeMillis() : 0L;
+    }
+
+    /**
+     * Closes every SpaceRNG menu and the clan chest for everybody (V395).
+     * Run first in onDisable, while the close listeners still run, so a
+     * vault page or the clan chest is written back. After a reload the
+     * old menus' holders belong to the old plugin, the new GuiListener no
+     * longer recognises them, and items could be taken out.
+     */
+    public void closeMenus() {
+        for (Player player : getServer().getOnlinePlayers()) {
+            var holder = player.getOpenInventory().getTopInventory().getHolder();
+            if (holder instanceof com.spacerng.solrng.gui.MenuHolder
+                    || holder instanceof com.spacerng.solrng.clan.ClanChestHolder) {
+                player.closeInventory();
+            }
+        }
     }
 
     public com.spacerng.solrng.farming.MomentumBar getMomentumBar() {
