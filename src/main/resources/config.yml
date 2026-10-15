@@ -8,7 +8,7 @@
 # their fresh defaults in on top of whatever is on disk, so a server
 # owner never has to delete the whole file to pick up a structural
 # change. Item table, prices and cosmetic tweaks are untouched.
-config-version: 59
+config-version: 60
 
 # One-off value changes the plugin has already made to this file, so none
 # is ever made twice. Managed by the plugin; leave it alone.
@@ -607,6 +607,23 @@ farming:
       # 10% of crops at the ceiling. Level 1 costs 2,284, level 1,000 costs 1,240,757,
       # 469,045,735 Coins for all of it.
 
+    # V390, Leon: Perk Finder, eighth on the hoe (position). A proc like
+    # Potion Finder: 0.1% of crops at the ceiling after proc-scale, 0.05%
+    # at the base cap. 190,000 Coins for level 1, about 9.5M for the last.
+    PERK_FINDER:
+      display: "Perk Finder"
+      icon: TOTEM_OF_UNDYING
+      position: 8
+      base-cost: 190000
+      cost-growth: 1.0001956
+      cost-linear: 0.0
+      cost-step: 0.0
+      cost-power: 1.0
+      description: "A chance to find a Perk Ticket while farming."
+      color: "&a"
+      max-level: 20000
+      base-cap: 10000
+      per-level: 0.0000005
     NOVA_FINDER:
       display: "Nova Finder"
       icon: HEART_OF_THE_SEA
@@ -943,6 +960,9 @@ farming:
     alert-seconds: 5
   # V322: Leon's ladder, ten times the old one. The sixth step he named,
   # 2,500,000, has no crop to open yet; it is waiting for a sixth crop.
+  # V390, Leon: every /farmtree price times this. The tree itself is
+  # rewritten by config updates, so the dial lives here.
+  tree-cost-multiplier: 3.0
   crop-unlock-at:
     CARROTS: 50000
     POTATOES: 100000
@@ -5193,13 +5213,25 @@ farmtree:
       value: 0.04
       max-level: 10
 
+    # V390: Perk Finder sits between the hoe tier and Nova Finder.
+    enchant_perk_finder:
+      display: "Perk Finder"
+      page: 2
+      slot: "3,5"
+      icon: "TOTEM_OF_UNDYING"
+      cost-money: 2200000
+      requires: "hoe_tier_2"
+      effect: "UNLOCK_ENCHANT"
+      value: 0
+      target: "PERK_FINDER"
+
     nova_finder:
       display: "Nova Finder"
       page: 2
-      slot: "3,5"
+      slot: "2,5"
       icon: "HEART_OF_THE_SEA"
       cost-money: 3110400
-      requires: "hoe_tier_2"
+      requires: "enchant_perk_finder"
       effect: "UNLOCK_ENCHANT"
       value: 0
       target: "NOVA_FINDER"
@@ -5207,7 +5239,7 @@ farmtree:
     enchant_coin_factory:
       display: "Coin Factory"
       page: 2
-      slot: "2,5"
+      slot: "2,4"
       icon: "HOPPER"
       cost-money: 5039000
       requires: "nova_finder"
@@ -5218,7 +5250,7 @@ farmtree:
     enchant_prospector:
       display: "Prospector"
       page: 2
-      slot: "2,4"
+      slot: "2,3"
       icon: "RAW_GOLD"
       cost-money: 8163000
       requires: "enchant_coin_factory"
@@ -5245,7 +5277,7 @@ farmtree:
     enchant_gem_rush:
       display: "Gem Rush"
       page: 2
-      slot: "2,3"
+      slot: "2,2"
       icon: "AMETHYST_CLUSTER"
       cost-money: 34705200
       requires: "enchant_prospector"

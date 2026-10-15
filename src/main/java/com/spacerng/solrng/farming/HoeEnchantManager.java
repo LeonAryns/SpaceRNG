@@ -112,6 +112,15 @@ public class HoeEnchantManager {
             list.remove(speed);
             list.add(1, speed);
         }
+        // V390: an enchant can name its place (position: 8 is eighth), so a
+        // new one the migrator appends to the live config still lands
+        // where it belongs instead of last.
+        for (Enchant enchant : new java.util.ArrayList<>(list)) {
+            int position = plugin.getConfig().getInt("farming.enchants." + enchant.id() + ".position", 0);
+            if (position <= 0) continue;
+            list.remove(enchant);
+            list.add(Math.min(list.size(), position - 1), enchant);
+        }
         return list;
     }
 

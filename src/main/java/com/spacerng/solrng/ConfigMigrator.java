@@ -88,6 +88,8 @@ public final class ConfigMigrator {
      * server already has, like one more hologram panel.
      */
     private static final List<String> ADDED_SECTIONS = List.of(
+            // V390: the Perk Finder enchant and the farmtree price dial.
+            "farming.enchants.PERK_FINDER", "farming.tree-cost-multiplier",
             // V388: Astral's flickering marks. A new key.
             "rarities.ASTRAL.symbol-obfuscated",
             // V385: Leon's skulls for the placed crates. New keys.

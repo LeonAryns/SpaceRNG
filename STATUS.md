@@ -5,8 +5,20 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V389**, 15 October 2026. The newest section is the
+Last updated at **V390**, 15 October 2026. The newest section is the
 first one below; older sections further down are history.
+
+## V390, 15 October 2026 (untested in game)
+
+- Perk Finder enchant (`PERK_FINDER`): +1 Perk Ticket as a proc, 0.05%
+  of crops at the base cap, 0.1% at 20,000. 190,000 Coins for level 1.
+  Eighth on the hoe via `position: 8` (HoeEnchantManager.ordered honours
+  it, so the migrator appending it last does not matter). Farmtree page
+  2: hoe tier 2, Perk Finder (3,5), Nova Finder (2,5), then Coin
+  Factory, Prospector and Gem Rush each one up. 2.2M to unlock (before
+  the multiplier below). config-version 60.
+- Farmtree prices x `farming.tree-cost-multiplier` (3.0), read in
+  SkillTreeManager for the farmtree only. Nodes already bought stay.
 
 ## V389, 15 October 2026 (untested in game)
 
@@ -2146,7 +2158,7 @@ six crop eggs reuse 42 of the 77 pets with their heads, the 11 Prestige
 eggs go.
 
 1. V389 done: chat tag, Nova 250, Core Anchor gone.
-2. Perk Finder enchant, about 8th in the enchant list (finds Perk
+2. V390 done: Perk Finder enchant, about 8th in the enchant list (finds Perk
    Tickets). Farmtree more expensive (Leon: maxing enchants and the
    farmtree is too easy).
 3. Crops: unlock ladder above; every crop 2x Coins and Gems; /crops

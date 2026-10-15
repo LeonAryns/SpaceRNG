@@ -1244,6 +1244,16 @@ public class FarmPlotManager {
             }
         }
 
+        // V390, Leon: Perk Finder, a Perk Ticket now and then.
+        double perk = hoe.powerOf(data, "PERK_FINDER");
+        if (perk > 0 && ThreadLocalRandom.current().nextDouble() < perk) {
+            data.setPerkTickets(data.getPerkTickets() + 1);
+            procChat(player, data, "PERK_FINDER", ChatColor.GREEN + "" + ChatColor.BOLD + "Perk found  "
+                    + ChatColor.RESET + ChatColor.GRAY + "+1 Perk Ticket, roll it in "
+                    + ChatColor.YELLOW + "/perks" + ChatColor.GRAY + ".");
+            playProc(player, data, 1.6f);
+        }
+
         double gamba = hoe.powerOf(data, "GAMBA");
         if (gamba > 0 && ThreadLocalRandom.current().nextDouble() < gamba) {
             // One of three, never all three: the roll IS the enchant.

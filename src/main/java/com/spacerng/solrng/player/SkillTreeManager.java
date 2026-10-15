@@ -101,6 +101,11 @@ public class SkillTreeManager {
 
         ConfigurationSection section = config.getConfigurationSection(tree + ".nodes");
         if (section == null) return;
+        // V390, Leon: the farmtree was too cheap. Every price in it times
+        // farming.tree-cost-multiplier, outside the structural tree so a
+        // config update never resets it.
+        double priceScale = "farmtree".equals(tree)
+                ? Math.max(0.0, config.getDouble("farming.tree-cost-multiplier", 3.0)) : 1.0;
 
         for (String id : section.getKeys(false)) {
             ConfigurationSection n = section.getConfigurationSection(id);
@@ -111,7 +116,7 @@ public class SkillTreeManager {
                 SkillNode.Effect effect = SkillNode.Effect.valueOf(n.getString("effect", "LUCK").toUpperCase());
                 double value = n.getDouble("value", 0.0);
                 int maxLevel = n.getInt("max-level", 1);
-                double moneyCost = n.getDouble("cost-money", 0.0);
+                double moneyCost = n.getDouble("cost-money", 0.0) * priceScale;
                 double costGrowth = n.getDouble("cost-growth", 1.0);
                 String icon = n.getString("icon", "RECOVERY_COMPASS");
                 String target = n.getString("target", "");
