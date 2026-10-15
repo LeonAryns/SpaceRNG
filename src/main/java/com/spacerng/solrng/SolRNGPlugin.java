@@ -76,6 +76,7 @@ public final class SolRNGPlugin extends JavaPlugin {
     private com.spacerng.solrng.leaderboard.TopHeadManager topHeadManager;
     private com.spacerng.solrng.pass.PassManager passManager;
     private com.spacerng.solrng.clan.ClanManager clanManager;
+    private com.spacerng.solrng.event.RarestDropEvent rarestDropEvent;
     private com.spacerng.solrng.farming.MomentumBar momentumBar;
     private com.spacerng.solrng.consumable.ConsumableManager consumableManager;
     private com.spacerng.solrng.welcome.WelcomeManager welcomeManager;
@@ -177,6 +178,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         this.dailyManager = new com.spacerng.solrng.daily.DailyManager(this);
         this.passManager = new com.spacerng.solrng.pass.PassManager(this);
         this.clanManager = new com.spacerng.solrng.clan.ClanManager(this);
+        this.rarestDropEvent = new com.spacerng.solrng.event.RarestDropEvent(this);
         this.momentumBar = new com.spacerng.solrng.farming.MomentumBar();
         this.consumableManager = new com.spacerng.solrng.consumable.ConsumableManager(this);
         this.welcomeManager = new com.spacerng.solrng.welcome.WelcomeManager(this);
@@ -361,6 +363,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         if (crateManager != null) crateManager.finishAll();
         if (foundCounts != null) foundCounts.save();
         if (clanManager != null) clanManager.save();
+        if (rarestDropEvent != null) rarestDropEvent.save();
         if (topHeadManager != null) topHeadManager.stop();
         if (holoManager != null) holoManager.stop();
         if (bedrockSupport != null) bedrockSupport.stop();
@@ -717,6 +720,10 @@ public final class SolRNGPlugin extends JavaPlugin {
 
     public com.spacerng.solrng.clan.ClanManager getClanManager() {
         return clanManager;
+    }
+
+    public com.spacerng.solrng.event.RarestDropEvent getRarestDropEvent() {
+        return rarestDropEvent;
     }
 
     // V395: /rngadmin freeze, the minute before a jar update.

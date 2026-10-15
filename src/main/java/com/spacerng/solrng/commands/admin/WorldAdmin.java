@@ -763,11 +763,16 @@ final class WorldAdmin extends AdminTools {
                 holo.placeBoard(board, player.getEyeLocation());
                 sender.sendMessage(ChatColor.GREEN + "Placed the " + board + " board in front of you, facing you.");
             }
+            case "redraw" -> {
+                int count = holo.redraw();
+                sender.sendMessage(ChatColor.GREEN + "Redrew " + count + " holograms with the current config.");
+            }
             case "leader" -> {
                 Player player = (Player) sender;
                 String board = args.length >= 3 ? args[2].toLowerCase(Locale.ROOT) : "farming";
-                if (!com.spacerng.solrng.leaderboard.LeaderboardManager.BOARDS.contains(board)) {
-                    sender.sendMessage(ChatColor.RED + "Usage: /rngadmin holo leader [board]");
+                if (!com.spacerng.solrng.leaderboard.LeaderboardManager.BOARDS.contains(board)
+                        && !com.spacerng.solrng.holo.HoloManager.RAREST.equals(board)) {
+                    sender.sendMessage(ChatColor.RED + "Usage: /rngadmin holo leader [board|rarest]");
                     return true;
                 }
                 holo.placeLeader(board, player.getEyeLocation());

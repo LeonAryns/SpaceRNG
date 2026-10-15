@@ -4832,6 +4832,16 @@ consumables:
 # per-level is a fraction added to a multiplier that starts at 1.0, so
 # 0.08 at level 10 is 1.80x. base-cost is in Coins and cost-growth is
 # compounded per level, so level n costs base x growth^n.
+# V398, Leon: the one day rarest drop board. Every `day` from 00:00 to
+# 23:59 in `zone`, each player's rarest roll counts (a shiny as its label
+# x 100). At the end #1, #2 and #3 get `payouts` Credits. Place it with
+# /rngadmin holo leader rarest.
+rarest-drop:
+  enabled: true
+  day: SUNDAY
+  zone: "Europe/Amsterdam"
+  payouts: [500, 250, 100]
+
 # V393, Leon: clans. A clan earns the battle pass XP its members do (per
 # roll by rarity, per crop) and levels on it: level L to L+1 costs
 # level-xp x level-growth^L. A clan starts with base-members seats.

@@ -101,26 +101,29 @@ public class HoeEnchantManager {
     }
 
     /**
-     * The enchants in the order the hoe menu shows them: config order,
-     * with Speed second (V300, Leon's call; it also unlocks second in
-     * /farmtree). The live config has it last, where the migrator put it.
+     * The enchants in the order the hoe menu shows them: the farmtree's
+     * unlock order since V398 (it was config order with Speed second).
      */
     public java.util.List<Enchant> ordered() {
+        // V398, Leon: the order the farmtree unlocks them in. The tree's
+        // page first, then the unlock price, which climbs along every path.
+        // An enchant with no unlock node keeps its config place at the end.
+        java.util.Map<String, double[]> place = new java.util.HashMap<>();
+        for (com.spacerng.solrng.player.SkillNode node : plugin.getSkillTreeManager().getNodes().values()) {
+            if (node.getEffect() != com.spacerng.solrng.player.SkillNode.Effect.UNLOCK_ENCHANT) continue;
+            if (node.getTarget() == null || node.getTarget().isBlank()) continue;
+            place.put(node.getTarget().toUpperCase(), new double[]{node.getPage(), node.getMoneyCost()});
+        }
         java.util.List<Enchant> list = new java.util.ArrayList<>(enchants.values());
-        Enchant speed = enchants.get("WALK_SPEED");
-        if (speed != null && list.size() > 1) {
-            list.remove(speed);
-            list.add(1, speed);
-        }
-        // V390: an enchant can name its place (position: 8 is eighth), so a
-        // new one the migrator appends to the live config still lands
-        // where it belongs instead of last.
-        for (Enchant enchant : new java.util.ArrayList<>(list)) {
-            int position = plugin.getConfig().getInt("farming.enchants." + enchant.id() + ".position", 0);
-            if (position <= 0) continue;
-            list.remove(enchant);
-            list.add(Math.min(list.size(), position - 1), enchant);
-        }
+        // A stable sort, so a tie (Coin Greed and Speed cost the same)
+        // keeps config order.
+        list.sort((x, y) -> {
+            double[] a = place.get(x.id());
+            double[] b = place.get(y.id());
+            if (a == null || b == null) return a == null ? (b == null ? 0 : 1) : -1;
+            if (a[0] != b[0]) return Double.compare(a[0], b[0]);
+            return Double.compare(a[1], b[1]);
+        });
         return list;
     }
 

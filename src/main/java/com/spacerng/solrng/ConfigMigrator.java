@@ -88,6 +88,8 @@ public final class ConfigMigrator {
      * server already has, like one more hologram panel.
      */
     private static final List<String> ADDED_SECTIONS = List.of(
+            // V398: the rarest drop board.
+            "rarest-drop", "roll-item.min-roll-ticks", "roll-item.max-rolls-per-landing", "pets.shiny-share",
             // V393: clans.
             "clans",
             // V392: crop eggs dropping while farming.

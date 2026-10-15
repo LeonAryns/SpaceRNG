@@ -193,6 +193,17 @@ public final class HoloManager {
         task = plugin.getServer().getScheduler().runTaskTimer(plugin, this::frame, 40L, FRAME_TICKS);
     }
 
+    /**
+     * /rngadmin holo redraw (V398, Leon): every floating text, head and egg
+     * taken down and drawn fresh with the current config, and any stray
+     * piece left behind swept away.
+     */
+    public int redraw() {
+        load(plugin.getConfig());
+        start();
+        return spots.size();
+    }
+
     public void stop() {
         if (task != null) task.cancel();
         task = null;
@@ -854,6 +865,10 @@ public final class HoloManager {
      */
     private void drawLeader(Spot spot, List<Display> pieces) {
         String board = spot.key();
+        if (RAREST.equals(board)) {
+            drawRarest(spot, pieces);
+            return;
+        }
         Vector right = podiumRight(spot);
         List<LeaderboardManager.Entry> top = podiumTop(board);
         double small = podiumTextScale * PODIUM_TEXT;
@@ -919,6 +934,10 @@ public final class HoloManager {
     /** Once a second: the countdown, now and then the top three, and every reader's own line. */
     private void tickPodium(Spot spot, boolean refreshTop) {
         String board = spot.key();
+        if (RAREST.equals(board)) {
+            tickRarest(spot, refreshTop);
+            return;
+        }
         TextDisplay timer = podiumTimers.get(spot.id());
         if (timer != null && timer.isValid() && board.equals("farming")) timer.text(podiumTimer(board));
         if (refreshTop) {
@@ -939,6 +958,204 @@ public final class HoloManager {
             }
         }
         tickPodiumReaders(spot);
+    }
+
+    // ---------------------------------------------------------- rarest drop
+
+    /** The one day rarest drop board's key (V398). */
+    public static final String RAREST = "rarest";
+
+    /**
+     * The rarest drop board (V398, Leon): the podium's size and shape, but
+     * readable from every side.
+     *
+     * Every piece stands on the board's own centre line and turns to face
+     * the viewer (billboard VERTICAL). The side offsets of #2 and #3 are
+     * in the transformation, which the client applies in the turned frame,
+     * so from any side #1 is in the middle with #2 and #3 beside it and
+     * every head looks at you. The farm podium is fixed in the world, so
+     * from behind it shows the backs of the heads.
+     */
+    private void drawRarest(Spot spot, List<Display> pieces) {
+        var event = plugin.getRarestDropEvent();
+        List<com.spacerng.solrng.event.RarestDropEvent.Entry> top = event.top(3);
+        double small = podiumTextScale * PODIUM_TEXT;
+        double timerY = PODIUM_YOU_Y + 2 * LINE * small;
+        double titleY = timerY + 2 * LINE * small + GAP;
+        double headY = titleY + LINE * podiumTextScale * PODIUM_TITLE + 0.15 + podiumHeadScale / 2.0;
+        float tagScale = podiumTextScale * (float) PODIUM_TAG;
+        float firstScale = podiumHeadScale * (float) PODIUM_FIRST_SCALE;
+        double spacing = podiumSpacing(tagScale, firstScale);
+        double firstLift = Math.max(PODIUM_FIRST_LIFT + (firstScale - podiumHeadScale) / 2.0,
+                3 * LINE * tagScale + 0.2 + GAP);
+
+        ItemDisplay[] heads = new ItemDisplay[3];
+        TextDisplay[] tags = new TextDisplay[3];
+        java.util.UUID[] shown = new java.util.UUID[3];
+        for (int rank = 0; rank < 3; rank++) {
+            float side = (float) (rank == 0 ? 0.0 : rank == 1 ? -spacing : spacing);
+            float scale = rank == 0 ? firstScale : podiumHeadScale;
+            double y = headY + (rank == 0 ? firstLift : 0.0);
+            var entry = rank < top.size() ? top.get(rank) : null;
+            java.util.UUID uuid = entry == null ? null : entry.uuid();
+            Location at = spot.at().clone().add(0, y, 0);
+            at.setYaw(0f);
+            at.setPitch(0f);
+            ItemDisplay head = at.getWorld().spawn(at, ItemDisplay.class, d -> {
+                d.setPersistent(false);
+                d.setItemStack(leaderHead(uuid));
+                d.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
+                d.setBillboard(Display.Billboard.VERTICAL);
+                d.setTransformation(new Transformation(new Vector3f(side, 0f, 0f), new Quaternionf(),
+                        new Vector3f(scale, scale, scale), new Quaternionf()));
+                d.setViewRange(viewRange);
+                d.setBrightness(new Display.Brightness(15, 15));
+                d.getPersistentDataContainer().set(tagKey, PersistentDataType.STRING, spot.id());
+            });
+            pieces.add(head);
+            heads[rank] = head;
+            shown[rank] = uuid;
+            TextDisplay tag = turningText(spot, spot.at().clone().add(0, y + 0.2, 0),
+                    rarestTag(rank, entry), tagScale, side);
+            pieces.add(tag);
+            tags[rank] = tag;
+        }
+        podiumHeads.put(spot.id(), heads);
+        podiumTags.put(spot.id(), tags);
+        podiumShown.put(spot.id(), shown);
+
+        TextDisplay timer = turningText(spot, spot.at().clone().add(0, timerY, 0), rarestTimer(), (float) small, 0f);
+        pieces.add(timer);
+        podiumTimers.put(spot.id(), timer);
+        pieces.add(turningText(spot, spot.at().clone().add(0, titleY, 0), parse(plugin.getConfig().getString(
+                        "rarest-drop.title", "<gradient:#E1BEE7:#B388FF:#80D8FF><b>RAREST DROP</b></gradient>")),
+                podiumTextScale * (float) PODIUM_TITLE, 0f));
+    }
+
+    private void tickRarest(Spot spot, boolean refreshTop) {
+        TextDisplay timer = podiumTimers.get(spot.id());
+        if (timer != null && timer.isValid()) timer.text(rarestTimer());
+        if (refreshTop || plugin.getRarestDropEvent().isActive()) {
+            var top = plugin.getRarestDropEvent().top(3);
+            ItemDisplay[] heads = podiumHeads.get(spot.id());
+            TextDisplay[] tags = podiumTags.get(spot.id());
+            java.util.UUID[] shown = podiumShown.get(spot.id());
+            if (heads != null && tags != null && shown != null) {
+                for (int rank = 0; rank < 3; rank++) {
+                    var entry = rank < top.size() ? top.get(rank) : null;
+                    java.util.UUID uuid = entry == null ? null : entry.uuid();
+                    if (tags[rank] != null && tags[rank].isValid()) tags[rank].text(rarestTag(rank, entry));
+                    if (!java.util.Objects.equals(uuid, shown[rank]) && heads[rank] != null && heads[rank].isValid()) {
+                        heads[rank].setItemStack(leaderHead(uuid));
+                        shown[rank] = uuid;
+                    }
+                }
+            }
+        }
+        // Every reader's own line, at the foot of the board.
+        World world = spot.at().getWorld();
+        if (world == null) return;
+        Map<java.util.UUID, TextDisplay> lines = podiumYou.computeIfAbsent(spot.id(), id -> new HashMap<>());
+        java.util.Set<java.util.UUID> near = new java.util.HashSet<>();
+        for (org.bukkit.entity.Player reader : world.getPlayers()) {
+            if (reader.getLocation().distanceSquared(spot.at()) > PODIUM_READ_RANGE * PODIUM_READ_RANGE) continue;
+            near.add(reader.getUniqueId());
+            Component content = rarestYouLine(reader);
+            TextDisplay line = lines.get(reader.getUniqueId());
+            if (line == null || !line.isValid()) {
+                line = privateText(spot, spot.at().clone().add(0, PODIUM_YOU_Y, 0), content,
+                        podiumTextScale * (float) PODIUM_TEXT);
+                reader.showEntity(plugin, line);
+                lines.put(reader.getUniqueId(), line);
+            } else {
+                line.text(content);
+            }
+        }
+        lines.entrySet().removeIf(entry -> {
+            if (near.contains(entry.getKey()) && entry.getValue().isValid()) return false;
+            if (entry.getValue().isValid()) entry.getValue().remove();
+            return true;
+        });
+    }
+
+    /** "#1 Name", the drop in its rarity's colours, and the Credits it pays. */
+    private Component rarestTag(int rank, com.spacerng.solrng.event.RarestDropEvent.Entry entry) {
+        List<Component> rows = new ArrayList<>();
+        if (entry == null) {
+            rows.add(parse("<#FFE9A8><b>#" + (rank + 1) + "</b></#FFE9A8> <dark_gray>Nobody yet"));
+        } else {
+            rows.add(Component.text()
+                    .append(parse("<#FFE9A8><b>#" + (rank + 1) + "</b></#FFE9A8> "))
+                    .append(Component.text(entry.name(), NamedTextColor.WHITE))
+                    .build());
+            com.spacerng.solrng.rarity.Rarity rarity;
+            try {
+                rarity = com.spacerng.solrng.rarity.Rarity.valueOf(entry.rarity());
+            } catch (IllegalArgumentException ex) {
+                rarity = com.spacerng.solrng.rarity.Rarity.COMMON;
+            }
+            String name = plugin.getRarityManager().style(rarity, (entry.shiny() ? "Shiny " : "") + entry.item());
+            rows.add(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection()
+                    .deserialize(name + org.bukkit.ChatColor.GRAY + "  1 in "
+                            + com.spacerng.solrng.rarity.RollFormat.abbreviate(entry.odds())));
+        }
+        List<Integer> payouts = plugin.getRarestDropEvent().payouts();
+        if (rank < payouts.size()) {
+            rows.add(parse("<gradient:#FF5555:#FFAA00:#FFFF55:#55FF55:#55FFFF:#FF55FF:#FF5555>+ "
+                    + String.format("%,d", payouts.get(rank)) + " Credits</gradient>"));
+        }
+        return Component.join(JoinConfiguration.newlines(), rows);
+    }
+
+    /** While it runs: how long is left. Otherwise: when the next one starts. */
+    private Component rarestTimer() {
+        var event = plugin.getRarestDropEvent();
+        long seconds = event.secondsLeft();
+        String left = (seconds >= 86400 ? seconds / 86400 + "d " : "") + (seconds % 86400) / 3600 + "h "
+                + (seconds % 3600) / 60 + "m " + seconds % 60 + "s";
+        if (event.isActive()) {
+            return Component.join(JoinConfiguration.newlines(),
+                    parse("<gray>Ends in <white>" + left),
+                    parse("<dark_gray>Your rarest roll today counts"));
+        }
+        return Component.join(JoinConfiguration.newlines(),
+                parse("<gray>Next one in <white>" + left),
+                parse("<dark_gray>Sunday, 00:00 to 23:59 CET"));
+    }
+
+    /** "YOU: #4 Dragon Egg", for the reader alone. */
+    private Component rarestYouLine(org.bukkit.entity.Player reader) {
+        var event = plugin.getRarestDropEvent();
+        var mine = event.of(reader.getUniqueId());
+        if (mine == null) {
+            return parse("<#FFE9A8><b>YOU:</b></#FFE9A8> <gray>" + (event.isActive()
+                    ? "roll to get on the board" : "no roll counted"));
+        }
+        return net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection()
+                .deserialize(org.bukkit.ChatColor.GOLD + "" + org.bukkit.ChatColor.BOLD + "YOU: "
+                        + org.bukkit.ChatColor.RESET + org.bukkit.ChatColor.GOLD + "#" + event.placeOf(reader.getUniqueId())
+                        + " " + event.label(mine));
+    }
+
+    /** A text piece that turns to every viewer, offset sideways in their frame (V398). */
+    private TextDisplay turningText(Spot spot, Location at, Component content, float scale, float side) {
+        Location spawnAt = at.clone();
+        spawnAt.setYaw(0f);
+        spawnAt.setPitch(0f);
+        return spawnAt.getWorld().spawn(spawnAt, TextDisplay.class, d -> {
+            d.setPersistent(false);
+            d.text(content);
+            d.setBillboard(Display.Billboard.VERTICAL);
+            d.setAlignment(TextDisplay.TextAlignment.CENTER);
+            d.setLineWidth(2000);
+            d.setShadowed(true);
+            d.setBackgroundColor(Color.fromARGB(0, 0, 0, 0));
+            d.setViewRange(viewRange);
+            d.setBrightness(new Display.Brightness(15, 15));
+            d.setTransformation(new Transformation(new Vector3f(side, 0f, 0f), new Quaternionf(),
+                    new Vector3f(scale, scale, scale), new Quaternionf()));
+            d.getPersistentDataContainer().set(tagKey, PersistentDataType.STRING, spot.id());
+        });
     }
 
     /** Gives every player near a podium their own "YOU" line, and takes it down when they leave. */

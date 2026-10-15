@@ -386,6 +386,13 @@ public class RealmManager implements Listener {
         player.sendMessage(ChatColor.LIGHT_PURPLE + "You are in the Secret Realm. " + ChatColor.GRAY
                 + "Roll here for a chance at a secret. " + ChatColor.LIGHT_PURPLE + "/secretindex"
                 + ChatColor.GRAY + " shows what you have found.");
+        // V398, Leon: say up front that Luck and Speed start over in here,
+        // and what still raises them.
+        player.sendMessage(ChatColor.GRAY + "Your Luck and Speed are reset in here. Raise them with "
+                + ChatColor.LIGHT_PURPLE + "Realm Luck" + ChatColor.GRAY + " and " + ChatColor.LIGHT_PURPLE
+                + "Realm Speed" + ChatColor.GRAY + " in " + ChatColor.YELLOW + "/prestige" + ChatColor.GRAY
+                + " upgrades, or a " + ChatColor.AQUA + "2x Luck" + ChatColor.GRAY + " boost from "
+                + ChatColor.YELLOW + "/store" + ChatColor.GRAY + ".");
         player.playSound(spot, Sound.BLOCK_PORTAL_TRAVEL, 0.25f, 1.6f);
         // V342: grey on the way in, and SecretFx.ambience keeps it going
         // while they stand in there. Until now the only thing drawn in the

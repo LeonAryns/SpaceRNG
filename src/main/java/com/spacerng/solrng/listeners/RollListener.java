@@ -816,6 +816,7 @@ public class RollListener implements Listener {
         // Letting grantRoll roll it again meant the pre-roll could play and
         // still hand over a plain drop, or the other way round.
         grantRoll(player, data, result, false, shiny, auto);
+        plugin.getRarestDropEvent().record(player, result, shiny);
 
         // V397: Speed past the pace lands extra drops alongside this one.
         // They are paid like any roll (Money, index, pass, Dust, the boss,
@@ -827,6 +828,7 @@ public class RollListener implements Listener {
                 RollableItem more = plugin.getRarityManager().roll(luck);
                 boolean moreShiny = rollShiny(data);
                 grantRoll(player, data, more, true, moreShiny, auto);
+                plugin.getRarestDropEvent().record(player, more, moreShiny);
                 plugin.getBossManager().onRoll(player, more.getRarity());
                 plugin.getDustManager().onRoll(player, data);
                 plugin.getFirstTenManager().onRoll(player, more, moreShiny, 0L);

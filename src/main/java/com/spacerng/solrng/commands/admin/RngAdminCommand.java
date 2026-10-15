@@ -197,7 +197,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
                 "Float a pet egg over a block; no egg named is the one that opens /pets, empty hand is a dragon egg");
         line(sender, "crate", "<place|set|remove|list|key|keyall|preview>",
                 "Place crates and hand out keys (key all refunds every type)");
-        line(sender, "holo", "<panel|board|leader|remove|list>", "NPC text, leaderboard walls and #1 heads");
+        line(sender, "holo", "<panel|board|leader|remove|list|redraw>", "NPC text, boards and heads; redraw refreshes them all");
         line(sender, "floatingitem", "<add|remove|list>", "Rotating item displays anchored at a spot");
         line(sender, "boss", "<here|start|stop|process> [type]", "The boss spot, one by hand, and the timer");
         line(sender, "pet", "<give|take|list> <pet|all> [player]", "Hand out a pet, until they can be earned");
@@ -351,9 +351,11 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             return args.length == 4 ? partial(args[3], ShowcaseAdmin.PREVIEW_MENUS) : List.of();
         }
         if (sub.equals("holo")) {
-            if (args.length == 2) return partial(args[1], List.of("panel", "board", "leader", "remove", "list"));
+            if (args.length == 2) return partial(args[1], List.of("panel", "board", "leader", "remove", "list", "redraw"));
             if (args.length == 3 && args[1].equalsIgnoreCase("leader")) {
-                return partial(args[2], com.spacerng.solrng.leaderboard.LeaderboardManager.BOARDS);
+                List<String> boards = new ArrayList<>(com.spacerng.solrng.leaderboard.LeaderboardManager.BOARDS);
+                boards.add(com.spacerng.solrng.holo.HoloManager.RAREST);
+                return partial(args[2], boards);
             }
             if (args.length == 3 && args[1].equalsIgnoreCase("panel")) {
                 return partial(args[2], new ArrayList<>(plugin.getHoloManager().panelIds()));

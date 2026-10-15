@@ -5,8 +5,27 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V397**, 15 October 2026. The newest section is the
+Last updated at **V398**, 15 October 2026. The newest section is the
 first one below; older sections further down are history.
+
+## V398, 15 October 2026 (untested in game)
+
+- Rarest drop board (`event/RarestDropEvent`, rarest-drop.yml): every
+  Sunday 00:00 to 23:59 Europe/Amsterdam each player's rarest roll
+  counts (label, a shiny x 1/shiny.chance), extra Speed rolls included.
+  At the end #1 500, #2 250, #3 100 Credits (`rarest-drop.payouts`),
+  offline winners through awardOffline, and a broadcast. Results stay
+  up until the next Sunday. Place with `/rngadmin holo leader rarest`.
+  Podium sized, but every head and text uses billboard VERTICAL with
+  the side offset in the transformation, so it reads from all sides
+  (the farm podium is unchanged). Untested: which way a head faces
+  under a billboard.
+- Hoe enchants in farmtree unlock order (page, then unlock price). The
+  V390 `position` key is no longer read; Perk Finder lands ninth.
+- Secret Realm entry says Luck and Speed are reset in there and that
+  Realm Luck / Realm Speed in /prestige or a /store 2x Luck raise them.
+- `/rngadmin holo redraw`: takes every hologram down and draws it fresh
+  with the loaded config (after `/rngadmin reload` for file edits).
 
 ## V397, 15 October 2026 (untested in game)
 
