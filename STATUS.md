@@ -5,8 +5,21 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V388**, 14 October 2026. The newest section is the
+Last updated at **V389**, 15 October 2026. The newest section is the
 first one below; older sections further down are history.
+
+## V389, 15 October 2026 (untested in game)
+
+- Chat shows the rank badge, not the equipped drop tag (tab and the
+  nametag keep the tag).
+- Nova Core: 250 tiers, `novacore.multiplier-per-tier` 0.096, so
+  1 + tier x 0.096: 10.6x at 100, 25x at 250. Above 0 it replaces the
+  `multipliers` list. Patch `nova-250-v389` moves the live max-tier
+  100 to 250. Tiers were not rescaled: a tier keeps its number and is
+  now worth 1 + 0.096 x tier (tier 100 drops from 25x to 10.6x).
+- Core Anchor I and II (NOVA_SAFETY) removed from the skill tree; the
+  nodes after them moved up one spot on pages 3 and 5 so the path has
+  no hole. Levels bought are not refunded. config-version 59.
 
 ## V388, 14 October 2026 (untested in game)
 
@@ -2123,6 +2136,35 @@ given to remove TAB so ours draws it.
 
 When Leon asks what is left, answer from this list and from the open
 questions further down. Keep it current.
+
+### Leon's big list, 15 October 2026 (in progress, one jar each)
+
+Answers he gave: Nova 0.1x a tier (25x at 250); crop unlocks 250k,
+500k, 1M, 1.5M, 2M; crop eggs DROP while farming and the crop's tooltip
+in /crops shows the drop chance like "(0.1%)"; old pets stay owned, the
+six crop eggs reuse 42 of the 77 pets with their heads, the 11 Prestige
+eggs go.
+
+1. V389 done: chat tag, Nova 250, Core Anchor gone.
+2. Perk Finder enchant, about 8th in the enchant list (finds Perk
+   Tickets). Farmtree more expensive (Leon: maxing enchants and the
+   farmtree is too easy).
+3. Crops: unlock ladder above; every crop 2x Coins and Gems; /crops
+   shows what a crop really pays with all stats. Universal upgrade menu
+   in /crops (not per crop) paid in crop coins: 1 crop coin per 1,000
+   crops farmed, shown as "129 crop coins" over "129,450 crops farmed".
+   Upgrades: Enchant Proc, Coin boost, Gem boost, pet egg chance, +1%
+   a level, 1 crop coin a level, max level 100 per crop unlocked (600
+   with all six). Pet egg chance unlocks at Carrots and says so.
+4. Pets: an egg per crop (Wheat Egg ... Fern Egg), dropping while
+   farming that crop, stored in /pets and opened there. 1% of eggs are
+   shiny: every pet stat from that egg 2x. An egg gives Common to
+   Divine, Divine 1%. Old 11 eggs go.
+5. Clans: create, invite, 5 members, up to 10 with upgrades. Clan level
+   from members' battle pass XP, a clan level leaderboard. Clan chest.
+   1 upgrade point per clan level; costs climb per level. Upgrades:
+   member slot (starts at 10 points), Luck, Money, Speed (+0.01x a
+   level, starting at 1%), and "clan member within 10 blocks: Luck 2x".
 
 ### Pet skulls (14 October 2026)
 

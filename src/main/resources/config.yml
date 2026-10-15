@@ -8,7 +8,7 @@
 # their fresh defaults in on top of whatever is on disk, so a server
 # owner never has to delete the whole file to pick up a structural
 # change. Item table, prices and cosmetic tweaks are untouched.
-config-version: 58
+config-version: 59
 
 # One-off value changes the plugin has already made to this file, so none
 # is ever made twice. Managed by the plugin; leave it alone.
@@ -2967,7 +2967,7 @@ skilltree:
     coins_4:
       display: "Money IV"
       page: 3
-      slot: "8,3"
+      slot: "8,4"
       icon: GOLD_INGOT
       cost-money: 15400000
       cost-growth: 1.3
@@ -2979,7 +2979,7 @@ skilltree:
     refine_2:
       display: "Refinery II"
       page: 3
-      slot: "8,4"
+      slot: "8,5"
       icon: BLAST_FURNACE
       cost-money: 8800000
       cost-growth: 1.32
@@ -3001,11 +3001,11 @@ skilltree:
     armor_power_2:
       display: "Quartermaster II"
       page: 3
-      slot: "7,5"
+      slot: "6,5"
       icon: IRON_INGOT
       cost-money: 2870000
       cost-growth: 1.32
-      requires: "nova_safe_1"
+      requires: "luck_6"
       effect: ARMOR_POWER
       value: 0.08
       max-level: 10
@@ -3013,25 +3013,13 @@ skilltree:
     forge_power_2:
       display: "Forge Attunement II"
       page: 3
-      slot: "8,5"
+      slot: "7,5"
       icon: SMITHING_TABLE
       cost-money: 2870000
       cost-growth: 1.32
       requires: "armor_power_2"
       effect: STARFORGE_POWER
       value: 0.08
-      max-level: 10
-
-    nova_safe_1:
-      display: "Core Anchor I"
-      page: 3
-      slot: "6,5"
-      icon: ANVIL
-      cost-money: 1640000
-      cost-growth: 1.32
-      requires: "luck_6"
-      effect: NOVA_SAFETY
-      value: 0.03
       max-level: 10
 
     # -- Extras --
@@ -3050,7 +3038,7 @@ skilltree:
     shiny_chance_3:
       display: "Shiny Boost III"
       page: 3
-      slot: "8,2"
+      slot: "8,3"
       icon: PRISMARINE_CRYSTALS
       cost-money: 15400000
       cost-growth: 1.32
@@ -3290,7 +3278,7 @@ skilltree:
     coins_5:
       display: "Money V"
       page: 3
-      slot: "8,1"
+      slot: "8,2"
       icon: GOLD_INGOT
       cost-money: 30600000
       cost-growth: 1.32
@@ -3603,11 +3591,11 @@ skilltree:
     shiny_chance_6:
       display: "Shiny Boost VI"
       page: 5
-      slot: "8,4"
+      slot: "8,5"
       icon: PRISMARINE_CRYSTALS
       cost-money: 28700000000
       cost-growth: 1.38
-      requires: "nova_safe_2"
+      requires: "artifact_unlock"
       effect: SHINY_CHANCE
       value: 0.35
       max-level: 10
@@ -3615,24 +3603,12 @@ skilltree:
     money_capstone_2:
       display: "Money Mogul"
       page: 5
-      slot: "8,3"
+      slot: "8,4"
       icon: GOLD_BLOCK
       cost-money: 1000000000000
       requires: "shiny_chance_6"
       effect: MONEY_MULTIPLIER
       value: 3.0
-
-    nova_safe_2:
-      display: "Core Anchor II"
-      page: 5
-      slot: "8,5"
-      icon: HEART_OF_THE_SEA
-      cost-money: 16400000000
-      cost-growth: 1.38
-      requires: "artifact_unlock"
-      effect: NOVA_SAFETY
-      value: 0.05
-      max-level: 10
 
 # Long-run goals, shown in /milestones. Each track is one ladder of
 # thresholds against a single number; tiers MUST be listed in ascending
@@ -5702,7 +5678,11 @@ novacore:
   # prestige upgrade and first-forge-guaranteed below are all skipped.
   # Set it to 0 to bring the old tier curve back.
   flat-chance: 0.5
-  max-tier: 100
+  # V389, Leon: 250 tiers, each worth multiplier-per-tier more: 1.096x at
+  # tier 1, 10.6x at 100, 25x at 250. Above 0 it replaces the list of
+  # multipliers further down.
+  max-tier: 250
+  multiplier-per-tier: 0.096
   # The first checkpoint, and how much further apart each one after it
   # sits. V355: the gap grows by checkpoint-gap-growth rather than by one,
   # which is Leon's "every checkpoint a bit farther". At 5 and 2 the

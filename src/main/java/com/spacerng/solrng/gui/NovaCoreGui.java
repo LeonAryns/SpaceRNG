@@ -199,10 +199,13 @@ public class NovaCoreGui {
         lore.add(Lore.pipe(ChatColor.LIGHT_PURPLE, ChatColor.GRAY + "Money and Coins at once"));
         lore.add("");
         lore.add(Lore.section(ChatColor.AQUA, "Checkpoints"));
-        lore.add(Lore.pipe(ChatColor.AQUA, ChatColor.GRAY + "Tiers " + ChatColor.WHITE + nova.checkpointList()));
+        // V389: 250 tiers make fourteen checkpoints, seven to a line.
+        String[] marks = nova.checkpointList().split(", ");
+        for (int i = 0; i < marks.length; i += 7) {
+            String row = String.join(", ", java.util.Arrays.copyOfRange(marks, i, Math.min(marks.length, i + 7)));
+            lore.add(Lore.pipe(ChatColor.AQUA, ChatColor.GRAY + (i == 0 ? "Tiers " : "") + ChatColor.WHITE + row));
+        }
         lore.add(Lore.pipe(ChatColor.AQUA, ChatColor.GRAY + "A shatter never drops you below one"));
-        lore.add("");
-        lore.add(Lore.footnote("The Core Anchor skill can hold a miss."));
         meta.setLore(lore);
         meta.setEnchantmentGlintOverride(Boolean.TRUE);
         item.setItemMeta(meta);

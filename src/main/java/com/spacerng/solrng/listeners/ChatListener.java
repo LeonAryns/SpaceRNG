@@ -14,7 +14,8 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 
 /**
- * The chat line (V173): [prestige] [tag] name -> message.
+ * The chat line (V173): [prestige] [rank] name -> message. The equipped
+ * drop tag left chat in V389.
  *
  * The prestige only shows once there is one, the tag is the equipped
  * drop in its own colours, and the name wears the rank's colours (a
@@ -80,16 +81,13 @@ public class ChatListener implements Listener {
         });
     }
 
-    /** "[IV] [Solar Flare] Leon -> ", in legacy codes. */
+    /** "[IV] [Owner] Leon -> ", in legacy codes. */
     private String prefix(Player player) {
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         StringBuilder line = new StringBuilder();
         line.append(com.spacerng.solrng.rank.RankManager.prestigePrefix(data.getPrestige()));
-        String tag = tag(data);
-        if (!tag.isEmpty()) {
-            line.append(ChatColor.DARK_GRAY).append("[").append(tag)
-                    .append(ChatColor.RESET).append(ChatColor.DARK_GRAY).append("] ");
-        }
+        // V389, Leon: no equipped drop tag in chat, only the rank badge.
+        // The tag still shows in tab and on the nametag.
         // The rank badge, [C] for Comet and so on, in front of the name
         // exactly as it reads in tab.
         line.append(plugin.getRankManager().badgeOf(player));
@@ -117,14 +115,6 @@ public class ChatListener implements Listener {
         }
         card.append("\n\n").append(ChatColor.YELLOW).append("Click for their /stats");
         return LEGACY.deserialize(card.toString());
-    }
-
-    /** The equipped tag as the drop's own coloured name, or empty. */
-    private String tag(PlayerData data) {
-        String key = data.getEquippedTagItemKey();
-        if (key == null || data.getEquippedTagRarity() == null) return "";
-        RollableItem item = plugin.getRarityManager().findByDisplayName(key);
-        return item == null ? ChatColor.WHITE + key : RollFormat.displayName(plugin, item);
     }
 
     private static String roman(int n) {

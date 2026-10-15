@@ -56,6 +56,8 @@ public class NovaCoreManager {
     // lets the early tiers be a gentle nudge and the last few be a real
     // prize.
     private java.util.List<Double> multipliers = java.util.List.of();
+    /** V389: a straight ladder, 1 + tier x this. Above 0 it wins over the list. */
+    private double perTier = 0.096;
     private long baseCost = 500L;
     private double costGrowth = 1.18;
 
@@ -77,6 +79,7 @@ public class NovaCoreManager {
         maxChance = config.getDouble("novacore.max-chance", 0.95);
         flatChance = Math.max(0.0, Math.min(1.0, config.getDouble("novacore.flat-chance", 0.5)));
         multipliers = config.getDoubleList("novacore.multipliers");
+        perTier = Math.max(0.0, config.getDouble("novacore.multiplier-per-tier", 0.096));
         baseCost = config.getLong("novacore.base-cost-tokens", 500L);
         costGrowth = config.getDouble("novacore.cost-growth", 1.18);
     }
@@ -192,7 +195,10 @@ public class NovaCoreManager {
      * Tier 0 is always 1.00x.
      */
     public double multiplierAt(int tier) {
-        if (tier <= 0 || multipliers.isEmpty()) return 1.0;
+        if (tier <= 0) return 1.0;
+        // V389, Leon: 250 tiers, about 0.1x each, 25x at the top.
+        if (perTier > 0.0) return 1.0 + Math.min(tier, maxTier) * perTier;
+        if (multipliers.isEmpty()) return 1.0;
         int index = Math.min(tier, multipliers.size()) - 1;
         return multipliers.get(index);
     }

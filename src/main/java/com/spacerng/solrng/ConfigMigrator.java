@@ -412,6 +412,8 @@ public final class ConfigMigrator {
             new Patch("egg-cost-v351", "pets.eggs.tiers.supernova.cost", 12000, 6000),
             new Patch("egg-divine-v351", "pets.eggs.tiers.supernova.divine-chance", 0.01, 0.03),
             new Patch("nova-tiers-v351", "novacore.max-tier", 20, 30),
+            // V389, Leon: 250 tiers at about 0.1x each (multiplier-per-tier).
+            new Patch("nova-250-v389", "novacore.max-tier", 100, 250),
             new Patch("prestige-growth-v351", "prestige.level-cost-growth", 1.17, 1.13),
             // V350, Leon's numbers at the top: at three billion percent
             // Luck a Divine is one roll in a thousand and an Astral one in
