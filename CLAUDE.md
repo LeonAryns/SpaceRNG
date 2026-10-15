@@ -210,6 +210,12 @@ Packages are by feature under `com.spacerng.solrng`. Where new things go:
   `JoinQuitListener.drawFor` for everyone already online. Anything new
   that is drawn on join, or registered somewhere outside Bukkit, needs
   the same treatment or it doubles or goes missing after a reload.
+  Since V395 onDisable first closes every SpaceRNG menu (the new
+  GuiListener does not recognise the old holders, so items could be
+  taken out), and `ReloadState` carries the global boost, the crowd
+  boost timer and Momentum across in reload-state.yml. Anything else
+  that only lives in memory and should survive a reload goes there.
+  `/rngadmin freeze` before an update stops players until the reload.
 - **Bedrock players (since V223)** come in through Geyser, which cannot
   show item or block displays, text objects (sprites, heads in text),
   hover text or clickable chat, and cannot tell left from right click or

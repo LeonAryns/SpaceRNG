@@ -5,8 +5,23 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V394**, 15 October 2026. The newest section is the
+Last updated at **V395**, 15 October 2026. The newest section is the
 first one below; older sections further down are history.
+
+## V395, 15 October 2026 (untested in game)
+
+- Reloads keep things: `ReloadState` writes the global Luck boost
+  (store or crowd, with the downtime added back), the crowd boost timer
+  and every player's Momentum to reload-state.yml on disable and reads
+  it back on enable (ignored when older than 10 minutes, a real
+  restart). Personal potions were already in the player save.
+- onDisable closes every SpaceRNG menu and the clan chest first. After
+  a reload the old holders were not recognised by the new GuiListener,
+  so items could be pulled out of open menus.
+- `/rngadmin freeze`: closes menus, cancels rolls, saves players and
+  clans, then blocks commands, menus, clicks, breaking and rolling for
+  non-admins until the reload (the new instance starts unfrozen) or
+  `/rngadmin unfreeze`. Momentum idle time stops counting at the freeze.
 
 ## V394, 15 October 2026 (untested in game)
 
