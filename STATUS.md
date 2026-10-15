@@ -5,8 +5,17 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V395**, 15 October 2026. The newest section is the
+Last updated at **V396**, 15 October 2026. The newest section is the
 first one below; older sections further down are history.
+
+## V396, 15 October 2026 (untested in game)
+
+- Proc lines say what a proc earned in crops and Gems: Blast,
+  Lightning and Meteor add the Gems their harvests paid; Black Hole
+  counts every Gem it paid (was only the bonus); Echo, Coin Storm and
+  Supernova say how many crops' worth of Coins they paid. The crop
+  counts on Blast, Lightning, Meteor, Black Hole and Nuke were already
+  there.
 
 ## V395, 15 October 2026 (untested in game)
 

@@ -1171,6 +1171,7 @@ public class FarmPlotManager {
                 if (!player.isOnline()) return;
                 int swept = 0;
                 long before = data.getTokens();
+                long gemsBefore = data.getShards();
                 // A circle: the corners of the square stay standing. r*r + r
                 // rounds the edge out so small blasts are not a plus sign.
                 // V267: r*r + 1, rounder than r*r + r, which left flat sides.
@@ -1197,7 +1198,8 @@ public class FarmPlotManager {
                 if (swept > 0) {
                     procBar(player, data, "BLAST_HARVEST", ChatColor.RED + "" + ChatColor.BOLD + "Blast  "
                             + ChatColor.RESET + ChatColor.GRAY + swept + " extra crops, "
-                            + Currency.COINS.amount(data.getTokens() - before));
+                            + Currency.COINS.amount(data.getTokens() - before)
+                            + gemsPart(data.getShards() - gemsBefore));
                 }
             }, 20L);
         }
@@ -1206,6 +1208,7 @@ public class FarmPlotManager {
         if (lightning > 0 && ThreadLocalRandom.current().nextDouble() < lightning) {
             int struck = 0;
             long before = data.getTokens();
+            long gemsBefore = data.getShards();
             for (int attempt = 0; attempt < lightningBolts; attempt++) {
                 int dx = ThreadLocalRandom.current().nextInt(-lightningRadius, lightningRadius + 1);
                 int dz = ThreadLocalRandom.current().nextInt(-lightningRadius, lightningRadius + 1);
@@ -1219,7 +1222,8 @@ public class FarmPlotManager {
             if (struck > 0) {
                 procBar(player, data, "LIGHTNING", ChatColor.YELLOW + "" + ChatColor.BOLD + "Lightning  "
                         + ChatColor.RESET + ChatColor.GRAY + struck + " crops struck, "
-                        + Currency.COINS.amount(data.getTokens() - before));
+                        + Currency.COINS.amount(data.getTokens() - before)
+                        + gemsPart(data.getShards() - gemsBefore));
             }
         }
 
@@ -1400,7 +1404,8 @@ public class FarmPlotManager {
             data.trackCoins(paid);
             EnchantFx.pulse(plugin, player, plot, false);
             procBar(player, data, "HARVEST_ECHO", ChatColor.GOLD + "" + ChatColor.BOLD + "Echo x" + echoRepeats
-                    + "  " + ChatColor.RESET + ChatColor.GRAY + Currency.COINS.amount(paid));
+                    + "  " + ChatColor.RESET + ChatColor.GRAY + echoRepeats + " crops' worth, "
+                    + Currency.COINS.amount(paid));
         }
 
         double cascade = hoe.powerOf(data, "GEM_CASCADE");
@@ -1430,14 +1435,15 @@ public class FarmPlotManager {
             data.trackCoins(paid);
             EnchantFx.coinStorm(plugin, player, 40);
             procChat(player, data, "COIN_STORM", Currency.COINS.colour() + "" + ChatColor.BOLD + "Coin Storm  "
-                    + ChatColor.RESET + ChatColor.GRAY + Currency.COINS.amount(paid)
-                    + ChatColor.GRAY + " out of the sky.");
+                    + ChatColor.RESET + ChatColor.GRAY + stormPayout + " crops' worth, "
+                    + Currency.COINS.amount(paid) + ChatColor.GRAY + " out of the sky.");
         }
 
         double meteor = hoe.powerOf(data, "METEOR");
         if (meteor > 0 && ThreadLocalRandom.current().nextDouble() < meteor) {
             EnchantFx.meteor(plugin, player, plot, meteorRadius);
             long before = data.getTokens();
+            long gemsBefore = data.getShards();
             int hit = sweep(player, plot, meteorRadius);
             if (hit > 0) {
                 long paid = base * hit;
@@ -1445,7 +1451,8 @@ public class FarmPlotManager {
                 data.trackCoins(paid);
                 procBar(player, data, "METEOR", ChatColor.RED + "" + ChatColor.BOLD + "Meteor  "
                         + ChatColor.RESET + ChatColor.GRAY + hit + " crops, paid twice, "
-                        + Currency.COINS.amount(data.getTokens() - before));
+                        + Currency.COINS.amount(data.getTokens() - before)
+                        + gemsPart(data.getShards() - gemsBefore));
             }
         }
 
@@ -1453,6 +1460,7 @@ public class FarmPlotManager {
         if (hole > 0 && ThreadLocalRandom.current().nextDouble() < hole) {
             EnchantFx.blackHole(plugin, player, plot, blastMaxRadius);
             long before = data.getTokens();
+            long gemsBefore = data.getShards();
             int pulled = sweep(player, plot, blastMaxRadius);
             if (pulled > 0) {
                 long paid = base * pulled * 2L;
@@ -1462,7 +1470,7 @@ public class FarmPlotManager {
                 procChat(player, data, "BLACK_HOLE", ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + "Black Hole  "
                         + ChatColor.RESET + ChatColor.GRAY + pulled + " crops swallowed for "
                         + Currency.COINS.amount(data.getTokens() - before) + ChatColor.GRAY + " and " + ChatColor.AQUA
-                        + pulled + " Gems" + ChatColor.GRAY + ".");
+                        + String.format("%,d", data.getShards() - gemsBefore) + " Gems" + ChatColor.GRAY + ".");
             }
         }
 
@@ -1477,7 +1485,7 @@ public class FarmPlotManager {
             procChat(player, data, "SUPERNOVA", ChatColor.GOLD + "" + ChatColor.BOLD + "Supernova");
             procChat(player, data, "SUPERNOVA", ChatColor.GRAY + "  " + Currency.COINS.amount(coins)
                     + ChatColor.GRAY + " and " + ChatColor.AQUA + supernovaGems + " Gems"
-                    + ChatColor.GRAY + " out of a single crop.");
+                    + ChatColor.GRAY + ", " + supernovaCoins + " crops' worth out of a single one.");
             // Nova Finder gives you one free climb. Supernova is the same
             // idea several times over, which is what makes it the thing
             // you graduate to rather than a separate lottery.
@@ -1664,6 +1672,11 @@ public class FarmPlotManager {
     }
 
     /** Harvests every plot inside a radius. Returns how many landed. */
+    /** ", +12 Gems" on a proc line when the proc paid Gems (V396), else nothing. */
+    private static String gemsPart(long gems) {
+        return gems > 0 ? ChatColor.GRAY + ", " + ChatColor.AQUA + "+" + String.format("%,d", gems) + " Gems" : "";
+    }
+
     private int sweep(Player player, Location centre, int radius) {
         int swept = 0;
         for (int dx = -radius; dx <= radius; dx++) {
