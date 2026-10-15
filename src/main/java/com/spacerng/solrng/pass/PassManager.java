@@ -227,11 +227,14 @@ public class PassManager {
      * whole point of tying it to this gamemode instead of to playtime.
      */
     public void awardRoll(Player player, PlayerData data, Rarity rarity) {
+        // V393: a clan earns the battle pass XP its members do, pass or not.
+        if (player != null) plugin.getClanManager().addXp(player.getUniqueId(), xpPerRoll.getOrDefault(rarity, 1L));
         if (!isUnlocked(data)) return;
         award(player, data, xpPerRoll.getOrDefault(rarity, 1L));
     }
 
     public void awardHarvest(Player player, PlayerData data, long crops) {
+        if (player != null) plugin.getClanManager().addXp(player.getUniqueId(), xpPerHarvest * Math.max(0L, crops));
         if (!isUnlocked(data)) return;
         award(player, data, xpPerHarvest * Math.max(0L, crops));
     }

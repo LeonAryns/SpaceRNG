@@ -5,8 +5,24 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V392**, 15 October 2026. The newest section is the
+Last updated at **V393**, 15 October 2026. The newest section is the
 first one below; older sections further down are history.
+
+## V393, 15 October 2026 (untested in game)
+
+- Clans (`clan/Clan`, `clan/ClanManager`, clans.yml): /clan create,
+  invite (5 minutes), join, leave, kick, transfer, disband (with
+  confirm), top, info. Names 3 to 16 letters, digits or underscores.
+  5 seats (`clans.base-members`), more from the SLOTS upgrade (V394).
+- Clan XP: the battle pass XP its members earn, base amount (per roll
+  by rarity, 1 per crop), whether or not they have the pass. Hooked in
+  PassManager.awardRoll / awardHarvest. Level L to L+1 costs
+  `clans.level-xp` (50,000) x `clans.level-growth` (1.1)^L. Members
+  get a chat line on a level up.
+- /clan menu: clan card, members in two rows of five (open and locked
+  seats), leaderboard button, shift click to leave or disband. No clan:
+  the leaderboard, how to start one and invites to click. clans.yml is
+  written on every member change and once a minute while XP moves.
 
 ## V392, 15 October 2026 (untested in game)
 
@@ -2215,7 +2231,7 @@ eggs go.
    farming that crop, stored in /pets and opened there. 1% of eggs are
    shiny: every pet stat from that egg 2x. An egg gives Common to
    Divine, Divine 1%. Old 11 eggs go.
-5. Clans: create, invite, 5 members, up to 10 with upgrades. Clan level
+5. V393 done (chest and upgrades V394): Clans: create, invite, 5 members, up to 10 with upgrades. Clan level
    from members' battle pass XP, a clan level leaderboard. Clan chest.
    1 upgrade point per clan level; costs climb per level. Upgrades:
    member slot (starts at 10 points), Luck, Money, Speed (+0.01x a

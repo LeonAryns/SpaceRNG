@@ -244,6 +244,44 @@ final class PlayerMenuClicks {
         }
     }
 
+    /** /clan (V393): the leaderboard, leaving or disbanding, and joining from an invite. */
+    void handleClanClick(InventoryClickEvent event) {
+        event.setCancelled(true);
+        if (event.getClickedInventory() == null
+                || !(event.getClickedInventory().getHolder()
+                        instanceof com.spacerng.solrng.gui.ClanHolder holder)) return;
+        Player player = (Player) event.getWhoClicked();
+        var clans = plugin.getClanManager();
+        var clan = clans.of(player.getUniqueId());
+        int slot = event.getSlot();
+
+        String join = com.spacerng.solrng.gui.ClanGui.clickedJoin(event.getCurrentItem());
+        if (join != null) {
+            com.spacerng.solrng.commands.ClanCommand.join(plugin, player, join);
+            player.openInventory(com.spacerng.solrng.gui.ClanGui.open(plugin, player));
+            return;
+        }
+        if (holder.view() == com.spacerng.solrng.gui.ClanHolder.View.TOP) {
+            if (slot == com.spacerng.solrng.gui.ClanGui.BACK_SLOT && clan != null) {
+                player.openInventory(com.spacerng.solrng.gui.ClanGui.main(plugin, player, clan));
+                player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.4f, 1.2f);
+            }
+            return;
+        }
+        if (clan == null) return;
+        if (slot == com.spacerng.solrng.gui.ClanGui.TOP_SLOT) {
+            player.openInventory(com.spacerng.solrng.gui.ClanGui.top(plugin, player));
+            player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.4f, 1.6f);
+        } else if (slot == com.spacerng.solrng.gui.ClanGui.LEAVE_SLOT && event.isShiftClick()) {
+            player.closeInventory();
+            if (clan.isOwner(player.getUniqueId())) {
+                com.spacerng.solrng.commands.ClanCommand.disband(plugin, player);
+            } else {
+                com.spacerng.solrng.commands.ClanCommand.leave(plugin, player);
+            }
+        }
+    }
+
     /** Picking a crop repaints the shared farm for this player only. */
     void handleCropsClick(InventoryClickEvent event) {
         event.setCancelled(true);

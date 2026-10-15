@@ -75,6 +75,7 @@ public final class SolRNGPlugin extends JavaPlugin {
     private com.spacerng.solrng.platform.BedrockSupport bedrockSupport;
     private com.spacerng.solrng.leaderboard.TopHeadManager topHeadManager;
     private com.spacerng.solrng.pass.PassManager passManager;
+    private com.spacerng.solrng.clan.ClanManager clanManager;
     private com.spacerng.solrng.farming.MomentumBar momentumBar;
     private com.spacerng.solrng.consumable.ConsumableManager consumableManager;
     private com.spacerng.solrng.welcome.WelcomeManager welcomeManager;
@@ -175,6 +176,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         this.announcerManager = new com.spacerng.solrng.announce.AnnouncerManager(this);
         this.dailyManager = new com.spacerng.solrng.daily.DailyManager(this);
         this.passManager = new com.spacerng.solrng.pass.PassManager(this);
+        this.clanManager = new com.spacerng.solrng.clan.ClanManager(this);
         this.momentumBar = new com.spacerng.solrng.farming.MomentumBar();
         this.consumableManager = new com.spacerng.solrng.consumable.ConsumableManager(this);
         this.welcomeManager = new com.spacerng.solrng.welcome.WelcomeManager(this);
@@ -291,6 +293,9 @@ public final class SolRNGPlugin extends JavaPlugin {
         getCommand("size").setExecutor(new com.spacerng.solrng.commands.SizeCommand(this));
         getCommand("boss").setExecutor(new com.spacerng.solrng.commands.BossCommand(this));
         getCommand("pets").setExecutor(new com.spacerng.solrng.commands.PetsCommand(this));
+        com.spacerng.solrng.commands.ClanCommand clanCommand = new com.spacerng.solrng.commands.ClanCommand(this);
+        getCommand("clan").setExecutor(clanCommand);
+        getCommand("clan").setTabCompleter(clanCommand);
         getCommand("realm").setExecutor(new com.spacerng.solrng.commands.RealmCommand(this));
         getCommand("secretindex").setExecutor(new com.spacerng.solrng.commands.RealmCommand(this));
         getCommand("stash").setExecutor(new com.spacerng.solrng.commands.StashCommand(this));
@@ -350,6 +355,7 @@ public final class SolRNGPlugin extends JavaPlugin {
         // is inside the save file rather than lost with the server.
         if (crateManager != null) crateManager.finishAll();
         if (foundCounts != null) foundCounts.save();
+        if (clanManager != null) clanManager.save();
         if (topHeadManager != null) topHeadManager.stop();
         if (holoManager != null) holoManager.stop();
         if (bedrockSupport != null) bedrockSupport.stop();
@@ -692,6 +698,10 @@ public final class SolRNGPlugin extends JavaPlugin {
 
     public com.spacerng.solrng.pass.PassManager getPassManager() {
         return passManager;
+    }
+
+    public com.spacerng.solrng.clan.ClanManager getClanManager() {
+        return clanManager;
     }
 
     public com.spacerng.solrng.farming.MomentumBar getMomentumBar() {

@@ -110,6 +110,8 @@ public class GuiListener implements Listener {
             progression.handleStarforgeClick(event);
         } else if (topInventory.getHolder() instanceof MilestoneHolder) {
             progression.handleMilestoneClick(event);
+        } else if (topInventory.getHolder() instanceof com.spacerng.solrng.gui.ClanHolder) {
+            playerMenus.handleClanClick(event);
         } else if (topInventory.getHolder() instanceof CropsHolder) {
             playerMenus.handleCropsClick(event);
         } else if (topInventory.getHolder() instanceof NovaCoreHolder) {

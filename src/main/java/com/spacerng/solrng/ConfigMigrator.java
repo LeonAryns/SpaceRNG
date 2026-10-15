@@ -88,6 +88,8 @@ public final class ConfigMigrator {
      * server already has, like one more hologram panel.
      */
     private static final List<String> ADDED_SECTIONS = List.of(
+            // V393: clans.
+            "clans",
             // V392: crop eggs dropping while farming.
             "pets.egg-drops",
             // V390: the Perk Finder enchant and the farmtree price dial.

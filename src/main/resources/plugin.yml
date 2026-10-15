@@ -168,6 +168,10 @@ commands:
   pets:
     description: Your pet slots and every pet
     usage: /pets
+  clan:
+    description: Your clan, its members and the clan leaderboard
+    usage: /clan [create|invite|join|leave|kick|transfer|disband|top|chest|upgrades]
+    aliases: [clans]
   spawn:
     description: Go back to spawn
     usage: /spawn
