@@ -88,6 +88,8 @@ public final class ConfigMigrator {
      * server already has, like one more hologram panel.
      */
     private static final List<String> ADDED_SECTIONS = List.of(
+            // V392: crop eggs dropping while farming.
+            "pets.egg-drops",
             // V390: the Perk Finder enchant and the farmtree price dial.
             "farming.enchants.PERK_FINDER", "farming.tree-cost-multiplier",
             // V388: Astral's flickering marks. A new key.
@@ -416,6 +418,8 @@ public final class ConfigMigrator {
             new Patch("nova-tiers-v351", "novacore.max-tier", 20, 30),
             // V389, Leon: 250 tiers at about 0.1x each (multiplier-per-tier).
             new Patch("nova-250-v389", "novacore.max-tier", 100, 250),
+            // V392, Leon: a shiny pet is worth 2x.
+            new Patch("pet-shiny-2x-v392", "pets.upgrades.shiny-bonus", 0.10, 1.0),
             // V391, Leon: Wheat to 250k, then a crop every 500k.
             new Patch("unlock-carrots-v391", "farming.crop-unlock-at.CARROTS", 50000, 250000),
             new Patch("unlock-potatoes-v391", "farming.crop-unlock-at.POTATOES", 100000, 500000),

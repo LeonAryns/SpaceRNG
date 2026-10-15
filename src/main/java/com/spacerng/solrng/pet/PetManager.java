@@ -254,7 +254,7 @@ public class PetManager {
     }
 
     /**
-     * Opens one egg: its price in Gems, its odds on the roll.
+     * Opens one egg the player holds (V392; it was bought with Gems).
      *
      * V359: Gems, Leon's call. Cosmic Dust is what LEVELS a pet now, so
      * the two currencies are the two halves of the system rather than
@@ -264,12 +264,16 @@ public class PetManager {
         if (!enabled || types.isEmpty() || egg == null) return Made.none();
         if (data.getPrestige() < egg.minPrestige()) return Made.none();
         if (storageFull(data)) return Made.none();
-        long cost = egg.cost();
-        if (data.getShards() < cost) return Made.none();
+        if (data.getPetEggs(egg.id(), false) + data.getPetEggs(egg.id(), true) <= 0) return Made.none();
 
         PetType picked = roll(data, egg);
         if (picked == null) return Made.none();
-        if (!data.spendShards(cost)) return Made.none();
+        // V392, Leon: eggs drop while farming and wait in /pets; opening
+        // one uses it up. A shiny egg goes first, and its pet hatches
+        // shiny: every stat it gives is worth shiny-bonus more (2x).
+        Boolean shinyEgg = data.takePetEgg(egg.id());
+        if (shinyEgg == null) return Made.none();
+        boolean shiny = shinyEgg;
 
         // V359: the index records it the moment it lands, before autotrash
         // gets a look at it. A pet thrown away was still discovered, and
@@ -288,7 +292,7 @@ public class PetManager {
             return new Made(picked, had == null ? PetInstance.fresh(picked.id()) : had, false, true);
         }
         if (had == null) {
-            PetInstance made = PetInstance.fresh(picked.id());
+            PetInstance made = shiny ? PetInstance.fresh(picked.id()).asShiny() : PetInstance.fresh(picked.id());
             data.putPet(made);
             // The first pets go straight into the empty slots. Somebody who
             // has just paid for their first one should not have to find the
@@ -297,6 +301,7 @@ public class PetManager {
             return new Made(picked, made, true, false);
         }
         PetInstance grown = had.plusCopy();
+        if (shiny && !grown.shiny()) grown = grown.asShiny();
         data.putPet(grown);
         return new Made(picked, grown, false, false);
     }
@@ -318,8 +323,8 @@ public class PetManager {
                 stop = Stop.STORAGE_FULL;
                 break;
             }
-            if (egg != null && data.getShards() < egg.cost()) {
-                stop = Stop.OUT_OF_GEMS;
+            if (egg != null && data.getPetEggs(egg.id(), false) + data.getPetEggs(egg.id(), true) <= 0) {
+                stop = Stop.NO_EGGS;
                 break;
             }
             Made one = make(data, egg);
@@ -358,7 +363,7 @@ public class PetManager {
 
     /** Why a batch stopped early, so the menu can say it in one line. */
     public enum Stop {
-        DONE, OUT_OF_GEMS, STORAGE_FULL, REFUSED
+        DONE, NO_EGGS, STORAGE_FULL, REFUSED
     }
 
     /** What {@link #make} did, so the menu and the chat line can say it. */
@@ -636,6 +641,32 @@ public class PetManager {
                 (int) upgrades.shinyCost(type.rarity()))) return Result.TOO_POOR;
         data.putPet(pet.asShiny());
         return Result.DONE;
+    }
+
+    /**
+     * The chance one harvest of a crop drops its egg (V392): the base in
+     * pets.egg-drops.chance times the Pet Egg Luck upgrade in /crops.
+     */
+    public double eggDropChance(PlayerData data) {
+        return Math.max(0.0, plugin.getConfig().getDouble("pets.egg-drops.chance", 0.001))
+                * com.spacerng.solrng.farming.CropUpgrades.multiplier(plugin, data,
+                        com.spacerng.solrng.farming.CropUpgrades.PET_EGGS);
+    }
+
+    /**
+     * Rolls an egg drop for one harvest of this crop. Returns the egg key
+     * it added ("wheat" or "wheat#shiny"), or null when nothing dropped.
+     */
+    public String rollEggDrop(PlayerData data, String cropId) {
+        if (!enabled) return null;
+        PetEgg egg = upgrades.eggForCrop(cropId);
+        if (egg == null) return null;
+        var random = java.util.concurrent.ThreadLocalRandom.current();
+        if (random.nextDouble() >= eggDropChance(data)) return null;
+        boolean shiny = random.nextDouble() < plugin.getConfig().getDouble("pets.egg-drops.shiny-chance", 0.01);
+        String key = egg.id() + (shiny ? "#shiny" : "");
+        data.addPetEggs(key, 1);
+        return key;
     }
 
     /** What an upgrade attempt did. */

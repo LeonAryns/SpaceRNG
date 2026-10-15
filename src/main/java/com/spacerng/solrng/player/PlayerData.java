@@ -1616,6 +1616,35 @@ public class PlayerData {
         return petEggAnimation;
     }
 
+    // V392: pet eggs dropped while farming and waiting in /pets, keyed by
+    // egg id, with "#shiny" on the end for a shiny egg.
+    private final Map<String, Long> petEggs = new java.util.LinkedHashMap<>();
+
+    public Map<String, Long> getPetEggs() {
+        return petEggs;
+    }
+
+    public long getPetEggs(String eggId, boolean shiny) {
+        return petEggs.getOrDefault(eggId + (shiny ? "#shiny" : ""), 0L);
+    }
+
+    public void addPetEggs(String key, long amount) {
+        if (amount > 0) petEggs.merge(key, amount, Long::sum);
+    }
+
+    /** Takes one egg, shiny first. Null when there is none; otherwise whether it was shiny. */
+    public Boolean takePetEgg(String eggId) {
+        for (boolean shiny : new boolean[]{true, false}) {
+            String key = eggId + (shiny ? "#shiny" : "");
+            long have = petEggs.getOrDefault(key, 0L);
+            if (have <= 0) continue;
+            if (have == 1) petEggs.remove(key);
+            else petEggs.put(key, have - 1);
+            return shiny;
+        }
+        return null;
+    }
+
     public java.util.Set<String> getPetsFound() {
         return petsFound;
     }

@@ -31,7 +31,8 @@ import java.util.List;
  *                auto open on the right for linked accounts
  *
  * A click on a found pet marks it to be thrown away whenever it hatches
- * again (auto delete). Everything is paid in Gems.
+ * again (auto delete). Since V392 the eggs are found while farming, one
+ * kind per crop, and the buttons open the ones you hold.
  */
 public class PetEggGui {
 
@@ -161,25 +162,24 @@ public class PetEggGui {
      * the name, a rule, the price, a rule, and the Prestige it needs.
      */
     private static ItemStack eggTab(SolRNGPlugin plugin, PlayerData data, PetEgg egg, boolean current) {
-        boolean reached = data.getPrestige() >= egg.minPrestige();
-        boolean canPay = data.getShards() >= egg.cost();
         int found = plugin.getPetManager().foundIn(data, egg);
         int total = egg.pets().size();
+        long normal = data.getPetEggs(egg.id(), false);
+        long shiny = data.getPetEggs(egg.id(), true);
 
         ItemStack item = new ItemStack(egg.icon());
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(Lore.gradient(egg.display(), true, egg.stops()));
         List<String> lore = new ArrayList<>();
-        lore.add(ChatColor.DARK_GRAY + "Egg");
+        lore.add(ChatColor.DARK_GRAY + "Drops from " + cropName(plugin, egg));
         lore.add(RULE);
-        lore.add(ChatColor.GRAY + " Price: " + Currency.GEMS.price(egg.cost(), canPay && reached));
+        // V392: eggs are found, not bought, so the tab says how many wait.
+        lore.add(ChatColor.GRAY + " You have: " + (normal + shiny > 0 ? ChatColor.GREEN : ChatColor.RED)
+                + String.format("%,d", normal + shiny)
+                + (shiny > 0 ? ChatColor.LIGHT_PURPLE + "  " + Lore.SPARK + " " + shiny + " shiny" : ""));
         lore.add(RULE);
         lore.add(ChatColor.GRAY + " Found: " + (found >= total ? ChatColor.GREEN : ChatColor.AQUA)
                 + found + ChatColor.DARK_GRAY + " / " + ChatColor.AQUA + total);
-        lore.add("");
-        lore.add((reached ? ChatColor.GREEN : ChatColor.RED) + "Prestige required: "
-                + ChatColor.DARK_GRAY + "[" + (reached ? ChatColor.GREEN : ChatColor.YELLOW)
-                + egg.minPrestige() + ChatColor.DARK_GRAY + "]");
         lore.add("");
         lore.add(current ? ChatColor.GREEN + "" + ChatColor.BOLD + "Viewing"
                 : ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to view");
@@ -249,8 +249,8 @@ public class PetEggGui {
     /** Open 1, 3 or 9, in the shape of Leon's screenshot. */
     private static ItemStack buyButton(SolRNGPlugin plugin, PlayerData data, PetEgg egg, int count) {
         PetManager pets = plugin.getPetManager();
-        long cost = egg.cost() * count;
-        boolean canPay = data.getShards() >= cost;
+        long have = data.getPetEggs(egg.id(), false) + data.getPetEggs(egg.id(), true);
+        boolean canPay = have >= 1;
         boolean reached = data.getPrestige() >= egg.minPrestige();
         boolean room = !pets.storageFull(data);
 
@@ -261,7 +261,11 @@ public class PetEggGui {
         List<String> lore = new ArrayList<>();
         lore.add(ChatColor.DARK_GRAY + "Utility");
         lore.add("");
-        lore.add(Lore.stat(ChatColor.YELLOW, "Cost", Currency.GEMS.price(cost, canPay)));
+        lore.add(Lore.stat(canPay ? ChatColor.GREEN : ChatColor.RED, "Eggs held", String.format("%,d", have)));
+        if (data.getPetEggs(egg.id(), true) > 0) {
+            lore.add(Lore.stat(ChatColor.LIGHT_PURPLE, "Shiny", data.getPetEggs(egg.id(), true)
+                    + " " + Lore.SPARK + " open first, 2x pet"));
+        }
         lore.add(Lore.stat(pets.storageFull(data) ? ChatColor.RED : ChatColor.AQUA, "Storage",
                 pets.held(data) + " / " + pets.storage()));
         lore.add("");
@@ -272,7 +276,8 @@ public class PetEggGui {
             lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Storage full");
             lore.add(Lore.line(ChatColor.GRAY, "Nothing opens until you make room"));
         } else if (!canPay) {
-            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Not enough Gems");
+            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "No eggs");
+            lore.add(Lore.line(ChatColor.GRAY, "They drop while you farm " + cropName(plugin, egg)));
         } else {
             lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to open");
         }
@@ -295,8 +300,8 @@ public class PetEggGui {
                 + ChatColor.DARK_GRAY + " - " + (on ? ChatColor.GREEN + "On" : ChatColor.RED + "Off"));
 
         List<String> lore = new ArrayList<>();
-        lore.add(Lore.line(ChatColor.GRAY, "A click keeps buying and opening"));
-        lore.add(Lore.line(ChatColor.GRAY, "until the Gems or the room run out."));
+        lore.add(Lore.line(ChatColor.GRAY, "A click keeps opening until the"));
+        lore.add(Lore.line(ChatColor.GRAY, "eggs or the room run out."));
         lore.add("");
         if (!linked) {
             lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Link your account first");
@@ -310,6 +315,12 @@ public class PetEggGui {
         if (on) meta.setEnchantmentGlintOverride(Boolean.TRUE);
         item.setItemMeta(meta);
         return item;
+    }
+
+    /** The crop that drops an egg, as the farm names it, lower case. */
+    static String cropName(SolRNGPlugin plugin, PetEgg egg) {
+        var crop = plugin.getFarmPlotManager().getCrop(egg.crop());
+        return crop == null ? "crops" : crop.getDisplay().toLowerCase(java.util.Locale.ROOT);
     }
 
     /** What the pet index is paying right now. */

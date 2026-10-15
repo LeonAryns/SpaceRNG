@@ -134,7 +134,7 @@ public final class PetLore {
             lore.add(Lore.stat(ChatColor.AQUA, "Fully grown", multi(grown)));
             lore.add("");
             lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Not hatched yet");
-            lore.add(Lore.line(ChatColor.GRAY, "Hatch eggs on the pets screen"));
+            lore.add(Lore.line(ChatColor.GRAY, "Its egg drops while you farm"));
         }
 
         meta.setLore(lore);

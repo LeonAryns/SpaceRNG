@@ -92,6 +92,15 @@ public class PetUpgrades {
     }
 
     /** The bonus above 1 a fresh pet of this rarity carries. */
+    /** The egg a crop drops (V392), or null. */
+    public PetEgg eggForCrop(String cropId) {
+        if (cropId == null) return null;
+        for (PetEgg egg : eggs) {
+            if (cropId.equalsIgnoreCase(egg.crop())) return egg;
+        }
+        return null;
+    }
+
     public double bonusFor(com.spacerng.solrng.rarity.Rarity rarity) {
         Double value = bonuses.get(rarity);
         return value == null ? 0.0 : value;
@@ -144,14 +153,15 @@ public class PetUpgrades {
                         Math.max(0, egg.getInt("min-prestige", minPrestige)),
                         rarityOr(egg.getString("min-rarity"), defaultFloor(id)),
                         chances, egg.getStringList("pets"), 0,
-                        egg.contains("worth") ? Math.max(0.0, egg.getDouble("worth")) : -1.0));
+                        egg.contains("worth") ? Math.max(0.0, egg.getDouble("worth")) : -1.0,
+                        egg.getString("crop", "").toUpperCase(java.util.Locale.ROOT)));
             }
         }
         if (eggs.isEmpty()) {
             eggs.add(new PetEgg("stardust", "Stardust Egg", java.util.List.of("#C9D6FF", "#7FDBFF"),
                     org.bukkit.Material.TURTLE_EGG, makeCost, 0,
                     defaultFloor("stardust"), defaultChances("stardust"),
-                    java.util.List.of(), 0, -1.0));
+                    java.util.List.of(), 0, -1.0, ""));
         }
         // V359: cheapest and earliest first, then numbered, because an
         // egg's place in the ladder is what decides how much its pets are
@@ -167,7 +177,7 @@ public class PetUpgrades {
             PetEgg egg = eggs.get(i);
             double worth = egg.worth() >= 0.0 ? egg.worth() : Math.pow(eggBonusGrowth, rung++);
             eggs.set(i, new PetEgg(egg.id(), egg.display(), egg.colors(), egg.icon(), egg.cost(),
-                    egg.minPrestige(), egg.floor(), egg.chances(), egg.pets(), i, worth));
+                    egg.minPrestige(), egg.floor(), egg.chances(), egg.pets(), i, worth, egg.crop()));
         }
     }
 

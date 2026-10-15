@@ -65,6 +65,43 @@ public class PetsGui {
         return SolRNGPlugin.key("solrng_pet");
     }
 
+    /** The egg a held egg card opens (V392). */
+    public static NamespacedKey heldEggKey() {
+        return SolRNGPlugin.key("solrng_held_egg");
+    }
+
+    public static String clickedHeldEgg(ItemStack item) {
+        if (item == null || item.getItemMeta() == null) return null;
+        return item.getItemMeta().getPersistentDataContainer().get(heldEggKey(), PersistentDataType.STRING);
+    }
+
+    /** One kind of egg waiting to be opened, with how many there are. */
+    private static ItemStack heldEgg(SolRNGPlugin plugin, com.spacerng.solrng.pet.PetEgg egg,
+                                     boolean shiny, long have) {
+        ItemStack item = new ItemStack(egg.icon());
+        item.setAmount((int) Math.max(1, Math.min(64, have)));
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName((shiny ? ChatColor.LIGHT_PURPLE + Lore.SPARK + " " : "")
+                + Lore.gradient((shiny ? "Shiny " : "") + egg.display(), true, egg.stops()));
+        List<String> lore = new ArrayList<>();
+        lore.add(ChatColor.DARK_GRAY + "Pet egg, from " + PetEggGui.cropName(plugin, egg));
+        lore.add("");
+        lore.add(Lore.line(ChatColor.GRAY, "Hatches one of " + Lore.key("seven pets") + ChatColor.GRAY + ","));
+        lore.add(Lore.line(ChatColor.GRAY, "Common up to Divine."));
+        if (shiny) {
+            lore.add(Lore.line(ChatColor.LIGHT_PURPLE, "Its pet hatches shiny: every stat 2x."));
+        }
+        lore.add("");
+        lore.add(Lore.stat(shiny ? ChatColor.LIGHT_PURPLE : ChatColor.AQUA, "You have", String.format("%,d", have)));
+        lore.add("");
+        lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to open");
+        meta.setLore(lore);
+        if (shiny) meta.setEnchantmentGlintOverride(Boolean.TRUE);
+        meta.getPersistentDataContainer().set(heldEggKey(), PersistentDataType.STRING, egg.id());
+        item.setItemMeta(meta);
+        return item;
+    }
+
     /** Marks a spare copy's card in /pets (V388). */
     public static NamespacedKey spareKey() {
         return SolRNGPlugin.key("solrng_pet_spare");
@@ -108,6 +145,15 @@ public class PetsGui {
         // are its spare copies.
         List<PetType> cards = new ArrayList<>();
         List<Boolean> spare = new ArrayList<>();
+        // V392, Leon: the eggs found while farming wait here too, in front
+        // of the pets: one card per egg, a shiny egg a card of its own.
+        List<ItemStack> eggCards = new ArrayList<>();
+        for (var egg : pets.upgrades().eggs()) {
+            for (boolean shiny : new boolean[]{true, false}) {
+                long have = data.getPetEggs(egg.id(), shiny);
+                if (have > 0) eggCards.add(heldEgg(plugin, egg, shiny, have));
+            }
+        }
         for (PetType pet : owned) {
             int copies = Math.max(1, data.getPet(pet.id()).copies());
             for (int c = 0; c < copies; c++) {
@@ -115,7 +161,8 @@ public class PetsGui {
                 spare.add(c > 0);
             }
         }
-        int pages = Math.max(1, (cards.size() + PAGE_PETS.length - 1) / PAGE_PETS.length);
+        int total = eggCards.size() + cards.size();
+        int pages = Math.max(1, (total + PAGE_PETS.length - 1) / PAGE_PETS.length);
         page = Math.max(0, Math.min(page, pages - 1));
 
         PetsHolder holder = new PetsHolder(PetsHolder.View.MAIN, page);
@@ -137,19 +184,21 @@ public class PetsGui {
         if (!owned.isEmpty()) inv.setItem(STAT_ALL_SLOT, statAllButton(plugin, data, owned));
 
         int from = page * PAGE_PETS.length;
-        for (int i = 0; i < PAGE_PETS.length && from + i < cards.size(); i++) {
-            inv.setItem(PAGE_PETS[i], PetLore.card(plugin, data, cards.get(from + i), bedrock,
-                    spare.get(from + i)));
+        for (int i = 0; i < PAGE_PETS.length && from + i < total; i++) {
+            int at = from + i;
+            inv.setItem(PAGE_PETS[i], at < eggCards.size() ? eggCards.get(at)
+                    : PetLore.card(plugin, data, cards.get(at - eggCards.size()), bedrock,
+                            spare.get(at - eggCards.size())));
         }
-        if (owned.isEmpty()) {
+        if (owned.isEmpty() && eggCards.isEmpty()) {
             ItemStack none = new ItemStack(Material.STONE_BUTTON);
             ItemMeta meta = none.getItemMeta();
             meta.setDisplayName(Lore.title(ChatColor.DARK_GRAY, "No pets yet"));
             meta.setLore(List.of(
                     ChatColor.DARK_GRAY + "Nothing hatched",
                     "",
-                    Lore.line(ChatColor.GRAY, "Open an egg at the pet egg"),
-                    Lore.line(ChatColor.GRAY, "for your first pet.")));
+                    Lore.line(ChatColor.GRAY, "Farm: every crop drops its own"),
+                    Lore.line(ChatColor.GRAY, "pet egg, and it lands in here.")));
             none.setItemMeta(meta);
             inv.setItem(31, none);
         }
@@ -429,12 +478,11 @@ public class PetsGui {
         lore.add(Lore.stat(ChatColor.AQUA, "Worn",
                 Math.min(data.getEquippedPets().size(), pets.slots(data)) + " / " + pets.slots(data)));
         lore.add("");
-        // V313: eggs are bought with Cosmic Dust and every upgrade is
-        // paid in Gems, so the panel has to name all three or a player
-        // reads the dust and wonders why the upgrade is still red.
-        lore.add(Lore.section(ChatColor.YELLOW, "What pets cost"));
-        lore.add(Lore.pipe(ChatColor.LIGHT_PURPLE, Currency.COSMIC_DUST.amount(data.getCosmicDust())));
-        lore.add(Lore.pipe(ChatColor.AQUA, Currency.GEMS.amount(data.getShards())));
+        // V392: eggs drop while farming; levels are paid in Cosmic Dust.
+        lore.add(Lore.section(ChatColor.YELLOW, "Where pets come from"));
+        lore.add(Lore.pipe(ChatColor.GREEN, ChatColor.GRAY + "Eggs drop while you farm, one kind per crop"));
+        lore.add(Lore.pipe(ChatColor.LIGHT_PURPLE, ChatColor.GRAY + "Levels are paid in Cosmic Dust"));
+        lore.add(Lore.stat(ChatColor.LIGHT_PURPLE, "You hold", Currency.COSMIC_DUST.amount(data.getCosmicDust())));
         lore.add("");
         if (pets.slots(data) < PetManager.MAX_SLOTS) {
             lore.add(Lore.footnote("More slots come from /skilltree."));

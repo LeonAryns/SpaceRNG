@@ -37,7 +37,7 @@ import java.util.Map;
  */
 public record PetEgg(String id, String display, List<String> colors, Material icon,
                      long cost, int minPrestige, Rarity floor, Map<Rarity, Double> chances,
-                     List<String> pets, int index, double worth) {
+                     List<String> pets, int index, double worth, String crop) {
 
     /**
      * The pet this egg hatches at a given rarity, or null when it has

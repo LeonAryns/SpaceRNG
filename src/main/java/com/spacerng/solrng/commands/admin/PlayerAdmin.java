@@ -277,6 +277,19 @@ final class PlayerAdmin extends AdminTools {
 
         PlayerData data = plugin.getPlayerDataManager().get(target.getUniqueId());
         String currency = args[1].toLowerCase(Locale.ROOT);
+        // V392: pet eggs for testing, "give egg:wheat 5" or "give shinyegg:fern 1".
+        if (currency.startsWith("egg:") || currency.startsWith("shinyegg:")) {
+            String eggId = currency.substring(currency.indexOf(':') + 1);
+            if (plugin.getPetManager().upgrades().egg(eggId) == null) {
+                sender.sendMessage(ChatColor.RED + "No egg called " + eggId + ". Eggs: wheat, carrots, potatoes, "
+                        + "beetroot, nether_wart, fern.");
+                return true;
+            }
+            data.addPetEggs(eggId + (currency.startsWith("shiny") ? "#shiny" : ""), amount);
+            sender.sendMessage(ChatColor.GREEN + "Gave " + target.getName() + " " + String.format("%,d", amount)
+                    + " " + currency + ".");
+            return true;
+        }
         switch (currency) {
             // The old names still work, so anything scripted against them
               // (a web store callback, a console macro) keeps running.
@@ -296,7 +309,7 @@ final class PlayerAdmin extends AdminTools {
             case "speed" -> data.addBonusSpeed(amount / 100.0);
             case "tickets" -> data.setPerkTickets(data.getPerkTickets() + amount);
             default -> {
-                sender.sendMessage(ChatColor.RED + "Unknown type. Use money, coins, gems, credits, luck, speed or tickets.");
+                sender.sendMessage(ChatColor.RED + "Unknown type. Use money, coins, gems, credits, luck, speed, tickets, egg:<egg> or shinyegg:<egg>.");
                 return true;
             }
         }

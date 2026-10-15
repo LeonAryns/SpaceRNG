@@ -5,8 +5,29 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V391**, 15 October 2026. The newest section is the
+Last updated at **V392**, 15 October 2026. The newest section is the
 first one below; older sections further down are history.
+
+## V392, 15 October 2026 (untested in game)
+
+- Pets revamp: six crop eggs replace the eleven Prestige eggs (Wheat,
+  Carrot, Potato, Beetroot, Nether Wart, Fern), reusing the pets of the
+  Prestige 0, 20, 40, 60, 80 and 100 eggs. The other 35 pets stay with
+  whoever owns them but no longer hatch (their egg is gone, so they are
+  worth the base bonus). config-version 61 (pets.eggs and pets.types).
+- Odds in every egg: Common 45 (the leftover), Uncommon 25, Rare 15,
+  Epic 8, Legendary 4.5, Mythical 1.5, Divine 1%. Pet Luck still tilts.
+- Eggs drop while farming: `pets.egg-drops.chance` 0.001 a harvest of
+  that crop, times Pet Egg Luck; 1% of drops shiny. Held on the player
+  as `pet-eggs` (id, "#shiny" for shiny). A shiny egg opens first and
+  its pet hatches shiny; `pets.upgrades.shiny-bonus` 0.10 to 1.0, so a
+  shiny pet is 2x (patch), whether hatched or made shiny with shinies.
+- /pets lists held eggs in front of the pets; a click opens the egg
+  screen, whose buttons open held eggs (Gems no longer buy eggs).
+  Auto open keeps opening held eggs.
+- /crops: fourth upgrade Pet Egg Luck (+1% drop chance a level, opens
+  with Carrots); each crop shows its egg and the live drop chance.
+- `/rngadmin give egg:wheat 5 [player]`, `shinyegg:<egg>` to test.
 
 ## V391, 15 October 2026 (untested in game)
 
@@ -2190,7 +2211,7 @@ eggs go.
    Upgrades: Enchant Proc, Coin boost, Gem boost, pet egg chance, +1%
    a level, 1 crop coin a level, max level 100 per crop unlocked (600
    with all six). Pet egg chance unlocks at Carrots and says so.
-4. Pets: an egg per crop (Wheat Egg ... Fern Egg), dropping while
+4. V392 done: Pets: an egg per crop (Wheat Egg ... Fern Egg), dropping while
    farming that crop, stored in /pets and opened there. 1% of eggs are
    shiny: every pet stat from that egg 2x. An egg gives Common to
    Divine, Divine 1%. Old 11 eggs go.

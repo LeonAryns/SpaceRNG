@@ -39,8 +39,12 @@ public final class CropUpgrades {
     public static final Stat GEMS = new Stat("GEMS", "Gem Boost", ChatColor.AQUA,
             Material.AMETHYST_SHARD, "Every crop pays more Gems.", null);
 
+    // V392: how often a crop drops its pet egg. Opens with Carrots.
+    public static final Stat PET_EGGS = new Stat("PET_EGGS", "Pet Egg Luck", ChatColor.LIGHT_PURPLE,
+            Material.SNIFFER_EGG, "Every crop drops its pet egg more often.", "CARROTS");
+
     /** In the order /crops draws them. */
-    public static final List<Stat> ALL = List.of(ENCHANT_PROC, COINS, GEMS);
+    public static final List<Stat> ALL = List.of(ENCHANT_PROC, COINS, GEMS, PET_EGGS);
 
     private static final String PREFIX = "ALL:";
 

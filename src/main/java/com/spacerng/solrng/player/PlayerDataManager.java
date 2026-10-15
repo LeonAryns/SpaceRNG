@@ -180,6 +180,10 @@ public class PlayerDataManager {
         if (keys != null) {
             for (String id : keys.getKeys(false)) data.addStoredKeys(id, keys.getLong(id));
         }
+        org.bukkit.configuration.ConfigurationSection petEggs = yml.getConfigurationSection("pet-eggs");
+        if (petEggs != null) {
+            for (String key : petEggs.getKeys(false)) data.addPetEggs(key, petEggs.getLong(key));
+        }
         org.bukkit.configuration.ConfigurationSection stored = yml.getConfigurationSection("stored-boosters");
         if (stored != null) {
             for (String id : stored.getKeys(false)) data.addStoredBooster(id, stored.getLong(id));
@@ -528,6 +532,8 @@ public class PlayerDataManager {
         yml.set("selected-secret", data.getSelectedSecret());
         yml.set("stored-keys", null);
         data.getStoredKeys().forEach((id, amount) -> yml.set("stored-keys." + id, amount));
+        yml.set("pet-eggs", null);
+        data.getPetEggs().forEach((key, amount) -> yml.set("pet-eggs." + key, amount));
         yml.set("stored-boosters", null);
         data.getStoredBoosters().forEach((id, amount) -> yml.set("stored-boosters." + id, amount));
         yml.set("roll-charge-multiplier", data.getRollChargeMultiplier());

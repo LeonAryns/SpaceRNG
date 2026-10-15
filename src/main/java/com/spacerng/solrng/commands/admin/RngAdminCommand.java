@@ -41,7 +41,9 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             "bank", "rank", "cosmetic", "bedrock", "aura", "auras", "head", "reveal", "nextroll", "roll", "unlock", "unlockall", "lockall", "odds", "farmblock", "farmscan", "farmwheat", "farmland",
             "hoe", "consumable", "gradient", "welcome", "crops", "farmclear",
             "milestones", "farmfill", "boost", "crowd", "nova", "points", "placeholders", "payout", "crate", "petegg", "tophead", "floatingitem", "boss", "pet", "dust", "discord", "realm", "advancements", "protect", "cropwatch", "farmboard", "icon", "shiny", "firsts", "lorestyles", "tagstyles", "menustyles", "hoestyles", "standingstyles", "enchantstyles", "novastyles", "auratest", "holo", "help");
-    private static final List<String> CURRENCIES = List.of("money", "coins", "gems", "credits", "luck", "speed", "tickets");
+    private static final List<String> CURRENCIES = List.of("money", "coins", "gems", "credits", "luck", "speed", "tickets",
+            "egg:wheat", "egg:carrots", "egg:potatoes", "egg:beetroot", "egg:nether_wart", "egg:fern",
+            "shinyegg:wheat", "shinyegg:fern");
 
     private final SolRNGPlugin plugin;
     private final PlayerAdmin players;
@@ -148,8 +150,8 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         line(sender, "starforge", "[tier] [player]", "Give a Starforge (defaults to the tier they own)");
         line(sender, "reset", "<player> confirm", "Wipe a player back to a brand-new account");
         line(sender, "season", "reset confirm", "New season: wipe every player, the boards, First 10 and found counts");
-        line(sender, "give", "<money|coins|gems|credits|luck|speed> <amount> [player]",
-                "Top up a currency, or add permanent Luck or Speed in percent");
+        line(sender, "give", "<money|coins|gems|credits|luck|speed|tickets|egg:<egg>|shinyegg:<egg>> <amount> [player]",
+                "Top up a currency, add permanent Luck or Speed in percent, or hand out pet eggs");
         line(sender, "rank", "<set|clear> [rank] [player]", "Grant or clear a rank, for store purchases");
         line(sender, "store", "<player> <what they bought>",
                 "Announce a store purchase in chat, for a Tebex package");

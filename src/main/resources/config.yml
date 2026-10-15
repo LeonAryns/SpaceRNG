@@ -8,7 +8,7 @@
 # their fresh defaults in on top of whatever is on disk, so a server
 # owner never has to delete the whole file to pick up a structural
 # change. Item table, prices and cosmetic tweaks are untouched.
-config-version: 60
+config-version: 61
 
 # One-off value changes the plugin has already made to this file, so none
 # is ever made twice. Managed by the plugin; leave it alone.
@@ -7341,296 +7341,111 @@ pets:
     # 1, 3 and 9, and with auto open on the buying keeps going.
     bulk: [1, 3, 9]
     tiers:
-      # V362: the starter egg, Leon's "first pet at P0 with a pretty bad
-      # multi". worth is what its pets are worth as a multiple of the
-      # rarity's fresh bonus: 0.2 puts a Common at 1.02x and a Divine at
-      # 1.2x. Every other egg leaves worth out and gets the growth ladder,
-      # so this egg did not make them worth more.
-      prestige_0:
-        display: "Stardust Egg"
-        colors: ["#FFF3C4", "#FFD54F"]
-        icon: GLOWSTONE_DUST
-        cost: 2500
+      # V392, Leon: one egg per crop, dropped while farming that crop
+      # (pets.egg-drops) and opened in /pets. Seven pets each, Common to
+      # Divine, the same odds in every egg: Common is what is left, 45%.
+      # A later crop's egg holds pets worth more (egg-bonus-growth).
+      wheat:
+        display: "Wheat Egg"
+        crop: WHEAT
+        colors: ["#FFF59D", "#FBC02D"]
+        icon: WHEAT
+        cost: 1
         min-prestige: 0
         min-rarity: COMMON
-        worth: 0.2
         chances:
-          DIVINE: 0.00001
-          MYTHICAL: 0.0002
-          LEGENDARY: 0.002
-          EPIC: 0.02
-          RARE: 0.10
           UNCOMMON: 0.25
-        pets:
-          - lint_mote
-          - glimmer_pup
-          - ember_moth
-          - comet_kit
-          - moon_hare
-          - lantern_owl
-          - first_spark
-      prestige_10:
-        display: "Meteor Egg"
-        colors: ["#BCAAA4", "#8D6E63"]
-        icon: TURTLE_EGG
-        # Gems, per egg opened. It unlocks on its own at the Prestige
-        # below, so this is a price and never a fee to get in.
-        cost: 10000
-        min-prestige: 10
-        min-rarity: COMMON
-        # The same ladder in every egg. Divine is Leon's 0.001%, and
-        # what is left over, about 62.8%, is the Common.
-        chances:
-          DIVINE: 0.00001
-          MYTHICAL: 0.0002
-          LEGENDARY: 0.002
-          EPIC: 0.02
-          RARE: 0.10
-          UNCOMMON: 0.25
-        # One pet per rarity, Common first. Finding all seven is what
-        # completes the egg and pays the 100% Pet Luck.
-        pets:
-          - pebble_drifter
-          - iron_shard
-          - crater_hound
-          - impact_core
-          - falling_star
-          - skyfall_titan
-          - first_stone
-      prestige_20:
-        display: "Comet Egg"
-        colors: ["#B3E5FC", "#4FC3F7"]
-        icon: SNOWBALL
-        # Gems, per egg opened. It unlocks on its own at the Prestige
-        # below, so this is a price and never a fee to get in.
-        cost: 20000
-        min-prestige: 20
+          RARE: 0.15
+          EPIC: 0.08
+          LEGENDARY: 0.045
+          MYTHICAL: 0.015
+          DIVINE: 0.01
+        pets: [lint_mote, glimmer_pup, ember_moth, comet_kit, moon_hare, lantern_owl, first_spark]
+
+      carrots:
+        display: "Carrot Egg"
+        crop: CARROTS
+        colors: ["#FFCC80", "#FB8C00"]
+        icon: CARROT
+        cost: 1
+        min-prestige: 0
         min-rarity: COMMON
         chances:
-          DIVINE: 0.00001
-          MYTHICAL: 0.0002
-          LEGENDARY: 0.002
-          EPIC: 0.02
-          RARE: 0.10
           UNCOMMON: 0.25
-        # One pet per rarity, Common first. Finding all seven is what
-        # completes the egg and pays the 100% Pet Luck.
-        pets:
-          - frost_mote
-          - ice_trail
-          - long_orbit
-          - blue_tail
-          - hale_runner
-          - perihelion
-          - long_period
-      prestige_30:
-        display: "Nebula Egg"
-        colors: ["#CE93D8", "#AB47BC"]
-        icon: SNIFFER_EGG
-        # Gems, per egg opened. It unlocks on its own at the Prestige
-        # below, so this is a price and never a fee to get in.
-        cost: 40000
-        min-prestige: 30
+          RARE: 0.15
+          EPIC: 0.08
+          LEGENDARY: 0.045
+          MYTHICAL: 0.015
+          DIVINE: 0.01
+        pets: [frost_mote, ice_trail, long_orbit, blue_tail, hale_runner, perihelion, long_period]
+
+      potatoes:
+        display: "Potato Egg"
+        crop: POTATOES
+        colors: ["#E6CFA3", "#A1887F"]
+        icon: POTATO
+        cost: 1
+        min-prestige: 0
         min-rarity: COMMON
         chances:
-          DIVINE: 0.00001
-          MYTHICAL: 0.0002
-          LEGENDARY: 0.002
-          EPIC: 0.02
-          RARE: 0.10
           UNCOMMON: 0.25
-        # One pet per rarity, Common first. Finding all seven is what
-        # completes the egg and pays the 100% Pet Luck.
-        pets:
-          - dust_wisp
-          - violet_veil
-          - star_nursery
-          - pillar_walker
-          - emission_heart
-          - dark_cloud
-          - first_light
-      prestige_40:
-        display: "Pulsar Egg"
-        colors: ["#FF8A80", "#FF5252"]
-        icon: REDSTONE
-        # Gems, per egg opened. It unlocks on its own at the Prestige
-        # below, so this is a price and never a fee to get in.
-        cost: 80000
-        min-prestige: 40
+          RARE: 0.15
+          EPIC: 0.08
+          LEGENDARY: 0.045
+          MYTHICAL: 0.015
+          DIVINE: 0.01
+        pets: [tick_mote, beam_sweep, spin_core, magnetar, lighthouse, millisecond, clockheart]
+
+      beetroot:
+        display: "Beetroot Egg"
+        crop: BEETROOTS
+        colors: ["#F48FB1", "#C2185B"]
+        icon: BEETROOT
+        cost: 1
+        min-prestige: 0
         min-rarity: COMMON
         chances:
-          DIVINE: 0.00001
-          MYTHICAL: 0.0002
-          LEGENDARY: 0.002
-          EPIC: 0.02
-          RARE: 0.10
           UNCOMMON: 0.25
-        # One pet per rarity, Common first. Finding all seven is what
-        # completes the egg and pays the 100% Pet Luck.
-        pets:
-          - tick_mote
-          - beam_sweep
-          - spin_core
-          - magnetar
-          - lighthouse
-          - millisecond
-          - clockheart
-      prestige_50:
-        display: "Quasar Egg"
-        colors: ["#FFE082", "#FFB300"]
-        icon: GLOWSTONE_DUST
-        # Gems, per egg opened. It unlocks on its own at the Prestige
-        # below, so this is a price and never a fee to get in.
-        cost: 160000
-        min-prestige: 50
+          RARE: 0.15
+          EPIC: 0.08
+          LEGENDARY: 0.045
+          MYTHICAL: 0.015
+          DIVINE: 0.01
+        pets: [ember_fleck, shockfront, heavy_ash, collapse, remnant, type_one, last_light]
+
+      nether_wart:
+        display: "Nether Wart Egg"
+        crop: NETHER_WART
+        colors: ["#EF9A9A", "#B71C1C"]
+        icon: NETHER_WART
+        cost: 1
+        min-prestige: 0
         min-rarity: COMMON
         chances:
-          DIVINE: 0.00001
-          MYTHICAL: 0.0002
-          LEGENDARY: 0.002
-          EPIC: 0.02
-          RARE: 0.10
           UNCOMMON: 0.25
-        # One pet per rarity, Common first. Finding all seven is what
-        # completes the egg and pays the 100% Pet Luck.
-        pets:
-          - bright_speck
-          - jet_stream
-          - accretion
-          - blazar
-          - gold_torrent
-          - ancient_glare
-          - first_engine
-      prestige_60:
-        display: "Supernova Egg"
-        colors: ["#FFD54F", "#FF6F3C"]
-        icon: FIRE_CHARGE
-        # Gems, per egg opened. It unlocks on its own at the Prestige
-        # below, so this is a price and never a fee to get in.
-        cost: 320000
-        min-prestige: 60
+          RARE: 0.15
+          EPIC: 0.08
+          LEGENDARY: 0.045
+          MYTHICAL: 0.015
+          DIVINE: 0.01
+        pets: [event_mote, tidal_pull, photon_ring, horizon_walker, time_dilate, mass_well, point_zero]
+
+      fern:
+        display: "Fern Egg"
+        crop: SWEET_BERRIES
+        colors: ["#A5D6A7", "#2E7D32"]
+        icon: FERN
+        cost: 1
+        min-prestige: 0
         min-rarity: COMMON
         chances:
-          DIVINE: 0.00001
-          MYTHICAL: 0.0002
-          LEGENDARY: 0.002
-          EPIC: 0.02
-          RARE: 0.10
           UNCOMMON: 0.25
-        # One pet per rarity, Common first. Finding all seven is what
-        # completes the egg and pays the 100% Pet Luck.
-        pets:
-          - ember_fleck
-          - shockfront
-          - heavy_ash
-          - collapse
-          - remnant
-          - type_one
-          - last_light
-      prestige_70:
-        display: "Eclipse Egg"
-        colors: ["#B0BEC5", "#455A64"]
-        icon: INK_SAC
-        # Gems, per egg opened. It unlocks on its own at the Prestige
-        # below, so this is a price and never a fee to get in.
-        cost: 640000
-        min-prestige: 70
-        min-rarity: COMMON
-        chances:
-          DIVINE: 0.00001
-          MYTHICAL: 0.0002
-          LEGENDARY: 0.002
-          EPIC: 0.02
-          RARE: 0.10
-          UNCOMMON: 0.25
-        # One pet per rarity, Common first. Finding all seven is what
-        # completes the egg and pays the 100% Pet Luck.
-        pets:
-          - penumbra
-          - umbra
-          - corona
-          - diamond_ring
-          - totality
-          - saros
-          - black_sun
-      prestige_80:
-        display: "Singularity Egg"
-        colors: ["#B388FF", "#651FFF"]
-        icon: ENDER_EYE
-        # Gems, per egg opened. It unlocks on its own at the Prestige
-        # below, so this is a price and never a fee to get in.
-        cost: 1280000
-        min-prestige: 80
-        min-rarity: COMMON
-        chances:
-          DIVINE: 0.00001
-          MYTHICAL: 0.0002
-          LEGENDARY: 0.002
-          EPIC: 0.02
-          RARE: 0.10
-          UNCOMMON: 0.25
-        # One pet per rarity, Common first. Finding all seven is what
-        # completes the egg and pays the 100% Pet Luck.
-        pets:
-          - event_mote
-          - tidal_pull
-          - photon_ring
-          - horizon_walker
-          - time_dilate
-          - mass_well
-          - point_zero
-      prestige_90:
-        display: "Horizon Egg"
-        colors: ["#80DEEA", "#00ACC1"]
-        icon: ECHO_SHARD
-        # Gems, per egg opened. It unlocks on its own at the Prestige
-        # below, so this is a price and never a fee to get in.
-        cost: 2560000
-        min-prestige: 90
-        min-rarity: COMMON
-        chances:
-          DIVINE: 0.00001
-          MYTHICAL: 0.0002
-          LEGENDARY: 0.002
-          EPIC: 0.02
-          RARE: 0.10
-          UNCOMMON: 0.25
-        # One pet per rarity, Common first. Finding all seven is what
-        # completes the egg and pays the 100% Pet Luck.
-        pets:
-          - far_edge
-          - red_shift
-          - cold_glow
-          - deep_field
-          - lookback
-          - edge_walker
-          - observable
-      prestige_100:
-        display: "Infinity Egg"
-        colors: ["#F8BBD0", "#EC407A"]
-        icon: DRAGON_EGG
-        # Gems, per egg opened. It unlocks on its own at the Prestige
-        # below, so this is a price and never a fee to get in.
-        cost: 5120000
-        min-prestige: 100
-        min-rarity: COMMON
-        chances:
-          DIVINE: 0.00001
-          MYTHICAL: 0.0002
-          LEGENDARY: 0.002
-          EPIC: 0.02
-          RARE: 0.10
-          UNCOMMON: 0.25
-        # One pet per rarity, Common first. Finding all seven is what
-        # completes the egg and pays the 100% Pet Luck.
-        pets:
-          - one_more
-          - endless_row
-          - fold
-          - recursion
-          - uncountable
-          - absolute
-          - forever
+          RARE: 0.15
+          EPIC: 0.08
+          LEGENDARY: 0.045
+          MYTHICAL: 0.015
+          DIVINE: 0.01
+        pets: [one_more, endless_row, fold, recursion, uncountable, absolute, forever]
   # V359, Leon's numbers: a fresh pet runs from 1.1x at Common to 2.0x at
   # Divine. The bonus above 1 doubles every step the way it always has,
   # 0.1 to 1.0, so a rarity is still exponentially better than the one
@@ -7640,6 +7455,12 @@ pets:
   # max-multiplier: a level 10 pet is 1.9 times its fresh bonus, so a
   # Divine lands at 2.9x and a Common at 1.19x, and shiny is 10% on top
   # of that again.
+  # V392, Leon: the chance one harvest drops that crop's pet egg, times
+  # Pet Egg Luck in /crops, and the share of those eggs that are shiny.
+  egg-drops:
+    chance: 0.001
+    shiny-chance: 0.01
+
   multipliers:
     COMMON: 1.10
     UNCOMMON: 1.15
@@ -7714,7 +7535,8 @@ pets:
     # times fresh, which is Leon's "every level is 10% more multi"
     # counted from level 1.
     level-step: 0.10
-    shiny-bonus: 0.10
+    # V392: a shiny pet (a shiny egg, or made shiny) is worth 2x.
+    shiny-bonus: 1.0
 
     # The ceiling on level and shiny together. Nothing reaches it at
     # max-level 10; it is here so that raising max-level later cannot
@@ -7752,7 +7574,7 @@ pets:
       icon: STRING
       head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYmZmM2ExZmU4ZDA3OTEzMjVjY2ViZWJhNDVkODUzOTZhZmJlOWFjYTQ1YTdlNzJjYjc2YjhjNTJjMDQwMGIwIn19fQ=="
       rarity: COMMON
-      egg: prestige_0
+      egg: wheat
       stat: MONEY
       blurb: "Swept up off the floor of space."
     glimmer_pup:
@@ -7761,7 +7583,7 @@ pets:
       icon: GLOW_LICHEN
       head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvY2NlYzUxZmMxYTNhM2NjYmJlYzg3ZDM0YThjNTljN2Y1MTQwNGNhNGE1NThjMjAzNTRlYjRlYjI1OTNiNjcxMCJ9fX0="
       rarity: UNCOMMON
-      egg: prestige_0
+      egg: wheat
       stat: SPEED
       blurb: "Wags at anything that shines."
     ember_moth:
@@ -7770,7 +7592,7 @@ pets:
       icon: TORCHFLOWER
       head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTQxNDU4ZGIyNzIxMGU4OTA1Nzk1YjBmMzM2ODAxNWNkMGYyN2Y2ODhmYjBhMTRmNThiN2E0NDcwNzlhZWQ4ZiJ9fX0="
       rarity: RARE
-      egg: prestige_0
+      egg: wheat
       stat: LUCK
       blurb: "Always flying toward the nearest star."
     comet_kit:
@@ -7779,7 +7601,7 @@ pets:
       icon: FEATHER
       head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNWE0ZGZiMGI2Y2E3ZWExMmViZjQwNmMyOTEwMWNjZTYxODdmYjhmYWRmZTRlODI2NjRhMjI1ZjQ1NzRlMjllOSJ9fX0="
       rarity: EPIC
-      egg: prestige_0
+      egg: wheat
       stat: MONEY
       blurb: "Too small to have a tail of its own yet."
     moon_hare:
@@ -7788,7 +7610,7 @@ pets:
       icon: RABBIT_FOOT
       head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNTYwODgzZmQ4ZjliNWU4ZjQyMWEzYThiMDkxOGFjMGRkN2U2YTNkZWRiMzFhM2IyODgzMjdkNmRhODk2YzBjOSJ9fX0="
       rarity: LEGENDARY
-      egg: prestige_0
+      egg: wheat
       stat: LUCK
       blurb: "Lives on the far side, where nobody looks."
     lantern_owl:
@@ -7797,7 +7619,7 @@ pets:
       icon: LANTERN
       head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOThlMjU0MWYyNjUxYWM2MGY2YjE2ZWU0OTBmYzk0OWYzNTNjYTdhMWYzYjJlMWE2ZjQ5OGM2ZDU2MDIyNTBlIn19fQ=="
       rarity: MYTHICAL
-      egg: prestige_0
+      egg: wheat
       stat: SPEED
       blurb: "Keeps one light on for whoever is still rolling."
     first_spark:
@@ -7806,7 +7628,7 @@ pets:
       icon: SUNFLOWER
       head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNTQ2ODUzN2UxZTk5MDQwYjc2MGM4M2U1MzA5NmM4Njg3MGNkY2Q5Mjg1ZDUzMzAwNzYxZDBlMzZmZjllMTkyZiJ9fX0="
       rarity: DIVINE
-      egg: prestige_0
+      egg: wheat
       stat: LUCK
       blurb: "Everything else started as one of these."
     # ---- Meteor Egg, Prestige 10 ----
@@ -7880,7 +7702,7 @@ pets:
       icon: SNOWBALL
       head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNDM2MDdlOTMxZWVhOGYyN2ZhMTlmNmYzODU5NDY5ODIwYTIxZjU3NDM2MWYxOTBkMWE4YjM4MTNjZTMzZTM5ZCJ9fX0="
       rarity: COMMON
-      egg: prestige_20
+      egg: carrots
       stat: LUCK
       blurb: "A tail with nothing on the end of it."
     ice_trail:
@@ -7889,7 +7711,7 @@ pets:
       icon: ICE
       head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYzVkODBkMjBkMjFlMmNhMzdmNjhkZjkxYWZmOTk3NGNiNTFhOWQ1OTBjMGZhMTQxYjU0NGQ3ZWY5MDU2ODIzMiJ9fX0="
       rarity: UNCOMMON
-      egg: prestige_20
+      egg: carrots
       stat: SPEED
       blurb: "It leaves a line you can follow."
     long_orbit:
@@ -7898,7 +7720,7 @@ pets:
       icon: COMPASS
       head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYmMyMjk5YTQ3NzdiOGQwMjYyYWRhNWZlYjcyZTUxYTRjMWQ1MDZiMTJlZGJjZTM4Mjc3MzdkOTIyZTc5YTFmYSJ9fX0="
       rarity: RARE
-      egg: prestige_20
+      egg: carrots
       stat: MONEY
       blurb: "Back once every so many lifetimes."
     blue_tail:
@@ -7907,7 +7729,7 @@ pets:
       icon: PRISMARINE_CRYSTALS
       head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZWM2MzM5NzYzNGY3YTIyODkwNTBlMTE2YzVhNWZjZTdjMzJjNzY5NjhhZmZhYzI3YWZkMTE2MDNiNjgwOGRkNyJ9fX0="
       rarity: EPIC
-      egg: prestige_20
+      egg: carrots
       stat: COINS
       blurb: "Brighter the closer it gets."
     hale_runner:
@@ -7916,7 +7738,7 @@ pets:
       icon: SUGAR
       head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmM1ODNjZjBhYmE3NTY4MTU1MDM5ZjQ2ZTY4NjcwM2MxNmY0NGEyOTM0NzNkMzI5YTNiNmI2Y2I0YjEzMWI5NCJ9fX0="
       rarity: LEGENDARY
-      egg: prestige_20
+      egg: carrots
       stat: ENCHANT
       blurb: "Outruns everything in its own sky."
     perihelion:
@@ -7925,7 +7747,7 @@ pets:
       icon: HEART_OF_THE_SEA
       head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvY2NhZjlkNDA5MGJiM2RlYTNhMjYwMjY1YzQxZjA4Zjk2N2Y1MGM0N2VjOTI4NTE0MjU4YTMzODdmMjM2NzU1NCJ9fX0="
       rarity: MYTHICAL
-      egg: prestige_20
+      egg: carrots
       stat: SHINY
       blurb: "The one moment it is close."
     long_period:
@@ -7934,7 +7756,7 @@ pets:
       icon: CLOCK
       head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYTgwNmEwM2I1ZmM5MzkwODVmMjE5MTg5MGQ2ZWFlYzViODVhYzdkYzY5MmYwOGJmNDEwNGU1ZDY2NzJjZGM5ZiJ9fX0="
       rarity: DIVINE
-      egg: prestige_20
+      egg: carrots
       stat: LUCK
       blurb: "It will be back. Not for you."
     # ---- Nebula Egg, Prestige 30 ----
@@ -8008,7 +7830,7 @@ pets:
       icon: REDSTONE
       head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOThlMjU0MWYyNjUxYWM2MGY2YjE2ZWU0OTBmYzk0OWYzNTNjYTdhMWYzYjJlMWE2ZjQ5OGM2ZDU2MDIyNTBlIn19fQ=="
       rarity: COMMON
-      egg: prestige_40
+      egg: potatoes
       stat: LUCK
       blurb: "On, off, on, off."
     beam_sweep:
@@ -8017,7 +7839,7 @@ pets:
       icon: LIGHTNING_ROD
       head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNTQ2ODUzN2UxZTk5MDQwYjc2MGM4M2U1MzA5NmM4Njg3MGNkY2Q5Mjg1ZDUzMzAwNzYxZDBlMzZmZjllMTkyZiJ9fX0="
       rarity: UNCOMMON
-      egg: prestige_40
+      egg: potatoes
       stat: SPEED
       blurb: "It passes over you twice a second."
     spin_core:
@@ -8026,7 +7848,7 @@ pets:
       icon: SCULK_SENSOR
       head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZGEwY2EyYjkwZDgzMWYxN2Y3YzhiNzcxZmIzOTczY2NhMmQ3NmE0NTZiYjdiNDdiODBkNjg3MmIwNWIyNTFmNSJ9fX0="
       rarity: RARE
-      egg: prestige_40
+      egg: potatoes
       stat: MONEY
       blurb: "Turning far faster than it should."
     magnetar:
@@ -8035,7 +7857,7 @@ pets:
       icon: COMPASS
       head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYTg5YTc2ZGVlZGQ0MmI0MTAzNDQxMDBkZjJmYTc5YjZlZWFjN2U2ZjI4Nzc0NWQ2NTYxNzkzNjgzNDBmZmFkZSJ9fX0="
       rarity: EPIC
-      egg: prestige_40
+      egg: potatoes
       stat: COINS
       blurb: "It bends every needle in the room."
     lighthouse:
@@ -8044,7 +7866,7 @@ pets:
       icon: SEA_LANTERN
       head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvODE4MDdmZDA2NjYwMDI5MDg0MmFmYzMwZjAxNTJhYjlkODUyODMxMjQ2M2M2YjU3YzhkYjY1MDNhOWQ5NTM5NyJ9fX0="
       rarity: LEGENDARY
-      egg: prestige_40
+      egg: potatoes
       stat: ENCHANT
       blurb: "A warning nobody is left to read."
     millisecond:
@@ -8053,7 +7875,7 @@ pets:
       icon: CLOCK
       head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMWIwNmQxNTE1NWM2MGQwZjBmMjY3YmUwNWM4NDM2YzVhMWU3NjRhOGM4YWNhMjM2YmIzNzIyM2Y0OWQ5YTFkMCJ9fX0="
       rarity: MYTHICAL
-      egg: prestige_40
+      egg: potatoes
       stat: SHINY
       blurb: "A thousand turns while you blink."
     clockheart:
@@ -8062,7 +7884,7 @@ pets:
       icon: RECOVERY_COMPASS
       head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZDBmNzU3MjkwM2ZmMzlkNzU3YzRhMzFiMDU4MDA0MTkwNDA4OGU3MGM5OGJlZjk3OGJlM2IxNDlhNTI4NTg3OSJ9fX0="
       rarity: DIVINE
-      egg: prestige_40
+      egg: potatoes
       stat: LUCK
       blurb: "The most accurate thing there is."
     # ---- Quasar Egg, Prestige 50 ----
@@ -8136,7 +7958,7 @@ pets:
       icon: BLAZE_POWDER
       head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvY2NhZjlkNDA5MGJiM2RlYTNhMjYwMjY1YzQxZjA4Zjk2N2Y1MGM0N2VjOTI4NTE0MjU4YTMzODdmMjM2NzU1NCJ9fX0="
       rarity: COMMON
-      egg: prestige_60
+      egg: beetroot
       stat: LUCK
       blurb: "All that is left of something large."
     shockfront:
@@ -8145,7 +7967,7 @@ pets:
       icon: FIREWORK_STAR
       head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYTgwNmEwM2I1ZmM5MzkwODVmMjE5MTg5MGQ2ZWFlYzViODVhYzdkYzY5MmYwOGJmNDEwNGU1ZDY2NzJjZGM5ZiJ9fX0="
       rarity: UNCOMMON
-      egg: prestige_60
+      egg: beetroot
       stat: SPEED
       blurb: "It arrives before the sound."
     heavy_ash:
@@ -8154,7 +7976,7 @@ pets:
       icon: GUNPOWDER
       head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOWY1MTNkNzFiY2QyOWM1ZThmYWMzOTYzNzg2MDlhMGYyOTU0MDQ0M2FhYWFlNjUyZjdlNjE4ZGNiOThlZjJhZCJ9fX0="
       rarity: RARE
-      egg: prestige_60
+      egg: beetroot
       stat: MONEY
       blurb: "New elements, still warm."
     collapse:
@@ -8163,7 +7985,7 @@ pets:
       icon: CRYING_OBSIDIAN
       head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMzllNjgzYTIyMjY1MjQ5M2JlMDUwZDRhMWE4NjVhODc5YjBmMzMxYTgxNzA0MTNmNWRlNzA3MjExZDRlZjc2NCJ9fX0="
       rarity: EPIC
-      egg: prestige_60
+      egg: beetroot
       stat: COINS
       blurb: "It fell inward in one second."
     remnant:
@@ -8172,7 +7994,7 @@ pets:
       icon: SHULKER_SHELL
       head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYmZmM2ExZmU4ZDA3OTEzMjVjY2ViZWJhNDVkODUzOTZhZmJlOWFjYTQ1YTdlNzJjYjc2YjhjNTJjMDQwMGIwIn19fQ=="
       rarity: LEGENDARY
-      egg: prestige_60
+      egg: beetroot
       stat: ENCHANT
       blurb: "A shell expanding forever."
     type_one:
@@ -8181,7 +8003,7 @@ pets:
       icon: TOTEM_OF_UNDYING
       head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvY2NlYzUxZmMxYTNhM2NjYmJlYzg3ZDM0YThjNTljN2Y1MTQwNGNhNGE1NThjMjAzNTRlYjRlYjI1OTNiNjcxMCJ9fX0="
       rarity: MYTHICAL
-      egg: prestige_60
+      egg: beetroot
       stat: SHINY
       blurb: "Always the same brightness, always."
     last_light:
@@ -8190,7 +8012,7 @@ pets:
       icon: NETHER_STAR
       head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTQxNDU4ZGIyNzIxMGU4OTA1Nzk1YjBmMzM2ODAxNWNkMGYyN2Y2ODhmYjBhMTRmNThiN2E0NDcwNzlhZWQ4ZiJ9fX0="
       rarity: DIVINE
-      egg: prestige_60
+      egg: beetroot
       stat: LUCK
       blurb: "Brighter than the whole sky it was in."
     # ---- Eclipse Egg, Prestige 70 ----
@@ -8264,7 +8086,7 @@ pets:
       icon: ENDER_PEARL
       head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMWIwNmQxNTE1NWM2MGQwZjBmMjY3YmUwNWM4NDM2YzVhMWU3NjRhOGM4YWNhMjM2YmIzNzIyM2Y0OWQ5YTFkMCJ9fX0="
       rarity: COMMON
-      egg: prestige_80
+      egg: nether_wart
       stat: LUCK
       blurb: "It is already falling in."
     tidal_pull:
@@ -8273,7 +8095,7 @@ pets:
       icon: SLIME_BALL
       head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZDBmNzU3MjkwM2ZmMzlkNzU3YzRhMzFiMDU4MDA0MTkwNDA4OGU3MGM5OGJlZjk3OGJlM2IxNDlhNTI4NTg3OSJ9fX0="
       rarity: UNCOMMON
-      egg: prestige_80
+      egg: nether_wart
       stat: SPEED
       blurb: "Stretched longer than it is wide."
     photon_ring:
@@ -8282,7 +8104,7 @@ pets:
       icon: END_ROD
       head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZWMwODlhNDVlNjZlZDY4YmQ2M2MyODExOWZjNmY4OTU3NGZlNTJlMGNjNjkzMjk2Yzc2YjdjNGFmZTRlNzRiZiJ9fX0="
       rarity: RARE
-      egg: prestige_80
+      egg: nether_wart
       stat: MONEY
       blurb: "Light going round in a circle."
     horizon_walker:
@@ -8291,7 +8113,7 @@ pets:
       icon: ENDER_EYE
       head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNDg5NTdiNTA1YTIxZTMzYWEwOTJlMmFhNDdkODFlODgxNWVkYTU4MDNkMTRiMzM5OTBmMjRlZmZiNzQxNzE5OCJ9fX0="
       rarity: EPIC
-      egg: prestige_80
+      egg: nether_wart
       stat: COINS
       blurb: "It crossed and did not notice."
     time_dilate:
@@ -8300,7 +8122,7 @@ pets:
       icon: CLOCK
       head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNDM2MDdlOTMxZWVhOGYyN2ZhMTlmNmYzODU5NDY5ODIwYTIxZjU3NDM2MWYxOTBkMWE4YjM4MTNjZTMzZTM5ZCJ9fX0="
       rarity: LEGENDARY
-      egg: prestige_80
+      egg: nether_wart
       stat: ENCHANT
       blurb: "A year for you, a second for it."
     mass_well:
@@ -8309,7 +8131,7 @@ pets:
       icon: NETHERITE_INGOT
       head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYzVkODBkMjBkMjFlMmNhMzdmNjhkZjkxYWZmOTk3NGNiNTFhOWQ1OTBjMGZhMTQxYjU0NGQ3ZWY5MDU2ODIzMiJ9fX0="
       rarity: MYTHICAL
-      egg: prestige_80
+      egg: nether_wart
       stat: SHINY
       blurb: "Heavy past any sensible number."
     point_zero:
@@ -8318,7 +8140,7 @@ pets:
       icon: END_CRYSTAL
       head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYmMyMjk5YTQ3NzdiOGQwMjYyYWRhNWZlYjcyZTUxYTRjMWQ1MDZiMTJlZGJjZTM4Mjc3MzdkOTIyZTc5YTFmYSJ9fX0="
       rarity: DIVINE
-      egg: prestige_80
+      egg: nether_wart
       stat: LUCK
       blurb: "Everything, in no space whatsoever."
     # ---- Horizon Egg, Prestige 90 ----
@@ -8392,7 +8214,7 @@ pets:
       icon: PAPER
       head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvY2NlYzUxZmMxYTNhM2NjYmJlYzg3ZDM0YThjNTljN2Y1MTQwNGNhNGE1NThjMjAzNTRlYjRlYjI1OTNiNjcxMCJ9fX0="
       rarity: COMMON
-      egg: prestige_100
+      egg: fern
       stat: LUCK
       blurb: "And then one more after that."
     endless_row:
@@ -8401,7 +8223,7 @@ pets:
       icon: IRON_CHAIN
       head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTQxNDU4ZGIyNzIxMGU4OTA1Nzk1YjBmMzM2ODAxNWNkMGYyN2Y2ODhmYjBhMTRmNThiN2E0NDcwNzlhZWQ4ZiJ9fX0="
       rarity: UNCOMMON
-      egg: prestige_100
+      egg: fern
       stat: SPEED
       blurb: "It goes on past where you can count."
     fold:
@@ -8410,7 +8232,7 @@ pets:
       icon: PHANTOM_MEMBRANE
       head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNWE0ZGZiMGI2Y2E3ZWExMmViZjQwNmMyOTEwMWNjZTYxODdmYjhmYWRmZTRlODI2NjRhMjI1ZjQ1NzRlMjllOSJ9fX0="
       rarity: RARE
-      egg: prestige_100
+      egg: fern
       stat: MONEY
       blurb: "Twice as much in the same room."
     recursion:
@@ -8419,7 +8241,7 @@ pets:
       icon: ITEM_FRAME
       head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNTYwODgzZmQ4ZjliNWU4ZjQyMWEzYThiMDkxOGFjMGRkN2U2YTNkZWRiMzFhM2IyODgzMjdkNmRhODk2YzBjOSJ9fX0="
       rarity: EPIC
-      egg: prestige_100
+      egg: fern
       stat: COINS
       blurb: "It contains a smaller one of itself."
     uncountable:
@@ -8428,7 +8250,7 @@ pets:
       icon: AMETHYST_BLOCK
       head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOThlMjU0MWYyNjUxYWM2MGY2YjE2ZWU0OTBmYzk0OWYzNTNjYTdhMWYzYjJlMWE2ZjQ5OGM2ZDU2MDIyNTBlIn19fQ=="
       rarity: LEGENDARY
-      egg: prestige_100
+      egg: fern
       stat: ENCHANT
       blurb: "More than every number there is."
     absolute:
@@ -8437,7 +8259,7 @@ pets:
       icon: HEAVY_CORE
       head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNTQ2ODUzN2UxZTk5MDQwYjc2MGM4M2U1MzA5NmM4Njg3MGNkY2Q5Mjg1ZDUzMzAwNzYxZDBlMzZmZjllMTkyZiJ9fX0="
       rarity: MYTHICAL
-      egg: prestige_100
+      egg: fern
       stat: SHINY
       blurb: "Nothing is larger. Nothing can be."
     forever:
@@ -8446,7 +8268,7 @@ pets:
       icon: DRAGON_EGG
       head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZGEwY2EyYjkwZDgzMWYxN2Y3YzhiNzcxZmIzOTczY2NhMmQ3NmE0NTZiYjdiNDdiODBkNjg3MmIwNWIyNTFmNSJ9fX0="
       rarity: DIVINE
-      egg: prestige_100
+      egg: fern
       stat: LUCK
       blurb: "It was here first and it will be here last."
 # ---------------------------------------------------------------------

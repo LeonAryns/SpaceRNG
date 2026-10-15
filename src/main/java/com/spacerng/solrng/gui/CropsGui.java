@@ -33,7 +33,7 @@ public class CropsGui {
 
     private static final int SIZE = 45;
     private static final int COINS_SLOT = 4;
-    private static final int[] UPGRADE_SLOTS = {29, 31, 33};
+    private static final int[] UPGRADE_SLOTS = {28, 30, 32, 34};
 
     public static NamespacedKey cropKey(SolRNGPlugin plugin) {
         return SolRNGPlugin.key("solrng_crop_id");
@@ -131,8 +131,9 @@ public class CropsGui {
         lore.add("");
         if (!available) {
             lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Locked");
+            CropType needs = plugin.getFarmPlotManager().getCrop(stat.requires());
             lore.add(Lore.line(ChatColor.GRAY, "Opens with "
-                    + stat.requires().toLowerCase(java.util.Locale.ROOT).replace('_', ' ')));
+                    + (needs == null ? stat.requires() : needs.getDisplay())));
         } else if (maxed) {
             lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "Maxed");
             lore.add(Lore.footnote("Every crop you unlock adds 100 levels."));
@@ -197,6 +198,14 @@ public class CropsGui {
             }
         }
         lore.add(Lore.footnote("Left is the crop, right is you."));
+        // V392, Leon: the crop's pet egg and its drop chance, "(0.1%)".
+        var egg = plugin.getPetManager().upgrades().eggForCrop(crop.getId());
+        if (egg != null) {
+            lore.add("");
+            lore.add(Lore.stat(ChatColor.LIGHT_PURPLE, "Pet egg", Lore.gradient(egg.display(), false, egg.stops())
+                    + ChatColor.DARK_GRAY + " (" + ChatColor.AQUA
+                    + eggPercent(plugin.getPetManager().eggDropChance(data)) + ChatColor.DARK_GRAY + ")"));
+        }
         lore.add("");
         if (selected) {
             lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "Growing now");
@@ -220,6 +229,16 @@ public class CropsGui {
         meta.getPersistentDataContainer().set(cropKey(plugin), PersistentDataType.STRING, crop.getId());
         icon.setItemMeta(meta);
         return icon;
+    }
+
+    /** "0.1%", with as many places as a small chance needs. */
+    private static String eggPercent(double chance) {
+        double value = chance * 100.0;
+        String text = value >= 1 ? String.format("%.1f", value)
+                : value >= 0.1 ? String.format("%.2f", value) : String.format("%.3f", value);
+        // Trailing zeros say nothing: 0.10% reads as 0.1%.
+        if (text.contains(".")) text = text.replaceAll("0+$", "").replaceAll("[.]$", "");
+        return text + "%";
     }
 
     /** Crops aren't obtainable as items, so show the seed/food equivalent. */

@@ -801,8 +801,7 @@ public final class HoloManager {
         List<Component> lines = new ArrayList<>();
         if (egg != null) {
             lines.add(parse("<white>Seven pets, one of every rarity"));
-            lines.add(parse("<gray>Prestige <white>" + egg.minPrestige()
-                    + " <dark_gray>|<gray> <#69F0AE>" + String.format("%,d", egg.cost()) + " Gems</#69F0AE> an egg"));
+            lines.add(parse("<gray>Drops while farming, opens in <white>/pets"));
         }
         String click = plugin.getConfig().getString("holograms.click", "");
         stack(spot, spot.at().clone().add(0, textY, 0), parse(title), lines,

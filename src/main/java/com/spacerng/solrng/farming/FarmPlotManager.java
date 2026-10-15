@@ -2,6 +2,7 @@ package com.spacerng.solrng.farming;
 
 import com.spacerng.solrng.SolRNGPlugin;
 import com.spacerng.solrng.gui.Currency;
+import com.spacerng.solrng.gui.Lore;
 import com.spacerng.solrng.player.PlayerData;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -843,6 +844,25 @@ public class FarmPlotManager {
                 && ThreadLocalRandom.current().nextDouble() < shardGreed;
         if (gemProc) {
             shards += 1;
+        }
+
+        // V392, Leon: every crop can drop its own pet egg, kept in /pets.
+        String egg = plugin.getPetManager().rollEggDrop(data, crop.getId());
+        if (egg != null) {
+            var type = plugin.getPetManager().upgrades().egg(egg.replace("#shiny", ""));
+            boolean shinyEgg = egg.endsWith("#shiny");
+            if (type != null) {
+                player.sendMessage((shinyEgg ? ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "Shiny egg!  "
+                                : ChatColor.GREEN + "" + ChatColor.BOLD + "Egg found  ")
+                        + ChatColor.RESET + (shinyEgg ? Lore.SPARK + " " : "")
+                        + Lore.gradient(type.display(), true, type.stops())
+                        + ChatColor.GRAY + ", waiting in " + ChatColor.YELLOW + "/pets" + ChatColor.GRAY + ".");
+                player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_CHICKEN_EGG, 0.8f,
+                        shinyEgg ? 1.8f : 1.2f);
+                if (shinyEgg) {
+                    player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_AMETHYST_BLOCK_CHIME, 0.9f, 1.6f);
+                }
+            }
         }
 
         // Fortune was removed. The flag survives only so the announce

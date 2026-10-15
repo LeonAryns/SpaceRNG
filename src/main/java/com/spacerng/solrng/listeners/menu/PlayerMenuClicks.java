@@ -276,7 +276,7 @@ final class PlayerMenuClicks {
                         + String.format("%,d", com.spacerng.solrng.farming.CropUpgrades.cropsPerCoin(plugin))
                         + " crops farmed.");
                 case LOCKED -> player.sendMessage(ChatColor.RED + upgrade.display() + " opens with "
-                        + upgrade.requires().toLowerCase(java.util.Locale.ROOT).replace('_', ' ') + ".");
+                        + cropName(upgrade.requires()) + ".");
             }
             if (result != com.spacerng.solrng.farming.CropUpgrades.Buy.DONE) {
                 player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.7f, 1.0f);
@@ -386,6 +386,13 @@ final class PlayerMenuClicks {
                         + com.spacerng.solrng.pet.PetType.statName(next) + " now.");
                 player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_BEACON_POWER_SELECT, 0.7f, 1.5f);
                 player.openInventory(com.spacerng.solrng.gui.PetsGui.build(plugin, player, holder.page()));
+                return;
+            }
+            // V392: a held egg opens its egg screen, where it is hatched.
+            String heldEgg = com.spacerng.solrng.gui.PetsGui.clickedHeldEgg(event.getCurrentItem());
+            if (heldEgg != null) {
+                player.openInventory(com.spacerng.solrng.gui.PetEggGui.build(plugin, player, heldEgg));
+                player.playSound(player.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 0.4f, 1.6f);
                 return;
             }
             if (com.spacerng.solrng.gui.PetsGui.isStorageButton(event.getSlot())) {
@@ -657,6 +664,12 @@ final class PlayerMenuClicks {
     /** How far a world egg may be for an opening to play over it (V381). */
     private static final double EGG_RANGE = 12.0;
 
+    /** A crop id as the farm names it ("Fern" for SWEET_BERRIES), lower case. */
+    private String cropName(String cropId) {
+        var crop = plugin.getFarmPlotManager().getCrop(cropId);
+        return crop == null ? "crops" : crop.getDisplay().toLowerCase(java.util.Locale.ROOT);
+    }
+
     /** The line for a click that opened nothing. */
     private String nothingOpened(PlayerData data, com.spacerng.solrng.pet.PetEgg egg,
                                  com.spacerng.solrng.pet.PetManager.Stop stop) {
@@ -664,9 +677,9 @@ final class PlayerMenuClicks {
         return switch (stop) {
             case STORAGE_FULL -> ChatColor.RED + "Your pet storage is full, " + pets.held(data)
                     + " of " + pets.storage() + ". " + ChatColor.GRAY + "Nothing opens until you make room.";
-            case OUT_OF_GEMS -> ChatColor.RED + "Not enough Gems. " + ChatColor.GRAY + "One "
-                    + ChatColor.stripColor(egg.display()) + " is "
-                    + String.format("%,d", egg.cost()) + ".";
+            case NO_EGGS -> ChatColor.RED + "No " + ChatColor.stripColor(egg.display()) + " left. "
+                    + ChatColor.GRAY + "They drop while you farm "
+                    + cropName(egg.crop()) + ".";
             default -> ChatColor.RED + "That egg cannot open right now.";
         };
     }
@@ -763,8 +776,8 @@ final class PlayerMenuClicks {
         if (batch.stop() == com.spacerng.solrng.pet.PetManager.Stop.STORAGE_FULL) {
             player.sendMessage(ChatColor.GRAY + "It stopped there: storage is full at "
                     + pets.storage() + ".");
-        } else if (batch.stop() == com.spacerng.solrng.pet.PetManager.Stop.OUT_OF_GEMS) {
-            player.sendMessage(ChatColor.GRAY + "It stopped there: out of Gems.");
+        } else if (batch.stop() == com.spacerng.solrng.pet.PetManager.Stop.NO_EGGS) {
+            player.sendMessage(ChatColor.GRAY + "It stopped there: out of eggs.");
         }
     }
 
