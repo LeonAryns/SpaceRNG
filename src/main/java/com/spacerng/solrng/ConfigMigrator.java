@@ -416,6 +416,12 @@ public final class ConfigMigrator {
             new Patch("nova-tiers-v351", "novacore.max-tier", 20, 30),
             // V389, Leon: 250 tiers at about 0.1x each (multiplier-per-tier).
             new Patch("nova-250-v389", "novacore.max-tier", 100, 250),
+            // V391, Leon: Wheat to 250k, then a crop every 500k.
+            new Patch("unlock-carrots-v391", "farming.crop-unlock-at.CARROTS", 50000, 250000),
+            new Patch("unlock-potatoes-v391", "farming.crop-unlock-at.POTATOES", 100000, 500000),
+            new Patch("unlock-beetroots-v391", "farming.crop-unlock-at.BEETROOTS", 250000, 1000000),
+            new Patch("unlock-wart-v391", "farming.crop-unlock-at.NETHER_WART", 500000, 1500000),
+            new Patch("unlock-fern-v391", "farming.crop-unlock-at.SWEET_BERRIES", 1000000, 2000000),
             new Patch("prestige-growth-v351", "prestige.level-cost-growth", 1.17, 1.13),
             // V350, Leon's numbers at the top: at three billion percent
             // Luck a Divine is one roll in a thousand and an Astral one in
@@ -1860,6 +1866,20 @@ public final class ConfigMigrator {
                 plugin.getLogger().info("Config patch top-odds-v350: Mythical and Divine made rarer");
             }
             applied.add("top-odds-v350");
+            changed = true;
+        }
+        // V391, Leon: every crop pays 2x. The live Coins are doubled once,
+        // whatever they were tuned to, and Gems follow through base-gems.
+        if (!applied.contains("crops-2x-v391")) {
+            org.bukkit.configuration.ConfigurationSection types = disk.getConfigurationSection("farming.crop-types");
+            if (types != null) {
+                for (String id : types.getKeys(false)) {
+                    long tokens = types.getLong(id + ".tokens", 0L);
+                    if (tokens > 0) types.set(id + ".tokens", tokens * 2);
+                }
+                plugin.getLogger().info("Config patch crops-2x-v391: every crop's Coins doubled");
+            }
+            applied.add("crops-2x-v391");
             changed = true;
         }
         // V355: a hundred Nova Core tiers topping out at 25x, in place of

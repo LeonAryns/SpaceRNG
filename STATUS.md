@@ -5,8 +5,30 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V390**, 15 October 2026. The newest section is the
+Last updated at **V391**, 15 October 2026. The newest section is the
 first one below; older sections further down are history.
+
+## V391, 15 October 2026 (untested in game)
+
+- Crop unlocks: Carrots 250k, Potatoes 500k, Beetroot 1M, Nether Wart
+  1.5M, Fern 2M (patches from 50k/100k/250k/500k/1M). A player under
+  the new mark loses that crop until they reach it; the field falls
+  back to Wheat.
+- Every crop 2x: live crop-types tokens doubled once (custom patch
+  `crops-2x-v391`), `farming.base-gems` 2 (code default 2).
+- /crops rebuilt (`gui/CropsGui`, 45 slots): crop coins card on top
+  ("129 crop coins" over "129,450 crops farmed"), the six crops, three
+  upgrades. Each crop shows its own Coins and Gems and, after the
+  arrow, what it pays you with every stat (before Momentum and golden).
+- `farming/CropUpgrades`: Enchant Proc, Coin Boost, Gem Boost, +1% a
+  level, 1 crop coin a level (1 coin per 1,000 crops farmed, derived:
+  earned minus levels bought), ceiling 100 per crop unlocked. Stored in
+  the crop boost map as "ALL:<STAT>". Section `crop-upgrades`.
+- The per crop boards (CropBoostGui, Coin/Gem Fortune, Enchant Proc,
+  Growth) are gone; their Coins are refunded once on join
+  (`CropUpgrades.refundOld`). Coin Fortune was counted twice before
+  (StatSources and the harvest); the Coin Boost counts once.
+- Pet Egg Luck upgrade waits for the eggs (V392).
 
 ## V390, 15 October 2026 (untested in game)
 
@@ -2161,7 +2183,7 @@ eggs go.
 2. V390 done: Perk Finder enchant, about 8th in the enchant list (finds Perk
    Tickets). Farmtree more expensive (Leon: maxing enchants and the
    farmtree is too easy).
-3. Crops: unlock ladder above; every crop 2x Coins and Gems; /crops
+3. V391 done (Pet Egg Luck comes with step 4): Crops: unlock ladder above; every crop 2x Coins and Gems; /crops
    shows what a crop really pays with all stats. Universal upgrade menu
    in /crops (not per crop) paid in crop coins: 1 crop coin per 1,000
    crops farmed, shown as "129 crop coins" over "129,450 crops farmed".

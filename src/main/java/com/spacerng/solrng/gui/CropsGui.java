@@ -2,6 +2,7 @@ package com.spacerng.solrng.gui;
 
 import com.spacerng.solrng.SolRNGPlugin;
 import com.spacerng.solrng.farming.CropType;
+import com.spacerng.solrng.farming.CropUpgrades;
 import com.spacerng.solrng.farming.FarmPlotManager;
 import com.spacerng.solrng.player.PlayerData;
 import org.bukkit.Bukkit;
@@ -18,26 +19,37 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * /crops - pick what the shared farm looks like for you. Changing it
- * repaints every plot in range immediately; nobody else's field changes.
+ * /crops: pick the crop your farm grows, and spend crop coins on the
+ * upgrades every crop shares (V391).
+ *
+ *   top      your crop coins, with the crops farmed that made them
+ *   row 2    the crops, a ladder left to right
+ *   row 4    the upgrades
+ *
+ * Changing crop repaints every plot in range for you alone; nobody else's
+ * field changes.
  */
 public class CropsGui {
 
-    private static final int[] SLOTS = {10, 11, 12, 13, 14, 15, 16, 19, 20, 21, 22, 23, 24, 25};
+    private static final int SIZE = 45;
+    private static final int COINS_SLOT = 4;
+    private static final int[] UPGRADE_SLOTS = {29, 31, 33};
 
     public static NamespacedKey cropKey(SolRNGPlugin plugin) {
-        return SolRNGPlugin.key( "solrng_crop_id");
+        return SolRNGPlugin.key("solrng_crop_id");
+    }
+
+    public static NamespacedKey upgradeKey() {
+        return SolRNGPlugin.key("solrng_crop_upgrade");
     }
 
     public static Inventory build(SolRNGPlugin plugin, Player player) {
         CropsHolder holder = new CropsHolder();
-        Inventory inv = Bukkit.createInventory(holder, 36, MenuStyle.title("Crops", "#B9F6CA", "#00C853"));
+        Inventory inv = Bukkit.createInventory(holder, SIZE, MenuStyle.title("Crops", "#B9F6CA", "#00C853"));
         holder.setInventory(inv);
 
-        ItemStack filler = filler();
-        for (int slot = 0; slot < 36; slot++) {
-            inv.setItem(slot, filler);
-        }
+        ItemStack filler = MenuStyle.pane(Material.GRAY_STAINED_GLASS_PANE);
+        for (int slot = 0; slot < SIZE; slot++) inv.setItem(slot, filler);
 
         PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         FarmPlotManager farm = plugin.getFarmPlotManager();
@@ -46,19 +58,22 @@ public class CropsGui {
         // V277: one centred row while the crops fit in it, so six read as a
         // ladder rather than as a list that stopped early.
         List<CropType> crops = new ArrayList<>(farm.getCrops().values());
-        int[] slots = crops.size() <= 7 ? centred(crops.size()) : SLOTS;
+        int[] slots = centred(Math.min(7, crops.size()));
         for (int i = 0; i < crops.size() && i < slots.length; i++) {
             CropType crop = crops.get(i);
-            inv.setItem(slots[i], buildIcon(plugin, data, farm, crop,
+            inv.setItem(slots[i], cropIcon(plugin, data, farm, crop,
                     selected != null && selected.getId().equals(crop.getId()), i + 1, crops.size()));
         }
 
-        inv.setItem(31, info(plugin, data, farm));
+        inv.setItem(COINS_SLOT, coinsCard(plugin, data));
+        for (int i = 0; i < CropUpgrades.ALL.size() && i < UPGRADE_SLOTS.length; i++) {
+            inv.setItem(UPGRADE_SLOTS[i], upgradeIcon(plugin, data, CropUpgrades.ALL.get(i)));
+        }
         MenuStyle.apply(inv, MenuStyle.Palette.GREEN);
         return inv;
     }
 
-    /** The middle of the row for n crops, with the centre left open when n is even. */
+    /** The middle of row 2 for n crops, with the centre left open when n is even. */
     private static int[] centred(int n) {
         int[][] rows = {
                 {}, {13}, {12, 14}, {12, 13, 14}, {11, 12, 14, 15},
@@ -66,8 +81,87 @@ public class CropsGui {
         return rows[Math.max(0, Math.min(7, n))];
     }
 
-    private static ItemStack buildIcon(SolRNGPlugin plugin, PlayerData data, FarmPlotManager farm,
-                                       CropType crop, boolean selected, int place, int of) {
+    /** "129 crop coins", with the crops farmed that made them underneath. */
+    private static ItemStack coinsCard(SolRNGPlugin plugin, PlayerData data) {
+        long balance = CropUpgrades.balance(plugin, data);
+        long per = CropUpgrades.cropsPerCoin(plugin);
+        long harvested = data.getCropsHarvested();
+        long toNext = per - harvested % per;
+
+        ItemStack item = new ItemStack(Material.HAY_BLOCK);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(Lore.title(ChatColor.GREEN, String.format("%,d", balance)
+                + (balance == 1 ? " crop coin" : " crop coins")));
+        List<String> lore = new ArrayList<>();
+        lore.add(ChatColor.DARK_GRAY + String.format("%,d", harvested) + " crops farmed");
+        lore.add("");
+        lore.add(Lore.line(ChatColor.GRAY, "One crop coin for every "
+                + Lore.key(String.format("%,d", per)) + ChatColor.GRAY + " crops."));
+        lore.add(Lore.line(ChatColor.GRAY, "Spend them on the upgrades below."));
+        lore.add("");
+        lore.add(Lore.stat(ChatColor.AQUA, "Next coin", String.format("%,d", toNext) + " crops"));
+        lore.add(Lore.bar((per - toNext) / (double) per));
+        lore.add(Lore.stat(ChatColor.AQUA, "Spent", String.format("%,d", CropUpgrades.spent(data))));
+        meta.setLore(lore);
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    private static ItemStack upgradeIcon(SolRNGPlugin plugin, PlayerData data, CropUpgrades.Stat stat) {
+        int level = CropUpgrades.levelOf(data, stat);
+        int max = CropUpgrades.maxLevel(plugin, data);
+        int perPct = (int) Math.round(CropUpgrades.perLevel(plugin) * 100);
+        boolean available = CropUpgrades.available(plugin, data, stat);
+        boolean maxed = level >= max;
+        boolean canPay = CropUpgrades.balance(plugin, data) >= 1;
+
+        ItemStack item = new ItemStack(available ? stat.icon() : Material.STONE_BUTTON);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(Lore.title(available ? stat.colour() : ChatColor.DARK_GRAY, stat.display()));
+        List<String> lore = new ArrayList<>();
+        lore.add(ChatColor.DARK_GRAY + "Every crop");
+        lore.add("");
+        lore.add(Lore.line(ChatColor.GRAY, stat.pitch()));
+        lore.add(Lore.line(ChatColor.GRAY, "+" + perPct + "% a level, one crop coin each."));
+        lore.add("");
+        lore.add(Lore.stat(stat.colour(), "Level", String.format("%,d", level) + " / " + String.format("%,d", max)));
+        lore.add(Lore.bar(max <= 0 ? 0.0 : level / (double) max));
+        lore.add(Lore.stat(stat.colour(), "Now", "+" + level * perPct + "%"));
+        if (!maxed) lore.add(Lore.stat(ChatColor.DARK_GRAY, "Next", "+" + (level + 1) * perPct + "%"));
+        lore.add("");
+        if (!available) {
+            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Locked");
+            lore.add(Lore.line(ChatColor.GRAY, "Opens with "
+                    + stat.requires().toLowerCase(java.util.Locale.ROOT).replace('_', ' ')));
+        } else if (maxed) {
+            lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "Maxed");
+            lore.add(Lore.footnote("Every crop you unlock adds 100 levels."));
+        } else if (canPay) {
+            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to upgrade");
+            lore.add(Lore.footnote("Shift click buys all you can."));
+        } else {
+            lore.add(ChatColor.RED + "" + ChatColor.BOLD + "Not enough crop coins");
+        }
+        meta.setLore(lore);
+        if (maxed) meta.setEnchantmentGlintOverride(Boolean.TRUE);
+        meta.getPersistentDataContainer().set(upgradeKey(), PersistentDataType.STRING, stat.id());
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    /** The upgrade on a clicked item, or null. */
+    public static CropUpgrades.Stat clickedUpgrade(ItemStack item) {
+        if (item == null || item.getItemMeta() == null) return null;
+        String id = item.getItemMeta().getPersistentDataContainer().get(upgradeKey(), PersistentDataType.STRING);
+        if (id == null) return null;
+        for (CropUpgrades.Stat stat : CropUpgrades.ALL) {
+            if (stat.id().equals(id)) return stat;
+        }
+        return null;
+    }
+
+    private static ItemStack cropIcon(SolRNGPlugin plugin, PlayerData data, FarmPlotManager farm,
+                                      CropType crop, boolean selected, int place, int of) {
         boolean unlocked = farm.isUnlocked(data, crop);
 
         // The real crop even while locked (V277): grey dye said nothing
@@ -82,31 +176,30 @@ public class CropsGui {
         List<String> lore = new ArrayList<>();
         lore.add(ChatColor.DARK_GRAY + "Crop " + place + " of " + of);
         lore.add("");
-        // V287: the unlock first, then what it pays. "Per harvest" over a
-        // Coins and a Gems line read as a price to Leon, so it says Earns.
-        long unlockAt = farm.unlockAt(crop);
-        if (unlockAt > 0) {
-            lore.add(Lore.stat(unlocked ? ChatColor.GREEN : ChatColor.AQUA, "Unlocks at",
-                    String.format("%,d", unlockAt) + " crops farmed"));
-            lore.add("");
-        }
+        // V391, Leon: what a crop pays on its own, and what it pays you
+        // with every stat you have (before Momentum and the golden crop).
         lore.add(Lore.section(ChatColor.GREEN, "Earns per crop"));
-        lore.add(Currency.COINS.colour() + Lore.BULLET + " " + Currency.COINS.exact(crop.getTokens()));
+        lore.add(Lore.stat(ChatColor.GOLD, "Coins", Currency.COINS.exact(crop.getTokens())
+                + ChatColor.DARK_GRAY + "  " + Lore.ARROW + " " + Currency.COINS.amount(
+                        Math.round(farm.coinsPerCrop(data, crop)))));
         double baseGems = farm.gemsFor(crop);
         if (baseGems > 0) {
-            boolean gems = farm.shardsUnlocked(data);
-            String shown = baseGems == Math.rint(baseGems) ? String.format("%,d", (long) baseGems)
-                    : String.format("%,.1f", baseGems);
-            lore.add((gems ? Currency.GEMS.colour() : ChatColor.DARK_GRAY) + Lore.BULLET + " "
-                    + (gems ? Currency.GEMS.exact(baseGems)
-                            : ChatColor.DARK_GRAY + Currency.GEMS.icon() + " "
-                                    + shown + " Gems (locked)"));
+            if (farm.shardsUnlocked(data)) {
+                double mine = farm.gemsPerCrop(data, crop);
+                lore.add(Lore.stat(ChatColor.AQUA, "Gems", Currency.GEMS.exact(baseGems)
+                        + ChatColor.DARK_GRAY + "  " + Lore.ARROW + " "
+                        + (mine >= 1000 ? Currency.GEMS.amount(Math.round(mine)) : Currency.GEMS.exact(
+                                Math.round(mine * 10.0) / 10.0))));
+            } else {
+                lore.add(Lore.stat(ChatColor.DARK_GRAY, "Gems", ChatColor.DARK_GRAY
+                        + String.valueOf(baseGems == Math.rint(baseGems) ? (long) baseGems : baseGems)
+                        + " (buy Gem Earnings)"));
+            }
         }
+        lore.add(Lore.footnote("Left is the crop, right is you."));
         lore.add("");
         if (selected) {
             lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "Growing now");
-            lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to boost this crop");
-            lore.add(Lore.footnote("Coin Fortune, Gem Fortune, proc and growth"));
         } else if (unlocked) {
             lore.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "Click to plant");
         } else {
@@ -118,10 +211,8 @@ public class CropsGui {
                 lore.add(Lore.stat(ChatColor.AQUA, "Crops farmed",
                         String.format("%,d", have) + " / " + String.format("%,d", at)));
                 lore.add(Lore.bar(have / (double) at));
-                lore.add(ChatColor.RED + Lore.BULLET + " " + ChatColor.GRAY + "Opens by itself, no cost");
             } else {
-                lore.add(ChatColor.RED + Lore.BULLET + " " + ChatColor.GRAY + "Unlock it in "
-                        + ChatColor.YELLOW + "/farmtree");
+                lore.add(Lore.line(ChatColor.GRAY, "Unlock it in /farmtree"));
             }
         }
 
@@ -142,33 +233,5 @@ public class CropsGui {
             case SWEET_BERRY_BUSH -> Material.SWEET_BERRIES;
             default -> cropBlock.isItem() ? cropBlock : Material.WHEAT_SEEDS;
         };
-    }
-
-    private static ItemStack info(SolRNGPlugin plugin, PlayerData data, FarmPlotManager farm) {
-        ItemStack item = new ItemStack(Material.HOPPER);
-        ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(Lore.title(ChatColor.GOLD, "Your Farm"));
-        meta.setLore(List.of(
-                Lore.section(ChatColor.GREEN, "How it works"),
-                Lore.line(ChatColor.GREEN, "The field is shared, but the crop"),
-                Lore.line(ChatColor.GREEN, "on it is yours alone."),
-                "",
-                Lore.section(ChatColor.AQUA, "Information"),
-                Lore.stat(ChatColor.AQUA, "Harvested", String.format("%,d", data.getCropsHarvested())),
-                Lore.stat(ChatColor.AQUA, "Gem payouts",
-                        farm.shardsUnlocked(data) ? "Unlocked" : "Locked"),
-                "",
-                Lore.line(ChatColor.GRAY, "Click the crop you are growing"),
-                Lore.line(ChatColor.GRAY, "to upgrade it.")));
-        item.setItemMeta(meta);
-        return item;
-    }
-
-    private static ItemStack filler() {
-        ItemStack pane = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
-        ItemMeta meta = pane.getItemMeta();
-        meta.setDisplayName(" ");
-        pane.setItemMeta(meta);
-        return pane;
     }
 }

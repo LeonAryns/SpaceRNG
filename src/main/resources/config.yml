@@ -963,21 +963,24 @@ farming:
   # V390, Leon: every /farmtree price times this. The tree itself is
   # rewritten by config updates, so the dial lives here.
   tree-cost-multiplier: 3.0
+  # V391, Leon: Wheat to 250k, then a crop every 500k after that.
   crop-unlock-at:
-    CARROTS: 50000
-    POTATOES: 100000
-    BEETROOTS: 250000
-    NETHER_WART: 500000
-    SWEET_BERRIES: 1000000
+    CARROTS: 250000
+    POTATOES: 500000
+    BEETROOTS: 1000000
+    NETHER_WART: 1500000
+    SWEET_BERRIES: 2000000
 
   # V386: a crop's Gems are its tokens over WHEAT's tokens (wheat 1,
   # carrots 2.5, and so on), times farming.base-gems (default 1). The
-  # shards keys below are no longer read.
+  # shards keys below are no longer read. V391: every crop pays 2x, so
+  # base-gems is 2 and the tokens below are doubled.
+  base-gems: 2
   crop-types:
     WHEAT:
       display: "Wheat"
       material: WHEAT
-      tokens: 100
+      tokens: 200
       # V378: 1 Gem a crop once Gem Earnings is bought. V376 set it on
       # farming.crops, which the farm never reads for Gems.
       shards: 1
@@ -985,25 +988,25 @@ farming:
     CARROTS:
       display: "Carrots"
       material: CARROTS
-      tokens: 250
+      tokens: 500
       shards: 1
       requires-node: "crop_carrots"
     POTATOES:
       display: "Potatoes"
       material: POTATOES
-      tokens: 600
+      tokens: 1200
       shards: 2
       requires-node: "crop_potatoes"
     BEETROOTS:
       display: "Beetroot"
       material: BEETROOTS
-      tokens: 1500
+      tokens: 3000
       shards: 5
       requires-node: "crop_beetroot"
     NETHER_WART:
       display: "Nether Wart"
       material: NETHER_WART
-      tokens: 4000
+      tokens: 8000
       shards: 12
       requires-node: "crop_netherwart"
     # V277: Fern for now, Leon's call. The id stays SWEET_BERRIES so an
@@ -1011,7 +1014,7 @@ farming:
     SWEET_BERRIES:
       display: "Fern"
       material: FERN
-      tokens: 10000
+      tokens: 20000
       shards: 30
       requires-node: "crop_berries"
 
@@ -4810,7 +4813,7 @@ consumables:
     description: "A permanent 250% Luck. It never runs out."
 
 # ============================================
-# Crop boosts (/crops, click the crop you are growing)
+# Crop boosts (until V391: /crops, click the crop you are growing)
 # ============================================
 # V353, Leon's call. The farm tree carried a Yield node for every crop,
 # which meant Nether Wart Yield could be bought by somebody who had
@@ -4824,6 +4827,15 @@ consumables:
 # per-level is a fraction added to a multiplier that starts at 1.0, so
 # 0.08 at level 10 is 1.80x. base-cost is in Coins and cost-growth is
 # compounded per level, so level n costs base x growth^n.
+# V391, Leon: the /crops upgrades every crop shares, paid in crop coins.
+# One crop coin per crops-per-coin farmed, one coin a level, per-level
+# each, and levels-per-crop of ceiling for every crop unlocked.
+crop-upgrades:
+  crops-per-coin: 1000
+  per-level: 0.01
+  levels-per-crop: 100
+
+# Until V391: the per crop boards. Only read now to refund what was spent.
 crop-boosts:
   # The fallback ceiling for a stat that does not name its own.
   max-level: 25

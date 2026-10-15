@@ -252,13 +252,42 @@ final class PlayerMenuClicks {
 
         ItemStack clicked = event.getCurrentItem();
         if (clicked == null || clicked.getItemMeta() == null) return;
+        Player player = (Player) event.getWhoClicked();
+        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+
+        // V391: the universal upgrades. A click buys one level, a shift
+        // click as many as the crop coins and the ceiling allow.
+        var upgrade = CropsGui.clickedUpgrade(clicked);
+        if (upgrade != null) {
+            var result = com.spacerng.solrng.farming.CropUpgrades.buy(plugin, data, upgrade,
+                    event.isShiftClick() ? Integer.MAX_VALUE : 1);
+            switch (result) {
+                case DONE -> {
+                    player.sendMessage(upgrade.colour() + upgrade.display() + ChatColor.GRAY + " is now level "
+                            + ChatColor.WHITE + com.spacerng.solrng.farming.CropUpgrades.levelOf(data, upgrade)
+                            + ChatColor.GRAY + ".");
+                    player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_AMETHYST_BLOCK_CHIME, 0.7f, 1.6f);
+                    plugin.getScoreboardManager().update(player);
+                }
+                case MAXED -> player.sendMessage(ChatColor.GREEN + upgrade.display()
+                        + " is at its ceiling. " + ChatColor.GRAY + "Every crop you unlock adds 100 levels.");
+                case TOO_POOR -> player.sendMessage(ChatColor.RED + "Not enough crop coins. "
+                        + ChatColor.GRAY + "One comes with every "
+                        + String.format("%,d", com.spacerng.solrng.farming.CropUpgrades.cropsPerCoin(plugin))
+                        + " crops farmed.");
+                case LOCKED -> player.sendMessage(ChatColor.RED + upgrade.display() + " opens with "
+                        + upgrade.requires().toLowerCase(java.util.Locale.ROOT).replace('_', ' ') + ".");
+            }
+            if (result != com.spacerng.solrng.farming.CropUpgrades.Buy.DONE) {
+                player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.7f, 1.0f);
+            }
+            player.openInventory(CropsGui.build(plugin, player));
+            return;
+        }
 
         String cropId = clicked.getItemMeta().getPersistentDataContainer()
                 .get(CropsGui.cropKey(plugin), PersistentDataType.STRING);
         if (cropId == null) return;
-
-        Player player = (Player) event.getWhoClicked();
-        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
         var farm = plugin.getFarmPlotManager();
         var crop = farm.getCrop(cropId);
         if (crop == null) return;
@@ -268,14 +297,7 @@ final class PlayerMenuClicks {
             return;
         }
 
-        // V353: the crop you are already growing is the one you can pour
-        // Coins into. Clicking it a second time would otherwise do
-        // nothing, so it opens that crop's own upgrade board instead.
-        if (crop.getId().equals(data.getSelectedCrop())) {
-            player.openInventory(com.spacerng.solrng.gui.CropBoostGui.build(plugin, player, crop.getId()));
-            player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_AMETHYST_BLOCK_CHIME, 0.5f, 1.4f);
-            return;
-        }
+        if (crop.getId().equals(data.getSelectedCrop())) return;
 
         data.setSelectedCrop(crop.getId());
         farm.render(player);
@@ -283,57 +305,6 @@ final class PlayerMenuClicks {
                 + ChatColor.GREEN + ".");
         player.playSound(player.getLocation(), org.bukkit.Sound.ITEM_CROP_PLANT, 0.8f, 1.2f);
         player.openInventory(CropsGui.build(plugin, player));
-    }
-
-    /**
-     * The per-crop upgrade board. A plain click buys one level, a shift
-     * click buys as many as the Coins stretch to, which is the same
-     * contract the skill tree makes.
-     */
-    void handleCropBoostClick(InventoryClickEvent event) {
-        event.setCancelled(true);
-        if (event.getClickedInventory() == null
-                || !(event.getClickedInventory().getHolder()
-                        instanceof com.spacerng.solrng.gui.CropBoostHolder holder)) return;
-
-        Player player = (Player) event.getWhoClicked();
-        if (event.getSlot() == com.spacerng.solrng.gui.CropBoostGui.backSlot()) {
-            player.openInventory(CropsGui.build(plugin, player));
-            return;
-        }
-
-        ItemStack clicked = event.getCurrentItem();
-        if (clicked == null || clicked.getItemMeta() == null) return;
-        String statId = clicked.getItemMeta().getPersistentDataContainer()
-                .get(com.spacerng.solrng.gui.CropBoostGui.statKey(plugin), PersistentDataType.STRING);
-        if (statId == null) return;
-
-        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
-        var stat = com.spacerng.solrng.farming.CropBoosts.get(plugin, statId);
-        if (stat == null) return;
-        String cropId = holder.getCropId();
-
-        int bought = 0;
-        int limit = event.isShiftClick() ? stat.maxLevel() : 1;
-        while (bought < limit
-                && com.spacerng.solrng.farming.CropBoosts.buy(plugin, data, cropId, stat)) {
-            bought++;
-        }
-
-        if (bought == 0) {
-            int level = com.spacerng.solrng.farming.CropBoosts.levelOf(data, cropId, stat.id());
-            player.sendMessage(level >= stat.maxLevel()
-                    ? ChatColor.GREEN + stat.display() + " is already maxed on this crop."
-                    : ChatColor.RED + "You need more Coins for that.");
-            player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.7f, 1.0f);
-            return;
-        }
-
-        player.sendMessage(ChatColor.GREEN + stat.display() + ChatColor.GRAY + " is now "
-                + ChatColor.YELLOW + com.spacerng.solrng.farming.CropBoosts.levelOf(data, cropId, stat.id())
-                + ChatColor.GRAY + " on this crop.");
-        player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_AMETHYST_BLOCK_CHIME, 0.7f, 1.6f);
-        player.openInventory(com.spacerng.solrng.gui.CropBoostGui.build(plugin, player, cropId));
     }
 
     /** /aura: pick a look, or go back to following the tag. */

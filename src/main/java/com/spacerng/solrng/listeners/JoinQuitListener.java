@@ -147,6 +147,7 @@ public class JoinQuitListener implements Listener {
         plugin.getPerkManager().applyConfirmDefaults(data);
         plugin.getArmorManager().wipeIfOld(player, data);
         plugin.getNovaCoreManager().rescaleIfOld(player, data);
+        com.spacerng.solrng.farming.CropUpgrades.refundOld(plugin, player, data);
         plugin.getPetManager().wipeIfOld(player, data);
         // Rebuilds the equipped-tag team prefix (empty if none equipped).
         plugin.getTagManager().refreshPrefix(player, data);

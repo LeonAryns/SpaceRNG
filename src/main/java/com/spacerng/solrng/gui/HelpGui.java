@@ -150,7 +150,9 @@ public final class HelpGui {
                 List.of("Harvest crops on the shared farm."),
                 List.of("You see your own crops",
                         "Crops pay Coins and Gems",
-                        "Pick your crop with /crops"),
+                        "Pick your crop with /crops",
+                        "Every 1,000 crops is a crop coin",
+                        "for the upgrades in /crops"),
                 "Open", "/crops"));
         inv.setItem(29, entry(Material.DIAMOND_HOE, ChatColor.GREEN, "Your Hoe",
                 List.of("Right-click your hoe to upgrade it."),

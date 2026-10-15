@@ -277,8 +277,8 @@ public class FarmPlotManager {
 
     /**
      * A crop's base Gems (V386): its Coins over the first crop's Coins,
-     * times {@code farming.base-gems} (1). Wheat pays 1, Carrots at 250
-     * Coins against wheat's 100 pay 2.5. Read from the live Coins, so
+     * times {@code farming.base-gems} (2 since V391). Wheat pays 2, Carrots at 500
+     * Coins against wheat's 200 pay 5. Read from the live Coins, so
      * retuning a crop's Coins moves its Gems with it. The old per crop
      * {@code shards} keys are no longer read.
      */
@@ -286,8 +286,39 @@ public class FarmPlotManager {
         CropType first = crops.containsKey("WHEAT") ? crops.get("WHEAT")
                 : crops.values().stream().findFirst().orElse(null);
         if (crop == null || first == null || first.getTokens() <= 0) return 0.0;
-        return plugin.getConfig().getDouble("farming.base-gems", 1.0)
+        return plugin.getConfig().getDouble("farming.base-gems", 2.0)
                 * crop.getTokens() / (double) first.getTokens();
+    }
+
+    /** A Crop Yield perk raises every crop's Coins and Gems at once. */
+    private double perkYield(PlayerData data) {
+        return 1.0 + plugin.getPerkManager()
+                .totalOf(data, com.spacerng.solrng.perk.PerkStat.CROP_YIELD_PERCENT);
+    }
+
+    /** Everything a crop's Gems are multiplied by (V391: one place, /crops quotes it too). */
+    public double gemMultiplier(PlayerData data) {
+        return plugin.getSkillTreeManager()
+                .multiplierOf(data, com.spacerng.solrng.player.SkillNode.Effect.GEM_MULTIPLIER)
+                * (1.0 + plugin.getHoeEnchantManager().powerOf(data, "SHARD_GREED"))
+                * CropUpgrades.multiplier(plugin, data, CropUpgrades.GEMS)
+                * perkYield(data) * data.boostMultiplier("GEMS")
+                // V381: pets pointed at Gems in /pets.
+                * (1.0 + plugin.getPetManager().totalOf(data, com.spacerng.solrng.stats.StatSources.Id.GEMS));
+    }
+
+    /**
+     * What one harvest of this crop pays in Coins with every stat this
+     * player has, before Momentum and the golden crop (V391, for /crops).
+     */
+    public double coinsPerCrop(PlayerData data, CropType crop) {
+        return crop.getTokens() * perkYield(data)
+                * com.spacerng.solrng.stats.StatSources.coins(plugin, data, 1.0).total();
+    }
+
+    /** The same in Gems, 0 until Gem Earnings is bought. */
+    public double gemsPerCrop(PlayerData data, CropType crop) {
+        return shardsUnlocked(data) ? gemsFor(crop) * gemMultiplier(data) : 0.0;
     }
 
     public Map<String, CropType> getCrops() {
@@ -778,16 +809,10 @@ public class FarmPlotManager {
         // than read there: it's earned live and resets when you stop.
         double multiplier = com.spacerng.solrng.stats.StatSources
                 .coins(plugin, data, momentumMultiplier(player, hoe, data, chain)).total();
-        // V353: the per-crop yield SKILLS are gone from /farmtree and live
-        // on the crop itself, bought in /crops. Coins and Gems take their
-        // own line now rather than sharing one multiplier, so a player can
-        // push a crop toward one or the other.
-        double coinFortune = CropBoosts.multiplierOf(plugin, data, crop.getId(), "COIN_FORTUNE");
-        double gemFortune = CropBoosts.multiplierOf(plugin, data, crop.getId(), "GEM_FORTUNE");
-        // A Crop Yield perk raises every crop at once.
-        double perkYield = 1.0 + plugin.getPerkManager()
-                .totalOf(data, com.spacerng.solrng.perk.PerkStat.CROP_YIELD_PERCENT);
-        multiplier *= coinFortune * perkYield;
+        // V391: the /crops Coin Boost is one of StatSources' parts, so it is
+        // already in `multiplier`. Until V391 the crop's Coin Fortune was
+        // both in there and multiplied in again here.
+        multiplier *= perkYield(data);
         long tokens = Math.round(crop.getTokens() * multiplier);
 
         // The golden crop pays many times over and then moves somewhere
@@ -800,12 +825,7 @@ public class FarmPlotManager {
 
         // V376: Gem Greed is a multiplier on every crop's Gems, like Coin
         // Greed on Coins. It was a chance at one bonus Gem.
-        double gemMultiplier = plugin.getSkillTreeManager()
-                .multiplierOf(data, com.spacerng.solrng.player.SkillNode.Effect.GEM_MULTIPLIER)
-                * (1.0 + hoe.powerOf(data, "SHARD_GREED"))
-                * gemFortune * perkYield * data.boostMultiplier("GEMS")
-                // V381: pets pointed at Gems in /pets.
-                * (1.0 + plugin.getPetManager().totalOf(data, com.spacerng.solrng.stats.StatSources.Id.GEMS));
+        double gemMultiplier = gemMultiplier(data);
         // V386, Leon: Gems follow Coins, so a crop paying 2.5x wheat's
         // Coins pays 2.5x wheat's Gem. The fraction left after the
         // multiplier is paid as a chance, so 2.5 averages 2.5.
@@ -930,13 +950,9 @@ public class FarmPlotManager {
      */
     private int regrowTicksFor(PlayerData data) {
         double faster = plugin.getHoeEnchantManager().powerOf(data, "SPEED");
-        // V353: Growth bought on this crop in /crops shortens the regrow
-        // on top of the Speed enchant. It divides rather than adding to
-        // `faster`, so the 90% floor the enchant respects is not spent
-        // twice and the two sources cannot stack into an instant field.
-        double growth = CropBoosts.onSelected(plugin, data, "GROWTH");
+        // V391: the per crop Growth upgrade went with the crop boards.
         return (int) Math.max(regrowFloorTicks,
-                Math.round(regrowTicks * (1.0 - Math.min(0.90, faster)) / Math.max(1.0, growth)));
+                Math.round(regrowTicks * (1.0 - Math.min(0.90, faster))));
     }
 
     /**
