@@ -463,7 +463,7 @@ final class PlayerMenuClicks {
                 pets.refresh(player);
                 plugin.getScoreboardManager().update(player);
                 player.sendMessage(ChatColor.GREEN + "All your pets boost "
-                        + com.spacerng.solrng.pet.PetType.statName(next) + " now.");
+                        + com.spacerng.solrng.pet.PetType.choiceName(next) + " now.");
                 player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_BEACON_POWER_SELECT, 0.7f, 1.5f);
                 player.openInventory(com.spacerng.solrng.gui.PetsGui.build(plugin, player, holder.page()));
                 return;

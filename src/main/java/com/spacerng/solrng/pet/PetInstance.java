@@ -72,9 +72,12 @@ public record PetInstance(String typeId, int level, boolean shiny, int copies, S
      */
     public static final java.util.List<StatSources.Id> CHOICES = java.util.List.of(
             StatSources.Id.LUCK, StatSources.Id.MONEY, StatSources.Id.SPEED,
-            StatSources.Id.COINS, StatSources.Id.GEMS);
+            StatSources.Id.COINS, StatSources.Id.GEMS, StatSources.Id.SHINY);
 
-    /** A stat outside {@link #CHOICES} (Enchant Proc, Shiny) pays Luck instead. */
+    /**
+     * A stat outside {@link #CHOICES} pays Luck instead. V397, Leon: Shiny
+     * is a choice again; Enchant Proc is the one left out.
+     */
     public static StatSources.Id allowed(StatSources.Id stat) {
         return stat != null && CHOICES.contains(stat) ? stat : StatSources.Id.LUCK;
     }

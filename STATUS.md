@@ -5,8 +5,25 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V396**, 15 October 2026. The newest section is the
+Last updated at **V397**, 15 October 2026. The newest section is the
 first one below; older sections further down are history.
+
+## V397, 15 October 2026 (untested in game)
+
+- Speed cap raised. Before: a roll was at least 1 tick and Auto Roll
+  only checked every 5 ticks, so Auto Roll topped out at 4 rolls a
+  second at 20x and every Speed above that did nothing. Now a roll is
+  at least `roll-item.min-roll-ticks` (5, the 20x pace), Auto Roll
+  checks every tick but starts at most one roll per 5 ticks, and Speed
+  above 20x lands extra drops per landing (silent, paid in full: Money,
+  index, pass, Dust, boss, First 10): 40x two, 348x about 17, capped at
+  `roll-item.max-rolls-per-landing` 25 (500x). Auto Roll's action bar
+  says "+16 rolls".
+- Pets: Shiny is a stat choice again (Leon changed his mind), Enchant
+  Proc stays out. A pet on Shiny gives `pets.shiny-share` (10%) of its
+  boost, and the choice reads "Shiny Boost (10%)". Cards and the
+  storage show the stat the player chose, never Enchant Proc; /stats
+  lost the empty Pets line under Enchant Proc.
 
 ## V396, 15 October 2026 (untested in game)
 

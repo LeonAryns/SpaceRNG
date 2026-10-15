@@ -58,6 +58,11 @@ scoreboard:
   footer: "SPACERNG.MINEHUT.GG"
 
 roll-item:
+  # V397: the shortest a roll can be and the Auto Roll pace (5 ticks is
+  # 20x Speed). Speed past it lands extra drops per landing, up to
+  # max-rolls-per-landing (25, so 500x).
+  min-roll-ticks: 5
+  max-rolls-per-landing: 25
   # V299/V303: an Epic or rarer only gets its reveal (and stops Auto Roll)
   # when the real chance at the player's Luck was 1 in this many or rarer.
   animate-from-one-in: 1000
@@ -7480,6 +7485,8 @@ pets:
   # of that again.
   # V392, Leon: the chance one harvest drops that crop's pet egg, times
   # Pet Egg Luck in /crops, and the share of those eggs that are shiny.
+  # V397, Leon: a pet pointed at Shiny gives this share of its boost.
+  shiny-share: 0.10
   egg-drops:
     chance: 0.001
     shiny-chance: 0.01

@@ -85,7 +85,9 @@ public final class PetLore {
         // V356: the stat is bold as well as white. Every one of the
         // forty-two cards says the rule in these same words, so the stat
         // is the only thing on the line a reader is looking for.
-        lore.add(ChatColor.GRAY + "Multiplies your " + Lore.key(pet.statName()) + " while worn,");
+        // V397: the stat this player pointed it at, from the /pets button.
+        lore.add(ChatColor.GRAY + "Multiplies your "
+                + Lore.key(PetType.statName(pets.statOf(data, pet))) + " while worn,");
         lore.add(ChatColor.GRAY + "and nothing else.");
         lore.add("");
 
@@ -94,7 +96,7 @@ public final class PetLore {
             lore.add(Lore.section(ChatColor.GOLD, "Your boost"));
             lore.add(Lore.stat(ChatColor.GREEN,
                     com.spacerng.solrng.pet.PetType.statName(owned.statOr(pet)),
-                    pet.multiText(multiplier)));
+                    pet.multiText(multiplier, owned.statOr(pet))));
             lore.add(Lore.stat(ChatColor.AQUA, "Level",
                     owned.level() + " / " + pets.upgrades().maxLevel()));
             if (owned.shiny()) {

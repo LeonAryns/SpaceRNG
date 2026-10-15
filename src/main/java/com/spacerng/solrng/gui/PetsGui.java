@@ -240,10 +240,10 @@ public class PetsGui {
         lore.add(Lore.section(ChatColor.YELLOW, "Pointing at"));
         for (var stat : PetInstance.CHOICES) {
             if (stat == shared) {
-                lore.add(ChatColor.GREEN + Lore.BULLET + " " + ChatColor.WHITE + PetType.statName(stat)
+                lore.add(ChatColor.GREEN + Lore.BULLET + " " + ChatColor.WHITE + PetType.choiceName(stat)
                         + ChatColor.GREEN + "  " + Lore.TICK);
             } else {
-                lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " " + PetType.statName(stat));
+                lore.add(ChatColor.DARK_GRAY + Lore.BULLET + " " + PetType.choiceName(stat));
             }
         }
         lore.add("");
@@ -606,7 +606,7 @@ public class PetsGui {
                 "",
                 Lore.stat(ChatColor.GREEN,
                         com.spacerng.solrng.pet.PetType.statName(instance.statOr(pet)),
-                        pet.multiText(multiplier)),
+                        pet.multiText(multiplier, instance.statOr(pet))),
                 Lore.stat(ChatColor.AQUA, "Level",
                         instance.level() + " / " + plugin.getPetManager().upgrades().maxLevel()),
                 "",

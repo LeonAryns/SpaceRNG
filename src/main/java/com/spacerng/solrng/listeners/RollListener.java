@@ -701,7 +701,37 @@ public class RollListener implements Listener {
         // permanent Speed and Autopilot, so those showed up in /stats but
         // never made a roll any faster.
         double multiplier = com.spacerng.solrng.stats.StatSources.speed(plugin, data).total();
-        return Math.max(1L, Math.round((baseSeconds / multiplier) * 20.0));
+        // V397: a roll is never shorter than min-roll-ticks. Speed past
+        // that point is not lost: it turns into more drops per landing.
+        return Math.max(minRollTicks(), Math.round((baseSeconds / multiplier) * 20.0));
+    }
+
+    /** The shortest a roll can be, and the pace Auto Roll is held to (V397). */
+    public long minRollTicks() {
+        return Math.max(1L, plugin.getConfig().getLong("roll-item.min-roll-ticks", 5L));
+    }
+
+    /**
+     * How many drops one landing pays (V397, Leon: Speed was capped).
+     *
+     * Until V397 a roll could not be shorter than a tick and Auto Roll
+     * only looked every five ticks, so nothing past 20x Speed did anything
+     * at all on Auto Roll. Now the pace stops at min-roll-ticks (20x with
+     * the defaults) and everything above it lands that many drops at once:
+     * 40x is two a landing, 348x about seventeen. The fraction is a chance
+     * of one more. max-rolls-per-landing keeps a ceiling on server load
+     * (25, so 500x).
+     */
+    public int rollsPerLanding(PlayerData data) {
+        double baseSeconds = plugin.getConfig().getDouble("roll-item.roll-duration-seconds", 5.0);
+        double speed = com.spacerng.solrng.stats.StatSources.speed(plugin, data).total();
+        double ideal = baseSeconds * 20.0 / Math.max(0.0001, speed);
+        if (ideal >= minRollTicks()) return 1;
+        double rolls = minRollTicks() / ideal;
+        int max = Math.max(1, plugin.getConfig().getInt("roll-item.max-rolls-per-landing", 25));
+        if (rolls >= max) return max;
+        int whole = (int) Math.floor(rolls);
+        return whole + (random.nextDouble() < rolls - whole ? 1 : 0);
     }
 
     /**
@@ -786,6 +816,26 @@ public class RollListener implements Listener {
         // Letting grantRoll roll it again meant the pre-roll could play and
         // still hand over a plain drop, or the other way round.
         grantRoll(player, data, result, false, shiny, auto);
+
+        // V397: Speed past the pace lands extra drops alongside this one.
+        // They are paid like any roll (Money, index, pass, Dust, the boss,
+        // First 10) but play no animation of their own.
+        int extra = rollsPerLanding(data) - 1;
+        if (extra > 0) {
+            double luck = plugin.getPrestigeManager().effectiveLuck(data);
+            for (int i = 0; i < extra; i++) {
+                RollableItem more = plugin.getRarityManager().roll(luck);
+                boolean moreShiny = rollShiny(data);
+                grantRoll(player, data, more, true, moreShiny, auto);
+                plugin.getBossManager().onRoll(player, more.getRarity());
+                plugin.getDustManager().onRoll(player, data);
+                plugin.getFirstTenManager().onRoll(player, more, moreShiny, 0L);
+            }
+            if (auto) {
+                sendActionBar(player, RollFormat.autoRollLine(plugin, result, shiny)
+                        + ChatColor.DARK_GRAY + "  +" + extra + (extra == 1 ? " roll" : " rolls"));
+            }
+        }
 
         // A live boss takes the rarity's damage from the same landing, so
         // rolling counts towards the event exactly like farming does.

@@ -759,7 +759,8 @@ public class PetManager {
             // V359: the stat is the player's choice, held on the owned
             // copy, so a worn pet pays wherever it has been pointed.
             if ((pet == null ? PetInstance.allowed(type.stat()) : pet.statOr(type)) != stat) continue;
-            total += type.bonus() * upgrades.multiplier(pet);
+            // V397: Shiny takes a tenth of what a pet gives (PetType.share).
+            total += type.bonus() * upgrades.multiplier(pet) * PetType.share(stat);
         }
         return total;
     }

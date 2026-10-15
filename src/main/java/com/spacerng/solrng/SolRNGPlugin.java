@@ -539,8 +539,14 @@ public final class SolRNGPlugin extends JavaPlugin {
     }
 
     private void startAutoRollTask() {
-        final long periodTicks = 5L;
+        // V397: looks every tick and holds each player to min-roll-ticks
+        // between starts. Every five ticks used to round a cycle up to the
+        // next check, so a 5 tick roll could take ten.
+        final long periodTicks = 1L;
+        final java.util.Map<java.util.UUID, Long> lastStart = new java.util.HashMap<>();
         getServer().getScheduler().runTaskTimer(this, () -> {
+            long tick = getServer().getCurrentTick();
+            long pace = rollListener.minRollTicks();
             for (Player player : getServer().getOnlinePlayers()) {
                 PlayerData data = playerDataManager.get(player.getUniqueId());
                 if (!data.isAutoRollEnabled()) continue;
@@ -548,9 +554,13 @@ public final class SolRNGPlugin extends JavaPlugin {
                 // isBusy, not isRolling: a big drop's reveal holds the
                 // next auto-roll until the finale has played out.
                 if (rollListener.isBusy(player.getUniqueId())) continue;
+                Long last = lastStart.get(player.getUniqueId());
+                if (last != null && tick - last < pace) continue;
 
+                lastStart.put(player.getUniqueId(), tick);
                 rollListener.startRoll(player);
             }
+            if (tick % 1200 == 0) lastStart.keySet().removeIf(id -> getServer().getPlayer(id) == null);
         }, periodTicks, periodTicks);
     }
 

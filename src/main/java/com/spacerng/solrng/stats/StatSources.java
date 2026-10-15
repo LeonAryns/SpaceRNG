@@ -295,7 +295,7 @@ public final class StatSources {
         return new Stat(Id.SPEED, "Speed",
                 "How fast a roll resolves. Higher is more rolls an hour.",
                 Format.MULTIPLIER, parts, Math.max(0.1, fold(parts)),
-                "Never drops below 0.10x, however deep a potion's minus goes.");
+                "Past 20x a roll lands several drops at once, up to 25 (500x).");
     }
 
     // ------------------------------------------------------------ money
@@ -413,8 +413,6 @@ public final class StatSources {
         parts.add(new Part("Perks", "Equip perks in /perks",
                 1.0 + plugin.getPerkManager().totalOf(data, PerkStat.ENCHANT_PROC_PERCENT),
                 Op.MULTIPLY));
-        parts.add(new Part("Pets", "Wear pets in /pets",
-                1.0 + plugin.getPetManager().totalOf(data, Id.ENCHANT), Op.MULTIPLY));
         parts.add(new Part("Crop upgrades", "Enchant Proc in /crops",
                 com.spacerng.solrng.farming.CropUpgrades.multiplier(plugin, data,
                         com.spacerng.solrng.farming.CropUpgrades.ENCHANT_PROC),

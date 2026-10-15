@@ -42,7 +42,7 @@ public record PetType(String id, String display, List<String> colors, Material i
 
     /** What a fresh copy of this pet reads as on a tooltip. */
     public String boostText() {
-        return boostText(1.0, stat);
+        return boostText(1.0, PetInstance.allowed(stat));
     }
 
     /**
@@ -51,7 +51,29 @@ public record PetType(String id, String display, List<String> colors, Material i
      * owner picked. V324: a multiplier, not a percentage, Leon's call.
      */
     public String boostText(double multiplier, StatSources.Id pointedAt) {
-        return multiText(multiplier) + " " + statName(pointedAt == null ? stat : pointedAt);
+        StatSources.Id at = PetInstance.allowed(pointedAt == null ? stat : pointedAt);
+        return multiText(multiplier, at) + " " + statName(at);
+    }
+
+    /**
+     * The share of a pet's boost a stat gets (V397, Leon): Shiny takes 10%,
+     * every other stat all of it. pets.shiny-share in config.
+     */
+    public static double share(StatSources.Id stat) {
+        if (stat != StatSources.Id.SHINY) return 1.0;
+        return org.bukkit.plugin.java.JavaPlugin.getPlugin(com.spacerng.solrng.SolRNGPlugin.class)
+                .getConfig().getDouble("pets.shiny-share", 0.10);
+    }
+
+    /** A stat's name in a list of choices: "Shiny Boost (10%)" (V397). */
+    public static String choiceName(StatSources.Id stat) {
+        double share = share(stat);
+        return statName(stat) + (share < 1.0 ? " (" + Math.round(share * 100) + "%)" : "");
+    }
+
+    /** The number for a pet pointed at a stat, its share already taken. */
+    public String multiText(double multiplier, StatSources.Id stat) {
+        return String.format("%.2f", 1.0 + bonus * multiplier * share(stat)) + "x";
     }
 
     /** Just the number: "1.64x". Always two decimals, so a column lines up. */
@@ -59,8 +81,12 @@ public record PetType(String id, String display, List<String> colors, Material i
         return String.format("%.2f", 1.0 + bonus * multiplier) + "x";
     }
 
+    /**
+     * V397: the stat a fresh copy pays, never Enchant Proc. Types that
+     * start on it in config pay Luck.
+     */
     public String statName() {
-        return statName(stat);
+        return statName(PetInstance.allowed(stat));
     }
 
     /** The one place a stat id is turned into words, so no two menus disagree. */
