@@ -819,8 +819,9 @@ public class RollListener implements Listener {
         plugin.getRarestDropEvent().record(player, result, shiny);
 
         // V397: Speed past the pace lands extra drops alongside this one.
-        // They are paid like any roll (Money, index, pass, Dust, the boss,
-        // First 10) but play no animation of their own.
+        // They are paid like any roll (Money, index, pass, Dust, First 10)
+        // but play no animation of their own. V402: they no longer hit the
+        // boss; up to 25 hits per landing beat a boss in seconds.
         int extra = rollsPerLanding(data) - 1;
         if (extra > 0) {
             double luck = plugin.getPrestigeManager().effectiveLuck(data);
@@ -829,7 +830,6 @@ public class RollListener implements Listener {
                 boolean moreShiny = rollShiny(data);
                 grantRoll(player, data, more, true, moreShiny, auto);
                 plugin.getRarestDropEvent().record(player, more, moreShiny);
-                plugin.getBossManager().onRoll(player, more.getRarity());
                 plugin.getDustManager().onRoll(player, data);
                 plugin.getFirstTenManager().onRoll(player, more, moreShiny, 0L);
             }

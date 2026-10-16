@@ -285,6 +285,9 @@ public class BossManager {
      */
     public boolean maybeSpawnNaturally(Trigger trigger) {
         if (!enabled || active != null || trigger == null) return false;
+        // V402: only while the boss process is on and a spot is placed.
+        // Before, a crop or a roll could start one with neither.
+        if (!running || spotWorld == null) return false;
         double chance = trigger == Trigger.HARVEST ? harvestSpawnChance : rollSpawnChance;
         if (chance <= 0.0) return false;
         long now = System.currentTimeMillis();
@@ -354,7 +357,9 @@ public class BossManager {
         if (active != null) return false;
         Location spot = resolveSpot();
         if (spot == null) {
-            plugin.getLogger().warning("A boss wanted to spawn but no spot is set. Run /rngadmin boss here.");
+            if (spotWorld == null) {
+                plugin.getLogger().warning("A boss wanted to spawn but no spot is set. Run /rngadmin boss here.");
+            }
             return false;
         }
 
@@ -824,13 +829,15 @@ public class BossManager {
         }
     }
 
-    /** The spot as a Location, or the server spawn when none is set. */
+    /**
+     * The spot as a Location, or null when none is set. V402: it fell back
+     * to the server spawn, so a boss turned up before Leon had placed one.
+     */
     private Location resolveSpot() {
-        if (spotWorld != null) {
-            World world = Bukkit.getWorld(spotWorld);
-            if (world != null) return new Location(world, spotX, spotY, spotZ, spotYaw, 0f);
-            plugin.getLogger().warning("Boss world '" + spotWorld + "' is not loaded yet.");
-        }
-        return plugin.getSpawnManager().hasSpawn() ? plugin.getSpawnManager().getSpawn() : null;
+        if (spotWorld == null) return null;
+        World world = Bukkit.getWorld(spotWorld);
+        if (world != null) return new Location(world, spotX, spotY, spotZ, spotYaw, 0f);
+        plugin.getLogger().warning("Boss world '" + spotWorld + "' is not loaded yet.");
+        return null;
     }
 }

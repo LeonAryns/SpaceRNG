@@ -285,8 +285,12 @@ public final class ClanGui {
         lore.add(Lore.stat(ChatColor.AQUA, "Members", clan.members().size() + " / " + clans.slots(clan)));
         lore.add(Lore.stat(ChatColor.AQUA, "Owner", nameOf(clan.owner())));
         lore.add("");
-        lore.add(Lore.footnote("Members earn it XP the way the"));
-        lore.add(Lore.footnote("battle pass does: rolls and crops."));
+        // V402, Leon: say what earns clan XP, farming included.
+        lore.add(Lore.section(ChatColor.YELLOW, "Members earn XP"));
+        lore.add(Lore.stat(ChatColor.GREEN, "Every crop farmed",
+                plugin.getConfig().getLong("pass.xp.per-harvest", 1L) + " XP"));
+        lore.add(Lore.stat(ChatColor.GREEN, "Every roll",
+                plugin.getConfig().getLong("pass.xp.per-roll.COMMON", 10L) + "+ XP, more if rarer"));
         meta.setLore(lore);
         if (yours) meta.setEnchantmentGlintOverride(Boolean.TRUE);
         item.setItemMeta(meta);

@@ -436,7 +436,11 @@ public class RankManager {
                 && plugin.getTabListManager().isAfk(player.getUniqueId())
                 // V364, Leon: [AFK] and not grey, so it reads at a glance.
                 ? " " + ChatColor.GOLD + "[" + ChatColor.YELLOW + "AFK" + ChatColor.GOLD + "]" : "";
-        return tag + badgeOf(shownRankOf(data), stops) + coloredName(player)
+        // V402, Leon: the clan tag behind the name, in tab only.
+        var clan = plugin.getClanManager() == null ? null : plugin.getClanManager().of(player.getUniqueId());
+        String clanTag = clan == null ? ""
+                : " " + ChatColor.DARK_GRAY + "[" + ChatColor.AQUA + clan.name() + ChatColor.DARK_GRAY + "]";
+        return tag + badgeOf(shownRankOf(data), stops) + coloredName(player) + clanTag
                 + (prestige.isEmpty() ? "" : " " + prestige.trim()) + away;
     }
 

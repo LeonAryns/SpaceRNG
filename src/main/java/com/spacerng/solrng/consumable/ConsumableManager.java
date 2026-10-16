@@ -343,7 +343,8 @@ public class ConsumableManager {
             // The boss is a server event, so a summon that lands on a live
             // one has to give the item back rather than quietly burning it.
             if (!plugin.getBossManager().summon(player.getName())) {
-                player.sendMessage(ChatColor.RED + "A boss is already out. "
+                player.sendMessage(ChatColor.RED + (plugin.getBossManager().isActive()
+                                ? "A boss is already out. " : "Bosses are not open yet. ")
                         + ChatColor.GRAY + "Your summoner was not used.");
                 return false;
             }

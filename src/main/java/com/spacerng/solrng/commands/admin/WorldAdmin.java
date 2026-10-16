@@ -859,7 +859,7 @@ final class WorldAdmin extends AdminTools {
                     return true;
                 }
                 if (!boss.spawn(type)) {
-                    sender.sendMessage(ChatColor.RED + "No spot set and no spawn either. Run /rngadmin boss here.");
+                    sender.sendMessage(ChatColor.RED + "No boss spot set. Run /rngadmin boss here first.");
                     return true;
                 }
                 sender.sendMessage(ChatColor.GREEN + "Started " + type.display() + ".");
@@ -906,7 +906,7 @@ final class WorldAdmin extends AdminTools {
                 sender.sendMessage(ChatColor.DARK_GRAY + "Types: "
                         + String.join(", ", boss.getTypes().keySet()));
                 sender.sendMessage(ChatColor.DARK_GRAY + (boss.hasSpot()
-                        ? "A spot is set." : "No spot set, the server spawn is used.")
+                        ? "A spot is set." : "No spot set, no boss can start.")
                         + (boss.isRunning() ? " The process is running." : " The process is off."));
             }
         }

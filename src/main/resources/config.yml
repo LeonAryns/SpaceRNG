@@ -4847,7 +4847,8 @@ rarest-drop:
 # roll by rarity, per crop) and levels on it: level L to L+1 costs
 # level-xp x level-growth^L. A clan starts with base-members seats.
 clans:
-  level-xp: 50000
+  # V402, Leon: the first levels easier, 10k (was 50k).
+  level-xp: 10000
   # V394: 1.03, so level 100 is about 30M XP all told and the upgrades,
   # paid one point a level, stay in reach.
   level-growth: 1.03
@@ -6452,63 +6453,39 @@ discord:
             - "- No Prestige 10 yet? Nothing to do yet. The first egg is waiting there"
           inline: false
       footer: "Found a bug or something that reads wrong? Say so in Discord, bug reports earn Credits."
-    # V399: everything from V362 to V398, for players.
+    # V399: everything from V362 to V398, for players. V402: rewritten as
+    # a short overview with emojis, Leon's call.
     #   /rngadmin discord post changelog3 changelog
     changelog3:
-      title: "Changelog, 10 to 15 October"
+      title: "📋 Changelog, 10 to 15 October"
       color: "#C77DFF"
-      description: "Clans, eggs that drop while you farm, a Sunday event and a lot more. Here is everything since the pets update."
+      description: "A big one! Here are the highlights, jump in and find the rest yourself. 🚀"
       fields:
-        - name: "Clans (new)"
+        - name: "🛡️ Clans added"
           value:
-            - "- `/clan create <name>`, then invite, join, leave, kick, transfer and disband. `/clan` opens the clan menu"
-            - "- Your clan levels up from the **Battle Pass XP its members earn**, pass or no pass. `/clan top` for the leaderboard"
-            - "- **Clan chest**: 54 shared slots for the whole clan"
-            - "- **/clan upgrades**: one point per clan level for Member Slots (up to 10), Clan Luck, Clan Money, Clan Speed and **Clan Bond** (2x Luck while another member is within 10 blocks)"
+            - "🤝 Team up with friends with `/clan create`"
+            - "📈 Level your clan together by rolling and farming"
+            - "📦 A shared clan chest"
+            - "⭐ Clan upgrades that boost every member"
           inline: false
-        - name: "Pets and eggs"
+        - name: "🥚 Pets revamped"
           value:
-            - "- **Eggs now drop while you farm.** Six crop eggs: Wheat, Carrot, Potato, Beetroot, Nether Wart and Fern, each from its own crop"
-            - "- **1% of eggs are shiny** and hatch a shiny pet. A shiny pet is **2x**"
-            - "- Egg odds: Common 45%, Uncommon 25%, Rare 15%, Epic 8%, Legendary 4.5%, Mythical 1.5%, **Divine 1%**. Pet Luck still helps"
-            - "- Your eggs wait in `/pets`, click one to open it. The pets you already own stay yours"
-            - "- Pets boost Luck, Money, Speed, Coins, Gems or Shiny (Shiny at 10%). The compass in `/pets` switches all of them at once"
-            - "- Every pet is its own animal head with its name in rarity colours, and every copy has its own card"
-            - "- Making a pet shiny costs shinies: 1 for Common up to 64 for Divine"
-            - "- The egg opening plays over the egg you clicked, and can be switched off in the egg screen"
+            - "🌾 Pet eggs now drop while you farm, one egg for every crop"
+            - "✨ Shiny eggs hatch shiny pets"
+            - "🐾 Every pet has its own head, and you choose what it boosts"
           inline: false
-        - name: "Farming"
+        - name: "🌱 /crops revamped"
           value:
-            - "- **/crops rebuilt.** You earn 1 crop coin per 1,000 crops farmed and spend them on Enchant Proc, Coin Boost, Gem Boost and Pet Egg Luck. The old per crop upgrades are gone and their Coins were refunded"
-            - "- **Every crop pays 2x**, and Gems now grow with a crop's Coins, so later crops pay far more Gems"
-            - "- Crops open by crops farmed: Carrots 250k, Potatoes 500k, Beetroot 1M, Nether Wart 1.5M, Fern 2M"
-            - "- **Golden Harvest works now**, with a gold glow only you see. Unlock it, raise its multiplier and add more golden crops in `/farmtree`"
-            - "- **Gem Greed** is live, and a new enchant **Perk Finder** finds Perk Tickets"
-            - "- Every proc says what it earned in crops, Coins and Gems"
-            - "- Momentum maxes at level 10,000 (+400%). New farming milestones every million from 1M to 5M"
+            - "🪙 Earn crop coins by farming and spend them on new upgrades"
+            - "💰 Every crop pays more"
           inline: false
-        - name: "Rolling"
+        - name: "🚜 Farming"
           value:
-            - "- **Speed above 20x counts now.** Past 20x every roll lands extra drops, up to 25 at once at 500x"
-            - "- Epic and up are rolled rarity first, then the item, so the top tiers are rarer and worth more"
-            - "- Index completion is a ladder: up to **5x** for the normal index and **10x** for shiny, 15x together"
-            - "- Nova Core goes to **tier 250 (25x)**. Core Anchor is gone"
+            - "🌟 Golden Harvest is live"
+            - "💎 Gem Greed and the new Perk Finder enchant"
+            - "🏁 New farming milestones"
           inline: false
-        - name: "Rarest Drop Sunday (new)"
-          value:
-            - "- Every Sunday from 00:00 to 23:59 your **rarest roll of the day** counts. A shiny counts as far rarer"
-            - "- **#1 gets 500 Credits, #2 250, #3 100.** The board stays up until next Sunday"
-          inline: false
-        - name: "Everything else"
-          value:
-            - "- Both skill trees have a new layout, `/skilltree` has six pages. Coins I and II give 5% a level"
-            - "- Chat shows your rank, tab and your nametag still show your tag. **[AFK]** shows in tab"
-            - "- `/potion` opens your potions, `/brewer` opens the brewer"
-            - "- Armor you replace goes to `/stash`. The Farm Crate gives 5,000 Gems"
-            - "- Boats, minecarts, armor stands and the 2x2 crafting grid are off"
-            - "- Server updates no longer reset boosts or your Momentum"
-          inline: false
-      footer: "Found a bug or something that reads wrong? Say so in Discord, bug reports earn Credits."
+      footer: "Found a bug? Tell us in Discord, bug reports earn Credits."
     # V302: /rngadmin discord post changelog2 changelog (V306 brought it up
     # to date with V303 to V306)
     changelog2:

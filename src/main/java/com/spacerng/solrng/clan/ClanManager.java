@@ -97,7 +97,7 @@ public final class ClanManager {
 
     /** What level {@code level} to {@code level + 1} costs. */
     public long xpFor(int level) {
-        double base = plugin.getConfig().getDouble("clans.level-xp", 50000);
+        double base = plugin.getConfig().getDouble("clans.level-xp", 10000);
         double growth = plugin.getConfig().getDouble("clans.level-growth", 1.03);
         return Math.max(1L, Math.round(base * Math.pow(growth, level)));
     }
@@ -300,6 +300,7 @@ public final class ClanManager {
         clans.put(clan.id(), clan);
         byMember.put(owner, clan.id());
         save();
+        refreshTab(owner);
         return Result.DONE;
     }
 
@@ -335,6 +336,7 @@ public final class ClanManager {
         byMember.put(player, clan.id());
         invites.remove(player);
         save();
+        refreshTab(player);
         return Result.DONE;
     }
 
@@ -346,6 +348,7 @@ public final class ClanManager {
         byMember.remove(player);
         closeChestFor(clan, player);
         save();
+        refreshTab(player);
         return Result.DONE;
     }
 
@@ -368,6 +371,7 @@ public final class ClanManager {
         byMember.remove(target);
         closeChestFor(clan, target);
         save();
+        refreshTab(target);
         return Result.DONE;
     }
 
@@ -399,6 +403,7 @@ public final class ClanManager {
             if (ownerOnline != null) com.spacerng.solrng.player.Stash.give(plugin, ownerOnline, stack);
         }
         for (UUID member : clan.members()) byMember.remove(member);
+        for (UUID member : clan.members()) refreshTab(member);
         clans.remove(clan.id());
         for (Map<String, Long> mine : invites.values()) mine.remove(clan.id());
         save();
@@ -406,6 +411,12 @@ public final class ClanManager {
     }
 
     // ------------------------------------------------------------ file
+
+    /** V402: the clan tag sits in tab, so a membership change redraws it. */
+    private void refreshTab(UUID player) {
+        org.bukkit.entity.Player online = plugin.getServer().getPlayer(player);
+        if (online != null) plugin.getRankManager().refreshName(online);
+    }
 
     private void load() {
         clans.clear();

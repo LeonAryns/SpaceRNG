@@ -219,6 +219,43 @@ public class GuiListener implements Listener {
      * them when the menu closes is destroyed with it. Hand it all back
      * instead; losing a Starforge to a stray Escape isn't acceptable.
      */
+    /**
+     * V402, against dupes: the clan chest was written to clans.yml only on
+     * close, while the player file is saved on its own clock. A crash in
+     * between could leave an item both in the chest file and back in the
+     * player's inventory. Now every change writes the chest and the
+     * clicker's player file together, one tick later when the move is done.
+     */
+    @EventHandler(priority = org.bukkit.event.EventPriority.MONITOR, ignoreCancelled = true)
+    public void onClanChestClick(org.bukkit.event.inventory.InventoryClickEvent event) {
+        if (event.getView().getTopInventory().getHolder() instanceof com.spacerng.solrng.clan.ClanChestHolder chest
+                && event.getWhoClicked() instanceof Player player) {
+            syncClanChest(chest.clanId(), player);
+        }
+    }
+
+    @EventHandler(priority = org.bukkit.event.EventPriority.MONITOR, ignoreCancelled = true)
+    public void onClanChestDrag(org.bukkit.event.inventory.InventoryDragEvent event) {
+        if (event.getView().getTopInventory().getHolder() instanceof com.spacerng.solrng.clan.ClanChestHolder chest
+                && event.getWhoClicked() instanceof Player player) {
+            syncClanChest(chest.clanId(), player);
+        }
+    }
+
+    private final java.util.Set<String> clanChestPending = new java.util.HashSet<>();
+
+    private void syncClanChest(String clanId, Player player) {
+        if (!clanChestPending.add(clanId)) {
+            plugin.getServer().getScheduler().runTask(plugin, () -> player.saveData());
+            return;
+        }
+        plugin.getServer().getScheduler().runTask(plugin, () -> {
+            clanChestPending.remove(clanId);
+            plugin.getClanManager().storeChest(clanId);
+            if (player.isOnline()) player.saveData();
+        });
+    }
+
     @EventHandler
     public void onClose(InventoryCloseEvent event) {
         Inventory top = event.getInventory();
@@ -228,6 +265,7 @@ public class GuiListener implements Listener {
             // V394: one shared inventory per clan; the last edit is written
             // back to the clan whenever anybody closes it.
             plugin.getClanManager().storeChest(chest.clanId());
+            player.saveData();
             return;
         }
         if (top.getHolder() instanceof com.spacerng.solrng.gui.PrivateVaultHolder vault) {

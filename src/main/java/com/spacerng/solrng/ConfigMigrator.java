@@ -428,6 +428,8 @@ public final class ConfigMigrator {
             new Patch("pet-shiny-2x-v392", "pets.upgrades.shiny-bonus", 0.10, 1.0),
             // V394: a gentler clan level curve, so one point a level buys something.
             new Patch("clan-growth-v394", "clans.level-growth", 1.1, 1.03),
+            // V402, Leon: the first clan levels easier, from 10k XP.
+            new Patch("clan-level-xp-v402", "clans.level-xp", 50000, 10000),
             // V401, Leon: Astral starts and ends white light blue, not lilac.
             new Patch("astral-ends-v401", "rarities.ASTRAL.colors",
                     List.of("#D0A2FF", "#B388FF", "#80D8FF", "#B388FF", "#D0A2FF"),
@@ -2236,6 +2238,25 @@ public final class ConfigMigrator {
                 }
             }
             applied.add("changelog2-v306");
+            changed = true;
+        }
+        // V402: the changelog3 card rewritten short, with emojis. V399
+        // already copied the long one into the live config.
+        if (!applied.contains("changelog3-v402")) {
+            InputStream stream = plugin.getResource("config.yml");
+            if (stream != null) {
+                try (InputStreamReader reader = new InputStreamReader(stream, StandardCharsets.UTF_8)) {
+                    YamlConfiguration jar = YamlConfiguration.loadConfiguration(reader);
+                    if (jar.isConfigurationSection("discord.cards.changelog3")) {
+                        disk.set("discord.cards.changelog3", null);
+                        disk.set("discord.cards.changelog3", jar.get("discord.cards.changelog3"));
+                        plugin.getLogger().info("Config patch changelog3-v402: discord.cards.changelog3 replaced");
+                    }
+                } catch (IOException ignored) {
+                    // Left as it was.
+                }
+            }
+            applied.add("changelog3-v402");
             changed = true;
         }
         // V230: the link card gets its button. Swapped whole, and only while
