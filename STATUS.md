@@ -5,8 +5,17 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V403**, 16 October 2026. The newest section is the
+Last updated at **V404**, 16 October 2026. The newest section is the
 first one below; older sections further down are history.
+
+## V404, 16 October 2026 (untested in game)
+
+- Drops go to chat only when they match or beat the server record
+  (`roll/DropRecord`, drop-record.yml), plain and shiny apart, seeded
+  from the Server First lists. Epic stays the floor.
+- Chat tips: Discord, store, /help only, every 10 minutes (patch
+  `announcements-v404`). Guide nudge every 4 minutes.
+- Rarest drop board only on `rarest-drop.only-on` (2026-10-18).
 
 ## V403, 16 October 2026 (untested in game)
 
