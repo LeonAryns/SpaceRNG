@@ -5,8 +5,21 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V401**, 16 October 2026. The newest section is the
+Last updated at **V402**, 16 October 2026. The newest section is the
 first one below; older sections further down are history.
+
+## V402, 16 October 2026 (untested in game)
+
+- Boss: no spot means no boss (the server spawn fallback is gone), and
+  natural spawns need `/rngadmin boss process start` plus a spot. Extra
+  Speed rolls no longer hit the boss (25 hits a landing beat it in
+  seconds since V397). Swept crops (Blast, Nuke) still count as crops.
+- Clan name in tab behind the player name, tab only. First clan level
+  10k XP (patch). The clan card lists what earns XP (1 per crop was
+  already there).
+- Clan chest writes clans.yml and the clicker's player data on every
+  click or drag (was only on close), against crash dupes.
+- changelog3 rewritten short with emojis (patch `changelog3-v402`).
 
 ## V400 and V401, 16 October 2026 (untested in game)
 
