@@ -88,6 +88,8 @@ public final class ConfigMigrator {
      * server already has, like one more hologram panel.
      */
     private static final List<String> ADDED_SECTIONS = List.of(
+            // V399: the changelog card for V362 to V398.
+            "discord.cards.changelog3",
             // V398: the rarest drop board.
             "rarest-drop", "roll-item.min-roll-ticks", "roll-item.max-rolls-per-landing", "pets.shiny-share",
             // V393: clans.
