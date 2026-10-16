@@ -192,6 +192,7 @@ public class ArmorManager {
         DropWallet.spend(plugin, player, data, rarity, cost);
         data.setArmorLevel(tierId, level + 1);
         refreshWornBonuses();
+        refreshArmorLore(player);
         return true;
     }
 
@@ -237,7 +238,7 @@ public class ArmorManager {
         ItemStack item = new ItemStack(tier.materialFor(piece));
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(ChatColor.AQUA + tier.pieceDisplay(piece));
-        meta.setLore(statLines(tier));
+        meta.setLore(ownedLore(plugin.getPlayerDataManager().get(player.getUniqueId()), tier));
         meta.getPersistentDataContainer().set(tierKey, PersistentDataType.STRING, tier.getId());
         // Bought armor never wears out (V253).
         meta.setUnbreakable(true);
@@ -294,6 +295,55 @@ public class ArmorManager {
                 + "+" + Math.round(tier.getSpeedBonus() * 100));
         lore.add(ChatColor.DARK_GRAY + "Scales with this set's level in /armor.");
         return lore;
+    }
+
+    /**
+     * V405, Leon: a piece's tooltip shows its set's level and what the
+     * piece gives right now, like the level cards on other servers. The
+     * level belongs to the player, not the item, so every plugin piece
+     * they carry or wear is rewritten when it no longer matches.
+     */
+    public List<String> ownedLore(PlayerData data, ArmorTier tier) {
+        int level = Math.max(1, levelOf(data, tier.getId()));
+        int max = maxArmorLevel();
+        double scale = levelScale(level);
+        double per = plugin.getConfig().getDouble("armor.levels.bonus-per-level", 0.10);
+        List<String> lore = new ArrayList<>();
+        lore.add(ChatColor.DARK_GRAY + "Armor piece");
+        lore.add("");
+        lore.add(ChatColor.GRAY + "Level the set up with drops in " + ChatColor.WHITE + "/armor" + ChatColor.GRAY + ".");
+        lore.add("");
+        lore.add(com.spacerng.solrng.gui.Lore.stat(ChatColor.AQUA, "Level", level + " / " + max));
+        lore.add(com.spacerng.solrng.gui.Lore.bar(max <= 1 ? 1.0 : (level - 1) / (double) (max - 1)));
+        lore.add("");
+        lore.add(com.spacerng.solrng.gui.Lore.section(ChatColor.YELLOW, "Boosts"));
+        lore.add(com.spacerng.solrng.gui.Lore.stat(ChatColor.GREEN, "Luck",
+                "+" + Math.round(tier.getLuckBonus() * scale * 100) + "%"
+                        + ChatColor.DARK_GRAY + "  (+" + Math.round(tier.getLuckBonus() * per * 100) + "% a level)"));
+        lore.add(com.spacerng.solrng.gui.Lore.stat(ChatColor.YELLOW, "Speed",
+                "+" + Math.round(tier.getSpeedBonus() * scale * 100)
+                        + ChatColor.DARK_GRAY + "  (+" + Math.round(tier.getSpeedBonus() * per * 100) + " a level)"));
+        lore.add("");
+        lore.add(com.spacerng.solrng.gui.Lore.footnote("Full set: +" + Math.round(setBonus() * 100) + "% on top."));
+        return lore;
+    }
+
+    /** Rewrites the tooltip of every plugin armor piece this player has. */
+    public void refreshArmorLore(Player player) {
+        PlayerData data = plugin.getPlayerDataManager().get(player.getUniqueId());
+        PlayerInventory inv = player.getInventory();
+        ItemStack[] contents = inv.getContents();
+        for (int slot = 0; slot < contents.length; slot++) {
+            ItemStack piece = contents[slot];
+            ArmorTier tier = tiers.get(tierOf(piece));
+            if (tier == null) continue;
+            ItemMeta meta = piece.getItemMeta();
+            List<String> want = ownedLore(data, tier);
+            if (want.equals(meta.getLore())) continue;
+            meta.setLore(want);
+            piece.setItemMeta(meta);
+            inv.setItem(slot, piece);
+        }
     }
 
     /**

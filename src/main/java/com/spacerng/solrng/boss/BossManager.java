@@ -627,16 +627,17 @@ public class BossManager {
     private void refreshBar(Fight fight, BossBar bar) {
         double fraction = Math.max(0.0, Math.min(1.0, (double) fight.health / fight.max));
         bar.setProgress(fight.beaten ? 1.0 : fraction);
-        bar.setColor(fight.beaten ? BarColor.GREEN
-                : fraction > 0.5 ? BarColor.RED : fraction > 0.25 ? BarColor.YELLOW : BarColor.WHITE);
+        // V405, Leon's picture: one red bar, then "NAME | ❤ 2,739 | ⌚ 2:32"
+        // with the numbers in bold white.
+        bar.setColor(fight.beaten ? BarColor.GREEN : BarColor.RED);
         String name = Lore.gradient(active.display().toUpperCase(Locale.ROOT), true, active.stops());
+        String split = ChatColor.RESET + "" + ChatColor.GRAY + " | ";
         bar.setTitle(fight.beaten
-                ? name + ChatColor.RESET + ChatColor.DARK_GRAY + "  |  "
-                        + ChatColor.GREEN + "beaten" + ChatColor.DARK_GRAY + "  |  "
-                        + ChatColor.WHITE + beaten + "/" + joined + " done"
-                : name + ChatColor.RESET + ChatColor.DARK_GRAY + "  |  "
-                        + ChatColor.WHITE + String.format("%,d", fight.health) + " crops left"
-                        + ChatColor.DARK_GRAY + "  |  " + ChatColor.WHITE + timeLeft());
+                ? name + split + ChatColor.GREEN + ChatColor.BOLD + "✔ Beaten"
+                        + split + ChatColor.WHITE + ChatColor.BOLD + beaten + "/" + joined
+                : name + split + ChatColor.RED + "❤ " + ChatColor.WHITE + ChatColor.BOLD
+                        + String.format("%,d", fight.health)
+                        + split + ChatColor.GRAY + "⌚ " + ChatColor.WHITE + ChatColor.BOLD + timeLeft());
         bar.setVisible(true);
     }
 

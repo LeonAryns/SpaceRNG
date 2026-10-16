@@ -822,6 +822,12 @@ public final class SolRNGPlugin extends JavaPlugin {
      * scoreboard more or less instantly.
      */
     private void startArmorRefreshTask() {
+        // V405: armor tooltips show the set's level, so pieces already
+        // owned are brought up to date every two seconds (only rewritten
+        // when the text changed).
+        getServer().getScheduler().runTaskTimer(this, () -> {
+            for (Player player : getServer().getOnlinePlayers()) armorManager.refreshArmorLore(player);
+        }, 40L, 40L);
         getServer().getScheduler().runTaskTimer(this, () -> {
             armorManager.refreshWornBonuses();
             starforgeManager.refreshHeldBonuses();

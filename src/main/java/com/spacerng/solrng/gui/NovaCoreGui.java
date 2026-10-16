@@ -241,8 +241,9 @@ public class NovaCoreGui {
             lore.add(ChatColor.GREEN + "" + ChatColor.BOLD + "Maxed");
         } else {
             ChatColor odds = chance >= 0.5 ? ChatColor.GREEN : chance >= 0.2 ? ChatColor.YELLOW : ChatColor.RED;
-            lore.add(ChatColor.GRAY + "Every tier multiplies your Luck, Money");
-            lore.add(ChatColor.GRAY + "and Coins. Miss, and you drop one tier.");
+            // V405, Leon: the words that matter in white, the rest grey.
+            lore.add(ChatColor.GRAY + "Every tier multiplies your " + ChatColor.WHITE + "Luck, Money");
+            lore.add(ChatColor.WHITE + "and Coins" + ChatColor.GRAY + ". Miss, and you drop " + ChatColor.WHITE + "one tier" + ChatColor.GRAY + ".");
             lore.add("");
             lore.add(Lore.section(ChatColor.AQUA, "This attempt"));
             lore.add(Lore.stat(odds, "Success", chance >= 1.0
@@ -283,7 +284,7 @@ public class NovaCoreGui {
                     // wraps like the lines above it.
                     boolean first = true;
                     for (String part : wrap("Get them from " + nova.howToGet(), 34)) {
-                        lore.add((first ? ChatColor.RED + Lore.BULLET + " " : "  ") + ChatColor.GRAY + part);
+                        lore.add((first ? ChatColor.RED + Lore.BULLET + " " : "  ") + ChatColor.GRAY + highlight(part));
                         first = false;
                     }
                 }
@@ -370,6 +371,21 @@ public class NovaCoreGui {
         meta.setEnchantmentGlintOverride(Boolean.TRUE);
         item.setItemMeta(meta);
         return item;
+    }
+
+    /**
+     * V405: in a long grey line, commands and the names of things go white
+     * so the eye lands on them (Leon's tutorial picture).
+     */
+    private static String highlight(String line) {
+        StringBuilder out = new StringBuilder();
+        for (String word : line.split(" ", -1)) {
+            if (out.length() > 0) out.append(' ');
+            boolean key = word.startsWith("/") || (!word.isEmpty() && Character.isUpperCase(word.charAt(0))
+                    && !word.equals("Get"));
+            out.append(key ? ChatColor.WHITE + word + ChatColor.GRAY : word);
+        }
+        return out.toString();
     }
 
     /** Splits text into lines of at most {@code width} characters. */

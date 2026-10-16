@@ -303,6 +303,12 @@ character against the line length limit.
 - Numbers use `Lore.shorten` / `RollFormat.abbreviate` in tight lines and
   `String.format("%,d", n)` where the exact figure matters.
 - Two lines of description beat five. Wrap at roughly 40 characters.
+- **Key words in white inside grey text** (V405, Leon's tutorial
+  picture). In any description of more than a line, the stat, the
+  command and the name of the thing are WHITE and the rest stays GRAY:
+  "Every tier multiplies your §fLuck, Money§7 and §fCoins§7." This is
+  colour only. Never add a line to do it; Leon said so with the Nova
+  forge button, which was already long.
 
 ## Before you finish
 
