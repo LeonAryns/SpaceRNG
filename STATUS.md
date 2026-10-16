@@ -5,8 +5,13 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V402**, 16 October 2026. The newest section is the
+Last updated at **V403**, 16 October 2026. The newest section is the
 first one below; older sections further down are history.
+
+## V403, 16 October 2026 (untested in game)
+
+- Nova Core tier 0 to 1 is certain again. Since V322 the flat 50% chance
+  had switched first-forge-guaranteed off; now it is checked first.
 
 ## V402, 16 October 2026 (untested in game)
 
