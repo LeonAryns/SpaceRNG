@@ -31,6 +31,10 @@ thing works in game.
 - Report short and concrete: lead with the result and what it means for
   him, name files and numbers, cut background and surveys ("teveel
   nutteloze informatie", 18 September).
+- Discord changelog cards are a short general overview with emojis:
+  an emoji per field and per line, headline features only, no numbers
+  or mechanics. Players figure out the rest (16 October, after the
+  V399 card had "too much info").
 - When he asks what is left, answer from "Leon's idea list" in
   `STATUS.md` plus its open questions, and park every idea he gives
   ("onthoud als idee") in that list in the same session.
