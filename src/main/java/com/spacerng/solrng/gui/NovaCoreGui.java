@@ -192,7 +192,7 @@ public class NovaCoreGui {
         lore.add(Lore.section(ChatColor.LIGHT_PURPLE, "How it works"));
         lore.add(Lore.pipe(ChatColor.LIGHT_PURPLE, ChatColor.GRAY + "One Nova Core per forge"));
         lore.add(Lore.pipe(ChatColor.LIGHT_PURPLE, ChatColor.GRAY + (nova.getFlatChance() > 0.0
-                ? String.format("%.0f%%", nova.getFlatChance() * 100.0) + " to climb a tier, at every tier"
+                ? String.format("%.0f%%", nova.getFlatChance() * 100.0) + " to climb, the first tier never fails"
                 : "Climb a tier, or fall back")));
         lore.add(Lore.pipe(ChatColor.LIGHT_PURPLE, ChatColor.GRAY + "A miss drops you one tier"));
         lore.add(Lore.pipe(ChatColor.LIGHT_PURPLE, ChatColor.GRAY + "Every tier held multiplies Luck,"));
@@ -258,7 +258,8 @@ public class NovaCoreGui {
             if (nova.getFlatChance() > 0.0) {
                 lore.add(Lore.stat(ChatColor.AQUA, "Every tier",
                         String.format("%.0f%%", nova.getFlatChance() * 100.0)));
-                lore.add(ChatColor.DARK_GRAY + "The same coin flip at every tier.");
+                lore.add(ChatColor.DARK_GRAY + "The same coin flip at every tier after");
+                lore.add(ChatColor.DARK_GRAY + "the first, which never fails.");
             } else {
                 // Luck multiplies the tier's base chance: no Luck is the base,
                 // +100% Luck doubles it, +200% triples it (V158).

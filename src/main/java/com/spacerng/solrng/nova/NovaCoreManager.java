@@ -329,8 +329,9 @@ public class NovaCoreManager {
      * to 1 is a certainty while novacore.first-tier-guaranteed is on.
      */
     public double chanceAt(int tier, double luck) {
-        if (flatChance > 0.0) return flatChance;
+        // V403, Leon: tier 0 to 1 is certain, flat chance or not.
         if (tier <= 0 && firstForgeFree) return 1.0;
+        if (flatChance > 0.0) return flatChance;
         double raw = baseChance * Math.pow(decay, tier) * (1.0 + luck * luckWeight);
         return Math.max(minChance, Math.min(maxChance, raw));
     }
@@ -376,9 +377,8 @@ public class NovaCoreManager {
         }
 
         double luck = plugin.getPrestigeManager().baseLuck(data);
-        // V322: a flat chance is flat. Nova Touch and the guaranteed first
-        // forge are both skipped while it is on, because 50/50 that is
-        // really 54/46 on the first climb is not what was asked for.
+        // V322: a flat chance is flat, so Nova Touch is skipped while it is
+        // on. V403, Leon: the tier 0 to 1 forge stays certain all the same.
         double chance = flatChance > 0.0 ? flatChance
                 // Nova Touch nudges the roll itself rather than the Luck feeding
                 // it, so it stays useful at high Luck where the odds already clamp.
@@ -389,7 +389,7 @@ public class NovaCoreManager {
         // shattered Core drops somebody to 0, and making them gamble a
         // second Core to get back to a tier worth almost nothing is the
         // point where people stop forging altogether.
-        boolean guaranteed = flatChance <= 0.0 && firstForgeFree && tier == 0;
+        boolean guaranteed = firstForgeFree && tier == 0;
         boolean success = guaranteed || ThreadLocalRandom.current().nextDouble() < chance;
 
         if (success) {
