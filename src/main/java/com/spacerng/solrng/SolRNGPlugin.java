@@ -884,8 +884,9 @@ public final class SolRNGPlugin extends JavaPlugin {
                 announcerManager.getIntervalTicks(), announcerManager.getIntervalTicks());
 
         // A gentle nudge for anyone still on the guide, well apart from the
-        // tips so the two never land together.
-        getServer().getScheduler().runTaskTimer(this, () -> questManager.nudgeAll(), 2400L, 2400L);
+        // tips so the two never land together. V404, Leon: half as often,
+        // every 4 minutes (was 2).
+        getServer().getScheduler().runTaskTimer(this, () -> questManager.nudgeAll(), 4800L, 4800L);
 
         // Checks whether a farming period is due to roll over. On a timer
         // rather than scheduled for the hour, so it still fires if the

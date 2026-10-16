@@ -1140,6 +1140,9 @@ public class RollListener implements Listener {
     /** When a drop was last told to the server, for the quiet-minute rule (V286). */
     private long lastAnnouncedAt = 0L;
 
+    /** The rarest drop so far, plain and shiny (V404). Made on first use. */
+    private com.spacerng.solrng.roll.DropRecord dropRecord;
+
     private void maybeBroadcast(Player player, RollableItem result, ItemStack previewItem, boolean shiny) {
         // Discord has its own list of rarities, so it's asked before the in-game threshold.
         plugin.getDiscordWebhook().drop(player.getName(), result, shiny);
@@ -1156,6 +1159,12 @@ public class RollListener implements Listener {
         // it's worth announcing even at a rarity that normally isn't.
         boolean shinyWorthy = shiny && plugin.getConfig().getBoolean("shiny.broadcast", true);
         if (!shinyWorthy && result.getRarity().ordinal() < minRarity.ordinal()) return;
+        // V404, Leon: only a drop that matches or beats the rarest the
+        // server has found so far goes to chat, plain and shiny each
+        // against their own record. One Divine found, and from then on
+        // only Divines and better are announced.
+        if (dropRecord == null) dropRecord = new com.spacerng.solrng.roll.DropRecord(plugin);
+        if (!dropRecord.worthAnnouncing(result, shiny)) return;
         // A Server First announces itself with its own banner a few seconds
         // later, so the plain "just found" line would be the same news twice.
         if (plugin.getFirstTenManager().wouldTake(player, result)) return;

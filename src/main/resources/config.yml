@@ -3911,11 +3911,13 @@ leaderboard:
 # lines sent together under the header.
 announcements:
   enabled: true
-  interval-seconds: 300
+  # V404, Leon: half as often, every 10 minutes (was 5).
+  interval-seconds: 600
   # Every this-many-th announcement is the Discord one (V260); 2 is every
   # other, so with 300 seconds above it comes round every ten minutes.
   # 0 keeps it in the normal rotation.
-  discord-every: 2
+  # V404: 0, the three tips simply take turns.
+  discord-every: 0
   # Takes turns with the Discord tip in that slot (V261).
   feedback:
     - "&3▎ &e▸ &7Found a bug or have an idea? You earn &dCredits&7 for it."
@@ -3926,27 +3928,13 @@ announcements:
   # rotating messages themselves stay short.
   header: "&8&m                                                  "
   footer: "&8&m                                                  "
+  # V404, Leon: three tips only, Discord, the store and /help.
   messages:
-    - - "&3\u258e &e\u25b8 &fLeft-click&7 your Starforge to toggle &bAuto Roll&7."
-      - "&3\u258e &e\u25b8 &7Put spare drops in &e/convert&7 to buy armor and Starforges."
-    - - "&3\u258e &e\u25b8 &7Wear any drop you have found as a &btag&7 from &e/index&7."
-      - "&3\u258e &e\u25b8 &7The Luck multiplier is your best &dsecret&7 - see &d/secretindex&7."
-    - - "&3\u258e &e\u25b8 &d/novacore&7 is the fourth way to raise your Luck, after skills, armor and prestige."
-      - "&3\u258e &e\u25b8 &7Forge it a tier at a time with &6Coins&7. Every tier you hold is a permanent multiplier on &fLuck&7, &aMoney&7 and &6Coins&7 alike."
-    - - "&3\u258e &e\u25b8 &a/farmtree&7 has crops, hoe enchants and Coin multipliers."
-      - "&3\u258e &e\u25b8 &7Pick what grows for you with &e/crops&7. The field is yours alone."
-    - - "&3\u258e &e\u25b8 &7Long-run goals live in &e/milestones&7. Rewards wait there to be claimed."
-      - "&3\u258e &e\u25b8 &7New here? &e/guide&7 walks you through everything."
-    - - "&3\u258e &e\u25b8 &7Claim your streak every day with &e/daily&7. Miss one and it resets."
-      - "&3\u258e &e\u25b8 &d/buy&7 has a &5Global Luck Boost&7 that helps the whole server."
-    - - "&3\u258e &e\u25b8 &6/pass&7 pays out for every roll and every harvest. Rarer rolls are worth more XP."
-      - "&3\u258e &e\u25b8 &7The &5premium track&7 back-pays every level you already cleared."
-    - - "&3\u258e &e\u25b8 &d/skilltree&7 is three paths deep. &aMoney&7, &eSpeed&7 and &aLuck&7 each carry their own capstone."
-      - "&3\u258e &e\u25b8 &7Respec any time in /skilltree, &ffree&7 - spend your Money somewhere else."
     - - "&3▎ &e▸ &7Join our &9&lDiscord&7 for giveaways, news and updates."
       - "&3▎ &e▸ &7Click to join: &b&ndiscord.gg/spacerng"
-    - - "&3▎ &e▸ &7Roll a perk in &d/perks&7 with Perk Tickets. Every 100 rolls promise a Mythical."
-      - "&3▎ &e▸ &7Every perk you have found is listed in &d/perks index&7."
+    - - "&3▎ &e▸ &7Support the server with ranks, keys and boosts in the &6store&7."
+      - "&3▎ &e▸ &7Click to open: &b&nspacerng.tebex.store"
+    - - "&3▎ &e▸ &7New here or stuck? &e/help&7 explains everything."
 
 # The daily streak (/daily). No checkpoints on purpose: the whole tension
 # of a streak is that there's no safety net.
@@ -4840,6 +4828,9 @@ consumables:
 rarest-drop:
   enabled: true
   day: SUNDAY
+  # V404, Leon: only this Sunday. A date (YYYY-MM-DD) runs the board on
+  # that day alone; empty runs it every week on `day`.
+  only-on: "2026-10-18"
   zone: "Europe/Amsterdam"
   payouts: [500, 250, 100]
 

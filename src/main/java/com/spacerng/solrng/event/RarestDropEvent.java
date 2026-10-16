@@ -72,6 +72,16 @@ public final class RarestDropEvent {
 
     /** This week's event day, or the next one when this week's is past. */
     private LocalDate eventDay(ZonedDateTime now) {
+        // V404, Leon: a one-off. With rarest-drop.only-on set to a date the
+        // board runs on that day alone and never again.
+        String only = plugin.getConfig().getString("rarest-drop.only-on", "");
+        if (only != null && !only.isBlank()) {
+            try {
+                return LocalDate.parse(only.trim());
+            } catch (java.time.format.DateTimeParseException ex) {
+                plugin.getLogger().warning("rarest-drop.only-on is not a date (YYYY-MM-DD): " + only);
+            }
+        }
         LocalDate date = now.toLocalDate().with(TemporalAdjusters.nextOrSame(weekday()));
         return date;
     }

@@ -88,6 +88,8 @@ public final class ConfigMigrator {
      * server already has, like one more hologram panel.
      */
     private static final List<String> ADDED_SECTIONS = List.of(
+            // V404: the Sunday board on one date only.
+            "rarest-drop.only-on",
             // V399: the changelog card for V362 to V398.
             "discord.cards.changelog3",
             // V398: the rarest drop board.
@@ -2257,6 +2259,24 @@ public final class ConfigMigrator {
                 }
             }
             applied.add("changelog3-v402");
+            changed = true;
+        }
+        // V404, Leon: the chat tips are only Discord, the store and /help,
+        // every 10 minutes. Swapped once from the jar, whatever is live.
+        if (!applied.contains("announcements-v404")) {
+            InputStream stream = plugin.getResource("config.yml");
+            if (stream != null) {
+                try (InputStreamReader reader = new InputStreamReader(stream, StandardCharsets.UTF_8)) {
+                    YamlConfiguration jar = YamlConfiguration.loadConfiguration(reader);
+                    for (String key : List.of("messages", "interval-seconds", "discord-every")) {
+                        disk.set("announcements." + key, jar.get("announcements." + key));
+                    }
+                    plugin.getLogger().info("Config patch announcements-v404: three tips, every 10 minutes");
+                } catch (IOException ignored) {
+                    // Left as it was.
+                }
+            }
+            applied.add("announcements-v404");
             changed = true;
         }
         // V230: the link card gets its button. Swapped whole, and only while
