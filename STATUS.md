@@ -5,8 +5,16 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V404**, 16 October 2026. The newest section is the
+Last updated at **V405**, 16 October 2026. The newest section is the
 first one below; older sections further down are history.
+
+## V405, 16 October 2026 (untested in game)
+
+- Boss bar: red, "NAME | ❤ health | ⌚ time" in bold white (check the
+  clock glyph renders).
+- Armor tooltips show set level, bar, Luck and Speed now and per level,
+  set bonus (`ArmorManager.ownedLore`, refreshed every 2s).
+- Nova forge pitch: key words white. Rule added to menu-design skill.
 
 ## V404, 16 October 2026 (untested in game)
 
