@@ -194,7 +194,7 @@ public class NovaCoreGui {
         lore.add(Lore.pipe(ChatColor.LIGHT_PURPLE, ChatColor.GRAY + (nova.getFlatChance() > 0.0
                 ? String.format("%.0f%%", nova.getFlatChance() * 100.0) + " to climb a tier, at every tier"
                 : "Climb a tier, or fall back")));
-        lore.add(Lore.pipe(ChatColor.LIGHT_PURPLE, ChatColor.GRAY + "A miss drops you to your checkpoint"));
+        lore.add(Lore.pipe(ChatColor.LIGHT_PURPLE, ChatColor.GRAY + "A miss drops you one tier"));
         lore.add(Lore.pipe(ChatColor.LIGHT_PURPLE, ChatColor.GRAY + "Every tier held multiplies Luck,"));
         lore.add(Lore.pipe(ChatColor.LIGHT_PURPLE, ChatColor.GRAY + "Money and Coins at once"));
         lore.add("");
@@ -242,8 +242,7 @@ public class NovaCoreGui {
         } else {
             ChatColor odds = chance >= 0.5 ? ChatColor.GREEN : chance >= 0.2 ? ChatColor.YELLOW : ChatColor.RED;
             lore.add(ChatColor.GRAY + "Every tier multiplies your Luck, Money");
-            lore.add(ChatColor.GRAY + "and Coins. Miss, and you fall back to");
-            lore.add(ChatColor.GRAY + "your last checkpoint.");
+            lore.add(ChatColor.GRAY + "and Coins. Miss, and you drop one tier.");
             lore.add("");
             lore.add(Lore.section(ChatColor.AQUA, "This attempt"));
             lore.add(Lore.stat(odds, "Success", chance >= 1.0
@@ -251,7 +250,7 @@ public class NovaCoreGui {
             lore.add((affordable ? ChatColor.YELLOW : ChatColor.RED) + Lore.BULLET + " "
                     + ChatColor.GRAY + "Cost: " + (affordable ? ChatColor.WHITE : ChatColor.RED)
                     + "1 Nova Core" + ChatColor.DARK_GRAY + "  (you have " + held + ")");
-            lore.add(Lore.stat(ChatColor.RED, "On fail", "back to tier " + nova.checkpointBelow(tier)));
+            lore.add(Lore.stat(ChatColor.RED, "On fail", "back to tier " + nova.fallbackFrom(tier)));
             lore.add("");
             // V322: a flat chance is the same for everybody, so the two
             // lines that explained how Luck moved it would be telling a
@@ -279,7 +278,13 @@ public class NovaCoreGui {
             } else {
                 lore.add(ChatColor.RED + "" + ChatColor.BOLD + "No Nova Cores");
                 if (!nova.howToGet().isEmpty()) {
-                    lore.add(ChatColor.RED + Lore.BULLET + " " + ChatColor.GRAY + "Get them from " + nova.howToGet());
+                    // V400: one line ran off the side of the screen, so it
+                    // wraps like the lines above it.
+                    boolean first = true;
+                    for (String part : wrap("Get them from " + nova.howToGet(), 34)) {
+                        lore.add((first ? ChatColor.RED + Lore.BULLET + " " : "  ") + ChatColor.GRAY + part);
+                        first = false;
+                    }
                 }
             }
         }
@@ -356,7 +361,7 @@ public class NovaCoreGui {
         lore.add(Lore.stat(Currency.COINS.colour(), "Coins", times));
         lore.add("");
         lore.add(Lore.stat(ChatColor.GREEN, "Safety net",
-                below <= 0 ? "none yet, a miss drops you to 0" : "tier " + below));
+                below <= 0 ? "none yet" : "tier " + below));
         lore.add(Lore.stat(ChatColor.AQUA, "Next checkpoint",
                 next <= 0 ? "none left" : "tier " + next));
         lore.add(Lore.stat(ChatColor.YELLOW, "Best ever", String.valueOf(data.getNovaBestTier())));
@@ -364,6 +369,22 @@ public class NovaCoreGui {
         meta.setEnchantmentGlintOverride(Boolean.TRUE);
         item.setItemMeta(meta);
         return item;
+    }
+
+    /** Splits text into lines of at most {@code width} characters. */
+    private static List<String> wrap(String text, int width) {
+        List<String> lines = new ArrayList<>();
+        StringBuilder current = new StringBuilder();
+        for (String word : text.split(" ")) {
+            if (current.length() > 0 && current.length() + word.length() + 1 > width) {
+                lines.add(current.toString());
+                current = new StringBuilder();
+            }
+            if (current.length() > 0) current.append(' ');
+            current.append(word);
+        }
+        if (current.length() > 0) lines.add(current.toString());
+        return lines;
     }
 
     private static ItemStack pane(Material material, String name) {

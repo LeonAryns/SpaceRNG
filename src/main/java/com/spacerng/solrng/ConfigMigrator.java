@@ -428,6 +428,17 @@ public final class ConfigMigrator {
             new Patch("pet-shiny-2x-v392", "pets.upgrades.shiny-bonus", 0.10, 1.0),
             // V394: a gentler clan level curve, so one point a level buys something.
             new Patch("clan-growth-v394", "clans.level-growth", 1.1, 1.03),
+            // V400, Leon: a missed forge drops one tier, not to the checkpoint.
+            new Patch("nova-fail-text-v400", "consumables.nova_core.description",
+                    "Kept for you in /novacore, not in your inventory.\nSpend one there for a shot at the next tier.\n"
+                            + "Every tier multiplies your Luck, Money and Coins.\nMiss and you fall back to your last checkpoint.",
+                    "Kept for you in /novacore, not in your inventory.\nSpend one there for a shot at the next tier.\n"
+                            + "Every tier multiplies your Luck, Money and Coins.\nMiss and you drop one tier."),
+            new Patch("nova-fail-text-v400b", "consumables.nova_core.description",
+                    "Forge it in /novacore for a shot at the next tier.\nEvery tier multiplies your Luck, Money and Coins.\n"
+                            + "Miss and you fall back to your last checkpoint.\nThe more Luck you have, the better your odds.",
+                    "Kept for you in /novacore, not in your inventory.\nSpend one there for a shot at the next tier.\n"
+                            + "Every tier multiplies your Luck, Money and Coins.\nMiss and you drop one tier."),
             // V391, Leon: Wheat to 250k, then a crop every 500k.
             new Patch("unlock-carrots-v391", "farming.crop-unlock-at.CARROTS", 50000, 250000),
             new Patch("unlock-potatoes-v391", "farming.crop-unlock-at.POTATOES", 100000, 500000),

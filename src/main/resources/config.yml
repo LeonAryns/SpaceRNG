@@ -4773,7 +4773,7 @@ consumables:
     # V284: a Heart of the Sea again, Leon's call (V190 made it a pearl).
     material: HEART_OF_THE_SEA
     colors: ["#7FE7FF", "#00B0FF"]
-    description: "Kept for you in /novacore, not in your inventory.\nSpend one there for a shot at the next tier.\nEvery tier multiplies your Luck, Money and Coins.\nMiss and you fall back to your last checkpoint."
+    description: "Kept for you in /novacore, not in your inventory.\nSpend one there for a shot at the next tier.\nEvery tier multiplies your Luck, Money and Coins.\nMiss and you drop one tier."
   free_skill:
     display: "Skilltree Unlock Voucher"
     material: KNOWLEDGE_BOOK
@@ -5746,7 +5746,7 @@ boost:
   max-level: 5
 
 # The Nova Core ladder (/rngcookie). Each forge either climbs a tier or
-# drops you to the last checkpoint, and every tier is worth a permanent
+# drops you one tier (never below a checkpoint, V400), and every tier is worth a permanent
 # Luck multiplier of 1 + tier * multiplier-per-tier.
 #
 # Odds of clearing tier T = base-chance * decay^T * (1 + luck), clamped.

@@ -162,6 +162,16 @@ public class NovaCoreManager {
         return best;
     }
 
+    /**
+     * Where a failed attempt at the tier above {@code tier} leaves you.
+     * V400, Leon: one tier down, not back to the checkpoint. A checkpoint
+     * still holds, so a miss while standing on one costs nothing but the
+     * Core.
+     */
+    public int fallbackFrom(int tier) {
+        return Math.max(Math.max(0, tier - 1), checkpointBelow(tier));
+    }
+
     /** "5, 11, 18" - for the menu's footnote. */
     public String checkpointList() {
         java.util.List<String> parts = new java.util.ArrayList<>();
@@ -407,7 +417,7 @@ public class NovaCoreManager {
                 NovaForgeFx.anchored(plugin, player);
             }
         } else {
-            int fallback = checkpointBelow(tier);
+            int fallback = fallbackFrom(tier);
             data.setNovaTier(fallback);
             // A shatter is the one thing a quiet climb still says, on the
             // action bar rather than in chat. Losing tiers with no sign at
