@@ -1458,7 +1458,8 @@ rarities:
   # brighter. Still nothing near pure white, because a drop name renders
   # beside a player name in the tab list.
   ASTRAL:
-    colors: ["#D0A2FF", "#B388FF", "#80D8FF", "#B388FF", "#D0A2FF"]
+    # V401, Leon: white light blue at both ends (was lilac, too dark).
+    colors: ["#EAF8FF", "#B388FF", "#80D8FF", "#B388FF", "#EAF8FF"]
     symbol: true
     symbol-char: "✵"
     # V388: the marks flicker (Minecraft's obfuscated text).

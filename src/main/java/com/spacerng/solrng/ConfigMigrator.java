@@ -428,6 +428,10 @@ public final class ConfigMigrator {
             new Patch("pet-shiny-2x-v392", "pets.upgrades.shiny-bonus", 0.10, 1.0),
             // V394: a gentler clan level curve, so one point a level buys something.
             new Patch("clan-growth-v394", "clans.level-growth", 1.1, 1.03),
+            // V401, Leon: Astral starts and ends white light blue, not lilac.
+            new Patch("astral-ends-v401", "rarities.ASTRAL.colors",
+                    List.of("#D0A2FF", "#B388FF", "#80D8FF", "#B388FF", "#D0A2FF"),
+                    List.of("#EAF8FF", "#B388FF", "#80D8FF", "#B388FF", "#EAF8FF")),
             // V400, Leon: a missed forge drops one tier, not to the checkpoint.
             new Patch("nova-fail-text-v400", "consumables.nova_core.description",
                     "Kept for you in /novacore, not in your inventory.\nSpend one there for a shot at the next tier.\n"
