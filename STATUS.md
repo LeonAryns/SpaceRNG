@@ -5,8 +5,18 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V399**, 16 October 2026. The newest section is the
+Last updated at **V401**, 16 October 2026. The newest section is the
 first one below; older sections further down are history.
+
+## V400 and V401, 16 October 2026 (untested in game)
+
+- Nova Core: a missed forge drops one tier (`fallbackFrom`), never below
+  the checkpoint under you, so a miss on a checkpoint only costs the
+  Core. Was: back to the checkpoint. Texts and the nova_core item
+  description follow (two patches). The forge button's "Get them from"
+  line wraps at 34 characters (it ran off the screen).
+- Astral gradient ends #EAF8FF (white light blue) instead of lilac
+  #D0A2FF, patch `astral-ends-v401`.
 
 ## V399, 16 October 2026
 
