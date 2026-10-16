@@ -5,8 +5,13 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V398**, 15 October 2026. The newest section is the
+Last updated at **V399**, 16 October 2026. The newest section is the
 first one below; older sections further down are history.
+
+## V399, 16 October 2026
+
+- Discord card `changelog3`: the player changelog for V362 to V398.
+  Post with `/rngadmin discord post changelog3 changelog`.
 
 ## V398, 15 October 2026 (untested in game)
 
