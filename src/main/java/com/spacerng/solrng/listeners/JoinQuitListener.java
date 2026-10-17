@@ -66,6 +66,8 @@ public class JoinQuitListener implements Listener {
         }
         // Offline at the season reset: their inventory goes now.
         com.spacerng.solrng.player.SeasonWipe.onJoin(plugin, event.getPlayer());
+        // V406: while the rarest drop battle runs, say so and how long is left.
+        if (plugin.getRarestDropEvent() != null) plugin.getRarestDropEvent().onJoin(event.getPlayer());
 
         // Level/Prestige is intentionally NOT part of this - it's
         // tab-list-only via %solrng_level%, never the join broadcast.

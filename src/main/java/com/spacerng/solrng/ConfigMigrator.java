@@ -88,6 +88,8 @@ public final class ConfigMigrator {
      * server already has, like one more hologram panel.
      */
     private static final List<String> ADDED_SECTIONS = List.of(
+            // V406: the Sunday reset, the battle's length and the big drop lines.
+            "rarest-drop.reset-on", "rarest-drop.length-hours", "rarest-drop.name-scale", "rarest-drop.odds-scale",
             // V404: the Sunday board on one date only.
             "rarest-drop.only-on",
             // V399: the changelog card for V362 to V398.

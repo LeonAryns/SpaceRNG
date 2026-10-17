@@ -410,6 +410,27 @@ public final class ClanManager {
         return Result.DONE;
     }
 
+    /**
+     * The Sunday reset (V406, Leon): every clan gone, with its members,
+     * levels, upgrades and chest. Nothing is handed back from the chests,
+     * because carrying items through the reset is what they would be for.
+     * Returns how many clans there were.
+     */
+    public int wipeAll() {
+        for (org.bukkit.inventory.Inventory open : new ArrayList<>(chests.values())) {
+            for (org.bukkit.entity.HumanEntity viewer : new ArrayList<>(open.getViewers())) viewer.closeInventory();
+        }
+        chests.clear();
+        int count = clans.size();
+        List<UUID> members = new ArrayList<>(byMember.keySet());
+        clans.clear();
+        byMember.clear();
+        invites.clear();
+        for (UUID member : members) refreshTab(member);
+        save();
+        return count;
+    }
+
     // ------------------------------------------------------------ file
 
     /** V402: the clan tag sits in tab, so a membership change redraws it. */

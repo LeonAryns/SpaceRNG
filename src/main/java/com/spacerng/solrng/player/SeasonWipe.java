@@ -53,7 +53,14 @@ public final class SeasonWipe {
         } catch (Exception ignored) {
             // Some setups refuse statistic writes; not worth failing over.
         }
+        // V406: the starter Starforge as well, the same pair an online
+        // player is handed back by the wipe itself.
+        var tier = plugin.getStarforgeManager().tierOf(plugin.getPlayerDataManager().get(player.getUniqueId()));
+        if (tier != null) plugin.getStarforgeManager().replaceHeldStarforge(player, tier);
         Stash.give(plugin, player, RollItemFactory.create(plugin, 1));
+        player.sendMessage(org.bukkit.ChatColor.LIGHT_PURPLE + "" + org.bukkit.ChatColor.BOLD + "RESET "
+                + org.bukkit.ChatColor.RESET + org.bukkit.ChatColor.WHITE
+                + "SpaceRNG was reset while you were away. A fresh start, good luck!");
     }
 
     private static List<String> read(SolRNGPlugin plugin) {

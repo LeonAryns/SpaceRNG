@@ -106,95 +106,13 @@ final class PlayerAdmin extends AdminTools {
         return true;
     }
 
-    /**
-     * Wipes one online player back to a brand-new account: save file,
-     * Money, playtime, leaderboard row, inventory and ender chest, with a
-     * Roll item and the starter Starforge handed back. {@code keepRank} is
-     * put back on the fresh account, for the season reset keeping Owner.
-     */
+    /** The wipe itself lives in AccountReset since V406, shared with the Sunday reset. */
     private PlayerData wipe(Player target, String keepRank) {
-        return wipe(target, keepRank, false);
+        return com.spacerng.solrng.player.AccountReset.wipeOnline(plugin, target, keepRank, false);
     }
 
-    /**
-     * @param keepEarned V321: carries the rank, Credits, Battle Pass and
-     *     claimed milestones onto the fresh account, Leon's call for
-     *     /rngadmin reset. The season reset passes false, because a new
-     *     season is exactly when the pass and the milestones SHOULD go;
-     *     it keeps the rank its own way, through keepRank.
-     */
     private PlayerData wipe(Player target, String keepRank, boolean keepEarned) {
-        UUID uuid = target.getUniqueId();
-        plugin.getRollListener().cancelRoll(uuid);
-
-        // Read before the reset, because reset() replaces the object.
-        PlayerData before = keepEarned ? plugin.getPlayerDataManager().get(uuid) : null;
-        String rank = before == null ? null : before.getRank();
-        long credits = before == null ? 0L : before.getPoints();
-        int passSeason = before == null ? 1 : before.getPassSeason();
-        long passXp = before == null ? 0L : before.getPassXp();
-        boolean passPremium = before != null && before.isPassPremium();
-        java.util.Set<String> passClaimed = before == null
-                ? java.util.Set.of() : java.util.Set.copyOf(before.getPassClaimed());
-        java.util.Set<String> milestones = before == null
-                ? java.util.Set.of() : java.util.Set.copyOf(before.getClaimedMilestones());
-        java.util.Set<String> announced = before == null
-                ? java.util.Set.of() : java.util.Set.copyOf(before.getAnnouncedMilestones());
-
-        PlayerData fresh = plugin.getPlayerDataManager().reset(uuid);
-        if (keepRank != null) fresh.setRank(keepRank);
-        if (before != null) {
-            if (rank != null) fresh.setRank(rank);
-            fresh.addPoints(credits);
-            fresh.setPassSeason(passSeason);
-            fresh.setPassXp(passXp);
-            fresh.setPassPremium(passPremium);
-            fresh.getPassClaimed().addAll(passClaimed);
-            // Both sets, not just the claimed one: an already announced
-            // milestone that is forgotten gets announced to the whole
-            // server a second time the moment they pass it again.
-            fresh.getClaimedMilestones().addAll(milestones);
-            fresh.getAnnouncedMilestones().addAll(announced);
-        }
-
-        // Coins, Gems and Credits live on PlayerData and go with it. Money
-        // does not: it lives in the economy plugin, so a reset that only
-        // touched the save file left the richest thing about the account
-        // untouched.
-        var economyReg = Bukkit.getServicesManager()
-                .getRegistration(net.milkbowl.vault.economy.Economy.class);
-        if (economyReg != null) {
-            var economy = economyReg.getProvider();
-            double balance = economy.getBalance(target);
-            if (balance > 0) economy.withdrawPlayer(target, balance);
-        }
-
-        // Playtime is a vanilla statistic, so it lives on the player and
-        // not in the save file the reset just deleted.
-        try {
-            target.setStatistic(org.bukkit.Statistic.PLAY_ONE_MINUTE, 0);
-        } catch (Exception ignored) {
-            // Some server setups refuse statistic writes. Not worth failing
-            // the whole reset over.
-        }
-        // The leaderboard keeps its own copy of the numbers, and a wiped
-        // account still sitting at the top of a board is worse than useless.
-        plugin.getLeaderboardManager().forget(uuid);
-
-        target.getInventory().clear();
-        target.getEnderChest().clear();
-
-        // Put the live state back in sync with the wiped data.
-        plugin.getTagManager().clearTag(target, fresh);
-        StarforgeTier basic = plugin.getStarforgeManager().tierOf(fresh);
-        if (basic != null) {
-            plugin.getStarforgeManager().replaceHeldStarforge(target, basic);
-        }
-        target.getInventory().addItem(
-                com.spacerng.solrng.roll.RollItemFactory.create(plugin, 1));
-        plugin.getScoreboardManager().update(target);
-        plugin.getRankManager().refreshName(target);
-        return fresh;
+        return com.spacerng.solrng.player.AccountReset.wipeOnline(plugin, target, keepRank, keepEarned);
     }
 
     /**

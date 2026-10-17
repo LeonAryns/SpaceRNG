@@ -40,7 +40,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             "reload", "freeze", "unfreeze", "setspawn", "starforge", "reset", "season", "give", "store", "drops",
             "bank", "rank", "cosmetic", "bedrock", "aura", "auras", "head", "reveal", "nextroll", "roll", "unlock", "unlockall", "lockall", "odds", "farmblock", "farmscan", "farmwheat", "farmland",
             "hoe", "consumable", "gradient", "welcome", "crops", "farmclear",
-            "milestones", "farmfill", "boost", "crowd", "nova", "points", "placeholders", "payout", "crate", "petegg", "tophead", "floatingitem", "boss", "pet", "dust", "discord", "realm", "advancements", "protect", "cropwatch", "farmboard", "icon", "shiny", "firsts", "lorestyles", "tagstyles", "menustyles", "hoestyles", "standingstyles", "enchantstyles", "novastyles", "auratest", "holo", "help");
+            "milestones", "farmfill", "boost", "crowd", "nova", "points", "placeholders", "payout", "crate", "petegg", "tophead", "floatingitem", "boss", "pet", "dust", "discord", "realm", "advancements", "protect", "cropwatch", "farmboard", "icon", "shiny", "firsts", "lorestyles", "tagstyles", "menustyles", "hoestyles", "standingstyles", "enchantstyles", "novastyles", "auratest", "holo", "rarest", "help");
     private static final List<String> CURRENCIES = List.of("money", "coins", "gems", "credits", "luck", "speed", "tickets",
             "egg:wheat", "egg:carrots", "egg:potatoes", "egg:beetroot", "egg:nether_wart", "egg:fern",
             "shinyegg:wheat", "shinyegg:fern");
@@ -124,6 +124,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
             case "crate" -> world.doCrate(sender, args);
             case "petegg" -> world.doPetEgg(sender, args);
             case "holo" -> world.doHolo(sender, args);
+            case "rarest" -> world.doRarest(sender, args);
             case "tophead" -> world.doTopHead(sender, args);
             case "floatingitem" -> world.doFloatingItem(sender, args);
             case "boss" -> world.doBoss(sender, args);
@@ -198,6 +199,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
         line(sender, "crate", "<place|set|remove|list|key|keyall|preview>",
                 "Place crates and hand out keys (key all refunds every type)");
         line(sender, "holo", "<panel|board|leader|remove|list|redraw>", "NPC text, boards and heads; redraw refreshes them all");
+        line(sender, "rarest", "<status|place|show|hide>", "The rarest drop battle: when, the reset, and a private board preview");
         line(sender, "floatingitem", "<add|remove|list>", "Rotating item displays anchored at a spot");
         line(sender, "boss", "<here|start|stop|process> [type]", "The boss spot, one by hand, and the timer");
         line(sender, "pet", "<give|take|list> <pet|all> [player]", "Hand out a pet, until they can be earned");
@@ -376,6 +378,7 @@ public class RngAdminCommand implements CommandExecutor, TabCompleter {
                 case "aura" -> partial(args[1], List.of("epic", "legendary", "mythical", "divine"));
                 case "shiny", "head", "reveal" -> partial(args[1], playerNames());
                 case "firsts" -> partial(args[1], List.of("list", "reset", "remove", "preview"));
+                case "rarest" -> partial(args[1], List.of("status", "place", "show", "hide"));
                 case "lorestyles" -> partial(args[1], rarityNames());
                 case "tagstyles" -> partial(args[1], RollFormat.TAG_ODDS_STYLES);
                 case "menustyles" -> partial(args[1], java.util.stream.Stream.concat(

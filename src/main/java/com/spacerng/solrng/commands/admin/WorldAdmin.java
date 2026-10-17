@@ -730,6 +730,120 @@ final class WorldAdmin extends AdminTools {
         return true;
     }
 
+    /**
+     * /rngadmin rarest &lt;status|place|show|hide&gt; (V406, Leon). The board
+     * is hidden until the battle starts and then up for everybody; show
+     * and hide are a preview for the admin alone, with example entries.
+     * status says when it starts, whether everybody is reset with it, and
+     * where the boards stand, so all of it can be checked beforehand.
+     */
+    boolean doRarest(CommandSender sender, String[] args) {
+        var event = plugin.getRarestDropEvent();
+        var holo = plugin.getHoloManager();
+        String action = args.length >= 2 ? args[1].toLowerCase(Locale.ROOT) : "status";
+        switch (action) {
+            case "place" -> {
+                if (!(sender instanceof Player player)) {
+                    sender.sendMessage(ChatColor.RED + "Stand in game where the board should go.");
+                    return true;
+                }
+                holo.placeLeader(com.spacerng.solrng.holo.HoloManager.RAREST, player.getEyeLocation());
+                if (!event.hasStarted()) holo.setRarestPreview(player, true);
+                sender.sendMessage(ChatColor.GREEN + "Placed a rarest drop board three blocks in front of you.");
+                if (!event.hasStarted()) {
+                    sender.sendMessage(ChatColor.WHITE + "Only you see it now, with example entries. "
+                            + ChatColor.YELLOW + "/rngadmin rarest hide" + ChatColor.WHITE + " when it looks right.");
+                }
+                sender.sendMessage(ChatColor.GRAY + "Wrong spot? Stand at it and /rngadmin holo remove.");
+            }
+            case "show", "hide" -> {
+                if (!(sender instanceof Player player)) {
+                    sender.sendMessage(ChatColor.RED + "Only a player in game can preview the board.");
+                    return true;
+                }
+                if (holo.rarestSpots().isEmpty()) {
+                    sender.sendMessage(ChatColor.RED + "No rarest drop board is placed. Stand where it should go and run "
+                            + ChatColor.YELLOW + "/rngadmin rarest place" + ChatColor.RED + ".");
+                    return true;
+                }
+                if (event.hasStarted()) {
+                    sender.sendMessage(ChatColor.WHITE + "The battle has started, so the board is up for everybody.");
+                    return true;
+                }
+                boolean on = action.equals("show");
+                holo.setRarestPreview(player, on);
+                if (on) {
+                    sender.sendMessage(ChatColor.GREEN + "Preview on. " + ChatColor.WHITE
+                            + "Only you see the board, with example entries.");
+                    sender.sendMessage(ChatColor.GRAY + "Turn it off with " + ChatColor.YELLOW + "/rngadmin rarest hide"
+                            + ChatColor.GRAY + ". Players never see the preview.");
+                } else {
+                    long start = event.nextStart();
+                    sender.sendMessage(ChatColor.GREEN + "Preview off. " + ChatColor.WHITE
+                            + (start > 0 ? "The board goes up for everybody at " + event.when(start) + "."
+                                    : "No battle is planned, so the board stays hidden."));
+                }
+            }
+            default -> status(sender);
+        }
+        return true;
+    }
+
+    private void status(CommandSender sender) {
+        var event = plugin.getRarestDropEvent();
+        var holo = plugin.getHoloManager();
+        long now = System.currentTimeMillis();
+        sender.sendMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "RAREST DROP " + ChatColor.RESET
+                + ChatColor.GRAY + "now " + ChatColor.WHITE + event.when(now) + ChatColor.GRAY + " (" + event.zone() + ")");
+        if (!event.enabled()) {
+            sender.sendMessage(ChatColor.RED + "Switched off: rarest-drop.enabled is false.");
+        }
+        String date = plugin.getConfig().getString("rarest-drop.only-on", "");
+        sender.sendMessage(ChatColor.GRAY + "Date: " + ChatColor.WHITE
+                + (date == null || date.isBlank() ? "every " + plugin.getConfig().getString("rarest-drop.day", "SUNDAY")
+                : date) + ChatColor.GRAY + ", " + ChatColor.WHITE
+                + plugin.getConfig().getDouble("rarest-drop.length-hours", 24.0) + " hours");
+        if (event.isActive()) {
+            sender.sendMessage(ChatColor.GREEN + "Running. " + ChatColor.WHITE + "Ends " + event.when(event.endsAt())
+                    + ", in " + com.spacerng.solrng.event.RarestDropEvent.clock(event.secondsLeft()) + ".");
+        } else if (event.isOver()) {
+            sender.sendMessage(ChatColor.WHITE + "Over, winners paid. It ran from " + event.when(event.startedAt())
+                    + " to " + event.when(event.endsAt()) + ".");
+        } else if (event.nextStart() > 0) {
+            sender.sendMessage(ChatColor.GREEN + "Planned. " + ChatColor.WHITE + "Starts " + event.when(event.nextStart())
+                    + ", in " + com.spacerng.solrng.event.RarestDropEvent.clock(event.secondsLeft()) + ".");
+        } else {
+            sender.sendMessage(ChatColor.RED + "No battle planned.");
+        }
+        String resetOn = event.resetOn();
+        if (event.resetArmed()) {
+            sender.sendMessage(ChatColor.YELLOW + "Reset armed: " + ChatColor.WHITE
+                    + "every player is reset at the start (rarest-drop.reset-on " + resetOn + ").");
+            sender.sendMessage(ChatColor.GRAY + "Kept: rank, Credits, Battle Pass, milestones. Gone: everything else, "
+                    + "every clan, the First 10, drop records and found counts. A backup goes to backups/ first.");
+        } else if (!event.resetDone().isEmpty()) {
+            sender.sendMessage(ChatColor.WHITE + "The reset ran for " + event.resetDone() + ".");
+        } else {
+            sender.sendMessage(ChatColor.WHITE + "No reset planned" + (resetOn.isEmpty() ? "."
+                    : " (rarest-drop.reset-on " + resetOn + " is not the battle date)."));
+        }
+        sender.sendMessage(ChatColor.GRAY + "Prizes: " + ChatColor.WHITE + event.payouts() + " Credits");
+        var boards = holo.rarestSpots();
+        if (boards.isEmpty()) {
+            sender.sendMessage(ChatColor.RED + "No board placed. " + ChatColor.GRAY + "Stand where it should go: "
+                    + ChatColor.YELLOW + "/rngadmin rarest place");
+        }
+        for (var spot : boards) {
+            var at = spot.at();
+            sender.sendMessage(ChatColor.GRAY + "Board at " + ChatColor.WHITE
+                    + (at.getWorld() == null ? "?" : at.getWorld().getName()) + " " + at.getBlockX() + ", "
+                    + at.getBlockY() + ", " + at.getBlockZ() + ChatColor.GRAY + ": "
+                    + (event.hasStarted() ? ChatColor.GREEN + "up for everybody"
+                    : ChatColor.WHITE + "hidden until the start"
+                    + (sender instanceof Player p && holo.isPreviewing(p) ? ChatColor.YELLOW + ", you are previewing" : "")));
+        }
+    }
+
     /** Floating text: NPC panels from config, live leaderboards, and taking either down. */
     boolean doHolo(CommandSender sender, String[] args) {
         var holo = plugin.getHoloManager();

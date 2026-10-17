@@ -1714,6 +1714,12 @@ public class FarmPlotManager {
                 .LegacyComponentSerializer.legacySection().deserialize(text));
     }
 
+    /** The Sunday reset (V406): a running Momentum goes with the rest of the account. */
+    public void resetMomentum(UUID uuid) {
+        momentum.remove(uuid);
+        plugin.getMomentumBar().hide(uuid);
+    }
+
     public void forget(UUID uuid) {
         harvested.remove(uuid);
         momentum.remove(uuid);

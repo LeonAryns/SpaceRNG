@@ -5,8 +5,45 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V405**, 16 October 2026. The newest section is the
+Last updated at **V406**, 17 October 2026. The newest section is the
 first one below; older sections further down are history.
+
+## V406, 17 October 2026 (untested in game): the Sunday reset
+
+Leon is offline when it fires, so it has to run by itself.
+
+- At 00:00 Europe/Amsterdam on 2026-10-18 (22:00 UTC on the 17th) the
+  rarest drop battle starts, and because `rarest-drop.reset-on` is that
+  date every player is reset first (`player/AccountReset.everyone`).
+  The battle runs `length-hours` (24) from its start, to Monday 00:00.
+- The reset is /rngadmin reset for everyone, online and offline: rank,
+  Credits, Battle Pass, claimed and announced milestones (and the /size
+  pick) kept, everything else gone, Money via Vault, inventories of
+  offline players on their next join (SeasonWipe, now also hands back
+  the starter Starforge). Leon's answers on 17 October: every clan is
+  wiped (chests included, they would carry items through), and the
+  First 10, drop records and found counts start over. A farming payout
+  due at the same minute is paid first.
+- Backup first: every save file plus clans, leaderboard, firsts, found,
+  drop-record, season-wipe and rarest-drop yml to
+  `plugins/SpaceRNG/backups/reset-<date>_<time>/`. To undo: stop the
+  server, copy them back, start.
+- Once only: the start moment and `reset-done` are written to
+  rarest-drop.yml before the reset runs. A server that was down at
+  midnight starts both when it is back, still on that day, with the full
+  24 hours. The tick runs every second.
+- The board (`/rngadmin holo leader rarest` or `/rngadmin rarest place`)
+  is hidden until the start, then up for everybody, and stays up with
+  the winners after the end. `/rngadmin rarest show` previews it for the
+  admin alone with example entries (Divine, shiny Legendary, Mythical);
+  players never see a preview. `/rngadmin rarest status` says when it
+  starts, whether the reset is armed, and where the boards stand.
+- Over each head now, bottom to top: Credits, "#1 Name", the rarity,
+  then "1 in 5M" and the drop's name, both big (`name-scale` 1.6 and
+  `odds-scale` 1.3 times the tag). A long name shrinks to fit beside
+  #1's head (estimated from the font's letter widths).
+- Untested: everything above, and which way a head faces under a
+  billboard (from V398).
 
 ## V405, 16 October 2026 (untested in game)
 

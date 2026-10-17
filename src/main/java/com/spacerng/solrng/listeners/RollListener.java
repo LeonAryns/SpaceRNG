@@ -1143,6 +1143,12 @@ public class RollListener implements Listener {
     /** The rarest drop so far, plain and shiny (V404). Made on first use. */
     private com.spacerng.solrng.roll.DropRecord dropRecord;
 
+    /** The Sunday reset (V406): the record starts over, so the next Epic is announced again. */
+    public void resetDropRecord() {
+        if (dropRecord == null) dropRecord = new com.spacerng.solrng.roll.DropRecord(plugin);
+        dropRecord.reset();
+    }
+
     private void maybeBroadcast(Player player, RollableItem result, ItemStack previewItem, boolean shiny) {
         // Discord has its own list of rarities, so it's asked before the in-game threshold.
         plugin.getDiscordWebhook().drop(player.getName(), result, shiny);

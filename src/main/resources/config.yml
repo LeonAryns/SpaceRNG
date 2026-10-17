@@ -4821,18 +4821,33 @@ consumables:
 # per-level is a fraction added to a multiplier that starts at 1.0, so
 # 0.08 at level 10 is 1.80x. base-cost is in Coins and cost-growth is
 # compounded per level, so level n costs base x growth^n.
-# V398, Leon: the one day rarest drop board. Every `day` from 00:00 to
-# 23:59 in `zone`, each player's rarest roll counts (a shiny as its label
-# x 100). At the end #1, #2 and #3 get `payouts` Credits. Place it with
-# /rngadmin holo leader rarest.
+# V398, Leon: the rarest drop battle. It starts at 00:00 in `zone` on
+# `day` and runs `length-hours`; each player's rarest roll counts (a shiny
+# as its label x 100). At the end #1, #2 and #3 get `payouts` Credits.
+# V406: the board is hidden until the start, then up for everybody.
+# /rngadmin rarest place puts one down, show and hide preview it for you
+# alone, status says when it starts and whether the reset is armed.
 rarest-drop:
   enabled: true
   day: SUNDAY
-  # V404, Leon: only this Sunday. A date (YYYY-MM-DD) runs the board on
+  # V404, Leon: only this Sunday. A date (YYYY-MM-DD) runs the battle on
   # that day alone; empty runs it every week on `day`.
   only-on: "2026-10-18"
   zone: "Europe/Amsterdam"
   payouts: [500, 250, 100]
+  # V406, Leon: when the battle on this date starts, every player is
+  # reset first, the way /rngadmin reset does it (rank, Credits, Battle
+  # Pass and milestones kept), and every clan, the First 10, the drop
+  # records and the found counts go too. Runs once per date; empty is
+  # never. A backup of every file it touches goes to backups/ first.
+  reset-on: "2026-10-18"
+  # How long the battle runs from its start. A server that was down at
+  # 00:00 starts it when it is back, still that day, with the full length.
+  length-hours: 24
+  # The drop's name and its odds over each head, as times the size of the
+  # name tag. A long name shrinks to fit beside the head next to it.
+  name-scale: 1.6
+  odds-scale: 1.3
 
 # V393, Leon: clans. A clan earns the battle pass XP its members do (per
 # roll by rarity, per crop) and levels on it: level L to L+1 costs

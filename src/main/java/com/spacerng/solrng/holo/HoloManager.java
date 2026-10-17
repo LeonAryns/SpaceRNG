@@ -4,6 +4,7 @@ import com.spacerng.solrng.SolRNGPlugin;
 import com.spacerng.solrng.crate.Crate;
 import com.spacerng.solrng.gui.Lore;
 import com.spacerng.solrng.leaderboard.LeaderboardManager;
+import com.spacerng.solrng.rarity.RollableItem;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -11,6 +12,7 @@ import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.object.ObjectContents;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
@@ -528,6 +530,12 @@ public final class HoloManager {
             if (pieces != null) despawn(spot.id());
             return;
         }
+        // V406: a rarest board is out of sight until the battle starts,
+        // unless an admin is previewing it.
+        if (spot.kind() == Kind.LEADER && RAREST.equals(spot.key()) && !rarestDrawn()) {
+            if (pieces != null) despawn(spot.id());
+            return;
+        }
         boolean alive = pieces != null && !pieces.isEmpty();
         if (alive) {
             for (Display piece : pieces) {
@@ -643,6 +651,9 @@ public final class HoloManager {
         podiumTags.remove(id);
         podiumShown.remove(id);
         podiumTimers.remove(id);
+        rarestNames.remove(id);
+        rarestOdds.remove(id);
+        rarestShownKey.remove(id);
         Map<java.util.UUID, TextDisplay> keyLines = crateKeyLines.remove(id);
         if (keyLines != null) {
             for (TextDisplay line : keyLines.values()) {
@@ -962,89 +973,246 @@ public final class HoloManager {
 
     // ---------------------------------------------------------- rarest drop
 
-    /** The one day rarest drop board's key (V398). */
+    /** The rarest drop board's key (V398). */
     public static final String RAREST = "rarest";
 
     /**
-     * The rarest drop board (V398, Leon): the podium's size and shape, but
-     * readable from every side.
+     * V406, Leon: the board stays out of sight until the battle starts,
+     * then everybody sees it. Before that an admin can look at it alone
+     * with /rngadmin rarest show: the pieces are drawn hidden by default
+     * and shown to the previewers only, with example entries so the size
+     * of the drop text can be judged. A preview can never leak example
+     * winners to players, and forgetting to hide it costs nothing.
+     */
+    private final java.util.Set<java.util.UUID> rarestPreview = new java.util.HashSet<>();
+    /** True while drawRarest spawns pieces for the previewers alone. */
+    private boolean drawingPrivate;
+    // The two big lines over each head: the drop's name and its odds.
+    private final Map<String, TextDisplay[]> rarestNames = new HashMap<>();
+    private final Map<String, TextDisplay[]> rarestOdds = new HashMap<>();
+    private final Map<String, String[]> rarestShownKey = new HashMap<>();
+
+    /** Every rarest board placed. */
+    public List<Spot> rarestSpots() {
+        List<Spot> found = new ArrayList<>();
+        for (Spot spot : spots.values()) {
+            if (spot.kind() == Kind.LEADER && RAREST.equals(spot.key())) found.add(spot);
+        }
+        return found;
+    }
+
+    /** /rngadmin rarest show and hide: the preview for one admin. */
+    public void setRarestPreview(org.bukkit.entity.Player admin, boolean on) {
+        if (on) rarestPreview.add(admin.getUniqueId());
+        else rarestPreview.remove(admin.getUniqueId());
+        redrawRarest();
+    }
+
+    public boolean isPreviewing(org.bukkit.entity.Player admin) {
+        return rarestPreview.contains(admin.getUniqueId());
+    }
+
+    /** Takes every rarest board down; the next frame draws it again in its current state. */
+    public void redrawRarest() {
+        for (Spot spot : rarestSpots()) despawn(spot.id());
+    }
+
+    private boolean rarestPublic() {
+        return plugin.getRarestDropEvent() != null && plugin.getRarestDropEvent().hasStarted();
+    }
+
+    private List<org.bukkit.entity.Player> rarestPreviewers() {
+        List<org.bukkit.entity.Player> online = new ArrayList<>();
+        for (java.util.UUID uuid : rarestPreview) {
+            org.bukkit.entity.Player player = Bukkit.getPlayer(uuid);
+            if (player != null) online.add(player);
+        }
+        return online;
+    }
+
+    /** Whether a rarest board is drawn at all right now. */
+    private boolean rarestDrawn() {
+        return rarestPublic() || !rarestPreviewers().isEmpty();
+    }
+
+    /** The three entries on the board: the real ones, or examples in a preview. */
+    private List<com.spacerng.solrng.event.RarestDropEvent.Entry> rarestEntries() {
+        var event = plugin.getRarestDropEvent();
+        if (rarestPublic()) return event.top(3);
+        // Examples: a Divine, a shiny Legendary and a Mythical, ranked the
+        // way the real board ranks them, with the previewers' own heads.
+        List<org.bukkit.entity.Player> viewers = rarestPreviewers();
+        List<com.spacerng.solrng.event.RarestDropEvent.Entry> sample = new ArrayList<>();
+        com.spacerng.solrng.rarity.Rarity[] rarities = {com.spacerng.solrng.rarity.Rarity.DIVINE,
+                com.spacerng.solrng.rarity.Rarity.LEGENDARY, com.spacerng.solrng.rarity.Rarity.MYTHICAL};
+        String[] names = {"Example", "Steve", "Alex"};
+        for (int i = 0; i < rarities.length; i++) {
+            RollableItem item = null;
+            for (RollableItem candidate : plugin.getRarityManager().getItems()) {
+                if (candidate.getRarity() != rarities[i]) continue;
+                if (item == null || candidate.getOdds() < item.getOdds()) item = candidate;
+            }
+            if (item == null) continue;
+            boolean shiny = i == 1;
+            org.bukkit.entity.Player viewer = i < viewers.size() ? viewers.get(i) : null;
+            sample.add(new com.spacerng.solrng.event.RarestDropEvent.Entry(
+                    viewer == null ? null : viewer.getUniqueId(), viewer == null ? names[i] : viewer.getName(),
+                    item.getDisplayName(), item.getRarity().name(), item.getOdds(), shiny,
+                    event.scoreOf(item.getOdds(), shiny)));
+        }
+        sample.sort(java.util.Comparator.comparingDouble(
+                com.spacerng.solrng.event.RarestDropEvent.Entry::score).reversed());
+        return sample;
+    }
+
+    private float rarestNameScale() {
+        return podiumTextScale * (float) PODIUM_TAG
+                * (float) Math.max(0.5, plugin.getConfig().getDouble("rarest-drop.name-scale", 1.6));
+    }
+
+    private float rarestOddsScale() {
+        return podiumTextScale * (float) PODIUM_TAG
+                * (float) Math.max(0.5, plugin.getConfig().getDouble("rarest-drop.odds-scale", 1.3));
+    }
+
+    /**
+     * The rarest drop board (V398, Leon; the big drop lines V406): the
+     * podium's size and shape, but readable from every side.
      *
      * Every piece stands on the board's own centre line and turns to face
      * the viewer (billboard VERTICAL). The side offsets of #2 and #3 are
      * in the transformation, which the client applies in the turned frame,
      * so from any side #1 is in the middle with #2 and #3 beside it and
-     * every head looks at you. The farm podium is fixed in the world, so
-     * from behind it shows the backs of the heads.
+     * every head looks at you.
+     *
+     * Over each head, bottom to top: the payout, the player, the rarity,
+     * then the drop's odds and the drop's name, both far bigger than the
+     * rest (Leon: "a lot more obvious"). A text display grows upward from
+     * where it stands, so each piece starts where the one under it ends.
      */
     private void drawRarest(Spot spot, List<Display> pieces) {
-        var event = plugin.getRarestDropEvent();
-        List<com.spacerng.solrng.event.RarestDropEvent.Entry> top = event.top(3);
-        double small = podiumTextScale * PODIUM_TEXT;
-        double timerY = PODIUM_YOU_Y + 2 * LINE * small;
-        double titleY = timerY + 2 * LINE * small + GAP;
-        double headY = titleY + LINE * podiumTextScale * PODIUM_TITLE + 0.15 + podiumHeadScale / 2.0;
-        float tagScale = podiumTextScale * (float) PODIUM_TAG;
-        float firstScale = podiumHeadScale * (float) PODIUM_FIRST_SCALE;
-        double spacing = podiumSpacing(tagScale, firstScale);
-        double firstLift = Math.max(PODIUM_FIRST_LIFT + (firstScale - podiumHeadScale) / 2.0,
-                3 * LINE * tagScale + 0.2 + GAP);
+        boolean hidden = !rarestPublic();
+        drawingPrivate = hidden;
+        try {
+            List<com.spacerng.solrng.event.RarestDropEvent.Entry> top = rarestEntries();
+            double small = podiumTextScale * PODIUM_TEXT;
+            double timerY = PODIUM_YOU_Y + 2 * LINE * small;
+            double titleY = timerY + 2 * LINE * small + GAP;
+            double headY = titleY + LINE * podiumTextScale * PODIUM_TITLE + 0.15 + podiumHeadScale / 2.0;
+            float tagScale = podiumTextScale * (float) PODIUM_TAG;
+            float firstScale = podiumHeadScale * (float) PODIUM_FIRST_SCALE;
+            float oddsScale = rarestOddsScale();
+            float nameScale = rarestNameScale();
+            double spacing = podiumSpacing(tagScale, firstScale);
+            double oddsAt = 0.2 + 3 * LINE * tagScale + GAP;
+            double nameAt = oddsAt + LINE * oddsScale + GAP;
+            double stack = nameAt + LINE * nameScale + GAP;
+            double firstLift = Math.max(PODIUM_FIRST_LIFT + (firstScale - podiumHeadScale) / 2.0, stack + GAP);
 
-        ItemDisplay[] heads = new ItemDisplay[3];
-        TextDisplay[] tags = new TextDisplay[3];
-        java.util.UUID[] shown = new java.util.UUID[3];
-        for (int rank = 0; rank < 3; rank++) {
-            float side = (float) (rank == 0 ? 0.0 : rank == 1 ? -spacing : spacing);
-            float scale = rank == 0 ? firstScale : podiumHeadScale;
-            double y = headY + (rank == 0 ? firstLift : 0.0);
-            var entry = rank < top.size() ? top.get(rank) : null;
-            java.util.UUID uuid = entry == null ? null : entry.uuid();
-            Location at = spot.at().clone().add(0, y, 0);
-            at.setYaw(0f);
-            at.setPitch(0f);
-            ItemDisplay head = at.getWorld().spawn(at, ItemDisplay.class, d -> {
-                d.setPersistent(false);
-                d.setItemStack(leaderHead(uuid));
-                d.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
-                d.setBillboard(Display.Billboard.VERTICAL);
-                d.setTransformation(new Transformation(new Vector3f(side, 0f, 0f), new Quaternionf(),
-                        new Vector3f(scale, scale, scale), new Quaternionf()));
-                d.setViewRange(viewRange);
-                d.setBrightness(new Display.Brightness(15, 15));
-                d.getPersistentDataContainer().set(tagKey, PersistentDataType.STRING, spot.id());
-            });
-            pieces.add(head);
-            heads[rank] = head;
-            shown[rank] = uuid;
-            TextDisplay tag = turningText(spot, spot.at().clone().add(0, y + 0.2, 0),
-                    rarestTag(rank, entry), tagScale, side);
-            pieces.add(tag);
-            tags[rank] = tag;
+            ItemDisplay[] heads = new ItemDisplay[3];
+            TextDisplay[] tags = new TextDisplay[3];
+            TextDisplay[] odds = new TextDisplay[3];
+            TextDisplay[] names = new TextDisplay[3];
+            java.util.UUID[] shown = new java.util.UUID[3];
+            String[] keys = new String[3];
+            for (int rank = 0; rank < 3; rank++) {
+                float side = (float) (rank == 0 ? 0.0 : rank == 1 ? -spacing : spacing);
+                float scale = rank == 0 ? firstScale : podiumHeadScale;
+                double y = headY + (rank == 0 ? firstLift : 0.0);
+                var entry = rank < top.size() ? top.get(rank) : null;
+                java.util.UUID uuid = entry == null ? null : entry.uuid();
+                Location at = spot.at().clone().add(0, y, 0);
+                at.setYaw(0f);
+                at.setPitch(0f);
+                ItemDisplay head = at.getWorld().spawn(at, ItemDisplay.class, d -> {
+                    if (hidden) d.setVisibleByDefault(false);
+                    d.setPersistent(false);
+                    d.setItemStack(leaderHead(uuid));
+                    d.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
+                    d.setBillboard(Display.Billboard.VERTICAL);
+                    d.setTransformation(new Transformation(new Vector3f(side, 0f, 0f), new Quaternionf(),
+                            new Vector3f(scale, scale, scale), new Quaternionf()));
+                    d.setViewRange(viewRange);
+                    d.setBrightness(new Display.Brightness(15, 15));
+                    d.getPersistentDataContainer().set(tagKey, PersistentDataType.STRING, spot.id());
+                });
+                pieces.add(head);
+                heads[rank] = head;
+                shown[rank] = uuid;
+                keys[rank] = rarestKey(entry);
+
+                TextDisplay tag = turningText(spot, spot.at().clone().add(0, y + 0.2, 0),
+                        rarestTag(rank, entry), tagScale, side);
+                pieces.add(tag);
+                tags[rank] = tag;
+
+                Component oddsLine = rarestOddsLine(entry);
+                TextDisplay oddsText = turningText(spot, spot.at().clone().add(0, y + oddsAt, 0), oddsLine,
+                        fitScale(oddsLine, rank, oddsScale, spacing, firstScale), side);
+                pieces.add(oddsText);
+                odds[rank] = oddsText;
+
+                Component nameLine = rarestNameLine(entry);
+                TextDisplay nameText = turningText(spot, spot.at().clone().add(0, y + nameAt, 0), nameLine,
+                        fitScale(nameLine, rank, nameScale, spacing, firstScale), side);
+                pieces.add(nameText);
+                names[rank] = nameText;
+            }
+            podiumHeads.put(spot.id(), heads);
+            podiumTags.put(spot.id(), tags);
+            podiumShown.put(spot.id(), shown);
+            rarestOdds.put(spot.id(), odds);
+            rarestNames.put(spot.id(), names);
+            rarestShownKey.put(spot.id(), keys);
+
+            TextDisplay timer = turningText(spot, spot.at().clone().add(0, timerY, 0), rarestTimer(),
+                    (float) small, 0f);
+            pieces.add(timer);
+            podiumTimers.put(spot.id(), timer);
+            pieces.add(turningText(spot, spot.at().clone().add(0, titleY, 0), parse(plugin.getConfig().getString(
+                            "rarest-drop.title", "<gradient:#E1BEE7:#B388FF:#80D8FF><b>RAREST DROP</b></gradient>")),
+                    podiumTextScale * (float) PODIUM_TITLE, 0f));
+        } finally {
+            drawingPrivate = false;
         }
-        podiumHeads.put(spot.id(), heads);
-        podiumTags.put(spot.id(), tags);
-        podiumShown.put(spot.id(), shown);
+        if (hidden) {
+            for (org.bukkit.entity.Player viewer : rarestPreviewers()) {
+                for (Display piece : pieces) viewer.showEntity(plugin, piece);
+            }
+        }
+    }
 
-        TextDisplay timer = turningText(spot, spot.at().clone().add(0, timerY, 0), rarestTimer(), (float) small, 0f);
-        pieces.add(timer);
-        podiumTimers.put(spot.id(), timer);
-        pieces.add(turningText(spot, spot.at().clone().add(0, titleY, 0), parse(plugin.getConfig().getString(
-                        "rarest-drop.title", "<gradient:#E1BEE7:#B388FF:#80D8FF><b>RAREST DROP</b></gradient>")),
-                podiumTextScale * (float) PODIUM_TITLE, 0f));
+    /** What an entry shows, so a refresh only rewrites a rank whose drop changed. */
+    private static String rarestKey(com.spacerng.solrng.event.RarestDropEvent.Entry entry) {
+        return entry == null ? "" : entry.uuid() + "|" + entry.item() + "|" + entry.shiny() + "|" + entry.name();
     }
 
     private void tickRarest(Spot spot, boolean refreshTop) {
+        boolean hidden = !rarestPublic();
         TextDisplay timer = podiumTimers.get(spot.id());
         if (timer != null && timer.isValid()) timer.text(rarestTimer());
-        if (refreshTop || plugin.getRarestDropEvent().isActive()) {
+        if (!hidden && (refreshTop || plugin.getRarestDropEvent().isActive())) {
             var top = plugin.getRarestDropEvent().top(3);
             ItemDisplay[] heads = podiumHeads.get(spot.id());
             TextDisplay[] tags = podiumTags.get(spot.id());
+            TextDisplay[] odds = rarestOdds.get(spot.id());
+            TextDisplay[] names = rarestNames.get(spot.id());
             java.util.UUID[] shown = podiumShown.get(spot.id());
-            if (heads != null && tags != null && shown != null) {
+            String[] keys = rarestShownKey.get(spot.id());
+            if (heads != null && tags != null && odds != null && names != null && shown != null && keys != null) {
+                float tagScale = podiumTextScale * (float) PODIUM_TAG;
+                float firstScale = podiumHeadScale * (float) PODIUM_FIRST_SCALE;
+                double spacing = podiumSpacing(tagScale, firstScale);
                 for (int rank = 0; rank < 3; rank++) {
                     var entry = rank < top.size() ? top.get(rank) : null;
-                    java.util.UUID uuid = entry == null ? null : entry.uuid();
+                    String key = rarestKey(entry);
+                    if (key.equals(keys[rank])) continue;
+                    keys[rank] = key;
+                    float side = (float) (rank == 0 ? 0.0 : rank == 1 ? -spacing : spacing);
                     if (tags[rank] != null && tags[rank].isValid()) tags[rank].text(rarestTag(rank, entry));
+                    resize(odds[rank], rarestOddsLine(entry), rank, rarestOddsScale(), spacing, firstScale, side);
+                    resize(names[rank], rarestNameLine(entry), rank, rarestNameScale(), spacing, firstScale, side);
+                    java.util.UUID uuid = entry == null ? null : entry.uuid();
                     if (!java.util.Objects.equals(uuid, shown[rank]) && heads[rank] != null && heads[rank].isValid()) {
                         heads[rank].setItemStack(leaderHead(uuid));
                         shown[rank] = uuid;
@@ -1052,12 +1220,27 @@ public final class HoloManager {
                 }
             }
         }
-        // Every reader's own line, at the foot of the board.
+        List<org.bukkit.entity.Player> previewers = hidden ? rarestPreviewers() : List.of();
+        if (hidden) {
+            // A previewer who logged out and back in lost what they were
+            // shown; showing again is a no-op for the rest.
+            List<Display> pieces = drawn.get(spot.id());
+            if (pieces != null) {
+                for (org.bukkit.entity.Player viewer : previewers) {
+                    for (Display piece : pieces) {
+                        if (piece.isValid()) viewer.showEntity(plugin, piece);
+                    }
+                }
+            }
+        }
+        // Every reader's own line, at the foot of the board. In a preview
+        // only the previewers read it.
         World world = spot.at().getWorld();
         if (world == null) return;
         Map<java.util.UUID, TextDisplay> lines = podiumYou.computeIfAbsent(spot.id(), id -> new HashMap<>());
         java.util.Set<java.util.UUID> near = new java.util.HashSet<>();
-        for (org.bukkit.entity.Player reader : world.getPlayers()) {
+        for (org.bukkit.entity.Player reader : hidden ? previewers : world.getPlayers()) {
+            if (!reader.getWorld().equals(world)) continue;
             if (reader.getLocation().distanceSquared(spot.at()) > PODIUM_READ_RANGE * PODIUM_READ_RANGE) continue;
             near.add(reader.getUniqueId());
             Component content = rarestYouLine(reader);
@@ -1078,26 +1261,77 @@ public final class HoloManager {
         });
     }
 
-    /** "#1 Name", the drop in its rarity's colours, and the Credits it pays. */
+    /** New text on one of the big lines, at the size it now fits at. */
+    private void resize(TextDisplay display, Component content, int rank, float max, double spacing,
+                        float firstScale, float side) {
+        if (display == null || !display.isValid()) return;
+        float scale = fitScale(content, rank, max, spacing, firstScale);
+        display.text(content);
+        display.setTransformation(new Transformation(new Vector3f(side, 0f, 0f), new Quaternionf(),
+                new Vector3f(scale, scale, scale), new Quaternionf()));
+    }
+
+    /**
+     * The biggest size up to {@code max} at which a line still fits its
+     * column. #2 and #3 stand beside #1's head and must stop short of it;
+     * #1 stands above everything and may use the whole width between them.
+     */
+    private float fitScale(Component content, int rank, float max, double spacing, float firstScale) {
+        double room = rank == 0 ? 2.0 * spacing : 2.0 * (spacing - firstScale * 0.25 - 0.3);
+        int pixels = Math.max(1, pixelWidth(content));
+        double fits = room * 40.0 / pixels;
+        float floor = podiumTextScale * (float) PODIUM_TAG * 0.6f;
+        return (float) Math.max(floor, Math.min(max, fits));
+    }
+
+    /**
+     * How wide a line renders in font pixels, bold, from the default
+     * font's own advances. Close enough to size a line by; the plain
+     * six-a-letter guess made a short name look as wide as a long one.
+     */
+    private static int pixelWidth(Component component) {
+        String plain = PlainTextComponentSerializer.plainText().serialize(component);
+        int widest = 0;
+        for (String line : plain.split("\n", -1)) {
+            int width = 0;
+            for (int i = 0; i < line.length(); i++) {
+                char c = line.charAt(i);
+                int advance;
+                if ("i!,.:;|'".indexOf(c) >= 0) advance = 2;
+                else if ("l`".indexOf(c) >= 0) advance = 3;
+                else if ("It[] ".indexOf(c) >= 0) advance = 4;
+                else if ("fk<>{}()*\"".indexOf(c) >= 0) advance = 5;
+                else if (c > 127) advance = 9;
+                else advance = 6;
+                width += advance + 1;
+            }
+            widest = Math.max(widest, width);
+        }
+        return widest;
+    }
+
+    private com.spacerng.solrng.rarity.Rarity rarityOf(com.spacerng.solrng.event.RarestDropEvent.Entry entry) {
+        try {
+            return com.spacerng.solrng.rarity.Rarity.valueOf(entry.rarity());
+        } catch (IllegalArgumentException ex) {
+            return com.spacerng.solrng.rarity.Rarity.COMMON;
+        }
+    }
+
+    /** "Shiny Mythical", "#1 Name" and the Credits it pays, at tag size. */
     private Component rarestTag(int rank, com.spacerng.solrng.event.RarestDropEvent.Entry entry) {
         List<Component> rows = new ArrayList<>();
         if (entry == null) {
-            rows.add(parse("<#FFE9A8><b>#" + (rank + 1) + "</b></#FFE9A8> <dark_gray>Nobody yet"));
+            rows.add(parse("<#FFE9A8><b>#" + (rank + 1) + "</b></#FFE9A8>"));
         } else {
+            var rarity = rarityOf(entry);
+            String kind = plugin.getRarityManager().styleHeading(rarity, rarity.displayName());
+            rows.add(LegacyComponentSerializer.legacySection().deserialize(
+                    (entry.shiny() ? plugin.getRarityManager().styleShiny("Shiny") + " " : "") + kind));
             rows.add(Component.text()
                     .append(parse("<#FFE9A8><b>#" + (rank + 1) + "</b></#FFE9A8> "))
                     .append(Component.text(entry.name(), NamedTextColor.WHITE))
                     .build());
-            com.spacerng.solrng.rarity.Rarity rarity;
-            try {
-                rarity = com.spacerng.solrng.rarity.Rarity.valueOf(entry.rarity());
-            } catch (IllegalArgumentException ex) {
-                rarity = com.spacerng.solrng.rarity.Rarity.COMMON;
-            }
-            String name = plugin.getRarityManager().style(rarity, (entry.shiny() ? "Shiny " : "") + entry.item());
-            rows.add(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection()
-                    .deserialize(name + org.bukkit.ChatColor.GRAY + "  1 in "
-                            + com.spacerng.solrng.rarity.RollFormat.abbreviate(entry.odds())));
         }
         List<Integer> payouts = plugin.getRarestDropEvent().payouts();
         if (rank < payouts.size()) {
@@ -1107,31 +1341,60 @@ public final class HoloManager {
         return Component.join(JoinConfiguration.newlines(), rows);
     }
 
-    /** While it runs: how long is left. Otherwise: when the next one starts. */
+    /** "1 in 5M", big and white: how rare the drop really is, a shiny counted x100. */
+    private Component rarestOddsLine(com.spacerng.solrng.event.RarestDropEvent.Entry entry) {
+        if (entry == null) return Component.empty();
+        return parse("<white><b>1 in " + com.spacerng.solrng.rarity.RollFormat.abbreviate(
+                Math.round(entry.score())) + "</b>");
+    }
+
+    /** The drop's name in its own colours, a shiny in the shiny gradient. */
+    private Component rarestNameLine(com.spacerng.solrng.event.RarestDropEvent.Entry entry) {
+        if (entry == null) return parse("<white>Nobody yet");
+        var rarities = plugin.getRarityManager();
+        RollableItem item = rarities.findByDisplayName(entry.item());
+        String name;
+        if (item != null) {
+            name = entry.shiny() ? rarities.styleShinyName(item) : rarities.styleItemName(item);
+        } else {
+            name = rarities.styleBold(rarityOf(entry), entry.item());
+        }
+        return LegacyComponentSerializer.legacySection().deserialize(name).decorate(TextDecoration.BOLD);
+    }
+
+    /** While it runs: how long is left. Before: when it starts. After: that it is over. */
     private Component rarestTimer() {
         var event = plugin.getRarestDropEvent();
-        long seconds = event.secondsLeft();
-        String left = (seconds >= 86400 ? seconds / 86400 + "d " : "") + (seconds % 86400) / 3600 + "h "
-                + (seconds % 3600) / 60 + "m " + seconds % 60 + "s";
+        String left = com.spacerng.solrng.event.RarestDropEvent.clock(event.secondsLeft());
         if (event.isActive()) {
             return Component.join(JoinConfiguration.newlines(),
-                    parse("<gray>Ends in <white>" + left),
-                    parse("<dark_gray>Your rarest roll today counts"));
+                    parse("<white>Ends in <b>" + left + "</b>"),
+                    parse("<white>Your rarest roll counts"));
+        }
+        if (event.isOver()) {
+            return Component.join(JoinConfiguration.newlines(),
+                    parse("<white><b>The battle is over</b>"),
+                    parse("<white>The winners are paid"));
+        }
+        if (event.nextStart() > 0) {
+            return Component.join(JoinConfiguration.newlines(),
+                    parse("<white>Starts in <b>" + left + "</b>"),
+                    parse("<#FFE9A8>Preview, only you see this"));
         }
         return Component.join(JoinConfiguration.newlines(),
-                parse("<gray>Next one in <white>" + left),
-                parse("<dark_gray>Sunday, 00:00 to 23:59 CET"));
+                parse("<white>No battle planned"),
+                parse("<#FFE9A8>Preview, only you see this"));
     }
 
     /** "YOU: #4 Dragon Egg", for the reader alone. */
     private Component rarestYouLine(org.bukkit.entity.Player reader) {
         var event = plugin.getRarestDropEvent();
-        var mine = event.of(reader.getUniqueId());
+        var mine = rarestPublic() ? event.of(reader.getUniqueId()) : null;
         if (mine == null) {
-            return parse("<#FFE9A8><b>YOU:</b></#FFE9A8> <gray>" + (event.isActive()
+            return parse("<#FFE9A8><b>YOU:</b></#FFE9A8> <white>" + (event.isActive()
                     ? "roll to get on the board" : "no roll counted"));
         }
-        return net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection()
+        return LegacyComponentSerializer.legacySection()
                 .deserialize(org.bukkit.ChatColor.GOLD + "" + org.bukkit.ChatColor.BOLD + "YOU: "
                         + org.bukkit.ChatColor.RESET + org.bukkit.ChatColor.GOLD + "#" + event.placeOf(reader.getUniqueId())
                         + " " + event.label(mine));
@@ -1142,7 +1405,9 @@ public final class HoloManager {
         Location spawnAt = at.clone();
         spawnAt.setYaw(0f);
         spawnAt.setPitch(0f);
+        boolean hidden = drawingPrivate;
         return spawnAt.getWorld().spawn(spawnAt, TextDisplay.class, d -> {
+            if (hidden) d.setVisibleByDefault(false);
             d.setPersistent(false);
             d.text(content);
             d.setBillboard(Display.Billboard.VERTICAL);

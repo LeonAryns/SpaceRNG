@@ -48,6 +48,65 @@ public class PlayerDataManager {
     }
 
     /**
+     * A reset that keeps what was bought or earned over a season (V321,
+     * Leon): the rank, Credits, the Battle Pass and the claimed and
+     * announced milestones, plus the size a rank perk picked (V406). Used
+     * by /rngadmin reset and by the Sunday reset of every player. The
+     * player does not have to be online; the fresh account is cached.
+     */
+    public PlayerData resetKeepingEarned(UUID uuid) {
+        // Read before the reset, because reset() replaces the object.
+        PlayerData before = get(uuid);
+        String rank = before.getRank();
+        long credits = before.getPoints();
+        int passSeason = before.getPassSeason();
+        long passXp = before.getPassXp();
+        boolean passPremium = before.isPassPremium();
+        java.util.Set<String> passClaimed = java.util.Set.copyOf(before.getPassClaimed());
+        java.util.Set<String> milestones = java.util.Set.copyOf(before.getClaimedMilestones());
+        java.util.Set<String> announced = java.util.Set.copyOf(before.getAnnouncedMilestones());
+        double size = before.getPlayerSize();
+
+        PlayerData fresh = reset(uuid);
+        if (rank != null) fresh.setRank(rank);
+        fresh.addPoints(credits);
+        fresh.setPassSeason(passSeason);
+        fresh.setPassXp(passXp);
+        fresh.setPassPremium(passPremium);
+        fresh.getPassClaimed().addAll(passClaimed);
+        // Both sets, not just the claimed one: an already announced
+        // milestone that is forgotten gets announced to the whole server a
+        // second time the moment they pass it again.
+        fresh.getClaimedMilestones().addAll(milestones);
+        fresh.getAnnouncedMilestones().addAll(announced);
+        // The size lives on the player entity too, and is only put back on
+        // join when it is not 1, so dropping it here left a player stuck at
+        // the old size with no way to change it back.
+        fresh.setPlayerSize(size);
+        return fresh;
+    }
+
+    /** Every player with a save file, read from the folder. */
+    public java.util.List<UUID> savedPlayers() {
+        java.util.List<UUID> ids = new java.util.ArrayList<>();
+        File[] files = dataFolder.listFiles((dir, name) -> name.endsWith(".yml"));
+        if (files == null) return ids;
+        for (File file : files) {
+            try {
+                ids.add(UUID.fromString(file.getName().substring(0, file.getName().length() - 4)));
+            } catch (IllegalArgumentException notAPlayer) {
+                // Not a save file.
+            }
+        }
+        return ids;
+    }
+
+    /** The folder the save files live in, for a backup. */
+    public File folder() {
+        return dataFolder;
+    }
+
+    /**
      * The season reset (V247): deletes every save file except the players
      * in {@code skip}, who are wiped one by one while online. A rank that
      * {@code keepRank} accepts (Owner, Member: handed out, never earned)
