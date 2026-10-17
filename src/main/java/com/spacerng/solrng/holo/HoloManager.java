@@ -527,13 +527,13 @@ public final class HoloManager {
                 && world.isChunkLoaded(spot.at().getBlockX() >> 4, spot.at().getBlockZ() >> 4);
         List<Display> pieces = drawn.get(spot.id());
         if (!loaded) {
-            if (pieces != null) despawn(spot.id());
+            if (pieces != null || rarestCopies.containsKey(spot.id())) despawn(spot.id());
             return;
         }
-        // V406: a rarest board is out of sight until the battle starts,
-        // unless an admin is previewing it.
-        if (spot.kind() == Kind.LEADER && RAREST.equals(spot.key()) && !rarestDrawn()) {
-            if (pieces != null) despawn(spot.id());
+        // V407: a rarest board is one private copy per reader, drawn by
+        // its own loop. Until the battle starts only previewers get one.
+        if (spot.kind() == Kind.LEADER && RAREST.equals(spot.key())) {
+            tickRarestCopies(spot);
             return;
         }
         boolean alive = pieces != null && !pieces.isEmpty();
@@ -651,9 +651,7 @@ public final class HoloManager {
         podiumTags.remove(id);
         podiumShown.remove(id);
         podiumTimers.remove(id);
-        rarestNames.remove(id);
-        rarestOdds.remove(id);
-        rarestShownKey.remove(id);
+        removeRarestCopies(id);
         Map<java.util.UUID, TextDisplay> keyLines = crateKeyLines.remove(id);
         if (keyLines != null) {
             for (TextDisplay line : keyLines.values()) {
@@ -678,6 +676,7 @@ public final class HoloManager {
 
     private void despawnAll() {
         for (String id : new ArrayList<>(drawn.keySet())) despawn(id);
+        for (String id : new ArrayList<>(rarestCopies.keySet())) despawn(id);
     }
 
     // ---------------------------------------------------------------- draw
@@ -876,10 +875,8 @@ public final class HoloManager {
      */
     private void drawLeader(Spot spot, List<Display> pieces) {
         String board = spot.key();
-        if (RAREST.equals(board)) {
-            drawRarest(spot, pieces);
-            return;
-        }
+        // The rarest board is drawn per reader (tickRarestCopies), never here.
+        if (RAREST.equals(board)) return;
         Vector right = podiumRight(spot);
         List<LeaderboardManager.Entry> top = podiumTop(board);
         double small = podiumTextScale * PODIUM_TEXT;
@@ -945,10 +942,7 @@ public final class HoloManager {
     /** Once a second: the countdown, now and then the top three, and every reader's own line. */
     private void tickPodium(Spot spot, boolean refreshTop) {
         String board = spot.key();
-        if (RAREST.equals(board)) {
-            tickRarest(spot, refreshTop);
-            return;
-        }
+        if (RAREST.equals(board)) return;
         TextDisplay timer = podiumTimers.get(spot.id());
         if (timer != null && timer.isValid() && board.equals("farming")) timer.text(podiumTimer(board));
         if (refreshTop) {
@@ -976,21 +970,76 @@ public final class HoloManager {
     /** The rarest drop board's key (V398). */
     public static final String RAREST = "rarest";
 
+    /** How far away a player still gets their own copy of the rarest board. */
+    private static final double RAREST_RANGE = 64.0;
+
     /**
      * V406, Leon: the board stays out of sight until the battle starts,
      * then everybody sees it. Before that an admin can look at it alone
-     * with /rngadmin rarest show: the pieces are drawn hidden by default
-     * and shown to the previewers only, with example entries so the size
-     * of the drop text can be judged. A preview can never leak example
-     * winners to players, and forgetting to hide it costs nothing.
+     * with /rngadmin rarest show, with example entries so the size of the
+     * drop text can be judged.
      */
     private final java.util.Set<java.util.UUID> rarestPreview = new java.util.HashSet<>();
-    /** True while drawRarest spawns pieces for the previewers alone. */
-    private boolean drawingPrivate;
-    // The two big lines over each head: the drop's name and its odds.
-    private final Map<String, TextDisplay[]> rarestNames = new HashMap<>();
-    private final Map<String, TextDisplay[]> rarestOdds = new HashMap<>();
-    private final Map<String, String[]> rarestShownKey = new HashMap<>();
+
+    /**
+     * V407, Leon: the board turns to where you STAND, not to where you
+     * look. A billboard turns with the camera's rotation, so #2 and #3,
+     * set beside #1 inside it, swung about whenever a reader turned their
+     * head. Now every reader gets a copy of their own, shown to them
+     * alone and laid out in the world along the line from the board to
+     * them, which glides round as they walk. Each piece still faces them
+     * fully (billboard CENTER, no offset inside it), so it also tilts to
+     * a reader below it without moving anything.
+     */
+    private final Map<String, Map<java.util.UUID, RarestCopy>> rarestCopies = new HashMap<>();
+
+    private static final class RarestCopy {
+        final List<Display> all = new ArrayList<>();
+        final ItemDisplay[] heads = new ItemDisplay[3];
+        final TextDisplay[] tags = new TextDisplay[3];
+        final TextDisplay[] odds = new TextDisplay[3];
+        final TextDisplay[] names = new TextDisplay[3];
+        final java.util.UUID[] shown = new java.util.UUID[3];
+        final String[] keys = new String[3];
+        TextDisplay timer;
+        TextDisplay title;
+        TextDisplay you;
+        Vector facing;
+
+        boolean valid() {
+            for (Display piece : all) if (!piece.isValid()) return false;
+            return !all.isEmpty();
+        }
+
+        void remove() {
+            for (Display piece : all) if (piece.isValid()) piece.remove();
+            all.clear();
+        }
+    }
+
+    /** Every height and size on the board, worked out once per frame. */
+    private record RarestLayout(double small, double timerY, double titleY, double headY, float tagScale,
+                                float firstScale, float oddsScale, float nameScale, double spacing,
+                                double oddsAt, double nameAt, double firstLift) {
+    }
+
+    private RarestLayout rarestLayout() {
+        double small = podiumTextScale * PODIUM_TEXT;
+        double timerY = PODIUM_YOU_Y + 2 * LINE * small;
+        double titleY = timerY + 2 * LINE * small + GAP;
+        double headY = titleY + LINE * podiumTextScale * PODIUM_TITLE + 0.15 + podiumHeadScale / 2.0;
+        float tagScale = podiumTextScale * (float) PODIUM_TAG;
+        float firstScale = podiumHeadScale * (float) PODIUM_FIRST_SCALE;
+        float oddsScale = rarestOddsScale();
+        float nameScale = rarestNameScale();
+        double spacing = podiumSpacing(tagScale, firstScale);
+        double oddsAt = 0.2 + 3 * LINE * tagScale + GAP;
+        double nameAt = oddsAt + LINE * oddsScale + GAP;
+        double stack = nameAt + LINE * nameScale + GAP;
+        double firstLift = Math.max(PODIUM_FIRST_LIFT + (firstScale - podiumHeadScale) / 2.0, stack + GAP);
+        return new RarestLayout(small, timerY, titleY, headY, tagScale, firstScale, oddsScale, nameScale,
+                spacing, oddsAt, nameAt, firstLift);
+    }
 
     /** Every rarest board placed. */
     public List<Spot> rarestSpots() {
@@ -1030,9 +1079,208 @@ public final class HoloManager {
         return online;
     }
 
-    /** Whether a rarest board is drawn at all right now. */
-    private boolean rarestDrawn() {
-        return rarestPublic() || !rarestPreviewers().isEmpty();
+    private void removeRarestCopies(String spotId) {
+        Map<java.util.UUID, RarestCopy> copies = rarestCopies.remove(spotId);
+        if (copies != null) copies.values().forEach(RarestCopy::remove);
+    }
+
+    /** Once a frame: a copy for every reader in range, turned to where they stand. */
+    private void tickRarestCopies(Spot spot) {
+        World world = spot.at().getWorld();
+        if (world == null) return;
+        Map<java.util.UUID, RarestCopy> copies = rarestCopies.computeIfAbsent(spot.id(), id -> new HashMap<>());
+        List<org.bukkit.entity.Player> readers = new ArrayList<>();
+        for (org.bukkit.entity.Player player : rarestPublic() ? world.getPlayers() : rarestPreviewers()) {
+            if (!player.getWorld().equals(world)) continue;
+            if (player.getLocation().distanceSquared(spot.at()) > RAREST_RANGE * RAREST_RANGE) continue;
+            readers.add(player);
+        }
+        java.util.Set<java.util.UUID> keep = new java.util.HashSet<>();
+        if (!readers.isEmpty()) {
+            RarestLayout layout = rarestLayout();
+            List<com.spacerng.solrng.event.RarestDropEvent.Entry> top = rarestEntries();
+            Component timer = rarestTimer();
+            for (org.bukkit.entity.Player reader : readers) {
+                keep.add(reader.getUniqueId());
+                RarestCopy copy = copies.get(reader.getUniqueId());
+                try {
+                    if (copy == null || !copy.valid()) {
+                        if (copy != null) copy.remove();
+                        copy = spawnRarestCopy(spot, reader, layout, top, timer);
+                        copies.put(reader.getUniqueId(), copy);
+                    } else {
+                        updateRarestCopy(spot, copy, reader, layout, top, timer);
+                    }
+                } catch (RuntimeException ex) {
+                    if (copy != null) copy.remove();
+                    copies.remove(reader.getUniqueId());
+                    throw ex;
+                }
+            }
+        }
+        copies.entrySet().removeIf(entry -> {
+            if (keep.contains(entry.getKey())) return false;
+            entry.getValue().remove();
+            return true;
+        });
+    }
+
+    /** The flat direction from the board to the reader, the way the board turns. */
+    private static Vector facingOf(Spot spot, org.bukkit.entity.Player reader, Vector fallback) {
+        Vector to = reader.getLocation().toVector().subtract(spot.at().toVector()).setY(0);
+        if (to.lengthSquared() < 0.25) return fallback != null ? fallback : new Vector(0, 0, 1);
+        return to.normalize();
+    }
+
+    /**
+     * A point on the board for a reader looking along {@code facing}
+     * reversed: {@code side} to their right, {@code forward} toward them.
+     */
+    private static Location rarestPoint(Spot spot, Vector facing, double side, double forward, double y) {
+        // Looking at the board means looking along -facing; the reader's
+        // right hand is then (facing.z, 0, -facing.x).
+        Vector right = new Vector(facing.getZ(), 0, -facing.getX());
+        Location at = spot.at().clone().add(right.multiply(side)).add(facing.clone().multiply(forward)).add(0, y, 0);
+        at.setYaw(0f);
+        at.setPitch(0f);
+        return at;
+    }
+
+    /** #2 stands on the reader's left of #1, #3 on their right, as on a podium seen from the front. */
+    private static double sideOf(int rank, double spacing) {
+        return rank == 0 ? 0.0 : rank == 1 ? -spacing : spacing;
+    }
+
+    private RarestCopy spawnRarestCopy(Spot spot, org.bukkit.entity.Player reader, RarestLayout layout,
+                                       List<com.spacerng.solrng.event.RarestDropEvent.Entry> top,
+                                       Component timerText) {
+        RarestCopy copy = new RarestCopy();
+        Vector facing = facingOf(spot, reader, null);
+        copy.facing = facing;
+        for (int rank = 0; rank < 3; rank++) {
+            var entry = rank < top.size() ? top.get(rank) : null;
+            float scale = rank == 0 ? layout.firstScale() : podiumHeadScale;
+            double side = sideOf(rank, layout.spacing());
+            double y = layout.headY() + (rank == 0 ? layout.firstLift() : 0.0);
+            java.util.UUID uuid = entry == null ? null : entry.uuid();
+            Location at = rarestPoint(spot, facing, side, 0.0, y);
+            ItemDisplay head = at.getWorld().spawn(at, ItemDisplay.class, d -> {
+                d.setVisibleByDefault(false);
+                d.setPersistent(false);
+                d.setItemStack(leaderHead(uuid));
+                d.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
+                d.setBillboard(Display.Billboard.CENTER);
+                d.setTeleportDuration((int) FRAME_TICKS);
+                // Turned round: under a billboard a head shows the reader its
+                // back (Leon's V406 screenshot, Steve's brown hair).
+                d.setTransformation(new Transformation(new Vector3f(), new Quaternionf().rotateY((float) Math.PI),
+                        new Vector3f(scale, scale, scale), new Quaternionf()));
+                d.setViewRange(viewRange);
+                d.setBrightness(new Display.Brightness(15, 15));
+                d.getPersistentDataContainer().set(tagKey, PersistentDataType.STRING, spot.id());
+            });
+            copy.all.add(head);
+            copy.heads[rank] = head;
+            copy.shown[rank] = uuid;
+            copy.keys[rank] = rarestKey(entry);
+
+            // The words stand on the front face of the head, not on its
+            // centre line: from below, the near top edge of the head is
+            // higher on screen than its middle and covered them (V407).
+            double forward = headFront(scale);
+            copy.tags[rank] = rarestText(spot, rarestPoint(spot, facing, side, forward, y + 0.2),
+                    rarestTag(rank, entry), layout.tagScale());
+            Component oddsLine = rarestOddsLine(entry);
+            copy.odds[rank] = rarestText(spot, rarestPoint(spot, facing, side, forward, y + layout.oddsAt()),
+                    oddsLine, fitScale(oddsLine, rank, layout.oddsScale(), layout.spacing(), layout.firstScale()));
+            Component nameLine = rarestNameLine(entry);
+            copy.names[rank] = rarestText(spot, rarestPoint(spot, facing, side, forward, y + layout.nameAt()),
+                    nameLine, fitScale(nameLine, rank, layout.nameScale(), layout.spacing(), layout.firstScale()));
+            copy.all.add(copy.tags[rank]);
+            copy.all.add(copy.odds[rank]);
+            copy.all.add(copy.names[rank]);
+        }
+        copy.timer = rarestText(spot, rarestPoint(spot, facing, 0, 0, layout.timerY()), timerText,
+                (float) layout.small());
+        copy.title = rarestText(spot, rarestPoint(spot, facing, 0, 0, layout.titleY()),
+                parse(plugin.getConfig().getString("rarest-drop.title",
+                        "<gradient:#E1BEE7:#B388FF:#80D8FF><b>RAREST DROP</b></gradient>")),
+                podiumTextScale * (float) PODIUM_TITLE);
+        copy.you = rarestText(spot, rarestPoint(spot, facing, 0, 0, PODIUM_YOU_Y), rarestYouLine(reader),
+                podiumTextScale * (float) PODIUM_TEXT);
+        copy.all.add(copy.timer);
+        copy.all.add(copy.title);
+        copy.all.add(copy.you);
+        for (Display piece : copy.all) reader.showEntity(plugin, piece);
+        return copy;
+    }
+
+    private void updateRarestCopy(Spot spot, RarestCopy copy, org.bukkit.entity.Player reader, RarestLayout layout,
+                                  List<com.spacerng.solrng.event.RarestDropEvent.Entry> top, Component timerText) {
+        // A reader who logged out and back in lost what they were shown;
+        // showing again is a no-op otherwise.
+        for (Display piece : copy.all) reader.showEntity(plugin, piece);
+
+        Vector facing = facingOf(spot, reader, copy.facing);
+        // Turned more than about half a degree: every piece glides to its
+        // new place over the next frame (teleport duration).
+        boolean turned = copy.facing == null || copy.facing.dot(facing) < 0.99996;
+        if (turned) copy.facing = facing;
+
+        for (int rank = 0; rank < 3; rank++) {
+            var entry = rank < top.size() ? top.get(rank) : null;
+            float scale = rank == 0 ? layout.firstScale() : podiumHeadScale;
+            double side = sideOf(rank, layout.spacing());
+            double y = layout.headY() + (rank == 0 ? layout.firstLift() : 0.0);
+            double forward = headFront(scale);
+            if (turned) {
+                copy.heads[rank].teleport(rarestPoint(spot, facing, side, 0.0, y));
+                copy.tags[rank].teleport(rarestPoint(spot, facing, side, forward, y + 0.2));
+                copy.odds[rank].teleport(rarestPoint(spot, facing, side, forward, y + layout.oddsAt()));
+                copy.names[rank].teleport(rarestPoint(spot, facing, side, forward, y + layout.nameAt()));
+            }
+            String key = rarestKey(entry);
+            if (!key.equals(copy.keys[rank])) {
+                copy.keys[rank] = key;
+                copy.tags[rank].text(rarestTag(rank, entry));
+                resize(copy.odds[rank], rarestOddsLine(entry), rank, layout.oddsScale(), layout.spacing(),
+                        layout.firstScale());
+                resize(copy.names[rank], rarestNameLine(entry), rank, layout.nameScale(), layout.spacing(),
+                        layout.firstScale());
+            }
+            java.util.UUID uuid = entry == null ? null : entry.uuid();
+            if (!java.util.Objects.equals(uuid, copy.shown[rank])) {
+                copy.heads[rank].setItemStack(leaderHead(uuid));
+                copy.shown[rank] = uuid;
+            }
+        }
+        if (turned) {
+            copy.timer.teleport(rarestPoint(spot, facing, 0, 0, layout.timerY()));
+            copy.title.teleport(rarestPoint(spot, facing, 0, 0, layout.titleY()));
+            copy.you.teleport(rarestPoint(spot, facing, 0, 0, PODIUM_YOU_Y));
+        }
+        copy.timer.text(timerText);
+        copy.you.text(rarestYouLine(reader));
+    }
+
+    /** One text piece of a reader's copy: seen by nobody until shown, facing the camera fully. */
+    private TextDisplay rarestText(Spot spot, Location at, Component content, float scale) {
+        return at.getWorld().spawn(at, TextDisplay.class, d -> {
+            d.setVisibleByDefault(false);
+            d.setPersistent(false);
+            d.text(content);
+            d.setBillboard(Display.Billboard.CENTER);
+            d.setAlignment(TextDisplay.TextAlignment.CENTER);
+            d.setLineWidth(2000);
+            d.setShadowed(true);
+            d.setBackgroundColor(Color.fromARGB(0, 0, 0, 0));
+            d.setViewRange(viewRange);
+            d.setBrightness(new Display.Brightness(15, 15));
+            d.setTeleportDuration((int) FRAME_TICKS);
+            d.setTransformation(new Transformation(new Vector3f(), new Quaternionf(),
+                    new Vector3f(scale, scale, scale), new Quaternionf()));
+            d.getPersistentDataContainer().set(tagKey, PersistentDataType.STRING, spot.id());
+        });
     }
 
     /** The three entries on the board: the real ones, or examples in a preview. */
@@ -1075,200 +1323,27 @@ public final class HoloManager {
                 * (float) Math.max(0.5, plugin.getConfig().getDouble("rarest-drop.odds-scale", 1.3));
     }
 
-    /**
-     * The rarest drop board (V398, Leon; the big drop lines V406): the
-     * podium's size and shape, but readable from every side.
-     *
-     * Every piece stands on the board's own centre line and turns to face
-     * the viewer (billboard VERTICAL). The side offsets of #2 and #3 are
-     * in the transformation, which the client applies in the turned frame,
-     * so from any side #1 is in the middle with #2 and #3 beside it and
-     * every head looks at you.
-     *
-     * Over each head, bottom to top: the payout, the player, the rarity,
-     * then the drop's odds and the drop's name, both far bigger than the
-     * rest (Leon: "a lot more obvious"). A text display grows upward from
-     * where it stands, so each piece starts where the one under it ends.
-     */
-    private void drawRarest(Spot spot, List<Display> pieces) {
-        boolean hidden = !rarestPublic();
-        drawingPrivate = hidden;
-        try {
-            List<com.spacerng.solrng.event.RarestDropEvent.Entry> top = rarestEntries();
-            double small = podiumTextScale * PODIUM_TEXT;
-            double timerY = PODIUM_YOU_Y + 2 * LINE * small;
-            double titleY = timerY + 2 * LINE * small + GAP;
-            double headY = titleY + LINE * podiumTextScale * PODIUM_TITLE + 0.15 + podiumHeadScale / 2.0;
-            float tagScale = podiumTextScale * (float) PODIUM_TAG;
-            float firstScale = podiumHeadScale * (float) PODIUM_FIRST_SCALE;
-            float oddsScale = rarestOddsScale();
-            float nameScale = rarestNameScale();
-            double spacing = podiumSpacing(tagScale, firstScale);
-            double oddsAt = 0.2 + 3 * LINE * tagScale + GAP;
-            double nameAt = oddsAt + LINE * oddsScale + GAP;
-            double stack = nameAt + LINE * nameScale + GAP;
-            double firstLift = Math.max(PODIUM_FIRST_LIFT + (firstScale - podiumHeadScale) / 2.0, stack + GAP);
-
-            ItemDisplay[] heads = new ItemDisplay[3];
-            TextDisplay[] tags = new TextDisplay[3];
-            TextDisplay[] odds = new TextDisplay[3];
-            TextDisplay[] names = new TextDisplay[3];
-            java.util.UUID[] shown = new java.util.UUID[3];
-            String[] keys = new String[3];
-            for (int rank = 0; rank < 3; rank++) {
-                float side = (float) (rank == 0 ? 0.0 : rank == 1 ? -spacing : spacing);
-                float scale = rank == 0 ? firstScale : podiumHeadScale;
-                double y = headY + (rank == 0 ? firstLift : 0.0);
-                var entry = rank < top.size() ? top.get(rank) : null;
-                java.util.UUID uuid = entry == null ? null : entry.uuid();
-                Location at = spot.at().clone().add(0, y, 0);
-                at.setYaw(0f);
-                at.setPitch(0f);
-                ItemDisplay head = at.getWorld().spawn(at, ItemDisplay.class, d -> {
-                    if (hidden) d.setVisibleByDefault(false);
-                    d.setPersistent(false);
-                    d.setItemStack(leaderHead(uuid));
-                    d.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
-                    d.setBillboard(Display.Billboard.VERTICAL);
-                    d.setTransformation(new Transformation(new Vector3f(side, 0f, 0f), new Quaternionf(),
-                            new Vector3f(scale, scale, scale), new Quaternionf()));
-                    d.setViewRange(viewRange);
-                    d.setBrightness(new Display.Brightness(15, 15));
-                    d.getPersistentDataContainer().set(tagKey, PersistentDataType.STRING, spot.id());
-                });
-                pieces.add(head);
-                heads[rank] = head;
-                shown[rank] = uuid;
-                keys[rank] = rarestKey(entry);
-
-                TextDisplay tag = turningText(spot, spot.at().clone().add(0, y + 0.2, 0),
-                        rarestTag(rank, entry), tagScale, side);
-                pieces.add(tag);
-                tags[rank] = tag;
-
-                Component oddsLine = rarestOddsLine(entry);
-                TextDisplay oddsText = turningText(spot, spot.at().clone().add(0, y + oddsAt, 0), oddsLine,
-                        fitScale(oddsLine, rank, oddsScale, spacing, firstScale), side);
-                pieces.add(oddsText);
-                odds[rank] = oddsText;
-
-                Component nameLine = rarestNameLine(entry);
-                TextDisplay nameText = turningText(spot, spot.at().clone().add(0, y + nameAt, 0), nameLine,
-                        fitScale(nameLine, rank, nameScale, spacing, firstScale), side);
-                pieces.add(nameText);
-                names[rank] = nameText;
-            }
-            podiumHeads.put(spot.id(), heads);
-            podiumTags.put(spot.id(), tags);
-            podiumShown.put(spot.id(), shown);
-            rarestOdds.put(spot.id(), odds);
-            rarestNames.put(spot.id(), names);
-            rarestShownKey.put(spot.id(), keys);
-
-            TextDisplay timer = turningText(spot, spot.at().clone().add(0, timerY, 0), rarestTimer(),
-                    (float) small, 0f);
-            pieces.add(timer);
-            podiumTimers.put(spot.id(), timer);
-            pieces.add(turningText(spot, spot.at().clone().add(0, titleY, 0), parse(plugin.getConfig().getString(
-                            "rarest-drop.title", "<gradient:#E1BEE7:#B388FF:#80D8FF><b>RAREST DROP</b></gradient>")),
-                    podiumTextScale * (float) PODIUM_TITLE, 0f));
-        } finally {
-            drawingPrivate = false;
-        }
-        if (hidden) {
-            for (org.bukkit.entity.Player viewer : rarestPreviewers()) {
-                for (Display piece : pieces) viewer.showEntity(plugin, piece);
-            }
-        }
-    }
-
     /** What an entry shows, so a refresh only rewrites a rank whose drop changed. */
     private static String rarestKey(com.spacerng.solrng.event.RarestDropEvent.Entry entry) {
         return entry == null ? "" : entry.uuid() + "|" + entry.item() + "|" + entry.shiny() + "|" + entry.name();
     }
 
-    private void tickRarest(Spot spot, boolean refreshTop) {
-        boolean hidden = !rarestPublic();
-        TextDisplay timer = podiumTimers.get(spot.id());
-        if (timer != null && timer.isValid()) timer.text(rarestTimer());
-        if (!hidden && (refreshTop || plugin.getRarestDropEvent().isActive())) {
-            var top = plugin.getRarestDropEvent().top(3);
-            ItemDisplay[] heads = podiumHeads.get(spot.id());
-            TextDisplay[] tags = podiumTags.get(spot.id());
-            TextDisplay[] odds = rarestOdds.get(spot.id());
-            TextDisplay[] names = rarestNames.get(spot.id());
-            java.util.UUID[] shown = podiumShown.get(spot.id());
-            String[] keys = rarestShownKey.get(spot.id());
-            if (heads != null && tags != null && odds != null && names != null && shown != null && keys != null) {
-                float tagScale = podiumTextScale * (float) PODIUM_TAG;
-                float firstScale = podiumHeadScale * (float) PODIUM_FIRST_SCALE;
-                double spacing = podiumSpacing(tagScale, firstScale);
-                for (int rank = 0; rank < 3; rank++) {
-                    var entry = rank < top.size() ? top.get(rank) : null;
-                    String key = rarestKey(entry);
-                    if (key.equals(keys[rank])) continue;
-                    keys[rank] = key;
-                    float side = (float) (rank == 0 ? 0.0 : rank == 1 ? -spacing : spacing);
-                    if (tags[rank] != null && tags[rank].isValid()) tags[rank].text(rarestTag(rank, entry));
-                    resize(odds[rank], rarestOddsLine(entry), rank, rarestOddsScale(), spacing, firstScale, side);
-                    resize(names[rank], rarestNameLine(entry), rank, rarestNameScale(), spacing, firstScale, side);
-                    java.util.UUID uuid = entry == null ? null : entry.uuid();
-                    if (!java.util.Objects.equals(uuid, shown[rank]) && heads[rank] != null && heads[rank].isValid()) {
-                        heads[rank].setItemStack(leaderHead(uuid));
-                        shown[rank] = uuid;
-                    }
-                }
-            }
-        }
-        List<org.bukkit.entity.Player> previewers = hidden ? rarestPreviewers() : List.of();
-        if (hidden) {
-            // A previewer who logged out and back in lost what they were
-            // shown; showing again is a no-op for the rest.
-            List<Display> pieces = drawn.get(spot.id());
-            if (pieces != null) {
-                for (org.bukkit.entity.Player viewer : previewers) {
-                    for (Display piece : pieces) {
-                        if (piece.isValid()) viewer.showEntity(plugin, piece);
-                    }
-                }
-            }
-        }
-        // Every reader's own line, at the foot of the board. In a preview
-        // only the previewers read it.
-        World world = spot.at().getWorld();
-        if (world == null) return;
-        Map<java.util.UUID, TextDisplay> lines = podiumYou.computeIfAbsent(spot.id(), id -> new HashMap<>());
-        java.util.Set<java.util.UUID> near = new java.util.HashSet<>();
-        for (org.bukkit.entity.Player reader : hidden ? previewers : world.getPlayers()) {
-            if (!reader.getWorld().equals(world)) continue;
-            if (reader.getLocation().distanceSquared(spot.at()) > PODIUM_READ_RANGE * PODIUM_READ_RANGE) continue;
-            near.add(reader.getUniqueId());
-            Component content = rarestYouLine(reader);
-            TextDisplay line = lines.get(reader.getUniqueId());
-            if (line == null || !line.isValid()) {
-                line = privateText(spot, spot.at().clone().add(0, PODIUM_YOU_Y, 0), content,
-                        podiumTextScale * (float) PODIUM_TEXT);
-                reader.showEntity(plugin, line);
-                lines.put(reader.getUniqueId(), line);
-            } else {
-                line.text(content);
-            }
-        }
-        lines.entrySet().removeIf(entry -> {
-            if (near.contains(entry.getKey()) && entry.getValue().isValid()) return false;
-            if (entry.getValue().isValid()) entry.getValue().remove();
-            return true;
-        });
-    }
-
     /** New text on one of the big lines, at the size it now fits at. */
     private void resize(TextDisplay display, Component content, int rank, float max, double spacing,
-                        float firstScale, float side) {
+                        float firstScale) {
         if (display == null || !display.isValid()) return;
         float scale = fitScale(content, rank, max, spacing, firstScale);
         display.text(content);
-        display.setTransformation(new Transformation(new Vector3f(side, 0f, 0f), new Quaternionf(),
+        display.setTransformation(new Transformation(new Vector3f(), new Quaternionf(),
                 new Vector3f(scale, scale, scale), new Quaternionf()));
+    }
+
+    /**
+     * How far in front of a head's centre its face is, plus a little air.
+     * A player head is half a block wide at scale 1.
+     */
+    private static double headFront(float headScale) {
+        return headScale * 0.25 + 0.15;
     }
 
     /**
@@ -1398,29 +1473,6 @@ public final class HoloManager {
                 .deserialize(org.bukkit.ChatColor.GOLD + "" + org.bukkit.ChatColor.BOLD + "YOU: "
                         + org.bukkit.ChatColor.RESET + org.bukkit.ChatColor.GOLD + "#" + event.placeOf(reader.getUniqueId())
                         + " " + event.label(mine));
-    }
-
-    /** A text piece that turns to every viewer, offset sideways in their frame (V398). */
-    private TextDisplay turningText(Spot spot, Location at, Component content, float scale, float side) {
-        Location spawnAt = at.clone();
-        spawnAt.setYaw(0f);
-        spawnAt.setPitch(0f);
-        boolean hidden = drawingPrivate;
-        return spawnAt.getWorld().spawn(spawnAt, TextDisplay.class, d -> {
-            if (hidden) d.setVisibleByDefault(false);
-            d.setPersistent(false);
-            d.text(content);
-            d.setBillboard(Display.Billboard.VERTICAL);
-            d.setAlignment(TextDisplay.TextAlignment.CENTER);
-            d.setLineWidth(2000);
-            d.setShadowed(true);
-            d.setBackgroundColor(Color.fromARGB(0, 0, 0, 0));
-            d.setViewRange(viewRange);
-            d.setBrightness(new Display.Brightness(15, 15));
-            d.setTransformation(new Transformation(new Vector3f(side, 0f, 0f), new Quaternionf(),
-                    new Vector3f(scale, scale, scale), new Quaternionf()));
-            d.getPersistentDataContainer().set(tagKey, PersistentDataType.STRING, spot.id());
-        });
     }
 
     /** Gives every player near a podium their own "YOU" line, and takes it down when they leave. */

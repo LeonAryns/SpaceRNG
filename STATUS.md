@@ -5,8 +5,23 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V407**, 17 October 2026. The newest section is the
+Last updated at **V408**, 17 October 2026. The newest section is the
 first one below; older sections further down are history.
+
+## V408, 17 October 2026 (untested in game)
+
+- Rarest board, from Leon's preview screenshot: it turned with the
+  camera (a billboard follows the camera's rotation, so #2 and #3, set
+  beside #1 inside it, swung when you turned your head), the text over
+  a head was covered from below, and the heads showed their backs.
+  Now every reader within 64 blocks gets a private copy laid out from
+  where they stand, gliding round as they walk; every piece faces the
+  camera fully (billboard CENTER) so it tilts to a reader below; the
+  words over a head stand on its front face; heads are turned 180
+  degrees. `HoloManager.tickRarestCopies`.
+- Astral: purple at both ends again (patch `astral-purple-v407`; the
+  V401 patch is removed, its old value is the new default), and Astral
+  drop names wear the Astral gradient instead of their block colour.
 
 ## V406, 17 October 2026 (untested in game): the Sunday reset
 

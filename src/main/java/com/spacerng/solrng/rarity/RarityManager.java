@@ -127,6 +127,9 @@ public class RarityManager {
     /** How long a drop's name may be where it shares a line, from tag.max-name-length. */
     private int maxPlainName = 18;
 
+    /** The Astral rarity's own colours, which its drop names wear too (V407). */
+    private List<String> astralColours;
+
     public RarityManager(Logger logger) {
         this.logger = logger;
     }
@@ -157,6 +160,7 @@ public class RarityManager {
                         DEFAULT_EXPONENTS.getOrDefault(rarity, 0.0)));
                 trueOdds.put(rarity, r.getBoolean("true-odds", false));
                 if (r.contains("share")) shares.put(rarity, r.getDouble("share"));
+                if (rarity == Rarity.ASTRAL) astralColours = r.getStringList("colors");
                 styles.put(rarity, parseStyle(r.getStringList("colors"),
                         r.getBoolean("bold", false),
                         r.getBoolean("underline", false),
@@ -180,6 +184,11 @@ public class RarityManager {
                 RarityStyle rarityStyle = styles.get(rarity);
                 // No colours of its own: the name takes the colour of its
                 // block, with more colour in it the rarer it is.
+                // V407, Leon: an Astral drop's name wears the Astral gradient
+                // itself, purple, blue and purple again, like the rarity.
+                if (style == null && rarity == Rarity.ASTRAL && astralColours != null && !astralColours.isEmpty()) {
+                    style = parseStyle(astralColours, false, false, false);
+                }
                 if (style == null) {
                     style = parseStyle(BlockColours.gradientFor(material, rarity,
                             rarityStyle == null ? null : rarityStyle.stops()), false, false, false);

@@ -156,6 +156,13 @@ Packages are by feature under `com.spacerng.solrng`. Where new things go:
   silently matches nothing. Match it with `.` instead, and always grep
   afterwards that the change happened. V103 claimed a fix that never
   landed this way.
+- **A billboard follows the camera's rotation, not its position.**
+  Anything offset inside a billboarded display (a translation) swings
+  across the screen when the player turns their head. Pieces that must
+  stand beside each other for every reader need a copy per reader, laid
+  out in the world from where that reader stands (the rarest board,
+  V408). Under a billboard a player head with transform NONE shows its
+  back; turn it 180 degrees on Y.
 - **Display entities copy their spawn rotation.** A display spawned at
   `player.getLocation()` takes the player's yaw and pitch. Spawn aura
   pieces at a location with both set to 0, or they hang tilted.
