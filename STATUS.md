@@ -5,8 +5,18 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V409**, 17 October 2026. The newest section is the
+Last updated at **V410**, 17 October 2026. The newest section is the
 first one below; older sections further down are history.
+
+## V410, 17 October 2026 (untested in game)
+
+- Convert vault up to 5,000 of each rarity (Leon). Three new skills on
+  the Money line, each next to the skill it needs: Vault Space II
+  (page 3, above Money V, +100 a level, 40M), Vault Space III and IV
+  (page 5, above Money Mogul, +150 and +190 a level, 1.2T and 2.5T).
+  100 base + 500 + 1,000 + 1,500 + 1,900 = 5,000. config-version 62,
+  so the live skilltree section is rewritten once. If the live
+  `conversion.max-per-rarity` is not 100 the top is off by the same.
 
 ## V409, 17 October 2026 (untested in game)
 

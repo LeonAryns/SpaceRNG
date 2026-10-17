@@ -8,7 +8,7 @@
 # their fresh defaults in on top of whatever is on disk, so a server
 # owner never has to delete the whole file to pick up a structural
 # change. Item table, prices and cosmetic tweaks are untouched.
-config-version: 61
+config-version: 62
 
 # One-off value changes the plugin has already made to this file, so none
 # is ever made twice. Managed by the plugin; leave it alone.
@@ -2768,6 +2768,45 @@ skilltree:
       requires: "vault_unlock"
       effect: CONVERT_CAP
       value: 50
+      max-level: 10
+
+    # V410, Leon: the vault to 5,000 of each rarity. 100 base + 500 from
+    # Vault Space + 1,000 + 1,500 + 1,900 from these three. Each sits on
+    # the Money line next to the skill it needs.
+    vault_space_2:
+      display: "Vault Space II"
+      page: 3
+      slot: "8,1"
+      icon: ENDER_CHEST
+      cost-money: 40000000
+      cost-growth: 1.32
+      requires: "coins_5"
+      effect: CONVERT_CAP
+      value: 100
+      max-level: 10
+
+    vault_space_3:
+      display: "Vault Space III"
+      page: 5
+      slot: "8,3"
+      icon: ENDER_CHEST
+      cost-money: 1200000000000
+      cost-growth: 1.3
+      requires: "money_capstone_2"
+      effect: CONVERT_CAP
+      value: 150
+      max-level: 10
+
+    vault_space_4:
+      display: "Vault Space IV"
+      page: 5
+      slot: "8,2"
+      icon: ENDER_CHEST
+      cost-money: 2500000000000
+      cost-growth: 1.3
+      requires: "vault_space_3"
+      effect: CONVERT_CAP
+      value: 190
       max-level: 10
 
     vault_unlock:
