@@ -5,19 +5,11 @@ import com.spacerng.solrng.starforge.StarforgeTier;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Stream;
 
 /**
  * Wiping accounts back to new ones.
@@ -33,7 +25,7 @@ public final class AccountReset {
     }
 
     /** What {@link #everyone} did, for the log and the admin. */
-    public record Summary(int online, int offline, int clans, String backup) {
+    public record Summary(int online, int offline, int clans) {
     }
 
     /**
@@ -105,17 +97,17 @@ public final class AccountReset {
      * since a chest would carry items through the reset), and the Server
      * First 10, the drop records and the found counts start over.
      *
-     * Every file it touches is copied to backups/ first. One player that
-     * throws is logged and skipped; the rest still go.
+     * No backup (Leon, 17 October): a full season reset follows the
+     * battle anyway. One player that throws is logged and skipped; the
+     * rest still go.
      */
     public static Summary everyone(SolRNGPlugin plugin) {
         var log = plugin.getLogger();
         PlayerDataManager players = plugin.getPlayerDataManager();
 
-        // Everything on disk is current before it is copied.
+        // Everything on disk is current before the files are read.
         players.saveAll();
         if (plugin.getClanManager() != null) plugin.getClanManager().save();
-        String backup = backup(plugin);
 
         // A farming payout due at the same minute pays out on the old
         // numbers first, rather than finding every counter at zero.
@@ -195,40 +187,7 @@ public final class AccountReset {
         }
 
         log.warning("Reset done: " + onlineDone + " online and " + offline.size() + " offline players, "
-                + clans + " clans. Backup: " + backup);
-        return new Summary(onlineDone, offline.size(), clans, backup);
-    }
-
-    /**
-     * Copies the save files and every server list the reset clears into
-     * backups/reset-&lt;date&gt;_&lt;time&gt;/, so a reset that went wrong
-     * can be put back by hand: stop the server, copy them over, start.
-     */
-    private static String backup(SolRNGPlugin plugin) {
-        File root = plugin.getDataFolder();
-        String stamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"));
-        Path target = root.toPath().resolve("backups").resolve("reset-" + stamp);
-        try {
-            Files.createDirectories(target);
-            Path saves = plugin.getPlayerDataManager().folder().toPath();
-            Path savesCopy = target.resolve("playerdata");
-            Files.createDirectories(savesCopy);
-            try (Stream<Path> files = Files.list(saves)) {
-                for (Path file : (Iterable<Path>) files::iterator) {
-                    if (Files.isRegularFile(file)) {
-                        Files.copy(file, savesCopy.resolve(file.getFileName()), StandardCopyOption.REPLACE_EXISTING);
-                    }
-                }
-            }
-            for (String name : List.of("clans.yml", "leaderboard.yml", "firsts.yml", "found.yml",
-                    "drop-record.yml", "season-wipe.yml", "rarest-drop.yml")) {
-                Path file = root.toPath().resolve(name);
-                if (Files.exists(file)) Files.copy(file, target.resolve(name), StandardCopyOption.REPLACE_EXISTING);
-            }
-            return "plugins/" + root.getName() + "/backups/reset-" + stamp;
-        } catch (IOException | RuntimeException ex) {
-            plugin.getLogger().severe("Reset: the backup failed, going on without one: " + ex);
-            return "none (failed)";
-        }
+                + clans + " clans.");
+        return new Summary(onlineDone, offline.size(), clans);
     }
 }

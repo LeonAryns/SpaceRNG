@@ -4839,7 +4839,7 @@ rarest-drop:
   # reset first, the way /rngadmin reset does it (rank, Credits, Battle
   # Pass and milestones kept), and every clan, the First 10, the drop
   # records and the found counts go too. Runs once per date; empty is
-  # never. A backup of every file it touches goes to backups/ first.
+  # never.
   reset-on: "2026-10-18"
   # How long the battle runs from its start. A server that was down at
   # 00:00 starts it when it is back, still that day, with the full length.

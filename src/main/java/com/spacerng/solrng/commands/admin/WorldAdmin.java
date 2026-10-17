@@ -820,7 +820,7 @@ final class WorldAdmin extends AdminTools {
             sender.sendMessage(ChatColor.YELLOW + "Reset armed: " + ChatColor.WHITE
                     + "every player is reset at the start (rarest-drop.reset-on " + resetOn + ").");
             sender.sendMessage(ChatColor.GRAY + "Kept: rank, Credits, Battle Pass, milestones. Gone: everything else, "
-                    + "every clan, the First 10, drop records and found counts. A backup goes to backups/ first.");
+                    + "every clan, the First 10, drop records and found counts.");
         } else if (!event.resetDone().isEmpty()) {
             sender.sendMessage(ChatColor.WHITE + "The reset ran for " + event.resetDone() + ".");
         } else {

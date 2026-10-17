@@ -5,7 +5,7 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V406**, 17 October 2026. The newest section is the
+Last updated at **V407**, 17 October 2026. The newest section is the
 first one below; older sections further down are history.
 
 ## V406, 17 October 2026 (untested in game): the Sunday reset
@@ -24,10 +24,8 @@ Leon is offline when it fires, so it has to run by itself.
   wiped (chests included, they would carry items through), and the
   First 10, drop records and found counts start over. A farming payout
   due at the same minute is paid first.
-- Backup first: every save file plus clans, leaderboard, firsts, found,
-  drop-record, season-wipe and rarest-drop yml to
-  `plugins/SpaceRNG/backups/reset-<date>_<time>/`. To undo: stop the
-  server, copy them back, start.
+- No backup (V407, Leon): a full season reset follows the battle anyway.
+- No board was placed yet: `/rngadmin rarest place` puts one down.
 - Once only: the start moment and `reset-done` are written to
   rarest-drop.yml before the reset runs. A server that was down at
   midnight starts both when it is back, still on that day, with the full
