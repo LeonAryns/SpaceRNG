@@ -5,8 +5,17 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V408**, 17 October 2026. The newest section is the
+Last updated at **V409**, 17 October 2026. The newest section is the
 first one below; older sections further down are history.
+
+## V409, 17 October 2026 (untested in game)
+
+- Rarest board, Leon's screenshot from below: every piece faced the
+  camera but the layout stood straight up, so from far below the lines
+  piled onto each other. Each reader's copy is now one flat panel
+  through the board's middle, facing their eyes (`BoardFrame`): it
+  leans over a reader below like a screen, and lies flat overhead when
+  they stand right under it.
 
 ## V408, 17 October 2026 (untested in game)
 

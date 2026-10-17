@@ -1004,7 +1004,7 @@ public final class HoloManager {
         TextDisplay timer;
         TextDisplay title;
         TextDisplay you;
-        Vector facing;
+        BoardFrame facing;
 
         boolean valid() {
             for (Display piece : all) if (!piece.isValid()) return false;
@@ -1020,7 +1020,7 @@ public final class HoloManager {
     /** Every height and size on the board, worked out once per frame. */
     private record RarestLayout(double small, double timerY, double titleY, double headY, float tagScale,
                                 float firstScale, float oddsScale, float nameScale, double spacing,
-                                double oddsAt, double nameAt, double firstLift) {
+                                double oddsAt, double nameAt, double firstLift, double midY) {
     }
 
     private RarestLayout rarestLayout() {
@@ -1037,8 +1037,10 @@ public final class HoloManager {
         double nameAt = oddsAt + LINE * oddsScale + GAP;
         double stack = nameAt + LINE * nameScale + GAP;
         double firstLift = Math.max(PODIUM_FIRST_LIFT + (firstScale - podiumHeadScale) / 2.0, stack + GAP);
+        // The board tilts about its middle, so that point stays put.
+        double top = headY + firstLift + nameAt + LINE * nameScale;
         return new RarestLayout(small, timerY, titleY, headY, tagScale, firstScale, oddsScale, nameScale,
-                spacing, oddsAt, nameAt, firstLift);
+                spacing, oddsAt, nameAt, firstLift, (PODIUM_YOU_Y + top) / 2.0);
     }
 
     /** Every rarest board placed. */
@@ -1125,22 +1127,49 @@ public final class HoloManager {
         });
     }
 
-    /** The flat direction from the board to the reader, the way the board turns. */
-    private static Vector facingOf(Spot spot, org.bukkit.entity.Player reader, Vector fallback) {
-        Vector to = reader.getLocation().toVector().subtract(spot.at().toVector()).setY(0);
-        if (to.lengthSquared() < 0.25) return fallback != null ? fallback : new Vector(0, 0, 1);
-        return to.normalize();
+    /**
+     * The plane one reader's copy is laid out in (V409). It goes through
+     * the board's middle and faces the reader's eyes, so from below the
+     * whole board leans over them like a screen and its lines keep their
+     * spacing. V408 laid the pieces out up a straight vertical line; each
+     * piece faced the camera, but from far below the heights shrank in
+     * view and the lines piled onto each other.
+     *
+     * right stays level (no roll), toward points at the eyes, and up is
+     * square to both, so it is world up for a reader level with the board.
+     */
+    private record BoardFrame(Location mid, double midY, Vector right, Vector up, Vector toward) {
+    }
+
+    private static BoardFrame frameOf(Spot spot, org.bukkit.entity.Player reader, BoardFrame previous,
+                                      RarestLayout layout) {
+        Location mid = spot.at().clone().add(0, layout.midY(), 0);
+        Vector flat = reader.getLocation().toVector().subtract(spot.at().toVector()).setY(0);
+        if (flat.lengthSquared() < 0.25) {
+            // Right under the middle there is no way to face; keep the last one.
+            if (previous != null) return previous;
+            flat = new Vector(0, 0, 1);
+        }
+        flat.normalize();
+        // Looking at the board means looking along -flat; the reader's
+        // right hand is then (flat.z, 0, -flat.x).
+        Vector right = new Vector(flat.getZ(), 0, -flat.getX());
+        Vector toward = reader.getEyeLocation().toVector().subtract(mid.toVector());
+        if (toward.lengthSquared() < 0.01) toward = flat.clone();
+        toward.normalize();
+        Vector up = toward.clone().crossProduct(right).normalize();
+        return new BoardFrame(mid, layout.midY(), right, up, toward);
     }
 
     /**
-     * A point on the board for a reader looking along {@code facing}
-     * reversed: {@code side} to their right, {@code forward} toward them.
+     * A point on a reader's copy: {@code side} to their right, {@code y}
+     * up the board from its foot, {@code forward} toward their eyes.
      */
-    private static Location rarestPoint(Spot spot, Vector facing, double side, double forward, double y) {
-        // Looking at the board means looking along -facing; the reader's
-        // right hand is then (facing.z, 0, -facing.x).
-        Vector right = new Vector(facing.getZ(), 0, -facing.getX());
-        Location at = spot.at().clone().add(right.multiply(side)).add(facing.clone().multiply(forward)).add(0, y, 0);
+    private static Location rarestPoint(Spot spot, BoardFrame frame, double side, double forward, double y) {
+        Location at = frame.mid().clone()
+                .add(frame.right().clone().multiply(side))
+                .add(frame.up().clone().multiply(y - frame.midY()))
+                .add(frame.toward().clone().multiply(forward));
         at.setYaw(0f);
         at.setPitch(0f);
         return at;
@@ -1155,7 +1184,7 @@ public final class HoloManager {
                                        List<com.spacerng.solrng.event.RarestDropEvent.Entry> top,
                                        Component timerText) {
         RarestCopy copy = new RarestCopy();
-        Vector facing = facingOf(spot, reader, null);
+        BoardFrame facing = frameOf(spot, reader, null, layout);
         copy.facing = facing;
         for (int rank = 0; rank < 3; rank++) {
             var entry = rank < top.size() ? top.get(rank) : null;
@@ -1221,11 +1250,13 @@ public final class HoloManager {
         // showing again is a no-op otherwise.
         for (Display piece : copy.all) reader.showEntity(plugin, piece);
 
-        Vector facing = facingOf(spot, reader, copy.facing);
+        BoardFrame facing = frameOf(spot, reader, copy.facing, layout);
         // Turned more than about half a degree: every piece glides to its
         // new place over the next frame (teleport duration).
-        boolean turned = copy.facing == null || copy.facing.dot(facing) < 0.99996;
+        boolean turned = copy.facing == null || copy.facing.toward().dot(facing.toward()) < 0.99996
+                || copy.facing.right().dot(facing.right()) < 0.99996;
         if (turned) copy.facing = facing;
+        else facing = copy.facing;
 
         for (int rank = 0; rank < 3; rank++) {
             var entry = rank < top.size() ? top.get(rank) : null;
