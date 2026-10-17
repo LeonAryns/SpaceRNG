@@ -5,8 +5,30 @@ another machine. Read this before proposing work. `CLAUDE.md` holds the
 rules and the house style; this file holds the state, and it is the one
 that goes stale, so update it at the end of a working session.
 
-Last updated at **V410**, 17 October 2026. The newest section is the
+Last updated at **V411**, 17 October 2026. The newest section is the
 first one below; older sections further down are history.
+
+## V411, 17 October 2026 (untested in game)
+
+- Rarest drop battle: a shiny counts the same as the plain drop (Leon;
+  it was label x 100). At equal odds a shiny replaces the plain entry so
+  the board shows it, without ranking higher.
+
+### Next subject, after the Sunday reset and V410 are confirmed: the Secret Realm in its own world
+
+Leon's plan, 17 October:
+- He copies the whole map with WorldEdit into a new empty End world
+  (void generator), no holograms there, for the secret realm feel.
+- Code: the realm becomes that world (everyone in it is inside, not a
+  spot and radius), loaded late by Multiverse so kept unresolved until
+  WorldLoadListener; the pasted farm blocks need a plot scan to be
+  plots.
+- Secret Egg: 0.01% a crop harvest inside the realm, any crop, no boost
+  of any kind applies. Hatches a secret pet whose multiplier is the
+  multiplier of the best pet the player OWNS, times its own rarity:
+  Common 1, Uncommon 1.1, Rare 1.25, Epic 1.5, Legendary 2, Mythical 3,
+  Divine 5 (Leon: fine for now). Derived live, not stored. It takes one
+  of the normal pet slots and boosts the stat the player picks.
 
 ## V410, 17 October 2026 (untested in game)
 

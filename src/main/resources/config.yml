@@ -4862,8 +4862,9 @@ consumables:
 # 0.08 at level 10 is 1.80x. base-cost is in Coins and cost-growth is
 # compounded per level, so level n costs base x growth^n.
 # V398, Leon: the rarest drop battle. It starts at 00:00 in `zone` on
-# `day` and runs `length-hours`; each player's rarest roll counts (a shiny
-# as its label x 100). At the end #1, #2 and #3 get `payouts` Credits.
+# `day` and runs `length-hours`; each player's rarest roll counts by its
+# label, a shiny the same (V411). At the end #1, #2 and #3 get `payouts`
+# Credits.
 # V406: the board is hidden until the start, then up for everybody.
 # /rngadmin rarest place puts one down, show and hide preview it for you
 # alone, status says when it starts and whether the reset is armed.

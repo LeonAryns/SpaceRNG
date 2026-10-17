@@ -44,8 +44,8 @@ import java.util.UUID;
  * changes nothing; and the reset runs at most once per date, because the
  * date is written down before it runs.
  *
- * Rarest means the highest label; a shiny counts as its label times
- * 1 / shiny.chance (100), the way a shiny actually is that much rarer.
+ * Rarest means the highest label; a shiny counts the same (V411), it was
+ * its label x 1 / shiny.chance (100) until V410.
  */
 public final class RarestDropEvent {
 
@@ -208,16 +208,20 @@ public final class RarestDropEvent {
         if (!isActive()) return;
         double score = scoreOf(item.getOdds(), shiny);
         Entry had = best.get(player.getUniqueId());
-        if (had != null && had.score() >= score) return;
+        // A shiny of the same odds replaces the plain one, so the board
+        // shows the shiny; it does not rank higher for it.
+        if (had != null && (had.score() > score || (had.score() == score && (had.shiny() || !shiny)))) return;
         best.put(player.getUniqueId(), new Entry(player.getUniqueId(), player.getName(),
                 item.getDisplayName(), item.getRarity().name(), item.getOdds(), shiny, score));
         dirty = true;
     }
 
-    /** How rare a roll really is: its label, times 1 / shiny.chance for a shiny. */
+    /**
+     * How a roll ranks: its label. V411, Leon: a shiny counts the same as
+     * the plain drop (it was its label x 100 until V410).
+     */
     public double scoreOf(long odds, boolean shiny) {
-        double shinyFactor = 1.0 / Math.max(1e-9, plugin.getConfig().getDouble("shiny.chance", 0.01));
-        return odds * (shiny ? shinyFactor : 1.0);
+        return odds;
     }
 
     public List<Entry> top(int count) {

@@ -1447,7 +1447,7 @@ public final class HoloManager {
         return Component.join(JoinConfiguration.newlines(), rows);
     }
 
-    /** "1 in 5M", big and white: how rare the drop really is, a shiny counted x100. */
+    /** "1 in 5M", big and white: the drop's label, a shiny the same (V411). */
     private Component rarestOddsLine(com.spacerng.solrng.event.RarestDropEvent.Entry entry) {
         if (entry == null) return Component.empty();
         return parse("<white><b>1 in " + com.spacerng.solrng.rarity.RollFormat.abbreviate(
